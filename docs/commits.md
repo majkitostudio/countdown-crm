@@ -188,7 +188,7 @@ feat: add real-time speech transcription via Web Speech API
 
 > **Priorita: VYSOKÁ** — Toto je klíčová differenciace od klasických CRM. AI copilot v reálném čase.
 
-### ⏳ COMMIT-09 — Google Gemini API integrace
+### ✅ HOTOVO: COMMIT-09 — Google Gemini API integrace
 ```
 feat: add gemini api integration with streaming server action
 ```
@@ -197,13 +197,13 @@ feat: add gemini api integration with streaming server action
 **Proč**: Gemini Flash je extrémně rychlý a zdarma do limitu. Server Action zajistí bezpečnost API klíče.
 
 **Jak**:
-- Server Action `analyzeTranscript()` → volání Gemini API
-- Streamování odpovědí (pro pocit okamžitosti)
-- System prompt s kontextem: profil zákazníka + produktový katalog + přepis hovoru
-- Rate limiting a error handling
-- Uložení API klíče do Vercel Environment Variables
+- Server Action `analyzeCallTranscriptAction` (`src/app/actions/copilot.ts`) využívající rozhraní `@google/genai`
+- Bezpečné uložení a předání `GEMINI_API_KEY` ze serveru
+- Strukturovaný JSON výstup (Sentiment, detekce námitky, confidence score %, 3 prodejní argumenty, Next Best Action)
+- Inteligentní fallback engine v `src/lib/gemini.ts` pro prostředí bez vloženého API klíče
+- Tlačítko pro spuštění AI analýzy a zobrazení živých doporučení v `AiCopilotPanel.tsx`
 
-**Výsledek**: Backend schopný přijímat přepis a vracet AI doporučení ve streamované podobě.
+**Výsledek**: Operátor dostává živá doporučení od Google Gemini Flash během hovoru.
 
 ---
 

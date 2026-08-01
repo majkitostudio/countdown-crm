@@ -8,13 +8,17 @@ import {
   TrendingUp,
   ArrowRight,
   Mic,
-  MicOff,
   Globe,
-  Plus,
-  Send
+  Send,
+  Zap,
+  RefreshCw,
+  CheckCircle2,
+  Cpu
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { useSpeechRecognition, SpeechLanguage } from "@/hooks/useSpeechRecognition";
+import { analyzeCallTranscriptAction } from "@/app/actions/copilot";
+import { CopilotAnalysisResult } from "@/lib/gemini";
 
 interface TranscriptMessage {
   id: string;
@@ -42,12 +46,19 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   } = useSpeechRecognition("cs-CZ");
 
   const [simulatedText, setSimulatedText] = useState("");
-  const [sentiment, setSentiment] = useState<"Positive" | "Price Objection" | "Neutral">("Price Objection");
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([
-    "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
-    "Offer 3-month bundle discount which lowers monthly cost by 25%.",
-    "Emphasize 30-day money-back guarantee with zero risk."
-  ]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<CopilotAnalysisResult>({
+    sentiment: "Price Objection",
+    detectedObjection: "Price is too high compared to pharmacy vitamins",
+    confidenceScore: 92,
+    rebuttalArguments: [
+      "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
+      "Offer 3-month bundle discount which lowers monthly cost by 25%.",
+      "Emphasize 30-day money-back guarantee with zero risk."
+    ],
+    nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
+    aiSource: "gemini-flash"
+  });
 
   const [transcript, setTranscript] = useState<TranscriptMessage[]>([
     {
@@ -64,7 +75,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     },
   ]);
 
-  // Handle call active start/stop listening
+  // Start / Stop speech listener with call state
   useEffect(() => {
     if (isCallActive) {
       startListening();
@@ -73,7 +84,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     }
   }, [isCallActive, startListening, stopListening]);
 
-  // Push mic transcript into chat stream when new words detected
+  // Handle mic transcript
   useEffect(() => {
     if (micTranscript.trim()) {
       const lastLine = micTranscript.trim();
@@ -89,38 +100,46 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     }
   }, [micTranscript]);
 
-  const handleSimulateCustomerPhrase = (phrase: string, detectedSentiment: typeof sentiment) => {
+  const runGeminiAnalysis = async (fullTranscriptText: string) => {
+    setIsAnalyzing(true);
+    const result = await analyzeCallTranscriptAction(
+      fullTranscriptText,
+      activeLead?.full_name || "Customer",
+      "Bio-Boost Anti-Aging Stack"
+    );
+    setAnalysisResult(result);
+    setIsAnalyzing(false);
+  };
+
+  const handleSimulateCustomerPhrase = (phrase: string) => {
     const newMsg: TranscriptMessage = {
       id: `t-sim-${Date.now()}`,
       speaker: "customer",
       text: phrase,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
     };
-    setTranscript((prev) => [...prev, newMsg]);
-    setSentiment(detectedSentiment);
+    const updatedTranscript = [...transcript, newMsg];
+    setTranscript(updatedTranscript);
+
+    // Trigger Gemini analysis
+    const fullText = updatedTranscript.map((t) => `${t.speaker}: ${t.text}`).join("\n");
+    runGeminiAnalysis(fullText);
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!simulatedText.trim()) return;
 
-    const lower = simulatedText.toLowerCase();
-    let detectedSen: typeof sentiment = "Neutral";
-    if (lower.includes("cena") || lower.includes("drahé") || lower.includes("skupé") || lower.includes("expensive")) {
-      detectedSen = "Price Objection";
-    } else if (lower.includes("chci") || lower.includes("koupím") || lower.includes("super") || lower.includes("order")) {
-      detectedSen = "Positive";
-    }
-
-    handleSimulateCustomerPhrase(simulatedText.trim(), detectedSen);
+    handleSimulateCustomerPhrase(simulatedText.trim());
     setSimulatedText("");
   };
 
-  const getSentimentBadge = (s: typeof sentiment) => {
+  const getSentimentBadge = (s: CopilotAnalysisResult["sentiment"]) => {
     switch (s) {
       case "Positive":
         return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
       case "Price Objection":
+      case "Product Objection":
         return "bg-amber-500/10 text-amber-400 border-amber-500/20";
       default:
         return "bg-zinc-800 text-zinc-400 border-zinc-700";
@@ -137,14 +156,19 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-zinc-100">AI Speech & Objection Engine</h2>
-            <p className="text-[11px] text-zinc-400">Web Speech API live transcript</p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-sm font-bold text-zinc-100">Google Gemini 2.5 Copilot</h2>
+              <span className="text-[10px] bg-cyan-500/10 text-cyan-400 font-semibold px-2 py-0.5 rounded-full border border-cyan-500/20 flex items-center gap-1">
+                <Cpu className="w-2.5 h-2.5" />
+                {analysisResult.aiSource === "gemini-flash" ? "Gemini Flash" : "AI Engine"}
+              </span>
+            </div>
+            <p className="text-[11px] text-zinc-400">Live speech analysis & objection battle-card</p>
           </div>
         </div>
 
         {/* Language selector & Mic Status */}
         <div className="flex items-center gap-2">
-          {/* Language Picker */}
           <div className="flex items-center gap-1 bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-xs">
             <Globe className="w-3 h-3 text-zinc-500" />
             <select
@@ -158,10 +182,9 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             </select>
           </div>
 
-          {/* Sentiment Badge */}
-          <div className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${getSentimentBadge(sentiment)}`}>
+          <div className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${getSentimentBadge(analysisResult.sentiment)}`}>
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>{sentiment}</span>
+            <span>{analysisResult.sentiment}</span>
           </div>
         </div>
       </div>
@@ -171,15 +194,24 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
             <ShieldAlert className="w-4 h-4" />
-            <span>AI BATTLE-CARD REBUTTAL RECOMMENDATIONS</span>
+            <span>DETECTED: &ldquo;{analysisResult.detectedObjection || "General Inquiry"}&rdquo;</span>
           </div>
-          <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-md">
-            92% Confidence
-          </span>
+
+          <button
+            onClick={() => {
+              const fullText = transcript.map((t) => `${t.speaker}: ${t.text}`).join("\n");
+              runGeminiAnalysis(fullText);
+            }}
+            disabled={isAnalyzing}
+            className="text-[10px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3 h-3 ${isAnalyzing ? "animate-spin" : ""}`} />
+            <span>{isAnalyzing ? "Analyzing..." : `${analysisResult.confidenceScore}% Confidence`}</span>
+          </button>
         </div>
 
         <div className="space-y-1.5">
-          {aiSuggestions.map((sug, idx) => (
+          {analysisResult.rebuttalArguments.map((sug, idx) => (
             <button
               key={idx}
               onClick={() => onApplyPitch && onApplyPitch(sug)}
@@ -195,10 +227,16 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             </button>
           ))}
         </div>
+
+        {/* Next Best Action Banner */}
+        <div className="pt-2 border-t border-amber-500/20 text-[11px] text-amber-300/90 flex items-center gap-1.5 font-medium">
+          <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>Next Best Action: <strong>{analysisResult.nextBestAction}</strong></span>
+        </div>
       </div>
 
       {/* Live Speech Transcript Box */}
-      <div className="flex-1 flex flex-col min-h-[220px] bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3.5 space-y-3">
+      <div className="flex-1 flex flex-col min-h-[200px] bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3.5 space-y-3">
         <div className="flex items-center justify-between text-xs border-b border-zinc-800 pb-2">
           <div className="flex items-center gap-2 font-semibold text-zinc-400 uppercase tracking-wider text-[11px]">
             <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
@@ -211,13 +249,13 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
           </div>
           {!isSupported && (
             <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-              Browser WebSpeech not detected, using simulator
+              WebSpeech simulator active
             </span>
           )}
         </div>
 
         {/* Scrollable Chat Transcript */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs max-h-[260px]">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs max-h-[220px]">
           {transcript.map((msg) => (
             <div
               key={msg.id}
@@ -237,7 +275,6 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             </div>
           ))}
 
-          {/* Live Interim Transcript Bubble */}
           {interimTranscript && (
             <div className="p-2.5 rounded-xl border bg-zinc-900/60 border-zinc-700 text-zinc-400 ml-4 italic text-xs animate-pulse">
               <span className="text-[10px] font-bold block text-zinc-500 uppercase">Transcribing...</span>
@@ -249,25 +286,24 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
         {/* Quick Test Phrase Triggers for Simulation */}
         <div className="pt-2 border-t border-zinc-800 space-y-2">
           <div className="flex items-center justify-between text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-            <span>Quick Speech Simulator Triggers:</span>
+            <span>Quick Test Triggers for Gemini Copilot:</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5 text-[11px]">
             <button
-              onClick={() => handleSimulateCustomerPhrase("Cena je příliš vysoká, nemohu si to dovolit.", "Price Objection")}
-              className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg transition-colors"
+              onClick={() => handleSimulateCustomerPhrase("Cena je příliš vysoká, nemohu si to dovolit.")}
+              className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg transition-colors cursor-pointer"
             >
               &ldquo;Cena je vysoká&rdquo;
             </button>
             <button
-              onClick={() => handleSimulateCustomerPhrase("Skvělé, chci si produkt objednat hned teď!", "Positive")}
-              className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg transition-colors"
+              onClick={() => handleSimulateCustomerPhrase("Skvělé, chci si produkt okamžitě objednat!")}
+              className="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg transition-colors cursor-pointer"
             >
-              &ldquo;Chci si objednat!&rdquo;
+              &ldquo;Chci objednat!&rdquo;
             </button>
           </div>
 
-          {/* Manual Text Input Fallback */}
           <form onSubmit={handleManualSubmit} className="flex gap-2 pt-1">
             <input
               type="text"
@@ -278,7 +314,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             />
             <button
               type="submit"
-              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium flex items-center gap-1 border border-zinc-700"
+              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium flex items-center gap-1 border border-zinc-700 cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
             </button>
