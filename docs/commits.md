@@ -28,39 +28,40 @@ chore: add core dependencies (@google/genai, lucide-react, tailwind-merge) and u
 
 ---
 
-### ⏳ COMMIT-01 — Design System & globální layout
+### ✅ HOTOVO: COMMIT-01 — Design System & globální layout
 ```
 style: implement design system, global layout and navigation shell
 ```
-**Co**: Základní vizuální identita celé aplikace — paleta barev, typografie, tmavý režim, sidebar navigace, hlavní layout.
+**Co**: Základní vizuální identita celé aplikace — paleta barev (Sync UI minimalist neutral dark), typografie (Poppins), anglické rozhraní, sidebar navigace, hlavní layout.
 
 **Proč**: Veškeré další komponenty musí mít jednotný designový základ. Bez tohoto kroku by každá feature vypadala jinak a refaktoring by byl drahý.
 
 **Jak**:
-- `globals.css` → CSS proměnné (barvy, spacing, typografie), Google Fonts (Inter)
-- `layout.tsx` → shell s postranní navigací (Sidebar) a hlavním content area
-- Sidebar komponenta s navigačními položkami (Dashboard, Hovory, Leady, Produkty, Nastavení)
-- Responzivní layout (Desktop first)
+- `globals.css` → CSS proměnné, Google Fonts (Poppins), neutral dark palette (`zinc`), custom scrollbar
+- `layout.tsx` → shell s postranní navigací (Sidebar), záhlavím (Header) a hlavním content area
+- Sidebar komponenta s navigačními položkami v angličtině (Dashboard, Operator Console, Leads & Contacts, Product Catalog, Call Logs, Settings)
+- Responzivní layout (Desktop first s collapsible sidebarem a přepínačem statusu operátora)
 
-**Výsledek**: Aplikace má konzistentní, profesionální tmavý design. Na Vercelu je vidět "kostra" CRM.
+**Výsledek**: Aplikace má konzistentní, profesionální tmavý design v angličtině inspirovaný Sync UI.
 
 ---
 
-### ⏳ COMMIT-02 — Dashboard (přehledová stránka)
+### ✅ HOTOVO: COMMIT-02 — Dashboard (přehledová stránka)
 ```
 feat: add main dashboard with KPI cards and activity feed
 ```
-**Co**: Úvodní stránka po přihlášení s KPI kartičkami a posledními aktivitami.
+**Co**: Úvodní stránka po přihlášení s KPI kartičkami, hodinovým grafem aktivit, živým feedem hovorů a žebříčkem operátorů.
 
-**Proč**: Dashboard je první věc, co operátor/manažer vidí. Dává rychlý přehled o stavu call centra. Také ověří, že layout a komponenty fungují správně.
+**Proč**: Dashboard dává rychlý přehled o stavu call centra v ultra-čistém monochromatickém designu a anglickém rozhraní.
 
 **Jak**:
-- KPI karty: Dnešní hovory, Konverze %, Příjem dnes, Aktivní operátoři
-- Graf aktivity hovorů (ostatní den, týden)
-- Feed posledních hovorů (mock data)
-- Animované countup čísla při načtení
+- `KpiCards.tsx` → 4 KPI karty (Hovory, Konverze %, Tržby, Aktivní operátoři)
+- `CallActivityChart.tsx` → Hodinový graf hovorů a konverzí s přepínačem období (*Today / Week / Month*)
+- `TopPerformers.tsx` → Žebříček nejlepších operátorů podle tržeb
+- `RecentActivityFeed.tsx` → Živý stream hovorů s AI indikací sentimentu a kritickým zvýrazněním
+- Střídmé použití barev (barva vyhrazena pouze pro vysoce kritické statusy jako *Order Placed* nebo *Price Objection Alert*)
 
-**Výsledek**: Živý, vizuálně působivý dashboard s realistickými mock daty.
+**Výsledek**: Živý, vizuálně působivý dashboard s realistickými daty v ultra-čistém provedení.
 
 ---
 
@@ -68,27 +69,26 @@ feat: add main dashboard with KPI cards and activity feed
 
 > **Priorita: VYSOKÁ** — Data jsou srdcem CRM. Bez leadů a produktů nemá AI copilot s čím pracovat.
 
-### ⏳ COMMIT-03 — Integrace Supabase (databáze & auth)
+### ✅ HOTOVO: COMMIT-03 — Integrace Supabase (databáze & auth)
 ```
 chore: integrate supabase client, auth and database schema
 ```
-**Co**: Napojení na Supabase — inicializace klienta, schéma databáze, přihlašování.
+**Co**: Databázové schéma Supabase (`schema.sql`), TypeScript klienty, přihlašovací rozhraní a RLS politiky.
 
-**Proč**: Přechod od mock dat k reálné databázi. Supabase je free-tier základ celé persistence.
+**Proč**: Databázová infrastruktura a přihlašovací vrstva pro uchovávání leadů, produktů, hovorů a objednávek.
 
 **Jak**:
-- Instalace `@supabase/supabase-js`
-- `.env.local` → `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- SQL migrace: tabulky `users`, `leads`, `products`, `calls`, `orders`, `objections`
-- Row Level Security (RLS) politiky
-- Přihlašovací stránka (email + heslo)
-- Middleware pro ochranu rout
+- Instalace `@supabase/supabase-js` a `@supabase/ssr`
+- `supabase/schema.sql` → Kompletní DDL SQL skript (6 tabulek `profiles`, `leads`, `products`, `calls`, `orders`, `objections` s RLS politikami)
+- `src/lib/supabase/` → Browser client, Server client a TypeScript typové definice databáze
+- `src/app/login/page.tsx` → Přihlašovací formulář v Sync UI dark stylu
+- `src/proxy.ts` → Auth proxy a obnova relací podle Next.js 16 konvencí
 
-**Výsledek**: Aplikace má reálnou databázi. Nepřihlášený uživatel je přesměrován na login.
+**Výsledek**: Kompletní databázová architektura a autentizační rozhraní připravené pro správy dat.
 
 ---
 
-### ⏳ COMMIT-04 — Modul Leady (správa kontaktů)
+### ✅ HOTOVO: COMMIT-04 — Modul Leady (správa kontaktů)
 ```
 feat: add leads management module with list, detail and import
 ```
@@ -99,7 +99,7 @@ feat: add leads management module with list, detail and import
 **Jak**:
 - Tabulka leadů (filtrování, řazení, vyhledávání, paginace)
 - Detail leadu: kontaktní údaje, AI skóre, poznámky, historie hovorů
-- Import CSV (drag & drop nebo výběr souboru)
+- Import CSV (drag & drop nebo výběr souboru s mapováním sloupců)
 - AI skórování leadů při importu (score 0–100 podle dostupných dat)
 
 **Výsledek**: Plně funkční správa kontaktů s importem databáze.
