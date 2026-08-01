@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { PhoneCall, Sparkles, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { OperatorStatus } from "@/components/layout/Sidebar";
@@ -10,6 +10,8 @@ import { CallStatusBar } from "@/components/workspace/CallStatusBar";
 import { CustomerPanel } from "@/components/workspace/CustomerPanel";
 import { AiCopilotPanel } from "@/components/workspace/AiCopilotPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
+import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
+import { sounds } from "@/lib/audio";
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -19,7 +21,11 @@ function WorkspaceContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
+  
   const [isCallActive, setIsCallActive] = useState<boolean>(false);
+  const [isDialing, setIsDialing] = useState<boolean>(false);
+  const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
+  
   const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -45,14 +51,59 @@ function WorkspaceContent() {
     loadData();
   }, [leadIdParam]);
 
+  // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = () => {
-    if (!isCallActive) {
-      setIsCallActive(true);
-      setOperatorStatus("in_call");
-    } else {
+    if (isCallActive || isDialing) {
+      // Hang up
       setIsCallActive(false);
+      setIsDialing(false);
       setOperatorStatus("ready");
+      sounds.playCallEndSound();
+    } else {
+      // Start Outbound Call
+      setIsDialing(true);
+      setOperatorStatus("in_call");
+      const stopTone = sounds.playDialTone();
+
+      // Connect call after 2.5s simulation
+      setTimeout(() => {
+        stopTone();
+        setIsDialing(false);
+        setIsCallActive(true);
+      }, 2500);
     }
+  };
+
+  // Simulate Incoming Call Trigger
+  const handleSimulateIncoming = () => {
+    if (leads.length > 1) {
+      // pick second lead or random
+      const targetLead = leads[1] || leads[0];
+      setActiveLead(targetLead);
+    }
+    setIsIncomingCallOpen(true);
+    const stopRingtone = sounds.playRingtone();
+
+    // Store stopRingtone in window or ref for cleanup
+    (window as unknown as { _stopRingtone?: () => void })._stopRingtone = stopRingtone;
+  };
+
+  const handleAcceptIncomingCall = () => {
+    if ((window as unknown as { _stopRingtone?: () => void })._stopRingtone) {
+      (window as unknown as { _stopRingtone?: () => void })._stopRingtone!();
+    }
+    setIsIncomingCallOpen(false);
+    setIsCallActive(true);
+    setIsDialing(false);
+    setOperatorStatus("in_call");
+  };
+
+  const handleDeclineIncomingCall = () => {
+    if ((window as unknown as { _stopRingtone?: () => void })._stopRingtone) {
+      (window as unknown as { _stopRingtone?: () => void })._stopRingtone!();
+    }
+    setIsIncomingCallOpen(false);
+    sounds.playCallEndSound();
   };
 
   const handleOrderPlaced = (productId: string, totalAmount: number) => {
@@ -79,8 +130,10 @@ function WorkspaceContent() {
       <CallStatusBar
         status={operatorStatus}
         isCallActive={isCallActive}
+        isDialing={isDialing}
         activeLeadName={activeLead?.full_name}
         onToggleCall={handleToggleCall}
+        onSimulateIncoming={handleSimulateIncoming}
         onStatusChange={(newStatus) => {
           setOperatorStatus(newStatus);
           if (newStatus === "in_call") setIsCallActive(true);
@@ -120,6 +173,14 @@ function WorkspaceContent() {
         </div>
 
       </div>
+
+      {/* Incoming Call Simulation Modal */}
+      <IncomingCallModal
+        lead={activeLead}
+        isOpen={isIncomingCallOpen}
+        onAccept={handleAcceptIncomingCall}
+        onDecline={handleDeclineIncomingCall}
+      />
 
     </div>
   );

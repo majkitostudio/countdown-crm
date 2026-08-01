@@ -10,25 +10,29 @@ import {
   Play,
   Clock,
   Sparkles,
-  UserCheck,
   ChevronDown,
-  Circle
+  PhoneIncoming,
+  Radio
 } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 
 interface CallStatusBarProps {
   status: OperatorStatus;
   isCallActive: boolean;
+  isDialing: boolean;
   activeLeadName?: string;
   onToggleCall: () => void;
+  onSimulateIncoming: () => void;
   onStatusChange: (newStatus: OperatorStatus) => void;
 }
 
 export function CallStatusBar({
   status,
   isCallActive,
+  isDialing,
   activeLeadName,
   onToggleCall,
+  onSimulateIncoming,
   onStatusChange,
 }: CallStatusBarProps) {
   const [seconds, setSeconds] = useState(0);
@@ -67,13 +71,15 @@ export function CallStatusBar({
   return (
     <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 shadow-xl flex flex-wrap items-center justify-between gap-4">
       
-      {/* Left: Operator Status Selector & Call State Badge */}
+      {/* Left: Operator Status Selector & Call State Banner */}
       <div className="flex items-center gap-4">
         {/* Status Dropdown */}
         <div className="relative group">
           <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs font-medium text-zinc-200">
             <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(status).split(" ")[0]} animate-pulse`} />
-            <span className="capitalize">{status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break"}</span>
+            <span className="capitalize">
+              {status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break"}
+            </span>
             <select
               value={status}
               onChange={(e) => onStatusChange(e.target.value as OperatorStatus)}
@@ -87,8 +93,16 @@ export function CallStatusBar({
           </div>
         </div>
 
+        {/* Dialing State Banner */}
+        {isDialing && (
+          <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-400 animate-pulse">
+            <Radio className="w-3.5 h-3.5 animate-spin" />
+            <span>Connecting to {activeLeadName || "Customer"}...</span>
+          </div>
+        )}
+
         {/* Active Call Banner */}
-        {isCallActive ? (
+        {isCallActive && !isDialing && (
           <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 px-3.5 py-1.5 rounded-xl">
             <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
@@ -105,16 +119,29 @@ export function CallStatusBar({
               <span>{formatTimer(seconds)}</span>
             </div>
           </div>
-        ) : (
+        )}
+
+        {!isCallActive && !isDialing && (
           <div className="text-xs text-zinc-400 flex items-center gap-2 bg-zinc-950/60 px-3 py-1.5 rounded-xl border border-zinc-800">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Select a lead and press &ldquo;Start Virtual Call&rdquo; to begin AI-copiloted call</span>
+            <span>Virtual Call Simulator Ready</span>
           </div>
         )}
       </div>
 
-      {/* Right: Call Control Buttons */}
+      {/* Right: Call Control & Simulation Buttons */}
       <div className="flex items-center gap-2">
+        {/* Simulate Incoming Call Button */}
+        {!isCallActive && !isDialing && (
+          <button
+            onClick={onSimulateIncoming}
+            className="py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-cyan-400 border border-zinc-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
+          >
+            <PhoneIncoming className="w-3.5 h-3.5" />
+            <span>Simulate Incoming Call</span>
+          </button>
+        )}
+
         {isCallActive && (
           <>
             {/* Mute Button */}
@@ -148,6 +175,7 @@ export function CallStatusBar({
         {/* Start / End Call Main CTA */}
         <button
           onClick={onToggleCall}
+          disabled={isDialing}
           className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md ${
             isCallActive
               ? "bg-rose-500 hover:bg-rose-400 text-white shadow-rose-500/20"

@@ -147,7 +147,7 @@ feat: add agent workspace base layout with customer info panel
 
 ---
 
-### ⏳ COMMIT-07 — Telefonní simulátor (Virtual Call)
+### ✅ HOTOVO: COMMIT-07 — Telefonní simulátor (Virtual Call)
 ```
 feat: add virtual call simulator with call controls and timer
 ```
@@ -156,13 +156,12 @@ feat: add virtual call simulator with call controls and timer
 **Proč**: Projekt je navržen pro 0 Kč provozní náklady. Simulátor umožní testování AI copilota bez real VoIP.
 
 **Jak**:
-- "Zavolat" tlačítko → simulace spojování (zvukový efekt)
-- Odpočet doby hovoru (MM:SS timer)
-- Tlačítka: Ztlumit, Podržet, Zavěsit
-- Simulace příchozího hovoru (pop-up notifikace)
+- "Zavolat" tlačítko → simulace spojování (vytáčení, časovač hovoru, audio syntetizér `audio.ts`)
+- Pop-up modal pro simulaci příchozího hovoru (`IncomingCallModal.tsx`) s tlačítky Přijmout / Odmítnout
+- Audio efekty přes Web Audio API (vyzvánění, vytáčecí tón, ukončení hovoru) bez externích závislostí
 - Napojení na vybraný lead ze seznamu
 
-**Výsledek**: Operátor může simulovat celý průběh hovoru bez VoIP.
+**Výsledek**: Operátor může simulovat celý průběh hovoru v reálném čase.
 
 ---
 
