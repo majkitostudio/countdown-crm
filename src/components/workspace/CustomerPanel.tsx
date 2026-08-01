@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   User,
   Phone,
@@ -13,9 +13,11 @@ import {
   History,
   CheckCircle,
   FileText,
-  ChevronDown
+  ChevronDown,
+  ShoppingBag
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
+import { Order, getOrdersByLeadId } from "@/lib/orders";
 
 interface CustomerPanelProps {
   leads: Lead[];
@@ -24,6 +26,18 @@ interface CustomerPanelProps {
 }
 
 export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanelProps) {
+  const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    async function loadCustomerOrders() {
+      if (activeLead) {
+        const orders = await getOrdersByLeadId(activeLead.id);
+        setCustomerOrders(orders);
+      }
+    }
+    loadCustomerOrders();
+  }, [activeLead]);
+
   if (!activeLead) {
     return (
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center text-zinc-500 text-xs">
@@ -134,27 +148,36 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
 
       {/* Historical Purchases & Activity */}
       <div className="space-y-2 pt-2 border-t border-zinc-800">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-          <History className="w-3.5 h-3.5 text-zinc-400" />
-          Interaction History
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+            <History className="w-3.5 h-3.5 text-zinc-400" />
+            Customer Purchase History ({customerOrders.length})
+          </h3>
+        </div>
 
         <div className="space-y-2 text-xs">
-          <div className="p-2.5 bg-zinc-950/40 border border-zinc-800/60 rounded-xl flex items-start gap-2.5">
-            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-zinc-200">Past Purchase — Bio-Boost Stack</p>
-              <p className="text-[11px] text-zinc-500">Order #ORD-912 • Delivered 14 days ago</p>
+          {customerOrders.length === 0 ? (
+            <div className="p-3 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-center text-zinc-500 text-xs">
+              No orders placed yet for this customer.
             </div>
-          </div>
-
-          <div className="p-2.5 bg-zinc-950/40 border border-zinc-800/60 rounded-xl flex items-start gap-2.5">
-            <FileText className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-zinc-200">Inbound Webform</p>
-              <p className="text-[11px] text-zinc-500">Requested info regarding skincare collagen</p>
-            </div>
-          </div>
+          ) : (
+            customerOrders.map((ord) => (
+              <div key={ord.id} className="p-2.5 bg-zinc-950/40 border border-zinc-800/60 rounded-xl flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2.5">
+                  <ShoppingBag className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-zinc-200">{ord.product_title}</p>
+                    <p className="text-[11px] text-zinc-500">
+                      Order #{ord.id} • {new Date(ord.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <span className="font-mono font-bold text-emerald-400 shrink-0">
+                  ${ord.total_amount.toFixed(2)}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

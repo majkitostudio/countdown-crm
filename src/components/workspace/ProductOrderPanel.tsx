@@ -19,6 +19,7 @@ import {
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
+import { createOrder } from "@/lib/orders";
 
 interface ProductOrderPanelProps {
   products: Product[];
@@ -41,6 +42,7 @@ export function ProductOrderPanel({
   const [callOutcome, setCallOutcome] = useState<string>("order_placed");
   const [wrapUpNotes, setWrapUpNotes] = useState<string>("");
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState<string>("");
 
   React.useEffect(() => {
     if (products.length > 0 && !selectedProductId) {
@@ -56,7 +58,6 @@ export function ProductOrderPanel({
 
   const selectedProduct = products.find((p) => p.id === selectedProductId) || products[0];
 
-  // Get Cross-Sell recommendations for currently selected primary product
   const crossSellRecs = getCrossSellRecommendations(selectedProduct, products);
   const topRec: Recommendation | undefined = crossSellRecs[0];
 
@@ -69,14 +70,26 @@ export function ProductOrderPanel({
 
   const handleAddBundleItem = (rec: Recommendation) => {
     setBundleProduct(rec.recommendedProduct);
-    setDiscountPercent(15); // Automatically apply 15% bundle discount
+    setDiscountPercent(15);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedProduct || !activeLead) return;
+
+    const newOrd = await createOrder({
+      lead_id: activeLead.id,
+      lead_name: activeLead.full_name,
+      product_id: selectedProduct.id,
+      product_title: bundleProduct ? `${selectedProduct.title} + ${bundleProduct.title}` : selectedProduct.title,
+      total_amount: grandTotal,
+      status: "completed",
+      agent_name: "Operator",
+    });
+
+    setLastOrderId(newOrd.id);
     onOrderPlaced(selectedProduct.id, grandTotal);
     setIsSuccessAlert(true);
-    setTimeout(() => setIsSuccessAlert(false), 4000);
+    setTimeout(() => setIsSuccessAlert(false), 5000);
   };
 
   return (
@@ -90,7 +103,7 @@ export function ProductOrderPanel({
           </div>
           <div>
             <h2 className="text-sm font-bold text-zinc-100">Sales Checkout & Cross-Sell</h2>
-            <p className="text-[11px] text-zinc-400">AI bundle recommendation & 1-click order</p>
+            <p className="text-[11px] text-zinc-400">1-Click order creation & post-call wrap up</p>
           </div>
         </div>
       </div>
@@ -99,7 +112,10 @@ export function ProductOrderPanel({
       {isSuccessAlert && (
         <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Order successfully logged! Total: ${grandTotal.toFixed(2)} recorded for {activeLead?.full_name}.</span>
+          <div>
+            <p className="font-bold">Order #{lastOrderId} Successfully Placed!</p>
+            <p className="text-[11px] text-emerald-200/80">${grandTotal.toFixed(2)} recorded for {activeLead?.full_name}.</p>
+          </div>
         </div>
       )}
 
@@ -117,7 +133,7 @@ export function ProductOrderPanel({
                 key={prod.id}
                 onClick={() => {
                   setSelectedProductId(prod.id);
-                  setBundleProduct(null); // Reset bundle on primary change
+                  setBundleProduct(null);
                 }}
                 className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-3 text-xs ${
                   isSelected
@@ -213,7 +229,6 @@ export function ProductOrderPanel({
           </div>
         </div>
 
-        {/* Discount Selector */}
         <div className="flex items-center justify-between">
           <span className="text-zinc-400 font-medium">Closing Discount</span>
           <select
