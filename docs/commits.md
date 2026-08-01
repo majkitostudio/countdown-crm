@@ -165,7 +165,7 @@ feat: add virtual call simulator with call controls and timer
 
 ---
 
-### ⏳ COMMIT-08 — Web Speech API (živý přepis řeči)
+### ✅ HOTOVO: COMMIT-08 — Web Speech API (živý přepis řeči)
 ```
 feat: add real-time speech transcription via Web Speech API
 ```
@@ -174,11 +174,11 @@ feat: add real-time speech transcription via Web Speech API
 **Proč**: Přepis řeči je vstupní data pro AI copilota. Bez přepisu nemůže AI detekovat námitky ani nabídnout argumenty.
 
 **Jak**:
-- Integrace `window.SpeechRecognition` / `webkitSpeechRecognition`
-- Kontinuální přepis během hovoru (intermediate + final results)
-- Panel transkriptu s rolujícím textem a časovými razítky
-- Fallback: manuální textové pole pro testování
-- Přepínač jazyka (CZ / SK / EN)
+- Integrace `window.SpeechRecognition` / `webkitSpeechRecognition` v custom React hooku (`useSpeechRecognition.ts`)
+- Kontinuální přepis během hovoru (interim + final results)
+- Panel transkriptu s rolujícím textem a časovými razítky v `AiCopilotPanel.tsx`
+- Přepínač jazyka (CZ `cs-CZ` / SK `sk-SK` / EN `en-US`)
+- Fallback simulátor pro prohlížeče bez Web Speech API
 
 **Výsledek**: Slova operátora i zákazníka se zobrazují živě na obrazovce.
 
