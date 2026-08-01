@@ -20,6 +20,7 @@ import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { createOrder } from "@/lib/orders";
+import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
 
 interface ProductOrderPanelProps {
   products: Product[];
@@ -89,6 +90,15 @@ export function ProductOrderPanel({
     setLastOrderId(newOrd.id);
     onOrderPlaced(selectedProduct.id, grandTotal);
     setIsSuccessAlert(true);
+
+    // Gamification XP Rewards & Achievements
+    addOperatorXp(150, "Completed customer order");
+    unlockAchievement("first_deal");
+
+    if (bundleProduct) {
+      unlockAchievement("cross_sell_king");
+    }
+
     setTimeout(() => setIsSuccessAlert(false), 5000);
   };
 

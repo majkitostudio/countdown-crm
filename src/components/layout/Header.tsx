@@ -1,8 +1,23 @@
 "use client";
 
-import { Search, Bell, User, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Bell, ShieldCheck, Zap, Award } from "lucide-react";
+import { getOperatorProfile, OperatorProfile } from "@/lib/gamification";
 
 export function Header() {
+  const [profile, setProfile] = useState<OperatorProfile | null>(null);
+
+  useEffect(() => {
+    setProfile(getOperatorProfile());
+
+    const handleStorageChange = () => {
+      setProfile(getOperatorProfile());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   return (
     <header className="h-16 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
       {/* Search Input */}
@@ -20,6 +35,25 @@ export function Header() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-4">
+        {/* Operator Gamification Level Badge */}
+        {profile && (
+          <div className="hidden sm:flex items-center gap-2.5 px-3 py-1 rounded-xl bg-purple-950/30 border border-purple-800/40 text-purple-300">
+            <Award className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-zinc-100">Level {profile.level}</span>
+                <span className="text-[10px] text-purple-400 font-mono">({profile.currentXp}/{profile.nextLevelXp} XP)</span>
+              </div>
+              <div className="w-24 h-1 bg-zinc-800 rounded-full overflow-hidden mt-0.5">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, (profile.currentXp / profile.nextLevelXp) * 100)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Live Indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -42,7 +76,7 @@ export function Header() {
           </div>
           <div className="hidden lg:flex flex-col">
             <span className="text-xs font-medium text-zinc-200 leading-tight">
-              John Doe
+              {profile?.name || "Jan Dvořák"}
             </span>
             <span className="text-[10px] text-zinc-400 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-zinc-400" />

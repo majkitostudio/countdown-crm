@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Zap,
   Circle,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export type OperatorStatus = "ready" | "in_call" | "break";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
+  { label: "AI Training", href: "/training", icon: GraduationCap },
   { label: "Leads & Contacts", href: "/leads", icon: Users },
   { label: "Product Catalog", href: "/products", icon: Package },
   { label: "Call Logs", href: "/calls", icon: History },
