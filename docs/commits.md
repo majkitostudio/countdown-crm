@@ -350,4 +350,5 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-14 | Nastavení a profil operátora (`/settings`) | ✅ Hotovo |
 | COMMIT-15 | Finální UI Glow & Release Dokumentace | ✅ Hotovo |
 | COMMIT-16 | Manažerský BI Dashboard & AI Revenue Forecast | ✅ Hotovo |
+| COMMIT-17 | Manažerský Real-Time Team Monitor (`/monitor`) | ✅ Hotovo |
 

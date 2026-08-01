@@ -11,6 +11,7 @@ import {
   History,
   Settings,
   BarChart3,
+  Radio,
   ChevronLeft,
   ChevronRight,
   Zap,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { label: "Product Catalog", href: "/products", icon: Package },
   { label: "Call Logs", href: "/calls", icon: History },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Live Monitor", href: "/monitor", icon: Radio },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
