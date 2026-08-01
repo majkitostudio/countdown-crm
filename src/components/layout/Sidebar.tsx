@@ -10,6 +10,7 @@ import {
   Package,
   History,
   Settings,
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Zap,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { label: "Leads & Contacts", href: "/leads", icon: Users },
   { label: "Product Catalog", href: "/products", icon: Package },
   { label: "Call Logs", href: "/calls", icon: History },
+  { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
