@@ -13,12 +13,15 @@ import {
   Zap,
   RefreshCw,
   CheckCircle2,
-  Cpu
+  Cpu,
+  Check
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { useSpeechRecognition, SpeechLanguage } from "@/hooks/useSpeechRecognition";
 import { analyzeCallTranscriptAction } from "@/app/actions/copilot";
 import { CopilotAnalysisResult } from "@/lib/gemini";
+import { matchObjectionToProduct } from "@/lib/objections";
+import { INITIAL_MOCK_PRODUCTS } from "@/lib/products";
 
 interface TranscriptMessage {
   id: string;
@@ -47,13 +50,17 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
 
   const [simulatedText, setSimulatedText] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isResolved, setIsResolved] = useState(false);
+
+  const activeProduct = INITIAL_MOCK_PRODUCTS[0];
+
   const [analysisResult, setAnalysisResult] = useState<CopilotAnalysisResult>({
     sentiment: "Price Objection",
     detectedObjection: "Price is too high compared to pharmacy vitamins",
     confidenceScore: 92,
     rebuttalArguments: [
       "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
-      "Offer 3-month bundle discount which lowers monthly cost by 25%.",
+      "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
       "Emphasize 30-day money-back guarantee with zero risk."
     ],
     nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
@@ -75,7 +82,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     },
   ]);
 
-  // Start / Stop speech listener with call state
+  // Handle listening state
   useEffect(() => {
     if (isCallActive) {
       startListening();
@@ -84,7 +91,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     }
   }, [isCallActive, startListening, stopListening]);
 
-  // Handle mic transcript
+  // Handle mic input
   useEffect(() => {
     if (micTranscript.trim()) {
       const lastLine = micTranscript.trim();
@@ -102,12 +109,24 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
 
   const runGeminiAnalysis = async (fullTranscriptText: string) => {
     setIsAnalyzing(true);
-    const result = await analyzeCallTranscriptAction(
+    setIsResolved(false);
+
+    const rawResult = await analyzeCallTranscriptAction(
       fullTranscriptText,
       activeLead?.full_name || "Customer",
-      "Bio-Boost Anti-Aging Stack"
+      activeProduct.title
     );
-    setAnalysisResult(result);
+
+    // Match detected objection against product battle-card DB
+    const matched = matchObjectionToProduct(rawResult.detectedObjection, activeProduct);
+
+    setAnalysisResult({
+      ...rawResult,
+      detectedObjection: matched.matchedTitle,
+      confidenceScore: matched.matchScore,
+      rebuttalArguments: matched.rebuttalArgs.length > 0 ? matched.rebuttalArgs : rawResult.rebuttalArguments,
+    });
+
     setIsAnalyzing(false);
   };
 
@@ -121,7 +140,6 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     const updatedTranscript = [...transcript, newMsg];
     setTranscript(updatedTranscript);
 
-    // Trigger Gemini analysis
     const fullText = updatedTranscript.map((t) => `${t.speaker}: ${t.text}`).join("\n");
     runGeminiAnalysis(fullText);
   };
@@ -134,7 +152,17 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     setSimulatedText("");
   };
 
+  const handleMarkResolved = () => {
+    setIsResolved(true);
+    setAnalysisResult((prev) => ({
+      ...prev,
+      sentiment: "Positive",
+      nextBestAction: "Objection resolved! Proceed to checkout in right panel.",
+    }));
+  };
+
   const getSentimentBadge = (s: CopilotAnalysisResult["sentiment"]) => {
+    if (isResolved) return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
     switch (s) {
       case "Positive":
         return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
@@ -157,13 +185,13 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-bold text-zinc-100">Google Gemini 2.5 Copilot</h2>
+              <h2 className="text-sm font-bold text-zinc-100">Objection Handling Engine</h2>
               <span className="text-[10px] bg-cyan-500/10 text-cyan-400 font-semibold px-2 py-0.5 rounded-full border border-cyan-500/20 flex items-center gap-1">
                 <Cpu className="w-2.5 h-2.5" />
-                {analysisResult.aiSource === "gemini-flash" ? "Gemini Flash" : "AI Engine"}
+                {analysisResult.aiSource === "gemini-flash" ? "Gemini Flash" : "Product Matcher"}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">Live speech analysis & objection battle-card</p>
+            <p className="text-[11px] text-zinc-400">Live speech analysis & battle-card rebuttal matching</p>
           </div>
         </div>
 
@@ -184,30 +212,52 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
 
           <div className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${getSentimentBadge(analysisResult.sentiment)}`}>
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>{analysisResult.sentiment}</span>
+            <span>{isResolved ? "Objection Resolved" : analysisResult.sentiment}</span>
           </div>
         </div>
       </div>
 
       {/* Real-time AI Rebuttal Battle-Card Box */}
-      <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 space-y-2.5">
+      <div className={`border rounded-xl p-3.5 space-y-2.5 transition-all ${
+        isResolved
+          ? "bg-emerald-500/10 border-emerald-500/30"
+          : "bg-amber-500/10 border-amber-500/20"
+      }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
-            <ShieldAlert className="w-4 h-4" />
-            <span>DETECTED: &ldquo;{analysisResult.detectedObjection || "General Inquiry"}&rdquo;</span>
+            {isResolved ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <ShieldAlert className="w-4 h-4" />
+            )}
+            <span className={isResolved ? "text-emerald-400" : "text-amber-400"}>
+              {isResolved ? "OBJECTION RESOLVED" : `OBJECTION MATCH: "${analysisResult.detectedObjection || "General Inquiry"}"`}
+            </span>
           </div>
 
-          <button
-            onClick={() => {
-              const fullText = transcript.map((t) => `${t.speaker}: ${t.text}`).join("\n");
-              runGeminiAnalysis(fullText);
-            }}
-            disabled={isAnalyzing}
-            className="text-[10px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-500/30 flex items-center gap-1 transition-colors cursor-pointer"
-          >
-            <RefreshCw className={`w-3 h-3 ${isAnalyzing ? "animate-spin" : ""}`} />
-            <span>{isAnalyzing ? "Analyzing..." : `${analysisResult.confidenceScore}% Confidence`}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {!isResolved && (
+              <button
+                onClick={handleMarkResolved}
+                className="text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <Check className="w-3 h-3" />
+                <span>Mark Resolved</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                const fullText = transcript.map((t) => `${t.speaker}: ${t.text}`).join("\n");
+                runGeminiAnalysis(fullText);
+              }}
+              disabled={isAnalyzing}
+              className="text-[10px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <RefreshCw className={`w-3 h-3 ${isAnalyzing ? "animate-spin" : ""}`} />
+              <span>{isAnalyzing ? "Analyzing..." : `${analysisResult.confidenceScore}% Match`}</span>
+            </button>
+          </div>
         </div>
 
         <div className="space-y-1.5">
@@ -215,7 +265,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             <button
               key={idx}
               onClick={() => onApplyPitch && onApplyPitch(sug)}
-              className="w-full text-left p-2.5 bg-zinc-950/80 hover:bg-zinc-950 border border-amber-500/30 hover:border-amber-400 rounded-lg text-xs text-zinc-200 flex items-center justify-between gap-2 group transition-all"
+              className="w-full text-left p-2.5 bg-zinc-950/80 hover:bg-zinc-950 border border-amber-500/30 hover:border-amber-400 rounded-lg text-xs text-zinc-200 flex items-center justify-between gap-2 group transition-all cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <span className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-[10px] shrink-0">
@@ -236,7 +286,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
       </div>
 
       {/* Live Speech Transcript Box */}
-      <div className="flex-1 flex flex-col min-h-[200px] bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3.5 space-y-3">
+      <div className="flex-1 flex flex-col min-h-[190px] bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3.5 space-y-3">
         <div className="flex items-center justify-between text-xs border-b border-zinc-800 pb-2">
           <div className="flex items-center gap-2 font-semibold text-zinc-400 uppercase tracking-wider text-[11px]">
             <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
@@ -286,7 +336,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
         {/* Quick Test Phrase Triggers for Simulation */}
         <div className="pt-2 border-t border-zinc-800 space-y-2">
           <div className="flex items-center justify-between text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
-            <span>Quick Test Triggers for Gemini Copilot:</span>
+            <span>Quick Objection Test Triggers:</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5 text-[11px]">
@@ -295,6 +345,12 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
               className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg transition-colors cursor-pointer"
             >
               &ldquo;Cena je vysoká&rdquo;
+            </button>
+            <button
+              onClick={() => handleSimulateCustomerPhrase("Používám už podobný doplňek od jiné firmy.")}
+              className="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-lg transition-colors cursor-pointer"
+            >
+              &ldquo;Používám jinou značku&rdquo;
             </button>
             <button
               onClick={() => handleSimulateCustomerPhrase("Skvělé, chci si produkt okamžitě objednat!")}

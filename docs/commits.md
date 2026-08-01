@@ -207,20 +207,19 @@ feat: add gemini api integration with streaming server action
 
 ---
 
-### ⏳ COMMIT-10 — Objection Handling Engine
+### ✅ HOTOVO: COMMIT-10 — Detekce námitek & Protiargumenty (Objection Handling)
 ```
-feat: add real-time objection detection and argument suggestion panel
+feat: add real-time objection detection and rebuttal suggestion engine
 ```
-**Co**: AI panel, který detekuje námitky zákazníka z přepisu a okamžitě navrhuje 3 protiargumenty.
+**Co**: Reálná detekce zákaznických námitek v přepisu hovoru a jejich automatické spárování s námitkovou databází produktů z COMMIT-05.
 
-**Proč**: Toto je "killer feature" — asistent který pomáhá operátorovi překonat nejčastější překážky prodeje v reálném čase.
+**Proč**: Klíčová funkce pro operátory. Zrychluje reakční dobu a zvyšuje konverzní poměr hovoru.
 
 **Jak**:
-- Analýza přepisu každých 5 sekund / při detekci klíčových slov
-- Rozpoznání vzorců: cena, nedůvěra, nepotřebnost, "musím se poradit"
-- Zobrazení 3 argumentů jako karet (klik = přidání do poznámek)
-- Animovaný "AI přemýšlí..." indikátor
-- Historie zobrazených doporučení v daném hovoru
+- Engine pro spárování námitek `matchObjectionToProduct()` (`src/lib/objections.ts`)
+- Spárování detekované námitky z Gemini AI s produktovou databází námitkových karet
+- Vizuální zobrazení **Live Objection Battle-Card** s hodnocením shody (Match Score %)
+- 1-kliknutí pro vložení prodejní věty do poznámek po hovoru a tlačítko **Mark Resolved** pro označení vyřešené námitky
 
 **Výsledek**: AI panel živě radí operátorovi, jak odpovědět na zákazníkovy námitky.
 
