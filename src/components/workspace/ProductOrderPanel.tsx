@@ -12,10 +12,13 @@ import {
   FileText,
   Sparkles,
   ArrowRight,
-  Send
+  Layers,
+  Zap,
+  Tag
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
+import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 
 interface ProductOrderPanelProps {
   products: Product[];
@@ -31,6 +34,8 @@ export function ProductOrderPanel({
   onOrderPlaced,
 }: ProductOrderPanelProps) {
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || "");
+  const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
+
   const [quantity, setQuantity] = useState<number>(1);
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [callOutcome, setCallOutcome] = useState<string>("order_placed");
@@ -51,9 +56,21 @@ export function ProductOrderPanel({
 
   const selectedProduct = products.find((p) => p.id === selectedProductId) || products[0];
 
-  const subtotal = selectedProduct ? selectedProduct.price * quantity : 0;
-  const discountAmount = (subtotal * discountPercent) / 100;
-  const grandTotal = Math.max(0, subtotal - discountAmount);
+  // Get Cross-Sell recommendations for currently selected primary product
+  const crossSellRecs = getCrossSellRecommendations(selectedProduct, products);
+  const topRec: Recommendation | undefined = crossSellRecs[0];
+
+  const primarySubtotal = selectedProduct ? selectedProduct.price * quantity : 0;
+  const bundleSubtotal = bundleProduct ? topRec?.bundlePrice || bundleProduct.price : 0;
+  
+  const rawSubtotal = primarySubtotal + bundleSubtotal;
+  const discountAmount = (rawSubtotal * discountPercent) / 100;
+  const grandTotal = Math.max(0, rawSubtotal - discountAmount);
+
+  const handleAddBundleItem = (rec: Recommendation) => {
+    setBundleProduct(rec.recommendedProduct);
+    setDiscountPercent(15); // Automatically apply 15% bundle discount
+  };
 
   const handlePlaceOrder = () => {
     if (!selectedProduct || !activeLead) return;
@@ -72,8 +89,8 @@ export function ProductOrderPanel({
             <ShoppingCart className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-zinc-100">Product Sales & Checkout</h2>
-            <p className="text-[11px] text-zinc-400">1-Click order creation & post-call wrap up</p>
+            <h2 className="text-sm font-bold text-zinc-100">Sales Checkout & Cross-Sell</h2>
+            <p className="text-[11px] text-zinc-400">AI bundle recommendation & 1-click order</p>
           </div>
         </div>
       </div>
@@ -82,23 +99,26 @@ export function ProductOrderPanel({
       {isSuccessAlert && (
         <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Order successfully placed for {activeLead?.full_name}! Order logged into database.</span>
+          <span>Order successfully logged! Total: ${grandTotal.toFixed(2)} recorded for {activeLead?.full_name}.</span>
         </div>
       )}
 
-      {/* Recommended Products Selector */}
+      {/* Primary Product Selector */}
       <div className="space-y-2">
         <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-          Select Recommended Product
+          Primary Product Selection
         </label>
 
-        <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
           {products.map((prod) => {
             const isSelected = prod.id === selectedProductId;
             return (
               <div
                 key={prod.id}
-                onClick={() => setSelectedProductId(prod.id)}
+                onClick={() => {
+                  setSelectedProductId(prod.id);
+                  setBundleProduct(null); // Reset bundle on primary change
+                }}
                 className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-3 text-xs ${
                   isSelected
                     ? "bg-emerald-500/10 border-emerald-500/40 text-zinc-100"
@@ -121,10 +141,61 @@ export function ProductOrderPanel({
         </div>
       </div>
 
+      {/* AI Cross-Sell Recommendation Card */}
+      {topRec && (
+        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3.5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>AI Recommended Cross-Sell Bundle</span>
+            </div>
+            <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-[10px] font-bold rounded-md border border-cyan-500/30">
+              Save 15%
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 bg-zinc-950/80 p-2.5 rounded-lg border border-cyan-500/20">
+            <div className="flex items-center gap-2.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={topRec.recommendedProduct.image_url}
+                alt={topRec.recommendedProduct.title}
+                className="w-9 h-9 rounded-lg object-cover border border-zinc-800 shrink-0"
+              />
+              <div>
+                <p className="font-semibold text-xs text-zinc-100 line-clamp-1">{topRec.recommendedProduct.title}</p>
+                <div className="flex items-center gap-1.5 text-[11px] font-mono">
+                  <span className="line-through text-zinc-500">${topRec.originalPrice.toFixed(2)}</span>
+                  <span className="text-emerald-400 font-bold">${topRec.bundlePrice.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {bundleProduct?.id === topRec.recommendedProduct.id ? (
+              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Added
+              </span>
+            ) : (
+              <button
+                onClick={() => handleAddBundleItem(topRec)}
+                className="px-2.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold rounded-lg text-xs flex items-center gap-1 transition-all shadow-xs cursor-pointer shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add Bundle</span>
+              </button>
+            )}
+          </div>
+
+          <p className="text-[11px] text-cyan-200/90 leading-tight">
+            <strong>Operator Script:</strong> &ldquo;{topRec.reason}&rdquo;
+          </p>
+        </div>
+      )}
+
       {/* Quantity & Discount Controls */}
-      <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-400 font-medium">Quantity</span>
+      <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-4 space-y-3 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400 font-medium">Quantity (Primary)</span>
           <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -143,8 +214,8 @@ export function ProductOrderPanel({
         </div>
 
         {/* Discount Selector */}
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-400 font-medium">Agent Closing Discount</span>
+        <div className="flex items-center justify-between">
+          <span className="text-zinc-400 font-medium">Closing Discount</span>
           <select
             value={discountPercent}
             onChange={(e) => setDiscountPercent(Number(e.target.value))}
@@ -152,23 +223,32 @@ export function ProductOrderPanel({
           >
             <option value={0}>No Discount (0%)</option>
             <option value={10}>10% Special Promo</option>
-            <option value={15}>15% VIP Customer</option>
-            <option value={25}>25% 3-Month Bundle</option>
+            <option value={15}>15% VIP / Bundle Discount</option>
+            <option value={25}>25% Multi-Pack Special</option>
           </select>
         </div>
 
         {/* Price Breakdown */}
-        <div className="pt-2 border-t border-zinc-800 text-xs space-y-1">
+        <div className="pt-2 border-t border-zinc-800 space-y-1">
           <div className="flex justify-between text-zinc-400">
-            <span>Subtotal:</span>
-            <span className="font-mono">${subtotal.toFixed(2)}</span>
+            <span>Primary Item:</span>
+            <span className="font-mono">${primarySubtotal.toFixed(2)}</span>
           </div>
+
+          {bundleProduct && (
+            <div className="flex justify-between text-cyan-400 font-medium">
+              <span>Bundle (+{bundleProduct.title.substring(0, 15)}...):</span>
+              <span className="font-mono">${bundleSubtotal.toFixed(2)}</span>
+            </div>
+          )}
+
           {discountPercent > 0 && (
             <div className="flex justify-between text-emerald-400">
               <span>Discount ({discountPercent}%):</span>
               <span className="font-mono">-${discountAmount.toFixed(2)}</span>
             </div>
           )}
+
           <div className="flex justify-between font-bold text-sm text-zinc-100 pt-1 border-t border-zinc-800">
             <span>Total Payable:</span>
             <span className="font-mono text-emerald-400">${grandTotal.toFixed(2)}</span>
@@ -179,7 +259,7 @@ export function ProductOrderPanel({
         <button
           onClick={handlePlaceOrder}
           disabled={!selectedProduct || !activeLead}
-          className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"
+          className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
         >
           <ShoppingCart className="w-4 h-4" />
           <span>Place Order for {activeLead?.full_name || "Customer"}</span>

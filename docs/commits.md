@@ -225,21 +225,21 @@ feat: add real-time objection detection and rebuttal suggestion engine
 
 ---
 
-### ⏳ COMMIT-11 — Cross-sell & Up-sell doporučení
+### ✅ HOTOVO: COMMIT-11 — Cross-sell & Up-sell doporučení
 ```
 feat: add ai-powered cross-sell and upsell product recommendations
 ```
-**Co**: AI doporučuje produkty na základě kontextu hovoru a profilu zákazníka.
+**Co**: Inteligentní doporučování doplňkových produktů (cross-sell / up-sell) v reálném čase pro zvýšení průměrné hodnoty objednávky (AOV).
 
-**Proč**: Cross-sell a up-sell je klíčový pro zvyšování průměrné hodnoty objednávky (AOV).
+**Proč**: Klíčový nástroj pro zvyšování tržeb call centra během probíhajícího hovoru.
 
 **Jak**:
-- Analýza zákaznického profilu + aktuálního hovoru → doporučení produktů
-- Karty doporučených produktů s CTA "Přidat do košíku"
-- Logika cross-category (doplněk stravy + kosmetika + elektro balíček)
-- Zobrazení potenciálního bonusu operátora z cross-sellu
+- Doporučovací engine `getCrossSellRecommendations()` (`src/lib/recommendations.ts`)
+- Automatické generování výhodných balíčků (15% Bundle Discount) a prodejního zdůvodnění pro operátory
+- Kartička **AI Recommended Cross-Sell Bundle** v `ProductOrderPanel.tsx`
+- Tlačítko **+ Add Bundle** pro 1-klikové vložení balíčkového produktu do košíku
 
-**Výsledek**: Operátor dostane konkrétní tipy "co ještě nabídnout" přímo během hovoru.
+**Výsledek**: Operátor může 1 kliknutím nabídnout doplňkový produkt se slevou a zvýšit tržbu z hovoru.
 
 ---
 
