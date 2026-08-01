@@ -128,7 +128,7 @@ feat: add product catalog with multi-category support and objection templates
 
 > **Priorita: VYSOKÁ** — Toto je hlavní "obrazovka práce" operátora. Musí být co nejrychlejší a nejintuitivnější.
 
-### ⏳ COMMIT-06 — Agent Workspace layout
+### ✅ HOTOVO: COMMIT-06 — Agent Workspace layout
 ```
 feat: add agent workspace base layout with customer info panel
 ```
@@ -137,12 +137,13 @@ feat: add agent workspace base layout with customer info panel
 **Proč**: Workspace musí být navržen tak, aby operátor nemusel hledat žádnou informaci déle než 1 sekundu.
 
 **Jak**:
-- 3-panelový layout (zákazník | AI copilot | produkty + objednávka)
-- Panel zákazníka: jméno, telefon, AI skóre, nákupní historie, poznámky
-- Rychlé akce: Vytvořit objednávku, Přidat poznámku, Naplánovat opakování
-- Stavový bar operátora: Dostupný / Volá / Po-hovorová práce / Pauza
+- 3-panelový layout (Zákazník | AI Copilot | Produkty & Objednávka)
+- Panel zákazníka: Jméno, telefon, AI skóre, nákupní historie, poznámky (`CustomerPanel.tsx`)
+- AI Copilot panel: Živý přepis hovoru, detekce sentimentu a prodejní námitky (`AiCopilotPanel.tsx`)
+- Produkty & Objednávka: Rychlé vytvoření objednávky a zapsání poznámky po hovoru (`ProductOrderPanel.tsx`)
+- Stavový bar operátora s časovačem hovoru (`CallStatusBar.tsx`)
 
-**Výsledek**: Operátor má profesionální přehlednou plochu. Layout hotový, zatím s mock daty.
+**Výsledek**: Operátor má profesionální přehlednou plochu připravenou pro reálnou práci.
 
 ---
 
