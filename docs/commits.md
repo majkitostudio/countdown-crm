@@ -106,7 +106,7 @@ feat: add leads management module with list, detail and import
 
 ---
 
-### ⏳ COMMIT-05 — Modul Produkty (katalog)
+### ✅ HOTOVO: COMMIT-05 — Modul Produkty (katalog)
 ```
 feat: add product catalog with multi-category support and objection templates
 ```
@@ -115,12 +115,12 @@ feat: add product catalog with multi-category support and objection templates
 **Proč**: Produkty jsou tím, co se prodává. AI copilot musí znát jejich vlastnosti, aby mohl doporučovat správné argumenty.
 
 **Jak**:
-- CRUD produktů (název, kategorie, cena, popis, obrázek)
+- CRUD produktů (název, kategorie, cena, popis, obrázek, skladová zásoba)
 - Tagging a kategorizace (doplňky / kosmetika / elektro)
-- Šablony námitek propojené s produkty (Cena příliš vysoká → 3 argumenty)
-- Cross-sell matice (produkt A → doporučí produkty B, C)
+- Šablony námitek propojené s produkty (Battle-cards: Cena příliš vysoká → 3 argumenty)
+- Cross-sell matice (doporučené související produkty)
 
-**Výsledek**: Katalog produktů s prodejními materiály dostupný AI copilotovi.
+**Výsledek**: Katalog produktů s prodejními materiály a námitkovými kartami dostupný AI copilotovi.
 
 ---
 
