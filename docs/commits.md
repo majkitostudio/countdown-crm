@@ -279,18 +279,20 @@ feat: add one-click order creation from call context
 
 ---
 
-### ⏳ COMMIT-14 — Plánovač opakovaných hovorů
+### ✅ HOTOVO: COMMIT-14 — Nastavení a profil operátora (`/settings`)
 ```
-feat: add follow-up call scheduler and reminder system
+feat: add operator settings page and preferences management
 ```
-**Co**: Operátor naplánuje opakovaný hovor ("zavolat za 3 dny") a systém mu automaticky připomene.
+**Co**: Stránka `/settings` pro nastavení profilu operátora, jazykových preferencí pro WebSpeech (CS, SK, EN), automatické Gemini analýzy a zvukových efektů.
+
+**Proč**: Operátor potřebuje přizpůsobit chování AI asistenta a zvukových tónů své práci.
 
 **Jak**:
-- Výběr data a důvodu plánování
-- Zobrazení v kalendáři / frontě dnešních hovorů
-- Notifikace (Supabase Realtime nebo browser notification)
+- Datová služba `src/lib/settings.ts` ukládající preference do `localStorage`
+- Stránka `/settings` s kartami Profilu, Hlasové rekognice & Gemini Flash a Zvukových tónů hovorů
+- Tlačítko **Test Ringtone Sound** pro otestování vyzváněcího tónu přes Web Audio API
 
-**Výsledek**: Žádný zákazník nezůstane zapomenutý.
+**Výsledek**: Operátor si může plně přizpůsobit profil, jazyk rozhraní a hlasitost vyzvánění.
 
 ---
 
