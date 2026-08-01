@@ -298,17 +298,20 @@ feat: add follow-up call scheduler and reminder system
 
 > **Priorita: NÍZKÁ pro MVP** — Důležité pro prodej systému managementu, ale operátoři mohou pracovat bez toho.
 
-### ⏳ COMMIT-15 — Manažerský dashboard
+### ✅ HOTOVO: COMMIT-13 — Call logs & přehled hovorů (`/calls`)
 ```
-feat: add manager dashboard with team performance and conversion analytics
+feat: add call logs history page with audio playback and full transcript viewer
 ```
-**Co**: Přehled výkonu celého call centra pro manažera/supervisora.
+**Co**: Dedikovaná stránka `/calls` pro zobrazení výpisu všech hovorů, filtrů a přehrávání zvukové stopy s přepisovacím protokolem.
+
+**Proč**: Supervizoři a manažeři potřebují auditovat hovory operátorů a vyhodnocovat AHT i prodejní konverze.
 
 **Jak**:
-- Grafy: konverze %, tržby podle kategorií, úspěšnost námitek
-- Tabulka výkonu operátorů (hovory, konverze, průměrná délka hovoru)
-- Živý přehled aktivních hovorů (Supabase Realtime)
-- Export dat (CSV)
+- Datová vrstva `src/lib/calls.ts`
+- Stránka `/calls` s KPI kartami (Total Calls, AHT, Revenue Volume, Conversion Rate %)
+- Slide-over drawer `CallDetailDrawer.tsx` s časovým přepisovacím protokolem rozhovoru a zvukovou vizualizací
+
+**Výsledek**: Supervizor má k dispozici auditní log všech hovorů včetně živých přepisů a AHT benchmarků.t dat (CSV)
 
 ---
 
