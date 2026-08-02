@@ -19,6 +19,8 @@ import {
 import { Lead } from "@/lib/leads";
 import { Order, getOrdersByLeadId } from "@/lib/orders";
 import { DynamicAttributesCard } from "@/components/workspace/DynamicAttributesCard";
+import { enrichLeadWithGemini, EnrichedCompanyData } from "@/lib/enrichment";
+import { RefreshCw } from "lucide-react";
 
 interface CustomerPanelProps {
   leads: Lead[];
@@ -28,16 +30,32 @@ interface CustomerPanelProps {
 
 export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanelProps) {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
+  const [enrichmentData, setEnrichmentData] = useState<EnrichedCompanyData | null>(null);
+  const [isEnriching, setIsEnriching] = useState(false);
 
   useEffect(() => {
     async function loadCustomerOrders() {
       if (activeLead) {
         const orders = await getOrdersByLeadId(activeLead.id);
         setCustomerOrders(orders);
+        setEnrichmentData(null); // Reset on lead change
       }
     }
     loadCustomerOrders();
   }, [activeLead]);
+
+  const handleEnrich = async () => {
+    if (!activeLead) return;
+    setIsEnriching(true);
+    try {
+      const data = await enrichLeadWithGemini(activeLead);
+      setEnrichmentData(data);
+    } catch (err) {
+      console.error("Enrichment error:", err);
+    } finally {
+      setIsEnriching(false);
+    }
+  };
 
   if (!activeLead) {
     return (
@@ -134,6 +152,40 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
           </span>
           <span className="text-zinc-100 font-mono font-bold">${activeLead.value || 750}</span>
         </div>
+      </div>
+
+      {/* AI Data Enrichment Trigger */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            AI Market Intelligence
+          </span>
+          <button
+            onClick={handleEnrich}
+            disabled={isEnriching}
+            className="px-2.5 py-1 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <RefreshCw className={`w-3 h-3 ${isEnriching ? "animate-spin" : ""}`} />
+            <span>{isEnriching ? "Enriching..." : "✨ AI Enrich Data"}</span>
+          </button>
+        </div>
+
+        {enrichmentData && (
+          <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 text-xs animate-in fade-in duration-200">
+            <div className="flex items-center justify-between">
+              <span className="text-zinc-400">Odvětví:</span>
+              <span className="font-semibold text-cyan-300">{enrichmentData.industry}</span>
+            </div>
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-zinc-500">Velikost / Obrat:</span>
+              <span className="text-zinc-300">{enrichmentData.estimatedEmployees} ({enrichmentData.estimatedRevenue})</span>
+            </div>
+            <div className="text-[11px] text-zinc-400 pt-1 border-t border-zinc-800/60">
+              <span className="text-zinc-500">Klíčová potřeba:</span> {enrichmentData.keyPainPoints}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* AI Summary Notes */}
