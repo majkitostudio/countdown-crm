@@ -1,0 +1,179 @@
+"use client";
+
+import React from "react";
+import {
+  Zap,
+  CheckCircle2,
+  XCircle,
+  SkipForward,
+  Sparkles,
+  Mail,
+  RefreshCw,
+  Bell,
+  X,
+  Activity,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  ExecutionLogEntry,
+  ACTION_REGISTRY,
+  TRIGGER_REGISTRY,
+} from "@/lib/workflows/types";
+
+// ─── Props ──────────────────────────────────────────────────────────────────
+
+interface PostCallSummaryCardProps {
+  entries: ExecutionLogEntry[];
+  onDismiss: () => void;
+}
+
+// ─── Action Icon Map ────────────────────────────────────────────────────────
+
+const ACTION_ICON_MAP: Record<string, React.ElementType> = {
+  Sparkles,
+  Mail,
+  RefreshCw,
+  Bell,
+};
+
+// ─── Component ──────────────────────────────────────────────────────────────
+
+export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardProps) {
+  if (entries.length === 0) return null;
+
+  const successCount = entries.filter((e) => e.status === "success").length;
+  const failureCount = entries.filter((e) => e.status === "failure").length;
+  const skippedCount = entries.filter((e) => e.status === "skipped").length;
+
+  return (
+    <div className="bg-zinc-900/80 border border-zinc-700/80 rounded-xl p-4 shadow-xl backdrop-blur-sm space-y-3 animate-in fade-in slide-in-from-top-3 duration-400">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+            <Zap className="w-4.5 h-4.5 text-amber-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-100">
+              Post-Call Automation Report
+            </h3>
+            <p className="text-[10px] text-zinc-500">
+              {entries.length} pravidel vyhodnoceno • {successCount} spuštěno
+              {failureCount > 0 && ` • ${failureCount} selhalo`}
+              {skippedCount > 0 && ` • ${skippedCount} přeskočeno`}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={onDismiss}
+          className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Executed Rules */}
+      <div className="space-y-2">
+        {entries.map((entry) => {
+          const StatusIcon =
+            entry.status === "success"
+              ? CheckCircle2
+              : entry.status === "failure"
+              ? XCircle
+              : SkipForward;
+
+          const statusColor =
+            entry.status === "success"
+              ? "text-emerald-400"
+              : entry.status === "failure"
+              ? "text-rose-400"
+              : "text-zinc-500";
+
+          const statusBg =
+            entry.status === "success"
+              ? "bg-emerald-500/5 border-emerald-500/15"
+              : entry.status === "failure"
+              ? "bg-rose-500/5 border-rose-500/15"
+              : "bg-zinc-900/60 border-zinc-800/60";
+
+          return (
+            <div
+              key={entry.id}
+              className={cn(
+                "flex items-start gap-3 p-3 rounded-lg border transition-all",
+                statusBg
+              )}
+            >
+              <StatusIcon className={cn("w-4 h-4 shrink-0 mt-0.5", statusColor)} />
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-zinc-200">
+                    {entry.ruleName}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                      entry.status === "success"
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : entry.status === "failure"
+                        ? "bg-rose-500/10 text-rose-400"
+                        : "bg-zinc-800 text-zinc-500"
+                    )}
+                  >
+                    {entry.status === "success"
+                      ? "Spuštěno"
+                      : entry.status === "failure"
+                      ? "Selhalo"
+                      : "Přeskočeno"}
+                  </span>
+                </div>
+
+                {/* Executed Actions */}
+                {entry.executedActions.length > 0 && (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    {entry.executedActions.map((actionType) => {
+                      const def = ACTION_REGISTRY.find((a) => a.type === actionType);
+                      if (!def) return null;
+                      const ActionIcon = ACTION_ICON_MAP[def.icon] || Activity;
+                      return (
+                        <span
+                          key={actionType}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-800/80 text-zinc-400 text-[10px] font-medium rounded-full"
+                        >
+                          <ActionIcon className="w-3 h-3" />
+                          {def.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Error message */}
+                {entry.errorMessage && (
+                  <p className="text-[10px] text-rose-300 mt-1">
+                    {entry.errorMessage}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
+        <span className="text-[10px] text-zinc-600">
+          {new Date().toLocaleString("cs-CZ")}
+        </span>
+        <a
+          href="/workflows"
+          className="text-[10px] text-amber-400 hover:text-amber-300 font-medium transition-colors"
+        >
+          Zobrazit všechny automatizace →
+        </a>
+      </div>
+    </div>
+  );
+}

@@ -11,7 +11,10 @@ import { CustomerPanel } from "@/components/workspace/CustomerPanel";
 import { AiCopilotPanel } from "@/components/workspace/AiCopilotPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
+import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
 import { sounds } from "@/lib/audio";
+import { workflowEngine } from "@/lib/workflows/engine";
+import { ExecutionLogEntry } from "@/lib/workflows/types";
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -28,6 +31,7 @@ function WorkspaceContent() {
   
   const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [postCallResults, setPostCallResults] = useState<ExecutionLogEntry[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -54,11 +58,29 @@ function WorkspaceContent() {
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = () => {
     if (isCallActive || isDialing) {
-      // Hang up
+      // Hang up — emit workflow event
       setIsCallActive(false);
       setIsDialing(false);
       setOperatorStatus("ready");
       sounds.playCallEndSound();
+
+      // Emit workflow engine event
+      if (activeLead) {
+        workflowEngine.emit("on_call_ended", {
+          callId: `call-${Date.now()}`,
+          leadId: activeLead.id,
+          leadName: activeLead.full_name,
+          agentName: "Operator",
+          outcome: "followup_scheduled",
+          sentiment: "Neutral",
+          orderValue: 0,
+          transcript: "Call ended by operator (manual hangup)",
+        }).then((results) => {
+          if (results.length > 0) {
+            setPostCallResults(results);
+          }
+        });
+      }
     } else {
       // Start Outbound Call
       setIsDialing(true);
@@ -121,26 +143,49 @@ function WorkspaceContent() {
     setOperatorStatus("ready");
 
     let toastText = "";
+    let callOutcome = "followup_scheduled";
     switch (outcome) {
       case "call_later":
         toastText = `Označeno: Nezvedá (Call Later) — Načítám dalšího zákazníka...`;
         sounds.playCallEndSound();
         advanceToNextLead();
+        callOutcome = "no_answer";
         break;
       case "schedule":
         toastText = `Označeno: Naplánovat hovor (Callback) — Zápis do kalendáře...`;
         sounds.playCallEndSound();
         advanceToNextLead();
+        callOutcome = "followup_scheduled";
         break;
       case "fail":
         toastText = `Označeno: Odmítnuto (Fail) — Lead uzavřen. Načítám dalšího...`;
         sounds.playCallEndSound();
         advanceToNextLead();
+        callOutcome = "objection_handled";
         break;
       case "order":
         toastText = `Zákazník projevuje zájem! Vyberte produkt v pravém panelu pro 1-click objednávku.`;
         sounds.playSuccessSound();
+        callOutcome = "order_placed";
         break;
+    }
+
+    // Emit workflow engine event
+    if (activeLead) {
+      workflowEngine.emit("on_call_ended", {
+        callId: `call-${Date.now()}`,
+        leadId: activeLead.id,
+        leadName: activeLead.full_name,
+        agentName: "Operator",
+        outcome: callOutcome,
+        sentiment: outcome === "order" ? "Positive" : "Neutral",
+        orderValue: outcome === "order" ? (activeLead.value || 0) : 0,
+        transcript: `Call outcome: ${outcome}`,
+      }).then((results) => {
+        if (results.length > 0) {
+          setPostCallResults(results);
+        }
+      });
     }
 
     setNotificationToast(toastText);
@@ -179,6 +224,14 @@ function WorkspaceContent() {
           <span>{notificationToast}</span>
           <button onClick={() => setNotificationToast(null)} className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
         </div>
+      )}
+
+      {/* Post-Call Workflow Automation Results */}
+      {postCallResults.length > 0 && (
+        <PostCallSummaryCard
+          entries={postCallResults}
+          onDismiss={() => setPostCallResults([])}
+        />
       )}
 
       {/* Top Status & Call Controller Bar */}
