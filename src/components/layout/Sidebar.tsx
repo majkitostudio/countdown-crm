@@ -17,6 +17,7 @@ import {
   Zap,
   Circle,
   GraduationCap,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { label: "Leads & Contacts", href: "/leads", icon: Users },
   { label: "Product Catalog", href: "/products", icon: Package },
   { label: "Call Logs", href: "/calls", icon: History },
+  { label: "Workflows", href: "/workflows", icon: Workflow },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Live Monitor", href: "/monitor", icon: Radio },
   { label: "Settings", href: "/settings", icon: Settings },
