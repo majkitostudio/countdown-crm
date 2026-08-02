@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { Order, getOrdersByLeadId } from "@/lib/orders";
+import { DynamicAttributesCard } from "@/components/workspace/DynamicAttributesCard";
 
 interface CustomerPanelProps {
   leads: Lead[];
@@ -145,6 +146,9 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
           {activeLead.notes || "No previous notes available for this customer."}
         </p>
       </div>
+
+      {/* Dynamic EAV Attributes from SchemaEngine */}
+      <DynamicAttributesCard lead={activeLead} />
 
       {/* Historical Purchases & Activity */}
       <div className="space-y-2 pt-2 border-t border-zinc-800">
