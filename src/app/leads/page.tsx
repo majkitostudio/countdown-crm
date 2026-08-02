@@ -6,6 +6,8 @@ import { Lead, getLeads } from "@/lib/leads";
 import { LeadsTable } from "@/components/leads/LeadsTable";
 import { LeadDetailDrawer } from "@/components/leads/LeadDetailDrawer";
 import { CsvImportModal } from "@/components/leads/CsvImportModal";
+import { ViewSwitcher, ViewMode } from "@/components/views/ViewSwitcher";
+import { KanbanBoard } from "@/components/views/KanbanBoard";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -13,6 +15,7 @@ export default function LeadsPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
 
   const loadLeads = async () => {
     setIsLoading(true);
@@ -31,7 +34,6 @@ export default function LeadsPage() {
   };
 
   const handleStartCall = (lead: Lead) => {
-    // In future phase, redirects to /agent-workspace with prefilled lead
     alert(`Initiating virtual call with ${lead.full_name} (${lead.phone})... Redirecting to Agent Workspace.`);
   };
 
@@ -66,7 +68,10 @@ export default function LeadsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* View Switcher (Table / Kanban) */}
+          <ViewSwitcher mode={viewMode} onModeChange={setViewMode} />
+
           <button
             onClick={loadLeads}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors"
@@ -135,13 +140,22 @@ export default function LeadsPage() {
 
       </div>
 
-      {/* Main Leads Table Component */}
-      <LeadsTable
-        leads={leads}
-        onSelectLead={handleSelectLead}
-        onStartCall={handleStartCall}
-        onOpenImportModal={() => setIsImportModalOpen(true)}
-      />
+      {/* Main Content View (Table vs. Kanban Board) */}
+      {viewMode === "table" ? (
+        <LeadsTable
+          leads={leads}
+          onSelectLead={handleSelectLead}
+          onStartCall={handleStartCall}
+          onOpenImportModal={() => setIsImportModalOpen(true)}
+        />
+      ) : (
+        <KanbanBoard
+          leads={leads}
+          onSelectLead={handleSelectLead}
+          onStartCall={handleStartCall}
+          onLeadUpdated={loadLeads}
+        />
+      )}
 
       {/* Slide-over Detail Drawer */}
       <LeadDetailDrawer
