@@ -53,10 +53,16 @@
 ---
 
 ## 📦 FÁZE 6: Industry Blueprints & Oborové Balíčky (Šablony Použití)
+- [x] `feat(blueprints): define IndustryBlueprint schema & preset registry (6.1)`
+- [x] `feat(blueprints): create Workspace Blueprint Picker onboarding modal (6.2)`
 
-### 📌 Commit 6.1: `feat(blueprints): define IndustryBlueprint schema & preset registry`
-- **Popis**: Architektura balíčků pro odvětví (např. *Call Center & Tele-Sales*, *B2B SaaS Sales*, *E-commerce Support*).
-- **Cíl**: Automatické načtení předkonfigurovaných vlastních polí, AI promptů, KPI metrik a automatizací po výběru šablony.
+---
 
-### 📌 Commit 6.2: `feat(blueprints): create Workspace Blueprint Picker onboarding modal`
-- **Popis**: Vizuální průvodce výběrem šablony při zakládání nového účtu nebo přepínání režimu CRM.
+## ⚙️ REVIZE & POLISH: Perzistence & EAV Kanban Badges
+- [x] `refactor(core): add storage persistence, EAV kanban badges & update architecture docs`
+
+---
+
+## 🛠️ FÁZE 7: Custom Object Builder & AI Data Enrichment
+- [x] `feat(schema): implement Custom Object Builder & Schema Manager in Settings (7.1)`
+- [x] `feat(enrichment): add Gemini automatic web & company data enrichment (7.2)`
