@@ -13,19 +13,31 @@ import {
   Cpu,
   Mic,
   Shield,
-  Play
+  Play,
+  Database,
+  Plus,
+  Layers,
 } from "lucide-react";
 import { getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
 import { sounds } from "@/lib/audio";
+import { schemaEngine } from "@/lib/schema/engine";
+import { ObjectSchema } from "@/lib/schema/types";
+import { ObjectBuilderModal } from "@/components/schema/ObjectBuilderModal";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(getUserSettings());
   const [isSavedAlert, setIsSavedAlert] = useState(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
+  const [isObjectBuilderOpen, setIsObjectBuilderOpen] = useState(false);
+  const [schemas, setSchemas] = useState<ObjectSchema[]>(schemaEngine.getAllSchemas());
 
   useEffect(() => {
     setSettings(getUserSettings());
   }, []);
+
+  const refreshSchemas = () => {
+    setSchemas(schemaEngine.getAllSchemas());
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,23 +57,31 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
-      
       {/* Page Title Hero Banner */}
       <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
               <SettingsIcon className="w-5 h-5 text-zinc-400" />
-              Operator Settings & Preferences
+              Operator Settings & Schema Engine
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
               Config Active
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Configure speech recognition languages, Google Gemini AI copilot automation, and call audio effects
+            Configure speech recognition languages, Google Gemini AI copilot automation, custom EAV objects, and audio feedback
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => setIsObjectBuilderOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/10 cursor-pointer shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Vytvořit Custom Object</span>
+        </button>
       </div>
 
       {/* Success Notification Alert */}
@@ -75,8 +95,53 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* Section: Custom Schema & Objects Manager (Attio Engine) */}
+      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-5">
+        <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+              <Database className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-100">Dynamic EAV Schema & Custom Objects</h2>
+              <p className="text-[11px] text-zinc-400">Attio-grade object builder for Deals, Companies, Tickets and custom entities</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsObjectBuilderOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-800 transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 text-amber-400" />
+            <span>Nové Schema</span>
+          </button>
+        </div>
+
+        {/* Registered Objects Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {schemas.map((s) => (
+            <div key={s.id} className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-amber-400" />
+                  <span className="font-semibold text-xs text-zinc-100">{s.name}</span>
+                </div>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded">
+                  {s.slug}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400 line-clamp-2">{s.description}</p>
+              <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] text-zinc-500">
+                <span>{s.attributes.length} EAV atributů</span>
+                <span className="text-amber-400 font-mono">System Object</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <form onSubmit={handleSave} className="space-y-8">
-        
         {/* Section 1: Operator Profile */}
         <div className="bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/80">
@@ -231,9 +296,14 @@ export default function SettingsPage() {
             <span>Save Preferences</span>
           </button>
         </div>
-
       </form>
 
+      {/* Custom Object Builder Modal */}
+      <ObjectBuilderModal
+        isOpen={isObjectBuilderOpen}
+        onClose={() => setIsObjectBuilderOpen(false)}
+        onSchemaCreated={refreshSchemas}
+      />
     </div>
   );
 }
