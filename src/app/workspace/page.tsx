@@ -106,8 +106,55 @@ function WorkspaceContent() {
     sounds.playCallEndSound();
   };
 
+  const [notificationToast, setNotificationToast] = useState<string | null>(null);
+
+  const advanceToNextLead = () => {
+    if (!activeLead || leads.length === 0) return;
+    const currentIndex = leads.findIndex((l) => l.id === activeLead.id);
+    const nextIndex = (currentIndex + 1) % leads.length;
+    setActiveLead(leads[nextIndex]);
+  };
+
+  const handleCallOutcome = (outcome: "call_later" | "schedule" | "fail" | "order") => {
+    setIsCallActive(false);
+    setIsDialing(false);
+    setOperatorStatus("ready");
+
+    let toastText = "";
+    switch (outcome) {
+      case "call_later":
+        toastText = `Označeno: Nezvedá (Call Later) — Načítám dalšího zákazníka...`;
+        sounds.playCallEndSound();
+        advanceToNextLead();
+        break;
+      case "schedule":
+        toastText = `Označeno: Naplánovat hovor (Callback) — Zápis do kalendáře...`;
+        sounds.playCallEndSound();
+        advanceToNextLead();
+        break;
+      case "fail":
+        toastText = `Označeno: Odmítnuto (Fail) — Lead uzavřen. Načítám dalšího...`;
+        sounds.playCallEndSound();
+        advanceToNextLead();
+        break;
+      case "order":
+        toastText = `Zákazník projevuje zájem! Vyberte produkt v pravém panelu pro 1-click objednávku.`;
+        sounds.playSuccessSound();
+        break;
+    }
+
+    setNotificationToast(toastText);
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
   const handleOrderPlaced = (productId: string, totalAmount: number) => {
     console.log(`Order placed for lead ${activeLead?.full_name}: Product ${productId}, total $${totalAmount}`);
+    sounds.playSuccessSound();
+    setNotificationToast(`Objednávka ($${totalAmount}) byla úspěšně vytvořena! Načítám dalšího zákazníka...`);
+    setTimeout(() => {
+      setNotificationToast(null);
+      advanceToNextLead();
+    }, 2000);
   };
 
   const handleApplyPitch = (pitchText: string) => {
@@ -124,14 +171,23 @@ function WorkspaceContent() {
   }
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto">
+    <div className="space-y-8 max-w-screen-2xl mx-auto">
       
+      {/* Toast Notification Banner */}
+      {notificationToast && (
+        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
+          <span>{notificationToast}</span>
+          <button onClick={() => setNotificationToast(null)} className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
+        </div>
+      )}
+
       {/* Top Status & Call Controller Bar */}
       <CallStatusBar
         status={operatorStatus}
         isCallActive={isCallActive}
         isDialing={isDialing}
         activeLeadName={activeLead?.full_name}
+        activeLeadPhone={activeLead?.phone}
         onToggleCall={handleToggleCall}
         onSimulateIncoming={handleSimulateIncoming}
         onStatusChange={(newStatus) => {
@@ -139,10 +195,11 @@ function WorkspaceContent() {
           if (newStatus === "in_call") setIsCallActive(true);
           else setIsCallActive(false);
         }}
+        onCallOutcome={handleCallOutcome}
       />
 
       {/* Main 3-Column Operator Workspace Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[680px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[720px]">
         
         {/* Left Column: Customer Details & Timeline (3 cols) */}
         <div className="lg:col-span-3 h-full">

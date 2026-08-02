@@ -88,32 +88,32 @@ export function LeadsTable({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+    <div className="bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm flex flex-col">
       
       {/* Controls Bar: Search, Filters & Import Button */}
-      <div className="p-4 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-4 bg-zinc-900/90">
+      <div className="p-6 border-b border-zinc-800/80 flex flex-wrap items-center justify-between gap-6 bg-zinc-950/40">
         
         {/* Left Side: Search + Status Filter Pills */}
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[300px]">
+        <div className="flex flex-wrap items-center gap-4 flex-1 min-w-[300px]">
           {/* Search Box */}
           <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
             <input
               type="text"
               placeholder="Search leads, phone, city..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
             />
           </div>
 
           {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs">
+          <div className="flex items-center gap-1.5 bg-zinc-950 p-1.5 rounded-xl border border-zinc-800 text-xs">
             {["all", "new", "contacted", "qualified", "customer"].map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg capitalize font-medium transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg capitalize font-medium transition-all ${
                   statusFilter === st
                     ? "bg-zinc-800 text-zinc-100 shadow-xs"
                     : "text-zinc-400 hover:text-zinc-200"
@@ -126,15 +126,15 @@ export function LeadsTable({
         </div>
 
         {/* Right Side: Sorting & Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* Sort dropdown */}
-          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300">
+          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-300">
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-zinc-500">Sort:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "newest" | "score" | "name")}
-              className="bg-transparent text-zinc-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-zinc-200 focus:outline-none cursor-pointer text-xs"
             >
               <option value="score" className="bg-zinc-900">AI Score (High to Low)</option>
               <option value="newest" className="bg-zinc-900">Newest Created</option>
@@ -145,7 +145,7 @@ export function LeadsTable({
           {/* Import CSV CTA */}
           <button
             onClick={onOpenImportModal}
-            className="py-2 px-3.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold rounded-xl text-xs flex items-center gap-2 transition-all shadow-md"
+            className="py-2.5 px-4 bg-zinc-100 text-zinc-950 font-medium rounded-xl text-xs flex items-center gap-2 hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Import CSV</span>
@@ -159,19 +159,19 @@ export function LeadsTable({
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400 font-semibold bg-zinc-950/40 uppercase tracking-wider">
-              <th className="py-3.5 px-4">Customer / Lead</th>
-              <th className="py-3.5 px-4">Contact Info</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4">AI Score</th>
-              <th className="py-3.5 px-4 text-right">Est. Value</th>
-              <th className="py-3.5 px-4 text-right">Actions</th>
+              <th className="py-4.5 px-6">Customer / Lead</th>
+              <th className="py-4.5 px-6">Contact Info</th>
+              <th className="py-4.5 px-6">Status</th>
+              <th className="py-4.5 px-6">AI Score</th>
+              <th className="py-4.5 px-6 text-right">Est. Value</th>
+              <th className="py-4.5 px-6 text-right">Actions</th>
             </tr>
           </thead>
 
           <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-zinc-500">
+                <td colSpan={6} className="py-16 text-center text-zinc-500">
                   No leads found matching your filter criteria.
                 </td>
               </tr>
@@ -183,7 +183,7 @@ export function LeadsTable({
                   onClick={() => onSelectLead(lead)}
                 >
                   {/* Lead Name & Avatar */}
-                  <td className="py-3.5 px-4">
+                  <td className="py-4.5 px-6">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-zinc-200 group-hover:border-zinc-500 transition-colors">
                         {lead.full_name.charAt(0)}
@@ -203,7 +203,7 @@ export function LeadsTable({
                   </td>
 
                   {/* Contact Info */}
-                  <td className="py-3.5 px-4">
+                  <td className="py-4.5 px-6">
                     <div className="font-mono text-zinc-200">{lead.phone}</div>
                     <div className="text-[11px] text-zinc-400 truncate max-w-[180px]">
                       {lead.email || `${lead.city || "Prague"}, CZ`}
@@ -211,12 +211,12 @@ export function LeadsTable({
                   </td>
 
                   {/* Status Badge */}
-                  <td className="py-3.5 px-4">
+                  <td className="py-4.5 px-6">
                     {getStatusBadge(lead.status)}
                   </td>
 
                   {/* AI Score */}
-                  <td className="py-3.5 px-4">
+                  <td className="py-4.5 px-6">
                     {getScoreBadge(lead.ai_score)}
                   </td>
 

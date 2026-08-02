@@ -9,21 +9,29 @@ import {
   Pause,
   Play,
   Clock,
-  Sparkles,
   ChevronDown,
   PhoneIncoming,
-  Radio
+  Radio,
+  Calendar,
+  PhoneMissed,
+  XCircle,
+  ShoppingBag,
+  UserCheck
 } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
+
+export type CallOutcome = "call_later" | "schedule" | "fail" | "order";
 
 interface CallStatusBarProps {
   status: OperatorStatus;
   isCallActive: boolean;
   isDialing: boolean;
   activeLeadName?: string;
+  activeLeadPhone?: string;
   onToggleCall: () => void;
   onSimulateIncoming: () => void;
   onStatusChange: (newStatus: OperatorStatus) => void;
+  onCallOutcome: (outcome: CallOutcome) => void;
 }
 
 export function CallStatusBar({
@@ -31,9 +39,11 @@ export function CallStatusBar({
   isCallActive,
   isDialing,
   activeLeadName,
+  activeLeadPhone,
   onToggleCall,
   onSimulateIncoming,
   onStatusChange,
+  onCallOutcome,
 }: CallStatusBarProps) {
   const [seconds, setSeconds] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -69,14 +79,15 @@ export function CallStatusBar({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 shadow-xl flex flex-wrap items-center justify-between gap-4">
+    <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
       
-      {/* Left: Operator Status Selector & Call State Banner */}
-      <div className="flex items-center gap-4">
+      {/* Left: Active Lead & Primary Action */}
+      <div className="flex items-center gap-6">
+        
         {/* Status Dropdown */}
         <div className="relative group">
-          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs font-medium text-zinc-200">
-            <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(status).split(" ")[0]} animate-pulse`} />
+          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs font-medium text-zinc-200">
+            <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(status).split(" ")[0]}`} />
             <span className="capitalize">
               {status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break"}
             </span>
@@ -93,107 +104,162 @@ export function CallStatusBar({
           </div>
         </div>
 
-        {/* Dialing State Banner */}
-        {isDialing && (
-          <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-400 animate-pulse">
-            <Radio className="w-3.5 h-3.5 animate-spin" />
-            <span>Connecting to {activeLeadName || "Customer"}...</span>
+        {/* Lead Info Banner & Dialing State */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-zinc-200 text-sm">
+            {activeLeadName ? activeLeadName.charAt(0) : "L"}
           </div>
-        )}
-
-        {/* Active Call Banner */}
-        {isCallActive && !isDialing && (
-          <div className="flex items-center gap-3 bg-rose-500/10 border border-rose-500/20 px-3.5 py-1.5 rounded-xl">
+          <div>
             <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
+              <span className="text-sm font-semibold text-zinc-100">
+                {activeLeadName || "Select a Lead"}
               </span>
-              <span className="text-xs font-semibold text-rose-400 uppercase tracking-wider">
-                Call Live with {activeLeadName || "Customer"}
-              </span>
+              {activeLeadPhone && (
+                <span className="text-xs font-mono text-zinc-400">
+                  ({activeLeadPhone})
+                </span>
+              )}
             </div>
 
-            <div className="flex items-center gap-1 font-mono font-bold text-xs text-rose-300 bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-500/30">
-              <Clock className="w-3 h-3 text-rose-400" />
-              <span>{formatTimer(seconds)}</span>
-            </div>
-          </div>
-        )}
+            {/* Dialing State */}
+            {isDialing && (
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-medium mt-0.5 animate-pulse">
+                <Radio className="w-3.5 h-3.5 animate-spin" />
+                <span>Vytáčím klienta...</span>
+              </div>
+            )}
 
-        {!isCallActive && !isDialing && (
-          <div className="text-xs text-zinc-400 flex items-center gap-2 bg-zinc-950/60 px-3 py-1.5 rounded-xl border border-zinc-800">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Virtual Call Simulator Ready</span>
+            {/* Active Call Live Banner */}
+            {isCallActive && !isDialing && (
+              <div className="flex items-center gap-2 text-rose-400 text-xs font-medium mt-0.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                </span>
+                <span>Probiehá hovor • </span>
+                <span className="font-mono text-zinc-200">{formatTimer(seconds)}</span>
+              </div>
+            )}
+
+            {!isCallActive && !isDialing && (
+              <span className="text-[11px] text-zinc-400 block">
+                Připraven k vytočení hovoru
+              </span>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Right: Call Control & Simulation Buttons */}
-      <div className="flex items-center gap-2">
-        {/* Simulate Incoming Call Button */}
-        {!isCallActive && !isDialing && (
-          <button
-            onClick={onSimulateIncoming}
-            className="py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-cyan-400 border border-zinc-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
-          >
-            <PhoneIncoming className="w-3.5 h-3.5" />
-            <span>Simulate Incoming Call</span>
-          </button>
-        )}
-
-        {isCallActive && (
-          <>
-            {/* Mute Button */}
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-all ${
-                isMuted
-                  ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
-                  : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200"
-              }`}
-              title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
-            >
-              {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </button>
-
-            {/* Hold Button */}
-            <button
-              onClick={() => setIsOnHold(!isOnHold)}
-              className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-all ${
-                isOnHold
-                  ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300"
-                  : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200"
-              }`}
-              title={isOnHold ? "Resume Call" : "Put Call on Hold"}
-            >
-              {isOnHold ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
-            </button>
-          </>
-        )}
-
-        {/* Start / End Call Main CTA */}
+      {/* Right: Actions & Outcome Buttons */}
+      <div className="flex flex-wrap items-center gap-3">
+        
+        {/* Main CALL / END CALL CTA */}
         <button
           onClick={onToggleCall}
           disabled={isDialing}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer ${
             isCallActive
-              ? "bg-rose-500 hover:bg-rose-400 text-white shadow-rose-500/20"
-              : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
+              ? "bg-rose-950/80 border border-rose-800/60 text-rose-300 hover:bg-rose-900/80"
+              : "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
           }`}
         >
           {isCallActive ? (
             <>
               <PhoneOff className="w-4 h-4" />
-              <span>End Call</span>
+              <span>Ukončit hovor</span>
             </>
           ) : (
             <>
               <PhoneCall className="w-4 h-4 fill-current" />
-              <span>Start Virtual Call</span>
+              <span>Call Client (Vytočit)</span>
             </>
           )}
         </button>
+
+        {/* Call Controls during live call */}
+        {isCallActive && (
+          <div className="flex items-center gap-2 pl-2 border-l border-zinc-800">
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                isMuted
+                  ? "bg-amber-950/80 border-amber-800/60 text-amber-300"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+              }`}
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={() => setIsOnHold(!isOnHold)}
+              className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                isOnHold
+                  ? "bg-cyan-950/80 border-cyan-800/60 text-cyan-300"
+                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+              }`}
+              title={isOnHold ? "Resume" : "Hold"}
+            >
+              {isOnHold ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
+            </button>
+          </div>
+        )}
+
+        {/* Clear Outcome Buttons (Visible when active or after attempt) */}
+        <div className="flex items-center gap-2 pl-3 border-l border-zinc-800">
+          
+          {/* 1. Call Later (Nezvedá / Zavolat později) */}
+          <button
+            onClick={() => onCallOutcome("call_later")}
+            className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
+            title="Zákazník nezvedá telefon"
+          >
+            <PhoneMissed className="w-3.5 h-3.5 text-amber-400" />
+            <span>Call Later</span>
+          </button>
+
+          {/* 2. Schedule Callback (Nemá čas) */}
+          <button
+            onClick={() => onCallOutcome("schedule")}
+            className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
+            title="Zákazník nemá čas - naplánovat hovor"
+          >
+            <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Schedule Call</span>
+          </button>
+
+          {/* 3. Fail (Odmítnul) */}
+          <button
+            onClick={() => onCallOutcome("fail")}
+            className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
+            title="Zákazník odmítnul nabídku"
+          >
+            <XCircle className="w-3.5 h-3.5 text-rose-400" />
+            <span>Fail</span>
+          </button>
+
+          {/* 4. Complete / Order (Úspěch) */}
+          <button
+            onClick={() => onCallOutcome("order")}
+            className="px-3.5 py-2 rounded-xl bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/80 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            title="Vytvořit úspěšnou objednávku"
+          >
+            <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Success / Order</span>
+          </button>
+        </div>
+
+        {/* Simulate Incoming Call Shortcut */}
+        {!isCallActive && !isDialing && (
+          <button
+            onClick={onSimulateIncoming}
+            className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+            title="Simulovat příchozí hovor"
+          >
+            <PhoneIncoming className="w-4 h-4" />
+          </button>
+        )}
+
       </div>
 
     </div>

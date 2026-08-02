@@ -58,7 +58,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form Card */}
-        <div className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800/80 shadow-2xl space-y-5">
+        <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-2xl space-y-5">
           <div className="space-y-1">
             <h2 className="text-sm font-semibold text-zinc-200">
               Sign In to Your Workspace

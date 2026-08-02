@@ -6,15 +6,15 @@ import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 
 export default function Home() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-screen-2xl mx-auto">
       {/* Top Banner / Welcome Header */}
-      <div className="p-6 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
+      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
               Dashboard Overview
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
               Shift Active
             </span>
           </div>
@@ -24,13 +24,13 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors">
-            <Plus className="w-3.5 h-3.5" />
+          <button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors">
+            <Plus className="w-4 h-4" />
             Add Lead
           </button>
           <a
             href="/workspace"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <PhoneCall className="w-4 h-4" />
             Launch Operator Console
@@ -42,7 +42,7 @@ export default function Home() {
       <KpiCards />
 
       {/* 2. Main Analytics Grid (Call Activity Chart + Top Performers) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <CallActivityChart />
         </div>

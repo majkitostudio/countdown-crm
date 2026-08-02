@@ -47,16 +47,21 @@ export default function LeadsPage() {
   const totalPipelineValue = leads.reduce((acc, l) => acc + (l.value || 750), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-screen-2xl mx-auto">
       
-      {/* Page Title & Main Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-2.5">
-            <Users className="w-6 h-6 text-emerald-400" />
-            Leads & Contacts
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">
+      {/* Page Title & Main Header Hero Banner */}
+      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
+              <Users className="w-5 h-5 text-zinc-400" />
+              Leads & Contacts
+            </h1>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+              {totalLeads} Total Leads
+            </span>
+          </div>
+          <p className="text-xs text-zinc-400">
             Manage prospective customers, view AI propensity scoring, and import campaign leads.
           </p>
         </div>
@@ -64,15 +69,16 @@ export default function LeadsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={loadLeads}
-            className="p-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl border border-zinc-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors"
             title="Refresh Leads Data"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
           </button>
 
           <button
             onClick={() => setIsImportModalOpen(true)}
-            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold rounded-xl text-xs flex items-center gap-2 transition-all shadow-md hover:shadow-emerald-500/20"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
             <span>Import CSV Database</span>
@@ -81,49 +87,49 @@ export default function LeadsPage() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         
         {/* Total Leads Card */}
-        <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-zinc-400 block mb-1">Total Contacts</span>
-            <span className="text-2xl font-extrabold text-zinc-100">{totalLeads}</span>
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-zinc-400 block">Total Contacts</span>
+            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-sans">{totalLeads}</span>
           </div>
-          <div className="p-3 bg-zinc-800 text-zinc-300 rounded-xl border border-zinc-700">
-            <Users className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+            <Users className="w-4 h-4" />
           </div>
         </div>
 
         {/* Qualified Leads Card */}
-        <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-zinc-400 block mb-1">Qualified Rate</span>
-            <span className="text-2xl font-extrabold text-emerald-400">{qualifiedRatio}%</span>
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-zinc-400 block">Qualified Rate</span>
+            <span className="text-2xl font-semibold text-emerald-400 tracking-tight font-sans">{qualifiedRatio}%</span>
           </div>
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-            <UserCheck className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-emerald-400">
+            <UserCheck className="w-4 h-4" />
           </div>
         </div>
 
         {/* Avg AI Propensity Score */}
-        <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-zinc-400 block mb-1">Avg. AI Score</span>
-            <span className="text-2xl font-extrabold text-amber-400">{avgScore}/100</span>
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-zinc-400 block">Avg. AI Score</span>
+            <span className="text-2xl font-semibold text-amber-400 tracking-tight font-sans">{avgScore}/100</span>
           </div>
-          <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-            <Sparkles className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+            <Sparkles className="w-4 h-4" />
           </div>
         </div>
 
         {/* Total Pipeline Value */}
-        <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-medium text-zinc-400 block mb-1">Pipeline Value</span>
-            <span className="text-2xl font-extrabold text-zinc-100 font-mono">${totalPipelineValue.toLocaleString()}</span>
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
+          <div className="space-y-1">
+            <span className="text-xs font-medium text-zinc-400 block">Pipeline Value</span>
+            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">${totalPipelineValue.toLocaleString()}</span>
           </div>
-          <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
-            <DollarSign className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+            <DollarSign className="w-4 h-4" />
           </div>
         </div>
 

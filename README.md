@@ -1,6 +1,8 @@
-# Countdown CRM — Next-Gen AI Copilot Call Center Platform
+# Countdown CRM — Next-Gen AI-Native Tele-Sales & CRM Platform
 
-**Countdown CRM** je moderní, vysoce výkonná webová platforma navržená pro telefonní operátory, telemarkety a obchodní týmy. Systém v reálném čase analyzuje živé hovory pomocí **Google Gemini 2.5 Flash API**, vyhodnocuje náladu zákazníka, detekuje prodejní námitky a nabízí operátorovi přesné protiargumenty a inteligentní **Cross-Sell / Up-Sell balíčky**.
+> **Vision**: Vytvořit novou generaci **AI-native CRM platformy** konkurující světovým nástrojům jako **Attio**, s přímým zaměřením na automatizaci tele-sales, reálnou hlasovou asistenci a špičkové operátorské zkušenosti.
+
+**Countdown CRM** je moderní, vysoce výkonná webová platforma navržená pro operátory, obchodní týmy a manažery. Systém v reálném čase analyzuje živé hovory pomocí **Google Gemini 2.5 Flash API**, vyhodnocuje náladu zákazníka, detekuje prodejní námitky, doporučuje protiargumenty a automatizuje výstupy z hovorů.
 
 ![Next.js 16](https://img.shields.io/badge/Next.js-16.2.12-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
@@ -10,39 +12,43 @@
 
 ---
 
-## 🚀 Hlavní Funkcionality
+## 🚀 Klíčové Pilíře Platformy
 
-### 1. 🎙️ Real-Time Voice Transcription (WebSpeech API)
-- Automatický živý přepis hovoru přímo v prohlížeči.
-- Podpora pro **Češtinu (`cs-CZ`)**, **Slovenštinu (`sk-SK`)** a **Angličtinu (`en-US`)**.
+### 1. ⚡ Lineární Operator Console Workflow (`/workspace`)
+- Načtení zákazníka s přímou akcí **`Call Client` (Vytočit)**.
+- **Rychlé výstupy hovoru na jedno kliknutí**:
+  - 📞 **`Call Later`** (Zavolat později / Nezvedá)
+  - 📅 **`Schedule Call`** (Naplánovat callback)
+  - ❌ **`Fail`** (Odmítnuto)
+  - 🛍️ **`Success / Order`** (Vytvořit objednávku)
+- **Automatický posun ve frontě**: Systém po dokončení výstupu automaticky načte dalšího zákazníka bez manuálního hledání.
 
 ### 2. 🧠 Google Gemini 2.5 Flash AI Copilot
-- **Live Sentiment & Objection Handling**: Detekuje námitky na cenu, kvalitu či konkurenty.
-- **Objection Matcher Engine**: Automaticky vyhledá protiargumenty v databázi námitkových karet produktů.
-- **Next Best Action**: Poskytuje operátorovi okamžité prodejní doporučení pro uzavření obchodu.
+- **Live Sentiment & Objection Handling**: Reálná detekce námitek na cenu, konkurenty či kvalitu.
+- **Objection Matcher Engine**: Automatické vyhledání nejlepších prodejních protiargumenty.
+- **AI Cross-Sell & Up-Sell**: Automatické generování doplňkových balíčků se slevou 15 %.
 
-### 3. 🛍️ AI Cross-Sell & Up-Sell Engine
-- Automatické generování doplňkových balíčků se slevou **15 % (Bundle Discount)**.
-- 1-klikové vložení doplňkového zboží přímo do košíku objednávky.
+### 3. 🎓 AI Call Roleplay Simulator & Gamifikace (`/training`)
+- Simulované tréninkové hovory s AI boty různých zákaznických typů.
+- Automatické hodnocení námitkového rozhovoru, XP body a zvyšování úrovně operátora (Level / XP).
 
-### 4. 📞 Telefonní Simulátor (Web Audio API)
-- Přehrávání věrných vyzváněcích tónů, obsazovacího tónu a ukončení hovoru v čistém prohlížeči (zero-cost).
-- Notifikační modál příchozího hovoru s AI vyhodnocením skóre potenciálu zákazníka (Propensity Score).
+### 4. 🎨 Minimalistický Skleněný Design System (Attio-Grade Aesthetics)
+- Monochromatická neutrální paleta zinku (`zinc-950`, `zinc-900`, `zinc-800`).
+- Skleněné karty se subgardientními odlesky (`border-t border-white/5`), `backdrop-blur-xl` a velkorysou vzdušností (Whitespace Airiness).
 
-### 5. 📊 Manažerský Přehled & Call Logs (`/calls`)
-- Auditní logy všech uskutečněných hovorů.
-- Metriky **Average Handling Time (AHT)**, **Conversion Rate %** a **Celkové Tržby**.
-- Přehrávač zvukového záznamu hovoru s kompletním časovaným přepisem rozhovoru.
+### 5. 📡 Manažerský Live Monitor (`/monitor`) & BI Analytics (`/analytics`)
+- Živý dohled nad operátory v týmu v reálném čase.
+- Prediktivní 30-denní revenue forecast a exporty v CSV.
 
 ---
 
 ## 🛠️ Technologický Stos
 
 - **Framework**: Next.js 16.2.12 (Turbopack) & React 19
-- **AI Integrace**: `@google/genai` (Google Gemini 2.5 Flash model)
+- **AI Integrace**: `@google/genai` (Google Gemini 2.5 Flash API)
 - **Styling**: Tailwind CSS v4 & Lucide React ikony
-- **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr` (Next.js 16 proxy auth handler)
-- **Hlasové API**: Native Browser WebSpeech API & Web Audio API synthesizer
+- **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr`
+- **Hlasové API**: Native Browser WebSpeech API & Syntetizátor Web Audio API
 
 ---
 
@@ -69,7 +75,7 @@ Aplikace bude dostupná na adrese `http://localhost:3000`.
 
 ---
 
-## 📜 Architektura Projektu & Commity
+## 📜 Architektura & Dokumentace
 
-Všechny fáze vývoje byly realizovány podle strukturovaného vývojového plánu:
-- [Kompletní přehled commitů a architektury](docs/commits.md)
+- [Prezentovaný Walkthrough](walkthrough.md)
+- [Implementační Plán](implementation_plan.md)

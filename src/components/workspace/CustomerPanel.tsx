@@ -40,20 +40,20 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
 
   if (!activeLead) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center text-zinc-500 text-xs">
+      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-6 text-center text-zinc-500 text-xs">
         No active customer selected. Select a lead from database.
       </div>
     );
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
-    if (score >= 70) return "text-amber-400 border-amber-500/30 bg-amber-500/10";
+    if (score >= 85) return "text-emerald-400 border-emerald-800/60 bg-emerald-950/80";
+    if (score >= 70) return "text-amber-400 border-amber-800/60 bg-amber-950/80";
     return "text-zinc-400 border-zinc-700 bg-zinc-800/50";
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-5 flex flex-col h-full overflow-y-auto">
+    <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-5 flex flex-col h-full overflow-y-auto">
       
       {/* Lead Selector Header */}
       <div className="space-y-1.5 pb-4 border-b border-zinc-800">

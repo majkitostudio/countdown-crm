@@ -60,24 +60,24 @@ const KPI_DATA: KpiItem[] = [
 
 export function KpiCards() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {KPI_DATA.map((kpi) => {
         const Icon = kpi.icon;
         return (
           <div
             key={kpi.id}
-            className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 hover:border-zinc-700/80 transition-all space-y-3"
+            className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 hover:border-zinc-700/80 transition-all space-y-4 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-zinc-400">
                 {kpi.label}
               </span>
-              <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-                <Icon className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+                <Icon className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-sans">
                   {kpi.value}
@@ -86,8 +86,8 @@ export function KpiCards() {
                   <span
                     className={
                       kpi.importantTag.type === "success"
-                        ? "px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
-                        : "px-2 py-0.5 rounded text-[10px] font-medium bg-rose-950/80 text-rose-400 border border-rose-800/60"
+                        ? "px-2.5 py-0.5 rounded-md text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
+                        : "px-2.5 py-0.5 rounded-md text-[10px] font-medium bg-rose-950/80 text-rose-400 border border-rose-800/60"
                     }
                   >
                     {kpi.importantTag.text}

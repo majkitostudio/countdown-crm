@@ -19,16 +19,16 @@ export function Header() {
   }, []);
 
   return (
-    <header className="h-16 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
+    <header className="h-18 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-20">
       {/* Search Input */}
-      <div className="relative w-72 sm:w-96">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+      <div className="relative w-80 sm:w-[28rem]">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
         <input
           type="text"
           placeholder="Search leads, products, orders... (Ctrl + K)"
-          className="w-full bg-zinc-900/90 border border-zinc-800 focus:border-zinc-600 focus:outline-none rounded-lg pl-9 pr-12 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
+          className="w-full bg-zinc-900/90 border border-zinc-800 focus:border-zinc-600 focus:outline-none rounded-xl pl-10 pr-12 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
         />
-        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400 font-mono">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400 font-mono">
           ⌘K
         </div>
       </div>
@@ -37,16 +37,16 @@ export function Header() {
       <div className="flex items-center gap-4">
         {/* Operator Gamification Level Badge */}
         {profile && (
-          <div className="hidden sm:flex items-center gap-2.5 px-3 py-1 rounded-xl bg-purple-950/30 border border-purple-800/40 text-purple-300">
+          <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md text-zinc-300">
             <Award className="w-4 h-4 text-amber-400 shrink-0" />
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] font-bold text-zinc-100">Level {profile.level}</span>
-                <span className="text-[10px] text-purple-400 font-mono">({profile.currentXp}/{profile.nextLevelXp} XP)</span>
+                <span className="text-[10px] text-zinc-400 font-mono">({profile.currentXp}/{profile.nextLevelXp} XP)</span>
               </div>
               <div className="w-24 h-1 bg-zinc-800 rounded-full overflow-hidden mt-0.5">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full transition-all duration-500"
+                  className="h-full bg-zinc-300 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, (profile.currentXp / profile.nextLevelXp) * 100)}%` }}
                 />
               </div>

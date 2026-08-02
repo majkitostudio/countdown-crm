@@ -29,7 +29,7 @@ export function ProductCard({ product, onOpenObjections, onEditProduct }: Produc
   const crossSellCount = product.cross_sell_ids ? product.cross_sell_ids.length : 0;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all flex flex-col group">
+    <div className="bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 hover:border-zinc-700/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm transition-all flex flex-col group">
       
       {/* Product Image Box */}
       <div className="relative h-48 w-full bg-zinc-950 overflow-hidden">

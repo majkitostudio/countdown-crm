@@ -119,10 +119,10 @@ export function LeadDetailDrawer({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-xl bg-zinc-900 border-l border-zinc-800 text-zinc-100 flex flex-col shadow-2xl">
+        <div className="w-screen max-w-xl bg-zinc-950/90 backdrop-blur-xl border-l border-zinc-800/80 text-zinc-100 flex flex-col shadow-2xl">
           
           {/* Header */}
-          <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80 sticky top-0 z-10">
+          <div className="px-6 py-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-semibold text-zinc-200">
                 {currentLead.full_name.charAt(0)}

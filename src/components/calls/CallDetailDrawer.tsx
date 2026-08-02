@@ -50,12 +50,12 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-zinc-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-xl bg-zinc-900 border-l border-zinc-800 h-full flex flex-col shadow-2xl">
+      <div className="w-full max-w-xl bg-zinc-950/90 backdrop-blur-xl border-l border-zinc-800/80 h-full flex flex-col shadow-2xl">
         
         {/* Header */}
-        <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div className="p-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <div className="p-2.5 bg-zinc-900 text-zinc-300 rounded-xl border border-zinc-800">
               <PhoneCall className="w-5 h-5" />
             </div>
             <div>

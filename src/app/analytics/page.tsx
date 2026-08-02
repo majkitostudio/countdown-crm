@@ -53,44 +53,51 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-screen-2xl mx-auto">
       
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100 flex items-center gap-2.5">
-            <BarChart3 className="w-6 h-6 text-cyan-400" />
-            Manager BI & AI Revenue Forecast
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">
+      {/* Header Bar Hero Banner */}
+      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
+              <BarChart3 className="w-5 h-5 text-zinc-400" />
+              Manager BI & AI Revenue Forecast
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+              Live BI Stream
+            </span>
+          </div>
+          <p className="text-xs text-zinc-400">
             Real-time sales velocity, objection resolution benchmarks, and 30-day AI predictive forecasts
           </p>
         </div>
 
-        <button
-          onClick={handleExport}
-          disabled={isExporting}
-          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center gap-2 border border-zinc-700 transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
-        >
-          <Download className="w-4 h-4 text-emerald-400" />
-          <span>{isExporting ? "Exporting CSV..." : "Export Analytics (CSV)"}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors shadow-sm cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-zinc-400" />
+            <span>{isExporting ? "Exporting CSV..." : "Export Analytics (CSV)"}</span>
+          </button>
+        </div>
       </div>
 
       {/* Top KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Total Revenue & AI Forecast */}
-        <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 shadow-xl space-y-2">
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Total Sales Volume</span>
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <span className="text-xs font-medium text-zinc-400">Total Sales Volume</span>
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-emerald-400">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black font-mono text-zinc-100">${data.totalRevenue.toLocaleString()}</span>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold mt-1">
+            <span className="text-2xl font-semibold font-mono text-zinc-100">${data.totalRevenue.toLocaleString()}</span>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium mt-1">
               <ArrowUpRight className="w-3.5 h-3.5" />
               <span>+{data.forecastGrowthPercent}% AI Forecast (${data.projectedRevenue.toLocaleString()})</span>
             </div>
@@ -98,43 +105,43 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Average Order Value AOV */}
-        <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 shadow-xl space-y-2">
+        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Average Order Value (AOV)</span>
-            <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
-              <ShoppingCart className="w-4 h-4" />
+            <span className="text-xs font-medium text-zinc-400">Average Order Value (AOV)</span>
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-cyan-400">
+              <ShoppingCart className="w-3.5 h-3.5" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black font-mono text-cyan-400">${data.avgOrderValue.toFixed(2)}</span>
+            <span className="text-2xl font-semibold font-mono text-cyan-400">${data.avgOrderValue.toFixed(2)}</span>
             <p className="text-[11px] text-zinc-400 mt-1">Driven by 15% Cross-sell Bundles</p>
           </div>
         </div>
 
         {/* Conversion Rate */}
-        <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 shadow-xl space-y-2">
+        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Call Conversion Rate</span>
-            <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-              <TrendingUp className="w-4 h-4" />
+            <span className="text-xs font-medium text-zinc-400">Call Conversion Rate</span>
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+              <TrendingUp className="w-3.5 h-3.5" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black text-amber-400">{data.conversionRate}%</span>
+            <span className="text-2xl font-semibold text-amber-400">{data.conversionRate}%</span>
             <p className="text-[11px] text-zinc-400 mt-1">Based on {data.totalCalls} total calls</p>
           </div>
         </div>
 
         {/* Objection Resolution Rate */}
-        <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 shadow-xl space-y-2">
+        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Objection Overcome %</span>
-            <div className="p-2 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
-              <ShieldCheck className="w-4 h-4" />
+            <span className="text-xs font-medium text-zinc-400">Objection Overcome %</span>
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+              <ShieldCheck className="w-3.5 h-3.5" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black text-purple-400">{data.objectionResolutionRate}%</span>
+            <span className="text-2xl font-semibold text-zinc-200">{data.objectionResolutionRate}%</span>
             <p className="text-[11px] text-zinc-400 mt-1">Gemini battle-cards success</p>
           </div>
         </div>
@@ -145,16 +152,16 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Weekly Revenue & AI Forecast Area Chart */}
-        <div className="lg:col-span-2 bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div className="lg:col-span-2 bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
             <div>
-              <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-400" />
                 Weekly Sales Revenue vs. AI Target
               </h2>
               <p className="text-[11px] text-zinc-400">Actual daily revenue compared against AI predicted target</p>
             </div>
-            <div className="flex items-center gap-3 text-xs font-semibold">
+            <div className="flex items-center gap-3 text-xs font-medium">
               <span className="flex items-center gap-1.5 text-emerald-400">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Actual
               </span>
@@ -190,9 +197,9 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Customer Objection Distribution Pie Chart */}
-        <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-4">
-          <div className="border-b border-zinc-800 pb-3">
-            <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+        <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-4">
+          <div className="border-b border-zinc-800/80 pb-3">
+            <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-amber-400" />
               Customer Objection Breakdown
             </h2>
@@ -222,7 +229,7 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
 
-          <div className="space-y-1.5 pt-2 border-t border-zinc-800 text-xs">
+          <div className="space-y-1.5 pt-2 border-t border-zinc-800/80 text-xs">
             {data.objectionBreakdown.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -232,7 +239,7 @@ export default function AnalyticsPage() {
                   />
                   <span className="text-zinc-300 font-medium">{item.name}</span>
                 </div>
-                <span className="font-mono text-zinc-400 font-bold">{item.percentage}%</span>
+                <span className="font-mono text-zinc-400 font-semibold">{item.percentage}%</span>
               </div>
             ))}
           </div>
@@ -241,11 +248,11 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Team Leaderboard Table */}
-      <div className="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl shadow-xl overflow-hidden space-y-3 p-5">
+      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl shadow-sm overflow-hidden space-y-3 p-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-              <Users className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+              <Users className="w-4 h-4 text-zinc-400" />
               Team Performance Leaderboard
             </h2>
             <p className="text-[11px] text-zinc-400">Sales velocity and conversion ranking across representatives</p>
@@ -254,7 +261,7 @@ export default function AnalyticsPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-zinc-300">
-            <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800">
+            <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
               <tr>
                 <th className="px-4 py-3">Representative</th>
                 <th className="px-4 py-3">Completed Calls</th>
@@ -267,20 +274,20 @@ export default function AnalyticsPage() {
               {data.teamLeaderboard.map((ag, idx) => (
                 <tr key={idx} className="hover:bg-zinc-800/40 transition-colors">
                   <td className="px-4 py-3.5 flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-zinc-200 text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-bold text-zinc-200 text-xs">
                       {idx + 1}
                     </div>
                     <div>
-                      <p className="font-bold text-zinc-100">{ag.agentName}</p>
+                      <p className="font-semibold text-zinc-100">{ag.agentName}</p>
                       <p className="text-[11px] text-zinc-500">{ag.role}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3.5 font-mono">{ag.callsCount}</td>
                   <td className="px-4 py-3.5 font-mono text-zinc-200">{ag.ordersCount}</td>
-                  <td className="px-4 py-3.5 font-mono font-bold text-emerald-400">
+                  <td className="px-4 py-3.5 font-mono font-semibold text-emerald-400">
                     ${ag.revenueGenerated.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3.5 text-right font-bold text-amber-400">
+                  <td className="px-4 py-3.5 text-right font-semibold text-amber-400">
                     {ag.conversionRate}%
                   </td>
                 </tr>

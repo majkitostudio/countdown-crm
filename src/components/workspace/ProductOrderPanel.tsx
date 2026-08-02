@@ -103,16 +103,16 @@ export function ProductOrderPanel({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-5 shadow-xl space-y-5 flex flex-col h-full overflow-y-auto">
+    <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-5 flex flex-col h-full overflow-y-auto">
       
       {/* Header Bar */}
-      <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+      <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
-            <ShoppingCart className="w-4 h-4" />
+          <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+            <ShoppingCart className="w-3.5 h-3.5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-zinc-100">Sales Checkout & Cross-Sell</h2>
+            <h2 className="text-sm font-semibold text-zinc-100">Sales Checkout & Cross-Sell</h2>
             <p className="text-[11px] text-zinc-400">1-Click order creation & post-call wrap up</p>
           </div>
         </div>
@@ -147,12 +147,12 @@ export function ProductOrderPanel({
                 }}
                 className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-3 text-xs ${
                   isSelected
-                    ? "bg-emerald-500/10 border-emerald-500/40 text-zinc-100"
-                    : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                    ? "bg-zinc-900 border-zinc-700 text-zinc-100"
+                    : "bg-zinc-950/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isSelected ? "border-emerald-500 bg-emerald-500" : "border-zinc-700"}`}>
+                  <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${isSelected ? "border-zinc-300 bg-zinc-100" : "border-zinc-700"}`}>
                     {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-zinc-950" />}
                   </div>
                   <div>
@@ -160,7 +160,7 @@ export function ProductOrderPanel({
                     <p className="text-[11px] text-zinc-500 uppercase">{prod.category}</p>
                   </div>
                 </div>
-                <span className="font-mono font-bold text-zinc-200 shrink-0">${prod.price.toFixed(2)}</span>
+                <span className="font-mono font-semibold text-zinc-200 shrink-0">${prod.price.toFixed(2)}</span>
               </div>
             );
           })}
@@ -169,18 +169,18 @@ export function ProductOrderPanel({
 
       {/* AI Cross-Sell Recommendation Card */}
       {topRec && (
-        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-3.5 space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
               <span>AI Recommended Cross-Sell Bundle</span>
             </div>
-            <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-[10px] font-bold rounded-md border border-cyan-500/30">
+            <span className="px-2 py-0.5 bg-zinc-900 text-zinc-300 text-[10px] font-medium rounded-md border border-zinc-800">
               Save 15%
             </span>
           </div>
 
-          <div className="flex items-center justify-between gap-3 bg-zinc-950/80 p-2.5 rounded-lg border border-cyan-500/20">
+          <div className="flex items-center justify-between gap-3 bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800/80">
             <div className="flex items-center gap-2.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -192,19 +192,19 @@ export function ProductOrderPanel({
                 <p className="font-semibold text-xs text-zinc-100 line-clamp-1">{topRec.recommendedProduct.title}</p>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono">
                   <span className="line-through text-zinc-500">${topRec.originalPrice.toFixed(2)}</span>
-                  <span className="text-emerald-400 font-bold">${topRec.bundlePrice.toFixed(2)}</span>
+                  <span className="text-emerald-400 font-semibold">${topRec.bundlePrice.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {bundleProduct?.id === topRec.recommendedProduct.id ? (
-              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg flex items-center gap-1">
+              <span className="px-2.5 py-1 bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 text-xs font-medium rounded-lg flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Added
               </span>
             ) : (
               <button
                 onClick={() => handleAddBundleItem(topRec)}
-                className="px-2.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold rounded-lg text-xs flex items-center gap-1 transition-all shadow-xs cursor-pointer shrink-0"
+                className="px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Add Bundle</span>
@@ -212,8 +212,8 @@ export function ProductOrderPanel({
             )}
           </div>
 
-          <p className="text-[11px] text-cyan-200/90 leading-tight">
-            <strong>Operator Script:</strong> &ldquo;{topRec.reason}&rdquo;
+          <p className="text-[11px] text-zinc-400 leading-tight">
+            <strong className="text-zinc-300">Operator Script:</strong> &ldquo;{topRec.reason}&rdquo;
           </p>
         </div>
       )}
@@ -284,7 +284,7 @@ export function ProductOrderPanel({
         <button
           onClick={handlePlaceOrder}
           disabled={!selectedProduct || !activeLead}
-          className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20 cursor-pointer"
+          className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
         >
           <ShoppingCart className="w-4 h-4" />
           <span>Place Order for {activeLead?.full_name || "Customer"}</span>

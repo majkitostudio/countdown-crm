@@ -75,12 +75,12 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-zinc-900 border border-zinc-800 text-zinc-100 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="bg-zinc-950/90 border border-zinc-800/80 backdrop-blur-xl text-zinc-100 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80">
+        <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
+            <div className="p-2 bg-zinc-900 text-zinc-300 rounded-lg border border-zinc-800">
               <Package className="w-5 h-5" />
             </div>
             <h2 className="text-base font-semibold text-zinc-100">
