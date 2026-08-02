@@ -15,6 +15,10 @@ import {
   UserPlus
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
+import { schemaEngine } from "@/lib/schema/engine";
+import { AttributeDefinition, RecordEntity } from "@/lib/schema/types";
+import { AddCustomFieldModal } from "@/components/schema/AddCustomFieldModal";
+import { CustomFieldRenderer } from "@/components/schema/CustomFieldRenderer";
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -34,6 +38,15 @@ export function LeadsTable({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "score" | "name">("score");
+  const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
+  const [customFields, setCustomFields] = useState<AttributeDefinition[]>(
+    schemaEngine.getSchema("leads")?.attributes.filter(a => a.id.startsWith("attr-custom-")) || []
+  );
+
+  const handleAddField = (newAttr: AttributeDefinition) => {
+    schemaEngine.addCustomAttribute("leads", newAttr);
+    setCustomFields((prev) => [...prev, newAttr]);
+  };
 
   // Filter & Sort Logic
   const filteredLeads = leads
@@ -142,6 +155,16 @@ export function LeadsTable({
             </select>
           </div>
 
+          {/* Add Custom Field CTA (Attio Schema) */}
+          <button
+            onClick={() => setIsAddCustomFieldOpen(true)}
+            className="py-2.5 px-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 font-medium rounded-xl text-xs flex items-center gap-1.5 transition-colors"
+            title="Add dynamic custom attribute to schema"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>+ Custom Field</span>
+          </button>
+
           {/* Import CSV CTA */}
           <button
             onClick={onOpenImportModal}
@@ -153,6 +176,13 @@ export function LeadsTable({
         </div>
 
       </div>
+
+      {/* Modal for adding custom Attio fields */}
+      <AddCustomFieldModal
+        isOpen={isAddCustomFieldOpen}
+        onClose={() => setIsAddCustomFieldOpen(false)}
+        onAddField={handleAddField}
+      />
 
       {/* Table Body */}
       <div className="overflow-x-auto">
