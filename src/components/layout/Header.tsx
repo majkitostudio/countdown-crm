@@ -20,18 +20,25 @@ export function Header() {
 
   return (
     <header className="h-18 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-20">
-      {/* Search Input */}
-      <div className="relative w-80 sm:w-[28rem]">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+      {/* Search Input Button for Cmd+K */}
+      <button
+        onClick={() => {
+          const event = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true });
+          window.dispatchEvent(event);
+        }}
+        className="relative w-80 sm:w-[28rem] text-left group"
+      >
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
         <input
           type="text"
-          placeholder="Search leads, products, orders... (Ctrl + K)"
-          className="w-full bg-zinc-900/90 border border-zinc-800 focus:border-zinc-600 focus:outline-none rounded-xl pl-10 pr-12 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
+          readOnly
+          placeholder="Search leads, products, commands... (Cmd + K)"
+          className="w-full bg-zinc-900/90 border border-zinc-800 group-hover:border-zinc-700 cursor-pointer rounded-xl pl-10 pr-12 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-400 font-mono">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[10px] text-zinc-400 font-mono">
           ⌘K
         </div>
-      </div>
+      </button>
 
       {/* Right Controls */}
       <div className="flex items-center gap-4">

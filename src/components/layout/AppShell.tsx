@@ -2,6 +2,7 @@
 
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { CommandPalette } from "./CommandPalette";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -10,6 +11,9 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
+      {/* Global Command K Palette */}
+      <CommandPalette />
+
       {/* Postranní navigace */}
       <Sidebar />
 
