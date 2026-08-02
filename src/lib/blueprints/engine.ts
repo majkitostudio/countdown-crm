@@ -1,8 +1,8 @@
 /**
- * Industry Blueprint Engine — Application Logic
+ * Industry Blueprint Engine — Application Logic & Persistence
  *
  * Handles preset switching, registering custom EAV attributes in SchemaEngine,
- * and loading preset workflow rules into WorkflowEngine.
+ * loading preset workflow rules into WorkflowEngine, and persisting active choices.
  */
 
 import { IndustryCategory, IndustryBlueprint } from "./types";
@@ -10,12 +10,36 @@ import { INDUSTRY_BLUEPRINTS } from "./registry";
 import { schemaEngine } from "../schema/engine";
 import { workflowEngine } from "../workflows/engine";
 
+const STORAGE_KEY = "countdown_active_blueprint";
+
 class BlueprintEngine {
   private activeBlueprintId: IndustryCategory = "tele_sales";
 
   constructor() {
-    // Default initial blueprint is Tele-Sales
-    this.activeBlueprintId = "tele_sales";
+    this.initFromStorage();
+  }
+
+  private initFromStorage(): void {
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY) as IndustryCategory | null;
+        if (saved && INDUSTRY_BLUEPRINTS.some((b) => b.id === saved)) {
+          this.activeBlueprintId = saved;
+        }
+      } catch (err) {
+        console.warn("[BlueprintEngine] Failed to read from localStorage:", err);
+      }
+    }
+  }
+
+  private persistActiveBlueprint(id: IndustryCategory): void {
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, id);
+      } catch (err) {
+        console.warn("[BlueprintEngine] Failed to save to localStorage:", err);
+      }
+    }
   }
 
   public getActiveBlueprint(): IndustryBlueprint {
@@ -33,7 +57,7 @@ class BlueprintEngine {
 
   /**
    * Applies an industry blueprint to the CRM workspace:
-   * 1. Updates active blueprint state
+   * 1. Updates active blueprint state & persists
    * 2. Registers custom EAV attributes into SchemaEngine ('leads' schema)
    * 3. Registers preset workflow rules into WorkflowEngine
    */
@@ -49,6 +73,7 @@ class BlueprintEngine {
     }
 
     this.activeBlueprintId = blueprintId;
+    this.persistActiveBlueprint(blueprintId);
 
     // 1. Inject custom attributes into 'leads' schema
     let addedAttributesCount = 0;

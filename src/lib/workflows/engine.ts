@@ -1,11 +1,11 @@
 /**
- * Workflow Engine — Runtime Core
+ * Workflow Engine — Runtime Core & Storage Persistence
  *
  * Singleton engine that:
  * 1. Manages workflow rules (CRUD)
  * 2. Evaluates trigger conditions
  * 3. Executes actions (AI summary, status update, notifications)
- * 4. Maintains an in-memory audit log (ExecutionLog)
+ * 4. Maintains an audit log (ExecutionLog) synced with Storage
  *
  * Designed to be imported across the app and called via:
  *   workflowEngine.emit("on_call_ended", payload)
@@ -20,6 +20,9 @@ import {
   ExecutionStatus,
   WorkflowEventPayload,
 } from "./types";
+
+const RULES_STORAGE_KEY = "countdown_workflow_rules";
+const LOG_STORAGE_KEY = "countdown_workflow_log";
 
 // ─── Default Demo Rules ─────────────────────────────────────────────────────
 
@@ -78,6 +81,42 @@ class WorkflowEngine {
 
   constructor() {
     this.rules = [...DEFAULT_RULES];
+    this.initFromStorage();
+  }
+
+  private initFromStorage(): void {
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        const savedRules = window.localStorage.getItem(RULES_STORAGE_KEY);
+        if (savedRules) {
+          const parsed = JSON.parse(savedRules);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.rules = parsed;
+          }
+        }
+
+        const savedLog = window.localStorage.getItem(LOG_STORAGE_KEY);
+        if (savedLog) {
+          const parsedLog = JSON.parse(savedLog);
+          if (Array.isArray(parsedLog)) {
+            this.executionLog = parsedLog;
+          }
+        }
+      } catch (err) {
+        console.warn("[WorkflowEngine] Failed to restore state from localStorage:", err);
+      }
+    }
+  }
+
+  private persistState(): void {
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        window.localStorage.setItem(RULES_STORAGE_KEY, JSON.stringify(this.rules));
+        window.localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(this.executionLog));
+      } catch (err) {
+        console.warn("[WorkflowEngine] Failed to persist state to localStorage:", err);
+      }
+    }
   }
 
   // ── Rule CRUD ──────────────────────────────────────────────────────────
@@ -99,6 +138,7 @@ class WorkflowEngine {
       updatedAt: now,
     };
     this.rules.push(newRule);
+    this.persistState();
     return newRule;
   }
 
@@ -111,13 +151,16 @@ class WorkflowEngine {
       ...updates,
       updatedAt: new Date().toISOString(),
     };
+    this.persistState();
     return this.rules[index];
   }
 
   public deleteRule(id: string): boolean {
     const before = this.rules.length;
     this.rules = this.rules.filter((r) => r.id !== id);
-    return this.rules.length < before;
+    const deleted = this.rules.length < before;
+    if (deleted) this.persistState();
+    return deleted;
   }
 
   public toggleRule(id: string): boolean {
@@ -125,6 +168,7 @@ class WorkflowEngine {
     if (!rule) return false;
     rule.enabled = !rule.enabled;
     rule.updatedAt = new Date().toISOString();
+    this.persistState();
     return true;
   }
 
@@ -163,6 +207,7 @@ class WorkflowEngine {
       }
     }
 
+    this.persistState();
     return results;
   }
 
@@ -172,7 +217,7 @@ class WorkflowEngine {
     conditions: TriggerCondition[],
     payload: Record<string, unknown>
   ): boolean {
-    if (conditions.length === 0) return true; // No conditions = always match
+    if (conditions.length === 0) return true;
 
     return conditions.every((cond) => {
       const fieldValue = String(payload[cond.field] ?? "");
@@ -209,7 +254,6 @@ class WorkflowEngine {
           console.log(
             `[WorkflowEngine] 🤖 AI Summary requested for lead: ${payload.leadName || payload.leadId}`
           );
-          // In production, this would call analyzeTranscriptWithGemini()
           executed.push("compute_ai_summary");
           break;
 
@@ -224,7 +268,6 @@ class WorkflowEngine {
           console.log(
             `[WorkflowEngine] 🏷️ Lead status → ${action.config.target_status} for: ${payload.leadName || payload.leadId}`
           );
-          // In production, this would call updateLead()
           executed.push("update_lead_status");
           break;
 
@@ -255,6 +298,7 @@ class WorkflowEngine {
 
   public clearExecutionLog(): void {
     this.executionLog = [];
+    this.persistState();
   }
 
   private createLogEntry(
@@ -283,9 +327,6 @@ class WorkflowEngine {
 
   // ── Helpers ────────────────────────────────────────────────────────────
 
-  /**
-   * Simple template interpolation: replaces {{key}} with payload values
-   */
   private interpolateTemplate(
     template: string,
     payload: Record<string, unknown>
