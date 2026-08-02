@@ -1,11 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Bell, ShieldCheck, Zap, Award } from "lucide-react";
+import { Search, Bell, ShieldCheck, Zap, Award, Layers } from "lucide-react";
 import { getOperatorProfile, OperatorProfile } from "@/lib/gamification";
+import { blueprintEngine } from "@/lib/blueprints/engine";
+import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerModal";
 
 export function Header() {
   const [profile, setProfile] = useState<OperatorProfile | null>(null);
+  const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
+  const [activeBlueprintName, setActiveBlueprintName] = useState(
+    blueprintEngine.getActiveBlueprint().name
+  );
 
   useEffect(() => {
     setProfile(getOperatorProfile());
@@ -61,6 +67,16 @@ export function Header() {
           </div>
         )}
 
+        {/* Industry Blueprints Picker Button */}
+        <button
+          onClick={() => setIsBlueprintModalOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 text-xs font-semibold transition-all cursor-pointer"
+          title="Změnit oborový balíček CRM"
+        >
+          <Layers className="w-3.5 h-3.5 text-amber-400" />
+          <span className="hidden md:inline">{activeBlueprintName}</span>
+        </button>
+
         {/* Live Indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -92,6 +108,13 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/* Blueprint Picker Modal */}
+      <BlueprintPickerModal
+        isOpen={isBlueprintModalOpen}
+        onClose={() => setIsBlueprintModalOpen(false)}
+        onBlueprintApplied={(bp) => setActiveBlueprintName(bp.name)}
+      />
     </header>
   );
 }
