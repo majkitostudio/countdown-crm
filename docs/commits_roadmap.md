@@ -49,3 +49,14 @@
 
 ### 📌 Commit 5.2: `feat(workspace): add Gemini live rebuttal card generator`
 - **Popis**: Živé generování protiargumentů v reálném čase během vytočeného hovoru.
+
+---
+
+## 📦 FÁZE 6: Industry Blueprints & Oborové Balíčky (Šablony Použití)
+
+### 📌 Commit 6.1: `feat(blueprints): define IndustryBlueprint schema & preset registry`
+- **Popis**: Architektura balíčků pro odvětví (např. *Call Center & Tele-Sales*, *B2B SaaS Sales*, *E-commerce Support*).
+- **Cíl**: Automatické načtení předkonfigurovaných vlastních polí, AI promptů, KPI metrik a automatizací po výběru šablony.
+
+### 📌 Commit 6.2: `feat(blueprints): create Workspace Blueprint Picker onboarding modal`
+- **Popis**: Vizuální průvodce výběrem šablony při zakládání nového účtu nebo přepínání režimu CRM.
