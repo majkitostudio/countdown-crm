@@ -33,6 +33,7 @@ function WorkspaceContent() {
   const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [postCallResults, setPostCallResults] = useState<ExecutionLogEntry[]>([]);
+  const stopAudioRef = React.useRef<(() => void) | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -58,6 +59,11 @@ function WorkspaceContent() {
 
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = () => {
+    if (stopAudioRef.current) {
+      stopAudioRef.current();
+      stopAudioRef.current = null;
+    }
+
     if (isCallActive || isDialing) {
       // Hang up — emit workflow event and save call record
       setIsCallActive(false);
@@ -99,15 +105,18 @@ function WorkspaceContent() {
         });
       }
     } else {
-
       // Start Outbound Call
       setIsDialing(true);
       setOperatorStatus("in_call");
       const stopTone = sounds.playDialTone();
+      stopAudioRef.current = stopTone;
 
       // Connect call after 2.5s simulation
       setTimeout(() => {
-        stopTone();
+        if (stopAudioRef.current) {
+          stopAudioRef.current();
+          stopAudioRef.current = null;
+        }
         setIsDialing(false);
         setIsCallActive(true);
       }, 2500);
@@ -117,20 +126,18 @@ function WorkspaceContent() {
   // Simulate Incoming Call Trigger
   const handleSimulateIncoming = () => {
     if (leads.length > 1) {
-      // pick second lead or random
       const targetLead = leads[1] || leads[0];
       setActiveLead(targetLead);
     }
     setIsIncomingCallOpen(true);
     const stopRingtone = sounds.playRingtone();
-
-    // Store stopRingtone in window or ref for cleanup
-    (window as unknown as { _stopRingtone?: () => void })._stopRingtone = stopRingtone;
+    stopAudioRef.current = stopRingtone;
   };
 
   const handleAcceptIncomingCall = () => {
-    if ((window as unknown as { _stopRingtone?: () => void })._stopRingtone) {
-      (window as unknown as { _stopRingtone?: () => void })._stopRingtone!();
+    if (stopAudioRef.current) {
+      stopAudioRef.current();
+      stopAudioRef.current = null;
     }
     setIsIncomingCallOpen(false);
     setIsCallActive(true);
@@ -139,8 +146,9 @@ function WorkspaceContent() {
   };
 
   const handleDeclineIncomingCall = () => {
-    if ((window as unknown as { _stopRingtone?: () => void })._stopRingtone) {
-      (window as unknown as { _stopRingtone?: () => void })._stopRingtone!();
+    if (stopAudioRef.current) {
+      stopAudioRef.current();
+      stopAudioRef.current = null;
     }
     setIsIncomingCallOpen(false);
     sounds.playCallEndSound();
@@ -156,12 +164,15 @@ function WorkspaceContent() {
   };
 
   const handleCallOutcome = (outcome: "call_later" | "schedule" | "fail" | "order") => {
-    setIsCallActive(false);
-    setIsDialing(false);
-    setOperatorStatus("ready");
-
     let toastText = "";
     let callOutcome = "followup_scheduled";
+
+    if (outcome !== "order") {
+      setIsCallActive(false);
+      setIsDialing(false);
+      setOperatorStatus("ready");
+    }
+
     switch (outcome) {
       case "call_later":
         toastText = `Označeno: Nezvedá (Call Later) — Načítám dalšího zákazníka...`;
@@ -213,6 +224,9 @@ function WorkspaceContent() {
   const handleOrderPlaced = (productId: string, totalAmount: number) => {
     console.log(`Order placed for lead ${activeLead?.full_name}: Product ${productId}, total $${totalAmount}`);
     sounds.playSuccessSound();
+    setIsCallActive(false);
+    setIsDialing(false);
+    setOperatorStatus("ready");
     setNotificationToast(`Objednávka ($${totalAmount}) byla úspěšně vytvořena! Načítám dalšího zákazníka...`);
     setTimeout(() => {
       setNotificationToast(null);

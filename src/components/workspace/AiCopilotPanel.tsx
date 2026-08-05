@@ -93,6 +93,40 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     },
   ]);
 
+  const transcriptEndRef = React.useRef<HTMLDivElement>(null);
+
+  // Reset transcript and analysis on activeLead change
+  useEffect(() => {
+    if (activeLead) {
+      setTranscript([
+        {
+          id: `t-init-${activeLead.id}`,
+          speaker: "agent",
+          text: `Dobrý den, tady Alex z Countdown CRM. Mluvím s ${activeLead.full_name}?`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        },
+      ]);
+      setAnalysisResult({
+        sentiment: "Price Objection",
+        detectedObjection: "Price is too high compared to pharmacy vitamins",
+        confidenceScore: 92,
+        rebuttalArguments: [
+          "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
+          "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
+          "Emphasize 30-day money-back guarantee with zero risk."
+        ],
+        nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
+        aiSource: "gemini-flash"
+      });
+      setIsResolved(false);
+    }
+  }, [activeLead?.id]);
+
+  // Auto scroll transcript to bottom
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [transcript, interimTranscript]);
+
   // Handle listening state
   useEffect(() => {
     if (isCallActive) {
@@ -354,6 +388,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
               {interimTranscript}
             </div>
           )}
+          <div ref={transcriptEndRef} />
         </div>
 
         {/* Quick Test Phrase Triggers for Simulation */}
