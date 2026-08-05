@@ -5,6 +5,7 @@ import { Search, Bell, ShieldCheck, Zap, Award, Layers } from "lucide-react";
 import { getOperatorProfile, OperatorProfile } from "@/lib/gamification";
 import { blueprintEngine } from "@/lib/blueprints/engine";
 import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerModal";
+import { OperatorPresenceBadge } from "./OperatorPresenceBadge";
 
 export function Header() {
   const [profile, setProfile] = useState<OperatorProfile | null>(null);
@@ -76,6 +77,9 @@ export function Header() {
           <Layers className="w-3.5 h-3.5 text-amber-400" />
           <span className="hidden md:inline">{activeBlueprintName}</span>
         </button>
+
+        {/* Live Multi-Operator Presence */}
+        <OperatorPresenceBadge />
 
         {/* Live Indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
