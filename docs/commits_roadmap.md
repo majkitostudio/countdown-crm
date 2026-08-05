@@ -48,9 +48,9 @@
 
 ---
 
-## 🎙️ FÁZE 9 (NÁVRH): Live Voice Sentiment Heatmap & Compliance Guard
-- [ ] `feat(workspace): add live voice sentiment heatmap & tone indicator (9.1)`
-- [ ] `feat(workspace): implement automated regulatory compliance checker (9.2)`
+## 🎙️ FÁZE 9: Live Voice Sentiment Heatmap & Compliance Guard
+- [x] `feat(workspace): add live voice sentiment heatmap & tone indicator (9.1)`
+- [x] `feat(workspace): implement automated regulatory compliance checker (9.2)`
 
 ---
 
