@@ -351,4 +351,7 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-15 | Finální UI Glow & Release Dokumentace | ✅ Hotovo |
 | COMMIT-16 | Manažerský BI Dashboard & AI Revenue Forecast | ✅ Hotovo |
 | COMMIT-17 | Manažerský Real-Time Team Monitor (`/monitor`) | ✅ Hotovo |
+| COMMIT-18 | AI Voice Roleplay Simulator (`/training`) | ✅ Hotovo |
+| COMMIT-19 | Gamified Leaderboard, Operator XP & Badges System | ✅ Hotovo |
+
 

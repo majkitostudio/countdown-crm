@@ -63,3 +63,10 @@
 ## 🔌 FÁZE 11: Webhook Integrations & Real-Time Collaboration Suite
 - [x] `feat(workflows): implement HTTP Webhook Action node for Zapier / Make / Webhook integrations (11.1)`
 - [x] `feat(realtime): add Multi-Operator Presence & Live Activity Ticker (11.2)`
+
+---
+
+## 🤖 FÁZE 12: AI Voice Roleplay Simulator & Gamifikace Týmu
+- [x] `feat(training): implement AI Voice Roleplay Simulator & Interactive Training Scenarios (12.1)`
+- [x] `feat(gamification): add Gamified Leaderboard, Operator XP & Badges System (12.2)`
+
