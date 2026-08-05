@@ -8,6 +8,7 @@ import { LeadDetailDrawer } from "@/components/leads/LeadDetailDrawer";
 import { CsvImportModal } from "@/components/leads/CsvImportModal";
 import { ViewSwitcher, ViewMode } from "@/components/views/ViewSwitcher";
 import { KanbanBoard } from "@/components/views/KanbanBoard";
+import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBar";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -16,6 +17,7 @@ export default function LeadsPage() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
 
   const loadLeads = async () => {
     setIsLoading(true);
@@ -41,12 +43,38 @@ export default function LeadsPage() {
     loadLeads();
   };
 
-  // Metrics
-  const totalLeads = leads.length;
-  const qualifiedLeads = leads.filter((l) => l.status === "qualified" || l.status === "customer").length;
+  // Filter leads based on ActiveFilters
+  const filteredLeads = leads.filter((lead) => {
+    if (activeFilters.length === 0) return true;
+
+    return activeFilters.every((filter) => {
+      const val = (lead as unknown as Record<string, unknown>)[filter.fieldKey] ?? "";
+      const valStr = String(val).toLowerCase();
+      const filterValStr = filter.value.toLowerCase();
+
+      switch (filter.operator) {
+        case "equals":
+          return valStr === filterValStr;
+        case "not_equals":
+          return valStr !== filterValStr;
+        case "contains":
+          return valStr.includes(filterValStr);
+        case "greater_than":
+          return parseFloat(String(val)) > parseFloat(filter.value);
+        case "less_than":
+          return parseFloat(String(val)) < parseFloat(filter.value);
+        default:
+          return true;
+      }
+    });
+  });
+
+  // Metrics (computed from filteredLeads)
+  const totalLeads = filteredLeads.length;
+  const qualifiedLeads = filteredLeads.filter((l) => l.status === "qualified" || l.status === "customer").length;
   const qualifiedRatio = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
-  const avgScore = totalLeads > 0 ? Math.round(leads.reduce((acc, l) => acc + l.ai_score, 0) / totalLeads) : 0;
-  const totalPipelineValue = leads.reduce((acc, l) => acc + (l.value || 750), 0);
+  const avgScore = totalLeads > 0 ? Math.round(filteredLeads.reduce((acc, l) => acc + l.ai_score, 0) / totalLeads) : 0;
+  const totalPipelineValue = filteredLeads.reduce((acc, l) => acc + (l.value || 750), 0);
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
@@ -140,17 +168,20 @@ export default function LeadsPage() {
 
       </div>
 
+      {/* Advanced Filter Engine & Saved Views Bar */}
+      <FilterEngineBar onFiltersChange={setActiveFilters} />
+
       {/* Main Content View (Table vs. Kanban Board) */}
       {viewMode === "table" ? (
         <LeadsTable
-          leads={leads}
+          leads={filteredLeads}
           onSelectLead={handleSelectLead}
           onStartCall={handleStartCall}
           onOpenImportModal={() => setIsImportModalOpen(true)}
         />
       ) : (
         <KanbanBoard
-          leads={leads}
+          leads={filteredLeads}
           onSelectLead={handleSelectLead}
           onStartCall={handleStartCall}
           onLeadUpdated={loadLeads}
