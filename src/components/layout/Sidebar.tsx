@@ -18,8 +18,10 @@ import {
   Circle,
   GraduationCap,
   Workflow,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { schemaEngine } from "@/lib/schema/engine";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
 
@@ -28,6 +30,7 @@ const NAV_ITEMS = [
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
   { label: "AI Training", href: "/training", icon: GraduationCap },
   { label: "Leads & Contacts", href: "/leads", icon: Users },
+  { label: "Deals & Pipelines", href: "/objects/deals", icon: Briefcase },
   { label: "Product Catalog", href: "/products", icon: Package },
   { label: "Call Logs", href: "/calls", icon: History },
   { label: "Workflows", href: "/workflows", icon: Workflow },
