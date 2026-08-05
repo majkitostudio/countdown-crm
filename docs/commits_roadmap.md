@@ -57,3 +57,9 @@
 ## 📈 FÁZE 10: Advanced AI Analytics & Autonomous Sales Agent Insights
 - [x] `feat(analytics): create AI Executive Summary & Predictive Revenue Forecasting module (10.1)`
 - [x] `feat(analytics): add AI Agent Performance Benchmark & Coaching Recommendations (10.2)`
+
+---
+
+## 🔌 FÁZE 11: Webhook Integrations & Real-Time Collaboration Suite
+- [x] `feat(workflows): implement HTTP Webhook Action node for Zapier / Make / Webhook integrations (11.1)`
+- [x] `feat(realtime): add Multi-Operator Presence & Live Activity Ticker (11.2)`
