@@ -31,6 +31,7 @@ import {
   exportAnalyticsToCSV,
   MOCK_ANALYTICS_DATA
 } from "@/lib/analytics";
+import { AiForecastCard } from "@/components/analytics/AiForecastCard";
 
 const OBJECTION_COLORS = ["#f59e0b", "#06b6d4", "#10b981", "#8b5cf6"];
 
@@ -147,6 +148,13 @@ export default function AnalyticsPage() {
         </div>
 
       </div>
+
+      {/* AI Predictive Revenue Forecasting Card */}
+      <AiForecastCard
+        totalPipelineValue={data.totalRevenue * 1.8}
+        avgAiScore={84}
+        totalLeadsCount={data.totalCalls}
+      />
 
       {/* Charts Section: Weekly Sales Forecast & Objection Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
