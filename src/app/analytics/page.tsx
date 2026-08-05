@@ -32,6 +32,7 @@ import {
   MOCK_ANALYTICS_DATA
 } from "@/lib/analytics";
 import { AiForecastCard } from "@/components/analytics/AiForecastCard";
+import { OperatorCoachingCard } from "@/components/analytics/OperatorCoachingCard";
 
 const OBJECTION_COLORS = ["#f59e0b", "#06b6d4", "#10b981", "#8b5cf6"];
 
@@ -304,6 +305,9 @@ export default function AnalyticsPage() {
           </table>
         </div>
       </div>
+
+      {/* AI Operator Coaching & Benchmarks */}
+      <OperatorCoachingCard />
 
     </div>
   );
