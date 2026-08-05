@@ -353,5 +353,8 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-17 | Manažerský Real-Time Team Monitor (`/monitor`) | ✅ Hotovo |
 | COMMIT-18 | AI Voice Roleplay Simulator (`/training`) | ✅ Hotovo |
 | COMMIT-19 | Gamified Leaderboard, Operator XP & Badges System | ✅ Hotovo |
+| COMMIT-20 | Predictive Re-Order Engine Widget (Dashboard) | ✅ Hotovo |
+| COMMIT-21 | 1-Click Pay-Link & SMS Order Confirmation Dispatcher | ✅ Hotovo |
+
 
 

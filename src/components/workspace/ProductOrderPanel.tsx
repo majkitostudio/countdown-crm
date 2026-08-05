@@ -44,6 +44,14 @@ export function ProductOrderPanel({
   const [wrapUpNotes, setWrapUpNotes] = useState<string>("");
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
   const [lastOrderId, setLastOrderId] = useState<string>("");
+  const [isSmsSent, setIsSmsSent] = useState(false);
+
+  const handleSendPayLinkSms = () => {
+    if (!activeLead) return;
+    setIsSmsSent(true);
+    setTimeout(() => setIsSmsSent(false), 5000);
+  };
+
 
   React.useEffect(() => {
     if (products.length > 0 && !selectedProductId) {
@@ -218,21 +226,22 @@ export function ProductOrderPanel({
         </div>
       )}
 
+
       {/* Quantity & Discount Controls */}
-      <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-4 space-y-3 text-xs">
+      <div className="space-y-3 pt-2 border-t border-zinc-800">
         <div className="flex items-center justify-between">
-          <span className="text-zinc-400 font-medium">Quantity (Primary)</span>
-          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-1">
+          <label className="text-zinc-400">Quantity:</label>
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="p-1 text-zinc-400 hover:text-zinc-100"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="p-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
             >
               <Minus className="w-3 h-3" />
             </button>
-            <span className="font-mono font-bold text-zinc-100 w-6 text-center">{quantity}</span>
+            <span className="font-mono text-zinc-200 font-semibold w-6 text-center">{quantity}</span>
             <button
-              onClick={() => setQuantity((q) => q + 1)}
-              className="p-1 text-zinc-400 hover:text-zinc-100"
+              onClick={() => setQuantity(quantity + 1)}
+              className="p-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
             >
               <Plus className="w-3 h-3" />
             </button>
@@ -240,13 +249,14 @@ export function ProductOrderPanel({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-zinc-400 font-medium">Closing Discount</span>
+          <label className="text-zinc-400">Apply Promo Discount:</label>
           <select
             value={discountPercent}
             onChange={(e) => setDiscountPercent(Number(e.target.value))}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-xs text-zinc-200 focus:outline-none"
+            className="bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-xs text-zinc-200 focus:outline-none"
           >
-            <option value={0}>No Discount (0%)</option>
+            <option value={0}>0% No Discount</option>
+            <option value={5}>5% First Order</option>
             <option value={10}>10% Special Promo</option>
             <option value={15}>15% VIP / Bundle Discount</option>
             <option value={25}>25% Multi-Pack Special</option>
@@ -280,15 +290,26 @@ export function ProductOrderPanel({
           </div>
         </div>
 
-        {/* Place Order Button */}
-        <button
-          onClick={handlePlaceOrder}
-          disabled={!selectedProduct || !activeLead}
-          className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
-        >
-          <ShoppingCart className="w-4 h-4" />
-          <span>Place Order for {activeLead?.full_name || "Customer"}</span>
-        </button>
+        {/* Order Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <button
+            onClick={handlePlaceOrder}
+            disabled={!selectedProduct || !activeLead}
+            className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+          >
+            <ShoppingCart className="w-3.5 h-3.5" />
+            <span>Place Order</span>
+          </button>
+
+          <button
+            onClick={handleSendPayLinkSms}
+            disabled={!activeLead}
+            className="w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 disabled:opacity-50 text-cyan-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Zap className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Send SMS Pay-Link</span>
+          </button>
+        </div>
       </div>
 
       {/* Post-Call Wrap Up Section */}

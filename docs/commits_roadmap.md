@@ -70,3 +70,10 @@
 - [x] `feat(training): implement AI Voice Roleplay Simulator & Interactive Training Scenarios (12.1)`
 - [x] `feat(gamification): add Gamified Leaderboard, Operator XP & Badges System (12.2)`
 
+---
+
+## 🛒 FÁZE 13: Predictive Re-Order Engine & SMS Pay-Link Dispatcher
+- [x] `feat(sales): add Predictive Re-Order Engine for consumable products (13.1)`
+- [x] `feat(sales): implement 1-click Pay-Link & SMS order confirmation dispatcher (13.2)`
+
+

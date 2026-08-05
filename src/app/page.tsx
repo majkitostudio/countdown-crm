@@ -3,6 +3,7 @@ import { KpiCards } from "@/components/dashboard/KpiCards";
 import { CallActivityChart } from "@/components/dashboard/CallActivityChart";
 import { TopPerformers } from "@/components/dashboard/TopPerformers";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
+import { ReorderWidget } from "@/components/dashboard/ReorderWidget";
 
 export default function Home() {
   return (
@@ -41,7 +42,10 @@ export default function Home() {
       {/* 1. KPI Cards Row */}
       <KpiCards />
 
-      {/* 2. Main Analytics Grid (Call Activity Chart + Top Performers) */}
+      {/* 2. Predictive Re-Order Engine Widget */}
+      <ReorderWidget />
+
+      {/* 3. Main Analytics Grid (Call Activity Chart + Top Performers) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <CallActivityChart />
@@ -51,8 +55,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 3. Recent Activity Stream */}
+      {/* 4. Recent Activity Stream */}
       <RecentActivityFeed />
     </div>
   );
 }
+
