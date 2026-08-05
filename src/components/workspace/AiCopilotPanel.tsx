@@ -24,6 +24,7 @@ import { matchObjectionToProduct } from "@/lib/objections";
 import { INITIAL_MOCK_PRODUCTS } from "@/lib/products";
 import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
 import { SentimentHeatmap, SentimentSegment } from "./SentimentHeatmap";
+import { ComplianceChecker } from "./ComplianceChecker";
 
 interface TranscriptMessage {
   id: string;
@@ -244,21 +245,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
       />
 
       {/* Live Regulatory Compliance Warning Banner */}
-      {complianceViolations.length > 0 && (
-        <div className="bg-rose-950/40 border border-rose-800/60 rounded-xl p-3 space-y-2 animate-pulse">
-          <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
-            <ShieldAlert className="w-4 h-4 text-rose-400" />
-            <span>ZÁKONNÝ HLÍDAČ (COMPLIANCE WARNING)</span>
-          </div>
-          {complianceViolations.map((v, i) => (
-            <div key={i} className="text-[11px] text-zinc-200 leading-snug space-y-0.5">
-              <span className="font-semibold text-rose-300">⚠️ {v.rule.title}:</span>
-              <p className="text-zinc-300">{v.rule.explanation}</p>
-              <p className="text-amber-300 font-mono text-[10px]">💡 Oprava: {v.rule.correctionSuggestion}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <ComplianceChecker violations={complianceViolations} />
 
       {/* Real-time AI Rebuttal Battle-Card Box */}
       <div className={`border rounded-xl p-3.5 space-y-2.5 transition-all ${
