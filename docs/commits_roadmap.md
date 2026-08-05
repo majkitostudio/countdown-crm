@@ -42,9 +42,9 @@
 
 ---
 
-## 🚀 FÁZE 8 (NÁVRH): Custom Objects Views & Advanced EAV Filter Engine
-- [ ] `feat(schema): add dynamic Custom Object views router (/objects/[schemaId]) (8.1)`
-- [ ] `feat(views): implement advanced EAV multi-attribute filter engine (8.2)`
+## 🔍 FÁZE 8: Advanced Filters, Saved Views & Dynamic Custom Object Pages
+- [x] `feat(views): implement multi-attribute Filter Engine & Saved Views bar (8.1)`
+- [x] `feat(objects): create dynamic Custom Object Records view & detail drawer (8.2)`
 
 ---
 
