@@ -23,6 +23,7 @@ import { CopilotAnalysisResult } from "@/lib/gemini";
 import { matchObjectionToProduct } from "@/lib/objections";
 import { INITIAL_MOCK_PRODUCTS } from "@/lib/products";
 import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
+import { SentimentHeatmap, SentimentSegment } from "./SentimentHeatmap";
 
 interface TranscriptMessage {
   id: string;
@@ -53,6 +54,13 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isResolved, setIsResolved] = useState(false);
   const [complianceViolations, setComplianceViolations] = useState<ComplianceViolation[]>([]);
+
+  const [heatmapSegments, setHeatmapSegments] = useState<SentimentSegment[]>([
+    { timeLabel: "0:15", sentiment: "Neutral", score: 80 },
+    { timeLabel: "0:45", sentiment: "Price Objection", score: 92 },
+    { timeLabel: "1:30", sentiment: "Price Objection", score: 88 },
+    { timeLabel: "2:10", sentiment: "Positive", score: 95 },
+  ]);
 
   const activeProduct = INITIAL_MOCK_PRODUCTS[0];
 
@@ -227,6 +235,13 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
           </div>
         </div>
       </div>
+
+      {/* Live Voice Sentiment Heatmap Component */}
+      <SentimentHeatmap
+        segments={heatmapSegments}
+        currentSentiment={analysisResult.sentiment}
+        confidenceScore={analysisResult.confidenceScore}
+      />
 
       {/* Live Regulatory Compliance Warning Banner */}
       {complianceViolations.length > 0 && (
