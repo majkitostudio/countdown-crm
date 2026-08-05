@@ -173,7 +173,29 @@ export const INITIAL_MOCK_PRODUCTS: Product[] = [
   }
 ];
 
-let localProductsStore: Product[] = [...INITIAL_MOCK_PRODUCTS];
+const PRODUCTS_STORAGE_KEY = "countdown_crm_products_v1";
+
+function loadLocalProducts(): Product[] {
+  if (typeof window === "undefined") return INITIAL_MOCK_PRODUCTS;
+  const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+  if (!stored) {
+    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_PRODUCTS));
+    return INITIAL_MOCK_PRODUCTS;
+  }
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return INITIAL_MOCK_PRODUCTS;
+  }
+}
+
+function saveLocalProducts(products: Product[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+  }
+}
+
+let localProductsStore: Product[] = loadLocalProducts();
 
 /**
  * Fetch products with category filter and search
@@ -273,6 +295,7 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
   }
 
   localProductsStore = [newProd, ...localProductsStore];
+  saveLocalProducts(localProductsStore);
   return newProd;
 }
 
@@ -286,6 +309,7 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
       ...localProductsStore[idx],
       ...updates,
     };
+    saveLocalProducts(localProductsStore);
   }
 
   try {
@@ -298,3 +322,4 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 
   return localProductsStore[idx] || null;
 }
+

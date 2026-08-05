@@ -251,8 +251,31 @@ export function calculateAiLeadScore(lead: Partial<Lead>): number {
   return Math.min(99, Math.max(5, score));
 }
 
-// In-memory store for demo persistence when Supabase client is offline or not configured
-let localLeadsStore: Lead[] = [...INITIAL_MOCK_LEADS];
+const LEADS_STORAGE_KEY = "countdown_crm_leads_v1";
+
+function loadLocalLeads(): Lead[] {
+  if (typeof window === "undefined") return INITIAL_MOCK_LEADS;
+  const stored = localStorage.getItem(LEADS_STORAGE_KEY);
+  if (!stored) {
+    localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_LEADS));
+    return INITIAL_MOCK_LEADS;
+  }
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return INITIAL_MOCK_LEADS;
+  }
+}
+
+function saveLocalLeads(leads: Lead[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
+  }
+}
+
+// In-memory store for demo persistence synced with localStorage
+let localLeadsStore: Lead[] = loadLocalLeads();
+
 
 /**
  * Fetch all leads with optional status filter, search query, and sorting
@@ -371,8 +394,9 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     console.warn("Supabase batch insert warning, using local store:", err);
   }
 
-  // Prepend to local store
+  // Prepend to local store & persist
   localLeadsStore = [...newLeads, ...localLeadsStore];
+  saveLocalLeads(localLeadsStore);
   return newLeads;
 }
 
@@ -387,6 +411,7 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
       ...updates,
       updated_at: new Date().toISOString(),
     };
+    saveLocalLeads(localLeadsStore);
   }
 
   try {
@@ -403,3 +428,4 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
 
   return localLeadsStore[index] || null;
 }
+

@@ -37,7 +37,29 @@ export const INITIAL_MOCK_ORDERS: Order[] = [
   }
 ];
 
-let localOrdersStore: Order[] = [...INITIAL_MOCK_ORDERS];
+const ORDERS_STORAGE_KEY = "countdown_crm_orders_v1";
+
+function loadLocalOrders(): Order[] {
+  if (typeof window === "undefined") return INITIAL_MOCK_ORDERS;
+  const stored = localStorage.getItem(ORDERS_STORAGE_KEY);
+  if (!stored) {
+    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_ORDERS));
+    return INITIAL_MOCK_ORDERS;
+  }
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return INITIAL_MOCK_ORDERS;
+  }
+}
+
+function saveLocalOrders(orders: Order[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+  }
+}
+
+let localOrdersStore: Order[] = loadLocalOrders();
 
 /**
  * Fetch all orders
@@ -95,5 +117,7 @@ export async function createOrder(orderPayload: Partial<Order>): Promise<Order> 
   }
 
   localOrdersStore = [newOrder, ...localOrdersStore];
+  saveLocalOrders(localOrdersStore);
   return newOrder;
 }
+

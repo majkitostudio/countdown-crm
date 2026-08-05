@@ -88,7 +88,29 @@ export const INITIAL_MOCK_CALLS: CallRecord[] = [
   }
 ];
 
-let localCallsStore: CallRecord[] = [...INITIAL_MOCK_CALLS];
+const CALLS_STORAGE_KEY = "countdown_crm_calls_v1";
+
+function loadLocalCalls(): CallRecord[] {
+  if (typeof window === "undefined") return INITIAL_MOCK_CALLS;
+  const stored = localStorage.getItem(CALLS_STORAGE_KEY);
+  if (!stored) {
+    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_CALLS));
+    return INITIAL_MOCK_CALLS;
+  }
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return INITIAL_MOCK_CALLS;
+  }
+}
+
+function saveLocalCalls(calls: CallRecord[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(calls));
+  }
+}
+
+let localCallsStore: CallRecord[] = loadLocalCalls();
 
 /**
  * Fetch all call records
@@ -115,3 +137,43 @@ export async function getCallById(id: string): Promise<CallRecord | null> {
   const calls = await getCalls();
   return calls.find((c) => c.id === id) || null;
 }
+
+/**
+ * Add a new call record to local store and Supabase
+ */
+export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promise<CallRecord> {
+  const newRecord: CallRecord = {
+    id: newCallPayload.id || `call-${Date.now()}`,
+    lead_id: newCallPayload.lead_id || "lead-1",
+    lead_name: newCallPayload.lead_name || "Unknown Customer",
+    agent_name: newCallPayload.agent_name || "Operator",
+    duration_seconds: newCallPayload.duration_seconds || 120,
+    outcome: newCallPayload.outcome || "followup_scheduled",
+    sentiment: newCallPayload.sentiment || "Neutral",
+    order_value: newCallPayload.order_value || 0,
+    transcript: newCallPayload.transcript || [
+      { speaker: "agent", text: "Call completed", timestamp: new Date().toLocaleTimeString() }
+    ],
+    created_at: new Date().toISOString(),
+  };
+
+  try {
+    const supabase = createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("calls") as any).insert({
+      lead_id: newRecord.lead_id,
+      agent_name: newRecord.agent_name,
+      duration_seconds: newRecord.duration_seconds,
+      outcome: newRecord.outcome,
+      sentiment: newRecord.sentiment,
+      order_value: newRecord.order_value,
+    });
+  } catch (err) {
+    console.warn("Supabase call insert skipped:", err);
+  }
+
+  localCallsStore = [newRecord, ...localCallsStore];
+  saveLocalCalls(localCallsStore);
+  return newRecord;
+}
+

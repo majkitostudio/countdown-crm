@@ -12,6 +12,7 @@ import { AiCopilotPanel } from "@/components/workspace/AiCopilotPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
+import { addCallRecord } from "@/lib/calls";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
@@ -58,23 +59,39 @@ function WorkspaceContent() {
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = () => {
     if (isCallActive || isDialing) {
-      // Hang up — emit workflow event
+      // Hang up — emit workflow event and save call record
       setIsCallActive(false);
       setIsDialing(false);
       setOperatorStatus("ready");
       sounds.playCallEndSound();
 
-      // Emit workflow engine event
       if (activeLead) {
+        const newCallId = `call-${Date.now()}`;
+        addCallRecord({
+          id: newCallId,
+          lead_id: activeLead.id,
+          lead_name: activeLead.full_name,
+          agent_name: "Jan Dvořák",
+          duration_seconds: 145,
+          outcome: "followup_scheduled",
+          sentiment: "Positive",
+          order_value: 0,
+          transcript: [
+            { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
+            { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() }
+          ]
+        });
+
+        // Emit workflow engine event
         workflowEngine.emit("on_call_ended", {
-          callId: `call-${Date.now()}`,
+          callId: newCallId,
           leadId: activeLead.id,
           leadName: activeLead.full_name,
-          agentName: "Operator",
+          agentName: "Jan Dvořák",
           outcome: "followup_scheduled",
           sentiment: "Neutral",
           orderValue: 0,
-          transcript: "Call ended by operator (manual hangup)",
+          transcript: "Call ended by operator",
         }).then((results) => {
           if (results.length > 0) {
             setPostCallResults(results);
@@ -82,6 +99,7 @@ function WorkspaceContent() {
         });
       }
     } else {
+
       // Start Outbound Call
       setIsDialing(true);
       setOperatorStatus("in_call");
