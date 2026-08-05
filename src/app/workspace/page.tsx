@@ -227,7 +227,7 @@ function WorkspaceContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2 text-emerald-400" />
+        <RefreshCw className="w-5 h-5 animate-spin mr-2 text-zinc-300" />
         <span>Loading Agent Workspace Environment...</span>
       </div>
     );
@@ -318,7 +318,7 @@ export default function WorkspacePage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2 text-emerald-400" />
+        <RefreshCw className="w-5 h-5 animate-spin mr-2 text-zinc-300" />
         <span>Loading Workspace...</span>
       </div>
     }>

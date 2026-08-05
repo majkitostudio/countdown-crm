@@ -57,25 +57,21 @@ export default function TeamMonitorPage() {
       case "in_call":
         return {
           label: "IN CALL",
-          color: "bg-rose-500/10 text-rose-400 border-rose-500/30",
           dotColor: "bg-rose-500 animate-pulse",
         };
       case "ready":
         return {
           label: "READY FOR CALLS",
-          color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
           dotColor: "bg-emerald-500",
         };
       case "break":
         return {
           label: "ON BREAK",
-          color: "bg-amber-500/10 text-amber-400 border-amber-500/30",
           dotColor: "bg-amber-500",
         };
       default:
         return {
           label: "WRAP UP",
-          color: "bg-zinc-800 text-zinc-400 border-zinc-700",
           dotColor: "bg-zinc-500",
         };
     }
@@ -92,7 +88,7 @@ export default function TeamMonitorPage() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              <Radio className="w-5 h-5 text-rose-500 animate-pulse" />
+              <Radio className="w-5 h-5 text-zinc-400" />
               Live Team Operator Monitor
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
@@ -106,12 +102,12 @@ export default function TeamMonitorPage() {
 
         {/* Live Status Summary Badges */}
         <div className="flex items-center gap-3 text-xs font-medium">
-          <div className="px-3.5 py-2 bg-rose-950/80 text-rose-400 border border-rose-800/60 rounded-xl flex items-center gap-2">
+          <div className="px-3.5 py-2 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-xl flex items-center gap-2 font-mono">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <span>{activeCallsCount} Active Calls</span>
           </div>
 
-          <div className="px-3.5 py-2 bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 rounded-xl flex items-center gap-2">
+          <div className="px-3.5 py-2 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-xl flex items-center gap-2 font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>{readyOperatorsCount} Ready</span>
           </div>
@@ -128,14 +124,14 @@ export default function TeamMonitorPage() {
               key={op.id}
               className={`bg-zinc-900/40 border border-t border-white/5 rounded-2xl p-6 shadow-sm space-y-5 backdrop-blur-md transition-all ${
                 op.status === "in_call"
-                  ? "border-rose-900/50"
+                  ? "border-zinc-700"
                   : "border-zinc-800/80"
               }`}
             >
               {/* Operator Profile & Status */}
               <div className="flex items-start justify-between pb-3 border-b border-zinc-800/80">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-semibold text-zinc-200 text-xs">
+                  <div className="w-9 h-9 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-semibold text-zinc-200 text-xs font-mono">
                     {op.agentName.charAt(0)}
                   </div>
                   <div>
@@ -144,7 +140,7 @@ export default function TeamMonitorPage() {
                   </div>
                 </div>
 
-                <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border flex items-center gap-1.5 ${badge.color}`}>
+                <div className="px-2.5 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`} />
                   <span>{badge.label}</span>
                 </div>
@@ -163,9 +159,9 @@ export default function TeamMonitorPage() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-400 font-medium flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-cyan-400" /> Duration:
+                        <Clock className="w-3.5 h-3.5 text-zinc-400" /> Duration:
                       </span>
-                      <span className="font-mono font-semibold text-cyan-400">
+                      <span className="font-mono font-semibold text-zinc-100">
                         {formatDuration(op.currentCallDuration)}
                       </span>
                     </div>
@@ -173,12 +169,12 @@ export default function TeamMonitorPage() {
 
                   {/* AI Objection Banner */}
                   {op.detectedObjection && (
-                    <div className="bg-amber-950/60 border border-amber-800/50 rounded-lg p-3 space-y-1">
-                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-400">
-                        <ShieldAlert className="w-3.5 h-3.5" />
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-zinc-200">
+                        <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
                         <span>LIVE OBJECTION DETECTED</span>
                       </div>
-                      <p className="text-xs text-amber-200/90 leading-tight">
+                      <p className="text-xs text-zinc-300 leading-tight">
                         &ldquo;{op.detectedObjection}&rdquo;
                       </p>
                     </div>
@@ -197,15 +193,15 @@ export default function TeamMonitorPage() {
                   </button>
                 </div>
               ) : (
-                <div className="p-4 bg-zinc-950/40 border border-zinc-800/60 rounded-lg text-center text-zinc-500 text-xs">
+                <div className="p-4 bg-zinc-950/40 border border-zinc-800/60 rounded-lg text-center text-zinc-500 text-xs font-mono">
                   {op.status === "ready" ? "Awaiting next incoming call..." : "Operator is currently taking a break."}
                 </div>
               )}
 
               {/* Operator Today's Performance Footer */}
               <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px]">
-                <span className="text-zinc-400">Calls Today: <strong>{op.callsCompletedToday}</strong></span>
-                <span className="text-emerald-400 font-mono font-bold">Sales: ${op.salesToday.toFixed(2)}</span>
+                <span className="text-zinc-400">Calls Today: <strong className="font-mono text-zinc-200">{op.callsCompletedToday}</strong></span>
+                <span className="text-zinc-100 font-mono font-semibold">Sales: ${op.salesToday.toFixed(2)}</span>
               </div>
 
             </div>
@@ -216,14 +212,14 @@ export default function TeamMonitorPage() {
       {/* Supervisor Audio Audit Modal Simulator */}
       {activeAuditOperator && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-xs p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200 text-zinc-100">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20">
-                  <Radio className="w-4 h-4 animate-pulse" />
+                <div className="p-2 bg-zinc-900 text-zinc-300 rounded-xl border border-zinc-800">
+                  <Radio className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-zinc-100">Live Audio Supervisor Audit</h3>
+                  <h3 className="font-semibold text-sm text-zinc-100">Live Audio Supervisor Audit</h3>
                   <p className="text-[11px] text-zinc-400">Monitoring {activeAuditOperator.agentName}</p>
                 </div>
               </div>
@@ -232,24 +228,24 @@ export default function TeamMonitorPage() {
                   setActiveAuditOperator(null);
                   setIsAuditingAudio(false);
                 }}
-                className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg"
+                className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-3">
+            <div className="bg-zinc-900/60 p-4 rounded-xl border border-zinc-800 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-400">Live Stream Target:</span>
-                <span className="font-bold text-zinc-200">{activeAuditOperator.customerName}</span>
+                <span className="font-semibold text-zinc-200">{activeAuditOperator.customerName}</span>
               </div>
 
               {/* Animated Audio Spectrum */}
-              <div className="h-10 bg-zinc-900 border border-zinc-800 rounded-lg px-3 flex items-center gap-1">
+              <div className="h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-3 flex items-center gap-1">
                 {Array.from({ length: 28 }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-1 bg-rose-400 rounded-full animate-pulse"
+                    className="w-1 bg-zinc-300 rounded-full animate-pulse"
                     style={{
                       height: `${Math.max(25, Math.sin(i * 0.7) * 90)}%`,
                       animationDelay: `${i * 60}ms`,
@@ -258,9 +254,9 @@ export default function TeamMonitorPage() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                <span>Channel: Supervisor Silent Mode</span>
-                <span className="text-emerald-400 font-bold">100% Encrypted Stream</span>
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
+                <span>Channel: Supervisor Silent</span>
+                <span className="text-zinc-300">Encrypted Stream</span>
               </div>
             </div>
 
@@ -269,7 +265,7 @@ export default function TeamMonitorPage() {
                 setActiveAuditOperator(null);
                 setIsAuditingAudio(false);
               }}
-              className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold rounded-xl text-xs transition-colors"
+              className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
             >
               Close Audit Session
             </button>

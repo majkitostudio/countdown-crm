@@ -57,16 +57,7 @@ export default function CallLogsPage() {
   };
 
   const getOutcomeBadge = (outcome: CallRecord["outcome"]) => {
-    switch (outcome) {
-      case "order_placed":
-        return "bg-emerald-950/80 text-emerald-400 border-emerald-800/60";
-      case "followup_scheduled":
-        return "bg-zinc-950 text-zinc-300 border-zinc-800";
-      case "objection_handled":
-        return "bg-amber-950/80 text-amber-400 border-amber-800/60";
-      default:
-        return "bg-zinc-900 text-zinc-400 border-zinc-800";
-    }
+    return "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono";
   };
 
   return (
@@ -80,7 +71,7 @@ export default function CallLogsPage() {
               <PhoneCall className="w-5 h-5 text-zinc-400" />
               Call Logs & Speech Transcripts
             </h1>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
               {totalCallsCount} Logged Calls
             </span>
           </div>
@@ -92,7 +83,7 @@ export default function CallLogsPage() {
         <div className="flex items-center gap-3">
           <a
             href="/workspace"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-semibold text-xs hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <PhoneCall className="w-4 h-4" />
             <span>Launch Operator Console</span>
@@ -105,9 +96,9 @@ export default function CallLogsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Total Logged Calls</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-sans">{totalCallsCount}</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{totalCallsCount}</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <PhoneCall className="w-4 h-4" />
           </div>
         </div>
@@ -115,9 +106,9 @@ export default function CallLogsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Avg Handling Time (AHT)</span>
-            <span className="text-2xl font-semibold text-cyan-400 tracking-tight font-mono">{formatDuration(avgDuration)}</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{formatDuration(avgDuration)}</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-cyan-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <Clock className="w-4 h-4" />
           </div>
         </div>
@@ -125,9 +116,9 @@ export default function CallLogsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Call Revenue Volume</span>
-            <span className="text-2xl font-semibold text-emerald-400 tracking-tight font-mono">${totalSalesVolume.toFixed(2)}</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">${totalSalesVolume.toFixed(2)}</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <DollarSign className="w-4 h-4" />
           </div>
         </div>
@@ -135,9 +126,9 @@ export default function CallLogsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Call Conversion Rate</span>
-            <span className="text-2xl font-semibold text-amber-400 tracking-tight font-sans">{conversionRate}%</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{conversionRate}%</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <TrendingUp className="w-4 h-4" />
           </div>
         </div>
@@ -202,35 +193,35 @@ export default function CallLogsPage() {
           <table className="w-full text-left text-xs text-zinc-300">
             <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
               <tr>
-                <th className="px-5 py-3.5">Call ID & Customer</th>
-                <th className="px-5 py-3.5">Agent</th>
-                <th className="px-5 py-3.5">Duration</th>
-                <th className="px-5 py-3.5">Outcome</th>
-                <th className="px-5 py-3.5">Sentiment</th>
-                <th className="px-5 py-3.5">Revenue</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+                <th className="px-5 py-3">Call ID & Customer</th>
+                <th className="px-5 py-3">Agent</th>
+                <th className="px-5 py-3">Duration</th>
+                <th className="px-5 py-3">Outcome</th>
+                <th className="px-5 py-3">Sentiment</th>
+                <th className="px-5 py-3">Revenue</th>
+                <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
               {filteredCalls.map((c) => (
                 <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors">
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-3">
                     <div>
                       <p className="font-semibold text-zinc-100">{c.lead_name}</p>
                       <p className="text-[11px] text-zinc-500 font-mono">#{c.id}</p>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-zinc-300">{c.agent_name}</td>
-                  <td className="px-5 py-4 font-mono text-cyan-400">{formatDuration(c.duration_seconds)}</td>
-                  <td className="px-5 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-medium border uppercase ${getOutcomeBadge(c.outcome)}`}>
+                  <td className="px-5 py-3 text-zinc-300">{c.agent_name}</td>
+                  <td className="px-5 py-3 font-mono text-zinc-300">{formatDuration(c.duration_seconds)}</td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getOutcomeBadge(c.outcome)}`}>
                       {c.outcome.replace("_", " ")}
                     </span>
                   </td>
-                  <td className="px-5 py-4">
-                    <span className="text-zinc-300">{c.sentiment}</span>
+                  <td className="px-5 py-3">
+                    <span className="text-zinc-300 font-mono">{c.sentiment}</span>
                   </td>
-                  <td className="px-5 py-4 font-mono font-semibold text-emerald-400">
+                  <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
                     ${c.order_value.toFixed(2)}
                   </td>
                   <td className="px-5 py-4 text-right">

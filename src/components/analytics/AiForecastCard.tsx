@@ -36,15 +36,15 @@ export function AiForecastCard({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-zinc-100">
+              <h2 className="text-base font-semibold text-zinc-100">
                 AI Predictive Revenue Forecasting
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <span className="px-2.5 py-0.5 rounded-md text-xs font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
                 Gemini 2.5 Engine
               </span>
             </div>
@@ -59,7 +59,7 @@ export function AiForecastCard({
           className="p-2 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
           title="Přepočítat AI predikci"
         >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-amber-400" : ""}`} />
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-zinc-200" : ""}`} />
         </button>
       </div>
 
@@ -67,7 +67,7 @@ export function AiForecastCard({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Pessimistic Scenario */}
         <div className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-rose-400">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 font-mono">
             Pesimistický Scénář (35%)
           </span>
           <p className="text-xl font-bold font-mono text-zinc-100">
@@ -79,16 +79,16 @@ export function AiForecastCard({
         </div>
 
         {/* Expected Scenario (AI Weighted) */}
-        <div className="p-4 bg-amber-500/5 border border-amber-500/30 ring-1 ring-amber-500/20 rounded-xl space-y-1 relative">
+        <div className="p-4 bg-zinc-900 border border-zinc-700 rounded-xl space-y-1 relative">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> Očekávaný Scénář ({Math.round(expectedFactor * 100)}%)
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-200 font-mono flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-zinc-400" /> Očekávaný Scénář ({Math.round(expectedFactor * 100)}%)
             </span>
-            <span className="text-[9px] font-bold bg-amber-500 text-zinc-950 px-1.5 py-0.2 rounded">
+            <span className="text-[9px] font-mono bg-zinc-800 border border-zinc-700 text-zinc-300 px-1.5 py-0.2 rounded">
               AI Recommendation
             </span>
           </div>
-          <p className="text-2xl font-extrabold font-mono text-amber-300">
+          <p className="text-2xl font-bold font-mono text-zinc-100">
             {formatCurrency(expectedValue)}
           </p>
           <p className="text-[11px] text-zinc-400">
@@ -98,7 +98,7 @@ export function AiForecastCard({
 
         {/* Optimistic Scenario */}
         <div className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 font-mono">
             Optimistický Scénář (88%)
           </span>
           <p className="text-xl font-bold font-mono text-zinc-100">
@@ -114,28 +114,28 @@ export function AiForecastCard({
       <div className="p-4 bg-zinc-950/80 border border-zinc-800/80 rounded-xl space-y-3">
         <div className="flex items-center justify-between text-xs">
           <span className="text-zinc-400 flex items-center gap-1.5 font-medium">
-            <Target className="w-4 h-4 text-amber-400" />
-            Cíl měsíčního prodeje: <strong className="text-zinc-200">{formatCurrency(targetGoal)}</strong>
+            <Target className="w-4 h-4 text-zinc-400" />
+            Cíl měsíčního prodeje: <strong className="text-zinc-200 font-mono">{formatCurrency(targetGoal)}</strong>
           </span>
-          <span className="font-mono font-bold text-amber-400">
+          <span className="font-mono font-bold text-zinc-200">
             {targetPercent}% splněno
           </span>
         </div>
 
         <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
           <div
-            className="h-full bg-amber-500 rounded-full transition-all duration-500"
+            className="h-full bg-zinc-100 rounded-full transition-all duration-500"
             style={{ width: `${Math.min(100, targetPercent)}%` }}
           />
         </div>
 
         <div className="pt-2 text-xs text-zinc-300 leading-relaxed space-y-1 border-t border-zinc-800/60">
-          <div className="flex items-center gap-1.5 font-bold text-zinc-100 text-[11px] uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 font-semibold text-zinc-200 text-[11px] uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
             AI Executive Commentary (Gemini Flash)
           </div>
           <p className="text-zinc-400 text-[11px]">
-            &quot;Při současném průměrném AI skóre <strong>{avgAiScore}/100</strong> a celkovém objemu rozjednaných příležitostí <strong>{formatCurrency(totalPipelineValue)}</strong> je vysoká pravděpodobnost dosáhnout cíle {targetPercent}%. Pro překonání 100% cíle doporučuji zaměřit hovory operátorů na segment s cenovou námitkou pomocí Bio-Boost balíčků.&quot;
+            &quot;Při současném průměrném AI skóre <strong className="text-zinc-200 font-mono">{avgAiScore}/100</strong> a celkovém objemu rozjednaných příležitostí <strong className="text-zinc-200 font-mono">{formatCurrency(totalPipelineValue)}</strong> je vysoká pravděpodobnost dosáhnout cíle {targetPercent}%. Pro překonání 100% cíle doporučuji zaměřit hovory operátorů na segment s cenovou námitkou pomocí Bio-Boost balíčků.&quot;
           </p>
         </div>
       </div>

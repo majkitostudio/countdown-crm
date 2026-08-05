@@ -77,7 +77,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={() => setIsObjectBuilderOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-amber-500/10 cursor-pointer shrink-0"
+          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-xl transition-all shadow-sm cursor-pointer shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Vytvořit Custom Object</span>
@@ -86,11 +86,11 @@ export default function SettingsPage() {
 
       {/* Success Notification Alert */}
       {isSavedAlert && (
-        <div className="bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 p-4 rounded-xl text-xs flex items-center gap-3 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="bg-zinc-900 border border-zinc-800 text-zinc-300 p-4 rounded-xl text-xs flex items-center gap-3 font-mono animate-in fade-in duration-200">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <div>
-            <p className="font-semibold">Preferences Saved Successfully!</p>
-            <p className="text-[11px] text-emerald-200/80">Your operator profile and AI copilot settings have been persisted.</p>
+            <p className="font-semibold text-zinc-100">Preferences Saved Successfully!</p>
+            <p className="text-[11px] text-zinc-400">Your operator profile and AI copilot settings have been persisted.</p>
           </div>
         </div>
       )}
@@ -99,7 +99,7 @@ export default function SettingsPage() {
       <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-5">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <Database className="w-4 h-4" />
             </div>
             <div>
@@ -113,7 +113,7 @@ export default function SettingsPage() {
             onClick={() => setIsObjectBuilderOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-800 transition-colors cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-amber-400" />
+            <Plus className="w-3.5 h-3.5 text-zinc-400" />
             <span>Nové Schema</span>
           </button>
         </div>
@@ -124,7 +124,7 @@ export default function SettingsPage() {
             <div key={s.id} className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-amber-400" />
+                  <Database className="w-4 h-4 text-zinc-400" />
                   <span className="font-semibold text-xs text-zinc-100">{s.name}</span>
                 </div>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded">
@@ -133,8 +133,8 @@ export default function SettingsPage() {
               </div>
               <p className="text-[11px] text-zinc-400 line-clamp-2">{s.description}</p>
               <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] text-zinc-500">
-                <span>{s.attributes.length} EAV atributů</span>
-                <span className="text-amber-400 font-mono">System Object</span>
+                <span className="font-mono">{s.attributes.length} EAV atributů</span>
+                <span className="text-zinc-400 font-mono">System Object</span>
               </div>
             </div>
           ))}
@@ -182,10 +182,11 @@ export default function SettingsPage() {
                   type="text"
                   disabled
                   value={settings.role}
-                  className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-500 rounded-lg px-3.5 py-2 cursor-not-allowed"
+                  className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-500 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono"
                 />
-                <span className="px-3 py-2 bg-emerald-950/80 text-emerald-400 text-xs font-medium rounded-lg border border-emerald-800/60 flex items-center gap-1.5 shrink-0">
-                  <Shield className="w-3.5 h-3.5" /> Active Member
+                <span className="px-3 py-2 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono rounded-lg flex items-center gap-1.5 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Active Member
                 </span>
               </div>
             </div>

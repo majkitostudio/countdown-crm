@@ -15,7 +15,8 @@ export default function Home() {
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
               Dashboard Overview
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               Shift Active
             </span>
           </div>

@@ -48,11 +48,11 @@ export function Sidebar() {
   const getStatusColor = (s: OperatorStatus) => {
     switch (s) {
       case "ready":
-        return "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
+        return "bg-emerald-500";
       case "in_call":
-        return "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]";
+        return "bg-rose-500";
       case "break":
-        return "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]";
+        return "bg-amber-500";
     }
   };
 
@@ -77,8 +77,8 @@ export function Sidebar() {
       {/* Brand Logo Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/80">
         <Link href="/" className="flex items-center gap-3 overflow-hidden">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-700/60 text-zinc-100 shrink-0">
-            <Zap className="w-5 h-5 text-amber-400 fill-amber-400/20" />
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 shrink-0">
+            <Zap className="w-4 h-4 text-zinc-100 fill-zinc-100/20" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">

@@ -120,11 +120,11 @@ export default function ProductsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">In Stock Ratio</span>
-            <span className="text-2xl font-semibold text-emerald-400 tracking-tight font-sans">
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">
               {totalProducts > 0 ? Math.round((inStockCount / totalProducts) * 100) : 0}%
             </span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <Tag className="w-4 h-4" />
           </div>
         </div>
@@ -133,9 +133,9 @@ export default function ProductsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Sales Battle-cards</span>
-            <span className="text-2xl font-semibold text-amber-400 tracking-tight font-sans">{totalObjectionsCount}</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{totalObjectionsCount}</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <ShieldAlert className="w-4 h-4" />
           </div>
         </div>

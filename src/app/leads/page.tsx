@@ -126,7 +126,7 @@ export default function LeadsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Total Contacts</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-sans">{totalLeads}</span>
+            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{totalLeads}</span>
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
             <Users className="w-4 h-4" />
@@ -137,9 +137,9 @@ export default function LeadsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Qualified Rate</span>
-            <span className="text-2xl font-semibold text-emerald-400 tracking-tight font-sans">{qualifiedRatio}%</span>
+            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{qualifiedRatio}%</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
             <UserCheck className="w-4 h-4" />
           </div>
         </div>
@@ -148,9 +148,9 @@ export default function LeadsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Avg. AI Score</span>
-            <span className="text-2xl font-semibold text-amber-400 tracking-tight font-sans">{avgScore}/100</span>
+            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{avgScore}/100</span>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
             <Sparkles className="w-4 h-4" />
           </div>
         </div>

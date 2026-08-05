@@ -193,16 +193,16 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
                 <button
                   onClick={() => handleSelectView(view)}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer",
+                    "flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer",
                     isActive
-                      ? "bg-amber-500/10 text-amber-300 border-amber-500/30 ring-1 ring-amber-500/20"
+                      ? "bg-zinc-800 text-zinc-100 border-zinc-700 shadow-xs"
                       : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
                   )}
                 >
-                  <Bookmark className="w-3 h-3 text-amber-400 shrink-0" />
+                  <Bookmark className="w-3 h-3 text-zinc-400 shrink-0" />
                   <span>{view.name}</span>
                   {view.filters.length > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300">
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
                       {view.filters.length}
                     </span>
                   )}
@@ -212,7 +212,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
                 {!DEFAULT_SAVED_VIEWS.some((d) => d.id === view.id) && (
                   <button
                     onClick={(e) => handleDeleteSavedView(view.id, e)}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-rose-950 border border-rose-800 text-rose-300 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-zinc-900 border border-zinc-700 text-zinc-400 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Smazat uložený pohled"
                   >
                     <X className="w-2.5 h-2.5" />
@@ -223,7 +223,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
           })}
 
           {activeViewId === "custom" && (
-            <span className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shrink-0">
+            <span className="px-3 py-1.5 rounded-xl text-xs font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 shrink-0">
               Vlastní filtr ({activeFilters.length})
             </span>
           )}
@@ -234,18 +234,18 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
           {activeFilters.length > 0 && !isSavingView && (
             <button
               onClick={() => setIsSavingView(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-400 bg-amber-500/10 rounded-xl border border-amber-500/20 hover:bg-amber-500/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
             >
-              <Bookmark className="w-3 h-3" />
+              <Bookmark className="w-3 h-3 text-zinc-400" />
               <span>Uložit pohled</span>
             </button>
           )}
 
           <button
             onClick={() => setIsAddingFilter(!isAddingFilter)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-200 bg-zinc-950 border border-zinc-800 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-950 border border-zinc-800 rounded-xl hover:bg-zinc-900 transition-colors cursor-pointer"
           >
-            <Filter className="w-3.5 h-3.5 text-amber-400" />
+            <Filter className="w-3.5 h-3.5 text-zinc-400" />
             <span>Přidat filtr</span>
           </button>
         </div>
@@ -264,13 +264,13 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
           <button
             onClick={handleSaveCurrentView}
             disabled={!newViewName.trim()}
-            className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+            className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
             Uložit
           </button>
           <button
             onClick={() => setIsSavingView(false)}
-            className="p-1.5 text-zinc-500 hover:text-zinc-300"
+            className="p-1.5 text-zinc-500 hover:text-zinc-300 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -299,7 +299,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
             onChange={(e) =>
               setSelectedOperator(e.target.value as ActiveFilter["operator"])
             }
-            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-200 focus:outline-none"
+            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-200 focus:outline-none font-mono"
           >
             <option value="equals">rovná se</option>
             <option value="not_equals">nerovná se</option>
@@ -320,7 +320,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
           <button
             onClick={handleAddFilter}
             disabled={!inputValue.trim()}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+            className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
             Aplikovat
           </button>
@@ -340,7 +340,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-xs font-medium text-zinc-200"
             >
               <span className="text-zinc-400">{f.fieldName}</span>
-              <span className="text-amber-400 font-mono text-[10px]">
+              <span className="text-zinc-400 font-mono text-[10px]">
                 {f.operator === "equals"
                   ? "="
                   : f.operator === "greater_than"

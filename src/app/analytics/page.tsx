@@ -34,7 +34,7 @@ import {
 import { AiForecastCard } from "@/components/analytics/AiForecastCard";
 import { OperatorCoachingCard } from "@/components/analytics/OperatorCoachingCard";
 
-const OBJECTION_COLORS = ["#f59e0b", "#06b6d4", "#10b981", "#8b5cf6"];
+const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsOverview>(MOCK_ANALYTICS_DATA);
@@ -93,14 +93,14 @@ export default function AnalyticsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-400">Total Sales Volume</span>
-            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-semibold font-mono text-zinc-100">${data.totalRevenue.toLocaleString()}</span>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium mt-1">
-              <ArrowUpRight className="w-3.5 h-3.5" />
+            <span className="text-2xl font-bold font-mono text-zinc-100">${data.totalRevenue.toLocaleString()}</span>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono mt-1">
+              <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
               <span>+{data.forecastGrowthPercent}% AI Forecast (${data.projectedRevenue.toLocaleString()})</span>
             </div>
           </div>
@@ -110,12 +110,12 @@ export default function AnalyticsPage() {
         <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-400">Average Order Value (AOV)</span>
-            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-cyan-400">
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
               <ShoppingCart className="w-3.5 h-3.5" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-semibold font-mono text-cyan-400">${data.avgOrderValue.toFixed(2)}</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">${data.avgOrderValue.toFixed(2)}</span>
             <p className="text-[11px] text-zinc-400 mt-1">Driven by 15% Cross-sell Bundles</p>
           </div>
         </div>
@@ -124,12 +124,12 @@ export default function AnalyticsPage() {
         <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-400">Call Conversion Rate</span>
-            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-amber-400">
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
               <TrendingUp className="w-3.5 h-3.5" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-semibold text-amber-400">{data.conversionRate}%</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.conversionRate}%</span>
             <p className="text-[11px] text-zinc-400 mt-1">Based on {data.totalCalls} total calls</p>
           </div>
         </div>
@@ -138,12 +138,12 @@ export default function AnalyticsPage() {
         <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-400">Objection Overcome %</span>
-            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
               <ShieldCheck className="w-3.5 h-3.5" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-semibold text-zinc-200">{data.objectionResolutionRate}%</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.objectionResolutionRate}%</span>
             <p className="text-[11px] text-zinc-400 mt-1">Gemini battle-cards success</p>
           </div>
         </div>
@@ -165,17 +165,17 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
             <div>
               <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <Sparkles className="w-4 h-4 text-zinc-400" />
                 Weekly Sales Revenue vs. AI Target
               </h2>
               <p className="text-[11px] text-zinc-400">Actual daily revenue compared against AI predicted target</p>
             </div>
-            <div className="flex items-center gap-3 text-xs font-medium">
-              <span className="flex items-center gap-1.5 text-emerald-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Actual
+            <div className="flex items-center gap-3 text-xs font-mono">
+              <span className="flex items-center gap-1.5 text-zinc-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" /> Actual
               </span>
-              <span className="flex items-center gap-1.5 text-cyan-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" /> Forecast
+              <span className="flex items-center gap-1.5 text-zinc-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" /> Forecast
               </span>
             </div>
           </div>
@@ -185,12 +185,12 @@ export default function AnalyticsPage() {
               <AreaChart data={data.weeklySales}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#d4d4d8" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#d4d4d8" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorFore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#71717a" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#71717a" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="day" stroke="#52525b" fontSize={11} tickLine={false} />
@@ -198,8 +198,8 @@ export default function AnalyticsPage() {
                 <Tooltip
                   contentStyle={{ backgroundColor: "#09090b", borderColor: "#27272a", borderRadius: "12px", fontSize: "12px" }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
-                <Area type="monotone" dataKey="forecast" stroke="#06b6d4" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />
+                <Area type="monotone" dataKey="revenue" stroke="#e4e4e7" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
+                <Area type="monotone" dataKey="forecast" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -209,7 +209,7 @@ export default function AnalyticsPage() {
         <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-4">
           <div className="border-b border-zinc-800/80 pb-3">
             <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-              <PieIcon className="w-4 h-4 text-amber-400" />
+              <PieIcon className="w-4 h-4 text-zinc-400" />
               Customer Objection Breakdown
             </h2>
             <p className="text-[11px] text-zinc-400">Distribution of objections detected during calls</p>
@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
               {data.teamLeaderboard.map((ag, idx) => (
                 <tr key={idx} className="hover:bg-zinc-800/40 transition-colors">
                   <td className="px-4 py-3.5 flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-bold text-zinc-200 text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-bold text-zinc-200 text-xs font-mono">
                       {idx + 1}
                     </div>
                     <div>
@@ -293,10 +293,10 @@ export default function AnalyticsPage() {
                   </td>
                   <td className="px-4 py-3.5 font-mono">{ag.callsCount}</td>
                   <td className="px-4 py-3.5 font-mono text-zinc-200">{ag.ordersCount}</td>
-                  <td className="px-4 py-3.5 font-mono font-semibold text-emerald-400">
+                  <td className="px-4 py-3.5 font-mono font-semibold text-zinc-200">
                     ${ag.revenueGenerated.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3.5 text-right font-semibold text-amber-400">
+                  <td className="px-4 py-3.5 text-right font-semibold text-zinc-300 font-mono">
                     {ag.conversionRate}%
                   </td>
                 </tr>

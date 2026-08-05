@@ -60,14 +60,14 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
           {/* Header */}
           <div className="px-6 py-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+              <div className="p-2.5 bg-zinc-900 text-zinc-300 rounded-xl border border-zinc-800">
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-zinc-100">
                   Sales Objection Battle-Card
                 </h2>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-zinc-400 font-mono">
                   {product.title} (${product.price.toFixed(2)})
                 </p>
               </div>
@@ -75,7 +75,7 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
 
             <button
               onClick={onClose}
-              className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors"
+              className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -85,10 +85,10 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             
             {/* Header Banner */}
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-xs text-amber-200/90 leading-relaxed">
-                <strong>AI Copilot Battle-Card:</strong> These rebuttal scripts are automatically surfaced to call operators in real-time when customer price or product objections are detected during live calls.
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-zinc-300 leading-relaxed">
+                <strong className="text-zinc-100">AI Copilot Battle-Card:</strong> These rebuttal scripts are automatically surfaced to call operators in real-time when customer price or product objections are detected during live calls.
               </div>
             </div>
 
@@ -101,7 +101,7 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
 
                 <button
                   onClick={() => setShowAddForm(!showAddForm)}
-                  className="text-xs font-medium text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 transition-colors"
+                  className="text-xs font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add Objection
@@ -135,13 +135,13 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setShowAddForm(false)}
-                      className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+                      className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleAddObjection}
-                      className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold rounded-lg text-xs"
+                      className="px-4 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg text-xs cursor-pointer"
                     >
                       Save Objection
                     </button>
@@ -151,7 +151,7 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
 
               {/* List of Objections Cards */}
               {objections.length === 0 ? (
-                <div className="p-8 text-center bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-500">
+                <div className="p-8 text-center bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-500 font-mono">
                   No objections registered yet for this product.
                 </div>
               ) : (
@@ -163,15 +163,15 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
                     {/* Objection Title & Frequency */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <MessageSquareQuote className="w-4 h-4 text-amber-400 shrink-0" />
+                        <MessageSquareQuote className="w-4 h-4 text-zinc-400 shrink-0" />
                         <span className="font-semibold text-zinc-200 text-xs">
                           &ldquo;{obj.objection_title}&rdquo;
                         </span>
                       </div>
 
                       {obj.frequency_score && (
-                        <span className="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-bold rounded-full flex items-center gap-1 shrink-0">
-                          <Flame className="w-3 h-3" />
+                        <span className="px-2 py-0.5 bg-zinc-900 text-zinc-300 border border-zinc-800 text-[10px] font-mono rounded-md flex items-center gap-1 shrink-0">
+                          <Flame className="w-3 h-3 text-zinc-400" />
                           Freq: {obj.frequency_score}/10
                         </span>
                       )}
@@ -185,7 +185,7 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
                       <ul className="space-y-1.5 text-xs text-zinc-300">
                         {obj.rebuttal_args.map((arg, aIdx) => (
                           <li key={aIdx} className="flex items-start gap-2 bg-zinc-900/80 p-2 rounded-lg border border-zinc-800/60">
-                            <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                            <span className="w-4 h-4 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">
                               {aIdx + 1}
                             </span>
                             <span className="leading-normal">{arg}</span>

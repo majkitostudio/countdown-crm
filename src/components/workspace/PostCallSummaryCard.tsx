@@ -50,14 +50,14 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-            <Zap className="w-4.5 h-4.5 text-amber-400" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-zinc-300" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-zinc-100">
               Post-Call Automation Report
             </h3>
-            <p className="text-[10px] text-zinc-500">
+            <p className="text-[10px] text-zinc-500 font-mono">
               {entries.length} pravidel vyhodnoceno • {successCount} spuštěno
               {failureCount > 0 && ` • ${failureCount} selhalo`}
               {skippedCount > 0 && ` • ${skippedCount} přeskočeno`}
@@ -83,45 +83,28 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
               ? XCircle
               : SkipForward;
 
-          const statusColor =
-            entry.status === "success"
-              ? "text-emerald-400"
-              : entry.status === "failure"
-              ? "text-rose-400"
-              : "text-zinc-500";
-
-          const statusBg =
-            entry.status === "success"
-              ? "bg-emerald-500/5 border-emerald-500/15"
-              : entry.status === "failure"
-              ? "bg-rose-500/5 border-rose-500/15"
-              : "bg-zinc-900/60 border-zinc-800/60";
-
           return (
             <div
               key={entry.id}
-              className={cn(
-                "flex items-start gap-3 p-3 rounded-lg border transition-all",
-                statusBg
-              )}
+              className="flex items-start gap-3 p-3 rounded-lg border bg-zinc-950/60 border-zinc-800/80 transition-all"
             >
-              <StatusIcon className={cn("w-4 h-4 shrink-0 mt-0.5", statusColor)} />
+              <StatusIcon className="w-4 h-4 shrink-0 mt-0.5 text-zinc-400" />
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-zinc-200">
                     {entry.ruleName}
                   </span>
-                  <span
-                    className={cn(
-                      "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                      entry.status === "success"
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : entry.status === "failure"
-                        ? "bg-rose-500/10 text-rose-400"
-                        : "bg-zinc-800 text-zinc-500"
-                    )}
-                  >
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">
+                    <span
+                      className={
+                        entry.status === "success"
+                          ? "w-1.5 h-1.5 rounded-full bg-emerald-500"
+                          : entry.status === "failure"
+                          ? "w-1.5 h-1.5 rounded-full bg-rose-500"
+                          : "w-1.5 h-1.5 rounded-full bg-zinc-500"
+                      }
+                    />
                     {entry.status === "success"
                       ? "Spuštěno"
                       : entry.status === "failure"
@@ -140,7 +123,7 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
                       return (
                         <span
                           key={actionType}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-800/80 text-zinc-400 text-[10px] font-medium rounded-full"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-zinc-400 text-[10px] font-medium rounded-md"
                         >
                           <ActionIcon className="w-3 h-3" />
                           {def.label}
@@ -152,7 +135,7 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
 
                 {/* Error message */}
                 {entry.errorMessage && (
-                  <p className="text-[10px] text-rose-300 mt-1">
+                  <p className="text-[10px] text-rose-400 mt-1 font-mono">
                     {entry.errorMessage}
                   </p>
                 )}
@@ -164,12 +147,12 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-        <span className="text-[10px] text-zinc-600">
+        <span className="text-[10px] text-zinc-500 font-mono">
           {new Date().toLocaleString("cs-CZ")}
         </span>
         <a
           href="/workflows"
-          className="text-[10px] text-amber-400 hover:text-amber-300 font-medium transition-colors"
+          className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors"
         >
           Zobrazit všechny automatizace →
         </a>

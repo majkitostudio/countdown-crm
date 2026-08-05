@@ -11,12 +11,13 @@ interface ComplianceCheckerProps {
 export function ComplianceChecker({ violations }: ComplianceCheckerProps) {
   if (violations.length === 0) {
     return (
-      <div className="bg-emerald-950/40 border border-emerald-800/60 rounded-xl p-3 flex items-center justify-between text-xs text-emerald-300">
+      <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-xl p-3 flex items-center justify-between text-xs text-zinc-300">
         <div className="flex items-center gap-2 font-medium">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <ShieldCheck className="w-4 h-4 text-zinc-400" />
           <span>ZÁKONNÝ HLÍDAČ: Hovor probíhá v souladu s právními normami (GDPR & spotřebitelské právo).</span>
         </div>
-        <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono bg-zinc-900 text-zinc-300 px-2 py-0.5 rounded border border-zinc-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           100% Compliance
         </span>
       </div>

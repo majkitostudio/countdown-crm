@@ -79,17 +79,18 @@ export function KpiCards() {
 
             <div className="space-y-1.5">
               <div className="flex items-baseline justify-between">
-                <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-sans">
+                <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">
                   {kpi.value}
                 </span>
                 {kpi.importantTag && (
-                  <span
-                    className={
-                      kpi.importantTag.type === "success"
-                        ? "px-2.5 py-0.5 rounded-md text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
-                        : "px-2.5 py-0.5 rounded-md text-[10px] font-medium bg-rose-950/80 text-rose-400 border border-rose-800/60"
-                    }
-                  >
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-300">
+                    <span
+                      className={
+                        kpi.importantTag.type === "success"
+                          ? "w-1.5 h-1.5 rounded-full bg-emerald-500"
+                          : "w-1.5 h-1.5 rounded-full bg-rose-500"
+                      }
+                    />
                     {kpi.importantTag.text}
                   </span>
                 )}

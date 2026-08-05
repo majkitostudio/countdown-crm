@@ -80,7 +80,7 @@ export function TopPerformers() {
                 <span className="text-xs font-medium text-zinc-200">
                   {agent.name}
                 </span>
-                <span className="text-[10px] text-zinc-400">
+                <span className="text-[10px] text-zinc-400 font-mono">
                   {agent.calls} calls • {agent.conversion} conv.
                 </span>
               </div>

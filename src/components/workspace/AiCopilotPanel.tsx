@@ -182,16 +182,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   };
 
   const getSentimentBadge = (s: CopilotAnalysisResult["sentiment"]) => {
-    if (isResolved) return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-    switch (s) {
-      case "Positive":
-        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "Price Objection":
-      case "Product Objection":
-        return "bg-amber-500/10 text-amber-400 border-amber-500/20";
-      default:
-        return "bg-zinc-800 text-zinc-400 border-zinc-700";
-    }
+    return "bg-zinc-900 text-zinc-300 border-zinc-800";
   };
 
   return (
@@ -230,8 +221,14 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             </select>
           </div>
 
-          <div className={`px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5 ${getSentimentBadge(analysisResult.sentiment)}`}>
-            <TrendingUp className="w-3.5 h-3.5" />
+          <div className="px-2.5 py-1 rounded-md text-xs font-mono border bg-zinc-900 border-zinc-800 text-zinc-300 flex items-center gap-1.5">
+            <span
+              className={
+                isResolved || analysisResult.sentiment === "Positive"
+                  ? "w-1.5 h-1.5 rounded-full bg-emerald-500"
+                  : "w-1.5 h-1.5 rounded-full bg-amber-500"
+              }
+            />
             <span>{isResolved ? "Objection Resolved" : analysisResult.sentiment}</span>
           </div>
         </div>
@@ -248,19 +245,15 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
       <ComplianceChecker violations={complianceViolations} />
 
       {/* Real-time AI Rebuttal Battle-Card Box */}
-      <div className={`border rounded-xl p-3.5 space-y-2.5 transition-all ${
-        isResolved
-          ? "bg-zinc-950/80 border-emerald-800/60"
-          : "bg-zinc-950/80 border-zinc-800/80"
-      }`}>
+      <div className="border rounded-xl p-3.5 space-y-2.5 transition-all bg-zinc-950/80 border-zinc-800/80">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-semibold">
             {isResolved ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-zinc-300" />
             ) : (
               <ShieldAlert className="w-4 h-4 text-zinc-400" />
             )}
-            <span className={isResolved ? "text-emerald-400" : "text-zinc-200"}>
+            <span className="text-zinc-200">
               {isResolved ? "OBJECTION RESOLVED" : `OBJECTION MATCH: "${analysisResult.detectedObjection || "General Inquiry"}"`}
             </span>
           </div>
@@ -269,9 +262,9 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             {!isResolved && (
               <button
                 onClick={handleMarkResolved}
-                className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-emerald-400 font-medium px-2 py-1 rounded-md border border-zinc-800 flex items-center gap-1 transition-colors cursor-pointer"
+                className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-mono px-2 py-1 rounded-md border border-zinc-800 flex items-center gap-1 transition-colors cursor-pointer"
               >
-                <Check className="w-3 h-3" />
+                <Check className="w-3 h-3 text-emerald-500" />
                 <span>Mark Resolved</span>
               </button>
             )}

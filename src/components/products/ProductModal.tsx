@@ -197,7 +197,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -205,7 +205,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-md"
+              className="px-5 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>{isSaving ? "Saving..." : product ? "Update Product" : "Create Product"}</span>

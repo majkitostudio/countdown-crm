@@ -54,19 +54,19 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
         </div>
 
         {/* AI Score Info Pill */}
-        <div className="bg-emerald-950/60 border border-emerald-800/50 p-2.5 rounded-lg flex items-center justify-between text-xs">
+        <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-lg flex items-center justify-between text-xs">
           <span className="text-zinc-400 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
             AI Lead Score:
           </span>
-          <span className="font-semibold text-emerald-400">{lead.ai_score}/100</span>
+          <span className="font-semibold font-mono text-zinc-100">{lead.ai_score}/100</span>
         </div>
 
         {/* Call Controls: Accept / Decline */}
         <div className="grid grid-cols-2 gap-2.5 pt-1">
           <button
             onClick={onDecline}
-            className="py-2 px-3 bg-rose-950/80 hover:bg-rose-900/80 text-rose-300 border border-rose-800/60 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+            className="py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <PhoneOff className="w-3.5 h-3.5" />
             Decline
@@ -74,7 +74,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
 
           <button
             onClick={onAccept}
-            className="py-2 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+            className="py-2 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <Phone className="w-3.5 h-3.5 fill-current" />
             Accept Call

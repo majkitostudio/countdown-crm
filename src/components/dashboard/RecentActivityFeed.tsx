@@ -108,7 +108,7 @@ export function RecentActivityFeed() {
                 <div className="flex items-center gap-3 text-[11px] text-zinc-400 mt-0.5">
                   <span>Agent: <strong className="text-zinc-300 font-normal">{call.agentName}</strong></span>
                   <span>•</span>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 font-mono">
                     <Clock className="w-3 h-3 text-zinc-400" />
                     {call.duration}
                   </span>
@@ -116,27 +116,28 @@ export function RecentActivityFeed() {
               </div>
             </div>
 
-            {/* Outcome & AI Sentiment (Colors ONLY for critical highlights) */}
+            {/* Outcome & AI Sentiment */}
             <div className="flex items-center gap-3 self-end md:self-auto">
               {call.aiSentiment && (
-                <span className="hidden sm:inline-block px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300 font-mono">
+                <span className="hidden sm:inline-block px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300 font-mono">
                   {call.aiSentiment}
                 </span>
               )}
 
               <div className="flex items-center gap-2">
                 {call.outcome === "order_placed" ? (
-                  <span className="px-2.5 py-1 rounded text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 flex items-center gap-1.5">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    {call.outcomeText} ({call.dealValue})
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    {call.outcomeText} <span className="font-mono text-zinc-200">({call.dealValue})</span>
                   </span>
                 ) : call.outcome === "price_objection" ? (
-                  <span className="px-2.5 py-1 rounded text-xs font-medium bg-rose-950/80 text-rose-400 border border-rose-800/60 flex items-center gap-1.5">
-                    <AlertCircle className="w-3.5 h-3.5" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                     {call.outcomeText}
                   </span>
                 ) : (
-                  <span className="px-2.5 py-1 rounded text-xs font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                     {call.outcomeText}
                   </span>
                 )}

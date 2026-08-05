@@ -96,24 +96,11 @@ export function LeadDetailDrawer({
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
-    if (score >= 70) return "text-amber-400 border-amber-500/30 bg-amber-500/10";
-    return "text-zinc-400 border-zinc-700 bg-zinc-800/50";
+    return "text-zinc-200 border-zinc-800 bg-zinc-900 font-mono";
   };
 
   const getStatusBadge = (status: Lead["status"]) => {
-    switch (status) {
-      case "qualified":
-        return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "customer":
-        return "bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
-      case "contacted":
-        return "bg-amber-500/10 text-amber-400 border-amber-500/20";
-      case "unresponsive":
-        return "bg-rose-500/10 text-rose-400 border-rose-500/20";
-      default:
-        return "bg-zinc-800 text-zinc-300 border-zinc-700";
-    }
+    return "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono";
   };
 
   return (
@@ -143,7 +130,7 @@ export function LeadDetailDrawer({
             
             <button
               onClick={onClose}
-              className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors"
+              className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -157,11 +144,11 @@ export function LeadDetailDrawer({
               
               {/* AI Score Box */}
               <div className={`p-4 rounded-xl border flex flex-col justify-center items-center ${getScoreColor(currentLead.ai_score)}`}>
-                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1 text-zinc-400">
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
                   <span>AI Propensity Score</span>
                 </div>
-                <div className="text-3xl font-extrabold tracking-tight">
+                <div className="text-3xl font-bold tracking-tight font-mono">
                   {currentLead.ai_score}
                   <span className="text-xs text-zinc-400 font-normal">/100</span>
                 </div>
@@ -173,7 +160,7 @@ export function LeadDetailDrawer({
                 <select
                   value={currentLead.status}
                   onChange={(e) => handleStatusChange(e.target.value as Lead["status"])}
-                  className={`w-full bg-zinc-900 border border-zinc-700 rounded-md text-xs font-medium px-2 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-500`}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-md text-xs font-mono px-2 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-500"
                 >
                   <option value="new">New</option>
                   <option value="contacted">Contacted</option>
@@ -186,10 +173,10 @@ export function LeadDetailDrawer({
               {/* Deal Value Box */}
               <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl flex flex-col justify-center">
                 <span className="text-xs text-zinc-400 mb-1 font-medium flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                  <DollarSign className="w-3.5 h-3.5 text-zinc-400" />
                   Est. Deal Value
                 </span>
-                <span className="text-lg font-bold text-zinc-100">
+                <span className="text-lg font-bold text-zinc-100 font-mono">
                   ${currentLead.value || 850}
                 </span>
               </div>
@@ -199,7 +186,7 @@ export function LeadDetailDrawer({
             <div className="flex gap-3">
               <button
                 onClick={() => onStartCall && onStartCall(currentLead)}
-                className="flex-1 py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold rounded-lg text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-emerald-500/20"
+                className="flex-1 py-2.5 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg text-sm flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
               >
                 <PhoneCall className="w-4 h-4 fill-current" />
                 Start Virtual Call
@@ -234,7 +221,7 @@ export function LeadDetailDrawer({
                 </div>
                 <div>
                   <span className="text-xs text-zinc-500 block mb-0.5">Added On</span>
-                  <span className="text-zinc-200">
+                  <span className="text-zinc-200 font-mono">
                     {new Date(currentLead.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -249,7 +236,7 @@ export function LeadDetailDrawer({
             <div className="bg-zinc-950/40 border border-zinc-800 rounded-xl p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
                   AI Summary & Notes
                 </h3>
               </div>
@@ -274,7 +261,7 @@ export function LeadDetailDrawer({
                 />
                 <button
                   onClick={handleAddNote}
-                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors border border-zinc-700"
+                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors border border-zinc-700 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   Add
@@ -294,18 +281,18 @@ export function LeadDetailDrawer({
                     {/* Timeline Node Icon */}
                     <div className="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
                       {act.type === "call" ? (
-                        <Phone className="w-2.5 h-2.5 text-emerald-400" />
+                        <Phone className="w-2.5 h-2.5 text-zinc-400" />
                       ) : act.type === "status_change" ? (
-                        <UserCheck className="w-2.5 h-2.5 text-cyan-400" />
+                        <UserCheck className="w-2.5 h-2.5 text-zinc-400" />
                       ) : (
-                        <FileText className="w-2.5 h-2.5 text-amber-400" />
+                        <FileText className="w-2.5 h-2.5 text-zinc-400" />
                       )}
                     </div>
                     
                     <div className="bg-zinc-950/40 border border-zinc-800/80 rounded-lg p-3">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="font-semibold text-zinc-200">{act.title}</span>
-                        <span className="text-zinc-500">
+                        <span className="text-zinc-500 font-mono">
                           {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -313,7 +300,7 @@ export function LeadDetailDrawer({
                         {act.description}
                       </p>
                       {act.agent_name && (
-                        <div className="mt-2 text-[10px] text-zinc-500 font-medium">
+                        <div className="mt-2 text-[10px] text-zinc-500 font-medium font-mono">
                           Logged by: {act.agent_name}
                         </div>
                       )}

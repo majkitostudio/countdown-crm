@@ -76,4 +76,23 @@
 - [x] `feat(sales): add Predictive Re-Order Engine for consumable products (13.1)`
 - [x] `feat(sales): implement 1-click Pay-Link & SMS order confirmation dispatcher (13.2)`
 
+---
+
+## 🌐 FÁZE 14: Omnichannel Customer Timeline & WhatsApp / Email Messaging Hub
+- [ ] `feat(omnichannel): create Omnichannel Activity Timeline & Customer Messaging Hub (14.1)`
+- [ ] `feat(omnichannel): add AI Email & WhatsApp Follow-up Generator (14.2)`
+
+---
+
+## 🎙️ FÁZE 15: Custom Objection Battlecard Studio & Real-Time Speech Coach
+- [ ] `feat(copilot): implement Custom Objection Script Builder & Battlecard Editor in Settings (15.1)`
+- [ ] `feat(copilot): add Real-Time Speech Rate & Tone Coach in Operator Console (15.2)`
+
+---
+
+## 🛡️ FÁZE 16: Enterprise Security Audit Log & Executive PDF/Excel Exporter
+- [ ] `feat(audit): create Security Audit Log & Operator Activity Tracker (/audit) (16.1)`
+- [ ] `feat(export): add Multi-Format CSV / Excel / PDF Report Generator (16.2)`
+
+
 

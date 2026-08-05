@@ -173,14 +173,14 @@ export function RuleBuilderModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-amber-400" />
+            <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300">
+              <Zap className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-zinc-100">
                 {editingRule ? "Edit Automation Rule" : "New Automation Rule"}
               </h2>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-zinc-500 font-mono">
                 Krok {step} z 3 —{" "}
                 {step === 1 ? "Trigger & Název" : step === 2 ? "Podmínky" : "Akce"}
               </p>
@@ -188,7 +188,7 @@ export function RuleBuilderModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -201,7 +201,7 @@ export function RuleBuilderModal({
               key={s}
               className={cn(
                 "h-1 flex-1 rounded-full transition-all duration-300",
-                s <= step ? "bg-amber-500" : "bg-zinc-800"
+                s <= step ? "bg-zinc-100" : "bg-zinc-800"
               )}
             />
           ))}
@@ -222,7 +222,7 @@ export function RuleBuilderModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Např. AI Summary po úspěšném hovoru"
-                  className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition-colors"
                 />
               </div>
 
@@ -236,7 +236,7 @@ export function RuleBuilderModal({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Stručný popis co pravidlo dělá..."
-                  className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                  className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition-colors"
                 />
               </div>
 
@@ -257,18 +257,18 @@ export function RuleBuilderModal({
                           setConditions([]); // Reset conditions when trigger changes
                         }}
                         className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer",
                           isSelected
-                            ? "bg-amber-500/10 border-amber-500/30 ring-1 ring-amber-500/20"
-                            : "bg-zinc-900/60 border-zinc-800 hover:border-zinc-700"
+                            ? "bg-zinc-900 border-zinc-700 shadow-xs"
+                            : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
                         )}
                       >
                         <div
                           className={cn(
-                            "w-8 h-8 rounded-md flex items-center justify-center shrink-0",
+                            "w-8 h-8 rounded-md flex items-center justify-center shrink-0 border border-zinc-800",
                             isSelected
-                              ? "bg-amber-500/20 text-amber-400"
-                              : "bg-zinc-800 text-zinc-400"
+                              ? "bg-zinc-800 text-zinc-100"
+                              : "bg-zinc-900 text-zinc-400"
                           )}
                         >
                           <Icon className="w-4 h-4" />
@@ -277,7 +277,7 @@ export function RuleBuilderModal({
                           <p
                             className={cn(
                               "text-xs font-semibold",
-                              isSelected ? "text-amber-300" : "text-zinc-200"
+                              isSelected ? "text-zinc-100" : "text-zinc-300"
                             )}
                           >
                             {t.label}
@@ -308,7 +308,7 @@ export function RuleBuilderModal({
                 </div>
                 <button
                   onClick={addCondition}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 rounded-lg border border-amber-500/20 hover:bg-amber-500/20 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-900 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Přidat podmínku
@@ -316,7 +316,7 @@ export function RuleBuilderModal({
               </div>
 
               {conditions.length === 0 ? (
-                <div className="text-center py-8 text-zinc-600 text-xs">
+                <div className="text-center py-8 text-zinc-600 text-xs font-mono">
                   Žádné podmínky — pravidlo se spustí při každé události typu &quot;{TRIGGER_REGISTRY.find((t) => t.type === trigger)?.label}&quot;.
                 </div>
               ) : (
@@ -347,7 +347,7 @@ export function RuleBuilderModal({
                             operator: e.target.value as TriggerCondition["operator"],
                           })
                         }
-                        className="w-28 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 focus:outline-none"
+                        className="w-28 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 focus:outline-none font-mono"
                       >
                         <option value="equals">rovná se</option>
                         <option value="not_equals">nerovná se</option>
@@ -368,7 +368,7 @@ export function RuleBuilderModal({
                       {/* Remove */}
                       <button
                         onClick={() => removeCondition(i)}
-                        className="p-1 text-zinc-500 hover:text-rose-400 transition-colors"
+                        className="p-1 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -397,18 +397,18 @@ export function RuleBuilderModal({
                         onClick={() => addAction(a.type)}
                         disabled={isAdded}
                         className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer",
                           isAdded
-                            ? "bg-emerald-500/10 border-emerald-500/30 opacity-70 cursor-not-allowed"
-                            : "bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900"
+                            ? "bg-zinc-900 border-zinc-700 opacity-70 cursor-not-allowed"
+                            : "bg-zinc-950 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900"
                         )}
                       >
                         <div
                           className={cn(
-                            "w-8 h-8 rounded-md flex items-center justify-center shrink-0",
+                            "w-8 h-8 rounded-md flex items-center justify-center shrink-0 border border-zinc-800",
                             isAdded
-                              ? "bg-emerald-500/20 text-emerald-400"
-                              : "bg-zinc-800 text-zinc-400"
+                              ? "bg-zinc-800 text-zinc-200"
+                              : "bg-zinc-900 text-zinc-400"
                           )}
                         >
                           <Icon className="w-4 h-4" />
@@ -417,7 +417,7 @@ export function RuleBuilderModal({
                           <p
                             className={cn(
                               "text-xs font-semibold",
-                              isAdded ? "text-emerald-300" : "text-zinc-200"
+                              isAdded ? "text-zinc-100" : "text-zinc-300"
                             )}
                           >
                             {a.label}
@@ -454,14 +454,14 @@ export function RuleBuilderModal({
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Icon className="w-4 h-4 text-amber-400" />
+                              <Icon className="w-4 h-4 text-zinc-400" />
                               <span className="text-xs font-semibold text-zinc-200">
                                 {def.label}
                               </span>
                             </div>
                             <button
                               onClick={() => removeAction(i)}
-                              className="p-1 text-zinc-500 hover:text-rose-400 transition-colors"
+                              className="p-1 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -518,7 +518,7 @@ export function RuleBuilderModal({
               if (step === 1) onClose();
               else setStep((step - 1) as 1 | 2 | 3);
             }}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             {step === 1 ? "Zrušit" : "← Zpět"}
           </button>
@@ -528,10 +528,10 @@ export function RuleBuilderModal({
               onClick={() => setStep((step + 1) as 1 | 2 | 3)}
               disabled={step === 1 && !canProceedStep1}
               className={cn(
-                "px-4 py-2 text-xs font-medium rounded-lg transition-colors",
+                "px-4 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer",
                 step === 1 && !canProceedStep1
-                  ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-                  : "bg-amber-500 text-zinc-950 hover:bg-amber-400"
+                  ? "bg-zinc-900 text-zinc-600 cursor-not-allowed border border-zinc-800"
+                  : "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
               )}
             >
               Další →
@@ -541,10 +541,10 @@ export function RuleBuilderModal({
               onClick={handleSave}
               disabled={!canSave}
               className={cn(
-                "px-5 py-2 text-xs font-semibold rounded-lg transition-colors",
+                "px-5 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer",
                 canSave
-                  ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
-                  : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                  ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200 shadow-sm"
+                  : "bg-zinc-900 text-zinc-600 cursor-not-allowed border border-zinc-800"
               )}
             >
               {editingRule ? "Uložit změny" : "Vytvořit pravidlo"} ✓

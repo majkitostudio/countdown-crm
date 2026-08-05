@@ -212,16 +212,15 @@ export default function TrainingPage() {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span
-                      className={cn(
-                        "px-2 py-0.5 rounded text-[10px] font-medium border",
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
+                      <span className={cn(
+                        "w-1.5 h-1.5 rounded-full",
                         scenario.difficulty === "Snadná"
-                          ? "bg-emerald-950/80 border-emerald-800/60 text-emerald-400"
+                          ? "bg-emerald-500"
                           : scenario.difficulty === "Střední"
-                          ? "bg-amber-950/80 border-amber-800/60 text-amber-400"
-                          : "bg-rose-950/80 border-rose-800/60 text-rose-400"
-                      )}
-                    >
+                          ? "bg-amber-500"
+                          : "bg-rose-500"
+                      )} />
                       {scenario.difficulty}
                     </span>
                     <span className="text-[11px] text-zinc-400 font-mono">
@@ -254,7 +253,7 @@ export default function TrainingPage() {
 
                 <button
                   onClick={() => handleStartScenario(scenario)}
-                  className="mt-5 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-medium transition-colors shadow-sm"
+                  className="mt-5 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
                   Spustit Trénink
@@ -284,7 +283,7 @@ export default function TrainingPage() {
 
               <button
                 onClick={handleFinishTraining}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-medium transition-colors shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Ukončit & Vyhodnotit
@@ -334,7 +333,7 @@ export default function TrainingPage() {
               ))}
 
               {isBotThinking && (
-                <div className="flex items-center gap-2 text-xs text-zinc-400 italic bg-zinc-900/80 border border-zinc-800 p-3 rounded-xl w-fit animate-pulse">
+                <div className="flex items-center gap-2 text-xs text-zinc-400 italic bg-zinc-900/80 border border-zinc-800 p-3 rounded-xl w-fit animate-pulse font-mono">
                   <Sparkles className="w-3.5 h-3.5 animate-spin text-zinc-400" />
                   AI Zákazník přemýšlí nad odpovědí...
                 </div>
@@ -348,7 +347,7 @@ export default function TrainingPage() {
                 <button
                   onClick={handleToggleMic}
                   className={cn(
-                    "p-2 rounded-lg border transition-all shrink-0",
+                    "p-2 rounded-lg border transition-all shrink-0 cursor-pointer",
                     isRecording
                       ? "bg-rose-950/80 text-rose-400 border-rose-800/80 animate-pulse"
                       : "bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-zinc-100 hover:border-zinc-700"
@@ -374,7 +373,7 @@ export default function TrainingPage() {
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputText.trim() || isBotThinking}
-                  className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 transition-all shrink-0"
+                  className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 transition-all shrink-0 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -411,28 +410,28 @@ export default function TrainingPage() {
             {/* Live Compliance Checker Alerts */}
             <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-3">
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-400" />
+                <ShieldAlert className="w-4 h-4 text-zinc-400" />
                 Zákonný Hlídač (Compliance Monitor)
               </h3>
 
               {activeViolations.length === 0 ? (
-                <div className="p-3 rounded-lg bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs flex items-center gap-2 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   <span>Zatím nebylo detekováno žádné legislativní porušení.</span>
                 </div>
               ) : (
                 <div className="space-y-2.5">
                   {activeViolations.map((v, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-rose-950/60 border border-rose-800/50 text-rose-300 text-xs space-y-1">
+                    <div key={i} className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs space-y-1">
                       <div className="flex items-center justify-between font-medium">
-                        <span className="flex items-center gap-1.5 text-rose-400">
-                          <AlertTriangle className="w-3.5 h-3.5" />
+                        <span className="flex items-center gap-1.5 text-zinc-200 font-mono">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                           {v.rule.title}
                         </span>
                         <span className="text-[9px] font-mono text-zinc-500">{v.timestamp}</span>
                       </div>
-                      <p className="text-[11px] text-zinc-300">{v.rule.explanation}</p>
-                      <div className="pt-1 text-[10px] text-amber-300 italic">
+                      <p className="text-[11px] text-zinc-400">{v.rule.explanation}</p>
+                      <div className="pt-1 text-[10px] text-zinc-300 italic">
                         💡 Doporučení: {v.rule.correctionSuggestion}
                       </div>
                     </div>
@@ -455,35 +454,35 @@ export default function TrainingPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
-              <span className="text-2xl font-bold text-zinc-100">{scorecard.grade}</span>
+              <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.grade}</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Známka</span>
             </div>
 
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
-              <span className="text-2xl font-bold text-emerald-400">{scorecard.overallScore}%</span>
+              <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.overallScore}%</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Celkové Skóre</span>
             </div>
 
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
-              <span className="text-2xl font-bold text-amber-400">{scorecard.complianceScore}%</span>
+              <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.complianceScore}%</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Compliance</span>
             </div>
 
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
-              <span className="text-2xl font-bold text-zinc-200">+{scorecard.xpEarned}</span>
+              <span className="text-2xl font-bold font-mono text-zinc-100">+{scorecard.xpEarned}</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">XP Získané</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-3">
-              <h4 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" /> Silné stránky
+              <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-zinc-400" /> Silné stránky
               </h4>
               <ul className="text-xs text-zinc-300 space-y-2">
                 {scorecard.strengths.map((str, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-emerald-400">•</span>
+                    <span className="text-zinc-400 font-mono">•</span>
                     <span>{str}</span>
                   </li>
                 ))}
@@ -491,13 +490,13 @@ export default function TrainingPage() {
             </div>
 
             <div className="p-5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-3">
-              <h4 className="text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" /> Příležitosti ke zlepšení
+              <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-zinc-400" /> Příležitosti ke zlepšení
               </h4>
               <ul className="text-xs text-zinc-300 space-y-2">
                 {scorecard.improvements.map((imp, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-amber-400">•</span>
+                    <span className="text-zinc-400 font-mono">•</span>
                     <span>{imp}</span>
                   </li>
                 ))}

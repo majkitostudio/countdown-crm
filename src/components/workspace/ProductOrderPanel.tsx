@@ -200,13 +200,13 @@ export function ProductOrderPanel({
                 <p className="font-semibold text-xs text-zinc-100 line-clamp-1">{topRec.recommendedProduct.title}</p>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono">
                   <span className="line-through text-zinc-500">${topRec.originalPrice.toFixed(2)}</span>
-                  <span className="text-emerald-400 font-semibold">${topRec.bundlePrice.toFixed(2)}</span>
+                  <span className="text-zinc-100 font-semibold">${topRec.bundlePrice.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {bundleProduct?.id === topRec.recommendedProduct.id ? (
-              <span className="px-2.5 py-1 bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 text-xs font-medium rounded-lg flex items-center gap-1">
+              <span className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium rounded-lg flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Added
               </span>
             ) : (
@@ -229,7 +229,7 @@ export function ProductOrderPanel({
 
       {/* Quantity & Discount Controls */}
       <div className="space-y-3 pt-2 border-t border-zinc-800">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between text-xs">
           <label className="text-zinc-400">Quantity:</label>
           <div className="flex items-center gap-2">
             <button
@@ -248,7 +248,7 @@ export function ProductOrderPanel({
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between text-xs">
           <label className="text-zinc-400">Apply Promo Discount:</label>
           <select
             value={discountPercent}
@@ -264,21 +264,21 @@ export function ProductOrderPanel({
         </div>
 
         {/* Price Breakdown */}
-        <div className="pt-2 border-t border-zinc-800 space-y-1">
+        <div className="pt-2 border-t border-zinc-800 space-y-1 text-xs">
           <div className="flex justify-between text-zinc-400">
             <span>Primary Item:</span>
             <span className="font-mono">${primarySubtotal.toFixed(2)}</span>
           </div>
 
           {bundleProduct && (
-            <div className="flex justify-between text-cyan-400 font-medium">
+            <div className="flex justify-between text-zinc-300 font-medium">
               <span>Bundle (+{bundleProduct.title.substring(0, 15)}...):</span>
               <span className="font-mono">${bundleSubtotal.toFixed(2)}</span>
             </div>
           )}
 
           {discountPercent > 0 && (
-            <div className="flex justify-between text-emerald-400">
+            <div className="flex justify-between text-zinc-300">
               <span>Discount ({discountPercent}%):</span>
               <span className="font-mono">-${discountAmount.toFixed(2)}</span>
             </div>
@@ -286,7 +286,7 @@ export function ProductOrderPanel({
 
           <div className="flex justify-between font-bold text-sm text-zinc-100 pt-1 border-t border-zinc-800">
             <span>Total Payable:</span>
-            <span className="font-mono text-emerald-400">${grandTotal.toFixed(2)}</span>
+            <span className="font-mono text-zinc-100">${grandTotal.toFixed(2)}</span>
           </div>
         </div>
 
@@ -304,9 +304,9 @@ export function ProductOrderPanel({
           <button
             onClick={handleSendPayLinkSms}
             disabled={!activeLead}
-            className="w-full py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 disabled:opacity-50 text-cyan-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 disabled:opacity-50 text-zinc-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Zap className="w-3.5 h-3.5 text-cyan-400" />
+            <Zap className="w-3.5 h-3.5 text-zinc-400" />
             <span>Send SMS Pay-Link</span>
           </button>
         </div>

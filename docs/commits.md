@@ -355,6 +355,31 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-19 | Gamified Leaderboard, Operator XP & Badges System | ✅ Hotovo |
 | COMMIT-20 | Predictive Re-Order Engine Widget (Dashboard) | ✅ Hotovo |
 | COMMIT-21 | 1-Click Pay-Link & SMS Order Confirmation Dispatcher | ✅ Hotovo |
+| COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ⏳ Naplánováno |
+| COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ⏳ Naplánováno |
+| COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ⏳ Naplánováno |
+| COMMIT-25 | Real-Time Speech Rate & Tone Coach in Operator Console | ⏳ Naplánováno |
+| COMMIT-26 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
+| COMMIT-27 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
+| COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
+
+---
+
+### ✅ HOTOVO: COMMIT-28 — Visual UI/UX Refactoring (Attio & Linear Monochrome Design)
+```
+style: visual ui/ux refactoring (attio & linear monochrome design system)
+```
+**Co**: Kompletní vizuální refaktoring celého rozhraní Countdown CRM do ultra-čistého, minimalistického monochromatického stylu po vzoru Attio CRM a Linear.app.
+
+**Proč**: Zrušení přehnané barevnosti a duhových gradientů s cílem vytvořit přísně profesionální rozhraní, kde barva slouží výhradně jako signální stavový prvek.
+
+**Jak**:
+- Monochromatická paleta (95%+ zinc/slate) napříč všemi 12 stránkami a 25+ komponentami.
+- Attio štítky (`bg-zinc-900 border border-zinc-800 text-zinc-300 font-mono`) s jemnými stavovými tečkami.
+- Typografická kázeň (`font-mono`) pro všechna čísla, ceny ($), procenta (%), trvání hovorů a AHT metriky.
+- Kompaktnější padding pro vyšší datovou hustotu.
+
+
 
 
 

@@ -76,12 +76,12 @@ function AttributeField({
     return (
       <div className="flex items-center justify-between py-2 px-3 bg-zinc-950/40 border border-zinc-800/60 rounded-lg group">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <Sparkles className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
           <div className="min-w-0">
             <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">
               {attribute.name}
             </p>
-            <p className="text-xs text-amber-300 font-medium truncate">
+            <p className="text-xs text-zinc-200 font-medium truncate">
               {value ? String(value) : "Nepočítáno"}
             </p>
           </div>
@@ -89,11 +89,11 @@ function AttributeField({
         <button
           onClick={handleComputeAi}
           disabled={isComputing}
-          className="p-1.5 text-zinc-500 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100"
-          title="Přepočítat pomocí Gemini AI"
+          className="p-1.5 text-zinc-500 hover:text-zinc-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+          title="Přepočítat pomocí AI"
         >
           <RefreshCw
-            className={cn("w-3.5 h-3.5", isComputing && "animate-spin text-amber-400")}
+            className={cn("w-3.5 h-3.5", isComputing && "animate-spin text-zinc-200")}
           />
         </button>
       </div>
@@ -103,25 +103,11 @@ function AttributeField({
   // ── Select Field ──
   if (attribute.type === "select") {
     const matchedOpt = attribute.options?.find((o) => o.value === value);
-    const colorMap: Record<string, string> = {
-      zinc: "bg-zinc-800 text-zinc-300 border-zinc-700",
-      cyan: "bg-cyan-950/60 text-cyan-400 border-cyan-800/60",
-      emerald: "bg-emerald-950/60 text-emerald-400 border-emerald-800/60",
-      rose: "bg-rose-950/60 text-rose-400 border-rose-800/60",
-    };
-    const badgeColor = matchedOpt?.color
-      ? colorMap[matchedOpt.color] || colorMap.zinc
-      : colorMap.zinc;
 
     return (
       <div className="flex items-center justify-between py-1.5">
         <span className="text-[11px] text-zinc-500">{attribute.name}</span>
-        <span
-          className={cn(
-            "inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-semibold",
-            badgeColor
-          )}
-        >
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-zinc-800 bg-zinc-900 text-zinc-300 text-[10px] font-mono">
           {matchedOpt?.label || String(value || "N/A")}
         </span>
       </div>
@@ -135,13 +121,10 @@ function AttributeField({
         <span className="text-[11px] text-zinc-500">{attribute.name}</span>
         <span
           className={cn(
-            "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border",
-            value
-              ? "bg-emerald-950/60 text-emerald-400 border-emerald-800/60"
-              : "bg-zinc-900 text-zinc-500 border-zinc-800"
+            "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono border bg-zinc-900 border-zinc-800 text-zinc-300"
           )}
         >
-          {value ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+          {value ? <Check className="w-3 h-3 text-emerald-500" /> : <X className="w-3 h-3 text-zinc-500" />}
           {value ? "Ano" : "Ne"}
         </span>
       </div>

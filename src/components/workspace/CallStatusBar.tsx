@@ -123,7 +123,7 @@ export function CallStatusBar({
 
             {/* Dialing State */}
             {isDialing && (
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-medium mt-0.5 animate-pulse">
+              <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5 animate-pulse font-mono">
                 <Radio className="w-3.5 h-3.5 animate-spin" />
                 <span>Vytáčím klienta...</span>
               </div>
@@ -131,13 +131,13 @@ export function CallStatusBar({
 
             {/* Active Call Live Banner */}
             {isCallActive && !isDialing && (
-              <div className="flex items-center gap-2 text-rose-400 text-xs font-medium mt-0.5">
+              <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
                 </span>
-                <span>Probiehá hovor • </span>
-                <span className="font-mono text-zinc-200">{formatTimer(seconds)}</span>
+                <span>Probíhá hovor • </span>
+                <span className="font-mono text-zinc-100">{formatTimer(seconds)}</span>
               </div>
             )}
 
@@ -159,7 +159,7 @@ export function CallStatusBar({
           disabled={isDialing}
           className={`px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer ${
             isCallActive
-              ? "bg-rose-950/80 border border-rose-800/60 text-rose-300 hover:bg-rose-900/80"
+              ? "bg-rose-900/80 border border-rose-800 text-rose-100 hover:bg-rose-900"
               : "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
           }`}
         >
@@ -183,7 +183,7 @@ export function CallStatusBar({
               onClick={() => setIsMuted(!isMuted)}
               className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-colors ${
                 isMuted
-                  ? "bg-amber-950/80 border-amber-800/60 text-amber-300"
+                  ? "bg-zinc-800 border-zinc-700 text-zinc-100"
                   : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
               }`}
               title={isMuted ? "Unmute" : "Mute"}
@@ -195,7 +195,7 @@ export function CallStatusBar({
               onClick={() => setIsOnHold(!isOnHold)}
               className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition-colors ${
                 isOnHold
-                  ? "bg-cyan-950/80 border-cyan-800/60 text-cyan-300"
+                  ? "bg-zinc-800 border-zinc-700 text-zinc-100"
                   : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
               }`}
               title={isOnHold ? "Resume" : "Hold"}
@@ -208,43 +208,43 @@ export function CallStatusBar({
         {/* Clear Outcome Buttons (Visible when active or after attempt) */}
         <div className="flex items-center gap-2 pl-3 border-l border-zinc-800">
           
-          {/* 1. Call Later (Nezvedá / Zavolat později) */}
+          {/* 1. Call Later */}
           <button
             onClick={() => onCallOutcome("call_later")}
             className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
             title="Zákazník nezvedá telefon"
           >
-            <PhoneMissed className="w-3.5 h-3.5 text-amber-400" />
+            <PhoneMissed className="w-3.5 h-3.5 text-zinc-400" />
             <span>Call Later</span>
           </button>
 
-          {/* 2. Schedule Callback (Nemá čas) */}
+          {/* 2. Schedule Callback */}
           <button
             onClick={() => onCallOutcome("schedule")}
             className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
             title="Zákazník nemá čas - naplánovat hovor"
           >
-            <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+            <Calendar className="w-3.5 h-3.5 text-zinc-400" />
             <span>Schedule Call</span>
           </button>
 
-          {/* 3. Fail (Odmítnul) */}
+          {/* 3. Fail */}
           <button
             onClick={() => onCallOutcome("fail")}
             className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors flex items-center gap-1.5"
             title="Zákazník odmítnul nabídku"
           >
-            <XCircle className="w-3.5 h-3.5 text-rose-400" />
+            <XCircle className="w-3.5 h-3.5 text-zinc-400" />
             <span>Fail</span>
           </button>
 
-          {/* 4. Complete / Order (Úspěch) */}
+          {/* 4. Complete / Order */}
           <button
             onClick={() => onCallOutcome("order")}
-            className="px-3.5 py-2 rounded-xl bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/80 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            className="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 hover:border-zinc-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
             title="Vytvořit úspěšnou objednávku"
           >
-            <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
+            <ShoppingBag className="w-3.5 h-3.5 text-zinc-300" />
             <span>Success / Order</span>
           </button>
         </div>
