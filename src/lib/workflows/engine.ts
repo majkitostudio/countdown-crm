@@ -280,6 +280,28 @@ class WorkflowEngine {
           executed.push("notify_manager");
           break;
 
+        case "send_webhook":
+          const targetUrl = action.config.webhook_url;
+          const method = action.config.method || "POST";
+          if (targetUrl) {
+            console.log(`[WorkflowEngine] 🌐 HTTP Webhook (${method}) → ${targetUrl}`);
+            try {
+              if (typeof fetch !== "undefined") {
+                await fetch(targetUrl, {
+                  method,
+                  headers: { "Content-Type": "application/json" },
+                  body: method === "POST" ? JSON.stringify(payload) : undefined,
+                }).catch((err) =>
+                  console.warn("[WorkflowEngine] Webhook fetch error (handled):", err)
+                );
+              }
+            } catch (err) {
+              console.warn("[WorkflowEngine] Webhook error:", err);
+            }
+          }
+          executed.push("send_webhook");
+          break;
+
         default:
           console.warn(`[WorkflowEngine] Unknown action type: ${action.type}`);
       }

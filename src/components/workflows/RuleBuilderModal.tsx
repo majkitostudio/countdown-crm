@@ -14,6 +14,7 @@ import {
   ArrowRightLeft,
   ShoppingCart,
   UserPlus,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -37,6 +38,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Mail,
   RefreshCw,
   Bell,
+  Globe,
 };
 
 function getIcon(name: string) {

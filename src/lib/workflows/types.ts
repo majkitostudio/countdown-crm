@@ -63,7 +63,8 @@ export type ActionType =
   | "compute_ai_summary"
   | "send_email_followup"
   | "update_lead_status"
-  | "notify_manager";
+  | "notify_manager"
+  | "send_webhook";
 
 export interface ActionDefinition {
   type: ActionType;
@@ -124,6 +125,19 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
     icon: "Bell",
     configFields: [
       { key: "message", label: "Notification Message", type: "text", placeholder: "E.g. High-value order placed by {{lead_name}}" },
+    ],
+  },
+  {
+    type: "send_webhook",
+    label: "HTTP Webhook (Zapier/Make)",
+    description: "Sends real-time event payload to an external Webhook URL (Zapier, Make, n8n, Slack)",
+    icon: "Globe",
+    configFields: [
+      { key: "webhook_url", label: "Webhook Endpoint URL", type: "text", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
+      { key: "method", label: "HTTP Method", type: "select", options: [
+        { label: "POST (JSON Payload)", value: "POST" },
+        { label: "GET", value: "GET" },
+      ]},
     ],
   },
 ];
