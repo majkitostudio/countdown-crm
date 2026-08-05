@@ -25,15 +25,21 @@ export function Header() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  const rawOperatorName = profile?.name || "Jan Dvořák";
+  const nameParts = rawOperatorName.trim().split(" ");
+  const firstName = nameParts[0] || "Jan";
+  const lastName = nameParts.slice(1).join(" ") || "Dvořák";
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+
   return (
-    <header className="h-18 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-20">
+    <header className="h-18 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20">
       {/* Search Input Button for Cmd+K */}
       <button
         onClick={() => {
           const event = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true });
           window.dispatchEvent(event);
         }}
-        className="relative w-80 sm:w-[28rem] text-left group"
+        className="relative w-72 sm:w-[26rem] text-left group"
       >
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
         <input
@@ -48,10 +54,10 @@ export function Header() {
       </button>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         {/* Operator Gamification Level Badge */}
         {profile && (
-          <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md text-zinc-300">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md text-zinc-300">
             <Award className="w-4 h-4 text-zinc-400 shrink-0" />
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
@@ -99,11 +105,11 @@ export function Header() {
         {/* User Profile */}
         <div className="flex items-center gap-3 pl-3 border-l border-zinc-800">
           <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-semibold text-zinc-200">
-            JD
+            {initials}
           </div>
           <div className="hidden lg:flex flex-col">
             <span className="text-xs font-medium text-zinc-200 leading-tight">
-              {profile?.name || "Jan Dvořák"}
+              {firstName} {lastName}
             </span>
             <span className="text-[10px] text-zinc-400 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-zinc-400" />

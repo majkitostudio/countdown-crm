@@ -279,15 +279,15 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
       <ComplianceChecker violations={complianceViolations} />
 
       {/* Real-time AI Rebuttal Battle-Card Box */}
-      <div className="border rounded-xl p-3.5 space-y-2.5 transition-all bg-zinc-950/80 border-zinc-800/80">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold">
+      <div className="border rounded-xl p-4 space-y-3 transition-all bg-zinc-950/80 border-zinc-800/80">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold max-w-[70%]">
             {isResolved ? (
-              <CheckCircle2 className="w-4 h-4 text-zinc-300" />
+              <CheckCircle2 className="w-4 h-4 text-zinc-300 shrink-0" />
             ) : (
-              <ShieldAlert className="w-4 h-4 text-zinc-400" />
+              <ShieldAlert className="w-4 h-4 text-zinc-400 shrink-0" />
             )}
-            <span className="text-zinc-200">
+            <span className="text-zinc-200 truncate" title={analysisResult.detectedObjection || undefined}>
               {isResolved ? "OBJECTION RESOLVED" : `OBJECTION MATCH: "${analysisResult.detectedObjection || "General Inquiry"}"`}
             </span>
           </div>
@@ -296,7 +296,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             {!isResolved && (
               <button
                 onClick={handleMarkResolved}
-                className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-mono px-2 py-1 rounded-md border border-zinc-800 flex items-center gap-1 transition-colors cursor-pointer"
+                className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-mono px-2.5 py-1 rounded-md border border-zinc-800 flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <Check className="w-3 h-3 text-emerald-500" />
                 <span>Mark Resolved</span>

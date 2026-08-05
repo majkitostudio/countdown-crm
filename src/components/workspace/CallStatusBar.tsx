@@ -79,10 +79,10 @@ export function CallStatusBar({
   };
 
   return (
-    <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+    <div className="p-5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-sm">
       
       {/* Left: Active Lead & Primary Action */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-5">
         
         {/* Status Dropdown */}
         <div className="relative group">
@@ -225,7 +225,7 @@ export function CallStatusBar({
             title="Zákazník nemá čas - naplánovat hovor"
           >
             <Calendar className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Schedule Call</span>
+            <span>Callback</span>
           </button>
 
           {/* 3. Fail */}

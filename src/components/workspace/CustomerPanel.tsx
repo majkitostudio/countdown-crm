@@ -88,7 +88,7 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
           >
             {leads.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.full_name} ({l.city || "Prague"}) — AI Score {l.ai_score}/100
+                {l.full_name} ({l.city || "Prague"})
               </option>
             ))}
           </select>
@@ -109,15 +109,6 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
               <span>{activeLead.company || "Independent"}</span>
             </div>
           </div>
-        </div>
-
-        {/* AI Score Badge */}
-        <div className={`px-3 py-1.5 rounded-xl border flex flex-col items-center justify-center ${getScoreColor(activeLead.ai_score)}`}>
-          <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-            <Sparkles className="w-3 h-3 text-zinc-400" />
-            AI Score
-          </div>
-          <span className="text-base font-bold font-mono">{activeLead.ai_score}/100</span>
         </div>
       </div>
 

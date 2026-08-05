@@ -131,7 +131,7 @@ export function ProductOrderPanel({
         <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
-            <p className="font-bold">Order #{lastOrderId} Successfully Placed!</p>
+            <p className="font-bold">Order #{lastOrderId} successfully placed!</p>
             <p className="text-[11px] text-emerald-200/80">${grandTotal.toFixed(2)} recorded for {activeLead?.full_name}.</p>
           </div>
         </div>

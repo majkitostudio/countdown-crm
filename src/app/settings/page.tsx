@@ -89,7 +89,7 @@ export default function SettingsPage() {
         <div className="bg-zinc-900 border border-zinc-800 text-zinc-300 p-4 rounded-xl text-xs flex items-center gap-3 font-mono animate-in fade-in duration-200">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <div>
-            <p className="font-semibold text-zinc-100">Preferences Saved Successfully!</p>
+            <p className="font-semibold text-zinc-100">Preferences saved successfully!</p>
             <p className="text-[11px] text-zinc-400">Your operator profile and AI copilot settings have been persisted.</p>
           </div>
         </div>
