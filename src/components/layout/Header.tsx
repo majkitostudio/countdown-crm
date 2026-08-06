@@ -71,7 +71,7 @@ export function Header() {
         {/* Industry Blueprints Picker Button */}
         <button
           onClick={() => setIsBlueprintModalOpen(true)}
-          className="flex h-8 items-center gap-2 px-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 text-xs font-medium transition-all cursor-pointer"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 text-xs font-medium transition-all cursor-pointer"
           title="Změnit oborový balíček CRM"
         >
           <Layers className="w-3.5 h-3.5 text-zinc-400" />
@@ -82,14 +82,14 @@ export function Header() {
         <OperatorPresenceBadge />
 
         {/* Live Indicator */}
-        <div className="hidden md:flex h-8 items-center gap-2 px-3 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>System Online</span>
         </div>
 
         {/* Notifications */}
         <button
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all"
+          className="relative p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-all"
           title="Notifications"
         >
           <Bell className="w-4 h-4" />
