@@ -43,7 +43,7 @@ export function OperatorPresenceBadge() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-300 transition-all cursor-pointer"
+        className="flex h-8 items-center gap-2 px-3 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-medium text-zinc-300 transition-all cursor-pointer"
         title="Tým operátorů online"
       >
         <div className="flex -space-x-1.5 overflow-hidden">
