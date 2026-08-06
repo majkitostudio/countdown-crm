@@ -53,14 +53,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
           </div>
         </div>
 
-        {/* AI Score Info Pill */}
-        <div className="bg-zinc-900 border border-zinc-800 p-2.5 rounded-lg flex items-center justify-between text-xs">
-          <span className="text-zinc-400 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-            AI Lead Score:
-          </span>
-          <span className="font-semibold font-mono text-zinc-100">{lead.ai_score}/100</span>
-        </div>
+
 
         {/* Call Controls: Accept / Decline */}
         <div className="grid grid-cols-2 gap-2.5 pt-1">

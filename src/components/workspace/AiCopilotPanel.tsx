@@ -26,6 +26,9 @@ import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
 import { SentimentHeatmap, SentimentSegment } from "./SentimentHeatmap";
 import { ComplianceChecker } from "./ComplianceChecker";
 
+import { AiFollowupModal } from "./AiFollowupModal";
+import { Mail } from "lucide-react";
+
 interface TranscriptMessage {
   id: string;
   speaker: "agent" | "customer";
@@ -40,6 +43,7 @@ interface AiCopilotPanelProps {
 }
 
 export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCopilotPanelProps) {
+  const [isFollowupModalOpen, setIsFollowupModalOpen] = useState(false);
   const {
     isListening,
     transcript: micTranscript,
@@ -240,8 +244,17 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
           </div>
         </div>
 
-        {/* Language selector & Mic Status */}
+        {/* Language selector, AI Followup & Mic Status */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsFollowupModalOpen(true)}
+            className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Generovat AI e-mail nebo WhatsApp zprávu po hovoru"
+          >
+            <Mail className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="hidden sm:inline">AI Follow-up</span>
+          </button>
+
           <div className="flex items-center gap-1 bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-xs">
             <Globe className="w-3 h-3 text-zinc-500" />
             <select
@@ -436,6 +449,14 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
         </div>
 
       </div>
+
+      {/* AI Email & WhatsApp Follow-up Generator Modal */}
+      <AiFollowupModal
+        lead={activeLead}
+        appliedPitch={analysisResult.detectedObjection || undefined}
+        isOpen={isFollowupModalOpen}
+        onClose={() => setIsFollowupModalOpen(false)}
+      />
 
     </div>
   );

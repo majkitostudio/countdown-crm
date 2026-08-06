@@ -55,24 +55,7 @@ export function Header() {
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* Operator Gamification Level Badge */}
-        {profile && (
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md text-zinc-300">
-            <Award className="w-4 h-4 text-zinc-400 shrink-0" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-zinc-100">Level {profile.level}</span>
-                <span className="text-[10px] text-zinc-400 font-mono">({profile.currentXp}/{profile.nextLevelXp} XP)</span>
-              </div>
-              <div className="w-24 h-1 bg-zinc-800 rounded-full overflow-hidden mt-0.5">
-                <div
-                  className="h-full bg-zinc-400 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, (profile.currentXp / profile.nextLevelXp) * 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {/* Industry Blueprints Picker Button */}
         <button

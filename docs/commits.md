@@ -356,12 +356,28 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-20 | Predictive Re-Order Engine Widget (Dashboard) | ✅ Hotovo |
 | COMMIT-21 | 1-Click Pay-Link & SMS Order Confirmation Dispatcher | ✅ Hotovo |
 | COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ✅ Hotovo |
-| COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ⏳ Naplánováno |
+| COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ✅ Hotovo |
 | COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ⏳ Naplánováno |
 | COMMIT-25 | Real-Time Speech Rate & Tone Coach in Operator Console | ⏳ Naplánováno |
 | COMMIT-26 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
 | COMMIT-27 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
+
+---
+
+### ✅ HOTOVO: COMMIT-23 — AI Email & WhatsApp Follow-up Generator
+```
+feat: add ai email and whatsapp follow-up generator with timeline dispatching
+```
+**Co**: Generátor personalizovaných následných e-mailů a WhatsApp zpráv poháněný Google Gemini Flash API s automatickým zápisem na Omnichannel časovou osu.
+
+**Proč**: Operátor může po zavěšení hovoru 1-klikem odeslat zákazníkovi naformátovaný e-mail nebo WhatsApp zprávu s 1-click Pay-Linkem nebo slevou.
+
+**Jak**:
+- Server Action `generateFollowupAction` v `src/app/actions/followup.ts`.
+- Attio modal komponenta `AiFollowupModal.tsx` v `AiCopilotPanel.tsx`.
+- Integrovaná tlačítka `Copy Content` a `Send / Dispatch` propojené na Omnichannel Timeline.
+
 
 ---
 

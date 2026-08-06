@@ -171,7 +171,7 @@ export function DynamicAttributesCard({ lead }: DynamicAttributesCardProps) {
   };
 
   // Separate system fields (already shown in profile) from dynamic/AI fields
-  const systemFieldKeys = new Set(["full_name", "phone", "email", "company"]);
+  const systemFieldKeys = new Set(["full_name", "phone", "email", "company", "ai_score"]);
   const dynamicAttributes = leadsSchema.attributes.filter(
     (attr) => !systemFieldKeys.has(attr.key)
   );
