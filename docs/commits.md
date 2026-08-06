@@ -355,13 +355,29 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-19 | Gamified Leaderboard, Operator XP & Badges System | ✅ Hotovo |
 | COMMIT-20 | Predictive Re-Order Engine Widget (Dashboard) | ✅ Hotovo |
 | COMMIT-21 | 1-Click Pay-Link & SMS Order Confirmation Dispatcher | ✅ Hotovo |
-| COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ⏳ Naplánováno |
+| COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ✅ Hotovo |
 | COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ⏳ Naplánováno |
 | COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ⏳ Naplánováno |
 | COMMIT-25 | Real-Time Speech Rate & Tone Coach in Operator Console | ⏳ Naplánováno |
 | COMMIT-26 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
 | COMMIT-27 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
+
+---
+
+### ✅ HOTOVO: COMMIT-22 — Omnichannel Customer Activity Timeline & Messaging Hub
+```
+feat: add omnichannel customer activity timeline with filtering and quick note creation
+```
+**Co**: Interaktivní časová osa aktivit zákazníka v `CustomerPanel` zobrazující hovory, objednávky, SMS Pay-Linky, zapsané poznámky a úpravy stavů.
+
+**Proč**: Operátor vidí 360° historii interakcí na jednom místě bez nutnosti přepínání záložek.
+
+**Jak**:
+- Datová architektura v `src/lib/timeline.ts`.
+- Komponenta `CustomerTimelineCard.tsx` s filtry aktivit (All, Calls, Orders, SMS, Notes) a Quick Note formulářem.
+- Attio monochromatický design (`zinc-950`, `zinc-900`, `font-mono`).
+
 
 ---
 

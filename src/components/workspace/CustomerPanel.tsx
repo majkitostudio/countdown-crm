@@ -20,6 +20,7 @@ import { Lead } from "@/lib/leads";
 import { Order, getOrdersByLeadId } from "@/lib/orders";
 import { DynamicAttributesCard } from "@/components/workspace/DynamicAttributesCard";
 import { enrichLeadWithGemini, EnrichedCompanyData } from "@/lib/enrichment";
+import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
 import { RefreshCw } from "lucide-react";
 
 interface CustomerPanelProps {
@@ -190,6 +191,9 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
 
       {/* Dynamic EAV Attributes from SchemaEngine */}
       <DynamicAttributesCard lead={activeLead} />
+
+      {/* Omnichannel Activity Timeline */}
+      <CustomerTimelineCard leadId={activeLead.id} />
 
       {/* Historical Purchases & Activity */}
       <div className="space-y-2 pt-2 border-t border-zinc-800">
