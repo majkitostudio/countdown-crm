@@ -108,11 +108,11 @@ export function Header() {
             {initials}
           </div>
           <div className="hidden lg:flex flex-col">
-            <span className="text-xs font-medium text-zinc-200 leading-tight">
+            <span className="text-xs font-medium text-zinc-200 leading-tight whitespace-nowrap">
               {firstName} {lastName}
             </span>
-            <span className="text-[10px] text-zinc-400 flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-zinc-400" />
+            <span className="text-[10px] text-zinc-400 flex items-center gap-1 whitespace-nowrap">
+              <ShieldCheck className="w-3 h-3 text-zinc-400 shrink-0" />
               Senior Agent
             </span>
           </div>
