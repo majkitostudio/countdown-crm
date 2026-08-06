@@ -357,11 +357,27 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-21 | 1-Click Pay-Link & SMS Order Confirmation Dispatcher | ✅ Hotovo |
 | COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ✅ Hotovo |
 | COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ✅ Hotovo |
-| COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ⏳ Naplánováno |
+| COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ✅ Hotovo |
 | COMMIT-25 | Real-Time Speech Rate & Tone Coach in Operator Console | ⏳ Naplánováno |
 | COMMIT-26 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
 | COMMIT-27 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
+
+---
+
+### ✅ HOTOVO: COMMIT-24 — Custom Objection Script Builder & Battlecard Editor
+```
+feat: add custom objection script builder and battlecard editor with live preview
+```
+**Co**: Manažerský editor námitkových skriptů a prodejních reakcí s živým náhledem (Live Preview) v Attio monochromatickém designu.
+
+**Proč**: Management a supervizoři mohou přímo v CRM spravovat reakce na námitky zákazníků a okamžitě je publikovat operátorům.
+
+**Jak**:
+- Datová vrstva `src/lib/objections.ts`.
+- Modal komponenta `ObjectionEditorModal.tsx` s dynamickou správou prodejních argumentů a 2-sloupcovým živým náhledem pro Operator Console.
+- Integrováno tlačítko `+ New Objection Script` v `/products`.
+
 
 ---
 

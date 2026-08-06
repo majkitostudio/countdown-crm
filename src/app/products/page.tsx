@@ -7,6 +7,9 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import { ProductModal } from "@/components/products/ProductModal";
 
+import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal";
+import { ObjectionBattleCard } from "@/lib/objections";
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -15,6 +18,8 @@ export default function ProductsPage() {
   const [isObjectionDrawerOpen, setIsObjectionDrawerOpen] = useState<boolean>(false);
   const [selectedEditProduct, setSelectedEditProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
+  const [isObjectionEditorOpen, setIsObjectionEditorOpen] = useState<boolean>(false);
+  const [selectedObjectionCard, setSelectedObjectionCard] = useState<ObjectionBattleCard | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadProducts = async () => {
@@ -41,6 +46,11 @@ export default function ProductsPage() {
   const handleAddProduct = () => {
     setSelectedEditProduct(null);
     setIsProductModalOpen(true);
+  };
+
+  const handleAddObjectionScript = () => {
+    setSelectedObjectionCard(null);
+    setIsObjectionEditorOpen(true);
   };
 
   // Filter products
@@ -84,17 +94,16 @@ export default function ProductsPage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={loadProducts}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors"
-            title="Refresh Catalog Data"
+            onClick={handleAddObjectionScript}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
+            <ShieldAlert className="w-4 h-4 text-zinc-400" />
+            <span>+ New Objection Script</span>
           </button>
 
           <button
             onClick={handleAddProduct}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4 text-zinc-950" />
             <span>Add New Product</span>
@@ -223,6 +232,15 @@ export default function ProductsPage() {
         product={selectedEditProduct}
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
+        onSaved={loadProducts}
+      />
+
+      {/* Custom Objection Script Builder & Battlecard Editor Modal */}
+      <ObjectionEditorModal
+        initialCard={selectedObjectionCard}
+        products={products}
+        isOpen={isObjectionEditorOpen}
+        onClose={() => setIsObjectionEditorOpen(false)}
         onSaved={loadProducts}
       />
 
