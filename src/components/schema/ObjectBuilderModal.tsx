@@ -106,8 +106,8 @@ export function ObjectBuilderModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-950">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-              <Database className="w-5 h-5 text-amber-400" />
+            <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+              <Database className="w-4 h-4 text-zinc-300" />
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-100">
@@ -120,7 +120,7 @@ export function ObjectBuilderModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -139,7 +139,7 @@ export function ObjectBuilderModal({
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="např. Projekty / Deals"
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50 font-medium"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 font-medium"
               />
             </div>
 
@@ -152,7 +152,7 @@ export function ObjectBuilderModal({
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="např. deals"
-                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 font-mono focus:outline-none focus:border-amber-500/50"
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 font-mono focus:outline-none focus:border-zinc-700"
               />
             </div>
           </div>
@@ -166,7 +166,7 @@ export function ObjectBuilderModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="K čemu tento objekt v CRM slouží..."
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-amber-500/50"
+              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
             />
           </div>
 
@@ -174,12 +174,12 @@ export function ObjectBuilderModal({
           <div className="space-y-3 pt-3 border-t border-zinc-800/80">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-amber-400" />
+                <Layers className="w-3.5 h-3.5 text-zinc-400" />
                 EAV Atributy objektu ({attributes.length})
               </span>
               <button
                 onClick={addAttribute}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 rounded-lg border border-amber-500/20 hover:bg-amber-500/20 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Přidat pole
@@ -241,7 +241,7 @@ export function ObjectBuilderModal({
         <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/80 bg-zinc-950">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             Zrušit
           </button>
@@ -249,10 +249,10 @@ export function ObjectBuilderModal({
             onClick={handleSave}
             disabled={!name.trim() || !slug.trim()}
             className={cn(
-              "px-5 py-2 text-xs font-bold rounded-xl transition-all shadow-lg flex items-center gap-1.5 cursor-pointer",
+              "px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer",
               name.trim() && slug.trim()
-                ? "bg-amber-500 text-zinc-950 hover:bg-amber-400"
-                : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
+                : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed"
             )}
           >
             <Check className="w-4 h-4" />

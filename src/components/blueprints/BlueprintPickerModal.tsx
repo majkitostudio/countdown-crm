@@ -74,37 +74,13 @@ export function BlueprintPickerModal({
     }
   };
 
-  const getThemeColor = (color: string) => {
-    switch (color) {
-      case "amber":
-        return {
-          badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-          ring: "border-amber-500/50 ring-1 ring-amber-500/30 bg-amber-500/5",
-          btn: "bg-amber-500 text-zinc-950 hover:bg-amber-400",
-          iconBg: "bg-amber-500/20 text-amber-400",
-        };
-      case "cyan":
-        return {
-          badge: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-          ring: "border-cyan-500/50 ring-1 ring-cyan-500/30 bg-cyan-500/5",
-          btn: "bg-cyan-500 text-zinc-950 hover:bg-cyan-400",
-          iconBg: "bg-cyan-500/20 text-cyan-400",
-        };
-      case "emerald":
-        return {
-          badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-          ring: "border-emerald-500/50 ring-1 ring-emerald-500/30 bg-emerald-500/5",
-          btn: "bg-emerald-500 text-zinc-950 hover:bg-emerald-400",
-          iconBg: "bg-emerald-500/20 text-emerald-400",
-        };
-      default:
-        return {
-          badge: "bg-zinc-800 text-zinc-300 border-zinc-700",
-          ring: "border-zinc-700 bg-zinc-900",
-          btn: "bg-zinc-100 text-zinc-950 hover:bg-zinc-200",
-          iconBg: "bg-zinc-800 text-zinc-300",
-        };
-    }
+  const getThemeColor = (_color: string) => {
+    return {
+      badge: "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono",
+      ring: "border-zinc-700 bg-zinc-900/90",
+      btn: "bg-zinc-100 text-zinc-950 hover:bg-zinc-200",
+      iconBg: "bg-zinc-900 border border-zinc-800 text-zinc-300",
+    };
   };
 
   const selectedTheme = getThemeColor(selectedBlueprint.color);
@@ -122,15 +98,15 @@ export function BlueprintPickerModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-950">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-              <Layers className="w-5 h-5 text-amber-400" />
+            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+              <Layers className="w-5 h-5 text-zinc-300" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-zinc-100">
                   Oborové Balíčky & Šablony (Industry Blueprints)
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
                   Attio-Grade Engine
                 </span>
               </div>

@@ -96,9 +96,9 @@ export function AddCustomFieldModal({
           </div>
 
           {type === "ai_generated" && (
-            <div className="p-3 bg-amber-950/30 border border-amber-800/40 rounded-xl space-y-2">
-              <label className="text-xs font-medium text-amber-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-2">
+              <label className="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
                 Gemini AI Prompt Rule
               </label>
               <textarea
@@ -106,7 +106,7 @@ export function AddCustomFieldModal({
                 onChange={(e) => setPromptTemplate(e.target.value)}
                 placeholder="e.g. Calculate lead purchase intent score (0-100)..."
                 rows={3}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-amber-700"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 font-mono"
               />
             </div>
           )}
