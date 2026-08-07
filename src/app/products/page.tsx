@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Package, Search, Plus, ShieldAlert, Layers, CheckCircle2, RefreshCw, Tag, DollarSign } from "lucide-react";
+import { Package, Search, Plus, ShieldAlert, Layers, CheckCircle2, RefreshCw, Tag, DollarSign, Upload } from "lucide-react";
 import { Product, ProductCategory, getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import { ProductModal } from "@/components/products/ProductModal";
 
 import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal";
+import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
 import { ObjectionBattleCard } from "@/lib/objections";
 
 export default function ProductsPage() {
@@ -19,6 +20,7 @@ export default function ProductsPage() {
   const [selectedEditProduct, setSelectedEditProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
   const [isObjectionEditorOpen, setIsObjectionEditorOpen] = useState<boolean>(false);
+  const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState<boolean>(false);
   const [selectedObjectionCard, setSelectedObjectionCard] = useState<ObjectionBattleCard | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -93,6 +95,14 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsTranscriptModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors cursor-pointer"
+          >
+            <Upload className="w-4 h-4 text-zinc-400" />
+            <span>Synchronizovat hovory</span>
+          </button>
+
           <button
             onClick={handleAddObjectionScript}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors cursor-pointer"
@@ -242,6 +252,12 @@ export default function ProductsPage() {
         isOpen={isObjectionEditorOpen}
         onClose={() => setIsObjectionEditorOpen(false)}
         onSaved={loadProducts}
+      />
+
+      {/* Call Transcript CSV/JSON Sync Uploader Modal */}
+      <CallTranscriptUploaderModal
+        isOpen={isTranscriptModalOpen}
+        onClose={() => setIsTranscriptModalOpen(false)}
       />
 
     </div>
