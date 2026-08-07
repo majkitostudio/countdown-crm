@@ -61,6 +61,8 @@ export function getPersonaVoiceSettings(personalityType: string): { pitch: numbe
   switch (personalityType) {
     case "Skeptický":
       return { pitch: 0.85, rate: 0.9 };
+    case "Nedůvěřivý":
+      return { pitch: 0.9, rate: 0.85 };
     case "Cenově citlivý":
       return { pitch: 1.1, rate: 1.0 };
     case "Náročný / Cholerický":

@@ -344,13 +344,17 @@ export default function TrainingPage() {
                       "px-2 py-0.5 rounded-full text-[10px] font-mono border flex items-center gap-1",
                       customerMood === "Nadšený" || customerMood === "Klidný"
                         ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
-                        : customerMood === "Skeptický"
+                        : customerMood === "Skeptický" || customerMood === "Nedůvěřivý"
                         ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
                         : "bg-rose-950/60 text-rose-300 border-rose-800/60"
                     )}>
                       <span className={cn(
                         "w-1.5 h-1.5 rounded-full",
-                        customerMood === "Nadšený" || customerMood === "Klidný" ? "bg-emerald-400" : customerMood === "Skeptický" ? "bg-amber-400" : "bg-rose-400"
+                        customerMood === "Nadšený" || customerMood === "Klidný"
+                          ? "bg-emerald-400"
+                          : customerMood === "Skeptický" || customerMood === "Nedůvěřivý"
+                          ? "bg-amber-400"
+                          : "bg-rose-400"
                       )} />
                       {customerMood}
                     </span>

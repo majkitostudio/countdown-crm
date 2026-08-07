@@ -5,7 +5,7 @@ export interface TrainingScenario {
   difficulty: "Snadná" | "Střední" | "Těžká";
   customerName: string;
   customerPersona: string;
-  personalityType: "Skeptický" | "Cenově citlivý" | "Netrpělivý" | "Náročný / Cholerický";
+  personalityType: "Skeptický" | "Cenově citlivý" | "Netrpělivý" | "Náročný / Cholerický" | "Nedůvěřivý";
   targetProduct: string;
   initialMessage: string;
   goals: string[];
@@ -18,7 +18,7 @@ export interface TrainingMessage {
   text: string;
   timestamp: string;
   sentiment?: "positive" | "neutral" | "negative";
-  customerMood?: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný";
+  customerMood?: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
   patienceGauge?: number; // 0 - 100
 }
 
@@ -94,6 +94,26 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
     hiddenMotivations: [
       "Má doma 2 velké psy a předchozí vysavač bez LiDARu se pořád zamotával do psích chlupů.",
       "Vezme i náhradní sady kartáčů (upsell), pokud je operátor věcný a neplýtvá jeho časem."
+    ],
+  },
+  {
+    id: "cosmetics-distrustful",
+    title: "Nedůvěřivý zákazník u Výživových doplňků a Kosmetiky",
+    category: "cosmetics",
+    difficulty: "Těžká",
+    customerName: "Lenka Novotná (49 let)",
+    customerPersona: "Bojí se podvodných e-shopů a neověřených přísad. Požaduje garanci původu a certifikáty.",
+    personalityType: "Nedůvěřivý",
+    targetProduct: "Lumière Bio-Retinol Elixir",
+    initialMessage: "Dobrý den, předem říkám, že na internetu je plno šmejdů. Jak mám vědět, že nejste další pochybná firma z Číny s falešným certifikátem?",
+    goals: [
+      "Poskytnout ověřitelné informace o české výrovbě a certifikaci ISO/GMP",
+      "Vysvětlit 30denní garanci vrácení peněz bez rizika",
+      "Získat objednávku s dobírkou nebo platbou po doručení",
+    ],
+    hiddenMotivations: [
+      "V minulosti byla nalákána na falešný produkt a přišla o 3 000 Kč.",
+      "Pokud operátor nabídne platbu až při převzetí od kurýra (dobírku) s rozbalením balíčku, objedná ihned 2 balení pro sebe i sestru."
     ],
   },
 ];

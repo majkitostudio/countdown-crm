@@ -6,7 +6,7 @@ import { TrainingScenario, TrainingMessage } from "@/lib/training";
 export interface RoleplayAIResponse {
   text: string;
   sentiment: "positive" | "neutral" | "negative";
-  customerMood: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný";
+  customerMood: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
   patienceDelta: number; // e.g. -25 to +20
   aiSource: "gemini-flash" | "rule-engine";
 }
@@ -46,7 +46,7 @@ Vrať ODPOVĚĎ v tomto JSON formátu:
 {
   "text": "Tvoje česká odpověď zákazníka (max 2 věty)",
   "sentiment": "positive" | "neutral" | "negative",
-  "customerMood": "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný",
+  "customerMood": "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý",
   "patienceDelta": číslo v rozmezí -30 až +20
 }
 
@@ -136,6 +136,23 @@ Odpověz POUZE platným JSON objektem bez označení markdown kódu.
       sentiment = "negative";
       customerMood = "Naštvaný";
       patienceDelta = -20;
+    }
+  } else if (scenario.id === "cosmetics-distrustful") {
+    if (lowerUser.includes("certifikát") || lowerUser.includes("iso") || lowerUser.includes("gmp") || lowerUser.includes("výroba") || lowerUser.includes("české")) {
+      text = "Česká šarže s ISO certifikátem? To už zní trochu důvěryhodněji. Můžete mi ten certifikát poslat do mailu?";
+      sentiment = "positive";
+      customerMood = "Klidný";
+      patienceDelta = +20;
+    } else if (lowerUser.includes("dobírka") || lowerUser.includes("platba při převzetí") || lowerUser.includes("kurýr")) {
+      text = "Když to můžu zaplatit až kurýrovi při převzetí na dobírku, tak je to v pořádku. Vezmu 2 balení pro mě i pro sestru!";
+      sentiment = "positive";
+      customerMood = "Nadšený";
+      patienceDelta = +25;
+    } else {
+      text = "Pořád se mi to nezdá. Kde mám jistotu, že to není z falšovaných surovin?";
+      sentiment = "negative";
+      customerMood = "Nedůvěřivý";
+      patienceDelta = -15;
     }
   }
 
