@@ -359,11 +359,28 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ✅ Hotovo |
 | COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ✅ Hotovo |
 | COMMIT-25 | AI Training Phase 1: Real-Time Voice Synthesis & Audio Dialogue Engine | ✅ Hotovo |
-| COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ⏳ Nařadě |
-| COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ⏳ Naplánováno |
+| COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ✅ Hotovo |
+| COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ⏳ Nařadě |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
 | COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
 | COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
+
+---
+
+### ✅ HOTOVO: COMMIT-26 — AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge
+```
+feat: add dynamic customer psychology, patience gauge and hidden motivations unlock for ai training simulator
+```
+**Co**: Dynamické vyhodnocování nálady a trpělivosti AI zákazníka s automatickým zavěšením (Hang Up) a odkrýváním skrytých nákupních motivací.
+
+**Proč**: Operátor trénuje empatii a zvládání námitek pod tlakem s reálnou zpětnou vazbou nálady zákazníka.
+
+**Jak**:
+- Rozšíření datové vrstvy `src/lib/training.ts` a Server Action `src/app/actions/training.ts` o `customerMood`, `patienceGauge` a `patienceDelta`.
+- Ukazatel trpělivosti (`0-100%`) a náladový odznak v hlavičce hovoru v `/training`.
+- Animovaný vizualizér zvukové vlny (*Audio Waveform Visualizer*) během mluvení AI zákazníka.
+- Panel skrytých nákupních motivací (*Hidden Motivations*), které se odemknou při trpělivosti >= 60 %.
+- Událost předčasného zavěšení (*Hang Up*) při poklesu trpělivosti na 0 %.
 
 ---
 

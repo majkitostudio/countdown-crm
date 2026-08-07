@@ -9,6 +9,7 @@ export interface TrainingScenario {
   targetProduct: string;
   initialMessage: string;
   goals: string[];
+  hiddenMotivations?: string[];
 }
 
 export interface TrainingMessage {
@@ -17,6 +18,8 @@ export interface TrainingMessage {
   text: string;
   timestamp: string;
   sentiment?: "positive" | "neutral" | "negative";
+  customerMood?: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný";
+  patienceGauge?: number; // 0 - 100
 }
 
 export interface TrainingScorecard {
@@ -48,6 +51,10 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Překonat námitku ohledně předchozí špatné zkušenosti",
       "Uzavřít prodej zvýhodněného trojbalení",
     ],
+    hiddenMotivations: [
+      "Hledá dárek pro manželku k výročí, klouby bolí oba dva.",
+      "Koupí ihned trojbalení, pokud dostane písemnou záruku vrácení peněz do 30 dní."
+    ],
   },
   {
     id: "cosmetics-price",
@@ -64,6 +71,10 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Nabídnout dárek zdarma (hydrogelová maska)",
       "Získat objednávku",
     ],
+    hiddenMotivations: [
+      "Sérum moc chce na nadcházející ples, ale potřebuje doručit do pátečního dopoledne.",
+      "Pokud dostane vzorek nového nočního krému zdarma, vezme i druhý kus pro dceru."
+    ],
   },
   {
     id: "electronics-angry",
@@ -79,6 +90,10 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Udržet klidný a profesionální tón",
       "Vypíchnout LiDAR navigaci + český servis a 3letou záruku",
       "Udržet hovor pod 3 minuty a dokončit prodej",
+    ],
+    hiddenMotivations: [
+      "Má doma 2 velké psy a předchozí vysavač bez LiDARu se pořád zamotával do psích chlupů.",
+      "Vezme i náhradní sady kartáčů (upsell), pokud je operátor věcný a neplýtvá jeho časem."
     ],
   },
 ];

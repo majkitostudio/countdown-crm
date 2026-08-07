@@ -45,6 +45,9 @@ export default function TrainingPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [isVoiceModeEnabled, setIsVoiceModeEnabled] = useState(true);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [patience, setPatience] = useState<number>(75);
+  const [customerMood, setCustomerMood] = useState<string>("Skeptický");
+  const [isHungUp, setIsHungUp] = useState<boolean>(false);
   const [scorecard, setScorecard] = useState<TrainingScorecard | null>(null);
   const [activeViolations, setActiveViolations] = useState<ComplianceViolation[]>([]);
   const [earnedXpToast, setEarnedXpToast] = useState<number | null>(null);
@@ -71,6 +74,9 @@ export default function TrainingPage() {
     setScorecard(null);
     setActiveViolations([]);
     setEarnedXpToast(null);
+    setPatience(75);
+    setCustomerMood(scenario.personalityType);
+    setIsHungUp(false);
 
     const initialMsg: TrainingMessage = {
       id: "msg_init",
@@ -78,6 +84,8 @@ export default function TrainingPage() {
       text: scenario.initialMessage,
       timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
       sentiment: "neutral",
+      customerMood: scenario.personalityType as any,
+      patienceGauge: 75,
     };
 
     setMessages([initialMsg]);
@@ -86,7 +94,7 @@ export default function TrainingPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!inputText.trim() || !selectedScenario || isBotThinking) return;
+    if (!inputText.trim() || !selectedScenario || isBotThinking || isHungUp) return;
 
     const userText = inputText.trim();
     setInputText("");
@@ -111,13 +119,38 @@ export default function TrainingPage() {
     try {
       const aiResponse = await generateTrainingResponseAction(selectedScenario, newHistory, userText);
 
+      const newPatience = Math.max(0, Math.min(100, patience + (aiResponse.patienceDelta || 0)));
+      setPatience(newPatience);
+      if (aiResponse.customerMood) {
+        setCustomerMood(aiResponse.customerMood);
+      }
+
       const botMsg: TrainingMessage = {
         id: `ai_${Date.now()}`,
         sender: "ai_customer",
         text: aiResponse.text,
         timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
         sentiment: aiResponse.sentiment,
+        customerMood: aiResponse.customerMood,
+        patienceGauge: newPatience,
       };
+
+      if (newPatience <= 0) {
+        setIsHungUp(true);
+        const hangUpMsg: TrainingMessage = {
+          id: `hangup_${Date.now()}`,
+          sender: "ai_customer",
+          text: "❌ Zákazník ztratil trpělivost a ukončil hovor (Hang Up)!",
+          timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
+          sentiment: "negative",
+        };
+        setMessages((prev) => [...prev, botMsg, hangUpMsg]);
+        playAiAudio("Už na to nemám čas ani nervy, na shledanou!", selectedScenario);
+        setTimeout(() => {
+          handleFinishTraining();
+        }, 2500);
+        return;
+      }
 
       setMessages((prev) => [...prev, botMsg]);
       playAiAudio(aiResponse.text, selectedScenario);
@@ -287,24 +320,56 @@ export default function TrainingPage() {
           {/* Left / Center Chat & Voice Box */}
           <div className="lg:col-span-2 flex flex-col h-[650px] bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl shadow-sm overflow-hidden">
             {/* Session Top Bar */}
-            <div className="px-5 py-3.5 border-b border-zinc-800/80 bg-zinc-950/80 flex items-center justify-between">
+            <div className="px-5 py-3.5 border-b border-zinc-800/80 bg-zinc-950/80 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-                  <Bot className="w-3.5 h-3.5" />
+                <div className="w-8 h-8 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300 shrink-0">
+                  <Bot className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-xs font-semibold text-zinc-200">{selectedScenario.customerName}</h3>
+                    
+                    {/* Audio Waveform Indicator */}
                     {isAiSpeaking && (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-mono animate-pulse">
-                        <Radio className="w-3 h-3 text-emerald-400 animate-spin" />
-                        AI mluví...
-                      </span>
+                      <div className="flex items-center gap-1 h-3 shrink-0 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/80">
+                        <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-2" />
+                        <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-3 delay-75" />
+                        <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-1 delay-150" />
+                        <span className="text-[10px] text-emerald-400 font-mono font-medium ml-1">AI mluví</span>
+                      </div>
                     )}
+
+                    {/* Customer Mood Badge */}
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[10px] font-mono border flex items-center gap-1",
+                      customerMood === "Nadšený" || customerMood === "Klidný"
+                        ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
+                        : customerMood === "Skeptický"
+                        ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
+                        : "bg-rose-950/60 text-rose-300 border-rose-800/60"
+                    )}>
+                      <span className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        customerMood === "Nadšený" || customerMood === "Klidný" ? "bg-emerald-400" : customerMood === "Skeptický" ? "bg-amber-400" : "bg-rose-400"
+                      )} />
+                      {customerMood}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-zinc-400 font-mono">
-                    AI Zákazník • {selectedScenario.personalityType}
-                  </span>
+
+                  {/* Patience Gauge Progress Bar */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-zinc-400">Trpělivost:</span>
+                    <div className="w-24 h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                      <div
+                        className={cn(
+                          "h-full transition-all duration-300",
+                          patience > 60 ? "bg-emerald-500" : patience > 30 ? "bg-amber-500" : "bg-rose-500"
+                        )}
+                        style={{ width: `${patience}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-zinc-300">{patience}%</span>
+                  </div>
                 </div>
               </div>
 
@@ -455,6 +520,34 @@ export default function TrainingPage() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Hidden Motivations Panel */}
+            <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-3">
+              <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-zinc-400" />
+                  Skryté Nákupní Motivace
+                </span>
+                <span className="text-[10px] font-mono text-zinc-500">
+                  {patience >= 60 ? "🔓 ODHALENO" : "🔒 ZAMČENO (<60% Trpělivost)"}
+                </span>
+              </h3>
+
+              {patience >= 60 ? (
+                <div className="space-y-2">
+                  {selectedScenario.hiddenMotivations?.map((m, idx) => (
+                    <div key={idx} className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-[11px] text-emerald-300 flex items-start gap-2 animate-in fade-in duration-300">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{m}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-500 italic">
+                  Získejte si důvěru a zvýšte trpělivost zákazníka nad 60 %, aby odhalil své skryté nákupní motivace.
+                </div>
+              )}
             </div>
 
             {/* Live Compliance Checker Alerts */}
