@@ -358,10 +358,12 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ✅ Hotovo |
 | COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ✅ Hotovo |
 | COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ✅ Hotovo |
-| COMMIT-25 | Real-Time Speech Rate & Tone Coach in Operator Console | ⏳ Naplánováno |
-| COMMIT-26 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
-| COMMIT-27 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
+| COMMIT-25 | AI Training Phase 1: Real-Time Voice Synthesis & Audio Dialogue Engine | ⏳ Nařadě |
+| COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ⏳ Naplánováno |
+| COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ⏳ Naplánováno |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
+| COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
+| COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
 
 ---
 

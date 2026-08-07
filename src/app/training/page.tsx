@@ -32,6 +32,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { generateTrainingResponseAction } from "@/app/actions/training";
+import { speakText, stopSpeaking, getPersonaVoiceSettings } from "@/lib/speechSynthesis";
+import { Volume2, VolumeX, Radio } from "lucide-react";
+
 export default function TrainingPage() {
   const [selectedScenario, setSelectedScenario] = useState<TrainingScenario | null>(null);
   const [messages, setMessages] = useState<TrainingMessage[]>([]);
@@ -39,6 +43,8 @@ export default function TrainingPage() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isVoiceModeEnabled, setIsVoiceModeEnabled] = useState(true);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [scorecard, setScorecard] = useState<TrainingScorecard | null>(null);
   const [activeViolations, setActiveViolations] = useState<ComplianceViolation[]>([]);
   const [earnedXpToast, setEarnedXpToast] = useState<number | null>(null);
@@ -48,6 +54,17 @@ export default function TrainingPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isBotThinking]);
+
+  const playAiAudio = (text: string, scenario: TrainingScenario) => {
+    if (!isVoiceModeEnabled) return;
+    const voiceSettings = getPersonaVoiceSettings(scenario.personalityType);
+    speakText(text, {
+      ...voiceSettings,
+      onStart: () => setIsAiSpeaking(true),
+      onEnd: () => setIsAiSpeaking(false),
+      onError: () => setIsAiSpeaking(false),
+    });
+  };
 
   const handleStartScenario = (scenario: TrainingScenario) => {
     setSelectedScenario(scenario);
@@ -65,6 +82,7 @@ export default function TrainingPage() {
 
     setMessages([initialMsg]);
     setIsSimulating(true);
+    playAiAudio(scenario.initialMessage, scenario);
   };
 
   const handleSendMessage = async () => {
@@ -91,7 +109,7 @@ export default function TrainingPage() {
     setIsBotThinking(true);
 
     try {
-      const aiResponse = await generateAICustomerResponse(selectedScenario, newHistory, userText);
+      const aiResponse = await generateTrainingResponseAction(selectedScenario, newHistory, userText);
 
       const botMsg: TrainingMessage = {
         id: `ai_${Date.now()}`,
@@ -102,6 +120,7 @@ export default function TrainingPage() {
       };
 
       setMessages((prev) => [...prev, botMsg]);
+      playAiAudio(aiResponse.text, selectedScenario);
     } catch (err) {
       console.error(err);
     } finally {
@@ -274,20 +293,51 @@ export default function TrainingPage() {
                   <Bot className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold text-zinc-200">{selectedScenario.customerName}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-semibold text-zinc-200">{selectedScenario.customerName}</h3>
+                    {isAiSpeaking && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 font-mono animate-pulse">
+                        <Radio className="w-3 h-3 text-emerald-400 animate-spin" />
+                        AI mluví...
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[10px] text-zinc-400 font-mono">
                     AI Zákazník • {selectedScenario.personalityType}
                   </span>
                 </div>
               </div>
 
-              <button
-                onClick={handleFinishTraining}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Ukončit & Vyhodnotit
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isAiSpeaking) stopSpeaking();
+                    setIsVoiceModeEnabled(!isVoiceModeEnabled);
+                  }}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer",
+                    isVoiceModeEnabled
+                      ? "bg-zinc-900 text-zinc-200 border-zinc-800 hover:border-zinc-700"
+                      : "bg-zinc-950 text-zinc-500 border-zinc-900 hover:text-zinc-300"
+                  )}
+                  title={isVoiceModeEnabled ? "Vypnout hlasový výstup AI" : "Zapnout hlasový výstup AI"}
+                >
+                  {isVoiceModeEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5" />}
+                  <span>{isVoiceModeEnabled ? "Hlas Zákazníka (TTS ON)" : "TTS OFF"}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    stopSpeaking();
+                    handleFinishTraining();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Ukončit & Vyhodnotit
+                </button>
+              </div>
             </div>
 
             {/* Chat History Messages */}
