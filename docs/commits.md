@@ -363,7 +363,22 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ✅ Hotovo |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
 | COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Nařadě |
-| COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
+| COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ✅ Hotovo |
+
+---
+
+### ✅ HOTOVO: COMMIT-30 — Multi-Format CSV / Excel / PDF Report Generator
+```
+feat: add multi-format csv, excel and printable pdf report generator with live preview
+```
+**Co**: Manažerský generátor výkazů v CSV, Excel (.xls) a tiskovém PDF formátu s živým náhledem dat.
+
+**Proč**: Management a supervizoři mohou 1-klikem vygenerovat a stáhnout strukturované výkazy tržeb, výkonnosti operátorů, stavu obchodního trychtýře a auditních záznamů.
+
+**Jak**:
+- Datová a exportní vrstva `src/lib/reports.ts` s generátory pro Sales, Operator Performance, Lead Pipeline a Audit Log.
+- Attio modal komponenta `ReportGeneratorModal.tsx` v `/analytics` s živým náhledem dat (*Live Preview*) a volbou časového rozsahu.
+- Tlačítko `Generovat Report (CSV / Excel / PDF)` v záhlaví analytického panelu.
 
 ---
 

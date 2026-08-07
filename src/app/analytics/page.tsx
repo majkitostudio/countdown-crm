@@ -33,12 +33,14 @@ import {
 } from "@/lib/analytics";
 import { AiForecastCard } from "@/components/analytics/AiForecastCard";
 import { OperatorCoachingCard } from "@/components/analytics/OperatorCoachingCard";
+import { ReportGeneratorModal } from "@/components/analytics/ReportGeneratorModal";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsOverview>(MOCK_ANALYTICS_DATA);
   const [isExporting, setIsExporting] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -76,12 +78,20 @@ export default function AnalyticsPage() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-semibold text-xs hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-zinc-950" />
+            <span>Generovat Report (CSV / Excel / PDF)</span>
+          </button>
+
+          <button
             onClick={handleExport}
             disabled={isExporting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors shadow-sm cursor-pointer"
           >
             <Download className="w-4 h-4 text-zinc-400" />
-            <span>{isExporting ? "Exporting CSV..." : "Export Analytics (CSV)"}</span>
+            <span>{isExporting ? "Exporting CSV..." : "Quick CSV"}</span>
           </button>
         </div>
       </div>
@@ -308,6 +318,12 @@ export default function AnalyticsPage() {
 
       {/* AI Operator Coaching & Benchmarks */}
       <OperatorCoachingCard />
+
+      {/* Multi-Format CSV / Excel / PDF Report Generator Modal */}
+      <ReportGeneratorModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
 
     </div>
   );
