@@ -29,6 +29,11 @@ import {
   TrendingUp,
   Target,
   Zap,
+  Clock,
+  PhoneCall,
+  PhoneOff,
+  ShoppingCart,
+  Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,12 +56,70 @@ export default function TrainingPage() {
   const [scorecard, setScorecard] = useState<TrainingScorecard | null>(null);
   const [activeViolations, setActiveViolations] = useState<ComplianceViolation[]>([]);
   const [earnedXpToast, setEarnedXpToast] = useState<number | null>(null);
+  const [callDurationSeconds, setCallDurationSeconds] = useState<number>(0);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [orderCreatedToast, setOrderCreatedToast] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isBotThinking]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isSimulating && !isHungUp) {
+      interval = setInterval(() => {
+        setCallDurationSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isSimulating, isHungUp]);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const calculateWpm = (): { wpm: number; status: "optimal" | "slow" | "fast"; label: string } => {
+    const userMessages = messages.filter((m) => m.sender === "user");
+    const totalWords = userMessages.reduce((acc, m) => acc + m.text.split(/\s+/).filter(Boolean).length, 0);
+    if (callDurationSeconds === 0 || totalWords === 0) {
+      return { wpm: 140, status: "optimal", label: "140 WPM (Optimální)" };
+    }
+    const wpm = Math.round((totalWords / callDurationSeconds) * 60);
+    if (wpm < 115) {
+      return { wpm, status: "slow", label: `${wpm} WPM (Pomalé)` };
+    } else if (wpm > 165) {
+      return { wpm, status: "fast", label: `${wpm} WPM (Rychlé!)` };
+    }
+    return { wpm, status: "optimal", label: `${wpm} WPM (Optimální)` };
+  };
+
+  const handleCreateInCallOrder = () => {
+    if (!selectedScenario || isHungUp) return;
+    setOrderCreatedToast(true);
+    setPatience(100);
+    setCustomerMood("Nadšený");
+
+    const orderMsg: TrainingMessage = {
+      id: `order_${Date.now()}`,
+      sender: "ai_customer",
+      text: `🎉 Objednávka na ${selectedScenario.targetProduct} byla úspěšně vyhotovena přímo během hovoru!`,
+      timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
+      sentiment: "positive",
+      customerMood: "Nadšený",
+      patienceGauge: 100,
+    };
+
+    setMessages((prev) => [...prev, orderMsg]);
+    playAiAudio("Perfektní, děkuji za vyřízení objednávky, velmi rád vás doporučím dál!", selectedScenario);
+
+    setTimeout(() => {
+      handleFinishTraining();
+    }, 2800);
+  };
 
   const playAiAudio = (text: string, scenario: TrainingScenario) => {
     if (!isVoiceModeEnabled) return;
@@ -77,6 +140,9 @@ export default function TrainingPage() {
     setPatience(75);
     setCustomerMood(scenario.personalityType);
     setIsHungUp(false);
+    setCallDurationSeconds(0);
+    setIsMuted(false);
+    setOrderCreatedToast(false);
 
     const initialMsg: TrainingMessage = {
       id: "msg_init",
@@ -405,6 +471,46 @@ export default function TrainingPage() {
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Ukončit & Vyhodnotit
+                </button>
+              </div>
+            </div>
+
+            {/* Live Phone Line Status Sub-Bar */}
+            <div className="px-5 py-2 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <PhoneCall className="w-3.5 h-3.5 animate-pulse" />
+                  <span>Linka 01 • Aktivní Hovor</span>
+                </span>
+                <span className="text-zinc-700">|</span>
+                <span className="flex items-center gap-1.5 text-zinc-300">
+                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>{formatDuration(callDurationSeconds)}</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Speech Rate Coach Badge */}
+                <span className={cn(
+                  "flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] border font-mono",
+                  calculateWpm().status === "optimal"
+                    ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
+                    : calculateWpm().status === "slow"
+                    ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
+                    : "bg-rose-950/60 text-rose-300 border-rose-800/60"
+                )}>
+                  <Gauge className="w-3 h-3" />
+                  <span>{calculateWpm().label}</span>
+                </span>
+
+                {/* 1-Click In-Call Order Creation */}
+                <button
+                  type="button"
+                  onClick={handleCreateInCallOrder}
+                  className="px-2.5 py-1 rounded-md bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/80 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <ShoppingCart className="w-3 h-3 text-emerald-400" />
+                  <span>1-Click Objednávka</span>
                 </button>
               </div>
             </div>

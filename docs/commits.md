@@ -360,10 +360,25 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ✅ Hotovo |
 | COMMIT-25 | AI Training Phase 1: Real-Time Voice Synthesis & Audio Dialogue Engine | ✅ Hotovo |
 | COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ✅ Hotovo |
-| COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ⏳ Nařadě |
+| COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ✅ Hotovo |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
-| COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
+| COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Nařadě |
 | COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
+
+---
+
+### ✅ HOTOVO: COMMIT-27 — AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach
+```
+feat: add live in-call phone simulator, speech rate coach and 1-click order creation for ai training
+```
+**Co**: Rozhraní živé simulace telefonního hovoru s aktivním časovačem, koučem tempa řeči (WPM) a 1-klikovým dokončením objednávky přímo z hovoru.
+
+**Proč**: Operátor trénuje v plně věrném prostředí simulované telefonní linky se sledováním tempa řeči.
+
+**Jak**:
+- Živý časovač hovoru (`Call Duration Timer`) a stavový pruh aktivního hovoru (`Linka 01 • Aktivní Hovor`).
+- Kouč tempa řeči (`Speech Rate Coach`) měřící slova za minutu (WPM) s vizuálním štítkem (*Optimální 130-160 WPM / Pomalé / Rychlé*).
+- Tlačítko `1-Click Objednávka` přímo v nástrojové liště hovoru pro přímé splnění prodejního cíle a přechod do scorecardu.
 
 ---
 
