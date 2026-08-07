@@ -1,11 +1,18 @@
+export type CustomerPersonalityType =
+  | "Skeptický"
+  | "Cenově citlivý"
+  | "Netrpělivý"
+  | "Náročný / Cholerický"
+  | "Nedůvěřivý";
+
 export interface TrainingScenario {
   id: string;
   title: string;
-  category: "food_supplements" | "cosmetics" | "electronics";
+  category?: "food_supplements" | "cosmetics" | "electronics";
   difficulty: "Snadná" | "Střední" | "Těžká";
   customerName: string;
   customerPersona: string;
-  personalityType: "Skeptický" | "Cenově citlivý" | "Netrpělivý" | "Náročný / Cholerický" | "Nedůvěřivý";
+  personalityType: CustomerPersonalityType;
   targetProduct: string;
   initialMessage: string;
   goals: string[];
