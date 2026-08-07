@@ -358,12 +358,27 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-22 | Omnichannel Customer Activity Timeline & Messaging Hub | ✅ Hotovo |
 | COMMIT-23 | AI Email & WhatsApp Follow-up Generator | ✅ Hotovo |
 | COMMIT-24 | Custom Objection Script Builder & Battlecard Editor | ✅ Hotovo |
-| COMMIT-25 | AI Training Phase 1: Real-Time Voice Synthesis & Audio Dialogue Engine | ⏳ Nařadě |
-| COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ⏳ Naplánováno |
+| COMMIT-25 | AI Training Phase 1: Real-Time Voice Synthesis & Audio Dialogue Engine | ✅ Hotovo |
+| COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ⏳ Nařadě |
 | COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ⏳ Naplánováno |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
 | COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Naplánováno |
 | COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ⏳ Naplánováno |
+
+---
+
+### ✅ HOTOVO: COMMIT-25 — AI Training Phase 1: Real-Time Voice Synthesis & Audio Dialogue Engine
+```
+feat: add real-time voice synthesis and gemini audio dialogue engine for ai training simulator
+```
+**Co**: Hlasová syntéza (Text-to-Speech) a propojení s Google Gemini 2.5 Flash API pro AI trenažér (`/training`).
+
+**Proč**: Operátor slyší AI zákazníka mluvit v češtině/slovensky přímo do sluchátek s dynamickým projevováním emoce a osobnosti.
+
+**Jak**:
+- Modul syntézy řeči `src/lib/speechSynthesis.ts` (Web Speech API).
+- Server Action `generateTrainingResponseAction` v `src/app/actions/training.ts` využívající Google Gemini Flash pro živé neskriptované odpovědi.
+- Tlačítko přepínání hlasového výstupu `Hlas Zákazníka (TTS ON / OFF)` a vizuální indikátor *"AI mluví..."* v rozhraní hovoru.
 
 ---
 
