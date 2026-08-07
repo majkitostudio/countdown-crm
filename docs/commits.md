@@ -362,8 +362,23 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-26 | AI Training Phase 2: Dynamic Customer Psychology & Mood/Patience Gauge | ✅ Hotovo |
 | COMMIT-27 | AI Training Phase 3: Live In-Call Phone Simulator & Speech Rate Coach | ✅ Hotovo |
 | COMMIT-28 | Visual UI/UX Refactoring (Attio & Linear Monochrome Design) | ✅ Hotovo |
-| COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ⏳ Nařadě |
+| COMMIT-29 | Security Audit Log & Operator Activity Tracker (`/audit`) | ✅ Hotovo |
 | COMMIT-30 | Multi-Format CSV / Excel / PDF Report Generator | ✅ Hotovo |
+
+---
+
+### ✅ HOTOVO: COMMIT-29 — Security Audit Log & Operator Activity Tracker (`/audit`)
+```
+feat: add security audit log and operator activity tracker page with csv export
+```
+**Co**: Bezpečnostní modul `/audit` pro sledování akcí operátorů, úprav dat, příkazů a legislativních varování v Attio monochromatickém rozhraní.
+
+**Proč**: Bezpečnostní pracovníci a management mají kompletní přehled a kontrolu nad auditní stopou systému.
+
+**Jak**:
+- Datové úložiště `src/lib/audit.ts` s filtrem podle závažnosti (`low`, `medium`, `high`, `critical`) a typu akce.
+- Samostatná stránka `/audit` (`src/app/audit/page.tsx`) s KPI kartami, vyhledáváním a stahováním CSV protokolu.
+- Přidán odkaz v navigaci `Sidebar.tsx`.
 
 ---
 

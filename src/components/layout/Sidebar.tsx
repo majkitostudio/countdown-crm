@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Workflow,
   Briefcase,
+  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { label: "Call Logs", href: "/calls", icon: History },
   { label: "Workflows", href: "/workflows", icon: Workflow },
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Security Audit Log", href: "/audit", icon: ShieldAlert },
   { label: "Live Monitor", href: "/monitor", icon: Radio },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
