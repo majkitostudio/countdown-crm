@@ -819,6 +819,21 @@ feat(telephony): create SIP/VoIP Gateway Adapter interface for Asterisk & Telco 
 **Jak**:
 - Třída `SipGatewayAdapter` s metodami registrace SIP účtů a odesíláním SIP INVITE / BYE / INFO paketů.
 
+---
+
+## FÁZE 21 — Strict Refactoring & Code Quality Compliance
+
+### ✅ HOTOVO: COMMIT-51 — Strict Type & Hook Refactoring
+```
+refactor: eliminate all any types, fix React hook purity, and achieve strict build compliance
+```
+- Obnovení přísných pravidel v `eslint.config.mjs` (zrušení dočasného vypínání varování).
+- Kompletní oprava `any` typování v Supabase službách (`leadsService.ts`, `ordersService.ts`, `schemaService.ts`, `workflowService.ts`, `auditService.ts`, `analytics.ts`, `timeline.ts`, `calls.ts`).
+- Přidání `Relationships: []` a rozšířených vlastností do Supabase rozhraní `Database` (`types.ts`).
+- Oprava React hooků a odstranění synchrónních `setState` volání uvnitř těl efektů (`CallStatusBar.tsx`, `AiCopilotPanel.tsx`, `AiFollowupModal.tsx`, `ProductModal.tsx`, `FilterEngineBar.tsx`).
+- Vyčištění nepoužitých proměnných a importů v celé kódové základně.
+- Ověřeno: `npm run lint` čisto, `npx tsc --noEmit` 0 chyb, `npm run build` zelený produkční build v Next.js 16 (Turbopack).
+
 
 
 
