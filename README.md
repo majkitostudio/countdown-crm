@@ -1,6 +1,6 @@
 # Countdown CRM — Next-Gen AI-Native Tele-Sales & CRM Platform
 
-> **Vision**: Vytvořit novou generaci **AI-native CRM platformy** konkurující světovým nástrojům jako **Attio**, s přímým zaměřením na automatizaci tele-sales, reálnou hlasovou asistenci a špičkové operátorské zkušenosti.
+> **Vision**: Vytvořit novou generaci **AI-native CRM platformy** konkurující světovým nástrojům jako **Attio**, s přímým zaměřením na automatizaci tele-sales, reálnou hlasovou asistenci, pokročilý tréninkový simulátor a enterprise bezpečnost.
 
 **Countdown CRM** je moderní, vysoce výkonná webová platforma navržená pro operátory, obchodní týmy a manažery. Systém v reálném čase analyzuje živé hovory pomocí **Google Gemini 2.5 Flash API**, vyhodnocuje náladu zákazníka, detekuje prodejní námitky, doporučuje protiargumenty a automatizuje výstupy z hovorů.
 
@@ -15,40 +15,48 @@
 ## 🚀 Klíčové Pilíře Platformy
 
 ### 1. ⚡ Lineární Operator Console Workflow (`/workspace`)
-- Načtení zákazníka s přímou akcí **`Call Client` (Vytočit)**.
+- **Přímočará správa hovorů**: Načtení zákazníka s akcí **`Call Client` (Vytočit)** a koučem tempa řeči (WPM).
+- **Voice Activity Detection (VAD)**: Bezdotykové hands-free odesílání hlasu s živou čtečkou skriptu (Teleprompter Reader).
 - **Rychlé výstupy hovoru na jedno kliknutí**:
   - 📞 **`Call Later`** (Zavolat později / Nezvedá)
   - 📅 **`Schedule Call`** (Naplánovat callback)
   - ❌ **`Fail`** (Odmítnuto)
   - 🛍️ **`Success / Order`** (Vytvořit objednávku)
-- **Automatický posun ve frontě**: Systém po dokončení výstupu automaticky načte dalšího zákazníka bez manuálního hledání.
 
-### 2. 🧠 Google Gemini 2.5 Flash AI Copilot
-- **Live Sentiment & Objection Handling**: Reálná detekce námitek na cenu, konkurenty či kvalitu.
-- **Objection Matcher Engine**: Automatické vyhledání nejlepších prodejních protiargumenty.
-- **AI Cross-Sell & Up-Sell**: Automatické generování doplňkových balíčků se slevou 15 %.
+### 2. 🧠 Google Gemini 2.5 Flash AI Copilot & Battlecards
+- **Live Sentiment & Objection Handling**: Detekce námitek na cenu, konkurenty či kvalitu v reálném čase.
+- **Custom Objection Script Builder**: Správa námitkových skriptů a prodejních battlecard kartiček s 2-sloupcovým živým náhledem.
+- **AI Cross-Sell & Up-Sell**: Automatické generování doplňkových balíčků se slevou.
 
-### 3. 🎓 AI Call Roleplay Simulator & Gamifikace (`/training`)
-- Simulované tréninkové hovory s AI boty různých zákaznických typů.
-- Automatické hodnocení námitkového rozhovoru, XP body a zvyšování úrovně operátora (Level / XP).
+### 3. 🌐 Omnichannel Timeline & Messaging Hub
+- **360° Časová osa zákazníka**: Zobrazuje hovory, objednávky, SMS Pay-Linky a rychlé poznámky.
+- **AI Follow-up Generator**: 1-klikové odesílání e-mailů a WhatsApp zpráv vytvořených přes Gemini API.
+- **Predictive Re-Order Engine**: Automatické plánování opakovacích volání u spotřebního zboží.
 
-### 4. 🎨 Minimalistický Skleněný Design System (Attio-Grade Aesthetics)
-- Monochromatická neutrální paleta zinku (`zinc-950`, `zinc-900`, `zinc-800`).
-- Skleněné karty se subgardientními odlesky (`border-t border-white/5`), `backdrop-blur-xl` a velkorysou vzdušností (Whitespace Airiness).
+### 4. 🎓 Live Call Agent Simulator & Gamifikace (`/training`)
+- **Konfigurátor živého agenta**: Vlastní nastavení osobnosti, nálady (vč. Nedůvěřivý / Skeptik), typu produktu a cílů hovoru.
+- **Ukazatel trpělivosti (Patience Gauge)**: Dynamický výpočet nálady zákazníka s rizikem předčasného zavěšení (Hang Up).
+- **Gamifikace**: Odemykání skrytých motivací, XP body, odznaky a žebříček nejlepších operátorů.
 
-### 5. 📡 Manažerský Live Monitor (`/monitor`) & BI Analytics (`/analytics`)
-- Živý dohled nad operátory v týmu v reálném čase.
-- Prediktivní 30-denní revenue forecast a exporty v CSV.
+### 5. 🛡️ Enterprise Security Audit Log (`/audit`) & Multi-Format Exporter
+- **Bezpečnostní auditní log**: Sledování všech akcí operátorů s filtrováním závažnosti (Low / Medium / High / Critical).
+- **Multi-Format Report Generator**: Exporty do CSV, XLSX Excelu a tiskového PDF protokolu s živým náhledem.
+- **Call Transcripts Hub (`/calls`)**: Ukládání přepisů hovorů a export konverzačních dat pro fine-tuning LLM modelů.
+
+### 6. 🎨 Attio-Grade Design System & Dynamic EAV Architecture
+- **Monochromatický styl**: Ultra-čistá paleta zinku (`zinc-950`, `zinc-900`), typografická kázeň (`font-mono`) pro metriky.
+- **Dynamic EAV Engine**: Libovolné vlastní objekty a vlastnosti (Custom Objects Builder).
+- **Visual Workflow Builder**: Návrhář pravidiel automatizace s HTTP Webhook uzly (Zapier / Make).
 
 ---
 
 ## 🛠️ Technologický Stos
 
 - **Framework**: Next.js 16.2.12 (Turbopack) & React 19
-- **AI Integrace**: `@google/genai` (Google Gemini 2.5 Flash API)
+- **AI LLM Engine**: Google Gemini 2.5 Flash API (`@google/genai`)
 - **Styling**: Tailwind CSS v4 & Lucide React ikony
 - **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr`
-- **Hlasové API**: Native Browser WebSpeech API & Syntetizátor Web Audio API
+- **Hlasové API**: Native Browser WebSpeech API, Syntetizátor Web Audio API & VAD Engine
 
 ---
 
@@ -77,5 +85,9 @@ Aplikace bude dostupná na adrese `http://localhost:3000`.
 
 ## 📜 Architektura & Dokumentace
 
-- [Prezentovaný Walkthrough](walkthrough.md)
-- [Implementační Plán](implementation_plan.md)
+- [Architektura Systému](docs/architecture.md)
+- [Roadmapa Vývoje](docs/roadmap.md)
+- [Historie Commitů](docs/commits.md)
+- [Plán Fází & Commitů](docs/commits_roadmap.md)
+- [Banka Nápadů](docs/ideas.md)
+- [Vize Projektu](docs/vision.md)

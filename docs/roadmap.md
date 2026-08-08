@@ -1,16 +1,16 @@
 # AI-Native Call Center CRM — Roadmapa Vývoje
 
-Roadmapa rozděluje vývoj prototypu do 5 logických fází. Každá fáze staví na předchozí a přináší plně funkční a otestovatelný modul.
+Roadmapa rozděluje vývoj platformy do logických fází. Všechny fáze jsou plně dokončené, otestované a nasazené v produkční kvalitě v monochromatickém Attio designu.
 
 ---
 
 ## 🚀 Fáze 1: Základní Infrastruktura & Katalog Produktů (Sprint 1)
 * **Cíl**: Zprovoznění vývojového prostředí, databáze Supabase a správy produktů pro 3 různé niku (doplňky stravy, kosmetika, elektro).
 * **Klíčové úkoly**:
-  - [ ] Inicializace Next.js 14/15 projektu s TypeScriptem, Tailwind CSS a Shadcn UI.
-  - [ ] Nastavení Supabase projektu (PostgreSQL databáze, Auth schéma, Row Level Security).
-  - [ ] Vytvoření produktového katalogu (CRUD pro doplňky stravy, kosmetiku, elektrospotřebiče).
-  - [ ] Databázový import a správa databáze kontaktů/leadů.
+  - [x] Inicializace Next.js 16 projektu s TypeScriptem, Tailwind CSS v4 a Lucide ikonami.
+  - [x] Nastavení Supabase projektu (PostgreSQL databáze, Auth schéma, Row Level Security).
+  - [x] Vytvoření produktového katalogu (CRUD pro doplňky stravy, kosmetiku, elektrospotřebiče).
+  - [x] Databázový import a správa databáze kontaktů/leadů.
 * **Výstup**: Plně funkční webová aplikace s přihlašováním a správou produktů a leadů.
 
 ---
@@ -18,21 +18,21 @@ Roadmapa rozděluje vývoj prototypu do 5 logických fází. Každá fáze stav�
 ## 🎙️ Fáze 2: Operátorský Pult & Telefonní Simulátor (Sprint 2)
 * **Cíl**: Vytvoření moderního rozhraní operátora (Agent Workspace) se simulátorem volání a živým přepisem řeči.
 * **Klíčové úkoly**:
-  - [ ] Návrh Agent Workspace (informace o zákazníkovi, produktová karta, ovládací prvky hovoru).
-  - [ ] Vývoj **Virtual Call Simulátoru** (simulace odchozího/příchozího hovoru s hlasovým testovacím vstupem).
-  - [ ] Integrace **Web Speech API** pro okamžitý přepis řeči operátora i simulovaného zákazníka.
-  - [ ] Supabase Realtime propojení pro okamžitou změnu stavu operátora (Volá, Přestávka, Po-hovorová práca).
+  - [x] Návrh Agent Workspace (informace o zákazníkovi, produktová karta, ovládací prvky hovoru).
+  - [x] Vývoj **Virtual Call Simulátoru** (simulace odchozího/příchozího hovoru s hlasovým testovacím vstupem).
+  - [x] Integrace **Web Speech API** pro okamžitý přepis řeči operátora i simulovaného zákazníka.
+  - [x] Supabase Realtime propojení pro okamžitou změnu stavu operátora (Volá, Přestávka, Po-hovorová práca).
 * **Výstup**: Operátor může zahájit simulovaný hovor a sledovat živý přepis řeči na obrazovce.
 
 ---
 
 ## 🧠 Fáze 3: AI Copilot & Objection Handling (Sprint 3)
-* **Cíl**: Zprovoznění AI mozku (Google Gemini Flash API zdarma), který živě radí operátorovi při prodeji a řešení námitek.
+* **Cíl**: Zprovoznění AI mozku (Google Gemini 2.5 Flash API), který živě radí operátorovi při prodeji a řešení námitek.
 * **Klíčové úkoly**:
-  - [ ] Integrace Google Gemini Flash 1.5/2.0 API serverless rozhraní.
-  - [ ] Vývoj **Objection Handling Engine**: Detekce zákaznických námitek z přepisu hovoru (např. cena, nedůvěra, zbytečnost).
-  - [ ] **Live Pitch Generator**: Generování prodejního skriptu na míru zákazníkovi podle typu produktu.
-  - [ ] **Cross-sell / Up-sell Recommender**: AI návrh doporučených produktů z jiných kategorií v reálném čase.
+  - [x] Integrace Google Gemini 2.5 Flash API serverless rozhraní.
+  - [x] Vývoj **Objection Handling Engine**: Detekce zákaznických námitek z přepisu hovoru (cena, nedůvěra, zbytečnost).
+  - [x] **Live Pitch Generator**: Generování prodejního skriptu na míru zákazníkovi podle typu produktu.
+  - [x] **Cross-sell / Up-sell Recommender**: AI návrh doporučených produktů z jiných kategorií v reálném čase.
 * **Výstup**: AI v reálném čase reaguje na přepis hovoru a nabízí operátorovi konkrétní odpovědi a produktové balíčky.
 
 ---
@@ -40,10 +40,10 @@ Roadmapa rozděluje vývoj prototypu do 5 logických fází. Každá fáze stav�
 ## 📝 Fáze 4: Po-hovorová Automatizace & Objednávky (Sprint 4)
 * **Cíl**: Automatické dokončení hovoru bez zbytečného papírování operátora.
 * **Klíčové úkoly**:
-  - [ ] **AI Auto-Summarization**: Automatický zápis klíčových bodů z hovoru po zavěšení.
-  - [ ] **Sentiment Analysis**: Vyhodnocení nálady zákazníka a jeho nákupního záměru.
-  - [ ] **Rychlé vytvoření objednávky**: Jednoklikový předvyplněný nákupní košík a generování faktury/potvrzení.
-  - [ ] Plánovač opakováných volání (Zavolat později / Připomínky).
+  - [x] **AI Auto-Summarization**: Automatický zápis klíčových bodů z hovoru po zavěšení.
+  - [x] **Sentiment Analysis**: Vyhodnocení nálady zákazníka a jeho nákupního záměru.
+  - [x] **Rychlé vytvoření objednávky**: Jednoklikový předvyplněný nákupní košík a generování faktury/potvrzení.
+  - [x] Plánovač opakováných volání (Zavolat později / Připomínky).
 * **Výstup**: Operátor po zavěšení zkontroluje AI zápis, jedním klikem potvrdí objednávku a může volat dalšímu zákazníkovi.
 
 ---
@@ -51,7 +51,37 @@ Roadmapa rozděluje vývoj prototypu do 5 logických fází. Každá fáze stav�
 ## 📈 Fáze 5: Analytický Manažerský Dashboard & Školení (Sprint 5)
 * **Cíl**: Manažerský přehled o výkonu call centra a nástroje pro trénink nových operátorů.
 * **Klíčové úkoly**:
-  - [ ] Manažerský dashboard s přehledem konverzí, tržeb podle produktových kategorií a úspěšnosti námitek.
-  - [ ] **AI Roleplay Simulator**: Režim simulace hovoru, kde AI hraje náročného zákazníka pro trénink nových operátorů.
-  - [ ] Exporty reportů a statistik.
-* **Výstup**: Kompletní end-to-end systém CRM připravený k prezentaci nebo nasazení do reálného testování.
+  - [x] Manažerský dashboard s přehledem konverzí, tržeb podle produktových kategorií a úspěšnosti námitek.
+  - [x] **AI Roleplay Simulator**: Režim simulace hovoru s hlasovou syntézou (TTS) a dynamickou psychologií zákazníka.
+  - [x] Exporty reportů a statistik.
+* **Výstup**: Kompletní end-to-end systém CRM s pokročilou analytikou a AI simulátorem.
+
+---
+
+## 🌐 Fáze 6: Omnichannel Timeline & AI Email/WhatsApp Generator (Sprint 6)
+* **Cíl**: Integrovaná 360° časová osa aktivit zákazníka a automatické odesílání follow-up zpráv.
+* **Klíčové úkoly**:
+  - [x] **Omnichannel Activity Timeline**: Jednotný feed hovorů, objednávek, SMS Pay-Linků a poznámek.
+  - [x] **AI Follow-up Dispatcher**: 1-klikové generování e-mailů a WhatsApp zpráv přes Gemini Flash API.
+  - [x] **Predictive Re-Order Engine**: Algoritmus plánující opakovací volání spotřebních produktů.
+* **Výstup**: Kompletní omnichannel historie zákazníka s okamžitým odesláním follow-upů.
+
+---
+
+## 🛡️ Fáze 7: Security Audit Log & Multi-Format Exporter (Sprint 7)
+* **Cíl**: Enterprise bezpečnostní dohled a profesionální tiskové a tabulkové výkazy.
+* **Klíčové úkoly**:
+  - [x] **Security Audit Log (`/audit`)**: Auditní deník operátorských aktivit s filtrováním závažnosti událostí.
+  - [x] **Multi-Format Report Generator**: Export do CSV, XLSX Excelu a stylizovaného PDF pro tisk.
+  - [x] **Call Transcripts Hub (`/calls`)**: Úložiště přepisů hovorů a export konverzačních dat pro fine-tuning AI.
+* **Výstup**: Bezpečnostně auditovaný systém s kompletními exportními možnostmi.
+
+---
+
+## 🤖 Fáze 8: Live Agent Simulator & VAD Hands-Free Dispatch (Sprint 8)
+* **Cíl**: Pokročilý tréninkový simulátor živého agenta s konfigurátorem a hlasovou detekcí aktivity.
+* **Klíčové úkoly**:
+  - [x] **Agent Simulator Configurator**: Nastavení nálady, osobnosti, typu produktu a cílů hovoru.
+  - [x] **Voice Activity Detection (VAD)**: Bezdotykové odesílání hlasu po dokončení mluvení.
+  - [x] **Live Teleprompter Reader**: Vizuální nápověda prodejního skriptu se zvýrazňováním fází hovoru.
+* **Výstup**: Plně hands-free simulátor se živou čtečkou skriptu pro špičkový trénink operátorů.

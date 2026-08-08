@@ -506,6 +506,82 @@ style: visual ui/ux refactoring (attio & linear monochrome design system)
 - Typografická kázeň (`font-mono`) pro všechna čísla, ceny ($), procenta (%), trvání hovorů a AHT metriky.
 - Kompaktnější padding pro vyšší datovou hustotu.
 
+---
+
+### ✅ HOTOVO: COMMIT-29 — Call Transcript Storage & JSON/CSV AI Learning Sync
+```
+feat: add call transcript storage and CSV/JSON sync modal for AI learning
+```
+**Co**: Úložiště přepisu hovorů v `/calls` s vyhodnocením sentimentu, detekovaných námitek a modalem pro export a synchronizaci JSON/CSV dat pro výuku AI.
+
+**Proč**: Manažeři a vývojáři potřebují přistupovat k historickým přepisům hovorů a exportovat strukturovaná konverzační data pro fine-tuning LLM modelů.
+
+**Jak**:
+- Stránka `/calls` s interaktivním prohledáváním přepisů hovorů a kartou detailního dialogu.
+- Modal synchronizace dat pro export v JSON/CSV formátu kompatibilním s trénovacími datasety Google Gemini.
+- Vyhodnocování rychlosti řeči (WPM), úspěšnosti obcházení námitek a konečného výstupu.
+
+---
+
+### ✅ HOTOVO: COMMIT-30 — Dynamic Customer Psychology & Distrustful Persona Simulator
+```
+feat: add distrustful customer personality type and mood to ai training simulator
+```
+**Co**: Rozšíření AI trenažéru o náročný zákaznický typ "Nedůvěřivý / Skeptik" a interaktivní ukazatel nálady a trpělivosti (Patience Gauge).
+
+**Proč**: Operátoři si musí vyzkoušet prodej v nejnáročnějších scénářích, kde zákazník aktivně zpochybňuje kvalitu a vyžaduje silné důkazy.
+
+**Jak**:
+- Nový osobnostní profil `distrustful` v `src/lib/training.ts`.
+- Dynamický výpočet poklesu/nárůstu trpělivosti podle kvality reakce operátora s rizikem předčasného zavěšení (Hang Up).
+- Odkrývání skrytých motivací nákupu při udržení vysoké spokojenosti zákazníka.
+
+---
+
+### ✅ HOTOVO: COMMIT-31 — Multi-Format CSV, Excel & Printable PDF Report Generator
+```
+feat: add multi-format csv, excel and printable pdf report generator with live preview
+```
+**Co**: Generátor profesionálních výkazů a reportů podporující okamžitý export do CSV, Excelu a tiskového PDF s živým náhledem (Live Preview).
+
+**Proč**: Umožňuje managementu a supervizorům 1-klikem generovat tištěné nebo tabulkové výkazy tržeb, konverzí a výkonu operátorů.
+
+**Jak**:
+- Náhledový modal reportů s přepínáním formátů (PDF Print Preview / Excel XLSX / CSV).
+- Generování stylizovaného PDF protokolu připraveného k okamžitému tisku přes systémový tiskový dialog.
+- Export tabulkových dat s garancí čisté datové struktury a správného kódování UTF-8.
+
+---
+
+### ✅ HOTOVO: COMMIT-32 — Enterprise Security Audit Log & Operator Activity Tracker
+```
+feat: add security audit log and operator activity tracker page with csv export
+```
+**Co**: Bezpečnostní Audit Log a stránka sledování aktivit operátorů (`/audit`) s filtrováním událostí podle závažnosti a CSV exportem.
+
+**Proč**: Zajištění enterprise bezpečnosti, plné auditovatelnosti systému a souladu s interními předpisy pro nakládání s klientskými daty.
+
+**Jak**:
+- Nová stránka `/audit` s přehledem bezpečnostních událostí (přihlášení, úpravy leadů, vytvoření objednávek, exporty dat).
+- Klasifikace závažnosti událostí (*Low / Medium / High / Critical*) s barevnými stavovými indikátory.
+- Datový modul `src/lib/audit.ts` a CSV exportér pro bezpečnostní auditory.
+
+---
+
+### ✅ HOTOVO: COMMIT-33 — Live Call Agent Simulator with Custom Configurator, VAD & Teleprompter
+```
+feat: add anytime accessible live call agent simulator with custom configurator, VAD hands-free dispatch and live teleprompter script reader
+```
+**Co**: Pokročilý živý simulátor agenty s vlastní konfigurací (osobnost, nálada, produkt), hlasovou detekcí aktivity (VAD) a živou čtečkou skriptu (Teleprompter Reader).
+
+**Proč**: Operátor si může kdykoliv nastavit libovolný zákaznický scénář a trénovat hovor v režimu hands-free se zobrazovanou nápovědou prodejního skriptu.
+
+**Jak**:
+- Konfigurátor simulátoru v `/training` (výběr produktu, nálady, osobnosti a cílů hovoru).
+- Integrovaná VAD (Voice Activity Detection) logika pro automatické odoslání repliky po dokončení mluvení bez nutnosti stisknutí tlačítka.
+- Živá čtečka skriptu (Teleprompter) zvýrazňující aktuální fázi rozhovoru a doporučené věty.
+
+
 
 
 

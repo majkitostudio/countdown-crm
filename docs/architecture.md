@@ -87,24 +87,47 @@ CRMs require flexible data presentation:
 
 ---
 
-## 📁 6. Codebase Architecture & Key File Directory
+## 🛡️ 6. Enterprise Security Audit & Omnichannel Messaging Architecture
+
+1. **Security Audit Log Engine (`src/lib/audit.ts`)**: Sleduje a zaznamenává veškeré akce operátorů (přihlášení, úpravy leadů, vytvoření objednávek, exporty). Klasifikuje události podle závažnosti (*Low / Medium / High / Critical*) s možností okamžitého CSV exportu na stránce `/audit`.
+2. **Omnichannel Messaging & Timeline (`src/lib/timeline.ts`)**: Propojuje historii hovorů, objednávek, SMS Pay-Linků a poznámek do 360° časové osy. Server Action `generateFollowupAction` v `src/app/actions/followup.ts` generuje personalizované e-maily a WhatsApp zprávy přes Gemini Flash.
+3. **AI Call Agent Simulator & Speech Engine (`src/lib/training.ts`)**: Propojuje Web Speech API (STT & TTS), VAD (Voice Activity Detection), živou čtečku skriptu (Teleprompter) a dynamickou psychologii zákazníka (Patience Gauge & Distrustful Persona).
+
+---
+
+## 📁 7. Codebase Architecture & Key File Directory
 
 ```
 src/
 ├── app/
-│   ├── leads/          # Views (Table & Kanban)
-│   ├── workflows/      # Visual Rule Builder & Audit Log
-│   ├── workspace/      # Tele-Sales Operator Console (Live AI Copilot)
-│   └── actions/        # Server Actions (Gemini API)
+│   ├── actions/        # Server Actions (Gemini Copilot, Follow-up, Training)
+│   ├── analytics/      # AI Executive Summary & Predictive Revenue Forecasting
+│   ├── audit/          # Enterprise Security Audit Log & Activity Tracker
+│   ├── calls/          # Call Transcripts Hub & JSON/CSV AI Learning Sync
+│   ├── leads/          # Views (Table & Kanban) with Multi-Attribute Filters
+│   ├── monitor/        # Live Multi-Operator Presence & Activity Ticker
+│   ├── objects/        # Dynamic Custom Object Records & Schema Views
+│   ├── products/       # Product Catalog & Custom Objection Script Builder
+│   ├── settings/       # Custom Object Builder & Battlecard Manager
+│   ├── training/       # AI Voice Roleplay Simulator & Live Call Agent Configurator
+│   ├── workflows/      # Visual Rule Builder & Webhook Integrations
+│   └── workspace/      # Tele-Sales Operator Console (Live AI Copilot & VAD)
 ├── components/
 │   ├── blueprints/     # BlueprintPickerModal
-│   ├── layout/         # Header (Cmd+K trigger & Blueprint badge), Sidebar, AppShell
-│   ├── views/          # ViewSwitcher, KanbanBoard, LeadsTable
-│   ├── workflows/      # RuleBuilderModal
-│   └── workspace/      # CustomerPanel (DynamicAttributesCard), AiCopilotPanel, PostCallSummaryCard
+│   ├── layout/         # Header (Cmd+K & Blueprint badge), Sidebar, AppShell
+│   ├── views/          # ViewSwitcher, KanbanBoard, LeadsTable, ReportGeneratorModal
+│   ├── workflows/      # RuleBuilderModal, WebhookNodeModal
+│   └── workspace/      # CustomerPanel, CustomerTimelineCard, AiCopilotPanel, PostCallSummaryCard
 └── lib/
-    ├── blueprints/     # types.ts, registry.ts, engine.ts (Storage Persistence)
-    ├── schema/         # types.ts, engine.ts (EAV Core), aiAttributes.ts (Gemini)
-    ├── supabase/       # client.ts, types.ts (PostgreSQL Integration & Fallback)
-    └── workflows/      # types.ts, engine.ts (Rule Evaluator & Audit Logger)
+    ├── audit.ts        # Enterprise Audit Log Event Engine
+    ├── blueprints/     # Blueprint Schema, Registry & Storage Engine
+    ├── objections.ts   # Custom Objection Scripts & Battlecard Registry
+    ├── schema/         # EAV Core Engine & Gemini AI Attributes
+    ├── speech.ts       # Speech Recognition & Voice Activity Detection (VAD)
+    ├── speechSynthesis.ts # Browser Text-to-Speech Engine
+    ├── supabase/       # PostgreSQL Client & TypeScript Database Definitions
+    ├── timeline.ts     # Omnichannel Activity Timeline Architecture
+    ├── training.ts     # AI Training Scenarios & Dynamic Customer Psychology
+    └── workflows/      # Rule Evaluator, Execution Engine & Audit Logger
 ```
+

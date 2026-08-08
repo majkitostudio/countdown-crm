@@ -79,20 +79,27 @@
 ---
 
 ## 🌐 FÁZE 14: Omnichannel Customer Timeline & WhatsApp / Email Messaging Hub
-- [ ] `feat(omnichannel): create Omnichannel Activity Timeline & Customer Messaging Hub (14.1)`
-- [ ] `feat(omnichannel): add AI Email & WhatsApp Follow-up Generator (14.2)`
+- [x] `feat(omnichannel): create Omnichannel Activity Timeline & Customer Messaging Hub (14.1)`
+- [x] `feat(omnichannel): add AI Email & WhatsApp Follow-up Generator (14.2)`
 
 ---
 
 ## 🎙️ FÁZE 15: Custom Objection Battlecard Studio & Real-Time Speech Coach
-- [ ] `feat(copilot): implement Custom Objection Script Builder & Battlecard Editor in Settings (15.1)`
-- [ ] `feat(copilot): add Real-Time Speech Rate & Tone Coach in Operator Console (15.2)`
+- [x] `feat(copilot): implement Custom Objection Script Builder & Battlecard Editor in Settings (15.1)`
+- [x] `feat(copilot): add Real-Time Speech Rate & Tone Coach in Operator Console (15.2)`
 
 ---
 
 ## 🛡️ FÁZE 16: Enterprise Security Audit Log & Executive PDF/Excel Exporter
-- [ ] `feat(audit): create Security Audit Log & Operator Activity Tracker (/audit) (16.1)`
-- [ ] `feat(export): add Multi-Format CSV / Excel / PDF Report Generator (16.2)`
+- [x] `feat(audit): create Security Audit Log & Operator Activity Tracker (/audit) (16.1)`
+- [x] `feat(export): add Multi-Format CSV / Excel / PDF Report Generator (16.2)`
+
+---
+
+## 🤖 FÁZE 17: Live Call Agent Simulator & Custom Configurator
+- [x] `feat(simulator): add Anytime Accessible Live Call Agent Simulator with Custom Configurator (17.1)`
+- [x] `feat(simulator): implement VAD Hands-Free Dispatch & Teleprompter Script Reader (17.2)`
+
 
 
 
