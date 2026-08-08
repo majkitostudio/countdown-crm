@@ -7,18 +7,23 @@ import { blueprintEngine } from "@/lib/blueprints/engine";
 import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerModal";
 import { OperatorPresenceBadge } from "./OperatorPresenceBadge";
 
+import { isDemoModeActive, setDemoMode } from "@/lib/demoMode";
+
 export function Header() {
   const [profile, setProfile] = useState<OperatorProfile | null>(null);
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
   const [activeBlueprintName, setActiveBlueprintName] = useState(
     blueprintEngine.getActiveBlueprint().name
   );
+  const [demoActive, setDemoActive] = useState<boolean>(true);
 
   useEffect(() => {
     setProfile(getOperatorProfile());
+    setDemoActive(isDemoModeActive());
 
     const handleStorageChange = () => {
       setProfile(getOperatorProfile());
+      setDemoActive(isDemoModeActive());
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -69,6 +74,24 @@ export function Header() {
 
         {/* Live Multi-Operator Presence */}
         <OperatorPresenceBadge />
+
+        {/* Demo Mode Toggle Badge */}
+        <button
+          onClick={() => {
+            const next = !demoActive;
+            setDemoActive(next);
+            setDemoMode(next);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-mono transition-all cursor-pointer ${
+            demoActive
+              ? "bg-amber-950/40 border-amber-800/80 text-amber-300"
+              : "bg-emerald-950/40 border-emerald-800/80 text-emerald-300"
+          }`}
+          title="Klikněte pro přepnutí mezi Sandbox Demo a Produkčním Supabase režimem"
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${demoActive ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
+          <span>{demoActive ? "Demo Sandbox" : "Production DB"}</span>
+        </button>
 
         {/* Live Indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
