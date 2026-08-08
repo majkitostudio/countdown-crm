@@ -16,6 +16,7 @@ import { addCallRecord } from "@/lib/calls";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
+import { softphoneController } from "@/lib/telephony/softphone";
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -66,6 +67,7 @@ function WorkspaceContent() {
 
     if (isCallActive || isDialing) {
       // Hang up — emit workflow event and save call record
+      softphoneController.hangup();
       setIsCallActive(false);
       setIsDialing(false);
       setOperatorStatus("ready");
@@ -106,6 +108,9 @@ function WorkspaceContent() {
       }
     } else {
       // Start Outbound Call
+      if (activeLead) {
+        softphoneController.dial(activeLead.id, activeLead.phone, activeLead.full_name);
+      }
       setIsDialing(true);
       setOperatorStatus("in_call");
       const stopTone = sounds.playDialTone();

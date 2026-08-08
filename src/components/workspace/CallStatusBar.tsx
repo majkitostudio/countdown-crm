@@ -129,15 +129,23 @@ export function CallStatusBar({
               </div>
             )}
 
-            {/* Active Call Live Banner */}
+            {/* Active Call Live Banner & Audio Waveform Visualizer */}
             {isCallActive && !isDialing && (
-              <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5">
+              <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
                 </span>
-                <span>Probíhá hovor • </span>
+                <span>WebRTC Live • </span>
                 <span className="font-mono text-zinc-100">{formatTimer(seconds)}</span>
+
+                {/* Live Micro-Waveform Bars */}
+                <div className="flex items-center gap-0.5 h-3.5 pl-2 border-l border-zinc-800">
+                  <div className="w-1 bg-emerald-500 rounded-full animate-bounce h-2" style={{ animationDelay: "0ms" }} />
+                  <div className="w-1 bg-emerald-400 rounded-full animate-bounce h-3.5" style={{ animationDelay: "150ms" }} />
+                  <div className="w-1 bg-emerald-500 rounded-full animate-bounce h-1.5" style={{ animationDelay: "300ms" }} />
+                  <div className="w-1 bg-emerald-400 rounded-full animate-bounce h-3" style={{ animationDelay: "450ms" }} />
+                </div>
               </div>
             )}
 
