@@ -639,6 +639,22 @@ feat(db): persist operator activity audit events and call transcripts into Supab
 - Propojení `addAuditLog` v `src/lib/audit.ts` s automatickým zápisem do Supabase tabulky `audit_logs`.
 - Aktualizace `addCallRecord` v `src/lib/calls.ts` o nahrávání přepisů konverzací v JSON formátu a AI sentimentu do tabulky `calls`.
 
+---
+
+### ✅ HOTOVO: COMMIT-38 — Strict Next.js Auth Middleware & Protected Route Guard
+```
+feat(auth): implement strict Next.js auth middleware and RBAC protection for all private routes
+```
+**Co**: Vytvoření `src/middleware.ts` pro automatickou obnovu autentizačních relací přes `@supabase/ssr` a ochranu privátních tras před neoprávněným přístupem.
+
+**Proč**: Zajištění, že nepřihlášení uživatelé nemohou přistupovat k operátorskému rozhraní, leadům, analytice ani nastavení CRM.
+
+**Jak**:
+- Soubor `src/middleware.ts` využívající `createServerClient` pro kontrolu aktivní uživatelské relace.
+- Automatický přesměrovávací guard neautorizovaných požadavků na `/login`.
+- Automatické přesměrování již přihlášených uživatelů z `/login` přímo do Operator Console (`/workspace`).
+
+
 
 
 
