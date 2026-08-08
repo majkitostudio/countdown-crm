@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/client";
+import { fetchProductsFromSupabase, createProductInSupabase } from "./supabase/ordersService";
 
 export type ProductCategory = "supplements" | "cosmetics" | "electronics";
 
@@ -206,25 +207,18 @@ export async function getProducts(options?: {
   inStockOnly?: boolean;
 }): Promise<Product[]> {
   try {
-    const supabase = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query = (supabase.from("products") as any).select("*");
-
-    if (options?.category && options.category !== "all") {
-      query = query.eq("category", options.category);
+    const data = await fetchProductsFromSupabase();
+    if (data && data.length > 0) {
+      let filtered = data.map((p) => ({
+        ...p,
+        objections: INITIAL_MOCK_OBJECTIONS[p.id] || [],
+      }));
+      if (options?.category && options.category !== "all") {
+        filtered = filtered.filter((p) => p.category === options.category);
+      }
+      return filtered;
     }
-
-    const { data, error } = await query;
-    if (error || !data || data.length === 0) {
-      return filterLocalProducts(options);
-    }
-
-    // Merge objections from local store if needed
-    const dbProducts = (data as Product[]).map((p) => ({
-      ...p,
-      objections: INITIAL_MOCK_OBJECTIONS[p.id] || [],
-    }));
-    return dbProducts;
+    return filterLocalProducts(options);
   } catch (err) {
     console.warn("Supabase products fetch failed, using mock products:", err);
     return filterLocalProducts(options);
@@ -278,21 +272,9 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     created_at: new Date().toISOString(),
   };
 
-  try {
-    const supabase = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("products") as any).insert({
-      title: newProd.title,
-      category: newProd.category,
-      price: newProd.price,
-      currency: newProd.currency,
-      description: newProd.description,
-      image_url: newProd.image_url,
-      in_stock: newProd.in_stock,
-    });
-  } catch (err) {
-    console.warn("Supabase create product skipped:", err);
-  }
+  createProductInSupabase(newProd).catch((err) =>
+    console.warn("Supabase create product skipped:", err)
+  );
 
   localProductsStore = [newProd, ...localProductsStore];
   saveLocalProducts(localProductsStore);

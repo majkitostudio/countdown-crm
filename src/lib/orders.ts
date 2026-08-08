@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/client";
+import { fetchOrdersFromSupabase, createOrderInSupabase } from "./supabase/ordersService";
 
 export interface Order {
   id: string;
@@ -66,13 +67,11 @@ let localOrdersStore: Order[] = loadLocalOrders();
  */
 export async function getOrders(): Promise<Order[]> {
   try {
-    const supabase = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("orders") as any).select("*");
-    if (error || !data || data.length === 0) {
-      return localOrdersStore;
+    const data = await fetchOrdersFromSupabase();
+    if (data && data.length > 0) {
+      return data;
     }
-    return data as Order[];
+    return localOrdersStore;
   } catch (err) {
     console.warn("Supabase fetch orders failed, using local store:", err);
     return localOrdersStore;
@@ -103,18 +102,9 @@ export async function createOrder(orderPayload: Partial<Order>): Promise<Order> 
     created_at: new Date().toISOString(),
   };
 
-  try {
-    const supabase = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("orders") as any).insert({
-      lead_id: newOrder.lead_id,
-      product_id: newOrder.product_id,
-      total_amount: newOrder.total_amount,
-      status: newOrder.status,
-    });
-  } catch (err) {
-    console.warn("Supabase insert order skipped:", err);
-  }
+  createOrderInSupabase(newOrder).catch((err) =>
+    console.warn("Supabase insert order skipped:", err)
+  );
 
   localOrdersStore = [newOrder, ...localOrdersStore];
   saveLocalOrders(localOrdersStore);
