@@ -696,6 +696,21 @@ feat(leads): create Supabase data access layer for Leads CRUD and real-time stat
 - Datová služba `src/lib/supabase/leadsService.ts` s funkcemi `fetchLeadsFromSupabase`, `createLeadInSupabase`, `updateLeadStatusInSupabase` a `deleteLeadFromSupabase`.
 - Aktualizace `getLeads` a `updateLead` v `src/lib/leads.ts`.
 
+---
+
+### ✅ HOTOVO: COMMIT-42 — Supabase Data Access Layer for Products & Orders Engine
+```
+feat(orders): create Supabase data access layer for Product Catalog and 1-Click Order Creation
+```
+**Co**: Vytvoření Supabase datové služby `src/lib/supabase/ordersService.ts` a propojení produktového katalogu (`src/lib/products.ts`) a objednávkového jádra (`src/lib/orders.ts`) pro přímé načítání a 1-click uložení objednávek v databázi.
+
+**Proč**: Tržby, položky nákupního košíku a historické objednávky se ukládají přímo do Supabase tabulek `products` a `orders`.
+
+**Jak**:
+- Datová služba `src/lib/supabase/ordersService.ts` s funkcemi `fetchProductsFromSupabase`, `createProductInSupabase`, `fetchOrdersFromSupabase` a `createOrderInSupabase`.
+- Propojení `getProducts`, `createProduct`, `getOrders` a `createOrder` s live Supabase dotazy.
+
+
 
 
 
