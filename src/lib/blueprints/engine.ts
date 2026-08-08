@@ -9,6 +9,7 @@ import { IndustryCategory, IndustryBlueprint } from "./types";
 import { INDUSTRY_BLUEPRINTS } from "./registry";
 import { schemaEngine } from "../schema/engine";
 import { workflowEngine } from "../workflows/engine";
+import { saveAttributeDefinitionToSupabase } from "../supabase/schemaService";
 
 const STORAGE_KEY = "countdown_active_blueprint";
 
@@ -75,11 +76,16 @@ class BlueprintEngine {
     this.activeBlueprintId = blueprintId;
     this.persistActiveBlueprint(blueprintId);
 
-    // 1. Inject custom attributes into 'leads' schema
+    // 1. Inject custom attributes into 'leads' schema (Local + Supabase)
     let addedAttributesCount = 0;
     blueprint.customAttributes.forEach((attr) => {
       const added = schemaEngine.addCustomAttribute("leads", attr);
-      if (added) addedAttributesCount++;
+      if (added) {
+        addedAttributesCount++;
+        saveAttributeDefinitionToSupabase("leads", attr).catch((err) => {
+          console.warn("[BlueprintEngine] Failed to save attribute to Supabase:", err);
+        });
+      }
     });
 
     // 2. Inject default workflow rules into WorkflowEngine
