@@ -610,6 +610,21 @@ feat(db): create Supabase data access layer for custom objects, dynamic attribut
 - Funkce `fetchCustomObjectsFromSupabase`, `saveCustomObjectToSupabase`, `saveAttributeDefinitionToSupabase`, `fetchRecordEntitiesFromSupabase`, `saveRecordEntityToSupabase` v `src/lib/supabase/schemaService.ts`.
 - Propojení metody `blueprintEngine.applyBlueprint` s automatickým uplatněním oborových atributů do Supabase.
 
+---
+
+### ✅ HOTOVO: COMMIT-36 — Supabase Data Access Layer for Agentic Workflows
+```
+feat(db): create Supabase data access layer for agentic workflow rules and execution audit logs
+```
+**Co**: Vytvoření Supabase datové služby `src/lib/supabase/workflowService.ts` a propojení runtime jádra `WorkflowEngine` pro perzistenci automatizačních pravidel a spuštěných auditních logů v databázi.
+
+**Proč**: Automatizační pravidla a jejich výsledky jsou dostupné pro celý tým a zapisují se přímo do Supabase tabulek `workflows` a `workflow_executions`.
+
+**Jak**:
+- Datová služba `src/lib/supabase/workflowService.ts` s funkcemi `fetchWorkflowsFromSupabase`, `saveWorkflowToSupabase`, `deleteWorkflowFromSupabase`, `fetchWorkflowExecutionsFromSupabase` a `saveWorkflowExecutionToSupabase`.
+- Integrace asynchronního uložení a mazání pravidel v CRUD metodách `WorkflowEngine`.
+
+
 
 
 
