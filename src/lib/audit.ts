@@ -1,5 +1,7 @@
 // src/lib/audit.ts
 
+import { saveAuditLogToSupabase } from "./supabase/auditService";
+
 export type AuditSeverity = "low" | "medium" | "high" | "critical";
 
 export type AuditActionType =
@@ -109,6 +111,11 @@ export function addAuditLog(entry: Omit<AuditLogEntry, "id" | "timestamp">): Aud
     timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
   };
   auditLogsStore = [newEntry, ...auditLogsStore];
+
+  saveAuditLogToSupabase(entry).catch((err) =>
+    console.warn("[audit] Failed to sync audit log to Supabase:", err)
+  );
+
   return newEntry;
 }
 

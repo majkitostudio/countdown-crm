@@ -161,12 +161,11 @@ export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promis
     const supabase = createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase.from("calls") as any).insert({
-      lead_id: newRecord.lead_id,
-      agent_name: newRecord.agent_name,
+      lead_id: newRecord.lead_id.startsWith("lead-") ? null : newRecord.lead_id,
       duration_seconds: newRecord.duration_seconds,
-      outcome: newRecord.outcome,
-      sentiment: newRecord.sentiment,
-      order_value: newRecord.order_value,
+      outcome: newRecord.outcome === "objection_handled" ? "completed" : newRecord.outcome,
+      transcript: JSON.stringify(newRecord.transcript),
+      ai_sentiment: newRecord.sentiment,
     });
   } catch (err) {
     console.warn("Supabase call insert skipped:", err);
