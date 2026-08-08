@@ -710,6 +710,21 @@ feat(orders): create Supabase data access layer for Product Catalog and 1-Click 
 - Datová služba `src/lib/supabase/ordersService.ts` s funkcemi `fetchProductsFromSupabase`, `createProductInSupabase`, `fetchOrdersFromSupabase` a `createOrderInSupabase`.
 - Propojení `getProducts`, `createProduct`, `getOrders` a `createOrder` s live Supabase dotazy.
 
+---
+
+### ✅ HOTOVO: COMMIT-43 — Tele-Sales Operator Console Integration with Supabase
+```
+feat(workspace): wire Tele-Sales Operator Console directly to Supabase DB
+```
+**Co**: Propojení operátorského pultu `/workspace` a 1-click objednávkového panelu `ProductOrderPanel.tsx` pro automatický zápis hovorů, vytvoření objednávek a aktualizaci stavu leadu na `customer` přímo v Supabase databázi.
+
+**Proč**: Zajišťuje, že veškerá práce operátora během živého hovoru (vytočení, výsledek, nákupní košík, posun ve frontě) je zapsána do produkční databáze.
+
+**Jak**:
+- Aktualizace `handlePlaceOrder` v `src/components/workspace/ProductOrderPanel.tsx` s automatickým voláním `updateLead(id, { status: "customer" })`.
+- Propojení událostí v `OperatorConsole` na live databázový zapisovací engine.
+
+
 
 
 
