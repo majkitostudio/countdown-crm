@@ -113,9 +113,69 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
   ],
 };
 
+import { createClient } from "./supabase/client";
+
 let timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
 
-export function getLeadTimeline(leadId: string): TimelineActivityEntry[] {
+export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
+  try {
+    const supabase = createClient() as any;
+
+    const [callsRes, ordersRes] = await Promise.all([
+      supabase.from("calls").select("*").eq("lead_id", leadId),
+      supabase.from("orders").select("*, products(title)").eq("lead_id", leadId),
+    ]);
+
+    const calls = callsRes.data || [];
+    const orders = ordersRes.data || [];
+
+    const dbEntries: TimelineActivityEntry[] = [];
+
+    calls.forEach((c: any) => {
+      dbEntries.push({
+        id: `tl-call-${c.id}`,
+        lead_id: leadId,
+        type: "call",
+        title: "Call Logged in Workspace",
+        description: `Duration: ${Math.round(c.duration_seconds / 60)}m ${c.duration_seconds % 60}s • Outcome: ${c.outcome} • Sentiment: ${c.ai_sentiment || "Neutral"}`,
+        operator_name: "Senior Agent",
+        timestamp: c.created_at,
+        metadata: {
+          call_duration_seconds: c.duration_seconds,
+          call_outcome: c.outcome,
+        },
+      });
+    });
+
+    orders.forEach((o: any) => {
+      dbEntries.push({
+        id: `tl-ord-${o.id}`,
+        lead_id: leadId,
+        type: "order",
+        title: `Order Completed ($${Number(o.total_amount).toFixed(2)})`,
+        description: o.products?.title || "Purchased Product Stack",
+        operator_name: "Senior Agent",
+        timestamp: o.created_at,
+        metadata: {
+          order_id: o.id,
+          order_value: Number(o.total_amount),
+        },
+      });
+    });
+
+    const local = timelineStore[leadId] || [];
+    const combined = [...dbEntries, ...local].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    return combined.length > 0 ? combined : getFallbackTimeline(leadId);
+  } catch (err) {
+    console.warn("[timeline] Supabase timeline fetch failed, using fallback:", err);
+    return getFallbackTimeline(leadId);
+  }
+}
+
+function getFallbackTimeline(leadId: string): TimelineActivityEntry[] {
   if (!timelineStore[leadId]) {
     timelineStore[leadId] = [
       {
@@ -143,7 +203,7 @@ export function addTimelineEntry(
     timestamp: new Date().toISOString(),
   };
 
-  const current = getLeadTimeline(leadId);
+  const current = timelineStore[leadId] || [];
   timelineStore[leadId] = [newEntry, ...current];
   return newEntry;
 }

@@ -33,7 +33,11 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
   const [isAddingNote, setIsAddingNote] = useState(false);
 
   useEffect(() => {
-    setEntries(getLeadTimeline(leadId));
+    async function loadTimeline() {
+      const res = await getLeadTimeline(leadId);
+      setEntries(res);
+    }
+    loadTimeline();
   }, [leadId]);
 
   const handleAddNote = (e: React.FormEvent) => {
