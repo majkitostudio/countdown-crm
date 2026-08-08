@@ -190,6 +190,217 @@ export interface Database {
           rebuttal_args?: string[];
         };
       };
+      custom_objects: {
+        Row: {
+          slug: string;
+          singular_name: string;
+          plural_name: string;
+          icon: string;
+          description: string | null;
+          created_at: string;
+        };
+        Insert: {
+          slug: string;
+          singular_name: string;
+          plural_name: string;
+          icon?: string;
+          description?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          singular_name?: string;
+          plural_name?: string;
+          icon?: string;
+          description?: string | null;
+        };
+      };
+      attribute_definitions: {
+        Row: {
+          id: string;
+          object_slug: string;
+          slug: string;
+          name: string;
+          data_type: string;
+          options: Json | null;
+          is_ai: boolean;
+          ai_prompt: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          object_slug: string;
+          slug: string;
+          name: string;
+          data_type: string;
+          options?: Json | null;
+          is_ai?: boolean;
+          ai_prompt?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          data_type?: string;
+          options?: Json | null;
+          is_ai?: boolean;
+          ai_prompt?: string | null;
+        };
+      };
+      record_entities: {
+        Row: {
+          id: string;
+          object_slug: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          object_slug: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          object_slug?: string;
+          updated_at?: string;
+        };
+      };
+      record_values: {
+        Row: {
+          id: string;
+          record_id: string;
+          attribute_slug: string;
+          value_json: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          record_id: string;
+          attribute_slug: string;
+          value_json: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          value_json?: Json;
+          updated_at?: string;
+        };
+      };
+      workflows: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          trigger_event: string;
+          conditions: Json;
+          actions: Json;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          trigger_event: string;
+          conditions?: Json;
+          actions?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          trigger_event?: string;
+          conditions?: Json;
+          actions?: Json;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+      };
+      workflow_executions: {
+        Row: {
+          id: string;
+          rule_id: string;
+          trigger_event: string;
+          status: string;
+          execution_time_ms: number;
+          logs: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          rule_id: string;
+          trigger_event: string;
+          status?: string;
+          execution_time_ms?: number;
+          logs?: Json;
+          created_at?: string;
+        };
+        Update: {
+          status?: string;
+          execution_time_ms?: number;
+          logs?: Json;
+        };
+      };
+      audit_logs: {
+        Row: {
+          id: string;
+          timestamp: string;
+          actor_id: string;
+          actor_name: string;
+          action: string;
+          target_resource: string;
+          details: string;
+          severity: string;
+          ip_address: string;
+        };
+        Insert: {
+          id?: string;
+          timestamp?: string;
+          actor_id: string;
+          actor_name: string;
+          action: string;
+          target_resource: string;
+          details: string;
+          severity?: string;
+          ip_address?: string;
+        };
+        Update: {
+          actor_id?: string;
+          actor_name?: string;
+          action?: string;
+          target_resource?: string;
+          details?: string;
+          severity?: string;
+          ip_address?: string;
+        };
+      };
+      user_gamification: {
+        Row: {
+          user_id: string;
+          level: number;
+          xp: number;
+          badges: Json;
+          stats: Json;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          level?: number;
+          xp?: number;
+          badges?: Json;
+          stats?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          level?: number;
+          xp?: number;
+          badges?: Json;
+          stats?: Json;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
