@@ -596,6 +596,21 @@ feat(schema): expand Supabase DDL schema with dynamic EAV tables, workflow rules
 - RLS politiky pro kontrolu přístupu podle rolí (`admin`, `manager`, `agent`).
 - Typové rozhraní `Database` v `src/lib/supabase/types.ts`.
 
+---
+
+### ✅ HOTOVO: COMMIT-35 — Supabase Data Access Layer for EAV Objects & Blueprints
+```
+feat(db): create Supabase data access layer for custom objects, dynamic attributes and blueprints
+```
+**Co**: Vytvoření Supabase datové služby `src/lib/supabase/schemaService.ts` a propojení `BlueprintEngine` pro perzistenci dynamických EAV objektů, definic vlastností a entit v databázi.
+
+**Proč**: Nahrazuje lokální perzistenci v prohlížeči (`localStorage`) centrální databázovou vrstvou Supabase, čímž zajišťuje stejný stav pro všechny členy týmu.
+
+**Jak**:
+- Funkce `fetchCustomObjectsFromSupabase`, `saveCustomObjectToSupabase`, `saveAttributeDefinitionToSupabase`, `fetchRecordEntitiesFromSupabase`, `saveRecordEntityToSupabase` v `src/lib/supabase/schemaService.ts`.
+- Propojení metody `blueprintEngine.applyBlueprint` s automatickým uplatněním oborových atributů do Supabase.
+
+
 
 
 
