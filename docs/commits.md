@@ -581,6 +581,22 @@ feat: add anytime accessible live call agent simulator with custom configurator,
 - Integrovaná VAD (Voice Activity Detection) logika pro automatické odoslání repliky po dokončení mluvení bez nutnosti stisknutí tlačítka.
 - Živá čtečka skriptu (Teleprompter) zvýrazňující aktuální fázi rozhovoru a doporučené věty.
 
+---
+
+### ✅ HOTOVO: COMMIT-34 — Single Source of Truth: Supabase DDL Schema Expansion
+```
+feat(schema): expand Supabase DDL schema with dynamic EAV tables, workflow rules, audit logs and gamification
+```
+**Co**: Rozšíření DDL schématu Supabase databáze (`supabase/schema.sql`) a TypeScript typových definic (`src/lib/supabase/types.ts`) o 8 nových tabulek pro EAV dynamické objekty, automatizační pravidla (Workflows), audit log a gamifikaci s RLS politikami.
+
+**Proč**: Pokládá základy pro přechod z lokální perzistence (`localStorage`) na jediný autoritativní databázový zdroj pravdy pro celý tým.
+
+**Jak**:
+- DDL skript v `supabase/schema.sql` definující tabulky `custom_objects`, `attribute_definitions`, `record_entities`, `record_values`, `workflows`, `workflow_executions`, `audit_logs` a `user_gamification`.
+- RLS politiky pro kontrolu přístupu podle rolí (`admin`, `manager`, `agent`).
+- Typové rozhraní `Database` v `src/lib/supabase/types.ts`.
+
+
 
 
 
