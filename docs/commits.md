@@ -765,6 +765,21 @@ feat(telephony): create WebAudio API PCM Worklet & Softphone Audio State Engine
 **Jak**:
 - Třída `TelephonyAudioEngine` se správou `AudioContext`, `ScriptProcessorNode` a vyhlazením frekvenčního spektra v `AnalyserNode`.
 
+---
+
+### ✅ HOTOVO: COMMIT-47 — Native WebRTC Softphone Call Controller & Signaling Manager
+```
+feat(telephony): build native WebRTC Softphone Call Controller and Signaling Manager
+```
+**Co**: Vytvoření modulu `src/lib/telephony/softphone.ts` pro řízení životního cyklu hovoru operátora (`dial`, `answer`, `hangup`, `hold`, `mute`, `sendDtmf`).
+
+**Proč**: Zajišťuje kompletní stavový stroj softphonu se sledováním délky hovoru v sekundách a vysíláním událostí (PubSub events) pro UI rozhraní.
+
+**Jak**:
+- Třída `WebRtcSoftphoneController` s metodami `dial()`, `answer()`, `hangup()`, `toggleMute()`, `toggleHold()`, `sendDtmf()`.
+- Propojení s `audioEngine` pro nativní sběr audia během živého hovoru.
+
+
 
 
 
