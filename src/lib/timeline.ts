@@ -115,7 +115,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
 
 import { createClient } from "./supabase/client";
 
-let timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
+const timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
 
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
   try {

@@ -212,7 +212,7 @@ export function evaluateTrainingSession(
   const userMessages = history.filter((m) => m.sender === "user");
   const totalUserWords = userMessages.reduce((acc, m) => acc + m.text.split(" ").length, 0);
 
-  let objectionHandlingScore = 80;
+  const objectionHandlingScore = 80;
   let empathyScore = 85;
   let complianceScore = 100;
   let closingScore = 75;

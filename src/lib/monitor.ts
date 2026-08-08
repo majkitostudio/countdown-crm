@@ -67,7 +67,7 @@ export const INITIAL_MOCK_OPERATORS: LiveOperatorState[] = [
   },
 ];
 
-let liveOperatorsStore: LiveOperatorState[] = [...INITIAL_MOCK_OPERATORS];
+const liveOperatorsStore: LiveOperatorState[] = [...INITIAL_MOCK_OPERATORS];
 
 /**
  * Retrieves real-time operator status for team monitor
