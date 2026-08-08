@@ -1,5 +1,6 @@
 import { createClient } from "./supabase/client";
 import { Database } from "./supabase/types";
+import { fetchLeadsFromSupabase, updateLeadStatusInSupabase } from "./supabase/leadsService";
 
 export type LeadStatus = "new" | "contacted" | "qualified" | "customer" | "unresponsive";
 
@@ -276,7 +277,6 @@ function saveLocalLeads(leads: Lead[]): void {
 // In-memory store for demo persistence synced with localStorage
 let localLeadsStore: Lead[] = loadLocalLeads();
 
-
 /**
  * Fetch all leads with optional status filter, search query, and sorting
  */
@@ -286,25 +286,11 @@ export async function getLeads(options?: {
   sortBy?: "name" | "score" | "created";
 }): Promise<Lead[]> {
   try {
-    const supabase = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query = (supabase.from("leads") as any).select("*");
-
-    if (options?.status && options.status !== "all") {
-      query = query.eq("status", options.status);
+    const data = await fetchLeadsFromSupabase(options);
+    if (data && data.length > 0) {
+      return data;
     }
-
-    if (options?.search) {
-      const s = `%${options.search}%`;
-      query = query.or(`full_name.ilike.${s},email.ilike.${s},phone.ilike.${s},city.ilike.${s}`);
-    }
-
-    const { data, error } = await query;
-    if (error || !data || data.length === 0) {
-      // Fallback to local store if Supabase returned empty/error
-      return filterAndSortLocalLeads(options);
-    }
-    return data as Lead[];
+    return filterAndSortLocalLeads(options);
   } catch (err) {
     console.warn("Supabase fetch failed, fallback to local leads store:", err);
     return filterAndSortLocalLeads(options);
@@ -414,16 +400,10 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
     saveLocalLeads(localLeadsStore);
   }
 
-  try {
-    const supabase = createClient();
-    const updatePayload = {
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("leads") as any).update(updatePayload).eq("id", id);
-  } catch (err) {
-    console.warn("Supabase update skipped:", err);
+  if (updates.status) {
+    updateLeadStatusInSupabase(id, updates.status).catch((err) =>
+      console.warn("Supabase update lead status failed:", err)
+    );
   }
 
   return localLeadsStore[index] || null;
