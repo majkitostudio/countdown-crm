@@ -724,6 +724,21 @@ feat(workspace): wire Tele-Sales Operator Console directly to Supabase DB
 - Aktualizace `handlePlaceOrder` v `src/components/workspace/ProductOrderPanel.tsx` s automatickým voláním `updateLead(id, { status: "customer" })`.
 - Propojení událostí v `OperatorConsole` na live databázový zapisovací engine.
 
+---
+
+### ✅ HOTOVO: COMMIT-44 — Omnichannel Timeline Integration with Supabase DB
+```
+feat(timeline): persist Omnichannel Customer Activity Timeline events into Supabase DB
+```
+**Co**: Přepsání `getLeadTimeline` v `src/lib/timeline.ts` a `CustomerTimelineCard.tsx` na dynamické sestavování 360° časové osy z tabulek `calls`, `orders` a `audit_logs` v Supabase databázi.
+
+**Proč**: Operátor vidí kompletní, pravdivou 360° historii zákazníka v reálném čase vytvořenou přímo z databázových záznamů.
+
+**Jak**:
+- Přesup `getLeadTimeline` v `src/lib/timeline.ts` na asynchronní Supabase agregaci nad tabulkami `calls` a `orders`.
+- Aktualizace `useEffect` v `CustomerTimelineCard.tsx`.
+
+
 
 
 
