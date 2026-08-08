@@ -738,6 +738,21 @@ feat(timeline): persist Omnichannel Customer Activity Timeline events into Supab
 - Přesup `getLeadTimeline` v `src/lib/timeline.ts` na asynchronní Supabase agregaci nad tabulkami `calls` a `orders`.
 - Aktualizace `useEffect` v `CustomerTimelineCard.tsx`.
 
+---
+
+### ✅ HOTOVO: COMMIT-45 — Attio ViewSwitcher & Kanban Board Live Supabase EAV Data
+```
+feat(views): integrate Attio ViewSwitcher and Kanban board with live Supabase EAV data
+```
+**Co**: Propojení komponent `KanbanBoard.tsx`, `LeadsTable.tsx` a `FilterEngineBar.tsx` s live Supabase EAV databázovou službou a podporu dynamických posunů etap (Stage Progression).
+
+**Proč**: Posun leadu na Kanban nástěnce okamžitě aktualizuje stav v databázi Supabase a přepočítá agregované metriky sloupců (Sum $, Avg AI Score).
+
+**Jak**:
+- Aktualizace `handleMoveStage` v `src/components/views/KanbanBoard.tsx`.
+- Integrováno dynamické filtrování v `src/app/leads/page.tsx`.
+
+
 
 
 
