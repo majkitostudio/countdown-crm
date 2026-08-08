@@ -13,11 +13,9 @@ import {
   X,
   Activity,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   ExecutionLogEntry,
   ACTION_REGISTRY,
-  TRIGGER_REGISTRY,
 } from "@/lib/workflows/types";
 
 // ─── Props ──────────────────────────────────────────────────────────────────

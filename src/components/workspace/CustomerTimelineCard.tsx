@@ -10,9 +10,6 @@ import {
   RefreshCw,
   Plus,
   Send,
-  MessageSquare,
-  CheckCircle2,
-  ChevronRight,
   ExternalLink
 } from "lucide-react";
 import {

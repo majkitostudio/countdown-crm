@@ -117,48 +117,52 @@ import { createClient } from "./supabase/client";
 
 const timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
 
+import { Database } from "./supabase/types";
+
+type CallRow = Database["public"]["Tables"]["calls"]["Row"];
+type OrderWithProduct = Database["public"]["Tables"]["orders"]["Row"] & { products?: { title: string } | null };
+
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
   try {
-    const supabase = createClient() as any;
+    const supabase = createClient();
 
     const [callsRes, ordersRes] = await Promise.all([
       supabase.from("calls").select("*").eq("lead_id", leadId),
       supabase.from("orders").select("*, products(title)").eq("lead_id", leadId),
     ]);
 
-    const calls = callsRes.data || [];
-    const orders = ordersRes.data || [];
+    const calls = (callsRes.data || []) as CallRow[];
+    const orders = (ordersRes.data || []) as unknown as OrderWithProduct[];
 
     const dbEntries: TimelineActivityEntry[] = [];
 
-    calls.forEach((c: any) => {
+    calls.forEach((c) => {
       dbEntries.push({
         id: `tl-call-${c.id}`,
         lead_id: leadId,
         type: "call",
         title: "Call Logged in Workspace",
-        description: `Duration: ${Math.round(c.duration_seconds / 60)}m ${c.duration_seconds % 60}s • Outcome: ${c.outcome} • Sentiment: ${c.ai_sentiment || "Neutral"}`,
+        description: `Duration: ${Math.round((c.duration_seconds || 0) / 60)}m ${(c.duration_seconds || 0) % 60}s • Outcome: ${c.outcome} • Sentiment: ${c.ai_sentiment || "Neutral"}`,
         operator_name: "Senior Agent",
         timestamp: c.created_at,
         metadata: {
-          call_duration_seconds: c.duration_seconds,
+          call_duration_seconds: c.duration_seconds || 0,
           call_outcome: c.outcome,
         },
       });
     });
 
-    orders.forEach((o: any) => {
+    orders.forEach((o) => {
       dbEntries.push({
         id: `tl-ord-${o.id}`,
         lead_id: leadId,
         type: "order",
-        title: `Order Completed ($${Number(o.total_amount).toFixed(2)})`,
+        title: `Order Completed ($${Number(o.total_amount || 0).toFixed(2)})`,
         description: o.products?.title || "Purchased Product Stack",
         operator_name: "Senior Agent",
         timestamp: o.created_at,
         metadata: {
-          order_id: o.id,
-          order_value: Number(o.total_amount),
+          order_value: Number(o.total_amount || 0),
         },
       });
     });

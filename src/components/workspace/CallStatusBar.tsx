@@ -8,7 +8,6 @@ import {
   MicOff,
   Pause,
   Play,
-  Clock,
   ChevronDown,
   PhoneIncoming,
   Radio,
@@ -16,7 +15,6 @@ import {
   PhoneMissed,
   XCircle,
   ShoppingBag,
-  UserCheck
 } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 
@@ -50,16 +48,16 @@ export function CallStatusBar({
   const [isOnHold, setIsOnHold] = useState(false);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isCallActive && !isOnHold) {
-      interval = setInterval(() => {
-        setSeconds((prev) => prev + 1);
-      }, 1000);
-    } else if (!isCallActive) {
-      setSeconds(0);
-    }
+    if (!isCallActive || isOnHold) return;
+
+    const interval = setInterval(() => {
+      setSeconds((prev) => prev + 1);
+    }, 1000);
+
     return () => clearInterval(interval);
   }, [isCallActive, isOnHold]);
+
+  const displaySeconds = isCallActive ? seconds : 0;
 
   const formatTimer = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
@@ -137,7 +135,7 @@ export function CallStatusBar({
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
                 </span>
                 <span>WebRTC Live • </span>
-                <span className="font-mono text-zinc-100">{formatTimer(seconds)}</span>
+                <span className="font-mono text-zinc-100">{formatTimer(displaySeconds)}</span>
 
                 {/* Live Micro-Waveform Bars */}
                 <div className="flex items-center gap-0.5 h-3.5 pl-2 border-l border-zinc-800">

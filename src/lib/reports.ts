@@ -15,7 +15,7 @@ export interface ReportDefinition {
   data: ReportRow[];
 }
 
-export function getReportData(type: ReportType, range: DateRange): ReportDefinition {
+export function getReportData(type: ReportType, _range: DateRange): ReportDefinition {
   switch (type) {
     case "sales":
       return {

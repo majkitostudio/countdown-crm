@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/client";
+import { Database } from "./supabase/types";
 
 export interface WeeklySalesPoint {
   day: string;
@@ -85,26 +86,28 @@ export const MOCK_ANALYTICS_DATA: AnalyticsOverview = {
   ],
 };
 
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+
 /**
  * Retrieves manager BI analytics data computed directly from Supabase DB
  */
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
   try {
-    const supabase = createClient() as any;
+    const supabase = createClient();
 
     const [ordersRes, callsRes] = await Promise.all([
       supabase.from("orders").select("*"),
       supabase.from("calls").select("*"),
     ]);
 
-    const orders = ordersRes.data || [];
+    const orders = (ordersRes.data || []) as OrderRow[];
     const calls = callsRes.data || [];
 
     if (orders.length === 0 && calls.length === 0) {
       return MOCK_ANALYTICS_DATA;
     }
 
-    const totalRevenue = orders.reduce((acc: number, o: any) => acc + Number(o.total_amount || 0), 0);
+    const totalRevenue = orders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
     const totalCalls = calls.length || 1;
     const completedOrdersCount = orders.length;
     const avgOrderValue = completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TrendingUp, Activity, Smile, Frown, AlertCircle, Sparkles } from "lucide-react";
+import { TrendingUp, Activity, Smile, AlertCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface SentimentSegment {

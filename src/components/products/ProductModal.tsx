@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Package, DollarSign, Image as ImageIcon, Tag, Check } from "lucide-react";
+import { X, Package, Check } from "lucide-react";
 import { Product, ProductCategory, createProduct, updateProduct } from "@/lib/products";
 
 interface ProductModalProps {
@@ -23,25 +23,29 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (product) {
-      setTitle(product.title);
-      setCategory(product.category);
-      setPrice(product.price);
-      setCurrency(product.currency || "USD");
-      setDescription(product.description);
-      setImageUrl(product.image_url);
-      setStockCount(product.stock_count ?? 50);
-      setInStock(product.in_stock);
-    } else {
-      setTitle("");
-      setCategory("supplements");
-      setPrice(49.99);
-      setCurrency("USD");
-      setDescription("");
-      setImageUrl("https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=600&q=80");
-      setStockCount(50);
-      setInStock(true);
-    }
+    if (!isOpen) return;
+    const timer = setTimeout(() => {
+      if (product) {
+        setTitle(product.title);
+        setCategory(product.category);
+        setPrice(product.price);
+        setCurrency(product.currency || "USD");
+        setDescription(product.description);
+        setImageUrl(product.image_url);
+        setStockCount(product.stock_count ?? 50);
+        setInStock(product.in_stock);
+      } else {
+        setTitle("");
+        setCategory("supplements");
+        setPrice(49.99);
+        setCurrency("USD");
+        setDescription("");
+        setImageUrl("https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=600&q=80");
+        setStockCount(50);
+        setInStock(true);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [product, isOpen]);
 
   if (!isOpen) return null;

@@ -18,7 +18,6 @@ import {
   WorkflowAction,
   ExecutionLogEntry,
   ExecutionStatus,
-  WorkflowEventPayload,
 } from "./types";
 import {
   saveWorkflowToSupabase,

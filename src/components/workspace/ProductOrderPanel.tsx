@@ -3,18 +3,11 @@
 import React, { useState } from "react";
 import {
   ShoppingCart,
-  Package,
   Plus,
   Minus,
   CheckCircle2,
-  DollarSign,
-  Calendar,
-  FileText,
   Sparkles,
-  ArrowRight,
-  Layers,
-  Zap,
-  Tag
+  Zap
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Lead, updateLead } from "@/lib/leads";
@@ -53,19 +46,17 @@ export function ProductOrderPanel({
   };
 
 
-  React.useEffect(() => {
-    if (products.length > 0 && !selectedProductId) {
-      setSelectedProductId(products[0].id);
-    }
-  }, [products, selectedProductId]);
+  const lastPitchRef = React.useRef<string | undefined>(undefined);
 
   React.useEffect(() => {
-    if (appliedPitch) {
+    if (appliedPitch && appliedPitch !== lastPitchRef.current) {
+      lastPitchRef.current = appliedPitch;
       setWrapUpNotes((prev) => (prev ? `${prev}\n• ${appliedPitch}` : `• ${appliedPitch}`));
     }
   }, [appliedPitch]);
 
-  const selectedProduct = products.find((p) => p.id === selectedProductId) || products[0];
+  const effectiveProductId = selectedProductId || products[0]?.id || "";
+  const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];
 
   const crossSellRecs = getCrossSellRecommendations(selectedProduct, products);
   const topRec: Recommendation | undefined = crossSellRecs[0];
@@ -308,11 +299,20 @@ export function ProductOrderPanel({
 
           <button
             onClick={handleSendPayLinkSms}
-            disabled={!activeLead}
+            disabled={!activeLead || isSmsSent}
             className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 disabled:opacity-50 text-zinc-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Zap className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Send SMS Pay-Link</span>
+            {isSmsSent ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-400 font-medium">SMS Odeslána</span>
+              </>
+            ) : (
+              <>
+                <Zap className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Send SMS Pay-Link</span>
+              </>
+            )}
           </button>
         </div>
       </div>

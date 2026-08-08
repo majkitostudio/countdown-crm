@@ -155,7 +155,6 @@ export function RuleBuilderModal({
   };
 
   const canProceedStep1 = name.trim().length > 0;
-  const canProceedStep2 = true; // Conditions are optional
   const canSave = actions.length > 0;
 
   // ── Render ─────────────────────────────────────────────────────────────

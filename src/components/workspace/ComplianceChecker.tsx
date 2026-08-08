@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck, ShieldAlert, AlertTriangle, Info, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, ShieldAlert } from "lucide-react";
 import { ComplianceViolation } from "@/lib/compliance";
 
 interface ComplianceCheckerProps {

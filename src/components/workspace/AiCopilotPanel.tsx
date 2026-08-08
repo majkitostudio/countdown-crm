@@ -5,7 +5,6 @@ import {
   Sparkles,
   ShieldAlert,
   Volume2,
-  TrendingUp,
   ArrowRight,
   Mic,
   Globe,
@@ -60,7 +59,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   const [isResolved, setIsResolved] = useState(false);
   const [complianceViolations, setComplianceViolations] = useState<ComplianceViolation[]>([]);
 
-  const [heatmapSegments, setHeatmapSegments] = useState<SentimentSegment[]>([
+  const [heatmapSegments] = useState<SentimentSegment[]>([
     { timeLabel: "0:15", sentiment: "Neutral", score: 80 },
     { timeLabel: "0:45", sentiment: "Price Objection", score: 92 },
     { timeLabel: "1:30", sentiment: "Price Objection", score: 88 },
@@ -102,29 +101,32 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   // Reset transcript and analysis on activeLead change
   useEffect(() => {
     if (activeLead) {
-      setTranscript([
-        {
-          id: `t-init-${activeLead.id}`,
-          speaker: "agent",
-          text: `Dobrý den, tady Alex z Countdown CRM. Mluvím s ${activeLead.full_name}?`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        },
-      ]);
-      setAnalysisResult({
-        sentiment: "Price Objection",
-        detectedObjection: "Price is too high compared to pharmacy vitamins",
-        confidenceScore: 92,
-        rebuttalArguments: [
-          "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
-          "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
-          "Emphasize 30-day money-back guarantee with zero risk."
-        ],
-        nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
-        aiSource: "gemini-flash"
-      });
-      setIsResolved(false);
+      const timer = setTimeout(() => {
+        setTranscript([
+          {
+            id: `t-init-${activeLead.id}`,
+            speaker: "agent",
+            text: `Dobrý den, tady Alex z Countdown CRM. Mluvím s ${activeLead.full_name}?`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          },
+        ]);
+        setAnalysisResult({
+          sentiment: "Price Objection",
+          detectedObjection: "Price is too high compared to pharmacy vitamins",
+          confidenceScore: 92,
+          rebuttalArguments: [
+            "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
+            "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
+            "Emphasize 30-day money-back guarantee with zero risk."
+          ],
+          nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
+          aiSource: "gemini-flash"
+        });
+        setIsResolved(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [activeLead?.id]);
+  }, [activeLead]);
 
   // Auto scroll transcript to bottom
   useEffect(() => {
@@ -145,7 +147,10 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     const agentText = transcript.filter((t) => t.speaker === "agent").map((t) => t.text).join(" ");
     if (agentText) {
       const violations = checkCompliance(agentText);
-      setComplianceViolations(violations);
+      const timer = setTimeout(() => {
+        setComplianceViolations(violations);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [transcript]);
 
@@ -153,15 +158,18 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   useEffect(() => {
     if (micTranscript.trim()) {
       const lastLine = micTranscript.trim();
-      setTranscript((prev) => [
-        ...prev,
-        {
-          id: `t-mic-${Date.now()}`,
-          speaker: "agent",
-          text: lastLine,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        },
-      ]);
+      const timer = setTimeout(() => {
+        setTranscript((prev) => [
+          ...prev,
+          {
+            id: `t-mic-${Date.now()}`,
+            speaker: "agent",
+            text: lastLine,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          },
+        ]);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [micTranscript]);
 
@@ -217,10 +225,6 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
       sentiment: "Positive",
       nextBestAction: "Objection resolved! Proceed to checkout in right panel.",
     }));
-  };
-
-  const getSentimentBadge = (s: CopilotAnalysisResult["sentiment"]) => {
-    return "bg-zinc-900 text-zinc-300 border-zinc-800";
   };
 
   return (

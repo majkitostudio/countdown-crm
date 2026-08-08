@@ -37,9 +37,9 @@ export function ReportGeneratorModal({ isOpen, onClose }: ReportGeneratorModalPr
   const [selectedRange, setSelectedRange] = useState<DateRange>("month");
   const [downloadSuccessToast, setDownloadSuccessToast] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  const report = React.useMemo(() => getReportData(selectedType, selectedRange), [selectedType, selectedRange]);
 
-  const report = getReportData(selectedType, selectedRange);
+  if (!isOpen) return null;
 
   const handleExport = (format: ExportFormat) => {
     const filename = `countdown_crm_${selectedType}_${selectedRange}_${Date.now()}`;

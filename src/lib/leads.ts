@@ -1,5 +1,4 @@
 import { createClient } from "./supabase/client";
-import { Database } from "./supabase/types";
 import { fetchLeadsFromSupabase, updateLeadStatusInSupabase } from "./supabase/leadsService";
 
 export type LeadStatus = "new" | "contacted" | "qualified" | "customer" | "unresponsive";

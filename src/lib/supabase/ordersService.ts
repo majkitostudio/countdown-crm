@@ -1,13 +1,22 @@
 import { createClient } from "./client";
+import { Database } from "./types";
 import { Product, ProductCategory } from "../products";
 import { Order } from "../orders";
+
+type ProductRow = Database["public"]["Tables"]["products"]["Row"];
+type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+
+function getDb() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createClient() as any;
+}
 
 /**
  * Supabase Data Access Service for Products Catalog & Sales Orders
  */
 
 export async function fetchProductsFromSupabase(): Promise<Product[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data, error } = await supabase
     .from("products")
@@ -18,7 +27,7 @@ export async function fetchProductsFromSupabase(): Promise<Product[]> {
     return [];
   }
 
-  return (data as any[]).map((p) => ({
+  return (data as ProductRow[]).map((p) => ({
     id: p.id,
     title: p.title,
     category: p.category as ProductCategory,
@@ -32,7 +41,7 @@ export async function fetchProductsFromSupabase(): Promise<Product[]> {
 }
 
 export async function createProductInSupabase(product: Partial<Product>): Promise<Product | null> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const payload = {
     title: product.title || "New Product",
@@ -55,21 +64,23 @@ export async function createProductInSupabase(product: Partial<Product>): Promis
     return null;
   }
 
+  const typed = data as ProductRow;
+
   return {
-    id: data.id,
-    title: data.title,
-    category: data.category as ProductCategory,
-    price: Number(data.price),
-    currency: data.currency,
-    description: data.description || "",
-    image_url: data.image_url || "",
-    in_stock: data.in_stock,
-    created_at: data.created_at,
+    id: typed.id,
+    title: typed.title,
+    category: typed.category as ProductCategory,
+    price: Number(typed.price),
+    currency: typed.currency,
+    description: typed.description || "",
+    image_url: typed.image_url || "",
+    in_stock: typed.in_stock,
+    created_at: typed.created_at,
   };
 }
 
 export async function fetchOrdersFromSupabase(): Promise<Order[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data, error } = await supabase
     .from("orders")
@@ -80,11 +91,11 @@ export async function fetchOrdersFromSupabase(): Promise<Order[]> {
     return [];
   }
 
-  return (data as any[]).map((o) => ({
+  return (data as unknown as (OrderRow & { leads?: { full_name: string } | null; products?: { title: string } | null })[]).map((o) => ({
     id: o.id,
-    lead_id: o.lead_id,
+    lead_id: o.lead_id || "",
     lead_name: o.leads?.full_name || "Customer",
-    product_id: o.product_id,
+    product_id: o.product_id || "",
     product_title: o.products?.title || "Product Package",
     total_amount: Number(o.total_amount || 0),
     status: o.status as Order["status"],
@@ -94,7 +105,7 @@ export async function fetchOrdersFromSupabase(): Promise<Order[]> {
 }
 
 export async function createOrderInSupabase(orderPayload: Partial<Order>): Promise<Order | null> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const payload = {
     lead_id: orderPayload.lead_id && !orderPayload.lead_id.startsWith("lead-") ? orderPayload.lead_id : null,
@@ -103,7 +114,6 @@ export async function createOrderInSupabase(orderPayload: Partial<Order>): Promi
     status: orderPayload.status || "completed",
   };
 
-  // If lead_id or product_id are fallback strings, attempt insert without strict FK check or fallback
   const { data, error } = await supabase
     .from("orders")
     .insert({
@@ -120,15 +130,17 @@ export async function createOrderInSupabase(orderPayload: Partial<Order>): Promi
     return null;
   }
 
+  const typed = data as OrderRow;
+
   return {
-    id: data.id,
+    id: typed.id,
     lead_id: orderPayload.lead_id || "lead-1",
     lead_name: orderPayload.lead_name || "Customer",
     product_id: orderPayload.product_id || "prod-1",
     product_title: orderPayload.product_title || "Product Package",
-    total_amount: Number(data.total_amount),
-    status: data.status as Order["status"],
+    total_amount: Number(typed.total_amount),
+    status: typed.status as Order["status"],
     agent_name: orderPayload.agent_name || "Senior Agent",
-    created_at: data.created_at,
+    created_at: typed.created_at,
   };
 }

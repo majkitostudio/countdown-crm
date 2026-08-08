@@ -40,13 +40,17 @@ export function useSpeechRecognition(initialLang: SpeechLanguage = "cs-CZ") {
   const [transcript, setTranscript] = useState<string>("");
   const [interimTranscript, setInterimTranscript] = useState<string>("");
   const [language, setLanguage] = useState<SpeechLanguage>(initialLang);
-  const [isSupported, setIsSupported] = useState<boolean>(true);
+  const [isSupported] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+    return !!(w.SpeechRecognition || w.webkitSpeechRecognition);
+  });
   const [error, setError] = useState<string | null>(null);
 
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !isSupported) return;
 
     const windowWithSpeech = window as unknown as {
       SpeechRecognition?: new () => ISpeechRecognition;
@@ -56,7 +60,6 @@ export function useSpeechRecognition(initialLang: SpeechLanguage = "cs-CZ") {
     const SpeechClass = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
 
     if (!SpeechClass) {
-      setIsSupported(false);
       return;
     }
 
@@ -99,7 +102,6 @@ export function useSpeechRecognition(initialLang: SpeechLanguage = "cs-CZ") {
       recognitionRef.current = recognition;
     } catch (err) {
       console.warn("Failed to initialize SpeechRecognition:", err);
-      setIsSupported(false);
     }
   }, [language]);
 

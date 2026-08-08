@@ -1,11 +1,22 @@
 import { createClient } from "./client";
+import { Database } from "./types";
 import { ObjectSchema, AttributeDefinition, RecordEntity } from "../schema/types";
+
+type CustomObjectRow = Database["public"]["Tables"]["custom_objects"]["Row"];
+type AttributeDefinitionRow = Database["public"]["Tables"]["attribute_definitions"]["Row"];
+type RecordEntityRow = Database["public"]["Tables"]["record_entities"]["Row"];
+type RecordValueRow = Database["public"]["Tables"]["record_values"]["Row"];
+
+function getDb() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createClient() as any;
+}
 
 /**
  * Supabase Service for Attio-Grade Dynamic Schemas, EAV Custom Attributes & Records
  */
 export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data: objects, error: objError } = await supabase
     .from("custom_objects")
@@ -23,10 +34,10 @@ export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> 
     console.warn("[schemaService] Failed to load attribute definitions from Supabase:", attrError);
   }
 
-  const result: ObjectSchema[] = objects.map((obj: any) => {
-    const objectAttrs = (attrs || [])
-      .filter((a: any) => a.object_slug === obj.slug)
-      .map((a: any) => {
+  const result: ObjectSchema[] = (objects as CustomObjectRow[]).map((obj) => {
+    const objectAttrs = (attrs as AttributeDefinitionRow[] || [])
+      .filter((a) => a.object_slug === obj.slug)
+      .map((a) => {
         let optionsArray = undefined;
         if (a.options && Array.isArray(a.options)) {
           optionsArray = a.options as Array<{ label: string; value: string; color?: string }>;
@@ -63,7 +74,7 @@ export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> 
 }
 
 export async function saveCustomObjectToSupabase(schema: ObjectSchema): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error: objError } = await supabase.from("custom_objects").upsert({
     slug: schema.slug,
@@ -105,7 +116,7 @@ export async function saveAttributeDefinitionToSupabase(
   objectSlug: string,
   attr: AttributeDefinition
 ): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error } = await supabase.from("attribute_definitions").upsert({
     object_slug: objectSlug,
@@ -126,7 +137,7 @@ export async function saveAttributeDefinitionToSupabase(
 }
 
 export async function fetchRecordEntitiesFromSupabase(objectSlug: string): Promise<RecordEntity[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data: entities, error: entError } = await supabase
     .from("record_entities")
@@ -137,7 +148,8 @@ export async function fetchRecordEntitiesFromSupabase(objectSlug: string): Promi
     return [];
   }
 
-  const recordIds = (entities as any[]).map((e) => e.id);
+  const typedEntities = entities as RecordEntityRow[];
+  const recordIds = typedEntities.map((e) => e.id);
 
   const { data: values, error: valError } = await supabase
     .from("record_values")
@@ -148,9 +160,11 @@ export async function fetchRecordEntitiesFromSupabase(objectSlug: string): Promi
     console.warn("[schemaService] Failed to load record values from Supabase:", valError);
   }
 
-  const records: RecordEntity[] = (entities as any[]).map((e) => {
+  const typedValues = (values || []) as RecordValueRow[];
+
+  const records: RecordEntity[] = typedEntities.map((e) => {
     const recordVals: Record<string, unknown> = {};
-    ((values as any[]) || [])
+    typedValues
       .filter((v) => v.record_id === e.id)
       .forEach((v) => {
         recordVals[v.attribute_slug] = v.value_json;
@@ -172,7 +186,7 @@ export async function saveRecordEntityToSupabase(
   objectSlug: string,
   values: Record<string, unknown>
 ): Promise<RecordEntity | null> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data: entity, error: entError } = await supabase
     .from("record_entities")
@@ -185,8 +199,10 @@ export async function saveRecordEntityToSupabase(
     return null;
   }
 
+  const typedEntity = entity as RecordEntityRow;
+
   const valueRows = Object.entries(values).map(([attrSlug, val]) => ({
-    record_id: (entity as any).id,
+    record_id: typedEntity.id,
     attribute_slug: attrSlug,
     value_json: JSON.parse(JSON.stringify(val ?? null)),
   }));
@@ -199,10 +215,10 @@ export async function saveRecordEntityToSupabase(
   }
 
   return {
-    id: (entity as any).id,
+    id: typedEntity.id,
     schemaSlug: objectSlug,
     values,
-    createdAt: (entity as any).created_at,
-    updatedAt: (entity as any).updated_at,
+    createdAt: typedEntity.created_at,
+    updatedAt: typedEntity.updated_at,
   };
 }

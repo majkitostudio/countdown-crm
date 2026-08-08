@@ -1,4 +1,4 @@
-import { ObjectSchema, AttributeDefinition, RecordEntity } from "./types";
+import { ObjectSchema, AttributeDefinition } from "./types";
 
 const SCHEMA_STORAGE_KEY = "countdown_custom_schemas";
 

@@ -1,6 +1,6 @@
-import { getOrders, Order } from "./orders";
-import { getLeads, Lead } from "./leads";
-import { getProducts, Product } from "./products";
+import { getOrders } from "./orders";
+import { getLeads } from "./leads";
+import { getProducts } from "./products";
 
 export interface ReorderOpportunity {
   id: string;

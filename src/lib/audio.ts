@@ -51,7 +51,7 @@ class SoundEffects {
         osc2.stop();
         osc1.disconnect();
         osc2.disconnect();
-      } catch (err) {
+      } catch {
         // Ignore if already stopped
       }
     };

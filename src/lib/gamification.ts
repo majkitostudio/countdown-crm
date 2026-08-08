@@ -94,7 +94,7 @@ function getDefaultProfile(): OperatorProfile {
   };
 }
 
-export function addOperatorXp(xp: number, reason: string): { newProfile: OperatorProfile; leveledUp: boolean } {
+export function addOperatorXp(xp: number, _reason: string): { newProfile: OperatorProfile; leveledUp: boolean } {
   const profile = getOperatorProfile();
   let currentXp = profile.currentXp + xp;
   let level = profile.level;
@@ -142,6 +142,10 @@ export function unlockAchievement(achievementId: string): { newProfile: Operator
     ...profile,
     achievements: updatedAchievements,
   };
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProfile));
+  }
 
   const { newProfile } = addOperatorXp(newlyUnlocked.xpReward, `Unlocked achievement: ${newlyUnlocked.title}`);
   return { newProfile, newlyUnlocked };

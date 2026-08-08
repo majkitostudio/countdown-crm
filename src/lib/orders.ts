@@ -1,4 +1,3 @@
-import { createClient } from "./supabase/client";
 import { fetchOrdersFromSupabase, createOrderInSupabase } from "./supabase/ordersService";
 
 export interface Order {

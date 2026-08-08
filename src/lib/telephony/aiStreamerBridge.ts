@@ -1,5 +1,4 @@
 import { audioEngine } from "./audioEngine";
-import { analyzeTranscriptWithGemini, CopilotAnalysisResult } from "../gemini";
 
 export interface LiveAudioAiEvent {
   transcriptSnippet: string;

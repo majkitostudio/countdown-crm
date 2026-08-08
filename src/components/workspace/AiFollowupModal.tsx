@@ -9,9 +9,7 @@ import {
   CheckCircle2,
   Send,
   X,
-  Zap,
-  RefreshCw,
-  ExternalLink
+  RefreshCw
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { Product } from "@/lib/products";
@@ -69,7 +67,10 @@ export function AiFollowupModal({
 
   useEffect(() => {
     if (isOpen && lead) {
-      handleGenerate();
+      const timer = setTimeout(() => {
+        void handleGenerate();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, channel, goal, lead?.id]);
 

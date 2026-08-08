@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/client";
+import { Database } from "./supabase/types";
 
 export interface TranscriptEntry {
   speaker: "agent" | "customer";
@@ -112,18 +113,30 @@ function saveLocalCalls(calls: CallRecord[]): void {
 
 let localCallsStore: CallRecord[] = loadLocalCalls();
 
+type CallRow = Database["public"]["Tables"]["calls"]["Row"];
+
 /**
  * Fetch all call records
  */
 export async function getCalls(): Promise<CallRecord[]> {
   try {
     const supabase = createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("calls") as any).select("*");
+    const { data, error } = await supabase.from("calls").select("*");
     if (error || !data || data.length === 0) {
       return localCallsStore;
     }
-    return data as CallRecord[];
+    return (data as CallRow[]).map((c) => ({
+      id: c.id,
+      lead_id: c.lead_id || "lead-1",
+      lead_name: "Customer",
+      agent_name: "Operator",
+      duration_seconds: c.duration_seconds || 120,
+      outcome: (c.outcome as CallRecord["outcome"]) || "followup_scheduled",
+      sentiment: (c.ai_sentiment as CallRecord["sentiment"]) || "Neutral",
+      order_value: 0,
+      transcript: c.transcript ? JSON.parse(c.transcript) : [],
+      created_at: c.created_at,
+    }));
   } catch (err) {
     console.warn("Supabase fetch calls failed, using local store:", err);
     return localCallsStore;
@@ -158,9 +171,9 @@ export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promis
   };
 
   try {
-    const supabase = createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("calls") as any).insert({
+    const supabase = createClient() as any;
+    await supabase.from("calls").insert({
       lead_id: newRecord.lead_id.startsWith("lead-") ? null : newRecord.lead_id,
       duration_seconds: newRecord.duration_seconds,
       outcome: newRecord.outcome === "objection_handled" ? "completed" : newRecord.outcome,

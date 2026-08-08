@@ -1,5 +1,13 @@
 import { createClient } from "./client";
+import { Database } from "./types";
 import { Lead, LeadStatus, calculateAiLeadScore } from "../leads";
+
+type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+
+function getDb() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createClient() as any;
+}
 
 /**
  * Supabase Data Access Service for Leads & Customer Directory
@@ -10,7 +18,7 @@ export async function fetchLeadsFromSupabase(options?: {
   search?: string;
   sortBy?: "name" | "score" | "created";
 }): Promise<Lead[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   let query = supabase.from("leads").select("*");
 
@@ -37,7 +45,7 @@ export async function fetchLeadsFromSupabase(options?: {
     return [];
   }
 
-  return (data as any[]).map((l) => ({
+  return (data as LeadRow[]).map((l) => ({
     id: l.id,
     full_name: l.full_name,
     phone: l.phone,
@@ -56,7 +64,7 @@ export async function fetchLeadsFromSupabase(options?: {
 }
 
 export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | null> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const score = lead.ai_score || calculateAiLeadScore(lead);
   const payload = {
@@ -81,26 +89,28 @@ export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | 
     return null;
   }
 
+  const typedData = data as LeadRow;
+
   return {
-    id: data.id,
-    full_name: data.full_name,
-    phone: data.phone,
-    email: data.email || null,
-    city: data.city || null,
-    country: data.country || "CZ",
-    status: data.status as LeadStatus,
-    ai_score: data.ai_score,
-    notes: data.notes || null,
-    company: data.company || null,
-    value: data.value || 500,
-    last_contacted_at: data.created_at,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
+    id: typedData.id,
+    full_name: typedData.full_name,
+    phone: typedData.phone,
+    email: typedData.email || null,
+    city: typedData.city || null,
+    country: typedData.country || "CZ",
+    status: typedData.status as LeadStatus,
+    ai_score: typedData.ai_score,
+    notes: typedData.notes || null,
+    company: typedData.company || null,
+    value: typedData.value || 500,
+    last_contacted_at: typedData.created_at,
+    created_at: typedData.created_at,
+    updated_at: typedData.updated_at,
   };
 }
 
 export async function updateLeadStatusInSupabase(id: string, status: LeadStatus): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error } = await supabase
     .from("leads")
@@ -116,7 +126,7 @@ export async function updateLeadStatusInSupabase(id: string, status: LeadStatus)
 }
 
 export async function deleteLeadFromSupabase(id: string): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error } = await supabase.from("leads").delete().eq("id", id);
 

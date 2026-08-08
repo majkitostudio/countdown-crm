@@ -7,12 +7,7 @@ import {
   Plus,
   Trash2,
   Check,
-  Sparkles,
   Layers,
-  FileText,
-  Hash,
-  ListFilter,
-  ToggleLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";
@@ -32,7 +27,7 @@ export function ObjectBuilderModal({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
-  const [iconName, setIconName] = useState("Database");
+  const [iconName] = useState("Database");
 
   const [attributes, setAttributes] = useState<AttributeDefinition[]>([
     {

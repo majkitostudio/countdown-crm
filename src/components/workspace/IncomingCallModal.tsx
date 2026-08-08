@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Phone, PhoneOff, Sparkles, Building, MapPin, X } from "lucide-react";
+import { Phone, PhoneOff, MapPin, X } from "lucide-react";
 import { Lead } from "@/lib/leads";
 
 interface IncomingCallModalProps {

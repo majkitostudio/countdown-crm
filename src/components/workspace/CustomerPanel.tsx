@@ -2,17 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  User,
   Phone,
   Mail,
   MapPin,
   Building,
   Sparkles,
   DollarSign,
-  Clock,
   History,
-  CheckCircle,
-  FileText,
   ChevronDown,
   ShoppingBag
 } from "lucide-react";
@@ -65,10 +61,6 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
       </div>
     );
   }
-
-  const getScoreColor = (score: number) => {
-    return "text-zinc-200 border-zinc-800 bg-zinc-900";
-  };
 
   return (
     <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-5 flex flex-col h-full overflow-y-auto">

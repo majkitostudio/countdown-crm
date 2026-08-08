@@ -1,12 +1,21 @@
 import { createClient } from "./client";
+import { Database } from "./types";
 import { WorkflowRule, ExecutionLogEntry } from "../workflows/types";
+
+type WorkflowRow = Database["public"]["Tables"]["workflows"]["Row"];
+type ExecutionRow = Database["public"]["Tables"]["workflow_executions"]["Row"];
+
+function getDb() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createClient() as any;
+}
 
 /**
  * Supabase Data Access Service for Agentic Workflows & Execution Audit Logs
  */
 
 export async function fetchWorkflowsFromSupabase(): Promise<WorkflowRule[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data, error } = await supabase
     .from("workflows")
@@ -17,21 +26,21 @@ export async function fetchWorkflowsFromSupabase(): Promise<WorkflowRule[]> {
     return [];
   }
 
-  return (data as any[]).map((w) => ({
+  return (data as WorkflowRow[]).map((w) => ({
     id: w.id,
     name: w.name,
     description: w.description || "",
     enabled: w.is_active,
-    trigger: w.trigger_event as any,
-    conditions: (w.conditions || []) as any,
-    actions: (w.actions || []) as any,
+    trigger: w.trigger_event as WorkflowRule["trigger"],
+    conditions: (w.conditions || []) as unknown as WorkflowRule["conditions"],
+    actions: (w.actions || []) as unknown as WorkflowRule["actions"],
     createdAt: w.created_at,
     updatedAt: w.updated_at,
   }));
 }
 
 export async function saveWorkflowToSupabase(rule: WorkflowRule): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error } = await supabase.from("workflows").upsert({
     id: rule.id.startsWith("rule-") ? undefined : rule.id,
@@ -53,7 +62,7 @@ export async function saveWorkflowToSupabase(rule: WorkflowRule): Promise<boolea
 }
 
 export async function deleteWorkflowFromSupabase(ruleId: string): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error } = await supabase.from("workflows").delete().eq("id", ruleId);
 
@@ -66,7 +75,7 @@ export async function deleteWorkflowFromSupabase(ruleId: string): Promise<boolea
 }
 
 export async function fetchWorkflowExecutionsFromSupabase(): Promise<ExecutionLogEntry[]> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { data, error } = await supabase
     .from("workflow_executions")
@@ -78,21 +87,24 @@ export async function fetchWorkflowExecutionsFromSupabase(): Promise<ExecutionLo
     return [];
   }
 
-  return (data as any[]).map((e) => ({
-    id: e.id,
-    ruleId: e.rule_id,
-    ruleName: e.workflows?.name || "Workflow Rule",
-    trigger: e.trigger_event as any,
-    status: e.status as any,
-    executedActions: (e.logs?.actions || []) as any,
-    eventPayload: (e.logs?.payload || {}) as any,
-    errorMessage: e.logs?.error || undefined,
-    executedAt: e.created_at,
-  }));
+  return (data as unknown as (ExecutionRow & { workflows?: { name: string } | null })[]).map((e) => {
+    const logsObj = (e.logs as Record<string, unknown>) || {};
+    return {
+      id: e.id,
+      ruleId: e.rule_id || "",
+      ruleName: e.workflows?.name || "Workflow Rule",
+      trigger: e.trigger_event as ExecutionLogEntry["trigger"],
+      status: e.status as ExecutionLogEntry["status"],
+      executedActions: (logsObj.actions || []) as unknown as ExecutionLogEntry["executedActions"],
+      eventPayload: (logsObj.payload || {}) as unknown as ExecutionLogEntry["eventPayload"],
+      errorMessage: (logsObj.error as string) || undefined,
+      executedAt: e.created_at,
+    };
+  });
 }
 
 export async function saveWorkflowExecutionToSupabase(entry: ExecutionLogEntry): Promise<boolean> {
-  const supabase = createClient() as any;
+  const supabase = getDb();
 
   const { error } = await supabase.from("workflow_executions").insert({
     rule_id: entry.ruleId.startsWith("rule-") ? null : entry.ruleId,

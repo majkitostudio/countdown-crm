@@ -39,6 +39,7 @@ export interface Database {
           avatar_url?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       leads: {
         Row: {
@@ -51,6 +52,8 @@ export interface Database {
           status: "new" | "contacted" | "qualified" | "customer" | "unresponsive";
           ai_score: number;
           notes: string | null;
+          company?: string | null;
+          value?: number;
           created_at: string;
           updated_at: string;
         };
@@ -64,6 +67,8 @@ export interface Database {
           status?: "new" | "contacted" | "qualified" | "customer" | "unresponsive";
           ai_score?: number;
           notes?: string | null;
+          company?: string | null;
+          value?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -76,8 +81,11 @@ export interface Database {
           status?: "new" | "contacted" | "qualified" | "customer" | "unresponsive";
           ai_score?: number;
           notes?: string | null;
+          company?: string | null;
+          value?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -111,6 +119,7 @@ export interface Database {
           image_url?: string | null;
           in_stock?: boolean;
         };
+        Relationships: [];
       };
       calls: {
         Row: {
@@ -141,12 +150,13 @@ export interface Database {
           transcript?: string | null;
           ai_sentiment?: string | null;
         };
+        Relationships: [];
       };
       orders: {
         Row: {
           id: string;
-          lead_id: string;
-          product_id: string;
+          lead_id: string | null;
+          product_id: string | null;
           agent_id: string | null;
           total_amount: number;
           status: "completed" | "pending" | "cancelled";
@@ -154,20 +164,21 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          lead_id: string;
-          product_id: string;
+          lead_id?: string | null;
+          product_id?: string | null;
           agent_id?: string | null;
           total_amount: number;
           status?: "completed" | "pending" | "cancelled";
           created_at?: string;
         };
         Update: {
-          lead_id?: string;
-          product_id?: string;
+          lead_id?: string | null;
+          product_id?: string | null;
           agent_id?: string | null;
           total_amount?: number;
           status?: "completed" | "pending" | "cancelled";
         };
+        Relationships: [];
       };
       objections: {
         Row: {
@@ -189,6 +200,7 @@ export interface Database {
           objection_title?: string;
           rebuttal_args?: string[];
         };
+        Relationships: [];
       };
       custom_objects: {
         Row: {
@@ -213,6 +225,7 @@ export interface Database {
           icon?: string;
           description?: string | null;
         };
+        Relationships: [];
       };
       attribute_definitions: {
         Row: {
@@ -244,6 +257,7 @@ export interface Database {
           is_ai?: boolean;
           ai_prompt?: string | null;
         };
+        Relationships: [];
       };
       record_entities: {
         Row: {
@@ -262,6 +276,7 @@ export interface Database {
           object_slug?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       record_values: {
         Row: {
@@ -284,6 +299,7 @@ export interface Database {
           value_json?: Json;
           updated_at?: string;
         };
+        Relationships: [];
       };
       workflows: {
         Row: {
@@ -317,11 +333,12 @@ export interface Database {
           is_active?: boolean;
           updated_at?: string;
         };
+        Relationships: [];
       };
       workflow_executions: {
         Row: {
           id: string;
-          rule_id: string;
+          rule_id: string | null;
           trigger_event: string;
           status: string;
           execution_time_ms: number;
@@ -330,7 +347,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          rule_id: string;
+          rule_id?: string | null;
           trigger_event: string;
           status?: string;
           execution_time_ms?: number;
@@ -342,6 +359,7 @@ export interface Database {
           execution_time_ms?: number;
           logs?: Json;
         };
+        Relationships: [];
       };
       audit_logs: {
         Row: {
@@ -375,6 +393,7 @@ export interface Database {
           severity?: string;
           ip_address?: string;
         };
+        Relationships: [];
       };
       user_gamification: {
         Row: {
@@ -400,6 +419,7 @@ export interface Database {
           stats?: Json;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
   };
