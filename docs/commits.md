@@ -682,6 +682,21 @@ feat(analytics): replace mock analytics with real Supabase SQL aggregations and 
 - SQL agregace nad tabulkami `orders` a `calls` v `src/lib/analytics.ts`.
 - Automatický fallback na bezpečný sandbox v případě prázdné databáze.
 
+---
+
+### ✅ HOTOVO: COMMIT-41 — Supabase Data Access Layer for Leads & Customer Directory
+```
+feat(leads): create Supabase data access layer for Leads CRUD and real-time status updates
+```
+**Co**: Vytvoření Supabase datové služby `src/lib/supabase/leadsService.ts` a propojení `getLeads` a `updateLead` v `src/lib/leads.ts` pro přímé vyhledávání, vytváření a aktualizace stavů leadů v databázi.
+
+**Proč**: Zajišťuje, že databáze zákazníků a kontaktní seznam jsou synchronizované v reálném čase pro celý tým.
+
+**Jak**:
+- Datová služba `src/lib/supabase/leadsService.ts` s funkcemi `fetchLeadsFromSupabase`, `createLeadInSupabase`, `updateLeadStatusInSupabase` a `deleteLeadFromSupabase`.
+- Aktualizace `getLeads` a `updateLead` v `src/lib/leads.ts`.
+
+
 
 
 
