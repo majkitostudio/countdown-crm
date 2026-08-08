@@ -792,6 +792,20 @@ feat(telephony): integrate Real-Time Gemini AI Audio Streamer Bridge for live tr
 **Jak**:
 - Třída `RealTimeAiAudioStreamerBridge` s funkcí `subscribe()` pro registraci posluchačů a periodickým zpracováním audio bufferu.
 
+---
+
+### ✅ HOTOVO: COMMIT-49 — Native WebRTC Softphone UI & Audio Waveform Visualizer
+```
+feat(workspace): embed Custom WebRTC Softphone Dialer UI into Operator Console
+```
+**Co**: Propojení komponenty `CallStatusBar.tsx` a `/workspace` s `softphoneController` a integrace dynamického Audio Waveform Visualizeru (animovaná zvuková vlna) z mikrofonu operátora.
+
+**Proč**: Operátor dostává vizuální zpětnou vazbu o funkčnosti mikrofonu a má k dispozici ovladače Mute, Hold a tlačítka výsledku hovoru v jednom pultu.
+
+**Jak**:
+- Doplnění animovaného vizualizátoru zvukové vlny v `src/components/workspace/CallStatusBar.tsx`.
+- Volání `softphoneController.dial()` a `softphoneController.hangup()` v `src/app/workspace/page.tsx`.
+
 
 
 
