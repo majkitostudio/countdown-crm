@@ -752,6 +752,20 @@ feat(views): integrate Attio ViewSwitcher and Kanban board with live Supabase EA
 - Aktualizace `handleMoveStage` v `src/components/views/KanbanBoard.tsx`.
 - Integrováno dynamické filtrování v `src/app/leads/page.tsx`.
 
+---
+
+### ✅ HOTOVO: COMMIT-46 — WebAudio API PCM Worklet & Audio State Engine
+```
+feat(telephony): create WebAudio API PCM Worklet & Softphone Audio State Engine
+```
+**Co**: Vytvoření modulu `src/lib/telephony/audioEngine.ts` pro nativní řízení mikrofonu prohlížeče, potlačení ozvěny/šumu, zisk (GainNode), zjišťování hlasitosti (RMS metering) a generování 16kHz PCM audio chunků pro AI Gemini streamer.
+
+**Proč**: Poskytuje vlastní zvukové jádro (WebAudio API Engine) bez závislosti na proprietárních SDK třetích stran.
+
+**Jak**:
+- Třída `TelephonyAudioEngine` se správou `AudioContext`, `ScriptProcessorNode` a vyhlazením frekvenčního spektra v `AnalyserNode`.
+
+
 
 
 
