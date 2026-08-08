@@ -654,6 +654,21 @@ feat(auth): implement strict Next.js auth middleware and RBAC protection for all
 - Automatický přesměrovávací guard neautorizovaných požadavků na `/login`.
 - Automatické přesměrování již přihlášených uživatelů z `/login` přímo do Operator Console (`/workspace`).
 
+---
+
+### ✅ HOTOVO: COMMIT-39 — Explicit Demo Mode Toggle & Data Isolation Guard
+```
+feat(core): add explicit Demo Mode toggle and data isolation guard
+```
+**Co**: Vytvoření modulu `src/lib/demoMode.ts` a tlačítkového štítku v hlavičce aplikace (`src/components/layout/Header.tsx`) pro přepínání mezi **Demo Sandbox** a **Production DB** režimem.
+
+**Proč**: Zajišťuje bezpečné oddělení simulovaného AI trenažéru a testovacích hovorů od živé databáze Supabase, čímž brání znečištění produkčních dat.
+
+**Jak**:
+- Modul `src/lib/demoMode.ts` s funkcemi `isDemoModeActive` a `setDemoMode`.
+- Attio-style stavové tlačítko v hlavičce s pulzující kontrolkou (`Demo Sandbox / Production DB`).
+
+
 
 
 
