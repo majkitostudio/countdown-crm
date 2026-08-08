@@ -668,6 +668,21 @@ feat(core): add explicit Demo Mode toggle and data isolation guard
 - Modul `src/lib/demoMode.ts` s funkcemi `isDemoModeActive` a `setDemoMode`.
 - Attio-style stavové tlačítko v hlavičce s pulzující kontrolkou (`Demo Sandbox / Production DB`).
 
+---
+
+### ✅ HOTOVO: COMMIT-40 — Real Supabase SQL Aggregations & Manager BI Metrics
+```
+feat(analytics): replace mock analytics with real Supabase SQL aggregations and live metrics
+```
+**Co**: Přepsání datové funkce `getAnalyticsData()` v `src/lib/analytics.ts` na živé databázové dotazy nad Supabase tabulkami `orders` a `calls`.
+
+**Proč**: Manažerský BI analytický panel a 30-denní předpověď revenue již nevycházejí ze statických mock dat, ale dynamicky počítají reálné tržby, AHT a konverzní poměr z databáze.
+
+**Jak**:
+- SQL agregace nad tabulkami `orders` a `calls` v `src/lib/analytics.ts`.
+- Automatický fallback na bezpečný sandbox v případě prázdné databáze.
+
+
 
 
 
