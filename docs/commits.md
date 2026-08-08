@@ -806,6 +806,20 @@ feat(workspace): embed Custom WebRTC Softphone Dialer UI into Operator Console
 - Doplnění animovaného vizualizátoru zvukové vlny v `src/components/workspace/CallStatusBar.tsx`.
 - Volání `softphoneController.dial()` a `softphoneController.hangup()` v `src/app/workspace/page.tsx`.
 
+---
+
+### ✅ HOTOVO: COMMIT-50 — SIP / VoIP Gateway Adapter Interface
+```
+feat(telephony): create SIP/VoIP Gateway Adapter interface for Asterisk & Telco SIP Trunks
+```
+**Co**: Vytvoření modulu `src/lib/telephony/sipAdapter.ts` pro protokoly WebSocket WSS SIP registrace (`registerSipAccount`, `originateSipCall`, `terminateSipCall`, `sendSipDtmf`).
+
+**Proč**: Připravuje CRM na přímé napojení k jakékoliv open-source PBX ústředně (Asterisk, FreeSWITCH) nebo komerčnímu SIP Trunku (Telnyx, Quantcom).
+
+**Jak**:
+- Třída `SipGatewayAdapter` s metodami registrace SIP účtů a odesíláním SIP INVITE / BYE / INFO paketů.
+
+
 
 
 
