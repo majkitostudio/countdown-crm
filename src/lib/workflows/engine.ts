@@ -20,6 +20,11 @@ import {
   ExecutionStatus,
   WorkflowEventPayload,
 } from "./types";
+import {
+  saveWorkflowToSupabase,
+  deleteWorkflowFromSupabase,
+  saveWorkflowExecutionToSupabase,
+} from "../supabase/workflowService";
 
 const RULES_STORAGE_KEY = "countdown_workflow_rules";
 const LOG_STORAGE_KEY = "countdown_workflow_log";
@@ -139,6 +144,9 @@ class WorkflowEngine {
     };
     this.rules.push(newRule);
     this.persistState();
+    saveWorkflowToSupabase(newRule).catch((err) =>
+      console.warn("[WorkflowEngine] Failed to sync new rule to Supabase:", err)
+    );
     return newRule;
   }
 
@@ -152,6 +160,9 @@ class WorkflowEngine {
       updatedAt: new Date().toISOString(),
     };
     this.persistState();
+    saveWorkflowToSupabase(this.rules[index]).catch((err) =>
+      console.warn("[WorkflowEngine] Failed to sync updated rule to Supabase:", err)
+    );
     return this.rules[index];
   }
 
@@ -159,7 +170,12 @@ class WorkflowEngine {
     const before = this.rules.length;
     this.rules = this.rules.filter((r) => r.id !== id);
     const deleted = this.rules.length < before;
-    if (deleted) this.persistState();
+    if (deleted) {
+      this.persistState();
+      deleteWorkflowFromSupabase(id).catch((err) =>
+        console.warn("[WorkflowEngine] Failed to delete rule from Supabase:", err)
+      );
+    }
     return deleted;
   }
 
@@ -169,6 +185,9 @@ class WorkflowEngine {
     rule.enabled = !rule.enabled;
     rule.updatedAt = new Date().toISOString();
     this.persistState();
+    saveWorkflowToSupabase(rule).catch((err) =>
+      console.warn("[WorkflowEngine] Failed to sync toggled rule to Supabase:", err)
+    );
     return true;
   }
 
@@ -344,6 +363,9 @@ class WorkflowEngine {
     };
 
     this.executionLog.push(entry);
+    saveWorkflowExecutionToSupabase(entry).catch((err) =>
+      console.warn("[WorkflowEngine] Failed to save execution log to Supabase:", err)
+    );
     return entry;
   }
 
