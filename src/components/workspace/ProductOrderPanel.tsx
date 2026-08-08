@@ -17,7 +17,7 @@ import {
   Tag
 } from "lucide-react";
 import { Product } from "@/lib/products";
-import { Lead } from "@/lib/leads";
+import { Lead, updateLead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { createOrder } from "@/lib/orders";
 import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
@@ -98,6 +98,11 @@ export function ProductOrderPanel({
     setLastOrderId(newOrd.id);
     onOrderPlaced(selectedProduct.id, grandTotal);
     setIsSuccessAlert(true);
+
+    // Update lead status to customer in Supabase
+    updateLead(activeLead.id, { status: "customer" }).catch((err) =>
+      console.warn("Failed to update lead status to customer:", err)
+    );
 
     // Gamification XP Rewards & Achievements
     addOperatorXp(150, "Completed customer order");
