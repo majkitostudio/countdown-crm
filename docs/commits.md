@@ -624,6 +624,22 @@ feat(db): create Supabase data access layer for agentic workflow rules and execu
 - Datová služba `src/lib/supabase/workflowService.ts` s funkcemi `fetchWorkflowsFromSupabase`, `saveWorkflowToSupabase`, `deleteWorkflowFromSupabase`, `fetchWorkflowExecutionsFromSupabase` a `saveWorkflowExecutionToSupabase`.
 - Integrace asynchronního uložení a mazání pravidel v CRUD metodách `WorkflowEngine`.
 
+---
+
+### ✅ HOTOVO: COMMIT-37 — Supabase Persistence for Audit Logs & Call Transcripts
+```
+feat(db): persist operator activity audit events and call transcripts into Supabase
+```
+**Co**: Vytvoření auditní služby `src/lib/supabase/auditService.ts` a uložení kompletních přepisů hovorů a bezpečnostních událostí přímo v Supabase databázi.
+
+**Proč**: Zajištění enterprise bezpečnosti a dohledatelnosti operátorských akcí v Supabase databázi bez ztráty dat při vyčištění paměti prohlížeče.
+
+**Jak**:
+- Datová služba `src/lib/supabase/auditService.ts` s funkcemi `fetchAuditLogsFromSupabase` a `saveAuditLogToSupabase`.
+- Propojení `addAuditLog` v `src/lib/audit.ts` s automatickým zápisem do Supabase tabulky `audit_logs`.
+- Aktualizace `addCallRecord` v `src/lib/calls.ts` o nahrávání přepisů konverzací v JSON formátu a AI sentimentu do tabulky `calls`.
+
+
 
 
 
