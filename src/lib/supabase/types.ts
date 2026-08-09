@@ -130,6 +130,7 @@ export interface Database {
       leads: {
         Row: {
           id: string;
+          workspace_id: string | null;
           full_name: string;
           phone: string;
           email: string | null;
@@ -145,6 +146,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           full_name: string;
           phone: string;
           email?: string | null;
@@ -176,6 +178,7 @@ export interface Database {
       products: {
         Row: {
           id: string;
+          workspace_id: string | null;
           title: string;
           category: "supplements" | "cosmetics" | "electronics";
           price: number;
@@ -187,6 +190,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           title: string;
           category: "supplements" | "cosmetics" | "electronics";
           price: number;
@@ -210,6 +214,7 @@ export interface Database {
       calls: {
         Row: {
           id: string;
+          workspace_id: string | null;
           lead_id: string | null;
           agent_id: string | null;
           duration_seconds: number;
@@ -220,6 +225,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           lead_id?: string | null;
           agent_id?: string | null;
           duration_seconds?: number;
@@ -241,6 +247,7 @@ export interface Database {
       orders: {
         Row: {
           id: string;
+          workspace_id: string | null;
           lead_id: string | null;
           product_id: string | null;
           agent_id: string | null;
@@ -250,6 +257,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           lead_id?: string | null;
           product_id?: string | null;
           agent_id?: string | null;
@@ -269,6 +277,7 @@ export interface Database {
       objections: {
         Row: {
           id: string;
+          workspace_id: string | null;
           product_id: string;
           objection_title: string;
           rebuttal_args: string[];
@@ -276,6 +285,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           product_id: string;
           objection_title: string;
           rebuttal_args: string[];
@@ -291,6 +301,7 @@ export interface Database {
       custom_objects: {
         Row: {
           slug: string;
+          workspace_id: string | null;
           singular_name: string;
           plural_name: string;
           icon: string;
@@ -299,6 +310,7 @@ export interface Database {
         };
         Insert: {
           slug: string;
+          workspace_id?: string | null;
           singular_name: string;
           plural_name: string;
           icon?: string;
@@ -316,6 +328,7 @@ export interface Database {
       attribute_definitions: {
         Row: {
           id: string;
+          workspace_id: string | null;
           object_slug: string;
           slug: string;
           name: string;
@@ -327,6 +340,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           object_slug: string;
           slug: string;
           name: string;
@@ -348,12 +362,14 @@ export interface Database {
       record_entities: {
         Row: {
           id: string;
+          workspace_id: string | null;
           object_slug: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           object_slug: string;
           created_at?: string;
           updated_at?: string;
@@ -367,6 +383,7 @@ export interface Database {
       record_values: {
         Row: {
           id: string;
+          workspace_id: string | null;
           record_id: string;
           attribute_slug: string;
           value_json: Json;
@@ -375,6 +392,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           record_id: string;
           attribute_slug: string;
           value_json: Json;
@@ -390,6 +408,7 @@ export interface Database {
       workflows: {
         Row: {
           id: string;
+          workspace_id: string | null;
           name: string;
           description: string | null;
           trigger_event: string;
@@ -401,6 +420,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           name: string;
           description?: string | null;
           trigger_event: string;
@@ -424,6 +444,7 @@ export interface Database {
       workflow_executions: {
         Row: {
           id: string;
+          workspace_id: string | null;
           rule_id: string | null;
           trigger_event: string;
           status: string;
@@ -433,6 +454,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           rule_id?: string | null;
           trigger_event: string;
           status?: string;
@@ -450,6 +472,7 @@ export interface Database {
       audit_logs: {
         Row: {
           id: string;
+          workspace_id: string | null;
           timestamp: string;
           actor_id: string;
           actor_name: string;
@@ -461,6 +484,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          workspace_id?: string | null;
           timestamp?: string;
           actor_id: string;
           actor_name: string;

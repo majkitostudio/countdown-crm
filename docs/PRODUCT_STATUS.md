@@ -124,10 +124,25 @@ Součástí jsou:
 - základní RLS pro organizační tabulky,
 - opakovatelná SQL migrace v `supabase/migrations/`.
 
-Tento commit záměrně nepřidává `workspace_id` do business tabulek. Leads,
-products, calls, orders, workflows, audit a EAV data proto ještě nejsou
-workspace izolované. To je známé omezení a předmětem dalšího samostatného
-schváleného kroku.
+Commit 4 záměrně ještě nepřidává `workspace_id` do business tabulek. Tento
+mezistav byl dokončen v Commitu 5.
+
+### Commit 5 — datová workspace hranice
+
+Commit 5 přidává přechodový `workspace_id` kontrakt do business tabulek:
+
+- leads, products, calls, orders a objections,
+- custom objects, attribute definitions, record entities a record values,
+- workflows, workflow executions a audit logs,
+- indexy a cizí klíče na `workspaces(id)`,
+- bootstrap organizaci `countdown` a workspace `main`,
+- backfill existujících řádků do bootstrap workspace.
+
+Sloupce zůstávají v tomto commitu nullable záměrně. Aktuální browser service
+vrstva ještě nepředává workspace ID při každém zápisu. Commit 5 proto není
+prohlášení o dokončené tenant izolaci a nemění původní business RLS politiky.
+Povinný workspace kontext pro DAL a následný RLS cutover musí přijít až po
+úpravě aplikačních query a bootstrapu členství.
 
 ## 4. Co je použitelné jako základ
 
@@ -215,28 +230,34 @@ Tento dokument. Bez změny aplikačního chování.
 - zachovat jednoduchost jednoho MVP workspace,
 - vytvořit bezpečný základ pro budoucí multi-tenant provoz.
 
-### Commit 5 — Supabase DAL a RLS
+### Commit 5 — Workspace data boundary
+
+- přidat workspace kontext do business tabulek,
+- bezpečně backfillovat existující MVP data,
+- připravit indexy a cizí klíče pro tenant boundary.
+
+### Commit 6 — Supabase DAL a RLS
 
 - přesunout citlivé operace do serverové DAL vrstvy,
 - opravit RLS podle workspace a rolí,
 - odstranit široké authenticated-only politiky,
 - sjednotit error handling a DTO návraty.
 
-### Commit 6 — Datový model CRM
+### Commit 7 — Datový model CRM
 
 - sjednotit SQL a TypeScript kontrakty,
 - definovat entity a vztahy,
 - odstranit implicitní a nebezpečné defaulty,
 - vyřešit produkční UUID versus demo ID.
 
-### Commit 7 — Demo/mock izolace
+### Commit 8 — Demo/mock izolace
 
 - oddělit sandbox data od produkčního toku,
 - odstranit fallbacky, které maskují chyby,
 - zavést loading, empty a error stavy,
 - označit demonstrační integrace.
 
-### Commit 8 — Kritická CRM workflow
+### Commit 9 — Kritická CRM workflow
 
 - lead lifecycle,
 - call outcome,
@@ -246,7 +267,7 @@ Tento dokument. Bez změny aplikačního chování.
 - audit log,
 - workflow execution.
 
-### Commit 9 — React a UX stabilizace
+### Commit 10 — React a UX stabilizace
 
 - hooky,
 - stale data,
@@ -256,7 +277,7 @@ Tento dokument. Bez změny aplikačního chování.
 - loading/error/empty states,
 - odstranění ESLint dluhu.
 
-### Commit 10 — Operator Console redesign
+### Commit 11 — Operator Console redesign
 
 - produktová revize hlavního pracovního prostoru,
 - odstranění AI-slop prvků,
@@ -264,7 +285,7 @@ Tento dokument. Bez změny aplikačního chování.
 - rychlé a čitelné stavy během hovoru,
 - přístupnost a práce s chybami.
 
-### Commit 11 — Telephony a AI hranice
+### Commit 12 — Telephony a AI hranice
 
 - lifecycle audio streamů,
 - cleanup a cancellation,
@@ -273,7 +294,7 @@ Tento dokument. Bez změny aplikačního chování.
 - rate/cost limity,
 - rozlišení simulátoru a produkční integrace.
 
-### Commit 12 — Testy a release readiness
+### Commit 13 — Testy a release readiness
 
 - kritické testy,
 - smoke flows,

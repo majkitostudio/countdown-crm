@@ -38,8 +38,18 @@ CREATE TABLE IF NOT EXISTS public.workspaces (
   UNIQUE(organization_id, slug)
 );
 
+INSERT INTO public.organizations (name, slug)
+VALUES ('Countdown CRM', 'countdown')
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO public.workspaces (organization_id, name, slug)
+SELECT id, 'Main workspace', 'main'
+FROM public.organizations
+WHERE slug = 'countdown'
+ON CONFLICT (organization_id, slug) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS public.workspace_members (
-  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role TEXT NOT NULL DEFAULT 'agent' CHECK (role IN ('admin', 'manager', 'agent')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -56,6 +66,7 @@ CREATE INDEX IF NOT EXISTS workspace_members_user_id_idx
 -- 3. LEADS TABLE (Customer directory)
 CREATE TABLE IF NOT EXISTS public.leads (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
   phone TEXT NOT NULL,
   email TEXT,
@@ -71,6 +82,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
 -- 4. PRODUCTS TABLE (Catalog)
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   category TEXT NOT NULL, -- 'supplements', 'cosmetics', 'electronics'
   price DECIMAL(10, 2) NOT NULL,
@@ -84,6 +96,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- 5. CALLS TABLE (Call center logs)
 CREATE TABLE IF NOT EXISTS public.calls (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   lead_id UUID REFERENCES public.leads(id) ON DELETE SET NULL,
   agent_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   duration_seconds INT NOT NULL DEFAULT 0,
@@ -96,6 +109,7 @@ CREATE TABLE IF NOT EXISTS public.calls (
 -- 6. ORDERS TABLE (Sales)
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   lead_id UUID REFERENCES public.leads(id) ON DELETE RESTRICT,
   product_id UUID REFERENCES public.products(id) ON DELETE RESTRICT,
   agent_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
@@ -107,6 +121,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
 -- 7. OBJECTIONS TABLE (Sales objection handling database)
 CREATE TABLE IF NOT EXISTS public.objections (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
   objection_title TEXT NOT NULL,
   rebuttal_args TEXT[] NOT NULL,
@@ -119,6 +134,7 @@ CREATE TABLE IF NOT EXISTS public.objections (
 
 CREATE TABLE IF NOT EXISTS public.custom_objects (
   slug TEXT PRIMARY KEY,
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   singular_name TEXT NOT NULL,
   plural_name TEXT NOT NULL,
   icon TEXT DEFAULT 'Layers',
@@ -128,6 +144,7 @@ CREATE TABLE IF NOT EXISTS public.custom_objects (
 
 CREATE TABLE IF NOT EXISTS public.attribute_definitions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   object_slug TEXT REFERENCES public.custom_objects(slug) ON DELETE CASCADE,
   slug TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -141,6 +158,7 @@ CREATE TABLE IF NOT EXISTS public.attribute_definitions (
 
 CREATE TABLE IF NOT EXISTS public.record_entities (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   object_slug TEXT REFERENCES public.custom_objects(slug) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -148,6 +166,7 @@ CREATE TABLE IF NOT EXISTS public.record_entities (
 
 CREATE TABLE IF NOT EXISTS public.record_values (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   record_id UUID REFERENCES public.record_entities(id) ON DELETE CASCADE,
   attribute_slug TEXT NOT NULL,
   value_json JSONB NOT NULL,
@@ -162,6 +181,7 @@ CREATE TABLE IF NOT EXISTS public.record_values (
 
 CREATE TABLE IF NOT EXISTS public.workflows (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
   trigger_event TEXT NOT NULL, -- 'on_call_ended', 'on_lead_status_changed', 'on_order_placed', 'on_lead_created'
@@ -174,6 +194,7 @@ CREATE TABLE IF NOT EXISTS public.workflows (
 
 CREATE TABLE IF NOT EXISTS public.workflow_executions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   rule_id UUID REFERENCES public.workflows(id) ON DELETE CASCADE,
   trigger_event TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'success', -- 'success', 'failed'
@@ -188,6 +209,7 @@ CREATE TABLE IF NOT EXISTS public.workflow_executions (
 
 CREATE TABLE IF NOT EXISTS public.audit_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
   timestamp TIMESTAMPTZ DEFAULT NOW(),
   actor_id TEXT NOT NULL,
   actor_name TEXT NOT NULL,
@@ -360,21 +382,35 @@ CREATE POLICY "Users can manage own gamification" ON public.user_gamification FO
 -- Initial Seed Data
 -- ========================================================
 
-INSERT INTO public.products (title, category, price, description) VALUES
-('Magnesium Ultra Boost 500mg', 'supplements', 29.99, 'High absorption chelated magnesium for stress relief and sleep quality.'),
-('HydraGlow Vitamin C Serum', 'cosmetics', 45.00, 'Premium anti-aging antioxidant serum for radiant skin.'),
-('SonicClean Pro Wireless Headset', 'electronics', 89.99, 'Noise-canceling Bluetooth tele-sales headset with ultra clear mic.')
+INSERT INTO public.products (workspace_id, title, category, price, description)
+SELECT workspace.id, seed.title, seed.category, seed.price, seed.description
+FROM (VALUES
+  ('Magnesium Ultra Boost 500mg', 'supplements'::TEXT, 29.99::DECIMAL, 'High absorption chelated magnesium for stress relief and sleep quality.'),
+  ('HydraGlow Vitamin C Serum', 'cosmetics'::TEXT, 45.00::DECIMAL, 'Premium anti-aging antioxidant serum for radiant skin.'),
+  ('SonicClean Pro Wireless Headset', 'electronics'::TEXT, 89.99::DECIMAL, 'Noise-canceling Bluetooth tele-sales headset with ultra clear mic.')
+) AS seed(title, category, price, description)
+CROSS JOIN (SELECT id FROM public.workspaces WHERE slug = 'main' LIMIT 1) AS workspace
+WHERE NOT EXISTS (SELECT 1 FROM public.products LIMIT 1)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO public.leads (full_name, phone, email, city, status, ai_score) VALUES
-('Petr Svoboda', '+420 777 123 456', 'petr.svoboda@email.cz', 'Prague', 'qualified', 85),
-('Elena Novak', '+420 608 987 654', 'elena.novak@gmail.com', 'Brno', 'new', 62),
-('Tomas Dvorak', '+420 724 555 111', 'tomas.dvorak@post.cz', 'Ostrava', 'contacted', 74)
+INSERT INTO public.leads (workspace_id, full_name, phone, email, city, status, ai_score)
+SELECT workspace.id, seed.full_name, seed.phone, seed.email, seed.city, seed.status, seed.ai_score
+FROM (VALUES
+  ('Petr Svoboda', '+420 777 123 456', 'petr.svoboda@email.cz', 'Prague', 'qualified', 85),
+  ('Elena Novak', '+420 608 987 654', 'elena.novak@gmail.com', 'Brno', 'new', 62),
+  ('Tomas Dvorak', '+420 724 555 111', 'tomas.dvorak@post.cz', 'Ostrava', 'contacted', 74)
+) AS seed(full_name, phone, email, city, status, ai_score)
+CROSS JOIN (SELECT id FROM public.workspaces WHERE slug = 'main' LIMIT 1) AS workspace
+WHERE NOT EXISTS (SELECT 1 FROM public.leads LIMIT 1)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO public.custom_objects (slug, singular_name, plural_name, icon, description) VALUES
+INSERT INTO public.custom_objects (workspace_id, slug, singular_name, plural_name, icon, description)
+SELECT workspace.id, seed.slug, seed.singular_name, seed.plural_name, seed.icon, seed.description
+FROM (VALUES
 ('lead', 'Lead', 'Leads', 'Users', 'Core potential customers and call targets'),
 ('product', 'Product', 'Products', 'Package', 'Catalog items sold during tele-sales calls'),
 ('call', 'Call', 'Calls', 'Phone', 'Tele-sales conversation logs and AI transcripts'),
 ('deal', 'Deal', 'Deals', 'Briefcase', 'B2B opportunity pipeline records')
+) AS seed(slug, singular_name, plural_name, icon, description)
+CROSS JOIN (SELECT id FROM public.workspaces WHERE slug = 'main' LIMIT 1) AS workspace
 ON CONFLICT DO NOTHING;
