@@ -84,6 +84,30 @@ Na aktuálním pracovním stavu platí:
 
 Úspěšný build proto není považován za důkaz produkční připravenosti.
 
+### Quality gates po Commitu 2
+
+Autoritativní příkazy projektu jsou:
+
+```text
+npm run lint
+npm run typecheck
+npm run build
+npm run check
+```
+
+`npm run check` spouští všechny tři hlavní kontroly v tomto pořadí. ESLint se
+zaměřuje na aplikační zdrojový kód v `src/**`. Pomocné skripty mimo aplikaci
+nejsou součástí hlavního runtime lint gate a budou řešeny odděleně.
+
+Commit 2 nezakrývá existující lint baseline. Dokud nebude technický dluh
+opraven v samostatných commitech, může `npm run check` skončit chybou kvůli
+již známým ESLint problémům. To je očekávané a důvěryhodnější než globálně
+vypnout pravidla nebo tvrdit, že je projekt čistý.
+
+Každý další commit musí zachovat nebo zlepšit počet lint chyb a varování.
+Nové globální výjimky, ignorované aplikační složky nebo vypínání pravidel kvůli
+zelenému výsledku nejsou povolené bez samostatného schválení.
+
 ## 4. Co je použitelné jako základ
 
 Projekt není určen k likvidaci ani kompletnímu přepisu. Zachováváme a budeme ověřovat:
