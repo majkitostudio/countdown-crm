@@ -243,6 +243,10 @@ Tento dokument. Bez změny aplikačního chování.
 - odstranit široké authenticated-only politiky,
 - sjednotit error handling a DTO návraty.
 
+Detailní implementační návrh je v
+`docs/IMPLEMENTATION_PLAN_COMMIT_6.md`. Tento dokument je před implementací
+nutné explicitně schválit.
+
 ### Commit 7 — Datový model CRM
 
 - sjednotit SQL a TypeScript kontrakty,
