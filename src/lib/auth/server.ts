@@ -29,4 +29,6 @@ export async function requireAuthenticatedUser() {
   if (error || !user) {
     throw new Error("Unauthorized");
   }
+
+  return user;
 }

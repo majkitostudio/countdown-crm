@@ -18,7 +18,42 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. LEADS TABLE (Customer directory)
+-- 2. ORGANIZATIONS, WORKSPACES & MEMBERSHIPS
+-- MVP uses one organization/workspace, but the model is multi-tenant ready.
+CREATE TABLE IF NOT EXISTS public.organizations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.workspaces (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(organization_id, slug)
+);
+
+CREATE TABLE IF NOT EXISTS public.workspace_members (
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'agent' CHECK (role IN ('admin', 'manager', 'agent')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (workspace_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS workspaces_organization_id_idx
+  ON public.workspaces(organization_id);
+
+CREATE INDEX IF NOT EXISTS workspace_members_user_id_idx
+  ON public.workspace_members(user_id);
+
+-- 3. LEADS TABLE (Customer directory)
 CREATE TABLE IF NOT EXISTS public.leads (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   full_name TEXT NOT NULL,
@@ -33,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. PRODUCTS TABLE (Catalog)
+-- 4. PRODUCTS TABLE (Catalog)
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
@@ -46,7 +81,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. CALLS TABLE (Call center logs)
+-- 5. CALLS TABLE (Call center logs)
 CREATE TABLE IF NOT EXISTS public.calls (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   lead_id UUID REFERENCES public.leads(id) ON DELETE SET NULL,
@@ -58,7 +93,7 @@ CREATE TABLE IF NOT EXISTS public.calls (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. ORDERS TABLE (Sales)
+-- 6. ORDERS TABLE (Sales)
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   lead_id UUID REFERENCES public.leads(id) ON DELETE RESTRICT,
@@ -69,7 +104,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. OBJECTIONS TABLE (Sales objection handling database)
+-- 7. OBJECTIONS TABLE (Sales objection handling database)
 CREATE TABLE IF NOT EXISTS public.objections (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
@@ -79,7 +114,7 @@ CREATE TABLE IF NOT EXISTS public.objections (
 );
 
 -- ========================================================
--- 7. EAV SCHEMAS (Attio-Grade Dynamic Objects & Attributes)
+-- 8. EAV SCHEMAS (Attio-Grade Dynamic Objects & Attributes)
 -- ========================================================
 
 CREATE TABLE IF NOT EXISTS public.custom_objects (
@@ -122,7 +157,7 @@ CREATE TABLE IF NOT EXISTS public.record_values (
 );
 
 -- ========================================================
--- 8. WORKFLOW ENGINE (Agentic Rules & Executions)
+-- 9. WORKFLOW ENGINE (Agentic Rules & Executions)
 -- ========================================================
 
 CREATE TABLE IF NOT EXISTS public.workflows (
@@ -148,7 +183,7 @@ CREATE TABLE IF NOT EXISTS public.workflow_executions (
 );
 
 -- ========================================================
--- 9. ENTERPRISE AUDIT LOGS & GAMIFICATION
+-- 10. ENTERPRISE AUDIT LOGS & GAMIFICATION
 -- ========================================================
 
 CREATE TABLE IF NOT EXISTS public.audit_logs (
@@ -177,6 +212,9 @@ CREATE TABLE IF NOT EXISTS public.user_gamification (
 -- ========================================================
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workspaces ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.workspace_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.calls ENABLE ROW LEVEL SECURITY;
@@ -190,6 +228,44 @@ ALTER TABLE public.workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_executions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_gamification ENABLE ROW LEVEL SECURITY;
+
+-- Workspace membership helper functions run as a definer to avoid recursive
+-- RLS evaluation when policies inspect workspace_members.
+CREATE OR REPLACE FUNCTION public.is_workspace_member(target_workspace_id UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.workspace_members AS member
+    WHERE member.workspace_id = target_workspace_id
+      AND member.user_id = auth.uid()
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_workspace_admin(target_workspace_id UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.workspace_members AS member
+    WHERE member.workspace_id = target_workspace_id
+      AND member.user_id = auth.uid()
+      AND member.role = 'admin'
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.is_workspace_member(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_workspace_admin(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_workspace_member(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_workspace_admin(UUID) TO authenticated;
 
 -- Allow authenticated users full access to domain entities
 CREATE POLICY "Authenticated users can view profiles" ON public.profiles FOR SELECT USING (auth.role() = 'authenticated');
@@ -211,6 +287,51 @@ CREATE POLICY "Agents can view objections" ON public.objections FOR SELECT USING
 CREATE POLICY "Managers can manage objections" ON public.objections FOR ALL USING (auth.role() = 'authenticated');
 
 -- Policies for Custom Objects, EAV, Workflows, Audit
+CREATE POLICY "Members can view their organizations" ON public.organizations
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1
+      FROM public.workspaces AS workspace
+      WHERE workspace.organization_id = organizations.id
+        AND public.is_workspace_member(workspace.id)
+    )
+  );
+
+CREATE POLICY "Organization admins can update their organizations" ON public.organizations
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.workspaces AS workspace
+      WHERE workspace.organization_id = organizations.id
+        AND public.is_workspace_admin(workspace.id)
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM public.workspaces AS workspace
+      WHERE workspace.organization_id = organizations.id
+        AND public.is_workspace_admin(workspace.id)
+    )
+  );
+
+CREATE POLICY "Members can view their workspaces" ON public.workspaces
+  FOR SELECT USING (public.is_workspace_member(id));
+
+CREATE POLICY "Workspace admins can update their workspaces" ON public.workspaces
+  FOR UPDATE
+  USING (public.is_workspace_admin(id))
+  WITH CHECK (public.is_workspace_admin(id));
+
+CREATE POLICY "Members can view workspace memberships" ON public.workspace_members
+  FOR SELECT USING (public.is_workspace_member(workspace_id));
+
+CREATE POLICY "Workspace admins can manage memberships" ON public.workspace_members
+  FOR ALL
+  USING (public.is_workspace_admin(workspace_id))
+  WITH CHECK (public.is_workspace_admin(workspace_id));
+
 CREATE POLICY "Authenticated users can view custom_objects" ON public.custom_objects FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Admins can manage custom_objects" ON public.custom_objects FOR ALL USING (auth.role() = 'authenticated');
 

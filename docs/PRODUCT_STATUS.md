@@ -108,6 +108,27 @@ Každý další commit musí zachovat nebo zlepšit počet lint chyb a varován�
 Nové globální výjimky, ignorované aplikační složky nebo vypínání pravidel kvůli
 zelenému výsledku nejsou povolené bez samostatného schválení.
 
+### Commit 4 — organizační základ
+
+Commit 4 zavádí organizační model `organization → workspace → workspace member`
+pro budoucí multi-tenant rozšíření. MVP může nadále používat jednu firmu a jeden
+workspace.
+
+Součástí jsou:
+
+- `organizations`,
+- `workspaces`,
+- `workspace_members`,
+- omezené role `admin`, `manager`, `agent`,
+- membership helper pouze na serveru,
+- základní RLS pro organizační tabulky,
+- opakovatelná SQL migrace v `supabase/migrations/`.
+
+Tento commit záměrně nepřidává `workspace_id` do business tabulek. Leads,
+products, calls, orders, workflows, audit a EAV data proto ještě nejsou
+workspace izolované. To je známé omezení a předmětem dalšího samostatného
+schváleného kroku.
+
 ## 4. Co je použitelné jako základ
 
 Projekt není určen k likvidaci ani kompletnímu přepisu. Zachováváme a budeme ověřovat:

@@ -9,6 +9,92 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      workspaces: {
+        Row: {
+          id: string;
+          organization_id: string;
+          name: string;
+          slug: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          name: string;
+          slug: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          name?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workspaces_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      workspace_members: {
+        Row: {
+          workspace_id: string;
+          user_id: string;
+          role: "admin" | "manager" | "agent";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          workspace_id: string;
+          user_id: string;
+          role?: "admin" | "manager" | "agent";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          workspace_id?: string;
+          user_id?: string;
+          role?: "admin" | "manager" | "agent";
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       profiles: {
         Row: {
           id: string;
