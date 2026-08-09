@@ -1,13 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
+import "server-only";
 
-export interface CopilotAnalysisResult {
-  sentiment: "Positive" | "Price Objection" | "Product Objection" | "Neutral";
-  detectedObjection: string | null;
-  confidenceScore: number;
-  rebuttalArguments: string[];
-  nextBestAction: string;
-  aiSource: "gemini-flash" | "fallback-engine";
-}
+import { GoogleGenAI } from "@google/genai";
+import type { CopilotAnalysisResult } from "@/lib/ai/types";
+
+export type { CopilotAnalysisResult } from "@/lib/ai/types";
 
 /**
  * Runs Gemini 2.5 Flash model analysis on call transcript with fallback engine
@@ -17,7 +13,7 @@ export async function analyzeTranscriptWithGemini(
   customerName: string = "Customer",
   productTitle: string = "Bio-Boost Anti-Aging Stack"
 ): Promise<CopilotAnalysisResult> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
     console.log("No GEMINI_API_KEY provided in environment, using intelligent fallback engine.");

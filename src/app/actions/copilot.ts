@@ -1,6 +1,8 @@
 "use server";
 
-import { analyzeTranscriptWithGemini, CopilotAnalysisResult } from "@/lib/gemini";
+import { analyzeTranscriptWithGemini } from "@/lib/gemini";
+import type { CopilotAnalysisResult } from "@/lib/ai/types";
+import { requireAuthenticatedUser } from "@/lib/auth/server";
 
 /**
  * Next.js Server Action: Analyzes call transcript using Gemini 2.5 Flash API
@@ -10,7 +12,21 @@ export async function analyzeCallTranscriptAction(
   customerName?: string,
   productTitle?: string
 ): Promise<CopilotAnalysisResult> {
-  if (!transcript || transcript.trim().length === 0) {
+  await requireAuthenticatedUser();
+
+  const normalizedTranscript = transcript?.trim() ?? "";
+  if (normalizedTranscript.length > 12_000) {
+    throw new Error("Transcript is too long");
+  }
+
+  const normalizedCustomerName = customerName?.trim() || "Customer";
+  const normalizedProductTitle = productTitle?.trim() || "Bio-Boost Anti-Aging Stack";
+
+  if (normalizedCustomerName.length > 200 || normalizedProductTitle.length > 200) {
+    throw new Error("Invalid transcript context");
+  }
+
+  if (normalizedTranscript.length === 0) {
     return {
       sentiment: "Neutral",
       detectedObjection: null,
@@ -25,8 +41,8 @@ export async function analyzeCallTranscriptAction(
   }
 
   return await analyzeTranscriptWithGemini(
-    transcript,
-    customerName || "Customer",
-    productTitle || "Bio-Boost Anti-Aging Stack"
+    normalizedTranscript,
+    normalizedCustomerName,
+    normalizedProductTitle
   );
 }

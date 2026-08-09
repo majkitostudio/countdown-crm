@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Sparkles, RefreshCw, Check, X } from "lucide-react";
 import { AttributeDefinition, RecordEntity } from "@/lib/schema/types";
-import { computeAiAttribute } from "@/lib/schema/aiAttributes";
+import { computeAiAttributeAction } from "@/app/actions/aiAttributes";
 
 interface CustomFieldRendererProps {
   attribute: AttributeDefinition;
@@ -22,7 +22,7 @@ export function CustomFieldRenderer({
   const handleComputeAi = async () => {
     setIsCalculating(true);
     try {
-      const res = await computeAiAttribute(attribute, record);
+      const res = await computeAiAttributeAction(attribute, record);
       if (onAttributeUpdated) {
         onAttributeUpdated(attribute.key, res.value);
       }

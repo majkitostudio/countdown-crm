@@ -15,7 +15,8 @@ import {
 import { Lead } from "@/lib/leads";
 import { Order, getOrdersByLeadId } from "@/lib/orders";
 import { DynamicAttributesCard } from "@/components/workspace/DynamicAttributesCard";
-import { enrichLeadWithGemini, EnrichedCompanyData } from "@/lib/enrichment";
+import { enrichLeadAction } from "@/app/actions/enrichment";
+import type { EnrichedCompanyData } from "@/lib/ai/types";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
 import { RefreshCw } from "lucide-react";
 
@@ -45,7 +46,7 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
     if (!activeLead) return;
     setIsEnriching(true);
     try {
-      const data = await enrichLeadWithGemini(activeLead);
+      const data = await enrichLeadAction(activeLead);
       setEnrichmentData(data);
     } catch (err) {
       console.error("Enrichment error:", err);

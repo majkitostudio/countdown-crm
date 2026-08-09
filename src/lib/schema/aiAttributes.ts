@@ -1,3 +1,5 @@
+import "server-only";
+
 import { AttributeDefinition, RecordEntity } from "./types";
 import { analyzeTranscriptWithGemini } from "../gemini";
 

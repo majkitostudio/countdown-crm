@@ -1,3 +1,5 @@
+import "server-only";
+
 /**
  * Gemini Automatic Company & Lead Data Enrichment Engine
  *
@@ -7,16 +9,9 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { Lead } from "./leads";
+import type { EnrichedCompanyData } from "@/lib/ai/types";
 
-export interface EnrichedCompanyData {
-  companyName: string;
-  industry: string;
-  estimatedEmployees: string;
-  estimatedRevenue: string;
-  techStack: string[];
-  keyPainPoints: string;
-  enrichmentSource: "gemini-flash" | "fallback-enricher";
-}
+export type { EnrichedCompanyData } from "@/lib/ai/types";
 
 /**
  * Enriches company and lead profile using Gemini 2.5 Flash API
@@ -27,8 +22,7 @@ export async function enrichLeadWithGemini(
   const companyName = lead.company || lead.full_name || "Unknown Business";
   const email = lead.email || "";
 
-  const apiKey =
-    process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
     console.log("[EnrichmentEngine] Using intelligent fallback enrichment generator.");

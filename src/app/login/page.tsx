@@ -25,16 +25,13 @@ export default function LoginPage() {
       });
 
       if (error) {
-        // Fallback for demo mode if Supabase keys are not set up yet
-        console.warn("Supabase Auth notice:", error.message);
-        // Allow demo sign-in redirect
-        router.push("/");
-      } else {
-        router.push("/");
+        setErrorMsg("Přihlášení se nezdařilo. Zkontrolujte e-mail a heslo.");
+        return;
       }
+
+      router.push("/workspace");
     } catch {
-      // Demo fallback redirect
-      router.push("/");
+      setErrorMsg("Přihlášení se nezdařilo. Zkuste to prosím znovu.");
     } finally {
       setLoading(false);
     }

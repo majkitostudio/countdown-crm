@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Lead } from "@/lib/leads";
 import { schemaEngine } from "@/lib/schema/engine";
 import { AttributeDefinition, RecordEntity } from "@/lib/schema/types";
-import { computeAiAttribute } from "@/lib/schema/aiAttributes";
+import { computeAiAttributeAction } from "@/app/actions/aiAttributes";
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -62,7 +62,7 @@ function AttributeField({
   const handleComputeAi = async () => {
     setIsComputing(true);
     try {
-      const result = await computeAiAttribute(attribute, record);
+      const result = await computeAiAttributeAction(attribute, record);
       onValueUpdate(attribute.key, result.value);
     } catch (err) {
       console.error("AI computation error:", err);

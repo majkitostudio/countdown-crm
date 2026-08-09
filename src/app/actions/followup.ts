@@ -1,4 +1,6 @@
-"use client";
+"use server";
+
+import { requireAuthenticatedUser } from "@/lib/auth/server";
 
 export interface GenerateFollowupParams {
   leadName: string;
@@ -21,7 +23,33 @@ export interface GenerateFollowupResult {
 export async function generateFollowupAction(
   params: GenerateFollowupParams
 ): Promise<GenerateFollowupResult> {
-  const { leadName, productName, channel, goal, appliedPitch } = params;
+  await requireAuthenticatedUser();
+
+  if (!params || typeof params !== "object") {
+    throw new Error("Invalid follow-up request");
+  }
+
+  const { leadName, leadEmail, leadPhone, productName, channel, goal, appliedPitch } = params;
+
+  if (
+    typeof leadName !== "string" ||
+    leadName.trim().length === 0 ||
+    leadName.length > 200 ||
+    !["email", "whatsapp"].includes(channel) ||
+    !["order_paylink", "discount_offer", "callback_reminder", "graceful_thanks"].includes(goal)
+  ) {
+    throw new Error("Invalid follow-up request");
+  }
+
+  if (
+    (productName !== undefined && (typeof productName !== "string" || productName.length > 200)) ||
+    (leadEmail !== undefined && (typeof leadEmail !== "string" || leadEmail.length > 320)) ||
+    (leadPhone !== undefined && (typeof leadPhone !== "string" || leadPhone.length > 64)) ||
+    (appliedPitch !== undefined && (typeof appliedPitch !== "string" || appliedPitch.length > 2_000))
+  ) {
+    throw new Error("Follow-up request is too long");
+  }
+
   const paylinkUrl = `https://pay.countdowncrm.com/pl_${Math.floor(1000 + Math.random() * 9000)}`;
 
   let subject = "";

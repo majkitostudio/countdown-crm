@@ -18,7 +18,7 @@ import {
 import { Lead } from "@/lib/leads";
 import { useSpeechRecognition, SpeechLanguage } from "@/hooks/useSpeechRecognition";
 import { analyzeCallTranscriptAction } from "@/app/actions/copilot";
-import { CopilotAnalysisResult } from "@/lib/gemini";
+import type { CopilotAnalysisResult } from "@/lib/ai/types";
 import { matchObjectionToProduct } from "@/lib/objections";
 import { INITIAL_MOCK_PRODUCTS } from "@/lib/products";
 import { checkCompliance, ComplianceViolation } from "@/lib/compliance";

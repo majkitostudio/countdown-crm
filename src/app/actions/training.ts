@@ -2,6 +2,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { TrainingScenario, TrainingMessage } from "@/lib/training";
+import { requireAuthenticatedUser } from "@/lib/auth/server";
 
 export interface RoleplayAIResponse {
   text: string;
@@ -16,7 +17,41 @@ export async function generateTrainingResponseAction(
   history: TrainingMessage[],
   userMessage: string
 ): Promise<RoleplayAIResponse> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  await requireAuthenticatedUser();
+
+  if (
+    !scenario ||
+    typeof scenario !== "object" ||
+    typeof scenario.id !== "string" ||
+    typeof scenario.customerName !== "string" ||
+    typeof scenario.customerPersona !== "string" ||
+    typeof scenario.personalityType !== "string" ||
+    typeof scenario.targetProduct !== "string" ||
+    !Array.isArray(history)
+  ) {
+    throw new Error("Invalid training request");
+  }
+
+  const normalizedMessage = userMessage?.trim() ?? "";
+  if (normalizedMessage.length === 0 || normalizedMessage.length > 4_000) {
+    throw new Error("Training message is invalid or too long");
+  }
+
+  if (
+    history.length > 50 ||
+    history.some(
+      (message) =>
+        !message ||
+        typeof message !== "object" ||
+        !["user", "ai_customer"].includes(message.sender) ||
+        typeof message.text !== "string" ||
+        message.text.length > 4_000
+    )
+  ) {
+    throw new Error("Training history is invalid or too long");
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY") {
     try {
@@ -35,7 +70,7 @@ Historie konverzace:
 ${historyFormatted}
 
 Poslední odpověď operátora:
-"${userMessage}"
+        "${normalizedMessage}"
 
 Tvůj úkol: Odpověz operátorovi přirozeným mluveným českým jazykem v délce 1 až 2 věty přesně podle tvé osobnosti (${scenario.personalityType}).
 Vyhodnoť také svoji aktuální náladu a změnu trpělivosti (patienceDelta od -30 do +20).
@@ -75,7 +110,7 @@ Odpověz POUZE platným JSON objektem bez označení markdown kódu.
   }
 
   // Local fallback engine
-  const lowerUser = userMessage.toLowerCase();
+  const lowerUser = normalizedMessage.toLowerCase();
   let text = "Rozumím. Co dalšího mi k tomu můžete říct?";
   let sentiment: "positive" | "neutral" | "negative" = "neutral";
   let customerMood: RoleplayAIResponse["customerMood"] = "Skeptický";

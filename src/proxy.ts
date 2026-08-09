@@ -1,10 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  const demoAuthEnabled = isDemoAuthEnabled();
+
+  if (demoAuthEnabled) {
+    return supabaseResponse;
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-crm.supabase.co";
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
@@ -41,14 +48,10 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/favicon.ico";
 
   // Protection Guard: If user is unauthenticated and attempting to access protected routes
-  if (!user && !isPublicRoute && request.nextUrl.pathname !== "/") {
-    // Check if placeholder or local dev mode cookie exists (for seamless local DX)
-    const devSession = request.cookies.get("countdown_dev_session");
-    if (!devSession) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
+  if (!user && !isPublicRoute && !demoAuthEnabled) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
   // If user is logged in and navigates to /login, redirect to /workspace
