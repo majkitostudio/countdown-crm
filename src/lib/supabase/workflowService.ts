@@ -1,6 +1,7 @@
 import { createClient } from "./client";
 import { Database } from "./types";
 import { WorkflowRule, ExecutionLogEntry } from "../workflows/types";
+import { getCurrentWorkspaceId } from "./workspace";
 
 type WorkflowRow = Database["public"]["Tables"]["workflows"]["Row"];
 type ExecutionRow = Database["public"]["Tables"]["workflow_executions"]["Row"];
@@ -16,10 +17,13 @@ function getDb() {
 
 export async function fetchWorkflowsFromSupabase(): Promise<WorkflowRule[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
   const { data, error } = await supabase
     .from("workflows")
     .select("*")
+    .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: true });
 
   if (error || !data || data.length === 0) {
@@ -41,8 +45,11 @@ export async function fetchWorkflowsFromSupabase(): Promise<WorkflowRule[]> {
 
 export async function saveWorkflowToSupabase(rule: WorkflowRule): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
   const { error } = await supabase.from("workflows").upsert({
+    workspace_id: workspaceId,
     id: rule.id.startsWith("rule-") ? undefined : rule.id,
     name: rule.name,
     description: rule.description || null,
@@ -63,8 +70,10 @@ export async function saveWorkflowToSupabase(rule: WorkflowRule): Promise<boolea
 
 export async function deleteWorkflowFromSupabase(ruleId: string): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
-  const { error } = await supabase.from("workflows").delete().eq("id", ruleId);
+  const { error } = await supabase.from("workflows").delete().eq("id", ruleId).eq("workspace_id", workspaceId);
 
   if (error) {
     console.error("[workflowService] Error deleting workflow from Supabase:", error);
@@ -76,10 +85,13 @@ export async function deleteWorkflowFromSupabase(ruleId: string): Promise<boolea
 
 export async function fetchWorkflowExecutionsFromSupabase(): Promise<ExecutionLogEntry[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
   const { data, error } = await supabase
     .from("workflow_executions")
     .select("*, workflows(name)")
+    .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -105,8 +117,11 @@ export async function fetchWorkflowExecutionsFromSupabase(): Promise<ExecutionLo
 
 export async function saveWorkflowExecutionToSupabase(entry: ExecutionLogEntry): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
   const { error } = await supabase.from("workflow_executions").insert({
+    workspace_id: workspaceId,
     rule_id: entry.ruleId.startsWith("rule-") ? null : entry.ruleId,
     trigger_event: entry.trigger,
     status: entry.status,

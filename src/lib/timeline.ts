@@ -114,6 +114,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
 };
 
 import { createClient } from "./supabase/client";
+import { getCurrentWorkspaceId } from "./supabase/workspace";
 
 const timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
 
@@ -125,10 +126,12 @@ type OrderWithProduct = Database["public"]["Tables"]["orders"]["Row"] & { produc
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
   try {
     const supabase = createClient();
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return getFallbackTimeline(leadId);
 
     const [callsRes, ordersRes] = await Promise.all([
-      supabase.from("calls").select("*").eq("lead_id", leadId),
-      supabase.from("orders").select("*, products(title)").eq("lead_id", leadId),
+      supabase.from("calls").select("*").eq("lead_id", leadId).eq("workspace_id", workspaceId),
+      supabase.from("orders").select("*, products(title)").eq("lead_id", leadId).eq("workspace_id", workspaceId),
     ]);
 
     const calls = (callsRes.data || []) as CallRow[];

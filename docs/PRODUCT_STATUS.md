@@ -144,6 +144,33 @@ prohlášení o dokončené tenant izolaci a nemění původní business RLS pol
 Povinný workspace kontext pro DAL a následný RLS cutover musí přijít až po
 úpravě aplikačních query a bootstrapu členství.
 
+### Commit 6 — serverová DAL a workspace-aware RLS
+
+Commit 6 zavádí první serverovou datovou hranici a připravuje bezpečné
+workspace authorization:
+
+- server-only workspace context s kontrolou membership,
+- jednotné chyby datové vrstvy a minimální DTO návraty,
+- DAL a Server Actions pro leady, hovory a objednávky,
+- validace parent vztahů před vytvořením hovoru nebo objednávky,
+- explicitní workspace filtr ve stávajících legacy Supabase službách,
+- workspace ID při legacy zápisech, pokud je dostupný aktivní membership,
+- workspace-aware RLS migrace,
+- ochrana proti změně `workspace_id` při UPDATE,
+- role boundary pro manager/admin operace.
+
+RLS migrace je připravená v
+`supabase/migrations/20260810_0003_workspace_aware_rls.sql`. V tomto lokálním
+prostředí nebyla spuštěna proti živému Supabase, protože není dostupný databázový
+CLI klient ani potvrzené připojení. Produkční SQL smoke test proto zůstává
+explicitním otevřeným bodem.
+
+Některé UI cesty stále používají legacy browser služby a lokální fallbacky.
+Tyto cesty mají workspace filtr a zápisový kontext, ale jejich úplný převod na
+Server Actions bude pokračovat v navazující etapě. Commit 6 proto nesmí být
+označen jako dokončená production-ready tenant izolace bez provedení migrace a
+end-to-end ověření přihlášeného uživatele, membership a RLS.
+
 ## 4. Co je použitelné jako základ
 
 Projekt není určen k likvidaci ani kompletnímu přepisu. Zachováváme a budeme ověřovat:

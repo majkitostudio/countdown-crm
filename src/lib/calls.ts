@@ -1,5 +1,6 @@
 import { createClient } from "./supabase/client";
 import { Database } from "./supabase/types";
+import { getCurrentWorkspaceId } from "./supabase/workspace";
 
 export interface TranscriptEntry {
   speaker: "agent" | "customer";
@@ -121,7 +122,9 @@ type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 export async function getCalls(): Promise<CallRecord[]> {
   try {
     const supabase = createClient();
-    const { data, error } = await supabase.from("calls").select("*");
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return localCallsStore;
+    const { data, error } = await supabase.from("calls").select("*").eq("workspace_id", workspaceId);
     if (error || !data || data.length === 0) {
       return localCallsStore;
     }
@@ -173,7 +176,10 @@ export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promis
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = createClient() as any;
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) throw new Error("No active workspace");
     await supabase.from("calls").insert({
+      workspace_id: workspaceId,
       lead_id: newRecord.lead_id.startsWith("lead-") ? null : newRecord.lead_id,
       duration_seconds: newRecord.duration_seconds,
       outcome: newRecord.outcome === "objection_handled" ? "completed" : newRecord.outcome,
@@ -188,4 +194,3 @@ export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promis
   saveLocalCalls(localCallsStore);
   return newRecord;
 }
-

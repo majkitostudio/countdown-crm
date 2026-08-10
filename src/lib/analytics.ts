@@ -1,5 +1,6 @@
 import { createClient } from "./supabase/client";
 import { Database } from "./supabase/types";
+import { getCurrentWorkspaceId } from "./supabase/workspace";
 
 export interface WeeklySalesPoint {
   day: string;
@@ -94,10 +95,12 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
   try {
     const supabase = createClient();
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return MOCK_ANALYTICS_DATA;
 
     const [ordersRes, callsRes] = await Promise.all([
-      supabase.from("orders").select("*"),
-      supabase.from("calls").select("*"),
+      supabase.from("orders").select("*").eq("workspace_id", workspaceId),
+      supabase.from("calls").select("*").eq("workspace_id", workspaceId),
     ]);
 
     const orders = (ordersRes.data || []) as OrderRow[];

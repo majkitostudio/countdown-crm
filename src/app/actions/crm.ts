@@ -1,0 +1,39 @@
+"use server";
+
+import { createLeadForWorkspace, listLeadsForWorkspace, updateLeadStatusForWorkspace } from "@/lib/dal/leads";
+import type { CreateLeadInput, LeadDTO } from "@/lib/dal/leads";
+import { createOrderForWorkspace } from "@/lib/dal/orders";
+import type { CreateOrderInput, OrderDTO } from "@/lib/dal/orders";
+import { createCallForWorkspace } from "@/lib/dal/calls";
+import type { CallDTO, CreateCallInput } from "@/lib/dal/calls";
+import type { Database } from "@/lib/supabase/types";
+
+type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
+
+export async function listLeadsAction(options?: {
+  workspaceId?: string;
+  status?: LeadStatus;
+  search?: string;
+}): Promise<LeadDTO[]> {
+  return listLeadsForWorkspace(options);
+}
+
+export async function createLeadAction(input: CreateLeadInput, workspaceId?: string): Promise<LeadDTO> {
+  return createLeadForWorkspace(input, workspaceId);
+}
+
+export async function updateLeadStatusAction(
+  leadId: string,
+  status: LeadStatus,
+  workspaceId?: string
+): Promise<LeadDTO> {
+  return updateLeadStatusForWorkspace(leadId, status, workspaceId);
+}
+
+export async function createOrderAction(input: CreateOrderInput, workspaceId?: string): Promise<OrderDTO> {
+  return createOrderForWorkspace(input, workspaceId);
+}
+
+export async function createCallAction(input: CreateCallInput, workspaceId?: string): Promise<CallDTO> {
+  return createCallForWorkspace(input, workspaceId);
+}

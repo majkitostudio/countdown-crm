@@ -1,6 +1,7 @@
 import { createClient } from "./client";
 import { Database } from "./types";
 import { ObjectSchema, AttributeDefinition, RecordEntity } from "../schema/types";
+import { getCurrentWorkspaceId } from "./workspace";
 
 type CustomObjectRow = Database["public"]["Tables"]["custom_objects"]["Row"];
 type AttributeDefinitionRow = Database["public"]["Tables"]["attribute_definitions"]["Row"];
@@ -17,24 +18,29 @@ function getDb() {
  */
 export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
-  const { data: objects, error: objError } = await supabase
+  // Workspace filtering is explicit even though RLS is the final defense.
+  const { data: objectRows, error: objError } = await supabase
     .from("custom_objects")
-    .select("*");
+    .select("*")
+    .eq("workspace_id", workspaceId);
 
-  if (objError || !objects || objects.length === 0) {
+  if (objError || !objectRows || objectRows.length === 0) {
     return [];
   }
 
   const { data: attrs, error: attrError } = await supabase
     .from("attribute_definitions")
-    .select("*");
+    .select("*")
+    .eq("workspace_id", workspaceId);
 
   if (attrError) {
     console.warn("[schemaService] Failed to load attribute definitions from Supabase:", attrError);
   }
 
-  const result: ObjectSchema[] = (objects as CustomObjectRow[]).map((obj) => {
+  const result: ObjectSchema[] = (objectRows as CustomObjectRow[]).map((obj) => {
     const objectAttrs = (attrs as AttributeDefinitionRow[] || [])
       .filter((a) => a.object_slug === obj.slug)
       .map((a) => {
@@ -75,8 +81,11 @@ export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> 
 
 export async function saveCustomObjectToSupabase(schema: ObjectSchema): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
   const { error: objError } = await supabase.from("custom_objects").upsert({
+    workspace_id: workspaceId,
     slug: schema.slug,
     singular_name: schema.name,
     plural_name: `${schema.name}s`,
@@ -92,6 +101,7 @@ export async function saveCustomObjectToSupabase(schema: ObjectSchema): Promise<
   if (schema.attributes && schema.attributes.length > 0) {
     const attrRows = schema.attributes.map((attr) => ({
       object_slug: schema.slug,
+      workspace_id: workspaceId,
       slug: attr.key,
       name: attr.name,
       data_type: attr.type,
@@ -117,9 +127,12 @@ export async function saveAttributeDefinitionToSupabase(
   attr: AttributeDefinition
 ): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
   const { error } = await supabase.from("attribute_definitions").upsert({
     object_slug: objectSlug,
+    workspace_id: workspaceId,
     slug: attr.key,
     name: attr.name,
     data_type: attr.type,
@@ -138,11 +151,14 @@ export async function saveAttributeDefinitionToSupabase(
 
 export async function fetchRecordEntitiesFromSupabase(objectSlug: string): Promise<RecordEntity[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
   const { data: entities, error: entError } = await supabase
     .from("record_entities")
     .select("*")
-    .eq("object_slug", objectSlug);
+    .eq("object_slug", objectSlug)
+    .eq("workspace_id", workspaceId);
 
   if (entError || !entities || entities.length === 0) {
     return [];
@@ -187,10 +203,12 @@ export async function saveRecordEntityToSupabase(
   values: Record<string, unknown>
 ): Promise<RecordEntity | null> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return null;
 
   const { data: entity, error: entError } = await supabase
     .from("record_entities")
-    .insert({ object_slug: objectSlug })
+    .insert({ object_slug: objectSlug, workspace_id: workspaceId })
     .select()
     .single();
 
@@ -208,7 +226,9 @@ export async function saveRecordEntityToSupabase(
   }));
 
   if (valueRows.length > 0) {
-    const { error: valError } = await supabase.from("record_values").insert(valueRows);
+    const { error: valError } = await supabase.from("record_values").insert(
+      valueRows.map((row) => ({ ...row, workspace_id: workspaceId }))
+    );
     if (valError) {
       console.error("[schemaService] Failed to insert record values into Supabase:", valError);
     }

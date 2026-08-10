@@ -2,6 +2,7 @@ import { createClient } from "./client";
 import { Database } from "./types";
 import { Product, ProductCategory } from "../products";
 import { Order } from "../orders";
+import { getCurrentWorkspaceId } from "./workspace";
 
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -17,10 +18,13 @@ function getDb() {
 
 export async function fetchProductsFromSupabase(): Promise<Product[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
   if (error || !data || data.length === 0) {
@@ -42,8 +46,11 @@ export async function fetchProductsFromSupabase(): Promise<Product[]> {
 
 export async function createProductInSupabase(product: Partial<Product>): Promise<Product | null> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return null;
 
   const payload = {
+    workspace_id: workspaceId,
     title: product.title || "New Product",
     category: product.category || "supplements",
     price: product.price || 29.99,
@@ -81,10 +88,13 @@ export async function createProductInSupabase(product: Partial<Product>): Promis
 
 export async function fetchOrdersFromSupabase(): Promise<Order[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
   const { data, error } = await supabase
     .from("orders")
     .select("*, leads(full_name), products(title)")
+    .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
   if (error || !data || data.length === 0) {
@@ -106,6 +116,8 @@ export async function fetchOrdersFromSupabase(): Promise<Order[]> {
 
 export async function createOrderInSupabase(orderPayload: Partial<Order>): Promise<Order | null> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return null;
 
   const payload = {
     lead_id: orderPayload.lead_id && !orderPayload.lead_id.startsWith("lead-") ? orderPayload.lead_id : null,
@@ -117,6 +129,7 @@ export async function createOrderInSupabase(orderPayload: Partial<Order>): Promi
   const { data, error } = await supabase
     .from("orders")
     .insert({
+      workspace_id: workspaceId,
       total_amount: payload.total_amount,
       status: payload.status,
       ...(payload.lead_id ? { lead_id: payload.lead_id } : {}),

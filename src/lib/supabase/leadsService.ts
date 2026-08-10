@@ -1,6 +1,7 @@
 import { createClient } from "./client";
 import { Database } from "./types";
 import { Lead, LeadStatus, calculateAiLeadScore } from "../leads";
+import { getCurrentWorkspaceId } from "./workspace";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 
@@ -19,8 +20,10 @@ export async function fetchLeadsFromSupabase(options?: {
   sortBy?: "name" | "score" | "created";
 }): Promise<Lead[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
-  let query = supabase.from("leads").select("*");
+  let query = supabase.from("leads").select("*").eq("workspace_id", workspaceId);
 
   if (options?.status && options.status !== "all") {
     query = query.eq("status", options.status);
@@ -65,9 +68,12 @@ export async function fetchLeadsFromSupabase(options?: {
 
 export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | null> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return null;
 
   const score = lead.ai_score || calculateAiLeadScore(lead);
   const payload = {
+    workspace_id: workspaceId,
     full_name: lead.full_name || "New Lead",
     phone: lead.phone || "",
     email: lead.email || null,
@@ -111,11 +117,14 @@ export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | 
 
 export async function updateLeadStatusInSupabase(id: string, status: LeadStatus): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
   const { error } = await supabase
     .from("leads")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("workspace_id", workspaceId);
 
   if (error) {
     console.error("[leadsService] Error updating lead status in Supabase:", error);
@@ -127,8 +136,10 @@ export async function updateLeadStatusInSupabase(id: string, status: LeadStatus)
 
 export async function deleteLeadFromSupabase(id: string): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
-  const { error } = await supabase.from("leads").delete().eq("id", id);
+  const { error } = await supabase.from("leads").delete().eq("id", id).eq("workspace_id", workspaceId);
 
   if (error) {
     console.error("[leadsService] Error deleting lead from Supabase:", error);

@@ -1,4 +1,5 @@
 import { createClient } from "./supabase/client";
+import { getCurrentWorkspaceId } from "./supabase/workspace";
 import { fetchProductsFromSupabase, createProductInSupabase } from "./supabase/ordersService";
 
 export type ProductCategory = "supplements" | "cosmetics" | "electronics";
@@ -296,12 +297,13 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 
   try {
     const supabase = createClient();
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) return localProductsStore[idx] || null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("products") as any).update(updates).eq("id", id);
+    await (supabase.from("products") as any).update(updates).eq("id", id).eq("workspace_id", workspaceId);
   } catch (err) {
     console.warn("Supabase update product skipped:", err);
   }
 
   return localProductsStore[idx] || null;
 }
-

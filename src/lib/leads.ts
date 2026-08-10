@@ -1,5 +1,6 @@
 import { createClient } from "./supabase/client";
 import { fetchLeadsFromSupabase, updateLeadStatusInSupabase } from "./supabase/leadsService";
+import { getCurrentWorkspaceId } from "./supabase/workspace";
 
 export type LeadStatus = "new" | "contacted" | "qualified" | "customer" | "unresponsive";
 
@@ -359,7 +360,10 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
   // Try saving to Supabase
   try {
     const supabase = createClient();
+    const workspaceId = await getCurrentWorkspaceId();
+    if (!workspaceId) throw new Error("No active workspace");
     const payload = newLeads.map((l) => ({
+      workspace_id: workspaceId,
       full_name: l.full_name,
       phone: l.phone,
       email: l.email,
@@ -407,4 +411,3 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
 
   return localLeadsStore[index] || null;
 }
-

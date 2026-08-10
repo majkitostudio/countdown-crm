@@ -1,6 +1,7 @@
 import { createClient } from "./client";
 import { Database } from "./types";
 import { AuditLogEntry } from "../audit";
+import { getCurrentWorkspaceId } from "./workspace";
 
 type AuditLogRow = Database["public"]["Tables"]["audit_logs"]["Row"];
 
@@ -15,10 +16,13 @@ function getDb() {
 
 export async function fetchAuditLogsFromSupabase(): Promise<AuditLogEntry[]> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
 
   const { data, error } = await supabase
     .from("audit_logs")
     .select("*")
+    .eq("workspace_id", workspaceId)
     .order("timestamp", { ascending: false })
     .limit(100);
 
@@ -40,8 +44,11 @@ export async function fetchAuditLogsFromSupabase(): Promise<AuditLogEntry[]> {
 
 export async function saveAuditLogToSupabase(entry: Omit<AuditLogEntry, "id" | "timestamp">): Promise<boolean> {
   const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return false;
 
   const { error } = await supabase.from("audit_logs").insert({
+    workspace_id: workspaceId,
     actor_id: entry.operatorId,
     actor_name: entry.operatorName,
     action: entry.actionType,
