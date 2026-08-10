@@ -79,10 +79,10 @@ The application-side hardening was implemented and verified on 2026-08-10:
 - invalid parent IDs were rejected by the live database FK test;
 - typecheck and production build passed.
 
-The authenticated runtime workflow smoke remains open because the existing
-browser session was intentionally logged out before this checkpoint. The
-unauthenticated redirect was rechecked; a fresh login is still required before
-claiming the full Operator Console event-to-workflow path as browser-verified.
+The authenticated runtime workflow smoke subsequently passed in a fresh
+Playwright login: Operator Console emitted `on_call_ended`, the UI reported
+one successful execution, and SQL verified the persisted `success` execution
+row and payload. The temporary smoke rule was deactivated after verification.
 
 Remaining items are intentionally outside this implementation slice: leaked
 password protection, duplicate policy cleanup, and the remaining mock-only

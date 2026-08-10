@@ -48,6 +48,12 @@ Foreign-key constraints exist for calls, orders, custom records, record values,
 and workflow executions. The application additionally validates order parents
 against the active workspace before insertion.
 
+The authenticated runtime smoke also passed: a Supabase-backed `on_call_ended`
+rule executed from Operator Console, the UI reported `1 / 1` successful
+execution, and SQL verified a `success` row with the expected rule, lead,
+payload, and `notify_manager` action. The temporary smoke rule was then
+deactivated so it cannot affect later calls.
+
 Supabase advisors currently report one security warning: leaked-password
 protection is disabled. Performance notices are informational unused-index
 reports plus duplicate permissive-policy warnings; they should be handled in a

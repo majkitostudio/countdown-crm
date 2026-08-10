@@ -74,8 +74,8 @@ not considered complete merely because it renders or because a build passes.
 
 - [x] Load persisted workspace rules into the runtime workflow evaluator.
 - [x] Keep the runtime engine free of default demo rules in production mode.
-- [ ] Run an authenticated Operator Console event-to-workflow smoke after a
-      fresh login.
+- [x] Run an authenticated Operator Console event-to-workflow smoke after a
+      fresh login; verify successful execution in the UI and Supabase.
 - [ ] Replace static dashboard KPI/activity widgets with database-derived
       values.
 - [ ] Load operator profile from the authenticated profile row.
