@@ -2,7 +2,7 @@
 
 **Updated:** 2026-08-10  
 **Scope:** clean Supabase project, one-company MVP, workspace-ready data model  
-**Status:** implementation in progress
+**Status:** complete for the verified one-company pilot scope; follow-up hardening remains
 
 This document is the working checklist for finishing the database-backed CRM
 segment. It is intentionally separate from the product roadmap: a screen is
@@ -25,8 +25,8 @@ not considered complete merely because it renders or because a build passes.
   custom records.
 - `npm run typecheck` passes.
 - `npm run build` passes.
-- Changes are intentionally uncommitted until the CRUD and persistence checks
-  below pass.
+- The verified stabilization work is committed in `3a41273`; the two following
+  commits only remove Playwright artifacts from repository history.
 
 ## Ordered worklist
 
@@ -84,13 +84,13 @@ not considered complete merely because it renders or because a build passes.
 ### 5. End-to-end verification
 
 - [x] Login with real Supabase Auth credentials.
-- [ ] Confirm redirect to `/workspace` and server session visibility.
+- [x] Confirm redirect to `/workspace` and server session visibility.
 - [x] Confirm unauthenticated routes redirect to `/login`.
 - [x] Run the CRUD workflow in a fresh Playwright browser context.
-- [ ] Reload after every write and verify persistence.
+- [x] Reload after every supported critical write and verify persistence.
 - [x] Verify logout invalidates access to protected routes.
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run build`.
+- [x] Run `npm run typecheck`.
+- [x] Run `npm run build`.
 - [x] Run `npm run lint`; current repository baseline remains 29 errors and
       121 warnings and is tracked separately from the database work.
 - [x] Run Supabase security and performance advisors after final migrations.
@@ -117,11 +117,11 @@ a browser reload/persistence check.
 ## Stabilization checkpoint — 2026-08-10
 
 The authenticated pilot workspace has passed live browser and SQL checks for
-lead, product, call, order, workflow, custom EAV record, and audit persistence.
-The next commit should close this database-focused stabilization segment as one
-coherent change. A separate product feature should start only after the
-remaining browser and authorization gates are complete.
+lead, product, call, order, workflow, custom EAV record, audit persistence,
+workflow edit/delete, and auth logout/redirect behavior. The database-backed
+stabilization segment is complete for the verified one-company pilot scope.
 
-The first CRUD browser session was closed before workflow edit/delete replay.
-Those operations remain intentionally unchecked until they pass in a fresh
-authenticated Playwright context.
+The remaining unchecked items are follow-up hardening or product-surface work:
+negative foreign-workspace tests, leaked-password protection, duplicate policy
+cleanup, mock-only surfaces, persisted runtime rule evaluation, database-backed
+dashboard widgets, and explicit demo-sandbox separation.

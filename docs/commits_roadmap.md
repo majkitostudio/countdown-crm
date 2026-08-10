@@ -1,5 +1,11 @@
 # Countdown CRM — Roadmap Inkrementálních Commitů (Attio-Grade Platform)
 
+> **Current status addendum — 2026-08-10:** This historical feature roadmap is
+> preserved for context. The authoritative pilot-readiness sequence is in
+> `docs/PRODUCT_STATUS.md`. Supabase/auth/data-boundary stages 6–9 are complete
+> for the verified one-company pilot scope in `3a41273`; the next major product
+> stage is a separately scoped Operator Console review.
+
 > **Zásada Engineera**: Vývoj probíhá uvážlivě, bez spěchu, s maximální kvalitou kódu, nulovým technologickým dluhem a přísným testováním po každém commitu.
 
 ---
@@ -99,7 +105,6 @@
 ## 🤖 FÁZE 17: Live Call Agent Simulator & Custom Configurator
 - [x] `feat(simulator): add Anytime Accessible Live Call Agent Simulator with Custom Configurator (17.1)`
 - [x] `feat(simulator): implement VAD Hands-Free Dispatch & Teleprompter Script Reader (17.2)`
-
 
 
 

@@ -413,3 +413,30 @@ Stabilizační fáze bude považována za úspěšnou teprve tehdy, když:
 - budou existovat testy nebo smoke kontroly pro hlavní pracovní scénáře,
 - Operator Console bude působit jako promyšlený pracovní nástroj, ne jako generický AI prototyp,
 - každý modul bude mít pravdivý status: production-ready, pilot-ready, in progress nebo demo-only.
+
+## 11. Roadmap reconciliation — 2026-08-10
+
+The original staged roadmap remains valid as historical planning context, but
+the implementation was intentionally consolidated where the work formed one
+coherent stabilization boundary.
+
+Current status:
+
+- Commits 1–5 (baseline, quality gates, authentication and workspace boundary):
+  complete in the existing history.
+- Commits 6–9 (Supabase DAL/RLS, CRM data model, mock isolation and critical
+  CRM workflows): complete for the verified one-company pilot scope in
+  `3a41273 refactor: harden Supabase-backed CRM workflows`.
+- `85134de` and `e547349`: repository-hygiene follow-ups only; they are not
+  product roadmap stages.
+- Commit 10 (React and UX stabilization): partially complete. Targeted data
+  state, modal, form and error-state fixes are landed, while lint debt and
+  remaining mock-only surfaces are still open.
+- Commit 11 (Operator Console redesign): next major product stage, after the
+  documentation reconciliation and any selected hardening checkpoint.
+- Commits 12–13 (telephony/AI boundaries and release readiness): later stages.
+
+The database-backed stabilization segment is therefore marked pilot-ready, not
+universally production-ready. Remaining follow-up items include leaked-password
+protection, explicit negative foreign-workspace tests, duplicate policy cleanup,
+remaining mock-only surfaces, and database-backed dashboard activity/KPI data.

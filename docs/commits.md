@@ -1,5 +1,11 @@
 # Countdown CRM — Plán commitů a Vývoje
 
+> **Roadmap reconciliation — 2026-08-10:** The original feature history in
+> this document is preserved. The current pilot-readiness roadmap is maintained
+> in `docs/PRODUCT_STATUS.md`. Stages 6–9 were delivered together for the
+> verified pilot scope by `3a41273`; `85134de` and `e547349` are cleanup-only
+> commits and are not additional product stages.
+
 Tento dokument slouží jako živý průvodce vývojem. Každý commit reprezentuje ucelenou, otestovatelnou část funkcionalit.
 Před každou implementací se shodujeme na plánu. Po dokončení je commit označen jako hotový.
 
@@ -833,7 +839,6 @@ refactor: eliminate all any types, fix React hook purity, and achieve strict bui
 - Oprava React hooků a odstranění synchrónních `setState` volání uvnitř těl efektů (`CallStatusBar.tsx`, `AiCopilotPanel.tsx`, `AiFollowupModal.tsx`, `ProductModal.tsx`, `FilterEngineBar.tsx`).
 - Vyčištění nepoužitých proměnných a importů v celé kódové základně.
 - Ověřeno: `npm run lint` čisto, `npx tsc --noEmit` 0 chyb, `npm run build` zelený produkční build v Next.js 16 (Turbopack).
-
 
 
 

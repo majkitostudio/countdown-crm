@@ -22,11 +22,9 @@ This checkpoint records the current decision point before the next commit.
 - production reads no longer use mock data as their source of truth in the
   covered modules.
 
-## Remaining gates before the stabilization commit
+## Follow-up hardening after the stabilization commit
 
 - verify invalid parent and foreign-workspace references are rejected;
-- verify logout and unauthenticated-route redirects;
-- run final Supabase security and performance advisors;
 - isolate remaining mock-only monitor, timeline, training, objection and
   dashboard activity surfaces;
 - update the older product baseline wording where it still describes live RLS
@@ -34,10 +32,10 @@ This checkpoint records the current decision point before the next commit.
 
 ## Commit boundary
 
-The next commit should close this database/stabilization segment as one
-coherent change. A new product feature should begin only after these gates are
-complete and the commit has a reproducible typecheck, build, SQL verification,
-and browser smoke result.
+The database/stabilization segment is closed by commit `3a41273`. Commits
+`85134de` and `e547349` are repository-hygiene follow-ups only. A new product
+feature should begin after the documentation reconciliation and any explicitly
+selected hardening item have their own bounded commit.
 
 ## Latest verification
 
