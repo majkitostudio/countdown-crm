@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   FileText
 } from "lucide-react";
-import { Lead, LeadActivity, MOCK_LEAD_ACTIVITIES, updateLead } from "@/lib/leads";
+import { Lead, LeadActivity, MOCK_LEAD_ACTIVITIES } from "@/lib/leads";
+import { updateLeadStatusInSupabase } from "@/lib/supabase/leadsService";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -42,18 +43,7 @@ export function LeadDetailDrawer({
   React.useEffect(() => {
     setCurrentLead(lead);
     if (lead) {
-      const mockList = MOCK_LEAD_ACTIVITIES[lead.id] || [
-        {
-          id: `act-default-${lead.id}`,
-          lead_id: lead.id,
-          type: "note",
-          title: "Lead Created",
-          description: `Lead added to system with AI Score of ${lead.ai_score}/100.`,
-          timestamp: lead.created_at,
-          agent_name: "System",
-        },
-      ];
-      setActivities(mockList);
+      setActivities(MOCK_LEAD_ACTIVITIES[lead.id] || []);
     }
   }, [lead]);
 
@@ -61,8 +51,13 @@ export function LeadDetailDrawer({
 
   const handleStatusChange = async (newStatus: Lead["status"]) => {
     if (!currentLead) return;
-    const updated = await updateLead(currentLead.id, { status: newStatus });
-    if (updated) {
+    const saved = await updateLeadStatusInSupabase(currentLead.id, newStatus);
+    if (saved) {
+      const updated = {
+        ...currentLead,
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      };
       setCurrentLead(updated);
       onLeadUpdated();
 

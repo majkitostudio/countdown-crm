@@ -1,6 +1,7 @@
 // src/lib/audit.ts
 
 import { saveAuditLogToSupabase } from "./supabase/auditService";
+import { fetchAuditLogsFromSupabase } from "./supabase/auditService";
 
 export type AuditSeverity = "low" | "medium" | "high" | "critical";
 
@@ -98,24 +99,18 @@ const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   },
 ];
 
-let auditLogsStore: AuditLogEntry[] = [...INITIAL_AUDIT_LOGS];
-
-export function getAuditLogs(): AuditLogEntry[] {
-  return auditLogsStore;
+export async function getAuditLogs(): Promise<AuditLogEntry[]> {
+  return fetchAuditLogsFromSupabase();
 }
 
-export function addAuditLog(entry: Omit<AuditLogEntry, "id" | "timestamp">): AuditLogEntry {
+export async function addAuditLog(entry: Omit<AuditLogEntry, "id" | "timestamp">): Promise<AuditLogEntry> {
   const newEntry: AuditLogEntry = {
     ...entry,
     id: `audit-${Date.now()}`,
     timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
   };
-  auditLogsStore = [newEntry, ...auditLogsStore];
-
-  saveAuditLogToSupabase(entry).catch((err) =>
-    console.warn("[audit] Failed to sync audit log to Supabase:", err)
-  );
-
+  const saved = await saveAuditLogToSupabase(entry);
+  if (!saved) throw new Error("Audit log could not be saved");
   return newEntry;
 }
 

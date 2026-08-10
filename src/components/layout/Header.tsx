@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Bell, ShieldCheck, Zap, Award, Layers } from "lucide-react";
 import { getOperatorProfile, OperatorProfile } from "@/lib/gamification";
 import { blueprintEngine } from "@/lib/blueprints/engine";
@@ -8,14 +9,16 @@ import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerMod
 import { OperatorPresenceBadge } from "./OperatorPresenceBadge";
 
 import { isDemoModeActive, setDemoMode } from "@/lib/demoMode";
+import { createClient } from "@/lib/supabase/client";
 
 export function Header() {
+  const router = useRouter();
   const [profile, setProfile] = useState<OperatorProfile | null>(null);
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
   const [activeBlueprintName, setActiveBlueprintName] = useState(
     blueprintEngine.getActiveBlueprint().name
   );
-  const [demoActive, setDemoActive] = useState<boolean>(true);
+  const [demoActive, setDemoActive] = useState<boolean>(false);
 
   useEffect(() => {
     setProfile(getOperatorProfile());
@@ -35,6 +38,15 @@ export function Header() {
   const firstName = nameParts[0] || "Jan";
   const lastName = nameParts.slice(1).join(" ") || "Dvořák";
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+
+  const handleSignOut = async () => {
+    const { error } = await createClient().auth.signOut();
+    if (error) {
+      console.error("[Header] Sign out failed:", error);
+      return;
+    }
+    router.replace("/login");
+  };
 
   return (
     <header className="h-18 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20">
@@ -109,7 +121,12 @@ export function Header() {
         </button>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 pl-3 border-l border-zinc-800">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          title="Odhlásit se"
+          className="flex items-center gap-3 pl-3 border-l border-zinc-800 text-left hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-semibold text-zinc-200">
             {initials}
           </div>
@@ -122,7 +139,7 @@ export function Header() {
               Senior Agent
             </span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Blueprint Picker Modal */}

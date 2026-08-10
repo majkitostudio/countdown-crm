@@ -26,7 +26,11 @@ export async function fetchAuditLogsFromSupabase(): Promise<AuditLogEntry[]> {
     .order("timestamp", { ascending: false })
     .limit(100);
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    throw new Error("Audit log query failed");
+  }
+
+  if (!data || data.length === 0) {
     return [];
   }
 

@@ -36,7 +36,7 @@ const MOCK_ONLINE_OPERATORS: OperatorPresence[] = [
 
 export function OperatorPresenceBadge() {
   const [isOpen, setIsOpen] = useState(false);
-  const operators = MOCK_ONLINE_OPERATORS;
+  const operators: OperatorPresence[] = [];
   const inCallCount = operators.filter((o) => o.status === "in_call").length;
 
   return (
@@ -68,7 +68,7 @@ export function OperatorPresenceBadge() {
         </div>
 
         <span className="hidden lg:inline text-zinc-200 font-mono">
-          {operators.length} online
+          {operators.length === 0 ? "Presence unavailable" : `${operators.length} online`}
         </span>
 
         {inCallCount > 0 && (

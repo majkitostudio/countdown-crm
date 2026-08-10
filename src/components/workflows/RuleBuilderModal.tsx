@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   X,
   Plus,
@@ -94,6 +94,16 @@ export function RuleBuilderModal({
     editingRule?.actions ?? []
   );
   const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setName(editingRule?.name ?? "");
+    setDescription(editingRule?.description ?? "");
+    setTrigger(editingRule?.trigger ?? "on_call_ended");
+    setConditions(editingRule?.conditions ?? []);
+    setActions(editingRule?.actions ?? []);
+    setStep(1);
+  }, [editingRule, isOpen]);
 
   if (!isOpen) return null;
 

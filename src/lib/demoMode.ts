@@ -7,7 +7,7 @@ const DEMO_MODE_STORAGE_KEY = "countdown_demo_mode_active";
 export function isDemoModeActive(): boolean {
   if (typeof window === "undefined") return false;
   const saved = localStorage.getItem(DEMO_MODE_STORAGE_KEY);
-  if (saved === null) return true; // Default to true for easy initial testing
+  if (saved === null) return false;
   return saved === "true";
 }
 

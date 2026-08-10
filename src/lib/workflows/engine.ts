@@ -84,8 +84,10 @@ class WorkflowEngine {
   private executionLog: ExecutionLogEntry[] = [];
 
   constructor() {
-    this.rules = [...DEFAULT_RULES];
-    this.initFromStorage();
+    // Production truth is loaded by the workflows page from Supabase. The
+    // runtime engine starts empty until the authenticated workspace rules are
+    // explicitly supplied by the application.
+    this.rules = [];
   }
 
   private initFromStorage(): void {

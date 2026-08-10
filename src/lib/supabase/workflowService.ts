@@ -26,7 +26,11 @@ export async function fetchWorkflowsFromSupabase(): Promise<WorkflowRule[]> {
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: true });
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    throw new Error("Workflow query failed");
+  }
+
+  if (!data) {
     return [];
   }
 
@@ -61,8 +65,7 @@ export async function saveWorkflowToSupabase(rule: WorkflowRule): Promise<boolea
   });
 
   if (error) {
-    console.error("[workflowService] Error saving workflow to Supabase:", error);
-    return false;
+    throw new Error("Workflow save failed");
   }
 
   return true;
@@ -76,8 +79,7 @@ export async function deleteWorkflowFromSupabase(ruleId: string): Promise<boolea
   const { error } = await supabase.from("workflows").delete().eq("id", ruleId).eq("workspace_id", workspaceId);
 
   if (error) {
-    console.error("[workflowService] Error deleting workflow from Supabase:", error);
-    return false;
+    throw new Error("Workflow delete failed");
   }
 
   return true;
@@ -95,7 +97,11 @@ export async function fetchWorkflowExecutionsFromSupabase(): Promise<ExecutionLo
     .order("created_at", { ascending: false })
     .limit(100);
 
-  if (error || !data) {
+  if (error) {
+    throw new Error("Workflow execution query failed");
+  }
+
+  if (!data) {
     return [];
   }
 

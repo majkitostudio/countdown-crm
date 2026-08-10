@@ -33,26 +33,33 @@ function WorkspaceContent() {
   
   const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallResults, setPostCallResults] = useState<ExecutionLogEntry[]>([]);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
-      const fetchedLeads = await getLeads();
-      const fetchedProducts = await getProducts();
+      setLoadError(null);
+      try {
+        const [fetchedLeads, fetchedProducts] = await Promise.all([
+          getLeads(),
+          getProducts(),
+        ]);
 
-      setLeads(fetchedLeads);
-      setProducts(fetchedProducts);
+        setLeads(fetchedLeads);
+        setProducts(fetchedProducts);
 
-      if (leadIdParam) {
-        const found = fetchedLeads.find((l) => l.id === leadIdParam);
-        if (found) setActiveLead(found);
-        else if (fetchedLeads.length > 0) setActiveLead(fetchedLeads[0]);
-      } else if (fetchedLeads.length > 0) {
-        setActiveLead(fetchedLeads[0]);
+        if (leadIdParam) {
+          const found = fetchedLeads.find((l) => l.id === leadIdParam);
+          if (found) setActiveLead(found);
+          else if (fetchedLeads.length > 0) setActiveLead(fetchedLeads[0]);
+        } else if (fetchedLeads.length > 0) {
+          setActiveLead(fetchedLeads[0]);
+        }
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : "Workspace data could not be loaded");
       }
-
       setIsLoading(false);
     }
     loadData();
@@ -248,6 +255,15 @@ function WorkspaceContent() {
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
         <RefreshCw className="w-5 h-5 animate-spin mr-2 text-zinc-300" />
         <span>Loading Agent Workspace Environment...</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-xl rounded-xl border border-rose-900/60 bg-rose-950/30 p-6 text-sm text-rose-200">
+        <h1 className="font-semibold">Workspace data could not be loaded</h1>
+        <p className="mt-2 text-xs text-rose-300">{loadError}</p>
       </div>
     );
   }

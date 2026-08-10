@@ -285,16 +285,7 @@ export async function getLeads(options?: {
   search?: string;
   sortBy?: "name" | "score" | "created";
 }): Promise<Lead[]> {
-  try {
-    const data = await fetchLeadsFromSupabase(options);
-    if (data && data.length > 0) {
-      return data;
-    }
-    return filterAndSortLocalLeads(options);
-  } catch (err) {
-    console.warn("Supabase fetch failed, fallback to local leads store:", err);
-    return filterAndSortLocalLeads(options);
-  }
+  return fetchLeadsFromSupabase(options);
 }
 
 function filterAndSortLocalLeads(options?: {
@@ -393,21 +384,15 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
  * Update single lead status or notes
  */
 export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
-  const index = localLeadsStore.findIndex((l) => l.id === id);
-  if (index !== -1) {
-    localLeadsStore[index] = {
-      ...localLeadsStore[index],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-    saveLocalLeads(localLeadsStore);
+  if (!updates.status) {
+    throw new Error("Only lead status updates are supported by the Supabase lead service");
   }
 
-  if (updates.status) {
-    updateLeadStatusInSupabase(id, updates.status).catch((err) =>
-      console.warn("Supabase update lead status failed:", err)
-    );
+  const saved = await updateLeadStatusInSupabase(id, updates.status);
+  if (!saved) {
+    throw new Error("Lead status was not saved to Supabase");
   }
 
-  return localLeadsStore[index] || null;
+  const leads = await fetchLeadsFromSupabase();
+  return leads.find((lead) => lead.id === id) || null;
 }

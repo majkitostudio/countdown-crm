@@ -27,7 +27,11 @@ export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> 
     .select("*")
     .eq("workspace_id", workspaceId);
 
-  if (objError || !objectRows || objectRows.length === 0) {
+  if (objError) {
+    throw new Error("Custom object query failed");
+  }
+
+  if (!objectRows) {
     return [];
   }
 
@@ -37,7 +41,7 @@ export async function fetchCustomObjectsFromSupabase(): Promise<ObjectSchema[]> 
     .eq("workspace_id", workspaceId);
 
   if (attrError) {
-    console.warn("[schemaService] Failed to load attribute definitions from Supabase:", attrError);
+    throw new Error("Attribute definition query failed");
   }
 
   const result: ObjectSchema[] = (objectRows as CustomObjectRow[]).map((obj) => {
@@ -160,7 +164,11 @@ export async function fetchRecordEntitiesFromSupabase(objectSlug: string): Promi
     .eq("object_slug", objectSlug)
     .eq("workspace_id", workspaceId);
 
-  if (entError || !entities || entities.length === 0) {
+  if (entError) {
+    throw new Error("Record entity query failed");
+  }
+
+  if (!entities) {
     return [];
   }
 
@@ -173,7 +181,7 @@ export async function fetchRecordEntitiesFromSupabase(objectSlug: string): Promi
     .in("record_id", recordIds);
 
   if (valError) {
-    console.warn("[schemaService] Failed to load record values from Supabase:", valError);
+    throw new Error("Record value query failed");
   }
 
   const typedValues = (values || []) as RecordValueRow[];
@@ -213,8 +221,7 @@ export async function saveRecordEntityToSupabase(
     .single();
 
   if (entError || !entity) {
-    console.error("[schemaService] Failed to insert record entity into Supabase:", entError);
-    return null;
+    throw new Error("Record entity insert failed");
   }
 
   const typedEntity = entity as RecordEntityRow;
@@ -230,7 +237,7 @@ export async function saveRecordEntityToSupabase(
       valueRows.map((row) => ({ ...row, workspace_id: workspaceId }))
     );
     if (valError) {
-      console.error("[schemaService] Failed to insert record values into Supabase:", valError);
+      throw new Error("Record value insert failed");
     }
   }
 

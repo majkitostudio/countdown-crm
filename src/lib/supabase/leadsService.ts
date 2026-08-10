@@ -2,6 +2,7 @@ import { createClient } from "./client";
 import { Database } from "./types";
 import { Lead, LeadStatus, calculateAiLeadScore } from "../leads";
 import { getCurrentWorkspaceId } from "./workspace";
+import { saveAuditLogToSupabase } from "./auditService";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 
@@ -44,7 +45,11 @@ export async function fetchLeadsFromSupabase(options?: {
 
   const { data, error } = await query;
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    throw new Error("Lead query failed");
+  }
+
+  if (!data) {
     return [];
   }
 
@@ -91,8 +96,7 @@ export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | 
     .single();
 
   if (error || !data) {
-    console.error("[leadsService] Error creating lead in Supabase:", error);
-    return null;
+    throw new Error("Lead insert failed");
   }
 
   const typedData = data as LeadRow;
@@ -129,6 +133,21 @@ export async function updateLeadStatusInSupabase(id: string, status: LeadStatus)
   if (error) {
     console.error("[leadsService] Error updating lead status in Supabase:", error);
     return false;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const auditSaved = await saveAuditLogToSupabase({
+    operatorId: user?.id || "unknown",
+    operatorName: user?.email || "Authenticated operator",
+    actionType: "LEAD_UPDATE",
+    severity: "low",
+    details: `Lead ${id} status changed to ${status}`,
+    ipAddress: "127.0.0.1",
+  });
+  if (!auditSaved) {
+    throw new Error("Lead status changed but audit event was not saved");
   }
 
   return true;

@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Users, Sparkles, UserCheck, DollarSign, UserPlus, RefreshCw } from "lucide-react";
-import { Lead, getLeads } from "@/lib/leads";
+import { listLeadsAction } from "@/app/actions/crm";
+import { Lead } from "@/lib/leads";
 import { LeadsTable } from "@/components/leads/LeadsTable";
 import { LeadDetailDrawer } from "@/components/leads/LeadDetailDrawer";
 import { CsvImportModal } from "@/components/leads/CsvImportModal";
+import { CreateLeadModal } from "@/components/leads/CreateLeadModal";
 import { ViewSwitcher, ViewMode } from "@/components/views/ViewSwitcher";
 import { KanbanBoard } from "@/components/views/KanbanBoard";
 import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBar";
@@ -15,15 +17,24 @@ export default function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
 
   const loadLeads = async () => {
     setIsLoading(true);
-    const data = await getLeads();
-    setLeads(data);
-    setIsLoading(false);
+    setLoadError(null);
+    try {
+      const data = await listLeadsAction();
+      setLeads(data);
+    } catch (error) {
+      setLeads([]);
+      setLoadError(error instanceof Error ? error.message : "Leady se nepodařilo načíst.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -110,14 +121,28 @@ export default function LeadsPage() {
           </button>
 
           <button
-            onClick={() => setIsImportModalOpen(true)}
+            onClick={() => setIsCreateModalOpen(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Create Lead</span>
+          </button>
+
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium text-xs hover:border-zinc-700 hover:text-zinc-100 transition-colors"
           >
             <UserPlus className="w-4 h-4" />
             <span>Import CSV Database</span>
           </button>
         </div>
       </div>
+
+      {loadError && (
+        <div className="rounded-xl border border-rose-800/60 bg-rose-950/40 p-4 text-xs text-rose-300">
+          {loadError}
+        </div>
+      )}
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -202,6 +227,12 @@ export default function LeadsPage() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImportComplete={handleImportComplete}
+      />
+
+      <CreateLeadModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={loadLeads}
       />
 
     </div>

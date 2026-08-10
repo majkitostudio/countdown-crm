@@ -18,6 +18,10 @@ import {
 import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";
 import { ObjectSchema, RecordEntity } from "@/lib/schema/types";
+import {
+  fetchRecordEntitiesFromSupabase,
+  saveRecordEntityToSupabase,
+} from "@/lib/supabase/schemaService";
 
 // Mock records generator per custom schema slug
 const MOCK_CUSTOM_RECORDS: Record<string, RecordEntity[]> = {
@@ -76,7 +80,8 @@ export default function CustomObjectPage() {
     const s = schemaEngine.getSchema(slug);
     setSchema(s);
 
-    const initial = MOCK_CUSTOM_RECORDS[slug] || [
+    const initial: RecordEntity[] = [];
+    /*
       {
         id: `rec-demo-1`,
         schemaSlug: slug,
@@ -89,7 +94,10 @@ export default function CustomObjectPage() {
         updatedAt: new Date().toISOString(),
       },
     ];
-    setRecords(initial);
+    ] : []; */
+    void fetchRecordEntitiesFromSupabase(slug)
+      .then(setRecords)
+      .catch(() => setRecords([]));
   }, [slug]);
 
   if (!schema) {
@@ -114,16 +122,10 @@ export default function CustomObjectPage() {
     );
   }
 
-  const handleAddRecord = () => {
-    const newRecord: RecordEntity = {
-      id: `rec-${Date.now()}`,
-      schemaSlug: slug,
-      values: { ...newRecordValues },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setRecords([newRecord, ...records]);
+  const handleAddRecord = async () => {
+    const newRecord = await saveRecordEntityToSupabase(slug, newRecordValues);
+    if (!newRecord) return;
+    setRecords((current) => [newRecord, ...current]);
     setNewRecordValues({});
     setIsAddModalOpen(false);
   };

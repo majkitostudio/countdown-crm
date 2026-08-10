@@ -90,60 +90,37 @@ export const INITIAL_MOCK_CALLS: CallRecord[] = [
   }
 ];
 
-const CALLS_STORAGE_KEY = "countdown_crm_calls_v1";
-
-function loadLocalCalls(): CallRecord[] {
-  if (typeof window === "undefined") return INITIAL_MOCK_CALLS;
-  const stored = localStorage.getItem(CALLS_STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_CALLS));
-    return INITIAL_MOCK_CALLS;
-  }
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return INITIAL_MOCK_CALLS;
-  }
-}
-
-function saveLocalCalls(calls: CallRecord[]): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(CALLS_STORAGE_KEY, JSON.stringify(calls));
-  }
-}
-
-let localCallsStore: CallRecord[] = loadLocalCalls();
-
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 
 /**
  * Fetch all call records
  */
 export async function getCalls(): Promise<CallRecord[]> {
-  try {
-    const supabase = createClient();
-    const workspaceId = await getCurrentWorkspaceId();
-    if (!workspaceId) return localCallsStore;
-    const { data, error } = await supabase.from("calls").select("*").eq("workspace_id", workspaceId);
-    if (error || !data || data.length === 0) {
-      return localCallsStore;
-    }
-    return (data as CallRow[]).map((c) => ({
-      id: c.id,
-      lead_id: c.lead_id || "lead-1",
-      lead_name: "Customer",
-      agent_name: "Operator",
-      duration_seconds: c.duration_seconds || 120,
-      outcome: (c.outcome as CallRecord["outcome"]) || "followup_scheduled",
-      sentiment: (c.ai_sentiment as CallRecord["sentiment"]) || "Neutral",
-      order_value: 0,
-      transcript: c.transcript ? JSON.parse(c.transcript) : [],
-      created_at: c.created_at,
-    }));
-  } catch (err) {
-    console.warn("Supabase fetch calls failed, using local store:", err);
-    return localCallsStore;
+  const supabase = createClient();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
+  const { data, error } = await supabase
+    .from("calls")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error("Call query failed");
   }
+
+  return (data as CallRow[]).map((c) => ({
+    id: c.id,
+    lead_id: c.lead_id || "",
+    lead_name: "Customer",
+    agent_name: "Operator",
+    duration_seconds: c.duration_seconds || 0,
+    outcome: (c.outcome as CallRecord["outcome"]) || "followup_scheduled",
+    sentiment: (c.ai_sentiment as CallRecord["sentiment"]) || "Neutral",
+    order_value: 0,
+    transcript: c.transcript ? JSON.parse(c.transcript) : [],
+    created_at: c.created_at,
+  }));
 }
 
 /**
@@ -173,24 +150,22 @@ export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promis
     created_at: new Date().toISOString(),
   };
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = createClient() as any;
-    const workspaceId = await getCurrentWorkspaceId();
-    if (!workspaceId) throw new Error("No active workspace");
-    await supabase.from("calls").insert({
-      workspace_id: workspaceId,
-      lead_id: newRecord.lead_id.startsWith("lead-") ? null : newRecord.lead_id,
-      duration_seconds: newRecord.duration_seconds,
-      outcome: newRecord.outcome === "objection_handled" ? "completed" : newRecord.outcome,
-      transcript: JSON.stringify(newRecord.transcript),
-      ai_sentiment: newRecord.sentiment,
-    });
-  } catch (err) {
-    console.warn("Supabase call insert skipped:", err);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createClient() as any;
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) throw new Error("No active workspace");
+  const { data, error } = await supabase.from("calls").insert({
+    workspace_id: workspaceId,
+    lead_id: newRecord.lead_id.startsWith("lead-") ? null : newRecord.lead_id,
+    duration_seconds: newRecord.duration_seconds,
+    outcome: newRecord.outcome === "objection_handled" ? "completed" : newRecord.outcome,
+    transcript: JSON.stringify(newRecord.transcript),
+    ai_sentiment: newRecord.sentiment,
+  }).select("*").single();
+
+  if (error || !data) {
+    throw new Error("Call could not be saved");
   }
 
-  localCallsStore = [newRecord, ...localCallsStore];
-  saveLocalCalls(localCallsStore);
-  return newRecord;
+  return { ...newRecord, id: data.id, created_at: data.created_at };
 }

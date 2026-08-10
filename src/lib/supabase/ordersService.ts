@@ -27,7 +27,11 @@ export async function fetchProductsFromSupabase(): Promise<Product[]> {
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    throw new Error("Product query failed");
+  }
+
+  if (!data) {
     return [];
   }
 
@@ -67,12 +71,55 @@ export async function createProductInSupabase(product: Partial<Product>): Promis
     .single();
 
   if (error || !data) {
-    console.error("[ordersService] Error creating product in Supabase:", error);
-    return null;
+    throw new Error("Product insert failed");
   }
 
   const typed = data as ProductRow;
 
+  return {
+    id: typed.id,
+    title: typed.title,
+    category: typed.category as ProductCategory,
+    price: Number(typed.price),
+    currency: typed.currency,
+    description: typed.description || "",
+    image_url: typed.image_url || "",
+    in_stock: typed.in_stock,
+    created_at: typed.created_at,
+  };
+}
+
+export async function updateProductInSupabase(
+  id: string,
+  updates: Partial<Product>
+): Promise<Product | null> {
+  const supabase = getDb();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return null;
+
+  const payload = {
+    ...(updates.title !== undefined ? { title: updates.title } : {}),
+    ...(updates.category !== undefined ? { category: updates.category } : {}),
+    ...(updates.price !== undefined ? { price: updates.price } : {}),
+    ...(updates.currency !== undefined ? { currency: updates.currency } : {}),
+    ...(updates.description !== undefined ? { description: updates.description || null } : {}),
+    ...(updates.image_url !== undefined ? { image_url: updates.image_url || null } : {}),
+    ...(updates.in_stock !== undefined ? { in_stock: updates.in_stock } : {}),
+  };
+
+  const { data, error } = await supabase
+    .from("products")
+    .update(payload)
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error("Product update failed");
+  }
+
+  const typed = data as ProductRow;
   return {
     id: typed.id,
     title: typed.title,
@@ -97,7 +144,11 @@ export async function fetchOrdersFromSupabase(): Promise<Order[]> {
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
-  if (error || !data || data.length === 0) {
+  if (error) {
+    throw new Error("Order query failed");
+  }
+
+  if (!data || data.length === 0) {
     return [];
   }
 
@@ -119,37 +170,42 @@ export async function createOrderInSupabase(orderPayload: Partial<Order>): Promi
   const workspaceId = await getCurrentWorkspaceId();
   if (!workspaceId) return null;
 
-  const payload = {
-    lead_id: orderPayload.lead_id && !orderPayload.lead_id.startsWith("lead-") ? orderPayload.lead_id : null,
-    product_id: orderPayload.product_id && !orderPayload.product_id.startsWith("prod-") ? orderPayload.product_id : null,
-    total_amount: orderPayload.total_amount || 89.0,
-    status: orderPayload.status || "completed",
-  };
+  if (!orderPayload.lead_id || !orderPayload.product_id) {
+    throw new Error("Order requires a lead and a product");
+  }
+
+  const [{ data: lead, error: leadError }, { data: product, error: productError }] = await Promise.all([
+    supabase.from("leads").select("id").eq("id", orderPayload.lead_id).eq("workspace_id", workspaceId).maybeSingle(),
+    supabase.from("products").select("id").eq("id", orderPayload.product_id).eq("workspace_id", workspaceId).maybeSingle(),
+  ]);
+
+  if (leadError || productError || !lead || !product) {
+    throw new Error("Order references an invalid or foreign-workspace lead/product");
+  }
 
   const { data, error } = await supabase
     .from("orders")
     .insert({
       workspace_id: workspaceId,
-      total_amount: payload.total_amount,
-      status: payload.status,
-      ...(payload.lead_id ? { lead_id: payload.lead_id } : {}),
-      ...(payload.product_id ? { product_id: payload.product_id } : {}),
+      lead_id: orderPayload.lead_id,
+      product_id: orderPayload.product_id,
+      total_amount: orderPayload.total_amount || 0,
+      status: orderPayload.status || "completed",
     })
     .select()
     .single();
 
   if (error || !data) {
-    console.warn("[ordersService] Error inserting order in Supabase:", error);
-    return null;
+    throw new Error("Order insert failed");
   }
 
   const typed = data as OrderRow;
 
   return {
     id: typed.id,
-    lead_id: orderPayload.lead_id || "lead-1",
+    lead_id: typed.lead_id || orderPayload.lead_id,
     lead_name: orderPayload.lead_name || "Customer",
-    product_id: orderPayload.product_id || "prod-1",
+    product_id: typed.product_id || orderPayload.product_id,
     product_title: orderPayload.product_title || "Product Package",
     total_amount: Number(typed.total_amount),
     status: typed.status as Order["status"],

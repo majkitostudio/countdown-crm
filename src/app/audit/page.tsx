@@ -25,11 +25,11 @@ export default function AuditPage() {
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    setLogs(getAuditLogs());
+    void getAuditLogs().then(setLogs).catch(() => setLogs([]));
   }, []);
 
   const handleRefresh = () => {
-    setLogs(getAuditLogs());
+    void getAuditLogs().then(setLogs).catch(() => setLogs([]));
   };
 
   const handleExport = () => {

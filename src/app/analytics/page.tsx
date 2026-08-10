@@ -29,7 +29,6 @@ import {
   AnalyticsOverview,
   getAnalyticsData,
   exportAnalyticsToCSV,
-  MOCK_ANALYTICS_DATA
 } from "@/lib/analytics";
 import { AiForecastCard } from "@/components/analytics/AiForecastCard";
 import { OperatorCoachingCard } from "@/components/analytics/OperatorCoachingCard";
@@ -38,14 +37,29 @@ import { ReportGeneratorModal } from "@/components/analytics/ReportGeneratorModa
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsOverview>(MOCK_ANALYTICS_DATA);
+  const [data, setData] = useState<AnalyticsOverview>({
+    totalRevenue: 0,
+    projectedRevenue: 0,
+    forecastGrowthPercent: 0,
+    avgOrderValue: 0,
+    totalCalls: 0,
+    conversionRate: 0,
+    objectionResolutionRate: 0,
+    weeklySales: [],
+    objectionBreakdown: [],
+    teamLeaderboard: [],
+  });
   const [isExporting, setIsExporting] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
-      const res = await getAnalyticsData();
-      setData(res);
+      try {
+        const res = await getAnalyticsData();
+        setData(res);
+      } catch {
+        setData((current) => ({ ...current, weeklySales: [], objectionBreakdown: [], teamLeaderboard: [] }));
+      }
     }
     loadData();
   }, []);

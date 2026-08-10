@@ -93,22 +93,21 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
  * Retrieves manager BI analytics data computed directly from Supabase DB
  */
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
-  try {
-    const supabase = createClient();
-    const workspaceId = await getCurrentWorkspaceId();
-    if (!workspaceId) return MOCK_ANALYTICS_DATA;
+  const supabase = createClient();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return emptyAnalyticsData();
 
-    const [ordersRes, callsRes] = await Promise.all([
-      supabase.from("orders").select("*").eq("workspace_id", workspaceId),
-      supabase.from("calls").select("*").eq("workspace_id", workspaceId),
-    ]);
+  const [ordersRes, callsRes] = await Promise.all([
+    supabase.from("orders").select("*").eq("workspace_id", workspaceId),
+    supabase.from("calls").select("*").eq("workspace_id", workspaceId),
+  ]);
 
-    const orders = (ordersRes.data || []) as OrderRow[];
-    const calls = callsRes.data || [];
+  if (ordersRes.error || callsRes.error) {
+    throw new Error("Analytics query failed");
+  }
 
-    if (orders.length === 0 && calls.length === 0) {
-      return MOCK_ANALYTICS_DATA;
-    }
+  const orders = (ordersRes.data || []) as OrderRow[];
+  const calls = callsRes.data || [];
 
     const totalRevenue = orders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
     const totalCalls = calls.length || 1;
@@ -120,21 +119,32 @@ export async function getAnalyticsData(): Promise<AnalyticsOverview> {
     const forecastGrowthPercent = 18;
 
     return {
-      totalRevenue: Math.round(totalRevenue * 100) / 100 || MOCK_ANALYTICS_DATA.totalRevenue,
-      projectedRevenue: projectedRevenue || MOCK_ANALYTICS_DATA.projectedRevenue,
+      totalRevenue: Math.round(totalRevenue * 100) / 100,
+      projectedRevenue,
       forecastGrowthPercent,
-      avgOrderValue: Math.round(avgOrderValue * 100) / 100 || MOCK_ANALYTICS_DATA.avgOrderValue,
-      totalCalls: calls.length || MOCK_ANALYTICS_DATA.totalCalls,
-      conversionRate: Math.round(conversionRate * 10) / 10 || MOCK_ANALYTICS_DATA.conversionRate,
-      objectionResolutionRate: 84.2,
-      weeklySales: MOCK_ANALYTICS_DATA.weeklySales,
-      objectionBreakdown: MOCK_ANALYTICS_DATA.objectionBreakdown,
-      teamLeaderboard: MOCK_ANALYTICS_DATA.teamLeaderboard,
+      avgOrderValue: Math.round(avgOrderValue * 100) / 100,
+      totalCalls: calls.length,
+      conversionRate: Math.round(conversionRate * 10) / 10,
+      objectionResolutionRate: 0,
+      weeklySales: [],
+      objectionBreakdown: [],
+      teamLeaderboard: [],
     };
-  } catch (err) {
-    console.warn("[analytics] Supabase aggregate query failed, using fallback:", err);
-    return MOCK_ANALYTICS_DATA;
-  }
+}
+
+function emptyAnalyticsData(): AnalyticsOverview {
+  return {
+    totalRevenue: 0,
+    projectedRevenue: 0,
+    forecastGrowthPercent: 0,
+    avgOrderValue: 0,
+    totalCalls: 0,
+    conversionRate: 0,
+    objectionResolutionRate: 0,
+    weeklySales: [],
+    objectionBreakdown: [],
+    teamLeaderboard: [],
+  };
 }
 
 /**

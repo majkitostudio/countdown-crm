@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Zap,
   Plus,
@@ -34,6 +34,12 @@ import {
   ActionType,
 } from "@/lib/workflows/types";
 import { RuleBuilderModal } from "@/components/workflows/RuleBuilderModal";
+import {
+  fetchWorkflowExecutionsFromSupabase,
+  fetchWorkflowsFromSupabase,
+  saveWorkflowToSupabase,
+  deleteWorkflowFromSupabase,
+} from "@/lib/supabase/workflowService";
 
 // ─── Icon Maps ──────────────────────────────────────────────────────────────
 
@@ -90,42 +96,54 @@ function StatusBadge({ status }: { status: ExecutionLogEntry["status"] }) {
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function WorkflowsPage() {
-  const [rules, setRules] = useState<WorkflowRule[]>(workflowEngine.getRules());
-  const [executionLog, setExecutionLog] = useState<ExecutionLogEntry[]>(
-    workflowEngine.getExecutionLog()
-  );
+  const [rules, setRules] = useState<WorkflowRule[]>([]);
+  const [executionLog, setExecutionLog] = useState<ExecutionLogEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<WorkflowRule | null>(null);
   const [activeTab, setActiveTab] = useState<"rules" | "log">("rules");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
-  const refreshState = useCallback(() => {
-    setRules(workflowEngine.getRules());
-    setExecutionLog(workflowEngine.getExecutionLog());
+  const refreshState = useCallback(async () => {
+    const [nextRules, nextLog] = await Promise.all([
+      fetchWorkflowsFromSupabase(),
+      fetchWorkflowExecutionsFromSupabase(),
+    ]);
+    setRules(nextRules);
+    setExecutionLog(nextLog);
   }, []);
+
+  useEffect(() => {
+    void refreshState().catch(() => {
+      setRules([]);
+      setExecutionLog([]);
+    });
+  }, [refreshState]);
 
   // ── Handlers ───────────────────────────────────────────────────────────
 
-  const handleAddRule = (
+  const handleAddRule = async (
     rule: Omit<WorkflowRule, "id" | "createdAt" | "updatedAt">
   ) => {
     if (editingRule) {
-      workflowEngine.updateRule(editingRule.id, rule);
+      await saveWorkflowToSupabase({ ...editingRule, ...rule, updatedAt: new Date().toISOString() });
     } else {
-      workflowEngine.addRule(rule);
+      const now = new Date().toISOString();
+      await saveWorkflowToSupabase({ ...rule, id: `rule-${Date.now()}`, createdAt: now, updatedAt: now });
     }
     setEditingRule(null);
-    refreshState();
+    await refreshState();
   };
 
-  const handleToggle = (id: string) => {
-    workflowEngine.toggleRule(id);
-    refreshState();
+  const handleToggle = async (id: string) => {
+    const rule = rules.find((item) => item.id === id);
+    if (!rule) return;
+    await saveWorkflowToSupabase({ ...rule, enabled: !rule.enabled, updatedAt: new Date().toISOString() });
+    await refreshState();
   };
 
-  const handleDelete = (id: string) => {
-    workflowEngine.deleteRule(id);
-    refreshState();
+  const handleDelete = async (id: string) => {
+    await deleteWorkflowFromSupabase(id);
+    await refreshState();
   };
 
   const handleEdit = (rule: WorkflowRule) => {

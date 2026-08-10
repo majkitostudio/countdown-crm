@@ -8,7 +8,9 @@ import { createClient } from "@/lib/supabase/client";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("john.doe@countdowncrm.com");
-  const [password, setPassword] = useState("••••••••");
+  // Keep the field genuinely empty; masked-looking text would be submitted as
+  // the literal password value by the browser.
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 

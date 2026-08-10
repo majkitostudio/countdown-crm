@@ -1,6 +1,8 @@
-import { createClient } from "./supabase/client";
-import { getCurrentWorkspaceId } from "./supabase/workspace";
-import { fetchProductsFromSupabase, createProductInSupabase } from "./supabase/ordersService";
+import {
+  fetchProductsFromSupabase,
+  createProductInSupabase,
+  updateProductInSupabase,
+} from "./supabase/ordersService";
 
 export type ProductCategory = "supplements" | "cosmetics" | "electronics";
 
@@ -175,30 +177,6 @@ export const INITIAL_MOCK_PRODUCTS: Product[] = [
   }
 ];
 
-const PRODUCTS_STORAGE_KEY = "countdown_crm_products_v1";
-
-function loadLocalProducts(): Product[] {
-  if (typeof window === "undefined") return INITIAL_MOCK_PRODUCTS;
-  const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-  if (!stored) {
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_PRODUCTS));
-    return INITIAL_MOCK_PRODUCTS;
-  }
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return INITIAL_MOCK_PRODUCTS;
-  }
-}
-
-function saveLocalProducts(products: Product[]): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
-  }
-}
-
-let localProductsStore: Product[] = loadLocalProducts();
-
 /**
  * Fetch products with category filter and search
  */
@@ -207,51 +185,26 @@ export async function getProducts(options?: {
   search?: string;
   inStockOnly?: boolean;
 }): Promise<Product[]> {
-  try {
-    const data = await fetchProductsFromSupabase();
-    if (data && data.length > 0) {
-      let filtered = data.map((p) => ({
-        ...p,
-        objections: INITIAL_MOCK_OBJECTIONS[p.id] || [],
-      }));
-      if (options?.category && options.category !== "all") {
-        filtered = filtered.filter((p) => p.category === options.category);
-      }
-      return filtered;
-    }
-    return filterLocalProducts(options);
-  } catch (err) {
-    console.warn("Supabase products fetch failed, using mock products:", err);
-    return filterLocalProducts(options);
-  }
-}
-
-function filterLocalProducts(options?: {
-  category?: string;
-  search?: string;
-  inStockOnly?: boolean;
-}): Product[] {
-  let result = [...localProductsStore];
-
+  const data = await fetchProductsFromSupabase();
+  let filtered = data.map((p) => ({
+    ...p,
+    objections: [],
+  }));
   if (options?.category && options.category !== "all") {
-    result = result.filter((p) => p.category === options.category);
+    filtered = filtered.filter((p) => p.category === options.category);
   }
-
   if (options?.inStockOnly) {
-    result = result.filter((p) => p.in_stock);
+    filtered = filtered.filter((p) => p.in_stock);
   }
-
   if (options?.search) {
-    const q = options.search.toLowerCase();
-    result = result.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
+    const query = options.search.toLowerCase();
+    filtered = filtered.filter((p) =>
+      [p.title, p.description, p.category].some((value) =>
+        value.toLowerCase().includes(query)
+      )
     );
   }
-
-  return result;
+  return filtered;
 }
 
 /**
@@ -273,37 +226,17 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     created_at: new Date().toISOString(),
   };
 
-  createProductInSupabase(newProd).catch((err) =>
-    console.warn("Supabase create product skipped:", err)
-  );
-
-  localProductsStore = [newProd, ...localProductsStore];
-  saveLocalProducts(localProductsStore);
-  return newProd;
+  const saved = await createProductInSupabase(newProd);
+  if (!saved) {
+    throw new Error("Product was not saved to Supabase");
+  }
+  return { ...saved, objections: newProd.objections, stock_count: newProd.stock_count };
 }
 
 /**
  * Update existing product
  */
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
-  const idx = localProductsStore.findIndex((p) => p.id === id);
-  if (idx !== -1) {
-    localProductsStore[idx] = {
-      ...localProductsStore[idx],
-      ...updates,
-    };
-    saveLocalProducts(localProductsStore);
-  }
-
-  try {
-    const supabase = createClient();
-    const workspaceId = await getCurrentWorkspaceId();
-    if (!workspaceId) return localProductsStore[idx] || null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("products") as any).update(updates).eq("id", id).eq("workspace_id", workspaceId);
-  } catch (err) {
-    console.warn("Supabase update product skipped:", err);
-  }
-
-  return localProductsStore[idx] || null;
+  const saved = await updateProductInSupabase(id, updates);
+  return saved ? { ...saved, objections: [] } : null;
 }
