@@ -11,8 +11,8 @@ type OrderStatus = OrderRow["status"];
 export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "total_amount" | "status" | "created_at">;
 
 export interface CreateOrderInput {
-  lead_id?: string | null;
-  product_id?: string | null;
+  lead_id: string;
+  product_id: string;
   total_amount: number;
   status?: OrderStatus;
 }
@@ -28,30 +28,24 @@ export async function createOrderForWorkspace(
   const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
 
-  if (input.lead_id || input.product_id) {
-    const [leadResult, productResult] = await Promise.all([
-      input.lead_id
-        ? supabase.from("leads").select("id").eq("id", input.lead_id).eq("workspace_id", context.workspaceId).maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-      input.product_id
-        ? supabase.from("products").select("id").eq("id", input.product_id).eq("workspace_id", context.workspaceId).maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
-    ]);
+  const [leadResult, productResult] = await Promise.all([
+    supabase.from("leads").select("id").eq("id", input.lead_id).eq("workspace_id", context.workspaceId).maybeSingle(),
+    supabase.from("products").select("id").eq("id", input.product_id).eq("workspace_id", context.workspaceId).maybeSingle(),
+  ]);
 
-    if (leadResult.error || productResult.error) {
-      throw new DataAccessError("DATABASE", "Order relation lookup failed");
-    }
-    if ((input.lead_id && !leadResult.data) || (input.product_id && !productResult.data)) {
-      throw new DataAccessError("VALIDATION", "Order relation does not belong to workspace");
-    }
+  if (leadResult.error || productResult.error) {
+    throw new DataAccessError("DATABASE", "Order relation lookup failed");
+  }
+  if (!leadResult.data || !productResult.data) {
+    throw new DataAccessError("VALIDATION", "Order requires valid lead and product in the active workspace");
   }
 
   const { data, error } = await supabase
     .from("orders")
     .insert({
       workspace_id: context.workspaceId,
-      lead_id: input.lead_id || null,
-      product_id: input.product_id || null,
+      lead_id: input.lead_id,
+      product_id: input.product_id,
       total_amount: input.total_amount,
       status: input.status || "completed",
     })

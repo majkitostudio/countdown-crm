@@ -108,6 +108,7 @@ export default function WorkflowsPage() {
       fetchWorkflowsFromSupabase(),
       fetchWorkflowExecutionsFromSupabase(),
     ]);
+    workflowEngine.replaceRules(nextRules);
     setRules(nextRules);
     setExecutionLog(nextLog);
   }, []);

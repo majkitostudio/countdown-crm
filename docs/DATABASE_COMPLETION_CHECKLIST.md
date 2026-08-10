@@ -68,12 +68,14 @@ not considered complete merely because it renders or because a build passes.
       verify the deleted row is absent from Supabase.
 - [x] Seed the built-in Deals schema, create a custom object record, and verify its four EAV values plus workspace ownership.
 - [x] Write a lead-status audit event for an important mutation and verify its workspace.
-- [ ] Confirm invalid parent IDs and foreign-workspace IDs are rejected.
+- [x] Confirm invalid parent IDs and foreign-workspace IDs are rejected.
 
 ### 4. Runtime behavior and operator surface
 
-- [ ] Load persisted workspace rules into the runtime workflow evaluator.
-- [ ] Keep the runtime engine free of default demo rules in production mode.
+- [x] Load persisted workspace rules into the runtime workflow evaluator.
+- [x] Keep the runtime engine free of default demo rules in production mode.
+- [ ] Run an authenticated Operator Console event-to-workflow smoke after a
+      fresh login.
 - [ ] Replace static dashboard KPI/activity widgets with database-derived
       values.
 - [ ] Load operator profile from the authenticated profile row.

@@ -25,6 +25,7 @@ This checkpoint records the current decision point before the next commit.
 ## Follow-up hardening after the stabilization commit
 
 - verify invalid parent and foreign-workspace references are rejected;
+- verify the persisted workflow snapshot is loaded into the runtime evaluator;
 - isolate remaining mock-only monitor, timeline, training, objection and
   dashboard activity surfaces;
 - update the older product baseline wording where it still describes live RLS

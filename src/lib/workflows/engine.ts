@@ -25,7 +25,6 @@ import {
   saveWorkflowExecutionToSupabase,
 } from "../supabase/workflowService";
 
-const RULES_STORAGE_KEY = "countdown_workflow_rules";
 const LOG_STORAGE_KEY = "countdown_workflow_log";
 
 // ─── Default Demo Rules ─────────────────────────────────────────────────────
@@ -93,14 +92,6 @@ class WorkflowEngine {
   private initFromStorage(): void {
     if (typeof window !== "undefined" && window.localStorage) {
       try {
-        const savedRules = window.localStorage.getItem(RULES_STORAGE_KEY);
-        if (savedRules) {
-          const parsed = JSON.parse(savedRules);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            this.rules = parsed;
-          }
-        }
-
         const savedLog = window.localStorage.getItem(LOG_STORAGE_KEY);
         if (savedLog) {
           const parsedLog = JSON.parse(savedLog);
@@ -117,7 +108,6 @@ class WorkflowEngine {
   private persistState(): void {
     if (typeof window !== "undefined" && window.localStorage) {
       try {
-        window.localStorage.setItem(RULES_STORAGE_KEY, JSON.stringify(this.rules));
         window.localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(this.executionLog));
       } catch (err) {
         console.warn("[WorkflowEngine] Failed to persist state to localStorage:", err);
@@ -129,6 +119,11 @@ class WorkflowEngine {
 
   public getRules(): WorkflowRule[] {
     return [...this.rules];
+  }
+
+  /** Load the active workspace snapshot supplied by the Supabase data path. */
+  public replaceRules(rules: WorkflowRule[]): void {
+    this.rules = rules.map((rule) => ({ ...rule }));
   }
 
   public getRuleById(id: string): WorkflowRule | undefined {

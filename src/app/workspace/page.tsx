@@ -15,6 +15,7 @@ import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard"
 import { addCallRecord } from "@/lib/calls";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
+import { fetchWorkflowsFromSupabase } from "@/lib/supabase/workflowService";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController } from "@/lib/telephony/softphone";
 
@@ -42,13 +43,15 @@ function WorkspaceContent() {
       setIsLoading(true);
       setLoadError(null);
       try {
-        const [fetchedLeads, fetchedProducts] = await Promise.all([
+        const [fetchedLeads, fetchedProducts, fetchedWorkflows] = await Promise.all([
           getLeads(),
           getProducts(),
+          fetchWorkflowsFromSupabase(),
         ]);
 
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
+        workflowEngine.replaceRules(fetchedWorkflows);
 
         if (leadIdParam) {
           const found = fetchedLeads.find((l) => l.id === leadIdParam);
