@@ -21,151 +21,80 @@ export interface CallRecord {
   created_at: string;
 }
 
-export const INITIAL_MOCK_CALLS: CallRecord[] = [
-  {
-    id: "call-101",
-    lead_id: "lead-1",
-    lead_name: "Eleanor Vance",
-    agent_name: "Alex Vance",
-    duration_seconds: 342, // 5m 42s
-    outcome: "order_placed",
-    sentiment: "Positive",
-    order_value: 125.00,
-    transcript: [
-      { speaker: "agent", text: "Dobrý den, tady Alex z Countdown CRM. Mluvím s paní Vance?", timestamp: "10:15:02" },
-      { speaker: "customer", text: "Ano, dobrý den. Prohlížela jsem si váš Bio-Boost balíček, ale ta cena se mi zdá docela vysoká.", timestamp: "10:15:08" },
-      { speaker: "agent", text: "Rozumím paní Vance. Náš Bio-Boost využívá lipozomální technologii s až 800% vyšší vstřebatelností než běžné vitamíny z lékárny.", timestamp: "10:15:22" },
-      { speaker: "customer", text: "Aha, to zní zajímavě. Je k tomu nějaká sleva při zakoupení více balení?", timestamp: "10:15:45" },
-      { speaker: "agent", text: "Určitě! Nabízím vám 3-měsíční výhodný balíček se slevou 15 % a s doručením zdarma.", timestamp: "10:16:05" },
-      { speaker: "customer", text: "Skvělé, to beru!", timestamp: "10:16:15" },
-    ],
-    created_at: "2026-08-01T10:15:00Z",
-  },
-  {
-    id: "call-102",
-    lead_id: "lead-2",
-    lead_name: "Marcus Holloway",
-    agent_name: "Sarah Connor",
-    duration_seconds: 185, // 3m 05s
-    outcome: "followup_scheduled",
-    sentiment: "Price Objection",
-    order_value: 0,
-    transcript: [
-      { speaker: "agent", text: "Dobrý den pane Holloway, volám ohledně vaší poptávky po Smart Scale.", timestamp: "11:00:10" },
-      { speaker: "customer", text: "Dobrý den. Jsem teď na schůzce, mohl byste zavolat zítra v 14:00?", timestamp: "11:00:25" },
-      { speaker: "agent", text: "Samozřejmě, nastavuji si do kalendáře připomínku na zítra ve 14:00.", timestamp: "11:00:40" },
-    ],
-    created_at: "2026-08-01T11:00:00Z",
-  },
-  {
-    id: "call-103",
-    lead_id: "lead-3",
-    lead_name: "Sophia Martinez",
-    agent_name: "Alex Vance",
-    duration_seconds: 410, // 6m 50s
-    outcome: "order_placed",
-    sentiment: "Positive",
-    order_value: 168.50,
-    transcript: [
-      { speaker: "agent", text: "Dobrý den paní Martinez, navazuji na váš zájem o Cellular Hyaluron Serum.", timestamp: "11:30:00" },
-      { speaker: "customer", text: "Dobrý den. Chtěla jsem se zeptat, zda je sérum vhodné pro citlivou pokožku.", timestamp: "11:30:15" },
-      { speaker: "agent", text: "Ano, je 100% hypoalergenní a dermatologicky testované.", timestamp: "11:30:30" },
-      { speaker: "customer", text: "Perfektní, přidám si i balíček doplňků stravy.", timestamp: "11:31:00" },
-    ],
-    created_at: "2026-08-01T11:30:00Z",
-  },
-  {
-    id: "call-104",
-    lead_id: "lead-4",
-    lead_name: "Jan Novák",
-    agent_name: "Sarah Connor",
-    duration_seconds: 45,
-    outcome: "no_answer",
-    sentiment: "Neutral",
-    order_value: 0,
-    transcript: [
-      { speaker: "agent", text: "Dobrý den, volám z Countdown CRM...", timestamp: "12:05:00" },
-    ],
-    created_at: "2026-08-01T12:05:00Z",
-  }
-];
-
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 
-/**
- * Fetch all call records
- */
+function parseTranscript(value: string | null): TranscriptEntry[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? (parsed as TranscriptEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function getCalls(): Promise<CallRecord[]> {
   const supabase = createClient();
   const workspaceId = await getCurrentWorkspaceId();
   if (!workspaceId) return [];
+
   const { data, error } = await supabase
     .from("calls")
     .select("*")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    throw new Error("Call query failed");
-  }
+  if (error) throw new Error("Call query failed");
 
-  return (data as CallRow[]).map((c) => ({
-    id: c.id,
-    lead_id: c.lead_id || "",
+  return ((data || []) as CallRow[]).map((call) => ({
+    id: call.id,
+    lead_id: call.lead_id || "",
     lead_name: "Customer",
     agent_name: "Operator",
-    duration_seconds: c.duration_seconds || 0,
-    outcome: (c.outcome as CallRecord["outcome"]) || "followup_scheduled",
-    sentiment: (c.ai_sentiment as CallRecord["sentiment"]) || "Neutral",
+    duration_seconds: call.duration_seconds || 0,
+    outcome: (call.outcome as CallRecord["outcome"]) || "followup_scheduled",
+    sentiment: (call.ai_sentiment as CallRecord["sentiment"]) || "Neutral",
     order_value: 0,
-    transcript: c.transcript ? JSON.parse(c.transcript) : [],
-    created_at: c.created_at,
+    transcript: parseTranscript(call.transcript),
+    created_at: call.created_at,
   }));
 }
 
-/**
- * Fetch single call by ID
- */
 export async function getCallById(id: string): Promise<CallRecord | null> {
   const calls = await getCalls();
-  return calls.find((c) => c.id === id) || null;
+  return calls.find((call) => call.id === id) || null;
 }
 
-/**
- * Add a new call record to local store and Supabase
- */
 export async function addCallRecord(newCallPayload: Partial<CallRecord>): Promise<CallRecord> {
-  const newRecord: CallRecord = {
-    id: newCallPayload.id || `call-${Date.now()}`,
-    lead_id: newCallPayload.lead_id || "lead-1",
-    lead_name: newCallPayload.lead_name || "Unknown Customer",
-    agent_name: newCallPayload.agent_name || "Operator",
-    duration_seconds: newCallPayload.duration_seconds || 120,
-    outcome: newCallPayload.outcome || "followup_scheduled",
-    sentiment: newCallPayload.sentiment || "Neutral",
-    order_value: newCallPayload.order_value || 0,
-    transcript: newCallPayload.transcript || [
-      { speaker: "agent", text: "Call completed", timestamp: new Date().toLocaleTimeString() }
-    ],
-    created_at: new Date().toISOString(),
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = createClient() as any;
   const workspaceId = await getCurrentWorkspaceId();
   if (!workspaceId) throw new Error("No active workspace");
+  if (!newCallPayload.lead_id) throw new Error("Call requires a lead");
+
+  const transcript = newCallPayload.transcript || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createClient() as any;
   const { data, error } = await supabase.from("calls").insert({
     workspace_id: workspaceId,
-    lead_id: newRecord.lead_id.startsWith("lead-") ? null : newRecord.lead_id,
-    duration_seconds: newRecord.duration_seconds,
-    outcome: newRecord.outcome === "objection_handled" ? "completed" : newRecord.outcome,
-    transcript: JSON.stringify(newRecord.transcript),
-    ai_sentiment: newRecord.sentiment,
+    lead_id: newCallPayload.lead_id,
+    duration_seconds: newCallPayload.duration_seconds || 0,
+    outcome: newCallPayload.outcome === "objection_handled" ? "completed" : newCallPayload.outcome || "completed",
+    transcript: JSON.stringify(transcript),
+    ai_sentiment: newCallPayload.sentiment || "Neutral",
   }).select("*").single();
 
-  if (error || !data) {
-    throw new Error("Call could not be saved");
-  }
+  if (error || !data) throw new Error("Call could not be saved");
 
-  return { ...newRecord, id: data.id, created_at: data.created_at };
+  const saved = data as CallRow;
+  return {
+    id: saved.id,
+    lead_id: saved.lead_id || newCallPayload.lead_id,
+    lead_name: newCallPayload.lead_name || "Customer",
+    agent_name: newCallPayload.agent_name || "Operator",
+    duration_seconds: saved.duration_seconds,
+    outcome: saved.outcome as CallRecord["outcome"],
+    sentiment: (saved.ai_sentiment as CallRecord["sentiment"]) || "Neutral",
+    order_value: newCallPayload.order_value || 0,
+    transcript,
+    created_at: saved.created_at,
+  };
 }

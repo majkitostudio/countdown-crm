@@ -20,7 +20,7 @@ import { useSpeechRecognition, SpeechLanguage } from "@/hooks/useSpeechRecogniti
 import { analyzeCallTranscriptAction } from "@/app/actions/copilot";
 import type { CopilotAnalysisResult } from "@/lib/ai/types";
 import { matchObjectionToProduct } from "@/lib/objections";
-import { INITIAL_MOCK_PRODUCTS } from "@/lib/products";
+import { getProducts, Product } from "@/lib/products";
 import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
 import { SentimentHeatmap, SentimentSegment } from "./SentimentHeatmap";
 import { ComplianceChecker } from "./ComplianceChecker";
@@ -66,7 +66,19 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     { timeLabel: "2:10", sentiment: "Positive", score: 95 },
   ]);
 
-  const activeProduct = INITIAL_MOCK_PRODUCTS[0];
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getProducts()
+      .then((products) => {
+        if (!cancelled) setActiveProduct(products[0] || null);
+      })
+      .catch(() => {
+        if (!cancelled) setActiveProduct(null);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const [analysisResult, setAnalysisResult] = useState<CopilotAnalysisResult>({
     sentiment: "Price Objection",
@@ -180,11 +192,11 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     const rawResult = await analyzeCallTranscriptAction(
       fullTranscriptText,
       activeLead?.full_name || "Customer",
-      activeProduct.title
+      activeProduct?.title || "the selected product"
     );
 
     // Match detected objection against product battle-card DB
-    const matched = matchObjectionToProduct(rawResult.detectedObjection, activeProduct);
+    const matched = matchObjectionToProduct(rawResult.detectedObjection, activeProduct || undefined);
 
     setAnalysisResult({
       ...rawResult,
