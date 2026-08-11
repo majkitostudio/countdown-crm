@@ -21,8 +21,15 @@ import {
 // ─── Props ──────────────────────────────────────────────────────────────────
 
 interface PostCallSummaryCardProps {
-  entries: ExecutionLogEntry[];
+  summary: {
+    leadName: string;
+    outcomeLabel: string;
+    durationSeconds: number;
+    orderStatus: "created" | "not_created";
+    workflowEntries: ExecutionLogEntry[];
+  };
   onDismiss: () => void;
+  onNextLead: () => void;
 }
 
 // ─── Action Icon Map ────────────────────────────────────────────────────────
@@ -36,9 +43,8 @@ const ACTION_ICON_MAP: Record<string, React.ElementType> = {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardProps) {
-  if (entries.length === 0) return null;
-
+export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCallSummaryCardProps) {
+  const { workflowEntries: entries } = summary;
   const successCount = entries.filter((e) => e.status === "success").length;
   const failureCount = entries.filter((e) => e.status === "failure").length;
   const skippedCount = entries.filter((e) => e.status === "skipped").length;
@@ -53,10 +59,10 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
           </div>
           <div>
             <h3 className="text-sm font-semibold text-zinc-100">
-              Post-Call Automation Report
+              Post-call summary
             </h3>
             <p className="text-[10px] text-zinc-500 font-mono">
-              {entries.length} pravidel vyhodnoceno • {successCount} spuštěno
+              {summary.leadName} • {summary.outcomeLabel} • {Math.round(summary.durationSeconds / 60)}m
               {failureCount > 0 && ` • ${failureCount} selhalo`}
               {skippedCount > 0 && ` • ${skippedCount} přeskočeno`}
             </p>
@@ -69,6 +75,23 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
         >
           <X className="w-4 h-4" />
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Outcome</span>
+          <strong className="mt-1 block text-zinc-100">{summary.outcomeLabel}</strong>
+        </div>
+        <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Order</span>
+          <strong className="mt-1 block text-zinc-100">
+            {summary.orderStatus === "created" ? "Created" : "Not created"}
+          </strong>
+        </div>
+        <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Automation</span>
+          <strong className="mt-1 block text-zinc-100">{successCount} succeeded</strong>
+        </div>
       </div>
 
       {/* Executed Rules */}
@@ -144,16 +167,18 @@ export function PostCallSummaryCard({ entries, onDismiss }: PostCallSummaryCardP
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
+      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 gap-3">
         <span className="text-[10px] text-zinc-500 font-mono">
           {new Date().toLocaleString("cs-CZ")}
         </span>
-        <a
-          href="/workflows"
-          className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors"
-        >
-          Zobrazit všechny automatizace →
-        </a>
+        <div className="flex items-center gap-3">
+          <a href="/workflows" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors">
+            Zobrazit automatizace →
+          </a>
+          <button onClick={onNextLead} className="rounded-lg bg-zinc-100 px-3 py-2 text-[11px] font-semibold text-zinc-950 hover:bg-white">
+            Continue to next lead
+          </button>
+        </div>
       </div>
     </div>
   );

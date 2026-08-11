@@ -134,7 +134,7 @@ export function CallStatusBar({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
                 </span>
-                <span>WebRTC Live • </span>
+                <span>Call simulation • </span>
                 <span className="font-mono text-zinc-100">{formatTimer(displaySeconds)}</span>
 
                 {/* Live Micro-Waveform Bars */}
@@ -192,7 +192,8 @@ export function CallStatusBar({
                   ? "bg-zinc-800 border-zinc-700 text-zinc-100"
                   : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
               }`}
-              title={isMuted ? "Unmute" : "Mute"}
+              title={isMuted ? "Unmute microphone" : "Mute microphone"}
+              aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
             >
               {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>
@@ -204,7 +205,8 @@ export function CallStatusBar({
                   ? "bg-zinc-800 border-zinc-700 text-zinc-100"
                   : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
               }`}
-              title={isOnHold ? "Resume" : "Hold"}
+              title={isOnHold ? "Resume call" : "Put call on hold"}
+              aria-label={isOnHold ? "Resume call" : "Put call on hold"}
             >
               {isOnHold ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
             </button>
@@ -212,6 +214,7 @@ export function CallStatusBar({
         )}
 
         {/* Clear Outcome Buttons (Visible when active or after attempt) */}
+        {isCallActive && (
         <div className="flex items-center gap-2 pl-3 border-l border-zinc-800">
           
           {/* 1. Call Later */}
@@ -254,6 +257,7 @@ export function CallStatusBar({
             <span>Success / Order</span>
           </button>
         </div>
+        )}
 
         {/* Simulate Incoming Call Shortcut */}
         {!isCallActive && !isDialing && (

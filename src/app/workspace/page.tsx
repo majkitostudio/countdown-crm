@@ -6,18 +6,26 @@ import { RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { OperatorStatus } from "@/components/layout/Sidebar";
-import { CallStatusBar } from "@/components/workspace/CallStatusBar";
+import { CallStatusBar, CallOutcome } from "@/components/workspace/CallStatusBar";
 import { CustomerPanel } from "@/components/workspace/CustomerPanel";
 import { AiCopilotPanel } from "@/components/workspace/AiCopilotPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
-import { addCallRecord } from "@/lib/calls";
+import { addCallRecord, CallRecord } from "@/lib/calls";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
 import { fetchWorkflowsFromSupabase } from "@/lib/supabase/workflowService";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController } from "@/lib/telephony/softphone";
+
+interface PostCallSummary {
+  leadName: string;
+  outcomeLabel: string;
+  durationSeconds: number;
+  orderStatus: "created" | "not_created";
+  workflowEntries: ExecutionLogEntry[];
+}
 
 function WorkspaceContent() {
   const searchParams = useSearchParams();
@@ -35,7 +43,8 @@ function WorkspaceContent() {
   const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [postCallResults, setPostCallResults] = useState<ExecutionLogEntry[]>([]);
+  const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
+  const [isOrderFlowOpen, setIsOrderFlowOpen] = useState(false);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -68,6 +77,57 @@ function WorkspaceContent() {
     loadData();
   }, [leadIdParam]);
 
+  const completeCall = async (
+    outcome: CallRecord["outcome"],
+    outcomeLabel: string,
+    orderStatus: PostCallSummary["orderStatus"],
+    orderValue = 0,
+  ) => {
+    if (!activeLead) return;
+
+    softphoneController.hangup();
+    setIsCallActive(false);
+    setIsDialing(false);
+    setIsOrderFlowOpen(false);
+    setOperatorStatus("ready");
+    sounds.playCallEndSound();
+
+    const newCallId = `call-${Date.now()}`;
+    addCallRecord({
+      id: newCallId,
+      lead_id: activeLead.id,
+      lead_name: activeLead.full_name,
+      agent_name: "Jan Dvořák",
+      duration_seconds: 145,
+      outcome,
+      sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+      order_value: orderValue,
+      transcript: [
+        { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
+        { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() },
+      ],
+    });
+
+    const workflowEntries = await workflowEngine.emit("on_call_ended", {
+      callId: newCallId,
+      leadId: activeLead.id,
+      leadName: activeLead.full_name,
+      agentName: "Jan Dvořák",
+      outcome,
+      sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+      orderValue,
+      transcript: "Call ended by operator",
+    });
+
+    setPostCallSummary({
+      leadName: activeLead.full_name,
+      outcomeLabel,
+      durationSeconds: 145,
+      orderStatus,
+      workflowEntries,
+    });
+  };
+
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = () => {
     if (stopAudioRef.current) {
@@ -76,46 +136,7 @@ function WorkspaceContent() {
     }
 
     if (isCallActive || isDialing) {
-      // Hang up — emit workflow event and save call record
-      softphoneController.hangup();
-      setIsCallActive(false);
-      setIsDialing(false);
-      setOperatorStatus("ready");
-      sounds.playCallEndSound();
-
-      if (activeLead) {
-        const newCallId = `call-${Date.now()}`;
-        addCallRecord({
-          id: newCallId,
-          lead_id: activeLead.id,
-          lead_name: activeLead.full_name,
-          agent_name: "Jan Dvořák",
-          duration_seconds: 145,
-          outcome: "followup_scheduled",
-          sentiment: "Positive",
-          order_value: 0,
-          transcript: [
-            { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
-            { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() }
-          ]
-        });
-
-        // Emit workflow engine event
-        workflowEngine.emit("on_call_ended", {
-          callId: newCallId,
-          leadId: activeLead.id,
-          leadName: activeLead.full_name,
-          agentName: "Jan Dvořák",
-          outcome: "followup_scheduled",
-          sentiment: "Neutral",
-          orderValue: 0,
-          transcript: "Call ended by operator",
-        }).then((results) => {
-          if (results.length > 0) {
-            setPostCallResults(results);
-          }
-        });
-      }
+      void completeCall("followup_scheduled", "Follow-up scheduled", "not_created");
     } else {
       // Start Outbound Call
       if (activeLead) {
@@ -178,75 +199,31 @@ function WorkspaceContent() {
     setActiveLead(leads[nextIndex]);
   };
 
-  const handleCallOutcome = (outcome: "call_later" | "schedule" | "fail" | "order") => {
-    let toastText = "";
-    let callOutcome = "followup_scheduled";
-
-    if (outcome !== "order") {
-      setIsCallActive(false);
-      setIsDialing(false);
-      setOperatorStatus("ready");
+  const handleCallOutcome = (outcome: CallOutcome) => {
+    if (outcome === "order") {
+      setIsOrderFlowOpen(true);
+      setNotificationToast("Order flow unlocked. Review the product and place the order when ready.");
+      return;
     }
 
-    switch (outcome) {
-      case "call_later":
-        toastText = `Označeno: Nezvedá (Call Later) — Načítám dalšího zákazníka...`;
-        sounds.playCallEndSound();
-        advanceToNextLead();
-        callOutcome = "no_answer";
-        break;
-      case "schedule":
-        toastText = `Označeno: Naplánovat hovor (Callback) — Zápis do kalendáře...`;
-        sounds.playCallEndSound();
-        advanceToNextLead();
-        callOutcome = "followup_scheduled";
-        break;
-      case "fail":
-        toastText = `Označeno: Odmítnuto (Fail) — Lead uzavřen. Načítám dalšího...`;
-        sounds.playCallEndSound();
-        advanceToNextLead();
-        callOutcome = "objection_handled";
-        break;
-      case "order":
-        toastText = `Zákazník projevuje zájem! Vyberte produkt v pravém panelu pro 1-click objednávku.`;
-        sounds.playSuccessSound();
-        callOutcome = "order_placed";
-        break;
-    }
-
-    // Emit workflow engine event
-    if (activeLead) {
-      workflowEngine.emit("on_call_ended", {
-        callId: `call-${Date.now()}`,
-        leadId: activeLead.id,
-        leadName: activeLead.full_name,
-        agentName: "Operator",
-        outcome: callOutcome,
-        sentiment: outcome === "order" ? "Positive" : "Neutral",
-        orderValue: outcome === "order" ? (activeLead.value || 0) : 0,
-        transcript: `Call outcome: ${outcome}`,
-      }).then((results) => {
-        if (results.length > 0) {
-          setPostCallResults(results);
-        }
-      });
-    }
-
-    setNotificationToast(toastText);
-    setTimeout(() => setNotificationToast(null), 4000);
+    const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CallRecord["outcome"], string]> = {
+      call_later: ["no_answer", "No answer / call later"],
+      schedule: ["followup_scheduled", "Follow-up scheduled"],
+      fail: ["objection_handled", "Objection handled / pending"],
+    };
+    const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
+    void completeCall(callOutcome, outcomeLabel, "not_created");
   };
 
   const handleOrderPlaced = (productId: string, totalAmount: number) => {
     console.log(`Order placed for lead ${activeLead?.full_name}: Product ${productId}, total $${totalAmount}`);
-    sounds.playSuccessSound();
-    setIsCallActive(false);
-    setIsDialing(false);
-    setOperatorStatus("ready");
-    setNotificationToast(`Objednávka ($${totalAmount}) byla úspěšně vytvořena! Načítám dalšího zákazníka...`);
-    setTimeout(() => {
-      setNotificationToast(null);
-      advanceToNextLead();
-    }, 2000);
+    void completeCall("order_placed", "Order placed", "created", totalAmount);
+  };
+
+  const handleNextLead = () => {
+    setPostCallSummary(null);
+    setNotificationToast(null);
+    advanceToNextLead();
   };
 
   const handleApplyPitch = (pitchText: string) => {
@@ -276,17 +253,18 @@ function WorkspaceContent() {
       
       {/* Toast Notification Banner */}
       {notificationToast && (
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2 duration-300" role="status" aria-live="polite">
           <span>{notificationToast}</span>
-          <button onClick={() => setNotificationToast(null)} className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
+          <button onClick={() => setNotificationToast(null)} aria-label="Dismiss notification" className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
         </div>
       )}
 
-      {/* Post-Call Workflow Automation Results */}
-      {postCallResults.length > 0 && (
+      {/* Post-Call Summary */}
+      {postCallSummary && (
         <PostCallSummaryCard
-          entries={postCallResults}
-          onDismiss={() => setPostCallResults([])}
+          summary={postCallSummary}
+          onDismiss={() => setPostCallSummary(null)}
+          onNextLead={handleNextLead}
         />
       )}
 
@@ -331,9 +309,10 @@ function WorkspaceContent() {
         {/* Right Column: Recommended Products & One-Click Order (4 cols) */}
         <div className="lg:col-span-4 h-full">
           <ProductOrderPanel
-            products={products}
-            activeLead={activeLead}
-            appliedPitch={appliedPitch}
+          products={products}
+          activeLead={activeLead}
+          isOrderFlowOpen={isOrderFlowOpen}
+          appliedPitch={appliedPitch}
             onOrderPlaced={handleOrderPlaced}
           />
         </div>

@@ -18,6 +18,7 @@ import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
 interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
+  isOrderFlowOpen: boolean;
   appliedPitch?: string;
   onOrderPlaced: (productId: string, totalAmount: number) => void;
 }
@@ -25,6 +26,7 @@ interface ProductOrderPanelProps {
 export function ProductOrderPanel({
   products,
   activeLead,
+  isOrderFlowOpen,
   appliedPitch,
   onOrderPlaced,
 }: ProductOrderPanelProps) {
@@ -117,7 +119,7 @@ export function ProductOrderPanel({
           </div>
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">Sales Checkout & Cross-Sell</h2>
-            <p className="text-[11px] text-zinc-400">1-Click order creation & post-call wrap up</p>
+            <p className="text-[11px] text-zinc-400">Order creation after call outcome selection</p>
           </div>
         </div>
       </div>
@@ -139,13 +141,14 @@ export function ProductOrderPanel({
           Primary Product Selection
         </label>
 
-        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+      <div className={`space-y-2 max-h-[140px] overflow-y-auto pr-1 ${!isOrderFlowOpen ? "opacity-60" : ""}`}>
           {products.map((prod) => {
             const isSelected = prod.id === selectedProductId;
             return (
               <div
                 key={prod.id}
                 onClick={() => {
+                  if (!isOrderFlowOpen) return;
                   setSelectedProductId(prod.id);
                   setBundleProduct(null);
                 }}
@@ -290,16 +293,16 @@ export function ProductOrderPanel({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
           <button
             onClick={handlePlaceOrder}
-            disabled={!selectedProduct || !activeLead}
+            disabled={!isOrderFlowOpen || !selectedProduct || !activeLead}
             className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            <span>Place Order</span>
+            <span>{isOrderFlowOpen ? "Place Order" : "Select Success / Order first"}</span>
           </button>
 
           <button
             onClick={handleSendPayLinkSms}
-            disabled={!activeLead || isSmsSent}
+            disabled={!isOrderFlowOpen || !activeLead || isSmsSent}
             className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 disabled:opacity-50 text-zinc-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             {isSmsSent ? (
@@ -320,7 +323,7 @@ export function ProductOrderPanel({
       {/* Post-Call Wrap Up Section */}
       <div className="space-y-2 pt-2 border-t border-zinc-800">
         <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-          Call Outcome & Wrap-up Notes
+          Post-call outcome & notes
         </label>
 
         <select

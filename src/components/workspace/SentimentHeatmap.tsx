@@ -53,7 +53,7 @@ export function SentimentHeatmap({
         <div className="flex items-center gap-2">
           <Activity className="w-3.5 h-3.5 text-zinc-400" />
           <span className="font-semibold text-zinc-200">
-            Live Voice Sentiment Heatmap
+            Sentiment preview
           </span>
         </div>
 

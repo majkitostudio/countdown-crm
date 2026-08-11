@@ -18,7 +18,7 @@ export function ComplianceChecker({ violations }: ComplianceCheckerProps) {
         </div>
         <span className="inline-flex items-center gap-1.5 text-[10px] font-mono bg-zinc-900 text-zinc-300 px-2 py-0.5 rounded border border-zinc-800">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          100% Compliance
+          Pilot rules: no violation detected
         </span>
       </div>
     );

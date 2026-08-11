@@ -241,10 +241,10 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
               <h2 className="text-sm font-semibold text-zinc-100">Objection Handling Engine</h2>
               <span className="text-[10px] bg-zinc-950 text-zinc-400 font-mono px-2 py-0.5 rounded-full border border-zinc-800 flex items-center gap-1">
                 <Cpu className="w-2.5 h-2.5" />
-                {analysisResult.aiSource === "gemini-flash" ? "Gemini Flash" : "Product Matcher"}
+                {analysisResult.aiSource === "gemini-flash" ? "AI preview" : "Product Matcher"}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">Live speech analysis & battle-card rebuttal matching</p>
+            <p className="text-[11px] text-zinc-400">Pilot simulation • speech analysis & battle-card preview</p>
           </div>
         </div>
 
