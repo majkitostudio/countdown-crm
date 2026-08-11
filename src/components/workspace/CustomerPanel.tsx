@@ -23,10 +23,11 @@ import { RefreshCw } from "lucide-react";
 interface CustomerPanelProps {
   leads: Lead[];
   activeLead: Lead | null;
+  activityRefreshToken: number;
   onSelectLead: (lead: Lead) => void;
 }
 
-export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanelProps) {
+export function CustomerPanel({ leads, activeLead, activityRefreshToken, onSelectLead }: CustomerPanelProps) {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [enrichmentData, setEnrichmentData] = useState<EnrichedCompanyData | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
@@ -40,7 +41,7 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
       }
     }
     loadCustomerOrders();
-  }, [activeLead]);
+  }, [activeLead, activityRefreshToken]);
 
   const handleEnrich = async () => {
     if (!activeLead) return;
@@ -186,7 +187,7 @@ export function CustomerPanel({ leads, activeLead, onSelectLead }: CustomerPanel
       <DynamicAttributesCard lead={activeLead} />
 
       {/* Omnichannel Activity Timeline */}
-      <CustomerTimelineCard leadId={activeLead.id} />
+      <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} />
 
       {/* Historical Purchases & Activity */}
       <div className="space-y-2 pt-2 border-t border-zinc-800">

@@ -18,9 +18,10 @@ import { isDemoModeActive } from "@/lib/demoMode";
 
 interface CustomerTimelineCardProps {
   leadId: string;
+  refreshToken: number;
 }
 
-export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
+export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineCardProps) {
   const [entries, setEntries] = useState<WorkspaceActivity[]>([]);
   const [filterType, setFilterType] = useState<WorkspaceActivityType | "all">("all");
   const [newNoteText, setNewNoteText] = useState("");
@@ -52,7 +53,7 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
     return () => {
       cancelled = true;
     };
-  }, [leadId]);
+  }, [leadId, refreshToken]);
 
   const handleAddNote = (e: React.FormEvent) => {
     e.preventDefault();

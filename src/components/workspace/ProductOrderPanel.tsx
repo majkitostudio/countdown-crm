@@ -12,15 +12,19 @@ import {
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
-import { createOrder } from "@/lib/orders";
 import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
+
+interface OrderPlacementResult {
+  orderId: string;
+  callCompleted: boolean;
+}
 
 interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
   isOrderFlowOpen: boolean;
   appliedPitch?: string;
-  onOrderPlaced: (productId: string, totalAmount: number) => void;
+  onOrderPlaced: (productId: string, totalAmount: number) => Promise<OrderPlacementResult | null>;
 }
 
 export function ProductOrderPanel({
@@ -38,6 +42,7 @@ export function ProductOrderPanel({
   const [callOutcome, setCallOutcome] = useState<string>("order_placed");
   const [wrapUpNotes, setWrapUpNotes] = useState<string>("");
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
   const [isSmsSent, setIsSmsSent] = useState(false);
 
@@ -78,18 +83,19 @@ export function ProductOrderPanel({
   const handlePlaceOrder = async () => {
     if (!selectedProduct || !activeLead) return;
 
-    const newOrd = await createOrder({
-      lead_id: activeLead.id,
-      lead_name: activeLead.full_name,
-      product_id: selectedProduct.id,
-      product_title: bundleProduct ? `${selectedProduct.title} + ${bundleProduct.title}` : selectedProduct.title,
-      total_amount: grandTotal,
-      status: "completed",
-      agent_name: "Operator",
-    });
+    setOrderError(null);
+    const result = await onOrderPlaced(selectedProduct.id, grandTotal);
+    if (!result) {
+      setOrderError("Order was not created. Check the error above and try again.");
+      return;
+    }
 
-    setLastOrderId(newOrd.id);
-    onOrderPlaced(selectedProduct.id, grandTotal);
+    setLastOrderId(result.orderId);
+    if (!result.callCompleted) {
+      setOrderError(`Order #${result.orderId} was created, but call completion failed. The order was not reported as fully completed.`);
+      return;
+    }
+
     setIsSuccessAlert(true);
 
     // Gamification XP Rewards & Achievements
@@ -127,6 +133,12 @@ export function ProductOrderPanel({
             <p className="font-bold">Order #{lastOrderId} successfully placed!</p>
             <p className="text-[11px] text-emerald-200/80">${grandTotal.toFixed(2)} recorded for {activeLead?.full_name}.</p>
           </div>
+        </div>
+      )}
+
+      {orderError && (
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 p-3 rounded-xl text-xs" role="alert">
+          {orderError}
         </div>
       )}
 

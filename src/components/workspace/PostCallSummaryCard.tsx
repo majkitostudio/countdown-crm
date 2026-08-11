@@ -26,6 +26,7 @@ interface PostCallSummaryCardProps {
     outcomeLabel: string;
     durationSeconds: number;
     orderStatus: "created" | "not_created";
+    orderId?: string;
     workflowEntries: ExecutionLogEntry[];
   };
   onDismiss: () => void;
@@ -86,6 +87,9 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
           <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Order</span>
           <strong className="mt-1 block text-zinc-100">
             {summary.orderStatus === "created" ? "Created" : "Not created"}
+            {summary.orderId && (
+              <span className="block mt-1 text-[10px] font-mono text-zinc-500">#{summary.orderId}</span>
+            )}
           </strong>
         </div>
         <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">

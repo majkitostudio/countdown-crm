@@ -18,13 +18,20 @@ import { workflowEngine } from "@/lib/workflows/engine";
 import { fetchWorkflowsFromSupabase } from "@/lib/supabase/workflowService";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController } from "@/lib/telephony/softphone";
+import { createOrderAction } from "@/app/actions/crm";
 
 interface PostCallSummary {
   leadName: string;
   outcomeLabel: string;
   durationSeconds: number;
   orderStatus: "created" | "not_created";
+  orderId?: string;
   workflowEntries: ExecutionLogEntry[];
+}
+
+interface OrderPlacementResult {
+  orderId: string;
+  callCompleted: boolean;
 }
 
 function WorkspaceContent() {
@@ -45,6 +52,7 @@ function WorkspaceContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [isOrderFlowOpen, setIsOrderFlowOpen] = useState(false);
+  const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -82,8 +90,9 @@ function WorkspaceContent() {
     outcomeLabel: string,
     orderStatus: PostCallSummary["orderStatus"],
     orderValue = 0,
-  ) => {
-    if (!activeLead) return;
+    orderId?: string,
+  ): Promise<boolean> => {
+    if (!activeLead) return false;
 
     softphoneController.hangup();
     setIsCallActive(false);
@@ -139,8 +148,11 @@ function WorkspaceContent() {
         outcomeLabel,
         durationSeconds: 145,
         orderStatus,
+        orderId,
         workflowEntries,
       });
+      setActivityRefreshToken((current) => current + 1);
+      return true;
     } catch (error) {
       setPostCallSummary(null);
       setNotificationToast(
@@ -148,6 +160,7 @@ function WorkspaceContent() {
           ? `Call completion failed: ${error.message}`
           : "Call completion failed. No successful summary was recorded."
       );
+      return false;
     }
   };
 
@@ -238,9 +251,35 @@ function WorkspaceContent() {
     void completeCall(callOutcome, outcomeLabel, "not_created");
   };
 
-  const handleOrderPlaced = (productId: string, totalAmount: number) => {
-    console.log(`Order placed for lead ${activeLead?.full_name}: Product ${productId}, total $${totalAmount}`);
-    void completeCall("order_placed", "Order placed", "created", totalAmount);
+  const handleOrderPlaced = async (
+    productId: string,
+    totalAmount: number
+  ): Promise<OrderPlacementResult | null> => {
+    if (!activeLead) return null;
+
+    try {
+      const savedOrder = await createOrderAction({
+        lead_id: activeLead.id,
+        product_id: productId,
+        total_amount: totalAmount,
+        status: "completed",
+      });
+      const callCompleted = await completeCall(
+        "order_placed",
+        "Order placed",
+        "created",
+        totalAmount,
+        savedOrder.id
+      );
+      return { orderId: savedOrder.id, callCompleted };
+    } catch (error) {
+      setNotificationToast(
+        error instanceof Error
+          ? `Order creation failed: ${error.message}`
+          : "Order creation failed. Nothing was recorded."
+      );
+      return null;
+    }
   };
 
   const handleNextLead = () => {
@@ -316,6 +355,7 @@ function WorkspaceContent() {
           <CustomerPanel
             leads={leads}
             activeLead={activeLead}
+            activityRefreshToken={activityRefreshToken}
             onSelectLead={(lead) => setActiveLead(lead)}
           />
         </div>
