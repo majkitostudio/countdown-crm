@@ -25,73 +25,65 @@ export interface AgentLeaderboardPoint {
 
 export interface AnalyticsOverview {
   totalRevenue: number;
-  projectedRevenue: number; // AI forecast for next 30 days
+  projectedRevenue: number;
   forecastGrowthPercent: number;
+  forecastAvailable: boolean;
   avgOrderValue: number;
   totalCalls: number;
   conversionRate: number;
-  objectionResolutionRate: number;
+  objectionResolutionRate: number | null;
+  objectionMetricsAvailable: boolean;
   weeklySales: WeeklySalesPoint[];
   objectionBreakdown: ObjectionCategoryPoint[];
   teamLeaderboard: AgentLeaderboardPoint[];
+  teamMetricsAvailable: boolean;
 }
 
-export const MOCK_ANALYTICS_DATA: AnalyticsOverview = {
-  totalRevenue: 24850.00,
-  projectedRevenue: 29320.00,
-  forecastGrowthPercent: 18,
-  avgOrderValue: 142.50,
-  totalCalls: 480,
-  conversionRate: 36.4,
-  objectionResolutionRate: 84.2,
-  weeklySales: [
-    { day: "Mon", revenue: 3200, forecast: 3000 },
-    { day: "Tue", revenue: 4100, forecast: 3800 },
-    { day: "Wed", revenue: 3900, forecast: 4000 },
-    { day: "Thu", revenue: 4800, forecast: 4500 },
-    { day: "Fri", revenue: 5200, forecast: 4900 },
-    { day: "Sat", revenue: 2100, forecast: 2000 },
-    { day: "Sun", revenue: 1550, forecast: 1500 },
-  ],
-  objectionBreakdown: [
-    { name: "Price Perception", count: 142, percentage: 45 },
-    { name: "Competitor Products", count: 78, percentage: 25 },
-    { name: "Ingredient / Safety", count: 48, percentage: 15 },
-    { name: "Delivery / Timing", count: 47, percentage: 15 },
-  ],
-  teamLeaderboard: [
-    {
-      agentName: "Alex Vance",
-      role: "Senior Representative",
-      callsCount: 165,
-      ordersCount: 68,
-      revenueGenerated: 9850.00,
-      conversionRate: 41.2,
-    },
-    {
-      agentName: "Sarah Connor",
-      role: "Sales Specialist",
-      callsCount: 150,
-      ordersCount: 56,
-      revenueGenerated: 8120.00,
-      conversionRate: 37.3,
-    },
-    {
-      agentName: "David Miller",
-      role: "Junior Account Executive",
-      callsCount: 165,
-      ordersCount: 51,
-      revenueGenerated: 6880.00,
-      conversionRate: 30.9,
-    },
-  ],
-};
-
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 
-/**
- * Retrieves manager BI analytics data computed directly from Supabase DB
- */
+function emptyAnalyticsData(): AnalyticsOverview {
+  return {
+    totalRevenue: 0,
+    projectedRevenue: 0,
+    forecastGrowthPercent: 0,
+    forecastAvailable: false,
+    avgOrderValue: 0,
+    totalCalls: 0,
+    conversionRate: 0,
+    objectionResolutionRate: null,
+    objectionMetricsAvailable: false,
+    weeklySales: [],
+    objectionBreakdown: [],
+    teamLeaderboard: [],
+    teamMetricsAvailable: false,
+  };
+}
+
+function getWeeklySales(orders: OrderRow[]): WeeklySalesPoint[] {
+  const today = new Date();
+  const points: WeeklySalesPoint[] = [];
+
+  for (let offset = 6; offset >= 0; offset -= 1) {
+    const date = new Date(today);
+    date.setHours(0, 0, 0, 0);
+    date.setDate(today.getDate() - offset);
+    const dateKey = date.toISOString().slice(0, 10);
+    const revenue = orders
+      .filter((order) => order.created_at.slice(0, 10) === dateKey && order.status === "completed")
+      .reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+
+    points.push({
+      day: date.toLocaleDateString("en-US", { weekday: "short" }),
+      revenue: Math.round(revenue * 100) / 100,
+      forecast: 0,
+    });
+  }
+
+  return points;
+}
+
+/** Retrieves manager analytics computed from workspace-scoped Supabase data. */
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
   const supabase = createClient();
   const workspaceId = await getCurrentWorkspaceId();
@@ -102,68 +94,46 @@ export async function getAnalyticsData(): Promise<AnalyticsOverview> {
     supabase.from("calls").select("*").eq("workspace_id", workspaceId),
   ]);
 
-  if (ordersRes.error || callsRes.error) {
-    throw new Error("Analytics query failed");
-  }
+  if (ordersRes.error || callsRes.error) throw new Error("Analytics query failed");
 
   const orders = (ordersRes.data || []) as OrderRow[];
-  const calls = callsRes.data || [];
+  const calls = (callsRes.data || []) as CallRow[];
+  const completedOrders = orders.filter((order) => order.status === "completed");
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+  const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  const conversionRate = calls.length > 0 ? (completedOrders.length / calls.length) * 100 : 0;
 
-    const totalRevenue = orders.reduce((acc, o) => acc + Number(o.total_amount || 0), 0);
-    const totalCalls = calls.length || 1;
-    const completedOrdersCount = orders.length;
-    const avgOrderValue = completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;
-    const conversionRate = totalCalls > 0 ? (completedOrdersCount / totalCalls) * 100 : 0;
-
-    const projectedRevenue = Math.round(totalRevenue * 1.18);
-    const forecastGrowthPercent = 18;
-
-    return {
-      totalRevenue: Math.round(totalRevenue * 100) / 100,
-      projectedRevenue,
-      forecastGrowthPercent,
-      avgOrderValue: Math.round(avgOrderValue * 100) / 100,
-      totalCalls: calls.length,
-      conversionRate: Math.round(conversionRate * 10) / 10,
-      objectionResolutionRate: 0,
-      weeklySales: [],
-      objectionBreakdown: [],
-      teamLeaderboard: [],
-    };
-}
-
-function emptyAnalyticsData(): AnalyticsOverview {
   return {
-    totalRevenue: 0,
+    totalRevenue: Math.round(totalRevenue * 100) / 100,
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
-    avgOrderValue: 0,
-    totalCalls: 0,
-    conversionRate: 0,
-    objectionResolutionRate: 0,
-    weeklySales: [],
+    forecastAvailable: false,
+    avgOrderValue: Math.round(avgOrderValue * 100) / 100,
+    totalCalls: calls.length,
+    conversionRate: Math.round(conversionRate * 10) / 10,
+    objectionResolutionRate: null,
+    objectionMetricsAvailable: false,
+    weeklySales: getWeeklySales(completedOrders),
     objectionBreakdown: [],
     teamLeaderboard: [],
+    teamMetricsAvailable: false,
   };
 }
 
-/**
- * Triggers CSV download of analytics report
- */
 export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
   if (typeof window === "undefined") return;
 
   let csvContent = "data:text/csv;charset=utf-8,";
   csvContent += "Metric,Value\n";
   csvContent += `Total Revenue,$${data.totalRevenue}\n`;
-  csvContent += `AI Forecast Revenue (Next 30d),$${data.projectedRevenue}\n`;
+  csvContent += `AI Forecast Revenue (Next 30d),${data.forecastAvailable ? `$${data.projectedRevenue}` : "Unavailable"}\n`;
   csvContent += `Average Order Value (AOV),$${data.avgOrderValue}\n`;
   csvContent += `Conversion Rate,${data.conversionRate}%\n`;
-  csvContent += `Objection Resolution Rate,${data.objectionResolutionRate}%\n\n`;
+  csvContent += `Objection Resolution Rate,${data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`}\n\n`;
 
   csvContent += "Agent,Calls,Orders,Revenue,Conversion Rate%\n";
-  data.teamLeaderboard.forEach((ag) => {
-    csvContent += `"${ag.agentName}",${ag.callsCount},${ag.ordersCount},$${ag.revenueGenerated},${ag.conversionRate}%\n`;
+  data.teamLeaderboard.forEach((agent) => {
+    csvContent += `"${agent.agentName}",${agent.callsCount},${agent.ordersCount},$${agent.revenueGenerated},${agent.conversionRate}%\n`;
   });
 
   const encodedUri = encodeURI(csvContent);

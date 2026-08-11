@@ -12,7 +12,6 @@ import {
   Sparkles,
   ArrowUpRight,
   PieChart as PieIcon,
-  Calendar
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -30,8 +29,6 @@ import {
   getAnalyticsData,
   exportAnalyticsToCSV,
 } from "@/lib/analytics";
-import { AiForecastCard } from "@/components/analytics/AiForecastCard";
-import { OperatorCoachingCard } from "@/components/analytics/OperatorCoachingCard";
 import { ReportGeneratorModal } from "@/components/analytics/ReportGeneratorModal";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
@@ -41,24 +38,29 @@ export default function AnalyticsPage() {
     totalRevenue: 0,
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
+    forecastAvailable: false,
     avgOrderValue: 0,
     totalCalls: 0,
     conversionRate: 0,
     objectionResolutionRate: 0,
+    objectionMetricsAvailable: false,
     weeklySales: [],
     objectionBreakdown: [],
     teamLeaderboard: [],
+    teamMetricsAvailable: false,
   });
   const [isExporting, setIsExporting] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
         const res = await getAnalyticsData();
         setData(res);
-      } catch {
-        setData((current) => ({ ...current, weeklySales: [], objectionBreakdown: [], teamLeaderboard: [] }));
+        setLoadError(null);
+      } catch (error: unknown) {
+        setLoadError(error instanceof Error ? error.message : "Analytics query failed");
       }
     }
     loadData();
@@ -79,14 +81,14 @@ export default function AnalyticsPage() {
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
               <BarChart3 className="w-5 h-5 text-zinc-400" />
-              Manager BI & AI Revenue Forecast
+              Manager BI & Revenue Analytics
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
-              Live BI Stream
+              Workspace DB
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Real-time sales velocity, objection resolution benchmarks, and 30-day AI predictive forecasts
+            Workspace-scoped revenue and call metrics. Forecasts and attribution require additional persisted sources.
           </p>
         </div>
 
@@ -110,6 +112,12 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {loadError && (
+        <div role="alert" className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-sm text-rose-300">
+          Analytics unavailable: {loadError}
+        </div>
+      )}
+
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
@@ -125,7 +133,11 @@ export default function AnalyticsPage() {
             <span className="text-2xl font-bold font-mono text-zinc-100">${data.totalRevenue.toLocaleString()}</span>
             <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono mt-1">
               <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
-              <span>+{data.forecastGrowthPercent}% AI Forecast (${data.projectedRevenue.toLocaleString()})</span>
+              <span>
+                {data.forecastAvailable
+                  ? `+${data.forecastGrowthPercent}% AI Forecast ($${data.projectedRevenue.toLocaleString()})`
+                  : "AI Forecast unavailable"}
+              </span>
             </div>
           </div>
         </div>
@@ -140,7 +152,7 @@ export default function AnalyticsPage() {
           </div>
           <div>
             <span className="text-2xl font-bold font-mono text-zinc-100">${data.avgOrderValue.toFixed(2)}</span>
-            <p className="text-[11px] text-zinc-400 mt-1">Driven by 15% Cross-sell Bundles</p>
+            <p className="text-[11px] text-zinc-400 mt-1">Calculated from completed orders in the workspace</p>
           </div>
         </div>
 
@@ -167,19 +179,23 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{data.objectionResolutionRate}%</span>
-            <p className="text-[11px] text-zinc-400 mt-1">Gemini battle-cards success</p>
+            <span className="text-2xl font-bold font-mono text-zinc-100">
+              {data.objectionMetricsAvailable && data.objectionResolutionRate !== null
+                ? `${data.objectionResolutionRate}%`
+                : "—"}
+            </span>
+            <p className="text-[11px] text-zinc-400 mt-1">No persisted objection outcome metric</p>
           </div>
         </div>
 
       </div>
 
-      {/* AI Predictive Revenue Forecasting Card */}
-      <AiForecastCard
-        totalPipelineValue={data.totalRevenue * 1.8}
-        avgAiScore={84}
-        totalLeadsCount={data.totalCalls}
-      />
+      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-zinc-100">AI Predictive Revenue Forecasting</h2>
+        <p className="text-xs text-zinc-500 mt-2">
+          Forecast unavailable: no persisted forecasting model or pipeline probability source is connected to this pilot.
+        </p>
+      </div>
 
       {/* Charts Section: Weekly Sales Forecast & Objection Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -190,17 +206,17 @@ export default function AnalyticsPage() {
             <div>
               <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-zinc-400" />
-                Weekly Sales Revenue vs. AI Target
+                Weekly Sales Revenue (actual)
               </h2>
-              <p className="text-[11px] text-zinc-400">Actual daily revenue compared against AI predicted target</p>
+              <p className="text-[11px] text-zinc-400">Completed-order revenue from the last seven days</p>
             </div>
             <div className="flex items-center gap-3 text-xs font-mono">
               <span className="flex items-center gap-1.5 text-zinc-200">
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" /> Actual
               </span>
-              <span className="flex items-center gap-1.5 text-zinc-400">
+              {data.forecastAvailable && <span className="flex items-center gap-1.5 text-zinc-400">
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" /> Forecast
-              </span>
+              </span>}
             </div>
           </div>
 
@@ -223,7 +239,7 @@ export default function AnalyticsPage() {
                   contentStyle={{ backgroundColor: "#09090b", borderColor: "#27272a", borderRadius: "12px", fontSize: "12px" }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#e4e4e7" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
-                <Area type="monotone" dataKey="forecast" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />
+                {data.forecastAvailable && <Area type="monotone" dataKey="forecast" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />}
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -240,6 +256,9 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="h-44 w-full flex items-center justify-center">
+            {!data.objectionMetricsAvailable ? (
+              <p className="text-xs text-zinc-500 text-center px-6">Objection breakdown unavailable: no persisted objection outcome data.</p>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -260,10 +279,11 @@ export default function AnalyticsPage() {
                 />
               </PieChart>
             </ResponsiveContainer>
+            )}
           </div>
 
           <div className="space-y-1.5 pt-2 border-t border-zinc-800/80 text-xs">
-            {data.objectionBreakdown.map((item, idx) => (
+            {data.objectionMetricsAvailable && data.objectionBreakdown.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
@@ -292,7 +312,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {data.teamMetricsAvailable ? <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-zinc-300">
             <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
               <tr>
@@ -327,11 +347,13 @@ export default function AnalyticsPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </div> : <p className="text-xs text-zinc-500 py-6">Team leaderboard unavailable: no persisted operator attribution data.</p>}
       </div>
 
-      {/* AI Operator Coaching & Benchmarks */}
-      <OperatorCoachingCard />
+      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-zinc-100">AI Operator Coaching</h2>
+        <p className="text-xs text-zinc-500 mt-2">Coaching benchmarks unavailable until operator-attributed call outcomes are persisted.</p>
+      </div>
 
       {/* Multi-Format CSV / Excel / PDF Report Generator Modal */}
       <ReportGeneratorModal
