@@ -12,12 +12,8 @@ import {
   Send,
   ExternalLink
 } from "lucide-react";
-import {
-  TimelineActivityEntry,
-  TimelineActivityType,
-  getLeadTimeline,
-  addTimelineEntry
-} from "@/lib/timeline";
+import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
+import { getLeadActivities, addLeadActivity } from "@/lib/domainActivity";
 import { isDemoModeActive } from "@/lib/demoMode";
 
 interface CustomerTimelineCardProps {
@@ -25,8 +21,8 @@ interface CustomerTimelineCardProps {
 }
 
 export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
-  const [entries, setEntries] = useState<TimelineActivityEntry[]>([]);
-  const [filterType, setFilterType] = useState<TimelineActivityType | "all">("all");
+  const [entries, setEntries] = useState<WorkspaceActivity[]>([]);
+  const [filterType, setFilterType] = useState<WorkspaceActivityType | "all">("all");
   const [newNoteText, setNewNoteText] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +36,7 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
       setIsLoading(true);
       setLoadError(null);
       try {
-        const res = await getLeadTimeline(leadId);
+        const res = await getLeadActivities(leadId);
         if (!cancelled) setEntries(res);
       } catch (error) {
         if (!cancelled) {
@@ -62,11 +58,11 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
     e.preventDefault();
     if (!newNoteText.trim()) return;
 
-    const added = addTimelineEntry(leadId, {
+    const added = addLeadActivity(leadId, {
       type: "note",
       title: "Operator Note",
       description: newNoteText.trim(),
-      operator_name: "Jan Dvořák",
+      actor: "Jan Dvořák",
     });
 
     if (!added) {
@@ -84,7 +80,7 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
     ? entries
     : entries.filter((e) => e.type === filterType);
 
-  const getEventIcon = (type: TimelineActivityType) => {
+  const getEventIcon = (type: WorkspaceActivityType) => {
     switch (type) {
       case "call":
         return PhoneCall;
@@ -266,7 +262,7 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
 
                   {/* Footer Operator Tag */}
                   <div className="pt-1 text-[9px] text-zinc-500 font-mono flex items-center justify-between">
-                    <span>by {item.operator_name}</span>
+                    <span>by {item.actor}</span>
                   </div>
                 </div>
               </div>

@@ -15,7 +15,8 @@ import {
   FileText
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
-import { addTimelineEntry, getLeadTimeline, TimelineActivityEntry } from "@/lib/timeline";
+import { WorkspaceActivity } from "@/lib/domain";
+import { addLeadActivity, getLeadActivities } from "@/lib/domainActivity";
 import { isDemoModeActive } from "@/lib/demoMode";
 import { updateLeadStatusInSupabase } from "@/lib/supabase/leadsService";
 
@@ -36,7 +37,7 @@ export function LeadDetailDrawer({
 }: LeadDetailDrawerProps) {
   const [newNote, setNewNote] = useState("");
   const [currentLead, setCurrentLead] = useState<Lead | null>(lead);
-  const [activities, setActivities] = useState<TimelineActivityEntry[]>([]);
+  const [activities, setActivities] = useState<WorkspaceActivity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
   const canAddNotes = isDemoModeActive();
@@ -52,7 +53,7 @@ export function LeadDetailDrawer({
     });
     if (!lead) return () => { cancelled = true; };
 
-    void getLeadTimeline(lead.id)
+    void getLeadActivities(lead.id)
       .then((entries) => {
         if (!cancelled) setActivities(entries);
       })
@@ -84,7 +85,7 @@ export function LeadDetailDrawer({
 
       setActivitiesError(null);
       try {
-        setActivities(await getLeadTimeline(currentLead.id));
+        setActivities(await getLeadActivities(currentLead.id));
       } catch (error: unknown) {
         setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
       }
@@ -93,11 +94,11 @@ export function LeadDetailDrawer({
 
   const handleAddNote = () => {
     if (!newNote.trim() || !currentLead || !canAddNotes) return;
-    const newEntry = addTimelineEntry(currentLead.id, {
+    const newEntry = addLeadActivity(currentLead.id, {
       type: "note",
       title: "Note Added",
       description: newNote.trim(),
-      operator_name: "Operator",
+      actor: "Operator",
     });
     if (!newEntry) return;
     setActivities((prev) => [newEntry, ...prev]);
@@ -319,9 +320,9 @@ export function LeadDetailDrawer({
                       <p className="text-xs text-zinc-400 leading-normal">
                         {act.description}
                       </p>
-                      {act.operator_name && (
+                      {act.actor && (
                         <div className="mt-2 text-[10px] text-zinc-500 font-medium font-mono">
-                          Logged by: {act.operator_name}
+                          Logged by: {act.actor}
                         </div>
                       )}
                     </div>
