@@ -116,7 +116,14 @@ export default function TeamMonitorPage() {
 
       {/* Live Operator Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        {operators.map((op) => {
+        {operators.length === 0 ? (
+          <div className="md:col-span-2 p-8 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 text-center">
+            <p className="text-sm font-medium text-zinc-300">Live operator data unavailable</p>
+            <p className="mt-2 text-xs text-zinc-500">
+              This pilot has no persisted presence or telephony stream yet. No operator activity is being fabricated.
+            </p>
+          </div>
+        ) : operators.map((op) => {
           const badge = getStatusBadge(op.status);
 
           return (
