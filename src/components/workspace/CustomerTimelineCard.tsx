@@ -18,6 +18,7 @@ import {
   getLeadTimeline,
   addTimelineEntry
 } from "@/lib/timeline";
+import { isDemoModeActive } from "@/lib/demoMode";
 
 interface CustomerTimelineCardProps {
   leadId: string;
@@ -28,13 +29,33 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
   const [filterType, setFilterType] = useState<TimelineActivityType | "all">("all");
   const [newNoteText, setNewNoteText] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const canAddNotes = isDemoModeActive();
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadTimeline() {
-      const res = await getLeadTimeline(leadId);
-      setEntries(res);
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const res = await getLeadTimeline(leadId);
+        if (!cancelled) setEntries(res);
+      } catch (error) {
+        if (!cancelled) {
+          setEntries([]);
+          setLoadError(error instanceof Error ? error.message : "Timeline could not be loaded");
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     }
-    loadTimeline();
+
+    void loadTimeline();
+    return () => {
+      cancelled = true;
+    };
   }, [leadId]);
 
   const handleAddNote = (e: React.FormEvent) => {
@@ -47,6 +68,12 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
       description: newNoteText.trim(),
       operator_name: "Jan Dvořák",
     });
+
+    if (!added) {
+      setLoadError("Timeline notes are unavailable in Production DB until they are persisted.");
+      setIsAddingNote(false);
+      return;
+    }
 
     setEntries([added, ...entries]);
     setNewNoteText("");
@@ -97,14 +124,24 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
           </h3>
         </div>
 
-        <button
-          onClick={() => setIsAddingNote(!isAddingNote)}
-          className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer"
-        >
-          <Plus className="w-3 h-3" />
-          <span>Note</span>
-        </button>
+        {canAddNotes ? (
+          <button
+            onClick={() => setIsAddingNote(!isAddingNote)}
+            className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Note</span>
+          </button>
+        ) : (
+          <span className="text-[10px] text-zinc-500">Notes unavailable in Production DB</span>
+        )}
       </div>
+
+      {loadError && (
+        <div role="alert" className="p-3 bg-red-950/30 border border-red-900/60 rounded-xl text-xs text-red-300">
+          Timeline unavailable: {loadError}
+        </div>
+      )}
 
       {/* Inline Quick Add Note Form */}
       {isAddingNote && (
@@ -162,7 +199,11 @@ export function CustomerTimelineCard({ leadId }: CustomerTimelineCardProps) {
 
       {/* Vertical Timeline Activity Items */}
       <div className="relative pl-3 space-y-3 before:absolute before:left-5 before:top-2 before:bottom-2 before:w-px before:bg-zinc-800/80">
-        {filteredEntries.length === 0 ? (
+        {isLoading ? (
+          <div className="p-3 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-center text-zinc-500 text-xs font-mono">
+            Loading timeline...
+          </div>
+        ) : loadError ? null : filteredEntries.length === 0 ? (
           <div className="p-3 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-center text-zinc-500 text-xs font-mono">
             No entries found for this filter.
           </div>

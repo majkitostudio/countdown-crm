@@ -38,11 +38,13 @@ export function AiFollowupModal({
   const [editableContent, setEditableContent] = useState("");
   const [isCopied, setIsCopied] = useState(false);
   const [isDispatched, setIsDispatched] = useState(false);
+  const [dispatchError, setDispatchError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!lead) return;
     setIsGenerating(true);
     setIsDispatched(false);
+    setDispatchError(null);
 
     try {
       const res = await generateFollowupAction({
@@ -83,10 +85,8 @@ export function AiFollowupModal({
   };
 
   const handleDispatch = () => {
-    setIsDispatched(true);
-
     // Record entry on Omnichannel Timeline (COMMIT-22)
-    addTimelineEntry(lead.id, {
+    const added = addTimelineEntry(lead.id, {
       type: channel === "email" ? "note" : "sms_paylink",
       title: channel === "email" ? `AI Email Sent: ${result?.subject || "Follow-up"}` : `WhatsApp Dispatched to ${lead.phone}`,
       description: editableContent,
@@ -95,6 +95,14 @@ export function AiFollowupModal({
         paylink_url: result?.paylinkUrl,
       },
     });
+
+    if (!added) {
+      setDispatchError("Follow-up dispatch is unavailable in Production DB until timeline persistence is implemented.");
+      return;
+    }
+
+    setDispatchError(null);
+    setIsDispatched(true);
 
     setTimeout(() => {
       setIsDispatched(false);
@@ -220,6 +228,12 @@ export function AiFollowupModal({
           <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Message successfully dispatched to {lead.full_name} and recorded on Omnichannel Timeline!</span>
+          </div>
+        )}
+
+        {dispatchError && (
+          <div role="alert" className="bg-red-950/30 border border-red-900/60 text-red-300 p-2.5 rounded-xl text-xs">
+            {dispatchError}
           </div>
         )}
 

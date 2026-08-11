@@ -115,6 +115,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
 
 import { createClient } from "./supabase/client";
 import { getCurrentWorkspaceId } from "./supabase/workspace";
+import { isDemoModeActive } from "./demoMode";
 
 const timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
 
@@ -124,15 +125,23 @@ type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type OrderWithProduct = Database["public"]["Tables"]["orders"]["Row"] & { products?: { title: string } | null };
 
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
+  if (isDemoModeActive()) {
+    return timelineStore[leadId] || [];
+  }
+
   try {
     const supabase = createClient();
     const workspaceId = await getCurrentWorkspaceId();
-    if (!workspaceId) return getFallbackTimeline(leadId);
+    if (!workspaceId) throw new Error("No active workspace");
 
     const [callsRes, ordersRes] = await Promise.all([
       supabase.from("calls").select("*").eq("lead_id", leadId).eq("workspace_id", workspaceId),
       supabase.from("orders").select("*, products(title)").eq("lead_id", leadId).eq("workspace_id", workspaceId),
     ]);
+
+    if (callsRes.error || ordersRes.error) {
+      throw new Error("Timeline query failed");
+    }
 
     const calls = (callsRes.data || []) as CallRow[];
     const orders = (ordersRes.data || []) as unknown as OrderWithProduct[];
@@ -170,39 +179,22 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
       });
     });
 
-    const local = timelineStore[leadId] || [];
-    const combined = [...dbEntries, ...local].sort(
+    return dbEntries.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-
-    return combined.length > 0 ? combined : getFallbackTimeline(leadId);
   } catch (err) {
-    console.warn("[timeline] Supabase timeline fetch failed, using fallback:", err);
-    return getFallbackTimeline(leadId);
+    throw err instanceof Error ? err : new Error("Timeline query failed");
   }
-}
-
-function getFallbackTimeline(leadId: string): TimelineActivityEntry[] {
-  if (!timelineStore[leadId]) {
-    timelineStore[leadId] = [
-      {
-        id: `tl-init-${Date.now()}`,
-        lead_id: leadId,
-        type: "note",
-        title: "Lead Created in CRM",
-        description: "Customer profile initialized with AI priority score.",
-        operator_name: "System AI",
-        timestamp: new Date().toISOString(),
-      },
-    ];
-  }
-  return timelineStore[leadId];
 }
 
 export function addTimelineEntry(
   leadId: string,
   entry: Omit<TimelineActivityEntry, "id" | "lead_id" | "timestamp">
-): TimelineActivityEntry {
+): TimelineActivityEntry | null {
+  if (!isDemoModeActive()) {
+    return null;
+  }
+
   const newEntry: TimelineActivityEntry = {
     ...entry,
     id: `tl-${Date.now()}`,
