@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
-import { Lead, getLeads } from "@/lib/leads";
+import { Lead, getLeads, updateLead } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 import { CallStatusBar, CallOutcome } from "@/components/workspace/CallStatusBar";
@@ -92,40 +92,63 @@ function WorkspaceContent() {
     setOperatorStatus("ready");
     sounds.playCallEndSound();
 
-    const newCallId = `call-${Date.now()}`;
-    addCallRecord({
-      id: newCallId,
-      lead_id: activeLead.id,
-      lead_name: activeLead.full_name,
-      agent_name: "Jan Dvořák",
-      duration_seconds: 145,
-      outcome,
-      sentiment: orderStatus === "created" ? "Positive" : "Neutral",
-      order_value: orderValue,
-      transcript: [
-        { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
-        { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() },
-      ],
-    });
+    try {
+      const savedCall = await addCallRecord({
+        lead_id: activeLead.id,
+        lead_name: activeLead.full_name,
+        agent_name: "Jan Dvořák",
+        duration_seconds: 145,
+        outcome,
+        sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+        order_value: orderValue,
+        transcript: [
+          { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
+          { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() },
+        ],
+      });
 
-    const workflowEntries = await workflowEngine.emit("on_call_ended", {
-      callId: newCallId,
-      leadId: activeLead.id,
-      leadName: activeLead.full_name,
-      agentName: "Jan Dvořák",
-      outcome,
-      sentiment: orderStatus === "created" ? "Positive" : "Neutral",
-      orderValue,
-      transcript: "Call ended by operator",
-    });
+      const statusAfterCall: Lead["status"] =
+        orderStatus === "created"
+          ? "customer"
+          : outcome === "no_answer"
+            ? "unresponsive"
+            : outcome === "objection_handled"
+              ? "qualified"
+              : "contacted";
+      const savedLead = await updateLead(activeLead.id, { status: statusAfterCall });
+      if (savedLead) {
+        setActiveLead(savedLead);
+        setLeads((currentLeads) =>
+          currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
+        );
+      }
 
-    setPostCallSummary({
-      leadName: activeLead.full_name,
-      outcomeLabel,
-      durationSeconds: 145,
-      orderStatus,
-      workflowEntries,
-    });
+      const workflowEntries = await workflowEngine.emit("on_call_ended", {
+        callId: savedCall.id,
+        leadId: activeLead.id,
+        leadName: activeLead.full_name,
+        agentName: "Jan Dvořák",
+        outcome,
+        sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+        orderValue,
+        transcript: "Call ended by operator",
+      });
+
+      setPostCallSummary({
+        leadName: activeLead.full_name,
+        outcomeLabel,
+        durationSeconds: 145,
+        orderStatus,
+        workflowEntries,
+      });
+    } catch (error) {
+      setPostCallSummary(null);
+      setNotificationToast(
+        error instanceof Error
+          ? `Call completion failed: ${error.message}`
+          : "Call completion failed. No successful summary was recorded."
+      );
+    }
   };
 
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
