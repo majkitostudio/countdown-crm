@@ -8,17 +8,15 @@ import {
   MapPin,
   Building,
   Sparkles,
-  Calendar,
-  Clock,
   Send,
   UserCheck,
   PhoneCall,
   DollarSign,
-  AlertCircle,
-  CheckCircle2,
   FileText
 } from "lucide-react";
-import { Lead, LeadActivity, MOCK_LEAD_ACTIVITIES } from "@/lib/leads";
+import { Lead } from "@/lib/leads";
+import { addTimelineEntry, getLeadTimeline, TimelineActivityEntry } from "@/lib/timeline";
+import { isDemoModeActive } from "@/lib/demoMode";
 import { updateLeadStatusInSupabase } from "@/lib/supabase/leadsService";
 
 interface LeadDetailDrawerProps {
@@ -38,13 +36,36 @@ export function LeadDetailDrawer({
 }: LeadDetailDrawerProps) {
   const [newNote, setNewNote] = useState("");
   const [currentLead, setCurrentLead] = useState<Lead | null>(lead);
-  const [activities, setActivities] = useState<LeadActivity[]>([]);
+  const [activities, setActivities] = useState<TimelineActivityEntry[]>([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(false);
+  const [activitiesError, setActivitiesError] = useState<string | null>(null);
+  const canAddNotes = isDemoModeActive();
 
   React.useEffect(() => {
-    setCurrentLead(lead);
-    if (lead) {
-      setActivities(MOCK_LEAD_ACTIVITIES[lead.id] || []);
-    }
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setCurrentLead(lead);
+      setActivities([]);
+      setActivitiesError(null);
+      setIsLoadingActivities(Boolean(lead));
+    });
+    if (!lead) return () => { cancelled = true; };
+
+    void getLeadTimeline(lead.id)
+      .then((entries) => {
+        if (!cancelled) setActivities(entries);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingActivities(false);
+      });
+
+    return () => { cancelled = true; };
   }, [lead]);
 
   if (!isOpen || !currentLead) return null;
@@ -61,41 +82,30 @@ export function LeadDetailDrawer({
       setCurrentLead(updated);
       onLeadUpdated();
 
-      // Add activity entry
-      const newAct: LeadActivity = {
-        id: `act-${Date.now()}`,
-        lead_id: currentLead.id,
-        type: "status_change",
-        title: `Status Changed to ${newStatus.toUpperCase()}`,
-        description: `Updated status from ${currentLead.status} to ${newStatus}`,
-        timestamp: new Date().toISOString(),
-        agent_name: "Operator",
-      };
-      setActivities((prev) => [newAct, ...prev]);
+      setActivitiesError(null);
+      try {
+        setActivities(await getLeadTimeline(currentLead.id));
+      } catch (error: unknown) {
+        setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
+      }
     }
   };
 
   const handleAddNote = () => {
-    if (!newNote.trim() || !currentLead) return;
-    const newAct: LeadActivity = {
-      id: `act-note-${Date.now()}`,
-      lead_id: currentLead.id,
+    if (!newNote.trim() || !currentLead || !canAddNotes) return;
+    const newEntry = addTimelineEntry(currentLead.id, {
       type: "note",
       title: "Note Added",
       description: newNote.trim(),
-      timestamp: new Date().toISOString(),
-      agent_name: "Operator",
-    };
-    setActivities((prev) => [newAct, ...prev]);
+      operator_name: "Operator",
+    });
+    if (!newEntry) return;
+    setActivities((prev) => [newEntry, ...prev]);
     setNewNote("");
   };
 
-  const getScoreColor = (score: number) => {
+  const getScoreColor = () => {
     return "text-zinc-200 border-zinc-800 bg-zinc-900 font-mono";
-  };
-
-  const getStatusBadge = (status: Lead["status"]) => {
-    return "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono";
   };
 
   return (
@@ -138,7 +148,7 @@ export function LeadDetailDrawer({
             <div className="grid grid-cols-3 gap-3">
               
               {/* AI Score Box */}
-              <div className={`p-4 rounded-xl border flex flex-col justify-center items-center ${getScoreColor(currentLead.ai_score)}`}>
+              <div className={`p-4 rounded-xl border flex flex-col justify-center items-center ${getScoreColor()}`}>
                 <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1 text-zinc-400">
                   <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
                   <span>AI Propensity Score</span>
@@ -245,23 +255,29 @@ export function LeadDetailDrawer({
               <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400 block">
                 Add Call Note
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="Type note regarding customer preference or agreement..."
-                  onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
-                  className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
-                />
-                <button
-                  onClick={handleAddNote}
-                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors border border-zinc-700 cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  Add
-                </button>
-              </div>
+              {canAddNotes ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Type note regarding customer preference or agreement..."
+                    onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
+                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+                  />
+                  <button
+                    onClick={handleAddNote}
+                    className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors border border-zinc-700 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Add
+                  </button>
+                </div>
+              ) : (
+                <p className="text-xs text-zinc-500 border border-zinc-800 rounded-lg px-3 py-2">
+                  Notes unavailable in Production DB until note persistence is implemented.
+                </p>
+              )}
             </div>
 
             {/* Activity & Interaction Timeline */}
@@ -270,7 +286,16 @@ export function LeadDetailDrawer({
                 Activity Timeline
               </h3>
               
-              <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-800">
+              {isLoadingActivities && <p className="text-xs text-zinc-500">Loading activity timeline...</p>}
+              {activitiesError && (
+                <p role="alert" className="text-xs text-rose-300 border border-rose-900/60 bg-rose-950/20 rounded-lg px-3 py-2">
+                  Activity timeline unavailable: {activitiesError}
+                </p>
+              )}
+              {!isLoadingActivities && !activitiesError && activities.length === 0 && (
+                <p className="text-xs text-zinc-500">No persisted activities for this lead.</p>
+              )}
+              {!activitiesError && activities.length > 0 && <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-800">
                 {activities.map((act) => (
                   <div key={act.id} className="relative group">
                     {/* Timeline Node Icon */}
@@ -294,15 +319,15 @@ export function LeadDetailDrawer({
                       <p className="text-xs text-zinc-400 leading-normal">
                         {act.description}
                       </p>
-                      {act.agent_name && (
+                      {act.operator_name && (
                         <div className="mt-2 text-[10px] text-zinc-500 font-medium font-mono">
-                          Logged by: {act.agent_name}
+                          Logged by: {act.operator_name}
                         </div>
                       )}
                     </div>
                   </div>
                 ))}
-              </div>
+              </div>}
             </div>
 
           </div>
