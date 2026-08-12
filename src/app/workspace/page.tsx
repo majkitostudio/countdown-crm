@@ -351,11 +351,18 @@ function WorkspaceContent() {
         onCallOutcome={handleCallOutcome}
       />
 
-      {/* Main 3-Column Operator Workspace Grid */}
+      {/* Full-width operator script. Customer context and order details stay below. */}
+      <ProductScriptPanel
+        isCallActive={isCallActive}
+        product={products.find((product) => product.id === selectedProductId) || products[0]}
+        onApplyPitch={handleApplyPitch}
+      />
+
+      {/* Secondary workspace context */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[720px]">
         
         {/* Left Column: Customer Details & Timeline (3 cols) */}
-        <div className="lg:col-span-3 h-full">
+        <div className="lg:col-span-8 h-full">
           <CustomerPanel
             leads={leads}
             activeLead={activeLead}
@@ -365,17 +372,8 @@ function WorkspaceContent() {
           />
         </div>
 
-        {/* Middle Column: Product script and contextual AI suggestion */}
-        <div className="lg:col-span-5 h-full">
-          <ProductScriptPanel
-            isCallActive={isCallActive}
-            product={products.find((product) => product.id === selectedProductId) || products[0]}
-            onApplyPitch={handleApplyPitch}
-          />
-        </div>
-
-        {/* Right Column: Recommended Products & One-Click Order (4 cols) */}
-        <div className="lg:col-span-4 h-full">
+        {/* Right Column: Order details */}
+        <div className="lg:col-span-4 lg:col-start-9 h-full">
           <ProductOrderPanel
           products={products}
           activeLead={activeLead}
