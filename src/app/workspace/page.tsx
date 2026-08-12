@@ -41,6 +41,7 @@ function WorkspaceContent() {
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
@@ -71,6 +72,7 @@ function WorkspaceContent() {
 
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
+        setSelectedProductId(fetchedProducts[0]?.id || "");
         setOrders(fetchedOrders);
         workflowEngine.replaceRules(fetchedWorkflows);
 
@@ -367,7 +369,7 @@ function WorkspaceContent() {
         <div className="lg:col-span-5 h-full">
           <ProductScriptPanel
             isCallActive={isCallActive}
-            product={products[0]}
+            product={products.find((product) => product.id === selectedProductId) || products[0]}
             onApplyPitch={handleApplyPitch}
           />
         </div>
@@ -377,6 +379,8 @@ function WorkspaceContent() {
           <ProductOrderPanel
           products={products}
           activeLead={activeLead}
+          selectedProductId={selectedProductId}
+          onProductChange={setSelectedProductId}
           isOrderFlowOpen={isOrderFlowOpen}
           appliedPitch={appliedPitch}
             onOrderPlaced={handleOrderPlaced}
