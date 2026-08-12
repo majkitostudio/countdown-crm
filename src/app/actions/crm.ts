@@ -6,6 +6,8 @@ import { createOrderForWorkspace } from "@/lib/dal/orders";
 import type { CreateOrderInput, OrderDTO } from "@/lib/dal/orders";
 import { createCallForWorkspace } from "@/lib/dal/calls";
 import type { CallDTO, CreateCallInput } from "@/lib/dal/calls";
+import { completeCallForWorkspace } from "@/lib/dal/callCompletion";
+import type { CompleteCallDTO, CompleteCallInput } from "@/lib/dal/callCompletion";
 import type { Database } from "@/lib/supabase/types";
 
 type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
@@ -36,4 +38,11 @@ export async function createOrderAction(input: CreateOrderInput, workspaceId?: s
 
 export async function createCallAction(input: CreateCallInput, workspaceId?: string): Promise<CallDTO> {
   return createCallForWorkspace(input, workspaceId);
+}
+
+export async function completeCallAction(
+  input: CompleteCallInput,
+  workspaceId?: string
+): Promise<CompleteCallDTO> {
+  return completeCallForWorkspace(input, workspaceId);
 }

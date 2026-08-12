@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
-import { Lead, getLeads, updateLead } from "@/lib/leads";
+import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 import { CallStatusBar, CallOutcome } from "@/components/workspace/CallStatusBar";
@@ -12,13 +12,13 @@ import { AiCopilotPanel } from "@/components/workspace/AiCopilotPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
-import { addCallRecord, CallRecord } from "@/lib/calls";
+import { CallRecord } from "@/lib/calls";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
 import { fetchWorkflowsFromSupabase } from "@/lib/supabase/workflowService";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController } from "@/lib/telephony/softphone";
-import { createOrderAction } from "@/app/actions/crm";
+import { completeCallAction } from "@/app/actions/crm";
 
 interface PostCallSummary {
   leadName: string;
@@ -90,9 +90,9 @@ function WorkspaceContent() {
     outcomeLabel: string,
     orderStatus: PostCallSummary["orderStatus"],
     orderValue = 0,
-    orderId?: string,
-  ): Promise<boolean> => {
-    if (!activeLead) return false;
+    orderProductId?: string,
+  ): Promise<{ callId: string; orderId?: string } | null> => {
+    if (!activeLead) return null;
 
     softphoneController.hangup();
     setIsCallActive(false);
@@ -102,38 +102,27 @@ function WorkspaceContent() {
     sounds.playCallEndSound();
 
     try {
-      const savedCall = await addCallRecord({
+      const completion = await completeCallAction({
         lead_id: activeLead.id,
-        lead_name: activeLead.full_name,
-        agent_name: "Jan Dvořák",
         duration_seconds: 145,
         outcome,
-        sentiment: orderStatus === "created" ? "Positive" : "Neutral",
-        order_value: orderValue,
+        ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+        order_product_id: orderProductId,
+        order_total_amount: orderProductId ? orderValue : null,
         transcript: [
           { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
           { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() },
-        ],
+        ].map((entry) => `${entry.timestamp} ${entry.speaker}: ${entry.text}`).join("\n"),
       });
 
-      const statusAfterCall: Lead["status"] =
-        orderStatus === "created"
-          ? "customer"
-          : outcome === "no_answer"
-            ? "unresponsive"
-            : outcome === "objection_handled"
-              ? "qualified"
-              : "contacted";
-      const savedLead = await updateLead(activeLead.id, { status: statusAfterCall });
-      if (savedLead) {
-        setActiveLead(savedLead);
-        setLeads((currentLeads) =>
-          currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
-        );
-      }
+      const savedLead = { ...activeLead, status: completion.lead_status, updated_at: new Date().toISOString() };
+      setActiveLead(savedLead);
+      setLeads((currentLeads) =>
+        currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
+      );
 
       const workflowEntries = await workflowEngine.emit("on_call_ended", {
-        callId: savedCall.id,
+        callId: completion.call_id,
         leadId: activeLead.id,
         leadName: activeLead.full_name,
         agentName: "Jan Dvořák",
@@ -148,11 +137,11 @@ function WorkspaceContent() {
         outcomeLabel,
         durationSeconds: 145,
         orderStatus,
-        orderId,
+        orderId: completion.order_id || undefined,
         workflowEntries,
       });
       setActivityRefreshToken((current) => current + 1);
-      return true;
+      return { callId: completion.call_id, orderId: completion.order_id || undefined };
     } catch (error) {
       setPostCallSummary(null);
       setNotificationToast(
@@ -160,7 +149,7 @@ function WorkspaceContent() {
           ? `Call completion failed: ${error.message}`
           : "Call completion failed. No successful summary was recorded."
       );
-      return false;
+      return null;
     }
   };
 
@@ -258,20 +247,15 @@ function WorkspaceContent() {
     if (!activeLead) return null;
 
     try {
-      const savedOrder = await createOrderAction({
-        lead_id: activeLead.id,
-        product_id: productId,
-        total_amount: totalAmount,
-        status: "completed",
-      });
-      const callCompleted = await completeCall(
+      const completion = await completeCall(
         "order_placed",
         "Order placed",
         "created",
         totalAmount,
-        savedOrder.id
+        productId
       );
-      return { orderId: savedOrder.id, callCompleted };
+      if (!completion?.orderId) return null;
+      return { orderId: completion.orderId, callCompleted: true };
     } catch (error) {
       setNotificationToast(
         error instanceof Error
