@@ -6,6 +6,7 @@ export type TrainingIntent =
   | "interruption"
   | "agreement"
   | "refusal";
+export type TrainingStage = "offer" | "objection" | "resume" | "close";
 
 export interface TrainingScenario {
   id: string;
@@ -17,6 +18,7 @@ export interface TrainingScenario {
   productName: string;
   goal: string;
   openingMessage: string;
+  openingStage: TrainingStage;
   availableResponses: Array<{ id: string; label: string; intent: TrainingIntent }>;
 }
 
@@ -32,6 +34,8 @@ export interface TrainingReply {
   intent: TrainingIntent;
   nextResponses: Array<{ id: string; label: string; intent: TrainingIntent }>;
   patienceDelta: number;
+  nextStage: TrainingStage;
+  nextBestAction: string;
 }
 
 export interface TrainingScorecard {
@@ -62,6 +66,7 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
     productName: "Joint Gel",
     goal: "Clarify the concern, use approved information, and return to the offer without overpromising.",
     openingMessage: "I have tried products like this before. Why should I spend 3,940 CZK on this one?",
+    openingStage: "offer",
     availableResponses: [sharedResponses.price, sharedResponses.delivery, sharedResponses.interrupt, sharedResponses.agree, sharedResponses.refuse],
   },
   {
@@ -74,6 +79,7 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
     productName: "Joint Gel",
     goal: "Use an attention hook, finish the key point, and invite the question at the right moment.",
     openingMessage: "Yes, yes, but how much is it? I do not have time for a long explanation.",
+    openingStage: "offer",
     availableResponses: [sharedResponses.interrupt, sharedResponses.price, sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
   },
   {
@@ -86,6 +92,7 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
     productName: "Joint Gel",
     goal: "Separate product price from delivery terms and confirm the exact total before closing.",
     openingMessage: "The product may be fine, but is delivery included and can it arrive tomorrow?",
+    openingStage: "offer",
     availableResponses: [sharedResponses.delivery, sharedResponses.price, sharedResponses.interrupt, sharedResponses.agree, sharedResponses.refuse],
   },
 ];
@@ -95,35 +102,45 @@ export interface TrainingProvider {
 }
 
 const responseCopy: Record<TrainingIntent, (scenario: TrainingScenario) => TrainingReply> = {
-  price_effectiveness: (scenario) => ({
+  price_effectiveness: () => ({
     text: "That is my main concern. What can you actually tell me about the product, without promising that it will definitely work?",
     intent: "price_effectiveness",
     nextResponses: [sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
     patienceDelta: 4,
+    nextStage: "objection",
+    nextBestAction: "Clarify whether the concern is price or suitability, then use an approved product benefit.",
   }),
   delivery: (scenario) => ({
     text: `Please separate the ${scenario.productName} price from the delivery fee. If the total is clear, I can decide.`,
     intent: "delivery",
     nextResponses: [sharedResponses.price, sharedResponses.agree, sharedResponses.refuse],
     patienceDelta: 3,
+    nextStage: "objection",
+    nextBestAction: "Separate the product price, delivery fee, and total before moving on.",
   }),
   interruption: () => ({
     text: "I am listening, but please be quick. Finish the important point and then I will ask my question.",
     intent: "interruption",
     nextResponses: [sharedResponses.price, sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
     patienceDelta: 0,
+    nextStage: "objection",
+    nextBestAction: "Use an attention hook, finish the key point, then invite the customer's question.",
   }),
   agreement: () => ({
     text: "All right, that is clear. I am willing to continue with the stated total.",
     intent: "agreement",
     nextResponses: [],
     patienceDelta: 20,
+    nextStage: "close",
+    nextBestAction: "Confirm the exact total and the next operational step.",
   }),
   refusal: () => ({
     text: "I understand. I do not want to continue today.",
     intent: "refusal",
     nextResponses: [],
     patienceDelta: -10,
+    nextStage: "close",
+    nextBestAction: "Respect the refusal and close the training call clearly.",
   }),
 };
 
