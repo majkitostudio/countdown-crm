@@ -5,10 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
+import { Order, getOrders } from "@/lib/orders";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 import { CallStatusBar, CallOutcome } from "@/components/workspace/CallStatusBar";
 import { CustomerPanel } from "@/components/workspace/CustomerPanel";
-import { AiCopilotPanel } from "@/components/workspace/AiCopilotPanel";
+import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
@@ -40,6 +41,7 @@ function WorkspaceContent() {
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
   
@@ -60,14 +62,16 @@ function WorkspaceContent() {
       setIsLoading(true);
       setLoadError(null);
       try {
-        const [fetchedLeads, fetchedProducts, fetchedWorkflows] = await Promise.all([
+        const [fetchedLeads, fetchedProducts, fetchedOrders, fetchedWorkflows] = await Promise.all([
           getLeads(),
           getProducts(),
+          getOrders(),
           fetchWorkflowsFromSupabase(),
         ]);
 
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
+        setOrders(fetchedOrders);
         workflowEngine.replaceRules(fetchedWorkflows);
 
         if (leadIdParam) {
@@ -120,6 +124,11 @@ function WorkspaceContent() {
       setLeads((currentLeads) =>
         currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
       );
+      try {
+        setOrders(await getOrders());
+      } catch {
+        setNotificationToast("Call saved, but customer order history could not be refreshed.");
+      }
 
       let workflowEntries: ExecutionLogEntry[] = [];
       try {
@@ -241,9 +250,9 @@ function WorkspaceContent() {
     }
 
     const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CallRecord["outcome"], string]> = {
-      call_later: ["no_answer", "No answer / call later"],
+      call_later: ["no_answer", "No answer"],
       schedule: ["followup_scheduled", "Follow-up scheduled"],
-      fail: ["objection_handled", "Objection handled / pending"],
+      fail: ["objection_handled", "Not interested"],
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
     void completeCall(callOutcome, outcomeLabel, "not_created");
@@ -348,16 +357,17 @@ function WorkspaceContent() {
           <CustomerPanel
             leads={leads}
             activeLead={activeLead}
+            orders={orders}
             activityRefreshToken={activityRefreshToken}
             onSelectLead={(lead) => setActiveLead(lead)}
           />
         </div>
 
-        {/* Middle Column: AI Copilot & Speech Transcript (5 cols) */}
+        {/* Middle Column: Product script and contextual AI suggestion */}
         <div className="lg:col-span-5 h-full">
-          <AiCopilotPanel
+          <ProductScriptPanel
             isCallActive={isCallActive}
-            activeLead={activeLead}
+            product={products[0]}
             onApplyPitch={handleApplyPitch}
           />
         </div>

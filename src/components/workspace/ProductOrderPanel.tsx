@@ -75,6 +75,20 @@ export function ProductOrderPanel({
   const discountAmount = (rawSubtotal * discountPercent) / 100;
   const grandTotal = Math.max(0, rawSubtotal - discountAmount);
 
+  if (!isOrderFlowOpen) {
+    return (
+      <section className="bg-zinc-900/30 border border-zinc-800/80 rounded-xl p-5 space-y-3 h-full">
+        <div className="flex items-center gap-2">
+          <ShoppingCart className="w-4 h-4 text-zinc-500" />
+          <h2 className="text-sm font-semibold text-zinc-300">Order</h2>
+        </div>
+        <p className="text-xs leading-relaxed text-zinc-500">
+          Order details will appear here after the operator selects the Order outcome.
+        </p>
+      </section>
+    );
+  }
+
   const handleAddBundleItem = (rec: Recommendation) => {
     setBundleProduct(rec.recommendedProduct);
     setDiscountPercent(15);
