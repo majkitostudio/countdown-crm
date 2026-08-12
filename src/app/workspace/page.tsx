@@ -121,7 +121,9 @@ function WorkspaceContent() {
         currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
       );
 
-      const workflowEntries = await workflowEngine.emit("on_call_ended", {
+      let workflowEntries: ExecutionLogEntry[] = [];
+      try {
+        workflowEntries = await workflowEngine.emit("on_call_ended", {
         callId: completion.call_id,
         leadId: activeLead.id,
         leadName: activeLead.full_name,
@@ -129,8 +131,15 @@ function WorkspaceContent() {
         outcome,
         sentiment: orderStatus === "created" ? "Positive" : "Neutral",
         orderValue,
-        transcript: "Call ended by operator",
-      });
+          transcript: "Call ended by operator",
+        });
+      } catch (workflowError) {
+        setNotificationToast(
+          workflowError instanceof Error
+            ? `Call and order saved, but automation failed: ${workflowError.message}`
+            : "Call and order saved, but automation failed."
+        );
+      }
 
       setPostCallSummary({
         leadName: activeLead.full_name,
