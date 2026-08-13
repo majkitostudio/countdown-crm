@@ -7,6 +7,7 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { speakText, stopSpeaking } from "@/lib/speechSynthesis";
 import {
   deterministicTrainingProvider,
+  detectTrainingIntent,
   evaluateTrainingSession,
   TRAINING_SCENARIOS,
   TrainingMessage,
@@ -26,6 +27,7 @@ export default function TrainingPage() {
   const [currentStage, setCurrentStage] = useState<"offer" | "objection" | "resume" | "close">("offer");
   const [nextBestAction, setNextBestAction] = useState("Ask one discovery question before presenting the offer.");
   const [voiceMode, setVoiceMode] = useState(false);
+  const [detectedIntent, setDetectedIntent] = useState<{ label: string; confidence: string } | null>(null);
   const speech = useSpeechRecognition("en-US");
   const messageSequence = useRef(0);
 
@@ -37,6 +39,7 @@ export default function TrainingPage() {
     setCurrentStage(selectedScenario.openingStage);
     setNextBestAction("Complete the opening offer, then listen for the customer's concern.");
     setScorecard(null);
+    setDetectedIntent(null);
     setInput("");
     setStage("in_progress");
     speech.resetTranscript();
@@ -53,7 +56,11 @@ export default function TrainingPage() {
     messageSequence.current += 1;
     const sequence = messageSequence.current;
     const operatorMessage: TrainingMessage = { id: `operator-${sequence}`, speaker: "operator", text: trimmed };
-    const reply = deterministicTrainingProvider.respond(selectedScenario, { intent: intent ?? "price_effectiveness", text: trimmed });
+    const detected = intent
+      ? { intent, confidence: "high", label: intent.replaceAll("_", " ") }
+      : detectTrainingIntent(trimmed);
+    setDetectedIntent({ label: detected.label, confidence: detected.confidence });
+    const reply = deterministicTrainingProvider.respond(selectedScenario, { intent: detected.intent, text: trimmed });
     const customerMessage: TrainingMessage = { id: `customer-${sequence}`, speaker: "customer", text: reply.text, intent: reply.intent };
     const nextMessages = [...messages, operatorMessage, customerMessage];
     setMessages(nextMessages);
@@ -110,6 +117,7 @@ export default function TrainingPage() {
         <section className="space-y-5">
           <div className="flex flex-col justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 sm:flex-row sm:items-center"><div><p className="text-sm font-semibold text-zinc-100">{selectedScenario.title}</p><p className="text-xs text-zinc-500">Scenario customer · no production write</p></div><button onClick={() => { stopSpeaking(); speech.stopListening(); finishScenario(); }} className="text-xs text-zinc-400 hover:text-zinc-100">End simulation</button></div>
           <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center"><div className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3"><p className="text-[10px] uppercase tracking-wider text-zinc-500">Current stage</p><p className="mt-1 text-sm font-semibold capitalize text-zinc-100">{currentStage}</p></div><div className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3"><p className="text-[10px] uppercase tracking-wider text-zinc-500">Next best action</p><p className="mt-1 text-xs text-zinc-300">{nextBestAction}</p></div><button onClick={() => { setVoiceMode((value) => !value); if (voiceMode) stopSpeaking(); }} className={cn("flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-semibold", voiceMode ? "border-emerald-700 bg-emerald-950/30 text-emerald-300" : "border-zinc-700 bg-zinc-900/50 text-zinc-300")}><Volume2 className="h-4 w-4" /> {voiceMode ? "Voice preview on" : "Voice preview off"}</button></div>
+          {detectedIntent && <p className="text-xs text-zinc-500">Detected intent: <span className="font-semibold text-zinc-300">{detectedIntent.label}</span> <span className="text-zinc-600">({detectedIntent.confidence} confidence · local classifier)</span></p>}
           <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
             <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-5">
               <div className="space-y-4">{messages.map((message) => <div key={message.id} className={cn("max-w-2xl rounded-2xl border px-4 py-3 text-sm leading-6", message.speaker === "customer" ? "border-zinc-700 bg-zinc-800/70 text-zinc-200" : "ml-auto border-emerald-900/60 bg-emerald-950/30 text-emerald-100")}><p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{message.speaker === "customer" ? selectedScenario.customerName : "Operator"}</p>{message.text}</div>)}</div>

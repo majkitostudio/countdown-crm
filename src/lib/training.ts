@@ -5,7 +5,8 @@ export type TrainingIntent =
   | "delivery"
   | "interruption"
   | "agreement"
-  | "refusal";
+  | "refusal"
+  | "needs_clarification";
 export type TrainingStage = "offer" | "objection" | "resume" | "close";
 
 export interface TrainingScenario {
@@ -38,6 +39,12 @@ export interface TrainingReply {
   nextBestAction: string;
 }
 
+export interface TrainingIntentDetection {
+  intent: TrainingIntent;
+  confidence: "high" | "medium" | "low";
+  label: string;
+}
+
 export interface TrainingScorecard {
   overallScore: number;
   grade: "A" | "B" | "C" | "D";
@@ -54,6 +61,31 @@ const sharedResponses = {
   agree: { id: "agree", label: "Customer accepts the offer", intent: "agreement" as const },
   refuse: { id: "refuse", label: "Customer declines", intent: "refusal" as const },
 };
+
+const intentLabels: Record<TrainingIntent, string> = {
+  price_effectiveness: "Price / effectiveness",
+  delivery: "Delivery",
+  interruption: "Interruption / attention hook",
+  agreement: "Agreement",
+  refusal: "Refusal",
+  needs_clarification: "Needs clarification",
+};
+
+const intentPatterns: Array<{ intent: Exclude<TrainingIntent, "needs_clarification">; pattern: RegExp }> = [
+  { intent: "delivery", pattern: /deliver|courier|arriv|tomorrow|shipping|fee|doruč|kurýr|zítra|poplatek/i },
+  { intent: "agreement", pattern: /yes|okay|agree|continue|order|take it|sounds good|beru|souhlas|objedn|pokrač/i },
+  { intent: "refusal", pattern: /no thanks|not interested|too expensive|do not want|decline|nechci|nemám zájem|odmít|drah/i },
+  { intent: "interruption", pattern: /finish|let me speak|one moment|listen|hold on|interrupt|dokonč|poslouchej|moment/i },
+  { intent: "price_effectiveness", pattern: /price|cost|expensive|work|effective|result|proof|evidence|cena|fung|účinek|výsledek|důkaz/i },
+];
+
+export function detectTrainingIntent(text: string): TrainingIntentDetection {
+  const normalized = text.trim();
+  if (!normalized) return { intent: "needs_clarification", confidence: "low", label: intentLabels.needs_clarification };
+  const matches = intentPatterns.filter(({ pattern }) => pattern.test(normalized));
+  if (matches.length !== 1) return { intent: "needs_clarification", confidence: "low", label: intentLabels.needs_clarification };
+  return { intent: matches[0].intent, confidence: "medium", label: intentLabels[matches[0].intent] };
+}
 
 export const TRAINING_SCENARIOS: TrainingScenario[] = [
   {
@@ -141,6 +173,14 @@ const responseCopy: Record<TrainingIntent, (scenario: TrainingScenario) => Train
     patienceDelta: -10,
     nextStage: "close",
     nextBestAction: "Respect the refusal and close the training call clearly.",
+  }),
+  needs_clarification: () => ({
+    text: "I am not sure which part you are addressing. Could you clarify whether you mean the price, delivery, product information, or whether you want to continue?",
+    intent: "needs_clarification",
+    nextResponses: [sharedResponses.price, sharedResponses.delivery, sharedResponses.interrupt, sharedResponses.agree, sharedResponses.refuse],
+    patienceDelta: -2,
+    nextStage: "objection",
+    nextBestAction: "Ask one focused question before choosing an objection branch.",
   }),
 };
 
