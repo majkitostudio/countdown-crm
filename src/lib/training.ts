@@ -6,6 +6,7 @@ export type TrainingIntent =
   | "interruption"
   | "agreement"
   | "refusal"
+  | "resume_script"
   | "needs_clarification";
 export type TrainingStage = "offer" | "objection" | "resume" | "close";
 
@@ -72,6 +73,7 @@ const sharedResponses = {
   interrupt: { id: "interrupt", label: "Use an attention hook", intent: "interruption" as const },
   agree: { id: "agree", label: "Move to the close", intent: "agreement" as const },
   refuse: { id: "refuse", label: "Close respectfully", intent: "refusal" as const },
+  resume: { id: "resume", label: "Resume the product script", intent: "resume_script" as const },
 };
 
 const intentLabels: Record<TrainingIntent, string> = {
@@ -80,11 +82,13 @@ const intentLabels: Record<TrainingIntent, string> = {
   interruption: "Interruption / attention hook",
   agreement: "Agreement",
   refusal: "Refusal",
+  resume_script: "Resume product script",
   needs_clarification: "Needs clarification",
 };
 
 const intentPatterns: Array<{ intent: Exclude<TrainingIntent, "needs_clarification">; pattern: RegExp }> = [
   { intent: "delivery", pattern: /deliver|courier|arriv|tomorrow|shipping|fee|doruč|kurýr|zítra|poplatek/i },
+  { intent: "resume_script", pattern: /approved benefit|product information|return to the script|resume|continue with the product|schválen|benefit|produktov|vrátit se ke skriptu/i },
   { intent: "agreement", pattern: /yes|okay|agree|continue|order|take it|sounds good|beru|souhlas|objedn|pokrač/i },
   { intent: "refusal", pattern: /no thanks|not interested|too expensive|do not want|decline|nechci|nemám zájem|odmít|drah/i },
   { intent: "interruption", pattern: /finish|let me speak|one moment|listen|hold on|interrupt|dokonč|poslouchej|moment/i },
@@ -145,14 +149,14 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
 ];
 
 export interface TrainingProvider {
-  respond(scenario: TrainingScenario, response: { intent: TrainingIntent; text: string }): TrainingReply;
+  respond(scenario: TrainingScenario, response: { intent: TrainingIntent; text: string; stage?: TrainingStage }): TrainingReply;
 }
 
 const responseCopy: Record<TrainingIntent, (scenario: TrainingScenario) => TrainingReply> = {
   price_effectiveness: () => ({
     text: "That is my main concern. What can you actually tell me about the product, without promising that it will definitely work?",
     intent: "price_effectiveness",
-    nextResponses: [sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
+    nextResponses: [sharedResponses.resume, sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
     patienceDelta: 4,
     nextStage: "objection",
     nextBestAction: "Clarify whether the concern is price or suitability, then use an approved product benefit.",
@@ -160,7 +164,7 @@ const responseCopy: Record<TrainingIntent, (scenario: TrainingScenario) => Train
   delivery: (scenario) => ({
     text: `Please separate the ${scenario.productName} price from the delivery fee. If the total is clear, I can decide.`,
     intent: "delivery",
-    nextResponses: [sharedResponses.price, sharedResponses.agree, sharedResponses.refuse],
+    nextResponses: [sharedResponses.resume, sharedResponses.price, sharedResponses.agree, sharedResponses.refuse],
     patienceDelta: 3,
     nextStage: "objection",
     nextBestAction: "Separate the product price, delivery fee, and total before moving on.",
@@ -168,7 +172,7 @@ const responseCopy: Record<TrainingIntent, (scenario: TrainingScenario) => Train
   interruption: () => ({
     text: "I am listening, but please be quick. Finish the important point and then I will ask my question.",
     intent: "interruption",
-    nextResponses: [sharedResponses.price, sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
+    nextResponses: [sharedResponses.resume, sharedResponses.price, sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
     patienceDelta: 0,
     nextStage: "objection",
     nextBestAction: "Use an attention hook, finish the key point, then invite the customer's question.",
@@ -197,11 +201,27 @@ const responseCopy: Record<TrainingIntent, (scenario: TrainingScenario) => Train
     nextStage: "objection",
     nextBestAction: "Ask one focused question before choosing an objection branch.",
   }),
+  resume_script: (scenario) => ({
+    text: `That helps. Please confirm the exact total and how ${scenario.productName} would be delivered, then I can decide.`,
+    intent: "delivery",
+    nextResponses: [sharedResponses.delivery, sharedResponses.agree, sharedResponses.refuse],
+    patienceDelta: 8,
+    nextStage: "resume",
+    nextBestAction: "Confirm the exact total and delivery terms before moving to close.",
+  }),
 };
 
 export const deterministicTrainingProvider: TrainingProvider = {
   respond(scenario, response) {
-    return responseCopy[response.intent](scenario);
+    const reply = responseCopy[response.intent](scenario);
+    if (response.intent === "delivery" && response.stage === "resume") {
+      return {
+        ...reply,
+        nextStage: "close",
+        nextBestAction: "Confirm the exact total and ask whether the customer wants to continue.",
+      };
+    }
+    return reply;
   },
 };
 
@@ -211,6 +231,7 @@ const intentDisplayLabels: Record<TrainingIntent, string> = {
   interruption: "Interruption",
   agreement: "Agreement",
   refusal: "Refusal",
+  resume_script: "Resume product script",
   needs_clarification: "Needs clarification",
 };
 
@@ -221,6 +242,10 @@ export function assessLatestTrainingTurn(scenario: TrainingScenario, messages: T
   const previousCustomer = [...messages.slice(0, operatorIndex)].reverse().find((message) => message.speaker === "customer");
   const expectedIntent = previousCustomer?.intent && previousCustomer.intent !== "needs_clarification" ? previousCustomer.intent : scenario.openingIntent;
   const detectedIntent = operatorMessage.intent || "needs_clarification";
+  const previousOperator = [...messages.slice(0, operatorIndex)].reverse().find((message) => message.speaker === "operator");
+  if (detectedIntent === "resume_script" && previousOperator?.intent === expectedIntent) {
+    return { status: "correct", score: 100, expectedIntent: intentDisplayLabels[expectedIntent], detectedIntent: intentDisplayLabels[detectedIntent], feedback: "Correct transition. You addressed the objection and returned to the product script." };
+  }
   if (detectedIntent === expectedIntent) {
     return { status: "correct", score: 100, expectedIntent: intentDisplayLabels[expectedIntent], detectedIntent: intentDisplayLabels[detectedIntent], feedback: "Correct branch selected. Your response matches the customer's main concern." };
   }

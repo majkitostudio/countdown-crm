@@ -64,7 +64,7 @@ export default function TrainingPage() {
       : detectTrainingIntent(trimmed);
     setDetectedIntent({ label: detected.label, confidence: detected.confidence });
     const operatorMessage: TrainingMessage = { id: `operator-${sequence}`, speaker: "operator", text: trimmed, intent: detected.intent, stage: currentStage };
-    const reply = deterministicTrainingProvider.respond(selectedScenario, { intent: detected.intent, text: trimmed });
+    const reply = deterministicTrainingProvider.respond(selectedScenario, { intent: detected.intent, text: trimmed, stage: currentStage });
     const customerMessage: TrainingMessage = { id: `customer-${sequence}`, speaker: "customer", text: reply.text, intent: reply.intent };
     const nextMessages = [...messages, operatorMessage, customerMessage];
     setMessages(nextMessages);
