@@ -13,7 +13,7 @@ import {
   ShoppingBag
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
-import { Order, getOrdersByLeadId } from "@/lib/orders";
+import { Order } from "@/lib/orders";
 import { DynamicAttributesCard } from "@/components/workspace/DynamicAttributesCard";
 import { enrichLeadAction } from "@/app/actions/enrichment";
 import type { EnrichedCompanyData } from "@/lib/ai/types";
@@ -23,11 +23,17 @@ import { RefreshCw } from "lucide-react";
 interface CustomerPanelProps {
   leads: Lead[];
   activeLead: Lead | null;
+  orders: Order[];
   activityRefreshToken: number;
   onSelectLead: (lead: Lead) => void;
 }
 
-export function CustomerPanel({ leads, activeLead, activityRefreshToken, onSelectLead }: CustomerPanelProps) {
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  return digits.startsWith("00") ? digits.slice(2) : digits;
+}
+
+export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken, onSelectLead }: CustomerPanelProps) {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [enrichmentData, setEnrichmentData] = useState<EnrichedCompanyData | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
@@ -35,13 +41,16 @@ export function CustomerPanel({ leads, activeLead, activityRefreshToken, onSelec
   useEffect(() => {
     async function loadCustomerOrders() {
       if (activeLead) {
-        const orders = await getOrdersByLeadId(activeLead.id);
-        setCustomerOrders(orders);
+        const phone = normalizePhone(activeLead.phone);
+        const matchingLeadIds = new Set(
+          leads.filter((lead) => normalizePhone(lead.phone) === phone).map((lead) => lead.id)
+        );
+        setCustomerOrders(orders.filter((order) => matchingLeadIds.has(order.lead_id)));
         setEnrichmentData(null); // Reset on lead change
       }
     }
     loadCustomerOrders();
-  }, [activeLead, activityRefreshToken]);
+  }, [activeLead, leads, orders, activityRefreshToken]);
 
   const handleEnrich = async () => {
     if (!activeLead) return;
@@ -194,36 +203,51 @@ export function CustomerPanel({ leads, activeLead, activityRefreshToken, onSelec
         <div className="flex items-center justify-between">
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
             <History className="w-3.5 h-3.5 text-zinc-400" />
-            Customer Purchase History ({customerOrders.length})
+            Customer History ({customerOrders.length})
           </h3>
         </div>
+        <p className="text-[10px] text-zinc-500">Based on this phone number across workspace lead records. Contacts are not merged.</p>
 
         <div className="space-y-2 text-xs">
           {customerOrders.length === 0 ? (
             <div className="p-3 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-center text-zinc-500 text-xs">
-              No orders placed yet for this customer.
+              No previous orders found for this phone number.
             </div>
           ) : (
             customerOrders.map((ord) => (
-              <div key={ord.id} className="p-2.5 bg-zinc-950/40 border border-zinc-800/60 rounded-xl flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2.5">
-                  <ShoppingBag className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-zinc-200">{ord.product_title}</p>
-                    <p className="text-[11px] text-zinc-500 font-mono">
-                      Order #{ord.id} • {new Date(ord.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <span className="font-mono font-semibold text-zinc-100 shrink-0">
-                  ${ord.total_amount.toFixed(2)}
-                </span>
-              </div>
+              <OrderHistoryItem key={ord.id} order={ord} />
             ))
           )}
         </div>
       </div>
 
+    </div>
+  );
+}
+
+function OrderHistoryItem({ order }: { order: Order }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="p-2.5 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-xs">
+      <button type="button" onClick={() => setIsOpen((value) => !value)} className="w-full flex items-start justify-between gap-2 text-left">
+        <div className="flex items-start gap-2.5 min-w-0">
+          <ShoppingBag className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="font-semibold text-zinc-200 truncate">{order.product_title}</p>
+            <p className="text-[11px] text-zinc-500 font-mono truncate">Order #{order.id} · {new Date(order.created_at).toLocaleDateString("en-US")}</p>
+          </div>
+        </div>
+        <span className="font-mono font-semibold text-zinc-100 shrink-0">${order.total_amount.toFixed(2)}</span>
+      </button>
+      {isOpen && (
+        <div className="mt-2 pt-2 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-[11px] text-zinc-400">
+          <span>Status <strong className="block text-zinc-200 capitalize">{order.status}</strong></span>
+          <span>Quantity <strong className="block text-zinc-200">Not stored</strong></span>
+          <span>Created <strong className="block text-zinc-200">{new Date(order.created_at).toLocaleString("en-US")}</strong></span>
+          <span>Lead record <strong className="block text-zinc-200 font-mono">{order.lead_id.slice(0, 8)}…</strong></span>
+        </div>
+      )}
     </div>
   );
 }

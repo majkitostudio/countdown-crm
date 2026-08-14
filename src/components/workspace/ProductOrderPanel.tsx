@@ -22,6 +22,8 @@ interface OrderPlacementResult {
 interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
+  selectedProductId: string;
+  onProductChange: (productId: string) => void;
   isOrderFlowOpen: boolean;
   appliedPitch?: string;
   onOrderPlaced: (productId: string, totalAmount: number) => Promise<OrderPlacementResult | null>;
@@ -30,11 +32,13 @@ interface ProductOrderPanelProps {
 export function ProductOrderPanel({
   products,
   activeLead,
+  selectedProductId: controlledProductId,
+  onProductChange,
   isOrderFlowOpen,
   appliedPitch,
   onOrderPlaced,
 }: ProductOrderPanelProps) {
-  const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || "");
+  const [localSelectedProductId, setLocalSelectedProductId] = useState<string>(controlledProductId || products[0]?.id || "");
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
 
   const [quantity, setQuantity] = useState<number>(1);
@@ -62,7 +66,8 @@ export function ProductOrderPanel({
     }
   }, [appliedPitch]);
 
-  const effectiveProductId = selectedProductId || products[0]?.id || "";
+  const selectedProductId = controlledProductId || localSelectedProductId || products[0]?.id || "";
+  const effectiveProductId = selectedProductId;
   const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];
 
   const crossSellRecs = getCrossSellRecommendations(selectedProduct, products);
@@ -74,6 +79,20 @@ export function ProductOrderPanel({
   const rawSubtotal = primarySubtotal + bundleSubtotal;
   const discountAmount = (rawSubtotal * discountPercent) / 100;
   const grandTotal = Math.max(0, rawSubtotal - discountAmount);
+
+  if (!isOrderFlowOpen) {
+    return (
+      <section className="bg-zinc-900/30 border border-zinc-800/80 rounded-xl p-5 space-y-3 h-full">
+        <div className="flex items-center gap-2">
+          <ShoppingCart className="w-4 h-4 text-zinc-500" />
+          <h2 className="text-sm font-semibold text-zinc-300">Order</h2>
+        </div>
+        <p className="text-xs leading-relaxed text-zinc-500">
+          Order details will appear here after the operator selects the Order outcome.
+        </p>
+      </section>
+    );
+  }
 
   const handleAddBundleItem = (rec: Recommendation) => {
     setBundleProduct(rec.recommendedProduct);
@@ -156,7 +175,8 @@ export function ProductOrderPanel({
                 key={prod.id}
                 onClick={() => {
                   if (!isOrderFlowOpen) return;
-                  setSelectedProductId(prod.id);
+                  setLocalSelectedProductId(prod.id);
+                  onProductChange(prod.id);
                   setBundleProduct(null);
                 }}
                 className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-3 text-xs ${

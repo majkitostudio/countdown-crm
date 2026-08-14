@@ -56,7 +56,7 @@ export function Header() {
           const event = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true });
           window.dispatchEvent(event);
         }}
-        className="relative w-72 sm:w-[26rem] text-left group"
+        className="relative w-56 sm:w-72 lg:w-[22rem] xl:w-[26rem] text-left group shrink-0"
       >
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
         <input
@@ -77,15 +77,15 @@ export function Header() {
         {/* Industry Blueprints Picker Button */}
         <button
           onClick={() => setIsBlueprintModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 text-xs font-medium transition-all cursor-pointer"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 text-xs font-medium transition-all cursor-pointer shrink-0 max-w-48 xl:max-w-none"
           title="Změnit oborový balíček CRM"
         >
           <Layers className="w-3.5 h-3.5 text-zinc-400" />
-          <span className="hidden md:inline">{activeBlueprintName}</span>
+          <span className="hidden xl:inline truncate whitespace-nowrap">{activeBlueprintName}</span>
         </button>
 
         {/* Live Multi-Operator Presence */}
-        <OperatorPresenceBadge />
+        <div className="hidden xl:block"><OperatorPresenceBadge /></div>
 
         {/* Demo Mode Toggle Badge */}
         <button
@@ -102,7 +102,7 @@ export function Header() {
           title="Klikněte pro přepnutí mezi Sandbox Demo a Produkčním Supabase režimem"
         >
           <span className={`w-1.5 h-1.5 rounded-full ${demoActive ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
-          <span>{demoActive ? "Demo Sandbox" : "Production DB"}</span>
+          <span className="hidden sm:inline whitespace-nowrap">{demoActive ? "Demo Sandbox" : "Production DB"}</span>
         </button>
 
         {/* Live Indicator */}

@@ -90,7 +90,7 @@ function AttributeField({
           onClick={handleComputeAi}
           disabled={isComputing}
           className="p-1.5 text-zinc-500 hover:text-zinc-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-          title="Přepočítat pomocí AI"
+          title="Recalculate with AI"
         >
           <RefreshCw
             className={cn("w-3.5 h-3.5", isComputing && "animate-spin text-zinc-200")}
@@ -195,7 +195,7 @@ export function DynamicAttributesCard({ lead }: DynamicAttributesCardProps) {
           Dynamic Attributes (EAV)
         </span>
         <span className="text-[10px] text-zinc-600 ml-1">
-          {dynamicAttributes.length} polí
+          {dynamicAttributes.length} fields
         </span>
         <span className="ml-auto">
           {isExpanded ? (
