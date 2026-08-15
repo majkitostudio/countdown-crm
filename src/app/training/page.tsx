@@ -33,6 +33,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { generateTrainingResponseAction } from "@/app/actions/training";
+import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
 import { speakText, stopSpeaking, getPersonaVoiceSettings } from "@/lib/speechSynthesis";
 import { Volume2, VolumeX, Radio } from "lucide-react";
 
@@ -57,6 +58,8 @@ export default function TrainingPage() {
   const [callDurationSeconds, setCallDurationSeconds] = useState<number>(0);
   const [aiSource, setAiSource] = useState<"gemini-flash" | "openai-responses" | "rule-engine" | null>(null);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [transcriptSaveState, setTranscriptSaveState] = useState<"idle" | "saving" | "saved" | "unavailable" | "error">("idle");
+  const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
 
   const [activeScriptPhase, setActiveScriptPhase] = useState<number>(1);
 
@@ -152,12 +155,17 @@ export default function TrainingPage() {
     setLiveTranscript("");
     setAiSource(null);
     setAiNotice(null);
+    setTranscriptSaveState("idle");
+    const startedAt = new Date().toISOString();
+    setSessionStartedAt(startedAt);
 
     const initialMsg: TrainingMessage = {
       id: "msg_init",
       sender: "ai_customer",
       text: scenario.initialMessage,
       timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
+      occurredAt: new Date().toISOString(),
+      source: "scenario",
       sentiment: "neutral",
       customerMood: scenario.personalityType as any,
       patienceGauge: 75,
@@ -168,7 +176,10 @@ export default function TrainingPage() {
     playAiAudio(scenario.initialMessage, scenario);
   };
 
-  const handleSendMessage = async (messageOverride?: string) => {
+  const handleSendMessage = async (
+    messageOverride?: string,
+    source: "typed" | "browser_speech" = "typed"
+  ) => {
     const userText = (messageOverride ?? inputText).trim();
     if (!userText || !selectedScenario || isBotThinking || isHungUp) return;
 
@@ -187,6 +198,8 @@ export default function TrainingPage() {
       sender: "user",
       text: userText,
       timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
+      occurredAt: new Date().toISOString(),
+      source,
     };
 
     const newHistory = [...messages, userMsg];
@@ -209,6 +222,8 @@ export default function TrainingPage() {
         sender: "ai_customer",
         text: aiResponse.text,
         timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
+        occurredAt: new Date().toISOString(),
+        source: "ai_customer",
         sentiment: aiResponse.sentiment,
         customerMood: aiResponse.customerMood,
         patienceGauge: newPatience,
@@ -222,6 +237,8 @@ export default function TrainingPage() {
           sender: "ai_customer",
           text: "❌ Zákazník ztratil trpělivost a ukončil hovor (Hang Up)!",
           timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
+          occurredAt: new Date().toISOString(),
+          source: "ai_customer",
           sentiment: "negative",
         };
         setMessages((prev) => [...prev, botMsg, hangUpMsg]);
@@ -301,7 +318,7 @@ export default function TrainingPage() {
         const transcriptToSubmit = finalTranscript.trim();
         setLiveTranscript("");
         if (shouldSubmitRecognitionRef.current && transcriptToSubmit) {
-          void handleSendMessage(transcriptToSubmit);
+          void handleSendMessage(transcriptToSubmit, "browser_speech");
         } else {
           setCallState("listening");
         }
@@ -349,8 +366,8 @@ export default function TrainingPage() {
     startRecognition();
   };
 
-  const handleFinishTraining = () => {
-    if (!selectedScenario) return;
+  const handleFinishTraining = async () => {
+    if (!selectedScenario || isBotThinking || !sessionStartedAt) return;
 
     const evaluation = evaluateTrainingSession(selectedScenario, messages);
     setScorecard(evaluation);
@@ -364,6 +381,17 @@ export default function TrainingPage() {
     recognitionRef.current = null;
     stopSpeaking();
     setIsAiSpeaking(false);
+
+    setTranscriptSaveState("saving");
+    const saveResult = await saveTrainingSessionAction({
+      scenario: selectedScenario,
+      messages,
+      scorecard: evaluation,
+      durationSeconds: callDurationSeconds,
+      aiSource,
+      startedAt: sessionStartedAt,
+    });
+    setTranscriptSaveState(saveResult.ok ? "saved" : saveResult.code === "UNAVAILABLE" ? "unavailable" : "error");
 
   };
 
@@ -542,6 +570,7 @@ export default function TrainingPage() {
                 </button>
 
                 <button
+                  disabled={isBotThinking}
                   onClick={() => {
                     stopSpeaking();
                     handleFinishTraining();
@@ -882,6 +911,22 @@ export default function TrainingPage() {
                 ))}
               </ul>
             </div>
+          </div>
+
+          <div className={cn(
+            "rounded-xl border px-4 py-3 text-xs",
+            transcriptSaveState === "saved"
+              ? "border-emerald-900/60 bg-emerald-950/20 text-emerald-300"
+              : transcriptSaveState === "saving"
+              ? "border-amber-900/60 bg-amber-950/20 text-amber-300"
+              : transcriptSaveState === "unavailable"
+              ? "border-zinc-700 bg-zinc-950 text-zinc-400"
+              : "border-rose-900/60 bg-rose-950/20 text-rose-300"
+          )}>
+            {transcriptSaveState === "saved" && "Training transcript saved for teamleader review."}
+            {transcriptSaveState === "saving" && "Saving training transcript..."}
+            {transcriptSaveState === "unavailable" && "Training transcript persistence is unavailable in demo mode; this session was not stored."}
+            {transcriptSaveState === "error" && "Training transcript could not be saved. The scorecard remains available for this session only."}
           </div>
 
           <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-300 leading-relaxed">

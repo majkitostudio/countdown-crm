@@ -505,6 +505,81 @@ export interface Database {
         };
         Relationships: [];
       };
+      training_sessions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          operator_id: string;
+          scenario_id: string;
+          scenario_title: string;
+          customer_name: string;
+          target_product: string;
+          status: string;
+          duration_seconds: number;
+          ai_source: string | null;
+          scorecard: Json;
+          started_at: string;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          operator_id: string;
+          scenario_id: string;
+          scenario_title: string;
+          customer_name: string;
+          target_product: string;
+          status?: string;
+          duration_seconds?: number;
+          ai_source?: string | null;
+          scorecard?: Json;
+          started_at?: string;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          status?: string;
+          duration_seconds?: number;
+          ai_source?: string | null;
+          scorecard?: Json;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      training_session_turns: {
+        Row: {
+          id: string;
+          session_id: string;
+          workspace_id: string;
+          sequence_number: number;
+          speaker: string;
+          text: string;
+          source: string;
+          occurred_at: string;
+          confidence: number | null;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          workspace_id: string;
+          sequence_number: number;
+          speaker: string;
+          text: string;
+          source: string;
+          occurred_at?: string;
+          confidence?: number | null;
+        };
+        Update: {
+          sequence_number?: number;
+          speaker?: string;
+          text?: string;
+          source?: string;
+          occurred_at?: string;
+          confidence?: number | null;
+        };
+        Relationships: [];
+      };
       user_gamification: {
         Row: {
           user_id: string;

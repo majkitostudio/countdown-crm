@@ -23,6 +23,9 @@ export interface TrainingMessage {
   sender: "user" | "ai_customer";
   text: string;
   timestamp: string;
+  occurredAt?: string;
+  source?: "typed" | "browser_speech" | "ai_customer" | "scenario";
+  confidence?: number | null;
   sentiment?: "positive" | "neutral" | "negative";
   customerMood?: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
   patienceGauge?: number; // 0 - 100
