@@ -253,6 +253,7 @@ export default function TrainingPage() {
       playAiAudio(aiResponse.text, selectedScenario);
     } catch (err) {
       console.error(err);
+      setAiNotice("The AI response failed. You can retry this turn; no customer response was fabricated.");
       setCallState("listening");
     } finally {
       setIsBotThinking(false);

@@ -21,6 +21,21 @@ type ParsedTrainingResponse = {
   patienceDelta?: unknown;
 };
 
+const TRAINING_PROVIDER_TIMEOUT_MS = 12_000;
+
+async function withTrainingProviderTimeout<T>(promise: Promise<T>): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error("TRAINING_PROVIDER_TIMEOUT")), TRAINING_PROVIDER_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "gemini-flash" | "openai-responses"): RoleplayAIResponse {
   const sentiments = ["positive", "neutral", "negative"] as const;
   const moods = ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] as const;
@@ -33,6 +48,9 @@ function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "ge
 }
 
 function getProviderErrorNotice(provider: "gemini" | "openai", error: unknown): string {
+  if (error instanceof Error && error.message === "TRAINING_PROVIDER_TIMEOUT") {
+    return `${provider === "gemini" ? "Gemini" : "OpenAI"} response timed out. This turn used the local training engine.`;
+  }
   const errorStatus = typeof error === "object" && error !== null && "status" in error ? error.status : undefined;
   if (errorStatus === 429) return `${provider === "gemini" ? "Gemini" : "OpenAI"} quota is unavailable. This turn used the local training engine.`;
   return `${provider === "gemini" ? "Gemini" : "OpenAI"} response was unavailable. This turn used the local training engine.`;
@@ -115,18 +133,18 @@ Odpověz POUZE platným JSON objektem bez označení markdown kódu.
     try {
       if (currentProvider === "gemini" && process.env.GEMINI_API_KEY) {
         const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const response = await client.interactions.create({
+        const response = await withTrainingProviderTimeout(client.interactions.create({
           model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash",
           input: prompt,
           store: false,
-        });
+        }));
         const cleanJson = (response.output_text || "").replace(/```json|```/g, "").trim();
         return normalizeTrainingResponse(JSON.parse(cleanJson) as ParsedTrainingResponse, "gemini-flash");
       }
 
       if (currentProvider === "openai" && process.env.OPENAI_API_KEY) {
         const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const response = await client.responses.create({
+        const response = await withTrainingProviderTimeout(client.responses.create({
           model: process.env.OPENAI_TRAINING_MODEL || "gpt-5.4-mini",
           input: prompt,
           text: {
@@ -147,7 +165,7 @@ Odpověz POUZE platným JSON objektem bez označení markdown kódu.
               },
             },
           },
-        });
+        }));
         return normalizeTrainingResponse(JSON.parse(response.output_text) as ParsedTrainingResponse, "openai-responses");
       }
     } catch (error) {
