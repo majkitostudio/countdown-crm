@@ -58,6 +58,7 @@ function WorkspaceContent() {
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [callStartedAt, setCallStartedAt] = useState<string | null>(null);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
+  const callConnectionTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -101,6 +102,10 @@ function WorkspaceContent() {
     if (!activeLead) return null;
 
     softphoneController.hangup();
+    if (callConnectionTimeoutRef.current) {
+      clearTimeout(callConnectionTimeoutRef.current);
+      callConnectionTimeoutRef.current = null;
+    }
     setIsCallActive(false);
     setIsDialing(false);
     setIsOrderFlowOpen(false);
@@ -196,7 +201,8 @@ function WorkspaceContent() {
       stopAudioRef.current = stopTone;
 
       // Connect call after 2.5s simulation
-      setTimeout(() => {
+      callConnectionTimeoutRef.current = setTimeout(() => {
+        callConnectionTimeoutRef.current = null;
         if (stopAudioRef.current) {
           stopAudioRef.current();
           stopAudioRef.current = null;
