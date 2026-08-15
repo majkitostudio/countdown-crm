@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   Mail,
   MessageSquare,
@@ -15,6 +15,7 @@ import { Lead } from "@/lib/leads";
 import { Product } from "@/lib/products";
 import { generateFollowupAction, GenerateFollowupResult } from "@/app/actions/followup";
 import { addTimelineEntry } from "@/lib/timeline";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 
 interface AiFollowupModalProps {
   lead: Lead | null;
@@ -31,6 +32,7 @@ export function AiFollowupModal({
   isOpen,
   onClose,
 }: AiFollowupModalProps) {
+  const { identity } = useOperatorIdentity();
   const [channel, setChannel] = useState<"email" | "whatsapp">("email");
   const [goal, setGoal] = useState<"order_paylink" | "discount_offer" | "callback_reminder" | "graceful_thanks">("order_paylink");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -40,7 +42,7 @@ export function AiFollowupModal({
   const [isDispatched, setIsDispatched] = useState(false);
   const [dispatchError, setDispatchError] = useState<string | null>(null);
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!lead) return;
     setIsGenerating(true);
     setIsDispatched(false);
@@ -65,7 +67,7 @@ export function AiFollowupModal({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [appliedPitch, channel, goal, lead, product]);
 
   useEffect(() => {
     if (isOpen && lead) {
@@ -74,7 +76,7 @@ export function AiFollowupModal({
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, channel, goal, lead?.id]);
+  }, [isOpen, handleGenerate, lead]);
 
   if (!isOpen || !lead) return null;
 
@@ -90,7 +92,7 @@ export function AiFollowupModal({
       type: channel === "email" ? "note" : "sms_paylink",
       title: channel === "email" ? `AI Email Sent: ${result?.subject || "Follow-up"}` : `WhatsApp Dispatched to ${lead.phone}`,
       description: editableContent,
-      operator_name: "Jan Dvořák",
+      operator_name: result?.operatorName || identity?.name || "Unknown operator",
       metadata: {
         paylink_url: result?.paylinkUrl,
       },

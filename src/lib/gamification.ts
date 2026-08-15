@@ -8,7 +8,6 @@ export interface Achievement {
 }
 
 export interface OperatorProfile {
-  name: string;
   level: number;
   currentXp: number;
   nextLevelXp: number;
@@ -82,7 +81,6 @@ export function getOperatorProfile(): OperatorProfile {
 
 function getDefaultProfile(): OperatorProfile {
   return {
-    name: "Jan Dvořák",
     level: 4,
     currentXp: 1450,
     nextLevelXp: 2000,
@@ -95,6 +93,7 @@ function getDefaultProfile(): OperatorProfile {
 }
 
 export function addOperatorXp(xp: number, _reason: string): { newProfile: OperatorProfile; leveledUp: boolean } {
+  void _reason;
   const profile = getOperatorProfile();
   let currentXp = profile.currentXp + xp;
   let level = profile.level;

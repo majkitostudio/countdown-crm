@@ -8,9 +8,6 @@ import {
   ToggleRight,
   Trash2,
   Clock,
-  CheckCircle2,
-  XCircle,
-  SkipForward,
   Sparkles,
   Mail,
   RefreshCw,
@@ -40,6 +37,7 @@ import {
   saveWorkflowToSupabase,
   deleteWorkflowFromSupabase,
 } from "@/lib/supabase/workflowService";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 
 // ─── Icon Maps ──────────────────────────────────────────────────────────────
 
@@ -96,6 +94,7 @@ function StatusBadge({ status }: { status: ExecutionLogEntry["status"] }) {
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function WorkflowsPage() {
+  const { identity } = useOperatorIdentity();
   const [rules, setRules] = useState<WorkflowRule[]>([]);
   const [executionLog, setExecutionLog] = useState<ExecutionLogEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,10 +113,16 @@ export default function WorkflowsPage() {
   }, []);
 
   useEffect(() => {
-    void refreshState().catch(() => {
-      setRules([]);
-      setExecutionLog([]);
-    });
+    async function loadWorkflowState() {
+      try {
+        await refreshState();
+      } catch {
+        setRules([]);
+        setExecutionLog([]);
+      }
+    }
+
+    void loadWorkflowState();
   }, [refreshState]);
 
   // ── Handlers ───────────────────────────────────────────────────────────
@@ -157,7 +162,7 @@ export default function WorkflowsPage() {
       callId: "call-test-001",
       leadId: "lead-1",
       leadName: "Eleanor Vance",
-      agentName: "Alex Vance",
+      agentName: identity?.name || "Unknown operator",
       outcome: "order_placed",
       sentiment: "Positive",
       orderValue: 1250,

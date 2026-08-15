@@ -15,6 +15,7 @@ import {
 import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
 import { getLeadActivities, addLeadActivity } from "@/lib/domainActivity";
 import { isDemoModeActive } from "@/lib/demoMode";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 
 interface CustomerTimelineCardProps {
   leadId: string;
@@ -28,6 +29,7 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const { identity } = useOperatorIdentity();
   const canAddNotes = isDemoModeActive();
 
   useEffect(() => {
@@ -63,7 +65,7 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
       type: "note",
       title: "Operator Note",
       description: newNoteText.trim(),
-      actor: "Jan Dvořák",
+      actor: identity?.name || "Unknown operator",
     });
 
     if (!added) {

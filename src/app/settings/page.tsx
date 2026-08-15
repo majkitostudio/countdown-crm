@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Settings as SettingsIcon,
   User,
@@ -8,21 +8,19 @@ import {
   Volume2,
   Sparkles,
   Save,
-  CheckCircle2,
-  Bell,
   Cpu,
   Mic,
-  Shield,
   Play,
   Database,
   Plus,
-  Layers,
 } from "lucide-react";
 import { getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
 import { sounds } from "@/lib/audio";
 import { schemaEngine } from "@/lib/schema/engine";
 import { ObjectSchema } from "@/lib/schema/types";
 import { ObjectBuilderModal } from "@/components/schema/ObjectBuilderModal";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(getUserSettings());
@@ -30,10 +28,7 @@ export default function SettingsPage() {
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
   const [isObjectBuilderOpen, setIsObjectBuilderOpen] = useState(false);
   const [schemas, setSchemas] = useState<ObjectSchema[]>(schemaEngine.getAllSchemas());
-
-  useEffect(() => {
-    setSettings(getUserSettings());
-  }, []);
+  const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
 
   const refreshSchemas = () => {
     setSchemas(schemaEngine.getAllSchemas());
@@ -90,7 +85,7 @@ export default function SettingsPage() {
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <div>
             <p className="font-semibold text-zinc-100">Preferences saved successfully!</p>
-            <p className="text-[11px] text-zinc-400">Your operator profile and AI copilot settings have been persisted.</p>
+            <p className="text-[11px] text-zinc-400">Your operator preferences have been saved locally.</p>
           </div>
         </div>
       )}
@@ -150,7 +145,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">Operator Profile Information</h2>
-              <p className="text-[11px] text-zinc-400">Manage identity displayed in call logs and sales receipts</p>
+              <p className="text-[11px] text-zinc-400">Identity is sourced from the authenticated operator profile across CRM activity</p>
             </div>
           </div>
 
@@ -159,8 +154,9 @@ export default function SettingsPage() {
               <label className="text-zinc-400 font-medium block">Full Name</label>
               <input
                 type="text"
-                value={settings.operator_name}
-                onChange={(e) => setSettings({ ...settings, operator_name: e.target.value })}
+                value={identity?.name || (isOperatorLoading ? "Loading operator..." : "Unknown operator")}
+                readOnly
+                disabled
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-zinc-100 focus:outline-none focus:border-zinc-700"
               />
             </div>
@@ -169,8 +165,9 @@ export default function SettingsPage() {
               <label className="text-zinc-400 font-medium block">Email Address</label>
               <input
                 type="email"
-                value={settings.email}
-                onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+                value={identity?.email || (isOperatorLoading ? "Loading operator..." : "Unavailable")}
+                readOnly
+                disabled
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-zinc-100 focus:outline-none focus:border-zinc-700"
               />
             </div>
@@ -181,7 +178,7 @@ export default function SettingsPage() {
                 <input
                   type="text"
                   disabled
-                  value={settings.role}
+                  value={getOperatorRoleLabel(identity?.role || null)}
                   className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-500 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono"
                 />
                 <span className="px-3 py-2 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono rounded-lg flex items-center gap-1.5 shrink-0">

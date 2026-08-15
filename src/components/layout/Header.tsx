@@ -2,42 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Bell, ShieldCheck, Zap, Award, Layers } from "lucide-react";
-import { getOperatorProfile, OperatorProfile } from "@/lib/gamification";
+import { Search, Bell, ShieldCheck, Layers } from "lucide-react";
 import { blueprintEngine } from "@/lib/blueprints/engine";
 import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerModal";
 import { OperatorPresenceBadge } from "./OperatorPresenceBadge";
+import { useOperatorIdentity } from "./OperatorIdentityProvider";
+import { getOperatorInitials, getOperatorRoleLabel } from "@/lib/operatorIdentity";
 
 import { isDemoModeActive, setDemoMode } from "@/lib/demoMode";
 import { createClient } from "@/lib/supabase/client";
 
 export function Header() {
   const router = useRouter();
-  const [profile, setProfile] = useState<OperatorProfile | null>(null);
+  const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
   const [activeBlueprintName, setActiveBlueprintName] = useState(
     blueprintEngine.getActiveBlueprint().name
   );
-  const [demoActive, setDemoActive] = useState<boolean>(false);
+  const [demoActive, setDemoActive] = useState<boolean>(() => isDemoModeActive());
 
   useEffect(() => {
-    setProfile(getOperatorProfile());
-    setDemoActive(isDemoModeActive());
-
     const handleStorageChange = () => {
-      setProfile(getOperatorProfile());
       setDemoActive(isDemoModeActive());
     };
 
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener("countdown-demo-mode-changed", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("countdown-demo-mode-changed", handleStorageChange);
+    };
   }, []);
 
-  const rawOperatorName = profile?.name || "Jan Dvořák";
+  const rawOperatorName = identity?.name || (isOperatorLoading ? "Loading operator" : "Unknown operator");
   const nameParts = rawOperatorName.trim().split(" ");
-  const firstName = nameParts[0] || "Jan";
-  const lastName = nameParts.slice(1).join(" ") || "Dvořák";
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const firstName = nameParts[0] || "Unknown";
+  const lastName = nameParts.slice(1).join(" ");
+  const initials = getOperatorInitials(rawOperatorName);
 
   const handleSignOut = async () => {
     const { error } = await createClient().auth.signOut();
@@ -136,7 +137,7 @@ export function Header() {
             </span>
             <span className="text-[10px] text-zinc-400 flex items-center gap-1 whitespace-nowrap">
               <ShieldCheck className="w-3 h-3 text-zinc-400 shrink-0" />
-              Senior Agent
+              {getOperatorRoleLabel(identity?.role || null)}
             </span>
           </div>
         </button>

@@ -1,7 +1,4 @@
 export interface UserSettings {
-  operator_name: string;
-  email: string;
-  role: string;
   default_language: "cs-CZ" | "sk-SK" | "en-US";
   audio_effects_enabled: boolean;
   ringtone_volume: number;
@@ -9,9 +6,6 @@ export interface UserSettings {
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
-  operator_name: "Alex Vance",
-  email: "alex.vance@countdowncrm.com",
-  role: "Senior Sales Representative",
   default_language: "cs-CZ",
   audio_effects_enabled: true,
   ringtone_volume: 80,

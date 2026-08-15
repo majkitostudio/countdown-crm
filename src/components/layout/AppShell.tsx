@@ -3,6 +3,7 @@
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { CommandPalette } from "./CommandPalette";
+import { OperatorIdentityProvider } from "./OperatorIdentityProvider";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -10,7 +11,8 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
+    <OperatorIdentityProvider>
+      <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
       {/* Global Command K Palette */}
       <CommandPalette />
 
@@ -41,6 +43,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </footer>
       </div>
-    </div>
+      </div>
+    </OperatorIdentityProvider>
   );
 }

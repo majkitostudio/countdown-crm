@@ -32,7 +32,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
       type: "call",
       title: "Outbound Call Connected",
       description: "Customer expressed high interest in Bio-Boost stack. Price objection handled with 15% VIP bundle discount.",
-      operator_name: "Alex Vance",
+      operator_name: "Historical operator",
       timestamp: "2026-08-05T14:32:00Z",
       metadata: {
         call_duration_seconds: 145,
@@ -45,7 +45,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
       type: "order",
       title: "Order #ORD-8921 Placed",
       description: "Bio-Boost Anti-Aging Stack + Liposomal Vitamin C Bundle",
-      operator_name: "Alex Vance",
+      operator_name: "Historical operator",
       timestamp: "2026-08-05T14:35:10Z",
       metadata: {
         order_id: "ORD-8921",
@@ -58,7 +58,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
       type: "sms_paylink",
       title: "SMS Pay-Link Dispatched",
       description: "Pay-Link sent via SMS to +420 774 123 456 for instant checkout.",
-      operator_name: "Alex Vance",
+      operator_name: "Historical operator",
       timestamp: "2026-08-05T14:36:00Z",
       metadata: {
         paylink_url: "https://pay.countdowncrm.com/pl_8921",
@@ -70,7 +70,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
       type: "note",
       title: "AI Note: Follow-up Scheduled",
       description: "Customer prefers delivery on Fridays between 10:00 - 12:00.",
-      operator_name: "Jan Dvořák",
+      operator_name: "Historical operator",
       timestamp: "2026-08-04T09:15:00Z",
     },
     {
@@ -94,7 +94,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
       type: "call",
       title: "Initial Outreach Call",
       description: "No answer — Left voicemail regarding Collagen Glow Serum promo.",
-      operator_name: "Jan Dvořák",
+      operator_name: "Historical operator",
       timestamp: "2026-08-05T11:20:00Z",
       metadata: {
         call_duration_seconds: 35,
@@ -107,7 +107,7 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
       type: "note",
       title: "Custom Note Added",
       description: "Customer inquired about sensitive skin dermatological tests.",
-      operator_name: "Jan Dvořák",
+      operator_name: "Historical operator",
       timestamp: "2026-08-04T15:40:00Z",
     },
   ],
@@ -145,6 +145,27 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
 
     const calls = (callsRes.data || []) as CallRow[];
     const orders = (ordersRes.data || []) as unknown as OrderWithProduct[];
+    const agentIds = Array.from(
+      new Set(
+        [...calls, ...orders]
+          .map((entry) => entry.agent_id)
+          .filter((agentId): agentId is string => Boolean(agentId))
+      )
+    );
+    const { data: profiles, error: profilesError } = agentIds.length
+      ? await supabase.from("profiles").select("id, full_name").in("id", agentIds)
+      : { data: [], error: null };
+
+    if (profilesError) {
+      throw new Error("Timeline operator lookup failed");
+    }
+
+    const typedProfiles = profiles as Array<Pick<CallRow, "agent_id"> & { id: string; full_name: string }>;
+    const operatorNames = new Map(
+      typedProfiles.map((profile) => [profile.id, profile.full_name.trim() || "Unknown operator"])
+    );
+    const getOperatorName = (agentId: string | null) =>
+      (agentId && operatorNames.get(agentId)) || "Unknown operator";
 
     const dbEntries: TimelineActivityEntry[] = [];
 
@@ -155,7 +176,7 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
         type: "call",
         title: "Call Logged in Workspace",
         description: `Duration: ${Math.round((c.duration_seconds || 0) / 60)}m ${(c.duration_seconds || 0) % 60}s • Outcome: ${c.outcome} • Sentiment: ${c.ai_sentiment || "Neutral"}`,
-        operator_name: "Senior Agent",
+        operator_name: getOperatorName(c.agent_id),
         timestamp: c.created_at,
         metadata: {
           call_duration_seconds: c.duration_seconds || 0,
@@ -171,7 +192,7 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
         type: "order",
         title: `Order Completed ($${Number(o.total_amount || 0).toFixed(2)})`,
         description: o.products?.title || "Purchased Product Stack",
-        operator_name: "Senior Agent",
+        operator_name: getOperatorName(o.agent_id),
         timestamp: o.created_at,
         metadata: {
           order_value: Number(o.total_amount || 0),
