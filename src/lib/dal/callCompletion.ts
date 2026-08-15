@@ -23,6 +23,7 @@ export interface CompleteCallDTO {
   call_id: string;
   order_id: string | null;
   lead_status: Database["public"]["Tables"]["leads"]["Row"]["status"];
+  operator_name: string;
 }
 
 const outcomeMap: Record<CompletionOutcome, CallOutcome> = {
@@ -54,8 +55,19 @@ export async function completeCallForWorkspace(
     throw new DataAccessError("VALIDATION", "Order amount must be a non-negative number");
   }
 
-  await requireWorkspaceContext(workspaceId);
+  const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
+  const { data: operatorProfile, error: operatorProfileError } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", context.userId)
+    .maybeSingle();
+
+  if (operatorProfileError) {
+    throw new DataAccessError("DATABASE", "Operator profile lookup failed");
+  }
+
+  const operatorName = operatorProfile?.full_name?.trim() || "Unknown operator";
   const { data, error } = await supabase.rpc("complete_call_with_order", {
     p_lead_id: input.lead_id,
     p_duration_seconds: input.duration_seconds,
@@ -75,5 +87,5 @@ export async function completeCallForWorkspace(
     throw new DataAccessError("DATABASE", "Call completion returned an invalid result");
   }
 
-  return row;
+  return { ...row, operator_name: operatorName };
 }

@@ -56,6 +56,7 @@ function WorkspaceContent() {
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [isOrderFlowOpen, setIsOrderFlowOpen] = useState(false);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
+  const [callStartedAt, setCallStartedAt] = useState<string | null>(null);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -105,11 +106,15 @@ function WorkspaceContent() {
     setIsOrderFlowOpen(false);
     setOperatorStatus("ready");
     sounds.playCallEndSound();
+    const durationSeconds = callStartedAt
+      ? Math.max(0, Math.round((Date.parse(new Date().toISOString()) - Date.parse(callStartedAt)) / 1000))
+      : 0;
+    setCallStartedAt(null);
 
     try {
       const completion = await completeCallAction({
         lead_id: activeLead.id,
-        duration_seconds: 145,
+        duration_seconds: durationSeconds,
         outcome,
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
         order_product_id: orderProductId,
@@ -134,7 +139,7 @@ function WorkspaceContent() {
         callId: completion.call_id,
         leadId: activeLead.id,
         leadName: activeLead.full_name,
-        agentName: "Jan Dvořák",
+        agentName: completion.operator_name,
         outcome,
         sentiment: orderStatus === "created" ? "Positive" : "Neutral",
         orderValue,
@@ -151,7 +156,7 @@ function WorkspaceContent() {
       setPostCallSummary({
         leadName: activeLead.full_name,
         outcomeLabel,
-        durationSeconds: 145,
+        durationSeconds,
         orderStatus,
         transcriptStatus: "unavailable",
         orderId: completion.order_id || undefined,
@@ -181,6 +186,7 @@ function WorkspaceContent() {
       void completeCall("followup_scheduled", "Follow-up scheduled", "not_created");
     } else {
       // Start Outbound Call
+      setCallStartedAt(null);
       if (activeLead) {
         softphoneController.dial(activeLead.id, activeLead.phone, activeLead.full_name);
       }
@@ -197,6 +203,7 @@ function WorkspaceContent() {
         }
         setIsDialing(false);
         setIsCallActive(true);
+        setCallStartedAt(new Date().toISOString());
       }, 2500);
     }
   };
@@ -221,6 +228,7 @@ function WorkspaceContent() {
     setIsCallActive(true);
     setIsDialing(false);
     setOperatorStatus("in_call");
+    setCallStartedAt(new Date().toISOString());
   };
 
   const handleDeclineIncomingCall = () => {
