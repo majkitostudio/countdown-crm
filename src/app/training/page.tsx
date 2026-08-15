@@ -60,6 +60,8 @@ export default function TrainingPage() {
   const [callDurationSeconds, setCallDurationSeconds] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [orderCreatedToast, setOrderCreatedToast] = useState<boolean>(false);
+  const [aiSource, setAiSource] = useState<"openai-responses" | "rule-engine" | null>(null);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
 
   // Instant Call Agent Configurator states
   const [isDialing, setIsDialing] = useState<boolean>(false);
@@ -152,6 +154,8 @@ export default function TrainingPage() {
     setCallDurationSeconds(0);
     setIsMuted(false);
     setOrderCreatedToast(false);
+    setAiSource(null);
+    setAiNotice(null);
 
     const initialMsg: TrainingMessage = {
       id: "msg_init",
@@ -250,6 +254,8 @@ export default function TrainingPage() {
 
     try {
       const aiResponse = await generateTrainingResponseAction(selectedScenario, newHistory, userText);
+      setAiSource(aiResponse.aiSource);
+      setAiNotice(aiResponse.aiNotice || null);
 
       const newPatience = Math.max(0, Math.min(100, patience + (aiResponse.patienceDelta || 0)));
       setPatience(newPatience);
@@ -712,6 +718,16 @@ export default function TrainingPage() {
                   <span>1-Click Objednávka</span>
                 </button>
               </div>
+            </div>
+
+            <div className={cn(
+              "px-5 py-2 border-b text-[10px] font-mono",
+              aiSource === "openai-responses"
+                ? "bg-emerald-950/30 border-emerald-900/50 text-emerald-300"
+                : "bg-amber-950/30 border-amber-900/50 text-amber-300"
+            )}>
+              <span>{aiSource === "openai-responses" ? "OpenAI Responses" : aiSource === "rule-engine" ? "Local training engine" : "AI source pending"}</span>
+              {aiNotice && <span className="ml-2 text-amber-200">• {aiNotice}</span>}
             </div>
 
             {/* Teleprompter / Live Sales Script Reader Widget */}

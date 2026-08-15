@@ -1,6 +1,6 @@
 "use server";
 
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { TrainingScenario, TrainingMessage } from "@/lib/training";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
 
@@ -9,7 +9,8 @@ export interface RoleplayAIResponse {
   sentiment: "positive" | "neutral" | "negative";
   customerMood: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
   patienceDelta: number; // e.g. -25 to +20
-  aiSource: "gemini-flash" | "rule-engine";
+  aiSource: "openai-responses" | "rule-engine";
+  aiNotice?: string;
 }
 
 export async function generateTrainingResponseAction(
@@ -51,11 +52,12 @@ export async function generateTrainingResponseAction(
     throw new Error("Training history is invalid or too long");
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
+  let aiNotice: string | undefined;
 
-  if (apiKey && apiKey !== "YOUR_GEMINI_API_KEY") {
+  if (apiKey) {
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const client = new OpenAI({ apiKey });
       const historyFormatted = history
         .map((m) => `${m.sender === "user" ? "Operátor" : scenario.customerName}: ${m.text}`)
         .join("\n");
@@ -88,24 +90,50 @@ Vrať ODPOVĚĎ v tomto JSON formátu:
 Odpověz POUZE platným JSON objektem bez označení markdown kódu.
 `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+      const response = await client.responses.create({
+        model: process.env.OPENAI_TRAINING_MODEL || "gpt-5.4-mini",
+        input: prompt,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "training_customer_response",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                text: { type: "string" },
+                sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
+                customerMood: { type: "string", enum: ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] },
+                patienceDelta: { type: "number", minimum: -30, maximum: 20 },
+              },
+              required: ["text", "sentiment", "customerMood", "patienceDelta"],
+            },
+          },
+        },
       });
 
-      const rawText = response.text || "";
-      const cleanJson = rawText.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(cleanJson);
+      const parsed = JSON.parse(response.output_text);
+      const sentiments = ["positive", "neutral", "negative"] as const;
+      const moods = ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] as const;
+      const sentiment = sentiments.includes(parsed.sentiment) ? parsed.sentiment : "neutral";
+      const customerMood = moods.includes(parsed.customerMood) ? parsed.customerMood : "Skeptický";
+      const text = typeof parsed.text === "string" && parsed.text.trim() ? parsed.text.trim() : "Rozumím. Co přesně mi k tomu můžete ještě nabídnout?";
+      const patienceDelta = typeof parsed.patienceDelta === "number" ? Math.max(-30, Math.min(20, parsed.patienceDelta)) : 0;
 
       return {
-        text: parsed.text || "Rozumím. Co přesně mi k tomu můžete ještě nabídnout?",
-        sentiment: parsed.sentiment || "neutral",
-        customerMood: parsed.customerMood || "Skeptický",
-        patienceDelta: typeof parsed.patienceDelta === "number" ? parsed.patienceDelta : 0,
-        aiSource: "gemini-flash",
+        text,
+        sentiment,
+        customerMood,
+        patienceDelta,
+        aiSource: "openai-responses",
       };
     } catch (err) {
-      console.warn("Gemini training response failed, fallback to local engine:", err);
+      const errorStatus = typeof err === "object" && err !== null && "status" in err ? err.status : undefined;
+      aiNotice = errorStatus === 429
+        ? "OpenAI quota is unavailable. This turn used the local training engine."
+        : "OpenAI response was unavailable. This turn used the local training engine.";
+      console.warn("OpenAI training response failed, using the local training engine:", err);
     }
   }
 
@@ -197,5 +225,6 @@ Odpověz POUZE platným JSON objektem bez označení markdown kódu.
     customerMood,
     patienceDelta,
     aiSource: "rule-engine",
+    aiNotice,
   };
 }
