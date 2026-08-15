@@ -36,6 +36,8 @@ import { generateTrainingResponseAction } from "@/app/actions/training";
 import { speakText, stopSpeaking, getPersonaVoiceSettings } from "@/lib/speechSynthesis";
 import { Volume2, VolumeX, Radio } from "lucide-react";
 
+type TrainingCallState = "idle" | "listening" | "processing" | "ai-speaking";
+
 export default function TrainingPage() {
   const [selectedScenario, setSelectedScenario] = useState<TrainingScenario | null>(null);
   const [messages, setMessages] = useState<TrainingMessage[]>([]);
@@ -45,6 +47,8 @@ export default function TrainingPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [isVoiceModeEnabled, setIsVoiceModeEnabled] = useState(true);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [callState, setCallState] = useState<TrainingCallState>("idle");
+  const [liveTranscript, setLiveTranscript] = useState("");
   const [patience, setPatience] = useState<number>(75);
   const [customerMood, setCustomerMood] = useState<string>("Skeptický");
   const [isHungUp, setIsHungUp] = useState<boolean>(false);
@@ -57,6 +61,8 @@ export default function TrainingPage() {
   const [activeScriptPhase, setActiveScriptPhase] = useState<number>(1);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
+  const shouldSubmitRecognitionRef = useRef(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -94,13 +100,25 @@ export default function TrainingPage() {
   };
 
   const playAiAudio = (text: string, scenario: TrainingScenario) => {
-    if (!isVoiceModeEnabled) return;
+    if (!isVoiceModeEnabled) {
+      setCallState("listening");
+      return;
+    }
     const voiceSettings = getPersonaVoiceSettings(scenario.personalityType);
     speakText(text, {
       ...voiceSettings,
-      onStart: () => setIsAiSpeaking(true),
-      onEnd: () => setIsAiSpeaking(false),
-      onError: () => setIsAiSpeaking(false),
+      onStart: () => {
+        setIsAiSpeaking(true);
+        setCallState("ai-speaking");
+      },
+      onEnd: () => {
+        setIsAiSpeaking(false);
+        setCallState("listening");
+      },
+      onError: () => {
+        setIsAiSpeaking(false);
+        setCallState("listening");
+      },
     });
   };
 
@@ -112,6 +130,8 @@ export default function TrainingPage() {
     setCustomerMood(scenario.personalityType);
     setIsHungUp(false);
     setCallDurationSeconds(0);
+    setCallState("listening");
+    setLiveTranscript("");
     setAiSource(null);
     setAiNotice(null);
 
@@ -130,11 +150,13 @@ export default function TrainingPage() {
     playAiAudio(scenario.initialMessage, scenario);
   };
 
-  const handleSendMessage = async () => {
-    if (!inputText.trim() || !selectedScenario || isBotThinking || isHungUp) return;
+  const handleSendMessage = async (messageOverride?: string) => {
+    const userText = (messageOverride ?? inputText).trim();
+    if (!userText || !selectedScenario || isBotThinking || isHungUp) return;
 
-    const userText = inputText.trim();
     setInputText("");
+    setLiveTranscript("");
+    setCallState("processing");
 
     // Check compliance
     const violations = checkCompliance(userText, selectedScenario.category);
@@ -176,6 +198,7 @@ export default function TrainingPage() {
 
       if (newPatience <= 0) {
         setIsHungUp(true);
+        setCallState("idle");
         const hangUpMsg: TrainingMessage = {
           id: `hangup_${Date.now()}`,
           sender: "ai_customer",
@@ -195,6 +218,7 @@ export default function TrainingPage() {
       playAiAudio(aiResponse.text, selectedScenario);
     } catch (err) {
       console.error(err);
+      setCallState("listening");
     } finally {
       setIsBotThinking(false);
     }
@@ -223,7 +247,11 @@ export default function TrainingPage() {
 
   const handleToggleMic = () => {
     if (isRecording) {
+      shouldSubmitRecognitionRef.current = false;
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
       setIsRecording(false);
+      setCallState("listening");
       return;
     }
 
@@ -233,6 +261,11 @@ export default function TrainingPage() {
     }
 
     try {
+      if (isAiSpeaking) {
+        stopSpeaking();
+        setIsAiSpeaking(false);
+      }
+
       const SpeechRecognition =
         (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any })
           .SpeechRecognition ||
@@ -242,21 +275,43 @@ export default function TrainingPage() {
       const recognition = new SpeechRecognition();
       recognition.lang = "cs-CZ";
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true;
 
-      recognition.onstart = () => setIsRecording(true);
-      recognition.onend = () => setIsRecording(false);
+      let finalTranscript = "";
+      shouldSubmitRecognitionRef.current = true;
+      recognitionRef.current = recognition;
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setCallState("listening");
+      };
+      recognition.onend = () => {
+        setIsRecording(false);
+        recognitionRef.current = null;
+        const transcriptToSubmit = finalTranscript.trim();
+        setLiveTranscript("");
+        if (shouldSubmitRecognitionRef.current && transcriptToSubmit) {
+          void handleSendMessage(transcriptToSubmit);
+        } else {
+          setCallState("listening");
+        }
+        shouldSubmitRecognitionRef.current = false;
+      };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          setInputText(transcript);
-          // Auto-send after voice pause in Hands-Free mode
-          setTimeout(() => {
-            const sendBtn = document.getElementById("send-training-msg-btn");
-            if (sendBtn) sendBtn.click();
-          }, 300);
+        let interimTranscript = "";
+        finalTranscript = "";
+        for (let index = 0; index < event.results.length; index += 1) {
+          const transcript = event.results[index][0].transcript;
+          if (event.results[index].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
         }
+        const visibleTranscript = `${finalTranscript} ${interimTranscript}`.trim();
+        setLiveTranscript(visibleTranscript);
+        setInputText(finalTranscript);
       };
 
       recognition.start();
@@ -271,6 +326,12 @@ export default function TrainingPage() {
     const evaluation = evaluateTrainingSession(selectedScenario, messages);
     setScorecard(evaluation);
     setIsSimulating(false);
+    setCallState("idle");
+    shouldSubmitRecognitionRef.current = false;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    stopSpeaking();
+    setIsAiSpeaking(false);
 
   };
 
@@ -473,6 +534,17 @@ export default function TrainingPage() {
                   <Clock className="w-3.5 h-3.5 text-zinc-400" />
                   <span>{formatDuration(callDurationSeconds)}</span>
                 </span>
+                <span className="text-zinc-700">|</span>
+                <span className={cn(
+                  "flex items-center gap-1.5",
+                  callState === "ai-speaking" ? "text-emerald-300" : callState === "processing" ? "text-amber-300" : "text-zinc-300"
+                )}>
+                  <span className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    callState === "ai-speaking" ? "bg-emerald-400 animate-pulse" : callState === "processing" ? "bg-amber-400 animate-pulse" : "bg-zinc-500"
+                  )} />
+                  <span>{callState === "ai-speaking" ? "AI speaking" : callState === "processing" ? "Processing" : isRecording ? "Listening" : "Ready"}</span>
+                </span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -614,6 +686,15 @@ export default function TrainingPage() {
 
             {/* Input Controls & Speech Recognition */}
             <div className="p-4 border-t border-zinc-800/80 bg-zinc-950/80 space-y-3">
+              {liveTranscript && (
+                <div className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200">
+                  <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                    <span>Operator transcript</span>
+                  </div>
+                  <p>{liveTranscript}</p>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleToggleMic}
@@ -623,7 +704,7 @@ export default function TrainingPage() {
                       ? "bg-rose-950/80 text-rose-400 border-rose-800/80 animate-pulse"
                       : "bg-zinc-900 text-zinc-300 border-zinc-800 hover:text-zinc-100 hover:border-zinc-700"
                   )}
-                  title={isRecording ? "Zastavit hlasový přepis" : "Mluvit (Web Speech API)"}
+                  title={isRecording ? "Stop listening" : "Speak; the turn is sent after a pause"}
                 >
                   {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
@@ -635,14 +716,14 @@ export default function TrainingPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder={
                     isRecording
-                      ? "Mluvte... řeč se automaticky přepisuje..."
-                      : "Napište odpověď zákazníkovi nebo použijte mikrofon..."
+                    ? "Listening... your turn is sent after a pause"
+                      : "Type a reply or speak; voice turns are sent automatically"
                   }
                   className="flex-1 bg-zinc-900/90 border border-zinc-800 focus:border-zinc-700 focus:outline-none rounded-lg px-3.5 py-2 text-xs text-zinc-100 placeholder:text-zinc-400 transition-colors"
                 />
 
                 <button
-                  onClick={handleSendMessage}
+                  onClick={() => void handleSendMessage()}
                   disabled={!inputText.trim() || isBotThinking}
                   className="p-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 transition-all shrink-0 cursor-pointer"
                 >
