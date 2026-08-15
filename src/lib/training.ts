@@ -16,7 +16,6 @@ export interface TrainingScenario {
   targetProduct: string;
   initialMessage: string;
   goals: string[];
-  hiddenMotivations?: string[];
 }
 
 export interface TrainingMessage {
@@ -39,7 +38,6 @@ export interface TrainingScorecard {
   strengths: string[];
   improvements: string[];
   summaryFeedback: string;
-  xpEarned: number;
 }
 
 export const TRAINING_SCENARIOS: TrainingScenario[] = [
@@ -58,10 +56,6 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Překonat námitku ohledně předchozí špatné zkušenosti",
       "Uzavřít prodej zvýhodněného trojbalení",
     ],
-    hiddenMotivations: [
-      "Hledá dárek pro manželku k výročí, klouby bolí oba dva.",
-      "Koupí ihned trojbalení, pokud dostane písemnou záruku vrácení peněz do 30 dní."
-    ],
   },
   {
     id: "cosmetics-price",
@@ -77,10 +71,6 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Přepočítat cenu na denní náklady (pouze 21 Kč/den)",
       "Nabídnout dárek zdarma (hydrogelová maska)",
       "Získat objednávku",
-    ],
-    hiddenMotivations: [
-      "Sérum moc chce na nadcházející ples, ale potřebuje doručit do pátečního dopoledne.",
-      "Pokud dostane vzorek nového nočního krému zdarma, vezme i druhý kus pro dceru."
     ],
   },
   {
@@ -98,10 +88,6 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Vypíchnout LiDAR navigaci + český servis a 3letou záruku",
       "Udržet hovor pod 3 minuty a dokončit prodej",
     ],
-    hiddenMotivations: [
-      "Má doma 2 velké psy a předchozí vysavač bez LiDARu se pořád zamotával do psích chlupů.",
-      "Vezme i náhradní sady kartáčů (upsell), pokud je operátor věcný a neplýtvá jeho časem."
-    ],
   },
   {
     id: "cosmetics-distrustful",
@@ -117,10 +103,6 @@ export const TRAINING_SCENARIOS: TrainingScenario[] = [
       "Poskytnout ověřitelné informace o české výrovbě a certifikaci ISO/GMP",
       "Vysvětlit 30denní garanci vrácení peněz bez rizika",
       "Získat objednávku s dobírkou nebo platbou po doručení",
-    ],
-    hiddenMotivations: [
-      "V minulosti byla nalákána na falešný produkt a přišla o 3 000 Kč.",
-      "Pokud operátor nabídne platbu až při převzetí od kurýra (dobírku) s rozbalením balíčku, objedná ihned 2 balení pro sebe i sestru."
     ],
   },
 ];
@@ -249,8 +231,6 @@ export function evaluateTrainingSession(
   if (closingScore < 80) improvements.push("Zkus aktivněji navrhnout konkrétní kroky k dokončení objednávky");
   if (totalUserWords < 40) improvements.push("Odpovědi byly příliš stručné, neboj se více vysvětlit užitek produktu");
 
-  const xpEarned = Math.round(overallScore * 3.5);
-
   return {
     overallScore,
     grade,
@@ -261,6 +241,5 @@ export function evaluateTrainingSession(
     strengths,
     improvements,
     summaryFeedback: `Skvělá práce v simulovaném hovoru! Udržel jsi profesionální tón a dobře jsi reagoval na osobnostního typu "${scenario.personalityType}".`,
-    xpEarned,
   };
 }

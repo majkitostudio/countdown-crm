@@ -7,10 +7,8 @@ import {
   TrainingMessage,
   TrainingScorecard,
   CustomerPersonalityType,
-  generateAICustomerResponse,
   evaluateTrainingSession,
 } from "@/lib/training";
-import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
 import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
 import {
   GraduationCap,
@@ -26,14 +24,10 @@ import {
   Award,
   RotateCcw,
   ShieldAlert,
-  ArrowRight,
-  TrendingUp,
   Target,
-  Zap,
+  TrendingUp,
   Clock,
   PhoneCall,
-  PhoneOff,
-  ShoppingCart,
   Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -56,20 +50,11 @@ export default function TrainingPage() {
   const [isHungUp, setIsHungUp] = useState<boolean>(false);
   const [scorecard, setScorecard] = useState<TrainingScorecard | null>(null);
   const [activeViolations, setActiveViolations] = useState<ComplianceViolation[]>([]);
-  const [earnedXpToast, setEarnedXpToast] = useState<number | null>(null);
   const [callDurationSeconds, setCallDurationSeconds] = useState<number>(0);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [orderCreatedToast, setOrderCreatedToast] = useState<boolean>(false);
   const [aiSource, setAiSource] = useState<"gemini-flash" | "openai-responses" | "rule-engine" | null>(null);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
 
-  // Instant Call Agent Configurator states
-  const [isDialing, setIsDialing] = useState<boolean>(false);
-  const [customPersonality, setCustomPersonality] = useState<CustomerPersonalityType>("Skeptický");
-  const [customProduct, setCustomProduct] = useState<string>("Bio-Boost Anti-Aging Collagen Stack");
-  const [customDifficulty, setCustomDifficulty] = useState<"Snadná" | "Střední" | "Těžká">("Střední");
   const [activeScriptPhase, setActiveScriptPhase] = useState<number>(1);
-  const [isTeleprompterOpen, setIsTeleprompterOpen] = useState<boolean>(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -108,30 +93,6 @@ export default function TrainingPage() {
     return { wpm, status: "optimal", label: `${wpm} WPM (Optimální)` };
   };
 
-  const handleCreateInCallOrder = () => {
-    if (!selectedScenario || isHungUp) return;
-    setOrderCreatedToast(true);
-    setPatience(100);
-    setCustomerMood("Nadšený");
-
-    const orderMsg: TrainingMessage = {
-      id: `order_${Date.now()}`,
-      sender: "ai_customer",
-      text: `🎉 Objednávka na ${selectedScenario.targetProduct} byla úspěšně vyhotovena přímo během hovoru!`,
-      timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
-      sentiment: "positive",
-      customerMood: "Nadšený",
-      patienceGauge: 100,
-    };
-
-    setMessages((prev) => [...prev, orderMsg]);
-    playAiAudio("Perfektní, děkuji za vyřízení objednávky, velmi rád vás doporučím dál!", selectedScenario);
-
-    setTimeout(() => {
-      handleFinishTraining();
-    }, 2800);
-  };
-
   const playAiAudio = (text: string, scenario: TrainingScenario) => {
     if (!isVoiceModeEnabled) return;
     const voiceSettings = getPersonaVoiceSettings(scenario.personalityType);
@@ -147,13 +108,10 @@ export default function TrainingPage() {
     setSelectedScenario(scenario);
     setScorecard(null);
     setActiveViolations([]);
-    setEarnedXpToast(null);
     setPatience(75);
     setCustomerMood(scenario.personalityType);
     setIsHungUp(false);
     setCallDurationSeconds(0);
-    setIsMuted(false);
-    setOrderCreatedToast(false);
     setAiSource(null);
     setAiNotice(null);
 
@@ -170,63 +128,6 @@ export default function TrainingPage() {
     setMessages([initialMsg]);
     setIsSimulating(true);
     playAiAudio(scenario.initialMessage, scenario);
-  };
-
-  const handleLaunchCallAgent = (
-    personality: CustomerPersonalityType = customPersonality,
-    product: string = customProduct,
-    difficulty: "Snadná" | "Střední" | "Těžká" = customDifficulty
-  ) => {
-    setIsDialing(true);
-    const personaNames: Record<CustomerPersonalityType, string> = {
-      Skeptický: "Karel Svoboda",
-      "Cenově citlivý": "Petr Dvořák",
-      Netrpělivý: "Martin Kučera",
-      "Náročný / Cholerický": "Zdeněk Horák",
-      Nedůvěřivý: "Lenka Novotná",
-    };
-
-    const personaDescriptions: Record<CustomerPersonalityType, string> = {
-      Skeptický: "Nevěří tvrzením o účinnosti doplňků a požaduje vědecké důkazy.",
-      "Cenově citlivý": "Zpochybňuje cenu a porovnává ji s levnějšími alternativami.",
-      Netrpělivý: "Spěchá, vyžaduje stručné informace a nechce poslouchat dlouhé řeči.",
-      "Náročný / Cholerický": "Reaguje podrážděně na obecné fráze a vyžaduje okamžitá řešení.",
-      Nedůvěřivý: "Podezírá operátora z podvodu a vyžaduje oficiální certifikáty.",
-    };
-
-    const initialGreetings: Record<CustomerPersonalityType, string> = {
-      Skeptický: `Dobrý den, u telefonu ${personaNames[personality]}. Voláte ohledně ${product}? Upřímně, těmto produktům moc nevěřím, tak mě přesvědčte.`,
-      "Cenově citlivý": `Dobrý den, u telefonu ${personaNames[personality]}. Slyšel jsem o ${product}, ale prý je to strašně drahé. Co mi k tomu řeknete?`,
-      Netrpělivý: `Dobrý den, ${personaNames[personality]}. Nemám moc času, o co přesně u toho ${product} jde? Buďte struční!`,
-      "Náročný / Cholerický": `Dobrý den, ${personaNames[personality]}. Doufám, že mi nebudete nabízet nějaké předražené hlouposti kolem ${product}!`,
-      Nedůvěřivý: `Ano, poslouchám. Kdo přesně volá a odkud máte moje číslo? Doufám, že ${product} není nějaký podvod z internetu.`,
-    };
-
-    const customScenario: TrainingScenario = {
-      id: `custom_${Date.now()}`,
-      title: `Živá Simulace: ${personality} Zákazník`,
-      difficulty,
-      personalityType: personality,
-      customerName: personaNames[personality],
-      customerPersona: personaDescriptions[personality],
-      targetProduct: product,
-      goals: [
-        `Správně odprezentovat hlavní užitek ${product}`,
-        `Úspěšně překonat námitku typu ${personality}`,
-        "Uzavřít prodej s garancí spokojenosti",
-      ],
-      initialMessage: initialGreetings[personality],
-      hiddenMotivations: [
-        `Hledá ověřené řešení pro ${product}`,
-        "Při 30denní garanci vrácení je ochoten nakoupit ihned",
-      ],
-    };
-
-    setTimeout(() => {
-      setIsDialing(false);
-      handleStartScenario(customScenario);
-      setActiveScriptPhase(1);
-    }, 1600);
   };
 
   const handleSendMessage = async () => {
@@ -371,13 +272,6 @@ export default function TrainingPage() {
     setScorecard(evaluation);
     setIsSimulating(false);
 
-    // Award XP
-    addOperatorXp(evaluation.xpEarned, `Training completion: ${selectedScenario.title}`);
-    setEarnedXpToast(evaluation.xpEarned);
-
-    if (evaluation.grade === "A+" || evaluation.grade === "A") {
-      unlockAchievement("training_champion");
-    }
   };
 
   return (
@@ -401,124 +295,11 @@ export default function TrainingPage() {
           </div>
         </div>
 
-        {earnedXpToast && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 text-xs font-medium animate-bounce">
-            <Zap className="w-4 h-4 fill-emerald-400" />
-            <span>+{earnedXpToast} XP Získáváte!</span>
-          </div>
-        )}
       </div>
 
-      {/* Dialing Tone Overlay */}
-      {isDialing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="text-center space-y-4 p-8 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-2xl max-w-sm w-full">
-            <div className="w-16 h-16 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center mx-auto text-emerald-400">
-              <PhoneCall className="w-8 h-8 animate-bounce" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-zinc-100 font-mono">Vytočení čísla...</h3>
-              <p className="text-xs text-zinc-400">Spojování s klientem ({customPersonality})</p>
-            </div>
-            <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Vytváření šifrovaného hlasového kanálu...</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {!selectedScenario || (!isSimulating && !scorecard) ? (
-        /* Scenario Selection & Call Agent Launcher */
+        /* Scenario Selection */
         <div className="space-y-8">
-          {/* Anytime Accessible Call Agent Configurator */}
-          <div className="p-6 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md space-y-5 shadow-md">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <div>
-                <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-                  <PhoneCall className="w-4 h-4 text-emerald-400" />
-                  Živý Call Agent — Konfigurátor Hlasového Hovoru
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Kdykoliv si zvolte typ zákazníka a produkt, klikněte na "CALL AGENT" a jedete ihned naživo přes mikrofon.
-                </p>
-              </div>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono">
-                Hands-Free Live Voice
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              {/* Customer Personality Select */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                  Typ Zákazníka (Osobnost)
-                </label>
-                <select
-                  value={customPersonality}
-                  onChange={(e) => setCustomPersonality(e.target.value as CustomerPersonalityType)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 font-medium"
-                >
-                  <option value="Skeptický">Skeptický (Vyžaduje vědecké důkazy)</option>
-                  <option value="Cenově citlivý">Cenově citlivý (Porovnává levnější alternativy)</option>
-                  <option value="Netrpělivý">Netrpělivý (Spěchá, vyžaduje stručnost)</option>
-                  <option value="Náročný / Cholerický">Náročný / Cholerický (Reaguje podrážděně)</option>
-                  <option value="Nedůvěřivý">Nedůvěřivý (Podezírá z podvodu / vyžaduje záruky)</option>
-                </select>
-              </div>
-
-              {/* Target Product Select */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                  Produkt Prodejního Hovoru
-                </label>
-                <select
-                  value={customProduct}
-                  onChange={(e) => setCustomProduct(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 font-medium"
-                >
-                  <option value="Bio-Boost Anti-Aging Collagen Stack">Bio-Boost Anti-Aging Collagen Stack ($129)</option>
-                  <option value="Liposomal Vitamin C Supercharge">Liposomal Vitamin C Supercharge ($49)</option>
-                  <option value="Collagen Glow Facial Serum">Collagen Glow Facial Serum ($89)</option>
-                  <option value="RoboClean Pro LiDAR V8">RoboClean Pro LiDAR V8 Vacuum ($499)</option>
-                  <option value="Hyaluronic Acid Moisture Booster">Hyaluronic Acid Moisture Booster ($65)</option>
-                </select>
-              </div>
-
-              {/* Difficulty Select */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
-                  Obtížnost Rozhovoru
-                </label>
-                <select
-                  value={customDifficulty}
-                  onChange={(e) => setCustomDifficulty(e.target.value as any)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 font-medium"
-                >
-                  <option value="Snadná">Snadná (Vstřícnější reakce)</option>
-                  <option value="Střední">Střední (Standardní námitky)</option>
-                  <option value="Těžká">Těžká (Příkré námitky & nízká trpělivost)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center justify-between border-t border-zinc-800">
-              <div className="text-[11px] text-zinc-400 font-mono flex items-center gap-2">
-                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>Připraveno k okamžitému spojení s Gemini AI Zákazníkem</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleLaunchCallAgent()}
-                className="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs transition-all shadow-lg hover:shadow-emerald-500/20 cursor-pointer flex items-center gap-2"
-              >
-                <PhoneCall className="w-4 h-4 fill-current animate-pulse" />
-                <span>📞 CALL AGENT — SPOJIT SE NAŽIVO</span>
-              </button>
-            </div>
-          </div>
-
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
               <Target className="w-4 h-4 text-zinc-400" />
@@ -680,12 +461,12 @@ export default function TrainingPage() {
               </div>
             </div>
 
-            {/* Live Phone Line Status Sub-Bar */}
+            {/* Training Session Status Sub-Bar */}
             <div className="px-5 py-2 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center justify-between text-xs font-mono">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-emerald-400">
                   <PhoneCall className="w-3.5 h-3.5 animate-pulse" />
-                  <span>Linka 01 • Aktivní Hovor</span>
+                  <span>Training session • Session-only</span>
                 </span>
                 <span className="text-zinc-700">|</span>
                 <span className="flex items-center gap-1.5 text-zinc-300">
@@ -708,15 +489,6 @@ export default function TrainingPage() {
                   <span>{calculateWpm().label}</span>
                 </span>
 
-                {/* 1-Click In-Call Order Creation */}
-                <button
-                  type="button"
-                  onClick={handleCreateInCallOrder}
-                  className="px-2.5 py-1 rounded-md bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/80 text-[11px] font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <ShoppingCart className="w-3 h-3 text-emerald-400" />
-                  <span>1-Click Objednávka</span>
-                </button>
               </div>
             </div>
 
@@ -906,34 +678,6 @@ export default function TrainingPage() {
               </div>
             </div>
 
-            {/* Hidden Motivations Panel */}
-            <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-3">
-              <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-zinc-400" />
-                  Skryté Nákupní Motivace
-                </span>
-                <span className="text-[10px] font-mono text-zinc-500">
-                  {patience >= 60 ? "🔓 ODHALENO" : "🔒 ZAMČENO (<60% Trpělivost)"}
-                </span>
-              </h3>
-
-              {patience >= 60 ? (
-                <div className="space-y-2">
-                  {selectedScenario.hiddenMotivations?.map((m, idx) => (
-                    <div key={idx} className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/50 text-[11px] text-emerald-300 flex items-start gap-2 animate-in fade-in duration-300">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>{m}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] text-zinc-500 italic">
-                  Získejte si důvěru a zvýšte trpělivost zákazníka nad 60 %, aby odhalil své skryté nákupní motivace.
-                </div>
-              )}
-            </div>
-
             {/* Live Compliance Checker Alerts */}
             <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-3">
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
@@ -979,7 +723,7 @@ export default function TrainingPage() {
             <p className="text-xs text-zinc-400">Scénář: {selectedScenario.title}</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
               <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.grade}</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Známka</span>
@@ -995,10 +739,6 @@ export default function TrainingPage() {
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Compliance</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
-              <span className="text-2xl font-bold font-mono text-zinc-100">+{scorecard.xpEarned}</span>
-              <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">XP Získané</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
