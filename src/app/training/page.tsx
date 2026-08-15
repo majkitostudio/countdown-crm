@@ -63,6 +63,10 @@ export default function TrainingPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<{ stop: () => void } | null>(null);
   const shouldSubmitRecognitionRef = useRef(false);
+  const sessionActiveRef = useRef(false);
+  const handsFreeVoiceRef = useRef(false);
+  const startListeningRef = useRef<() => void>(() => undefined);
+  const speechGenerationRef = useRef(0);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -100,6 +104,7 @@ export default function TrainingPage() {
   };
 
   const playAiAudio = (text: string, scenario: TrainingScenario) => {
+    const speechGeneration = ++speechGenerationRef.current;
     if (!isVoiceModeEnabled) {
       setCallState("listening");
       return;
@@ -108,16 +113,27 @@ export default function TrainingPage() {
     speakText(text, {
       ...voiceSettings,
       onStart: () => {
+        if (speechGeneration !== speechGenerationRef.current) return;
         setIsAiSpeaking(true);
         setCallState("ai-speaking");
       },
       onEnd: () => {
+        if (speechGeneration !== speechGenerationRef.current) return;
         setIsAiSpeaking(false);
-        setCallState("listening");
+        if (sessionActiveRef.current && handsFreeVoiceRef.current) {
+          startListeningRef.current();
+        } else {
+          setCallState("listening");
+        }
       },
       onError: () => {
+        if (speechGeneration !== speechGenerationRef.current) return;
         setIsAiSpeaking(false);
-        setCallState("listening");
+        if (sessionActiveRef.current && handsFreeVoiceRef.current) {
+          startListeningRef.current();
+        } else {
+          setCallState("listening");
+        }
       },
     });
   };
@@ -129,6 +145,8 @@ export default function TrainingPage() {
     setPatience(75);
     setCustomerMood(scenario.personalityType);
     setIsHungUp(false);
+    sessionActiveRef.current = true;
+    handsFreeVoiceRef.current = false;
     setCallDurationSeconds(0);
     setCallState("listening");
     setLiveTranscript("");
@@ -245,16 +263,7 @@ export default function TrainingPage() {
     }
   };
 
-  const handleToggleMic = () => {
-    if (isRecording) {
-      shouldSubmitRecognitionRef.current = false;
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-      setIsRecording(false);
-      setCallState("listening");
-      return;
-    }
-
+  const startRecognition = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
       alert("Váš prohlížeč nepodporuje hlasové rozpoznávání Web Speech API.");
       return;
@@ -262,6 +271,7 @@ export default function TrainingPage() {
 
     try {
       if (isAiSpeaking) {
+        speechGenerationRef.current += 1;
         stopSpeaking();
         setIsAiSpeaking(false);
       }
@@ -316,8 +326,27 @@ export default function TrainingPage() {
 
       recognition.start();
     } catch {
+      recognitionRef.current = null;
       setIsRecording(false);
+      setCallState("listening");
     }
+  };
+
+  startListeningRef.current = startRecognition;
+
+  const handleToggleMic = () => {
+    if (isRecording) {
+      handsFreeVoiceRef.current = false;
+      shouldSubmitRecognitionRef.current = false;
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+      setIsRecording(false);
+      setCallState("listening");
+      return;
+    }
+
+    handsFreeVoiceRef.current = true;
+    startRecognition();
   };
 
   const handleFinishTraining = () => {
@@ -326,6 +355,9 @@ export default function TrainingPage() {
     const evaluation = evaluateTrainingSession(selectedScenario, messages);
     setScorecard(evaluation);
     setIsSimulating(false);
+    sessionActiveRef.current = false;
+    handsFreeVoiceRef.current = false;
+    speechGenerationRef.current += 1;
     setCallState("idle");
     shouldSubmitRecognitionRef.current = false;
     recognitionRef.current?.stop();
