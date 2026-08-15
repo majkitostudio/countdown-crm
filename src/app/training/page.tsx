@@ -60,7 +60,7 @@ export default function TrainingPage() {
   const [callDurationSeconds, setCallDurationSeconds] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [orderCreatedToast, setOrderCreatedToast] = useState<boolean>(false);
-  const [aiSource, setAiSource] = useState<"openai-responses" | "rule-engine" | null>(null);
+  const [aiSource, setAiSource] = useState<"gemini-flash" | "openai-responses" | "rule-engine" | null>(null);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
 
   // Instant Call Agent Configurator states
@@ -722,11 +722,11 @@ export default function TrainingPage() {
 
             <div className={cn(
               "px-5 py-2 border-b text-[10px] font-mono",
-              aiSource === "openai-responses"
+              aiSource === "gemini-flash" || aiSource === "openai-responses"
                 ? "bg-emerald-950/30 border-emerald-900/50 text-emerald-300"
                 : "bg-amber-950/30 border-amber-900/50 text-amber-300"
             )}>
-              <span>{aiSource === "openai-responses" ? "OpenAI Responses" : aiSource === "rule-engine" ? "Local training engine" : "AI source pending"}</span>
+              <span>{aiSource === "gemini-flash" ? "Gemini Flash" : aiSource === "openai-responses" ? "OpenAI Responses" : aiSource === "rule-engine" ? "Local training engine" : "AI source pending"}</span>
               {aiNotice && <span className="ml-2 text-amber-200">• {aiNotice}</span>}
             </div>
 

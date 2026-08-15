@@ -1,5 +1,6 @@
 "use server";
 
+import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
 import { TrainingScenario, TrainingMessage } from "@/lib/training";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
@@ -9,8 +10,32 @@ export interface RoleplayAIResponse {
   sentiment: "positive" | "neutral" | "negative";
   customerMood: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
   patienceDelta: number; // e.g. -25 to +20
-  aiSource: "openai-responses" | "rule-engine";
+  aiSource: "gemini-flash" | "openai-responses" | "rule-engine";
   aiNotice?: string;
+}
+
+type ParsedTrainingResponse = {
+  text?: unknown;
+  sentiment?: unknown;
+  customerMood?: unknown;
+  patienceDelta?: unknown;
+};
+
+function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "gemini-flash" | "openai-responses"): RoleplayAIResponse {
+  const sentiments = ["positive", "neutral", "negative"] as const;
+  const moods = ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] as const;
+  const sentiment = sentiments.includes(parsed.sentiment as (typeof sentiments)[number]) ? parsed.sentiment as (typeof sentiments)[number] : "neutral";
+  const customerMood = moods.includes(parsed.customerMood as (typeof moods)[number]) ? parsed.customerMood as (typeof moods)[number] : "Skeptický";
+  const text = typeof parsed.text === "string" && parsed.text.trim() ? parsed.text.trim() : "Rozumím. Co přesně mi k tomu můžete ještě nabídnout?";
+  const patienceDelta = typeof parsed.patienceDelta === "number" ? Math.max(-30, Math.min(20, parsed.patienceDelta)) : 0;
+
+  return { text, sentiment, customerMood, patienceDelta, aiSource };
+}
+
+function getProviderErrorNotice(provider: "gemini" | "openai", error: unknown): string {
+  const errorStatus = typeof error === "object" && error !== null && "status" in error ? error.status : undefined;
+  if (errorStatus === 429) return `${provider === "gemini" ? "Gemini" : "OpenAI"} quota is unavailable. This turn used the local training engine.`;
+  return `${provider === "gemini" ? "Gemini" : "OpenAI"} response was unavailable. This turn used the local training engine.`;
 }
 
 export async function generateTrainingResponseAction(
@@ -52,17 +77,11 @@ export async function generateTrainingResponseAction(
     throw new Error("Training history is invalid or too long");
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  let aiNotice: string | undefined;
-
-  if (apiKey) {
-    try {
-      const client = new OpenAI({ apiKey });
-      const historyFormatted = history
-        .map((m) => `${m.sender === "user" ? "Operátor" : scenario.customerName}: ${m.text}`)
-        .join("\n");
-
-      const prompt = `
+  const provider = process.env.TRAINING_AI_PROVIDER === "openai" ? "openai" : "gemini";
+  const historyFormatted = history
+    .map((m) => `${m.sender === "user" ? "Operátor" : scenario.customerName}: ${m.text}`)
+    .join("\n");
+  const prompt = `
 Jsi český zákazník v simulovaném prodejním hovoru s operátorem call centra.
 Tvoje jméno a profil: ${scenario.customerName} (${scenario.customerPersona})
 Tvoje osobnost: ${scenario.personalityType}
@@ -89,51 +108,51 @@ Vrať ODPOVĚĎ v tomto JSON formátu:
 
 Odpověz POUZE platným JSON objektem bez označení markdown kódu.
 `;
+  const providerOrder = provider === "gemini" ? ["gemini", "openai"] as const : ["openai", "gemini"] as const;
+  let aiNotice: string | undefined;
 
-      const response = await client.responses.create({
-        model: process.env.OPENAI_TRAINING_MODEL || "gpt-5.4-mini",
-        input: prompt,
-        text: {
-          format: {
-            type: "json_schema",
-            name: "training_customer_response",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                text: { type: "string" },
-                sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
-                customerMood: { type: "string", enum: ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] },
-                patienceDelta: { type: "number", minimum: -30, maximum: 20 },
+  for (const currentProvider of providerOrder) {
+    try {
+      if (currentProvider === "gemini" && process.env.GEMINI_API_KEY) {
+        const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const response = await client.interactions.create({
+          model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash",
+          input: prompt,
+          store: false,
+        });
+        const cleanJson = (response.output_text || "").replace(/```json|```/g, "").trim();
+        return normalizeTrainingResponse(JSON.parse(cleanJson) as ParsedTrainingResponse, "gemini-flash");
+      }
+
+      if (currentProvider === "openai" && process.env.OPENAI_API_KEY) {
+        const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await client.responses.create({
+          model: process.env.OPENAI_TRAINING_MODEL || "gpt-5.4-mini",
+          input: prompt,
+          text: {
+            format: {
+              type: "json_schema",
+              name: "training_customer_response",
+              strict: true,
+              schema: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  text: { type: "string" },
+                  sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
+                  customerMood: { type: "string", enum: ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] },
+                  patienceDelta: { type: "number", minimum: -30, maximum: 20 },
+                },
+                required: ["text", "sentiment", "customerMood", "patienceDelta"],
               },
-              required: ["text", "sentiment", "customerMood", "patienceDelta"],
             },
           },
-        },
-      });
-
-      const parsed = JSON.parse(response.output_text);
-      const sentiments = ["positive", "neutral", "negative"] as const;
-      const moods = ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] as const;
-      const sentiment = sentiments.includes(parsed.sentiment) ? parsed.sentiment : "neutral";
-      const customerMood = moods.includes(parsed.customerMood) ? parsed.customerMood : "Skeptický";
-      const text = typeof parsed.text === "string" && parsed.text.trim() ? parsed.text.trim() : "Rozumím. Co přesně mi k tomu můžete ještě nabídnout?";
-      const patienceDelta = typeof parsed.patienceDelta === "number" ? Math.max(-30, Math.min(20, parsed.patienceDelta)) : 0;
-
-      return {
-        text,
-        sentiment,
-        customerMood,
-        patienceDelta,
-        aiSource: "openai-responses",
-      };
-    } catch (err) {
-      const errorStatus = typeof err === "object" && err !== null && "status" in err ? err.status : undefined;
-      aiNotice = errorStatus === 429
-        ? "OpenAI quota is unavailable. This turn used the local training engine."
-        : "OpenAI response was unavailable. This turn used the local training engine.";
-      console.warn("OpenAI training response failed, using the local training engine:", err);
+        });
+        return normalizeTrainingResponse(JSON.parse(response.output_text) as ParsedTrainingResponse, "openai-responses");
+      }
+    } catch (error) {
+      aiNotice = getProviderErrorNotice(currentProvider, error);
+      console.warn(`${currentProvider} training response failed; trying the next provider or local engine:`, error);
     }
   }
 
