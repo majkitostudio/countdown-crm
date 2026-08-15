@@ -39,6 +39,76 @@ import { Volume2, VolumeX, Radio } from "lucide-react";
 
 type TrainingCallState = "idle" | "listening" | "processing" | "ai-speaking";
 
+const scenarioUiCopy: Record<string, { title: string; persona: string; goals: string[] }> = {
+  "supplements-skeptic": {
+    title: "Skeptical supplement customer",
+    persona: "Had a bad experience with low-cost joint products and does not trust that this collagen will work.",
+    goals: [
+      "Explain the difference between hydrolyzed type I and type II collagen",
+      "Address the objection based on the customer's previous experience",
+      "Close the sale of the discounted three-pack",
+    ],
+  },
+  "cosmetics-price": {
+    title: "Price-sensitive skincare customer",
+    persona: "Interested in skincare, but considers 1,890 CZK for the serum too expensive.",
+    goals: [
+      "Translate the price into a daily cost of 21 CZK",
+      "Offer the complimentary hydrogel mask",
+      "Secure the order",
+    ],
+  },
+  "electronics-angry": {
+    title: "Impatient robot vacuum customer",
+    persona: "Wants short answers, dislikes filler and compares the product with cheaper Chinese alternatives.",
+    goals: [
+      "Keep a calm and professional tone",
+      "Highlight LiDAR navigation, Czech service and the three-year warranty",
+      "Keep the call under three minutes and close the sale",
+    ],
+  },
+  "cosmetics-distrustful": {
+    title: "Distrustful supplements and cosmetics customer",
+    persona: "Worries about fraudulent e-shops and unverified ingredients, and asks for origin guarantees and certificates.",
+    goals: [
+      "Provide verifiable information about Czech production and ISO/GMP certification",
+      "Explain the 30-day money-back guarantee without risk",
+      "Secure an order with cash on delivery or payment on receipt",
+    ],
+  },
+};
+
+const difficultyLabels: Record<TrainingScenario["difficulty"], string> = {
+  "Snadná": "Easy",
+  "Střední": "Medium",
+  "Těžká": "Hard",
+};
+
+const personalityLabels: Record<CustomerPersonalityType, string> = {
+  "Skeptický": "Skeptical",
+  "Cenově citlivý": "Price-sensitive",
+  "Netrpělivý": "Impatient",
+  "Náročný / Cholerický": "Demanding / hot-tempered",
+  "Nedůvěřivý": "Distrustful",
+};
+
+const moodLabels: Record<string, string> = {
+  "Klidný": "Calm",
+  "Skeptický": "Skeptical",
+  "Podrážděný": "Irritated",
+  "Nadšený": "Enthusiastic",
+  "Naštvaný": "Angry",
+  "Nedůvěřivý": "Distrustful",
+};
+
+function getScenarioUiCopy(scenario: TrainingScenario) {
+  return scenarioUiCopy[scenario.id] || {
+    title: scenario.title,
+    persona: scenario.customerPersona,
+    goals: scenario.goals,
+  };
+}
+
 export default function TrainingPage() {
   const [selectedScenario, setSelectedScenario] = useState<TrainingScenario | null>(null);
   const [messages, setMessages] = useState<TrainingMessage[]>([]);
@@ -95,15 +165,15 @@ export default function TrainingPage() {
     const userMessages = messages.filter((m) => m.sender === "user");
     const totalWords = userMessages.reduce((acc, m) => acc + m.text.split(/\s+/).filter(Boolean).length, 0);
     if (callDurationSeconds === 0 || totalWords === 0) {
-      return { wpm: 140, status: "optimal", label: "140 WPM (Optimální)" };
+      return { wpm: 140, status: "optimal", label: "140 WPM (Optimal)" };
     }
     const wpm = Math.round((totalWords / callDurationSeconds) * 60);
     if (wpm < 115) {
-      return { wpm, status: "slow", label: `${wpm} WPM (Pomalé)` };
+      return { wpm, status: "slow", label: `${wpm} WPM (Slow)` };
     } else if (wpm > 165) {
-      return { wpm, status: "fast", label: `${wpm} WPM (Rychlé!)` };
+      return { wpm, status: "fast", label: `${wpm} WPM (Fast!)` };
     }
-    return { wpm, status: "optimal", label: `${wpm} WPM (Optimální)` };
+    return { wpm, status: "optimal", label: `${wpm} WPM (Optimal)` };
   };
 
   const playAiAudio = (text: string, scenario: TrainingScenario) => {
@@ -235,7 +305,7 @@ export default function TrainingPage() {
         const hangUpMsg: TrainingMessage = {
           id: `hangup_${Date.now()}`,
           sender: "ai_customer",
-          text: "❌ Zákazník ztratil trpělivost a ukončil hovor (Hang Up)!",
+          text: "❌ The customer ran out of patience and ended the call (hang-up).",
           timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
           occurredAt: new Date().toISOString(),
           source: "ai_customer",
@@ -283,7 +353,7 @@ export default function TrainingPage() {
 
   const startRecognition = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      alert("Váš prohlížeč nepodporuje hlasové rozpoznávání Web Speech API.");
+      alert("Your browser does not support Web Speech API voice recognition.");
       return;
     }
 
@@ -412,7 +482,7 @@ export default function TrainingPage() {
               </span>
             </h1>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Trénuj simulované hovory s AI boti reprezentujícími různé zákaznické typy bez rizika ztráty obchodu.
+              Practice simulated calls with AI customer personas without risking a real customer or order.
             </p>
           </div>
         </div>
@@ -425,9 +495,9 @@ export default function TrainingPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
               <Target className="w-4 h-4 text-zinc-400" />
-              Nebo Vyberte Přednastavený Scénář
+              Choose a preset scenario
             </h2>
-            <span className="text-xs text-zinc-500 font-mono">Dostupné scenáře: {TRAINING_SCENARIOS.length}</span>
+            <span className="text-xs text-zinc-500 font-mono">{TRAINING_SCENARIOS.length} scenarios available</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -447,27 +517,27 @@ export default function TrainingPage() {
                           ? "bg-amber-500"
                           : "bg-rose-500"
                       )} />
-                      {scenario.difficulty}
+                      {difficultyLabels[scenario.difficulty]}
                     </span>
                     <span className="text-[11px] text-zinc-400 font-mono">
-                      {scenario.personalityType}
+                      {personalityLabels[scenario.personalityType]}
                     </span>
                   </div>
 
                   <h3 className="text-sm font-semibold text-zinc-100 group-hover:text-zinc-200 transition-colors">
-                    {scenario.title}
+                    {getScenarioUiCopy(scenario).title}
                   </h3>
 
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    <strong className="text-zinc-300">Zákazník:</strong> {scenario.customerName}
+                    <strong className="text-zinc-300">Customer:</strong> {scenario.customerName}
                     <br />
-                    <span className="italic text-zinc-400">"{scenario.customerPersona}"</span>
+                    <span className="italic text-zinc-400">"{getScenarioUiCopy(scenario).persona}"</span>
                   </p>
 
                   <div className="pt-2 border-t border-zinc-800/80 space-y-1">
-                    <span className="text-[11px] font-medium text-zinc-400">Cíle hovoru:</span>
+                    <span className="text-[11px] font-medium text-zinc-400">Call objectives:</span>
                     <ul className="text-[11px] text-zinc-400 space-y-1">
-                      {scenario.goals.map((goal, idx) => (
+                      {getScenarioUiCopy(scenario).goals.map((goal, idx) => (
                         <li key={idx} className="flex items-center gap-1.5">
                           <CheckCircle2 className="w-3 h-3 text-zinc-400 shrink-0" />
                           <span>{goal}</span>
@@ -482,7 +552,7 @@ export default function TrainingPage() {
                   className="mt-5 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  Spustit Trénink
+                  Start training
                 </button>
               </div>
             ))}
@@ -509,7 +579,7 @@ export default function TrainingPage() {
                         <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-2" />
                         <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-3 delay-75" />
                         <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-1 delay-150" />
-                        <span className="text-[10px] text-emerald-400 font-mono font-medium ml-1">AI mluví</span>
+                        <span className="text-[10px] text-emerald-400 font-mono font-medium ml-1">AI speaking</span>
                       </div>
                     )}
 
@@ -530,13 +600,13 @@ export default function TrainingPage() {
                           ? "bg-amber-400"
                           : "bg-rose-400"
                       )} />
-                      {customerMood}
+                      {moodLabels[customerMood] || customerMood}
                     </span>
                   </div>
 
                   {/* Patience Gauge Progress Bar */}
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-zinc-400">Trpělivost:</span>
+                    <span className="text-[10px] font-mono text-zinc-400">Patience:</span>
                     <div className="w-24 h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
                       <div
                         className={cn(
@@ -564,10 +634,10 @@ export default function TrainingPage() {
                       ? "bg-zinc-900 text-zinc-200 border-zinc-800 hover:border-zinc-700"
                       : "bg-zinc-950 text-zinc-500 border-zinc-900 hover:text-zinc-300"
                   )}
-                  title={isVoiceModeEnabled ? "Vypnout hlasový výstup AI" : "Zapnout hlasový výstup AI"}
+                  title={isVoiceModeEnabled ? "Turn off AI voice output" : "Turn on AI voice output"}
                 >
                   {isVoiceModeEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5" />}
-                  <span>{isVoiceModeEnabled ? "Hlas Zákazníka (TTS ON)" : "TTS OFF"}</span>
+                  <span>{isVoiceModeEnabled ? "Customer voice (TTS ON)" : "TTS OFF"}</span>
                 </button>
 
                 <button
@@ -579,7 +649,7 @@ export default function TrainingPage() {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Ukončit & Vyhodnotit
+                  Finish & evaluate
                 </button>
               </div>
             </div>
@@ -643,16 +713,16 @@ export default function TrainingPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1">
                       <Radio className="w-3 h-3 animate-pulse text-emerald-400" />
-                      Teleprompter (Čtečka Skriptu v Reálném Čase)
+                      Teleprompter (live script reader)
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-[10px] font-mono">
                     {[
-                      { phase: 1, name: "1. Přivítání" },
-                      { phase: 2, name: "2. Potřeby" },
-                      { phase: 3, name: "3. Užitek" },
-                      { phase: 4, name: "4. Námitka" },
-                      { phase: 5, name: "5. Uzavření" },
+                      { phase: 1, name: "1. Opening" },
+                      { phase: 2, name: "2. Needs" },
+                      { phase: 3, name: "3. Benefits" },
+                      { phase: 4, name: "4. Objection" },
+                      { phase: 5, name: "5. Close" },
                     ].map((p) => (
                       <button
                         key={p.phase}
@@ -674,7 +744,7 @@ export default function TrainingPage() {
                 <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800/80 text-xs font-mono text-zinc-200 leading-relaxed flex items-center justify-between gap-4 shadow-inner">
                   <div className="space-y-0.5 flex-1">
                     <span className="text-[9px] uppercase tracking-wider font-semibold text-zinc-500 block">
-                      Doporučený prodejní skript k přečtení naživo:
+                      Recommended product script:
                     </span>
                     <p className="italic text-emerald-200 text-xs">
                       "{getTeleprompterScript(selectedScenario.targetProduct, activeScriptPhase, selectedScenario.personalityType)}"
@@ -687,9 +757,9 @@ export default function TrainingPage() {
                       setInputText(scriptText);
                     }}
                     className="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-medium shrink-0 cursor-pointer transition-colors"
-                    title="Načíst skript do textového pole"
+                    title="Load script into reply field"
                   >
-                    Načíst do Pole
+                    Load into reply field
                   </button>
                 </div>
               </div>
@@ -740,7 +810,7 @@ export default function TrainingPage() {
               {isBotThinking && (
                 <div className="flex items-center gap-2 text-xs text-zinc-400 italic bg-zinc-900/80 border border-zinc-800 p-3 rounded-xl w-fit animate-pulse font-mono">
                   <Sparkles className="w-3.5 h-3.5 animate-spin text-zinc-400" />
-                  AI Zákazník přemýšlí nad odpovědí...
+                  AI customer is thinking...
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -800,18 +870,18 @@ export default function TrainingPage() {
             <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-4">
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                 <Target className="w-4 h-4 text-zinc-400" />
-                Scénář & Cíle Hovorů
+                Scenario & call objectives
               </h3>
 
               <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-1.5">
-                <span className="text-xs font-semibold text-zinc-200">{selectedScenario.title}</span>
-                <p className="text-[11px] text-zinc-400">{selectedScenario.customerPersona}</p>
+                <span className="text-xs font-semibold text-zinc-200">{getScenarioUiCopy(selectedScenario).title}</span>
+                <p className="text-[11px] text-zinc-400">{getScenarioUiCopy(selectedScenario).persona}</p>
               </div>
 
               <div className="space-y-2">
-                <span className="text-[11px] font-medium text-zinc-300">Cíle ke splnění:</span>
+                <span className="text-[11px] font-medium text-zinc-300">Objectives to complete:</span>
                 <div className="space-y-1.5">
-                  {selectedScenario.goals.map((g, idx) => (
+                  {getScenarioUiCopy(selectedScenario).goals.map((g, idx) => (
                     <div key={idx} className="flex items-start gap-2 p-2 rounded-lg bg-zinc-950/60 border border-zinc-800/80 text-[11px] text-zinc-300">
                       <CheckCircle2 className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
                       <span>{g}</span>
@@ -825,13 +895,13 @@ export default function TrainingPage() {
             <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-3">
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-zinc-400" />
-                Zákonný Hlídač (Compliance Monitor)
+                Compliance monitor
               </h3>
 
               {activeViolations.length === 0 ? (
                 <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs flex items-center gap-2 font-mono">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span>Zatím nebylo detekováno žádné legislativní porušení.</span>
+                  <span>No compliance violations detected.</span>
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -846,7 +916,7 @@ export default function TrainingPage() {
                       </div>
                       <p className="text-[11px] text-zinc-400">{v.rule.explanation}</p>
                       <div className="pt-1 text-[10px] text-zinc-300 italic">
-                        💡 Doporučení: {v.rule.correctionSuggestion}
+                        💡 Recommendation: {v.rule.correctionSuggestion}
                       </div>
                     </div>
                   ))}
@@ -862,19 +932,19 @@ export default function TrainingPage() {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-300 mb-1">
               <Award className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-semibold text-zinc-100">Výsledný Scorecard Tréninku</h2>
-            <p className="text-xs text-zinc-400">Scénář: {selectedScenario.title}</p>
+            <h2 className="text-xl font-semibold text-zinc-100">Training scorecard</h2>
+            <p className="text-xs text-zinc-400">Scenario: {getScenarioUiCopy(selectedScenario).title}</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
               <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.grade}</span>
-              <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Známka</span>
+              <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Grade</span>
             </div>
 
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
               <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.overallScore}%</span>
-              <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Celkové Skóre</span>
+              <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Overall score</span>
             </div>
 
             <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
@@ -887,7 +957,7 @@ export default function TrainingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-3">
               <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-zinc-400" /> Silné stránky
+                <CheckCircle2 className="w-4 h-4 text-zinc-400" /> Strengths
               </h4>
               <ul className="text-xs text-zinc-300 space-y-2">
                 {scorecard.strengths.map((str, idx) => (
@@ -901,7 +971,7 @@ export default function TrainingPage() {
 
             <div className="p-5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-3">
               <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-zinc-400" /> Příležitosti ke zlepšení
+                <TrendingUp className="w-4 h-4 text-zinc-400" /> Improvement opportunities
               </h4>
               <ul className="text-xs text-zinc-300 space-y-2">
                 {scorecard.improvements.map((imp, idx) => (
@@ -931,7 +1001,7 @@ export default function TrainingPage() {
           </div>
 
           <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-300 leading-relaxed">
-            <strong className="text-zinc-200 font-semibold block mb-1">AI Závěrečné Hodnocení:</strong>
+            <strong className="text-zinc-200 font-semibold block mb-1">AI final assessment:</strong>
             {scorecard.summaryFeedback}
           </div>
 
@@ -944,7 +1014,7 @@ export default function TrainingPage() {
               className="flex items-center gap-2 px-5 py-2 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-medium transition-colors shadow-sm"
             >
               <RotateCcw className="w-4 h-4" />
-              Vybrat Jiný Scénář
+              Choose another scenario
             </button>
           </div>
         </div>
