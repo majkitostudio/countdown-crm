@@ -26,6 +26,7 @@ interface PostCallSummaryCardProps {
     outcomeLabel: string;
     durationSeconds: number;
     orderStatus: "created" | "not_created";
+    transcriptStatus: "unavailable";
     orderId?: string;
     workflowEntries: ExecutionLogEntry[];
   };
@@ -64,8 +65,8 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
             </h3>
             <p className="text-[10px] text-zinc-500 font-mono">
               {summary.leadName} • {summary.outcomeLabel} • {Math.round(summary.durationSeconds / 60)}m
-              {failureCount > 0 && ` • ${failureCount} selhalo`}
-              {skippedCount > 0 && ` • ${skippedCount} přeskočeno`}
+              {failureCount > 0 && ` • ${failureCount} failed`}
+              {skippedCount > 0 && ` • ${skippedCount} skipped`}
             </p>
           </div>
         </div>
@@ -97,6 +98,13 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
           <strong className="mt-1 block text-zinc-100">{successCount} succeeded</strong>
         </div>
       </div>
+
+      {summary.transcriptStatus === "unavailable" && (
+        <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
+          <strong className="font-semibold">Call transcript unavailable.</strong>
+          <span className="ml-1 text-amber-300/80">This call did not capture a verified speech transcript or recording.</span>
+        </div>
+      )}
 
       {/* Executed Rules */}
       <div className="space-y-2">
@@ -177,7 +185,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
         </span>
         <div className="flex items-center gap-3">
           <a href="/workflows" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors">
-            Zobrazit automatizace →
+            View automations →
           </a>
           <button onClick={onNextLead} className="rounded-lg bg-zinc-100 px-3 py-2 text-[11px] font-semibold text-zinc-950 hover:bg-white">
             Continue to next lead

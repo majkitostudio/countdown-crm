@@ -26,6 +26,7 @@ interface PostCallSummary {
   outcomeLabel: string;
   durationSeconds: number;
   orderStatus: "created" | "not_created";
+  transcriptStatus: "unavailable";
   orderId?: string;
   workflowEntries: ExecutionLogEntry[];
 }
@@ -113,10 +114,7 @@ function WorkspaceContent() {
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
         order_product_id: orderProductId,
         order_total_amount: orderProductId ? orderValue : null,
-        transcript: [
-          { speaker: "agent", text: `Outbound call to ${activeLead.full_name}`, timestamp: new Date().toLocaleTimeString() },
-          { speaker: "customer", text: "Customer responded and agreed on follow-up.", timestamp: new Date().toLocaleTimeString() },
-        ].map((entry) => `${entry.timestamp} ${entry.speaker}: ${entry.text}`).join("\n"),
+        transcript: null,
       });
 
       const savedLead = { ...activeLead, status: completion.lead_status, updated_at: new Date().toISOString() };
@@ -155,6 +153,7 @@ function WorkspaceContent() {
         outcomeLabel,
         durationSeconds: 145,
         orderStatus,
+        transcriptStatus: "unavailable",
         orderId: completion.order_id || undefined,
         workflowEntries,
       });
