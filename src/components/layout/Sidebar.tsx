@@ -20,6 +20,7 @@ import {
   Workflow,
   Briefcase,
   ShieldAlert,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
   { label: "AI Training", href: "/training", icon: GraduationCap },
+  { label: "Teamleader Review", href: "/training/reviews", icon: ClipboardList },
   { label: "Leads & Contacts", href: "/leads", icon: Users },
   { label: "Deals & Pipelines", href: "/objects/deals", icon: Briefcase },
   { label: "Product Catalog", href: "/products", icon: Package },

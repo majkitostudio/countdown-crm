@@ -15,7 +15,8 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
-  X
+  X,
+  ClipboardList
 } from "lucide-react";
 import { getLeads, Lead } from "@/lib/leads";
 import { getProducts, Product } from "@/lib/products";
@@ -79,6 +80,7 @@ export function CommandPalette() {
     { label: "Analytics BI", path: "/analytics", icon: BarChart3 },
     { label: "Live Team Monitor", path: "/monitor", icon: Activity },
     { label: "AI Roleplay Training", path: "/training", icon: GraduationCap },
+    { label: "Teamleader Review", path: "/training/reviews", icon: ClipboardList },
     { label: "Settings", path: "/settings", icon: Settings },
   ].filter((item) => !q || item.label.toLowerCase().includes(q));
 
