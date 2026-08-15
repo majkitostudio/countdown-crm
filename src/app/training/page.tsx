@@ -39,6 +39,33 @@ import { Volume2, VolumeX, Radio } from "lucide-react";
 
 type TrainingCallState = "idle" | "listening" | "processing" | "ai-speaking";
 
+type SpeechRecognitionResultLike = {
+  isFinal: boolean;
+  0: { transcript: string };
+};
+
+type SpeechRecognitionEventLike = {
+  results: ArrayLike<SpeechRecognitionResultLike>;
+};
+
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
 const scenarioUiCopy: Record<string, { title: string; persona: string; goals: string[] }> = {
   "supplements-skeptic": {
     title: "Skeptical supplement customer",
@@ -140,6 +167,7 @@ export default function TrainingPage() {
   const handsFreeVoiceRef = useRef(false);
   const startListeningRef = useRef<() => void>(() => undefined);
   const speechGenerationRef = useRef(0);
+  const messageSequenceRef = useRef(0);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -211,6 +239,15 @@ export default function TrainingPage() {
     });
   };
 
+  const nextMessageId = (prefix: string) => `${prefix}_${messageSequenceRef.current++}`;
+
+  const getInitialCustomerMood = (personality: CustomerPersonalityType): NonNullable<TrainingMessage["customerMood"]> => {
+    if (personality === "Nedůvěřivý") return "Nedůvěřivý";
+    if (personality === "Skeptický" || personality === "Cenově citlivý") return "Skeptický";
+    if (personality === "Netrpělivý" || personality === "Náročný / Cholerický") return "Podrážděný";
+    return "Klidný";
+  };
+
   const handleStartScenario = (scenario: TrainingScenario) => {
     setSelectedScenario(scenario);
     setScorecard(null);
@@ -237,13 +274,41 @@ export default function TrainingPage() {
       occurredAt: new Date().toISOString(),
       source: "scenario",
       sentiment: "neutral",
-      customerMood: scenario.personalityType as any,
+      customerMood: getInitialCustomerMood(scenario.personalityType),
       patienceGauge: 75,
     };
 
     setMessages([initialMsg]);
     setIsSimulating(true);
     playAiAudio(scenario.initialMessage, scenario);
+  };
+
+  const handleFinishTraining = async () => {
+    if (!selectedScenario || isBotThinking || !sessionStartedAt) return;
+
+    const evaluation = evaluateTrainingSession(selectedScenario, messages);
+    setScorecard(evaluation);
+    setIsSimulating(false);
+    sessionActiveRef.current = false;
+    handsFreeVoiceRef.current = false;
+    speechGenerationRef.current += 1;
+    setCallState("idle");
+    shouldSubmitRecognitionRef.current = false;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    stopSpeaking();
+    setIsAiSpeaking(false);
+
+    setTranscriptSaveState("saving");
+    const saveResult = await saveTrainingSessionAction({
+      scenario: selectedScenario,
+      messages,
+      scorecard: evaluation,
+      durationSeconds: callDurationSeconds,
+      aiSource,
+      startedAt: sessionStartedAt,
+    });
+    setTranscriptSaveState(saveResult.ok ? "saved" : saveResult.code === "UNAVAILABLE" ? "unavailable" : "error");
   };
 
   const handleSendMessage = async (
@@ -264,7 +329,7 @@ export default function TrainingPage() {
     }
 
     const userMsg: TrainingMessage = {
-      id: `user_${Date.now()}`,
+      id: nextMessageId("user"),
       sender: "user",
       text: userText,
       timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
@@ -288,7 +353,7 @@ export default function TrainingPage() {
       }
 
       const botMsg: TrainingMessage = {
-        id: `ai_${Date.now()}`,
+        id: nextMessageId("ai"),
         sender: "ai_customer",
         text: aiResponse.text,
         timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
@@ -303,7 +368,7 @@ export default function TrainingPage() {
         setIsHungUp(true);
         setCallState("idle");
         const hangUpMsg: TrainingMessage = {
-          id: `hangup_${Date.now()}`,
+          id: nextMessageId("hangup"),
           sender: "ai_customer",
           text: "❌ The customer ran out of patience and ended the call (hang-up).",
           timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
@@ -364,11 +429,12 @@ export default function TrainingPage() {
         setIsAiSpeaking(false);
       }
 
-      const SpeechRecognition =
-        (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any })
-          .SpeechRecognition ||
-        (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any })
-          .webkitSpeechRecognition;
+      const speechWindow = window as SpeechRecognitionWindow;
+      const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        setCallState("listening");
+        return;
+      }
 
       const recognition = new SpeechRecognition();
       recognition.lang = "cs-CZ";
@@ -396,7 +462,7 @@ export default function TrainingPage() {
         shouldSubmitRecognitionRef.current = false;
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEventLike) => {
         let interimTranscript = "";
         finalTranscript = "";
         for (let index = 0; index < event.results.length; index += 1) {
@@ -420,7 +486,9 @@ export default function TrainingPage() {
     }
   };
 
-  startListeningRef.current = startRecognition;
+  useEffect(() => {
+    startListeningRef.current = startRecognition;
+  });
 
   const handleToggleMic = () => {
     if (isRecording) {
@@ -435,35 +503,6 @@ export default function TrainingPage() {
 
     handsFreeVoiceRef.current = true;
     startRecognition();
-  };
-
-  const handleFinishTraining = async () => {
-    if (!selectedScenario || isBotThinking || !sessionStartedAt) return;
-
-    const evaluation = evaluateTrainingSession(selectedScenario, messages);
-    setScorecard(evaluation);
-    setIsSimulating(false);
-    sessionActiveRef.current = false;
-    handsFreeVoiceRef.current = false;
-    speechGenerationRef.current += 1;
-    setCallState("idle");
-    shouldSubmitRecognitionRef.current = false;
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    stopSpeaking();
-    setIsAiSpeaking(false);
-
-    setTranscriptSaveState("saving");
-    const saveResult = await saveTrainingSessionAction({
-      scenario: selectedScenario,
-      messages,
-      scorecard: evaluation,
-      durationSeconds: callDurationSeconds,
-      aiSource,
-      startedAt: sessionStartedAt,
-    });
-    setTranscriptSaveState(saveResult.ok ? "saved" : saveResult.code === "UNAVAILABLE" ? "unavailable" : "error");
-
   };
 
   return (
@@ -531,7 +570,7 @@ export default function TrainingPage() {
                   <p className="text-xs text-zinc-400 leading-relaxed">
                     <strong className="text-zinc-300">Customer:</strong> {scenario.customerName}
                     <br />
-                    <span className="italic text-zinc-400">"{getScenarioUiCopy(scenario).persona}"</span>
+                    <span className="italic text-zinc-400">&ldquo;{getScenarioUiCopy(scenario).persona}&rdquo;</span>
                   </p>
 
                   <div className="pt-2 border-t border-zinc-800/80 space-y-1">
@@ -747,7 +786,7 @@ export default function TrainingPage() {
                       Recommended product script:
                     </span>
                     <p className="italic text-emerald-200 text-xs">
-                      "{getTeleprompterScript(selectedScenario.targetProduct, activeScriptPhase, selectedScenario.personalityType)}"
+                      &ldquo;{getTeleprompterScript(selectedScenario.targetProduct, activeScriptPhase, selectedScenario.personalityType)}&rdquo;
                     </p>
                   </div>
                   <button
