@@ -2,12 +2,13 @@ import "server-only";
 
 import { AttributeDefinition, RecordEntity } from "./types";
 import { analyzeTranscriptWithGemini } from "../gemini";
+import { calculateAiLeadScore } from "../leads";
 
 export interface AiAttributeComputationResult {
   attributeKey: string;
   value: unknown;
   computedAt: string;
-  source: "gemini-flash" | "fallback";
+  source: "gemini-flash" | "rule-engine";
 }
 
 /**
@@ -21,14 +22,20 @@ export async function computeAiAttribute(
   const attributeKey = attribute.key;
   const now = new Date().toISOString();
 
-  // If calculating AI Propensity Score
+  // The lead score is deterministic and explainable; it is not a Gemini result.
   if (attributeKey === "ai_score") {
-    const value = Math.floor(Math.random() * 30) + 70; // 70-99
+    const value = calculateAiLeadScore({
+      full_name: typeof record.values.full_name === "string" ? record.values.full_name : undefined,
+      phone: typeof record.values.phone === "string" ? record.values.phone : undefined,
+      email: typeof record.values.email === "string" ? record.values.email : undefined,
+      city: typeof record.values.city === "string" ? record.values.city : undefined,
+      notes: typeof record.values.notes === "string" ? record.values.notes : undefined,
+    });
     return {
       attributeKey,
       value,
       computedAt: now,
-      source: "gemini-flash",
+      source: "rule-engine",
     };
   }
 
@@ -46,15 +53,15 @@ export async function computeAiAttribute(
       attributeKey,
       value: summaryText,
       computedAt: now,
-      source: analysis.aiSource === "gemini-flash" ? "gemini-flash" : "fallback",
+      source: analysis.aiSource === "gemini-flash" ? "gemini-flash" : "rule-engine",
     };
   }
 
-  // Default fallback for custom AI attributes
+  // Custom AI attributes need an explicit provider before they can be computed.
   return {
     attributeKey,
-    value: `AI computed value for ${attribute.name}`,
+    value: null,
     computedAt: now,
-    source: "fallback",
+    source: "rule-engine",
   };
 }

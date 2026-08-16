@@ -45,7 +45,7 @@ export function CustomFieldRenderer({
             onClick={handleComputeAi}
             disabled={isCalculating}
             className="p-1 text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer"
-            title="Recalculate with Gemini AI"
+            title="Recalculate attribute"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isCalculating ? "animate-spin text-zinc-300" : ""}`} />
           </button>

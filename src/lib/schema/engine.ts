@@ -27,13 +27,8 @@ export const DEFAULT_SCHEMAS: ObjectSchema[] = [
       {
         id: "attr-lead-score",
         key: "ai_score",
-        name: "AI Propensity Score",
-        type: "ai_generated",
-        aiConfig: {
-          promptTemplate: "Calculate lead purchase propensity score (0-100) based on company size, engagement, and deal value.",
-          contextSources: ["lead_notes", "company_info"],
-          refreshTrigger: "on_record_update",
-        },
+        name: "Lead Propensity Score",
+        type: "number",
       },
       {
         id: "attr-lead-summary",
