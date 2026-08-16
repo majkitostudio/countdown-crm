@@ -16,6 +16,7 @@ export type LeadDTO = Pick<
   | "phone"
   | "email"
   | "city"
+  | "company"
   | "country"
   | "status"
   | "ai_score"
@@ -29,6 +30,7 @@ export interface CreateLeadInput {
   phone: string;
   email?: string | null;
   city?: string | null;
+  company?: string | null;
   country?: string;
   status?: LeadStatus;
   ai_score?: number;
@@ -40,7 +42,12 @@ function assertLeadInput(input: CreateLeadInput): void {
     throw new DataAccessError("VALIDATION", "Lead name and phone are required");
   }
 
-  if (input.full_name.length > 200 || input.phone.length > 40 || (input.email?.length || 0) > 320) {
+  if (
+    input.full_name.length > 200 ||
+    input.phone.length > 40 ||
+    (input.email?.length || 0) > 320 ||
+    (input.company?.length || 0) > 200
+  ) {
     throw new DataAccessError("VALIDATION", "Lead input is too long");
   }
 
@@ -58,7 +65,7 @@ export async function listLeadsForWorkspace(options?: {
   const supabase = await createDataClient();
   let query = supabase
     .from("leads")
-    .select("id, workspace_id, full_name, phone, email, city, country, status, ai_score, notes, created_at, updated_at")
+    .select("id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at")
     .eq("workspace_id", context.workspaceId)
     .order("created_at", { ascending: false });
 
@@ -68,7 +75,7 @@ export async function listLeadsForWorkspace(options?: {
 
   if (options?.search?.trim()) {
     const search = options.search.trim().replace(/[%(),]/g, " ");
-    query = query.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
+    query = query.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%`);
   }
 
   const { data, error } = await query;
@@ -96,12 +103,13 @@ export async function createLeadForWorkspace(
       phone: input.phone.trim(),
       email: input.email?.trim() || null,
       city: input.city?.trim() || null,
+      company: input.company?.trim() || null,
       country: input.country?.trim() || "CZ",
       status: input.status || "new",
       ai_score: input.ai_score ?? 50,
       notes: input.notes?.trim() || null,
     })
-    .select("id, workspace_id, full_name, phone, email, city, country, status, ai_score, notes, created_at, updated_at")
+    .select("id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at")
     .single();
 
   if (error || !data) {
@@ -123,7 +131,7 @@ export async function updateLeadStatusForWorkspace(
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", leadId)
     .eq("workspace_id", context.workspaceId)
-    .select("id, workspace_id, full_name, phone, email, city, country, status, ai_score, notes, created_at, updated_at")
+    .select("id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at")
     .maybeSingle();
 
   if (error) {

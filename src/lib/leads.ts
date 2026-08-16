@@ -70,6 +70,7 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     phone: item.phone!.trim(),
     email: item.email || null,
     city: item.city?.trim() || null,
+    company: item.company?.trim() || null,
     country: item.country || "CZ",
     status: item.status || "new",
     ai_score: item.ai_score ?? calculateAiLeadScore(item),

@@ -32,7 +32,7 @@ export async function fetchLeadsFromSupabase(options?: {
 
   if (options?.search) {
     const s = `%${options.search}%`;
-    query = query.or(`full_name.ilike.${s},email.ilike.${s},phone.ilike.${s},city.ilike.${s}`);
+    query = query.or(`full_name.ilike.${s},email.ilike.${s},phone.ilike.${s},city.ilike.${s},company.ilike.${s}`);
   }
 
   if (options?.sortBy === "name") {
@@ -82,6 +82,7 @@ export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | 
     phone: lead.phone || "",
     email: lead.email || null,
     city: lead.city?.trim() || null,
+    company: lead.company?.trim() || null,
     country: lead.country || "CZ",
     status: lead.status || "new",
     ai_score: score,

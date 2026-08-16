@@ -135,11 +135,11 @@ export interface Database {
           phone: string;
           email: string | null;
           city: string | null;
+          company: string | null;
           country: string;
           status: "new" | "contacted" | "qualified" | "customer" | "unresponsive";
           ai_score: number;
           notes: string | null;
-          company?: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -150,11 +150,11 @@ export interface Database {
           phone: string;
           email?: string | null;
           city?: string | null;
+          company?: string | null;
           country?: string;
           status?: "new" | "contacted" | "qualified" | "customer" | "unresponsive";
           ai_score?: number;
           notes?: string | null;
-          company?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -163,11 +163,11 @@ export interface Database {
           phone?: string;
           email?: string | null;
           city?: string | null;
+          company?: string | null;
           country?: string;
           status?: "new" | "contacted" | "qualified" | "customer" | "unresponsive";
           ai_score?: number;
           notes?: string | null;
-          company?: string | null;
           updated_at?: string;
         };
         Relationships: [];

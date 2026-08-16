@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS public.leads (
   phone TEXT NOT NULL,
   email TEXT,
   city TEXT,
+  company TEXT,
   country TEXT DEFAULT 'CZ',
   status TEXT NOT NULL DEFAULT 'new', -- 'new', 'contacted', 'qualified', 'customer', 'unresponsive'
   ai_score INT DEFAULT 50 CHECK (ai_score BETWEEN 0 AND 100),
