@@ -101,9 +101,9 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
     return rawRows.slice(0, 3).map((row) => {
       const leadData: Partial<Lead> = {
         full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Unnamed Lead",
-        phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "+420 600 000 000",
+        phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "",
         email: emailIdx !== -1 && row[emailIdx] ? row[emailIdx] : null,
-        city: cityIdx !== -1 && row[cityIdx] ? row[cityIdx] : "Prague",
+        city: cityIdx !== -1 && row[cityIdx] ? row[cityIdx] : null,
         company: companyIdx !== -1 && row[companyIdx] ? row[companyIdx] : null,
         notes: notesIdx !== -1 && row[notesIdx] ? row[notesIdx] : "Imported from CSV",
         status: "new",
@@ -128,9 +128,9 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
     const leadsToInsert: Partial<Lead>[] = rawRows.map((row) => {
       const item: Partial<Lead> = {
         full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Imported Lead",
-        phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "+420 700 000 000",
+        phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "",
         email: emailIdx !== -1 && row[emailIdx] ? row[emailIdx] : null,
-        city: cityIdx !== -1 && row[cityIdx] ? row[cityIdx] : "Prague",
+        city: cityIdx !== -1 && row[cityIdx] ? row[cityIdx] : null,
         company: companyIdx !== -1 && row[companyIdx] ? row[companyIdx] : null,
         notes: notesIdx !== -1 && row[notesIdx] ? row[notesIdx] : "CSV Import",
         status: "new",

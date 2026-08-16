@@ -92,7 +92,7 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
           >
             {leads.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.full_name} ({l.city || "Prague"})
+                {l.full_name} ({l.city || "Location unavailable"})
               </option>
             ))}
           </select>
@@ -136,14 +136,14 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
           <span className="text-zinc-500 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-zinc-400" /> Location
           </span>
-          <span className="text-zinc-200 font-medium">{activeLead.city || "Prague"}, {activeLead.country}</span>
+          <span className="text-zinc-200 font-medium">{[activeLead.city, activeLead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
           <span className="text-zinc-500 flex items-center gap-1.5">
             <DollarSign className="w-3.5 h-3.5 text-zinc-400" /> Pipeline Value
           </span>
-          <span className="text-zinc-100 font-mono font-bold">${activeLead.value || 750}</span>
+          <span className="text-zinc-100 font-mono font-bold">{activeLead.value != null ? `$${activeLead.value}` : "Unavailable"}</span>
         </div>
       </div>
 

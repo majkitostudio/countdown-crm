@@ -66,10 +66,10 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     full_name: item.full_name || "New Lead",
     phone: item.phone || "",
     email: item.email || null,
-    city: item.city || "Prague",
+    city: item.city?.trim() || null,
     country: item.country || "CZ",
     status: item.status || "new",
-    ai_score: item.ai_score || calculateAiLeadScore(item),
+    ai_score: item.ai_score ?? calculateAiLeadScore(item),
     notes: item.notes || null,
   }));
 
@@ -84,7 +84,7 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     country: lead.country || "CZ",
     notes: lead.notes || null,
     company: lead.company || null,
-    value: lead.value || 500,
+    value: lead.value,
     last_contacted_at: lead.updated_at || lead.created_at,
   }));
 }

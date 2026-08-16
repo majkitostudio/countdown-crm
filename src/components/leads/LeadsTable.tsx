@@ -225,7 +225,7 @@ export function LeadsTable({
                   <td className="py-3 px-4">
                     <div className="font-mono text-zinc-200">{lead.phone}</div>
                     <div className="text-[11px] text-zinc-400 truncate max-w-[180px]">
-                      {lead.email || `${lead.city || "Prague"}, CZ`}
+                      {lead.email || [lead.city, lead.country].filter(Boolean).join(", ") || "Contact unavailable"}
                     </div>
                   </td>
 
@@ -241,7 +241,7 @@ export function LeadsTable({
 
                   {/* Est Value */}
                   <td className="py-3 px-4 text-right font-semibold text-zinc-200 font-mono">
-                    ${lead.value || 750}
+                    {lead.value != null ? `$${lead.value}` : "Unavailable"}
                   </td>
 
                   {/* Quick Action Buttons */}

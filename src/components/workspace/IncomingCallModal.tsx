@@ -48,7 +48,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
             <p className="text-xs font-mono text-zinc-400">{lead.phone}</p>
             <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mt-0.5">
               <MapPin className="w-3 h-3" />
-              <span>{lead.city || "Prague"}, {lead.country}</span>
+              <span>{[lead.city, lead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
             </div>
           </div>
         </div>

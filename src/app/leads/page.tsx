@@ -89,7 +89,7 @@ export default function LeadsPage() {
   const qualifiedLeads = filteredLeads.filter((l) => l.status === "qualified" || l.status === "customer").length;
   const qualifiedRatio = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
   const avgScore = totalLeads > 0 ? Math.round(filteredLeads.reduce((acc, l) => acc + l.ai_score, 0) / totalLeads) : 0;
-  const totalPipelineValue = filteredLeads.reduce((acc, l) => acc + (l.value || 750), 0);
+  const totalPipelineValue = filteredLeads.reduce((acc, l) => acc + (l.value ?? 0), 0);
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">

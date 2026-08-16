@@ -129,7 +129,7 @@ export function LeadDetailDrawer({
                   <span>{currentLead.company || "Independent"}</span>
                   <span>•</span>
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>{currentLead.city || "Prague"}, {currentLead.country}</span>
+                  <span>{[currentLead.city, currentLead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
                 </div>
               </div>
             </div>
@@ -223,7 +223,7 @@ export function LeadDetailDrawer({
                 </div>
                 <div>
                   <span className="text-xs text-zinc-500 block mb-0.5">Location</span>
-                  <span className="text-zinc-200">{currentLead.city || "Prague"}, {currentLead.country}</span>
+                  <span className="text-zinc-200">{[currentLead.city, currentLead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
                 </div>
                 <div>
                   <span className="text-xs text-zinc-500 block mb-0.5">Added On</span>

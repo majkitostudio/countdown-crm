@@ -62,7 +62,7 @@ export function KanbanBoard({
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-h-[640px] items-start">
         {STAGES.map((stage) => {
           const stageLeads = leads.filter((l) => l.status === stage.id);
-          const stageValue = stageLeads.reduce((sum, l) => sum + (l.value || 750), 0);
+          const stageValue = stageLeads.reduce((sum, l) => sum + (l.value ?? 0), 0);
           const avgScore =
             stageLeads.length > 0
               ? Math.round(stageLeads.reduce((sum, l) => sum + l.ai_score, 0) / stageLeads.length)
@@ -142,7 +142,7 @@ export function KanbanBoard({
                       {/* Value Badge & Action */}
                       <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
                         <span className="text-xs font-semibold font-mono text-zinc-200">
-                          {formatCurrency(lead.value || 750)}
+                          {lead.value != null ? formatCurrency(lead.value) : "Unavailable"}
                         </span>
 
                         {/* Quick Call Action */}
