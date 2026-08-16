@@ -19,8 +19,8 @@ export async function analyzeCallTranscriptAction(
     throw new Error("Transcript is too long");
   }
 
-  const normalizedCustomerName = customerName?.trim() || "Customer";
-  const normalizedProductTitle = productTitle?.trim() || "Bio-Boost Anti-Aging Stack";
+  const normalizedCustomerName = customerName?.trim() || "Unknown customer";
+  const normalizedProductTitle = productTitle?.trim() || "Unknown product";
 
   if (normalizedCustomerName.length > 200 || normalizedProductTitle.length > 200) {
     throw new Error("Invalid transcript context");

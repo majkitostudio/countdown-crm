@@ -12,10 +12,8 @@ import {
   Settings,
   GraduationCap,
   Activity,
-  Plus,
   ArrowRight,
   Sparkles,
-  X,
   ClipboardList
 } from "lucide-react";
 import { getLeads, Lead } from "@/lib/leads";

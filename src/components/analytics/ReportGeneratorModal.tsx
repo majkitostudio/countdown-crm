@@ -10,7 +10,6 @@ import {
   Calendar,
   Check,
   Eye,
-  Sparkles,
   BarChart3,
   Users,
   GitBranch,

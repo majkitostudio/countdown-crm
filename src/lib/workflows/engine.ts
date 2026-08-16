@@ -27,55 +27,6 @@ import {
 
 const LOG_STORAGE_KEY = "countdown_workflow_log";
 
-// ─── Default Demo Rules ─────────────────────────────────────────────────────
-
-const DEFAULT_RULES: WorkflowRule[] = [
-  {
-    id: "rule-1",
-    name: "AI Summary po úspěšném hovoru",
-    description: "Po ukončení hovoru s výsledkem 'order_placed' se vygeneruje AI shrnutí.",
-    enabled: true,
-    trigger: "on_call_ended",
-    conditions: [
-      { field: "outcome", operator: "equals", value: "order_placed" },
-    ],
-    actions: [
-      { type: "compute_ai_summary", config: {} },
-      { type: "update_lead_status", config: { target_status: "customer" } },
-    ],
-    createdAt: "2026-08-01T10:00:00Z",
-    updatedAt: "2026-08-01T10:00:00Z",
-  },
-  {
-    id: "rule-2",
-    name: "Notifikace manažera u objednávky nad 1 000 Kč",
-    description: "Při vytvoření objednávky nad 1 000 Kč se odešle upozornění.",
-    enabled: true,
-    trigger: "on_order_placed",
-    conditions: [
-      { field: "orderValue", operator: "greater_than", value: "1000" },
-    ],
-    actions: [
-      { type: "notify_manager", config: { message: "Velká objednávka od {{lead_name}} za {{order_value}} Kč" } },
-    ],
-    createdAt: "2026-08-01T10:05:00Z",
-    updatedAt: "2026-08-01T10:05:00Z",
-  },
-  {
-    id: "rule-3",
-    name: "Follow-up email novým leadům",
-    description: "Automatický uvítací e-mail při vytvoření nového leadu.",
-    enabled: false,
-    trigger: "on_lead_created",
-    conditions: [],
-    actions: [
-      { type: "send_email_followup", config: { template: "re_engagement" } },
-    ],
-    createdAt: "2026-08-01T10:10:00Z",
-    updatedAt: "2026-08-01T10:10:00Z",
-  },
-];
-
 // ─── Engine Class ───────────────────────────────────────────────────────────
 
 class WorkflowEngine {

@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
-  Circle,
   GraduationCap,
   Workflow,
   Briefcase,
@@ -23,7 +22,6 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { schemaEngine } from "@/lib/schema/engine";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
 

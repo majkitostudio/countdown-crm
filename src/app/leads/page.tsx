@@ -54,7 +54,7 @@ export default function LeadsPage() {
     alert(`Initiating virtual call with ${lead.full_name} (${lead.phone})... Redirecting to Agent Workspace.`);
   };
 
-  const handleImportComplete = (count: number) => {
+  const handleImportComplete = () => {
     loadLeads();
   };
 

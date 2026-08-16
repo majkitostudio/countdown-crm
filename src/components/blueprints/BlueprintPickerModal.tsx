@@ -74,7 +74,7 @@ export function BlueprintPickerModal({
     }
   };
 
-  const getThemeColor = (_color: string) => {
+  const getThemeColor = () => {
     return {
       badge: "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono",
       ring: "border-zinc-700 bg-zinc-900/90",
@@ -83,7 +83,7 @@ export function BlueprintPickerModal({
     };
   };
 
-  const selectedTheme = getThemeColor(selectedBlueprint.color);
+  const selectedTheme = getThemeColor();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -143,7 +143,7 @@ export function BlueprintPickerModal({
               const Icon = getIcon(bp.icon);
               const isSelected = bp.id === selectedId;
               const isActiveCurrent = bp.id === currentActive.id;
-              const theme = getThemeColor(bp.color);
+              const theme = getThemeColor();
 
               return (
                 <button

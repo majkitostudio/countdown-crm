@@ -98,7 +98,7 @@ export function LeadDetailDrawer({
       type: "note",
       title: "Note Added",
       description: newNote.trim(),
-      actor: "Operator",
+      actor: "Unknown operator",
     });
     if (!newEntry) return;
     setActivities((prev) => [newEntry, ...prev]);

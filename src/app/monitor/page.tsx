@@ -2,27 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  Activity,
-  PhoneCall,
   User,
   Clock,
   ShieldAlert,
   Volume2,
-  TrendingUp,
   Radio,
-  Sparkles,
-  CheckCircle2,
-  Coffee,
   X,
-  Play,
-  Pause
 } from "lucide-react";
 import { LiveOperatorState, getLiveOperators } from "@/lib/monitor";
 
 export default function TeamMonitorPage() {
   const [operators, setOperators] = useState<LiveOperatorState[]>([]);
   const [activeAuditOperator, setActiveAuditOperator] = useState<LiveOperatorState | null>(null);
-  const [isAuditingAudio, setIsAuditingAudio] = useState(false);
 
   useEffect(() => {
     async function loadOperators() {
@@ -191,7 +182,6 @@ export default function TeamMonitorPage() {
                   <button
                     onClick={() => {
                       setActiveAuditOperator(op);
-                      setIsAuditingAudio(true);
                     }}
                     className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border border-zinc-800 transition-colors cursor-pointer"
                   >
@@ -233,7 +223,6 @@ export default function TeamMonitorPage() {
               <button
                 onClick={() => {
                   setActiveAuditOperator(null);
-                  setIsAuditingAudio(false);
                 }}
                 className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg cursor-pointer"
               >
@@ -270,7 +259,6 @@ export default function TeamMonitorPage() {
             <button
               onClick={() => {
                 setActiveAuditOperator(null);
-                setIsAuditingAudio(false);
               }}
               className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
             >

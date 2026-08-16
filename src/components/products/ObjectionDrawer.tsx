@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, ShieldAlert, Sparkles, Plus, Check, MessageSquareQuote, Flame } from "lucide-react";
+import { X, ShieldAlert, Sparkles, Plus, MessageSquareQuote, Flame } from "lucide-react";
 import { Product, Objection, updateProduct } from "@/lib/products";
 
 interface ObjectionDrawerProps {

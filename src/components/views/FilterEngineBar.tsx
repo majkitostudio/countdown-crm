@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Filter,
   Plus,
@@ -8,8 +8,6 @@ import {
   Bookmark,
   Sparkles,
   Check,
-  ChevronDown,
-  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";

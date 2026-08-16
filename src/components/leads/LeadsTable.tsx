@@ -3,28 +3,22 @@
 import React, { useState } from "react";
 import {
   Search,
-  Filter,
   Sparkles,
   Phone,
   Eye,
-  Trash2,
   Building,
-  MapPin,
   ArrowUpDown,
-  MoreVertical,
   UserPlus
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { schemaEngine } from "@/lib/schema/engine";
-import { AttributeDefinition, RecordEntity } from "@/lib/schema/types";
+import { AttributeDefinition } from "@/lib/schema/types";
 import { AddCustomFieldModal } from "@/components/schema/AddCustomFieldModal";
-import { CustomFieldRenderer } from "@/components/schema/CustomFieldRenderer";
 
 interface LeadsTableProps {
   leads: Lead[];
   onSelectLead: (lead: Lead) => void;
   onStartCall: (lead: Lead) => void;
-  onDeleteLead?: (leadId: string) => void;
   onOpenImportModal: () => void;
 }
 
@@ -32,20 +26,14 @@ export function LeadsTable({
   leads,
   onSelectLead,
   onStartCall,
-  onDeleteLead,
   onOpenImportModal,
 }: LeadsTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "score" | "name">("score");
   const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
-  const [customFields, setCustomFields] = useState<AttributeDefinition[]>(
-    schemaEngine.getSchema("leads")?.attributes.filter(a => a.id.startsWith("attr-custom-")) || []
-  );
-
   const handleAddField = (newAttr: AttributeDefinition) => {
     schemaEngine.addCustomAttribute("leads", newAttr);
-    setCustomFields((prev) => [...prev, newAttr]);
   };
 
   // Filter & Sort Logic

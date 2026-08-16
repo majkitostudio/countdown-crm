@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
-import { Package, ShieldAlert, Sparkles, CheckCircle, XCircle, Edit3, DollarSign, Layers } from "lucide-react";
+import { ShieldAlert, Edit3, Layers } from "lucide-react";
 import { Product } from "@/lib/products";
 
 interface ProductCardProps {
@@ -12,10 +11,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onOpenObjections, onEditProduct }: ProductCardProps) {
-  const getCategoryBadge = (cat: Product["category"]) => {
-    return "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono";
-  };
-
   const objectionsCount = product.objections ? product.objections.length : 0;
   const crossSellCount = product.cross_sell_ids ? product.cross_sell_ids.length : 0;
 
@@ -34,7 +29,7 @@ export function ProductCard({ product, onOpenObjections, onEditProduct }: Produc
 
         {/* Category Pill Top Left */}
         <div className="absolute top-3 left-3">
-          <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono uppercase tracking-wider border backdrop-blur-md ${getCategoryBadge(product.category)}`}>
+          <span className="px-2.5 py-0.5 rounded-md text-xs font-mono uppercase tracking-wider border backdrop-blur-md bg-zinc-900 text-zinc-300 border-zinc-800">
             {product.category}
           </span>
         </div>

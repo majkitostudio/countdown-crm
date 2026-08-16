@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { RefreshCw, PhoneCall, Sparkles, Clock, AlertTriangle, ArrowRight, Check } from "lucide-react";
+import { RefreshCw, PhoneCall, Sparkles, ArrowRight } from "lucide-react";
 import { getReorderOpportunities, ReorderOpportunity } from "@/lib/reorder";
-import { cn } from "@/lib/utils";
 
 export function ReorderWidget() {
   const [opportunities, setOpportunities] = useState<ReorderOpportunity[]>([]);

@@ -191,8 +191,8 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
 
     const rawResult = await analyzeCallTranscriptAction(
       fullTranscriptText,
-      activeLead?.full_name || "Customer",
-      activeProduct?.title || "the selected product"
+      activeLead?.full_name || "Unknown customer",
+      activeProduct?.title || "Unknown product"
     );
 
     // Match detected objection against product battle-card DB

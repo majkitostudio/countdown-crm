@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { X, UploadCloud, FileSpreadsheet, Check, Sparkles, AlertCircle, ArrowRight } from "lucide-react";
+import { X, UploadCloud, FileSpreadsheet, Sparkles, ArrowRight } from "lucide-react";
 import { Lead, addLeadsBatch, calculateAiLeadScore } from "@/lib/leads";
 
 interface CsvImportModalProps {

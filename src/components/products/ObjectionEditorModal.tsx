@@ -7,11 +7,8 @@ import {
   Plus,
   Trash2,
   Check,
-  ShieldAlert,
   ArrowRight,
   Eye,
-  Layers,
-  HelpCircle
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { ObjectionBattleCard, saveObjectionCard, deleteObjectionCard } from "@/lib/objections";

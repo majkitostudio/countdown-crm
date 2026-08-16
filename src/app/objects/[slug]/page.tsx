@@ -6,16 +6,10 @@ import {
   Database,
   Plus,
   Search,
-  Sparkles,
   Layers,
   ChevronLeft,
   X,
-  Check,
-  Building,
-  DollarSign,
-  FileText,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";
 import { RecordEntity } from "@/lib/schema/types";
 import {

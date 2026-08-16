@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Upload, Check } from "lucide-react";
+import { X, Upload } from "lucide-react";
 import { addCallTranscripts } from "@/lib/callTranscriptsStore";
 
 type UploadedFile = File | null;

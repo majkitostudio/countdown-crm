@@ -6,8 +6,6 @@ import {
   Search,
   Download,
   AlertTriangle,
-  CheckCircle2,
-  Lock,
   UserCheck,
   FileSpreadsheet,
   Terminal,
@@ -15,7 +13,7 @@ import {
   Filter,
   RefreshCw
 } from "lucide-react";
-import { AuditLogEntry, AuditSeverity, getAuditLogs, exportAuditLogsToCSV } from "@/lib/audit";
+import { AuditLogEntry, getAuditLogs, exportAuditLogsToCSV } from "@/lib/audit";
 import { cn } from "@/lib/utils";
 
 export default function AuditPage() {

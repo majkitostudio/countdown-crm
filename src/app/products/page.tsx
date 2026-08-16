@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Package, Search, Plus, ShieldAlert, Layers, CheckCircle2, RefreshCw, Tag, DollarSign, Upload } from "lucide-react";
-import { Product, ProductCategory, getProducts } from "@/lib/products";
+import { Package, Search, Plus, ShieldAlert, Tag, DollarSign, Upload } from "lucide-react";
+import { Product, getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import { ProductModal } from "@/components/products/ProductModal";
@@ -22,13 +22,10 @@ export default function ProductsPage() {
   const [isObjectionEditorOpen, setIsObjectionEditorOpen] = useState<boolean>(false);
   const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState<boolean>(false);
   const [selectedObjectionCard, setSelectedObjectionCard] = useState<ObjectionBattleCard | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loadProducts = async () => {
-    setIsLoading(true);
     const data = await getProducts();
     setProducts(data);
-    setIsLoading(false);
   };
 
   useEffect(() => {

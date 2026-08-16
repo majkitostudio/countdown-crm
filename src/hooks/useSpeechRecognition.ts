@@ -100,10 +100,10 @@ export function useSpeechRecognition(initialLang: SpeechLanguage = "cs-CZ") {
       };
 
       recognitionRef.current = recognition;
-    } catch (err) {
-      console.warn("Failed to initialize SpeechRecognition:", err);
+    } catch {
+      console.warn("Failed to initialize SpeechRecognition.");
     }
-  }, [language]);
+  }, [isSupported, language]);
 
   const startListening = useCallback(() => {
     setError(null);
@@ -125,7 +125,7 @@ export function useSpeechRecognition(initialLang: SpeechLanguage = "cs-CZ") {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch (err) {
+      } catch {
         // ignore
       }
     }
