@@ -39,9 +39,24 @@ export interface AnalyticsOverview {
   teamMetricsAvailable: boolean;
 }
 
+export interface RecentActivityEntry {
+  id: string;
+  type: "call" | "order";
+  timestamp: string;
+  customerName: string;
+  operatorName: string;
+  durationSeconds?: number;
+  outcome: string;
+  sentiment?: string | null;
+  productName?: string;
+  amount?: number;
+}
+
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+type OrderWithProduct = OrderRow & { products?: { title: string } | null };
 
 function emptyAnalyticsData(): AnalyticsOverview {
   return {
@@ -138,6 +153,95 @@ function getTeamLeaderboard(
       }
       return b.callsCount - a.callsCount;
     });
+}
+
+/** Retrieves recent workspace activity with real customer and operator attribution. */
+export async function getRecentActivity(limit = 8): Promise<RecentActivityEntry[]> {
+  const supabase = createClient();
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) return [];
+
+  const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
+  const [callsRes, ordersRes] = await Promise.all([
+    supabase
+      .from("calls")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(safeLimit),
+    supabase
+      .from("orders")
+      .select("*, products(title)")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(safeLimit),
+  ]);
+
+  if (callsRes.error || ordersRes.error) throw new Error("Recent activity query failed");
+
+  const calls = (callsRes.data || []) as CallRow[];
+  const orders = (ordersRes.data || []) as unknown as OrderWithProduct[];
+  const leadIds = Array.from(
+    new Set(
+      [...calls, ...orders]
+        .map((entry) => entry.lead_id)
+        .filter((leadId): leadId is string => Boolean(leadId))
+    )
+  );
+  const agentIds = Array.from(
+    new Set(
+      [...calls, ...orders]
+        .map((entry) => entry.agent_id)
+        .filter((agentId): agentId is string => Boolean(agentId))
+    )
+  );
+
+  const [leadsRes, profilesRes] = await Promise.all([
+    leadIds.length
+      ? supabase.from("leads").select("*").eq("workspace_id", workspaceId).in("id", leadIds)
+      : Promise.resolve({ data: [], error: null }),
+    agentIds.length
+      ? supabase.from("profiles").select("id, full_name, email, role, status, avatar_url, created_at, updated_at").in("id", agentIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (leadsRes.error || profilesRes.error) throw new Error("Recent activity attribution lookup failed");
+
+  const leads = leadsRes.data as LeadRow[];
+  const profiles = profilesRes.data as ProfileRow[];
+  const leadNames = new Map(leads.map((lead) => [lead.id, lead.full_name.trim() || "Unknown customer"]));
+  const operatorNames = new Map(profiles.map((profile) => [profile.id, profile.full_name.trim() || "Unknown operator"]));
+  const customerNameFor = (leadId: string | null) =>
+    (leadId && leadNames.get(leadId)) || "Unknown customer";
+  const operatorNameFor = (agentId: string | null) =>
+    (agentId && operatorNames.get(agentId)) || "Unknown operator";
+
+  const activity: RecentActivityEntry[] = [
+    ...calls.map((call) => ({
+      id: `call-${call.id}`,
+      type: "call" as const,
+      timestamp: call.created_at,
+      customerName: customerNameFor(call.lead_id),
+      operatorName: operatorNameFor(call.agent_id),
+      durationSeconds: call.duration_seconds || 0,
+      outcome: call.outcome,
+      sentiment: call.ai_sentiment,
+    })),
+    ...orders.map((order) => ({
+      id: `order-${order.id}`,
+      type: "order" as const,
+      timestamp: order.created_at,
+      customerName: customerNameFor(order.lead_id),
+      operatorName: operatorNameFor(order.agent_id),
+      outcome: order.status,
+      productName: order.products?.title || "Unknown product",
+      amount: Number(order.total_amount || 0),
+    })),
+  ];
+
+  return activity
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, safeLimit);
 }
 
 /** Retrieves manager analytics computed from workspace-scoped Supabase data. */
