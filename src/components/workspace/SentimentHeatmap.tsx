@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TrendingUp, Activity, Smile, AlertCircle, Sparkles } from "lucide-react";
+import { Activity, Smile, AlertCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface SentimentSegment {
@@ -59,27 +59,33 @@ export function SentimentHeatmap({
 
         <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400">
           <Sparkles className="w-3 h-3 text-zinc-400" />
-          <span>Konstruktivní tón ({confidenceScore}%)</span>
+          <span>{segments.length > 0 ? `Confidence ${confidenceScore}%` : "Sentiment data unavailable"}</span>
         </div>
       </div>
 
       {/* Heatmap Timeline Segments Bar */}
       <div className="space-y-1">
         <div className="flex items-center gap-1 h-3 rounded-lg overflow-hidden bg-zinc-900 p-0.5 border border-zinc-800">
-          {segments.map((seg, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "h-full flex-1 rounded-sm transition-all duration-300 relative group cursor-pointer",
-                getSegmentColor(seg.sentiment)
-              )}
-            >
-              {/* Tooltip on hover */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-zinc-900 border border-zinc-700 text-[10px] text-zinc-200 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-30 transition-opacity font-mono">
-                {seg.timeLabel}: {seg.sentiment} ({seg.score}%)
+          {segments.length > 0 ? (
+            segments.map((seg, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "h-full flex-1 rounded-sm transition-all duration-300 relative group cursor-pointer",
+                  getSegmentColor(seg.sentiment)
+                )}
+              >
+                {/* Tooltip on hover */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-zinc-900 border border-zinc-700 text-[10px] text-zinc-200 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-30 transition-opacity font-mono">
+                  {seg.timeLabel}: {seg.sentiment} ({seg.score}%)
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="h-full w-full text-center text-[9px] leading-2.5 text-zinc-600">
+              No sentiment data
             </div>
-          ))}
+          )}
         </div>
 
         <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
@@ -90,16 +96,11 @@ export function SentimentHeatmap({
       </div>
 
       {/* Current Trend Status Pill */}
-      <div className="flex items-center justify-between pt-1 border-t border-zinc-800/60 text-[11px]">
+      <div className="flex items-center pt-1 border-t border-zinc-800/60 text-[11px]">
         <span className="text-zinc-400 flex items-center gap-1.5">
           {getSentimentIcon(currentSentiment)}
           <span>Aktuální rozpoložení:</span>
-          <strong className="text-zinc-200 font-medium">{currentSentiment}</strong>
-        </span>
-
-        <span className="text-zinc-300 font-mono flex items-center gap-1">
-          <TrendingUp className="w-3 h-3 text-zinc-400" />
-          +14% konverzní záměr
+          <strong className="text-zinc-200 font-medium">{segments.length > 0 ? currentSentiment : "Data unavailable"}</strong>
         </span>
       </div>
     </div>

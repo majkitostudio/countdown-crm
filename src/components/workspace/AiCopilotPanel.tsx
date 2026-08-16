@@ -59,12 +59,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   const [isResolved, setIsResolved] = useState(false);
   const [complianceViolations, setComplianceViolations] = useState<ComplianceViolation[]>([]);
 
-  const [heatmapSegments] = useState<SentimentSegment[]>([
-    { timeLabel: "0:15", sentiment: "Neutral", score: 80 },
-    { timeLabel: "0:45", sentiment: "Price Objection", score: 92 },
-    { timeLabel: "1:30", sentiment: "Price Objection", score: 88 },
-    { timeLabel: "2:10", sentiment: "Positive", score: 95 },
-  ]);
+  const heatmapSegments: SentimentSegment[] = [];
 
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
 
