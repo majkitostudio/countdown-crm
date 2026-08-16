@@ -57,14 +57,18 @@ export async function getLeads(options?: {
 }
 
 export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
+  if (leads.some((item) => !item.full_name?.trim() || !item.phone?.trim())) {
+    throw new Error("Lead name and phone are required");
+  }
+
   const supabase = createClient();
   const workspaceId = await getCurrentWorkspaceId();
   if (!workspaceId) throw new Error("No active workspace");
 
   const payload = leads.map((item) => ({
     workspace_id: workspaceId,
-    full_name: item.full_name || "New Lead",
-    phone: item.phone || "",
+    full_name: item.full_name!.trim(),
+    phone: item.phone!.trim(),
     email: item.email || null,
     city: item.city?.trim() || null,
     country: item.country || "CZ",

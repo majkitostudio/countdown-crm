@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { X, UploadCloud, FileSpreadsheet, Sparkles, ArrowRight } from "lucide-react";
+import { X, UploadCloud, FileSpreadsheet, Sparkles, ArrowRight, AlertCircle } from "lucide-react";
 import { Lead, addLeadsBatch, calculateAiLeadScore } from "@/lib/leads";
 
 interface CsvImportModalProps {
@@ -30,6 +30,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
     notes: "",
   });
   const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -48,6 +49,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
   };
 
   const processCsvFile = (selectedFile: File) => {
+    setImportError(null);
     setFile(selectedFile);
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -116,6 +118,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
   const handleExecuteImport = async () => {
     if (rawRows.length === 0) return;
     setIsImporting(true);
+    setImportError(null);
 
     const getColIndex = (colName: string) => csvHeaders.indexOf(colName);
     const nameIdx = getColIndex(columnMapping.full_name);
@@ -125,7 +128,23 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
     const companyIdx = getColIndex(columnMapping.company);
     const notesIdx = getColIndex(columnMapping.notes);
 
-    const leadsToInsert: Partial<Lead>[] = rawRows.map((row) => {
+    if (nameIdx === -1 || phoneIdx === -1) {
+      setImportError("CSV mapping must include both Full Name and Phone Number.");
+      setIsImporting(false);
+      return;
+    }
+
+    const validRows = rawRows.filter(
+      (row) => Boolean(row[nameIdx]?.trim()) && Boolean(row[phoneIdx]?.trim())
+    );
+
+    if (validRows.length === 0) {
+      setImportError("No rows contain both a name and a phone number.");
+      setIsImporting(false);
+      return;
+    }
+
+    const leadsToInsert: Partial<Lead>[] = validRows.map((row) => {
       const item: Partial<Lead> = {
         full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Imported Lead",
         phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "",
@@ -139,11 +158,15 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
       return item;
     });
 
-    await addLeadsBatch(leadsToInsert);
-
-    setIsImporting(false);
-    onImportComplete(leadsToInsert.length);
-    onClose();
+    try {
+      await addLeadsBatch(leadsToInsert);
+      onImportComplete(leadsToInsert.length);
+      onClose();
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : "Lead import failed.");
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const previewItems = getMappedLeadsPreview();
@@ -173,6 +196,12 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
 
         {/* Modal Body */}
         <div className="p-6 space-y-6">
+          {importError && (
+            <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{importError}</span>
+            </div>
+          )}
           
           {/* File Upload Zone */}
           {!file ? (
@@ -310,7 +339,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                           </div>
                           <div>
                             <p className="font-semibold text-zinc-200">{item.full_name}</p>
-                            <p className="text-zinc-500 font-mono">{item.phone} • {item.email || "No email"}</p>
+                            <p className="text-zinc-500 font-mono">{item.phone || "Phone unavailable"} • {item.email || "No email"}</p>
                           </div>
                         </div>
 
