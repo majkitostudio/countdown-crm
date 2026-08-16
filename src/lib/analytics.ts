@@ -41,6 +41,7 @@ export interface AnalyticsOverview {
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 function emptyAnalyticsData(): AnalyticsOverview {
   return {
@@ -83,6 +84,62 @@ function getWeeklySales(orders: OrderRow[]): WeeklySalesPoint[] {
   return points;
 }
 
+function getTeamLeaderboard(
+  calls: CallRow[],
+  orders: OrderRow[],
+  profiles: ProfileRow[]
+): AgentLeaderboardPoint[] {
+  const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
+  const statsByAgent = new Map<string, { callsCount: number; ordersCount: number; revenueGenerated: number }>();
+
+  const ensureAgent = (agentId: string) => {
+    const current = statsByAgent.get(agentId);
+    if (current) return current;
+    const empty = { callsCount: 0, ordersCount: 0, revenueGenerated: 0 };
+    statsByAgent.set(agentId, empty);
+    return empty;
+  };
+
+  calls.forEach((call) => {
+    if (!call.agent_id) return;
+    ensureAgent(call.agent_id).callsCount += 1;
+  });
+
+  orders.forEach((order) => {
+    if (!order.agent_id || order.status !== "completed") return;
+    const stats = ensureAgent(order.agent_id);
+    stats.ordersCount += 1;
+    stats.revenueGenerated += Number(order.total_amount || 0);
+  });
+
+  return Array.from(statsByAgent.entries())
+    .map(([agentId, stats]) => {
+      const profile = profileById.get(agentId);
+      const agentName = profile?.full_name?.trim() || "Unknown operator";
+      const role = profile?.role || "Role unavailable";
+
+      return {
+        agentName,
+        role,
+        callsCount: stats.callsCount,
+        ordersCount: stats.ordersCount,
+        revenueGenerated: Math.round(stats.revenueGenerated * 100) / 100,
+        conversionRate: stats.callsCount > 0
+          ? Math.round((stats.ordersCount / stats.callsCount) * 1000) / 10
+          : 0,
+      };
+    })
+    .sort((a, b) => {
+      if (b.revenueGenerated !== a.revenueGenerated) {
+        return b.revenueGenerated - a.revenueGenerated;
+      }
+      if (b.ordersCount !== a.ordersCount) {
+        return b.ordersCount - a.ordersCount;
+      }
+      return b.callsCount - a.callsCount;
+    });
+}
+
 /** Retrieves manager analytics computed from workspace-scoped Supabase data. */
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
   const supabase = createClient();
@@ -98,6 +155,20 @@ export async function getAnalyticsData(): Promise<AnalyticsOverview> {
 
   const orders = (ordersRes.data || []) as OrderRow[];
   const calls = (callsRes.data || []) as CallRow[];
+  const agentIds = Array.from(
+    new Set(
+      [...calls, ...orders]
+        .map((entry) => entry.agent_id)
+        .filter((agentId): agentId is string => Boolean(agentId))
+    )
+  );
+  const { data: profileRows, error: profilesError } = agentIds.length
+    ? await supabase.from("profiles").select("id, full_name, email, role, status, avatar_url, created_at, updated_at").in("id", agentIds)
+    : { data: [], error: null };
+
+  if (profilesError) throw new Error("Analytics operator lookup failed");
+
+  const profiles = profileRows as ProfileRow[];
   const completedOrders = orders.filter((order) => order.status === "completed");
   const totalRevenue = completedOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
   const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
@@ -115,8 +186,8 @@ export async function getAnalyticsData(): Promise<AnalyticsOverview> {
     objectionMetricsAvailable: false,
     weeklySales: getWeeklySales(completedOrders),
     objectionBreakdown: [],
-    teamLeaderboard: [],
-    teamMetricsAvailable: false,
+    teamLeaderboard: getTeamLeaderboard(calls, orders, profiles),
+    teamMetricsAvailable: agentIds.length > 0,
   };
 }
 

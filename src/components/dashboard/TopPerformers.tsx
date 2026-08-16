@@ -1,8 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
+import { AgentLeaderboardPoint, getAnalyticsData } from "@/lib/analytics";
 
 export function TopPerformers() {
+  const [leaderboard, setLeaderboard] = useState<AgentLeaderboardPoint[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLeaderboard() {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const analytics = await getAnalyticsData();
+        if (!cancelled) setLeaderboard(analytics.teamLeaderboard);
+      } catch (error) {
+        if (!cancelled) {
+          setLeaderboard([]);
+          setLoadError(error instanceof Error ? error.message : "Leaderboard query failed");
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    void loadLeaderboard();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 flex flex-col justify-between space-y-4">
       {/* Header */}
@@ -14,16 +46,60 @@ export function TopPerformers() {
           </h3>
         </div>
         <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
-          Shift Ranking
+          Workspace ranking
         </span>
       </div>
 
-      <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
-        <p className="text-xs font-medium text-zinc-200">Team leaderboard unavailable</p>
-        <p className="text-[11px] leading-relaxed text-zinc-400">
-          Operator attribution and persisted team performance metrics are not connected to this pilot yet.
-        </p>
-      </div>
+      {isLoading ? (
+        <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
+          Loading workspace leaderboard...
+        </div>
+      ) : loadError ? (
+        <div role="alert" className="rounded-lg bg-rose-950/20 border border-rose-900/60 p-4 space-y-2">
+          <p className="text-xs font-medium text-rose-200">Leaderboard unavailable</p>
+          <p className="text-[11px] leading-relaxed text-rose-300">{loadError}</p>
+        </div>
+      ) : leaderboard.length === 0 ? (
+        <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
+          <p className="text-xs font-medium text-zinc-200">No attributed activity yet</p>
+          <p className="text-[11px] leading-relaxed text-zinc-400">
+            The leaderboard appears after workspace calls or completed orders have an operator attribution.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          {leaderboard.slice(0, 5).map((agent, index) => (
+            <div
+              key={`${agent.agentName}-${index}`}
+              className="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex items-center justify-between hover:border-zinc-700/80 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-5 text-center text-xs font-mono font-bold text-zinc-400 shrink-0">
+                  #{index + 1}
+                </span>
+                <div className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-medium text-zinc-200 shrink-0">
+                  {agent.agentName.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-medium text-zinc-200 truncate">{agent.agentName}</span>
+                  <span className="text-[10px] text-zinc-400 font-mono truncate">
+                    {agent.role} • {agent.callsCount} calls • {agent.conversionRate.toFixed(1)}% conv.
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-right shrink-0 pl-3">
+                <span className="text-xs font-semibold text-zinc-100 font-mono">
+                  ${agent.revenueGenerated.toFixed(2)}
+                </span>
+                <span className="block text-[10px] text-zinc-500 font-mono">
+                  {agent.ordersCount} orders
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
