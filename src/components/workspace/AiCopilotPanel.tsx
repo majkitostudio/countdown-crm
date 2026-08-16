@@ -41,6 +41,15 @@ interface AiCopilotPanelProps {
   onApplyPitch?: (pitchText: string) => void;
 }
 
+const EMPTY_ANALYSIS_RESULT: CopilotAnalysisResult = {
+  sentiment: "Neutral",
+  detectedObjection: null,
+  confidenceScore: 0,
+  rebuttalArguments: [],
+  nextBestAction: "Add a customer response before requesting analysis.",
+  aiSource: "unavailable",
+};
+
 export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCopilotPanelProps) {
   const [isFollowupModalOpen, setIsFollowupModalOpen] = useState(false);
   const {
@@ -75,33 +84,9 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     return () => { cancelled = true; };
   }, []);
 
-  const [analysisResult, setAnalysisResult] = useState<CopilotAnalysisResult>({
-    sentiment: "Price Objection",
-    detectedObjection: "Price is too high compared to pharmacy vitamins",
-    confidenceScore: 92,
-    rebuttalArguments: [
-      "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
-      "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
-      "Emphasize 30-day money-back guarantee with zero risk."
-    ],
-    nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
-    aiSource: "gemini-flash"
-  });
+  const [analysisResult, setAnalysisResult] = useState<CopilotAnalysisResult>(EMPTY_ANALYSIS_RESULT);
 
-  const [transcript, setTranscript] = useState<TranscriptMessage[]>([
-    {
-      id: "t-1",
-      speaker: "agent",
-      text: "Dobrý den, tady Alex z Countdown CRM. Mluvím s " + (activeLead?.full_name || "paní Vance") + "?",
-      timestamp: "10:15:02",
-    },
-    {
-      id: "t-2",
-      speaker: "customer",
-      text: "Ano, dobrý den. Prohlížela jsem si váš Bio-Boost balíček, ale ta cena se mi zdá docela vysoká.",
-      timestamp: "10:15:08",
-    },
-  ]);
+  const [transcript, setTranscript] = useState<TranscriptMessage[]>([]);
 
   const transcriptEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -109,26 +94,8 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   useEffect(() => {
     if (activeLead) {
       const timer = setTimeout(() => {
-        setTranscript([
-          {
-            id: `t-init-${activeLead.id}`,
-            speaker: "agent",
-            text: `Dobrý den, tady Alex z Countdown CRM. Mluvím s ${activeLead.full_name}?`,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          },
-        ]);
-        setAnalysisResult({
-          sentiment: "Price Objection",
-          detectedObjection: "Price is too high compared to pharmacy vitamins",
-          confidenceScore: 92,
-          rebuttalArguments: [
-            "Highlight 800% higher liposomal bioavailability vs standard vitamins.",
-            "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
-            "Emphasize 30-day money-back guarantee with zero risk."
-          ],
-          nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
-          aiSource: "gemini-flash"
-        });
+        setTranscript([]);
+        setAnalysisResult(EMPTY_ANALYSIS_RESULT);
         setIsResolved(false);
       }, 0);
       return () => clearTimeout(timer);
@@ -248,7 +215,11 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
               <h2 className="text-sm font-semibold text-zinc-100">Objection Handling Engine</h2>
               <span className="text-[10px] bg-zinc-950 text-zinc-400 font-mono px-2 py-0.5 rounded-full border border-zinc-800 flex items-center gap-1">
                 <Cpu className="w-2.5 h-2.5" />
-                {analysisResult.aiSource === "gemini-flash" ? "AI preview" : "Product Matcher"}
+                {analysisResult.aiSource === "gemini-flash"
+                  ? "AI preview"
+                  : analysisResult.aiSource === "rule-engine"
+                    ? "Rule engine"
+                    : "Unavailable"}
               </span>
             </div>
             <p className="text-[11px] text-zinc-400">Pilot simulation • speech analysis & battle-card preview</p>
@@ -317,7 +288,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
           </div>
 
           <div className="flex items-center gap-2">
-            {!isResolved && (
+            {!isResolved && analysisResult.aiSource !== "unavailable" && (
               <button
                 onClick={handleMarkResolved}
                 className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-mono px-2.5 py-1 rounded-md border border-zinc-800 flex items-center gap-1 transition-colors cursor-pointer"

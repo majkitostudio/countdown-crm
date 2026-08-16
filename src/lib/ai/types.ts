@@ -4,7 +4,7 @@ export interface CopilotAnalysisResult {
   confidenceScore: number;
   rebuttalArguments: string[];
   nextBestAction: string;
-  aiSource: "gemini-flash" | "fallback-engine";
+  aiSource: "gemini-flash" | "fallback-engine" | "rule-engine" | "unavailable";
 }
 
 export interface EnrichedCompanyData {
