@@ -6,13 +6,16 @@ import { Product, getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import { ProductModal } from "@/components/products/ProductModal";
+import { listObjectionsAction } from "@/app/actions/objections";
 
 import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal";
 import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
-import { ObjectionBattleCard } from "@/lib/objections";
+import type { ObjectionDTO } from "@/lib/dal/objections";
+import type { ObjectionBattleCard } from "@/lib/objections";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [objectionCards, setObjectionCards] = useState<ObjectionDTO[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedObjectionProduct, setSelectedObjectionProduct] = useState<Product | null>(null);
@@ -24,8 +27,27 @@ export default function ProductsPage() {
   const [selectedObjectionCard, setSelectedObjectionCard] = useState<ObjectionBattleCard | null>(null);
 
   const loadProducts = async () => {
-    const data = await getProducts();
-    setProducts(data);
+    const [data, cards] = await Promise.all([getProducts(), listObjectionsAction()]);
+    setObjectionCards(cards);
+    const objectionsByProduct = new Map<string, typeof cards>();
+    for (const card of cards) {
+      if (card.product_id) {
+        objectionsByProduct.set(card.product_id, [
+          ...(objectionsByProduct.get(card.product_id) || []),
+          card,
+        ]);
+      }
+    }
+
+    setProducts(data.map((product) => ({
+      ...product,
+      objections: (objectionsByProduct.get(product.id) || []).map((card) => ({
+        id: card.id,
+        product_id: card.product_id,
+        objection_title: card.objection_title,
+        rebuttal_args: card.rebuttal_args,
+      })),
+    })));
   };
 
   useEffect(() => {
@@ -56,6 +78,21 @@ export default function ProductsPage() {
     setIsObjectionEditorOpen(true);
   };
 
+  const handleEditObjection = (id: string) => {
+    const card = objectionCards.find((candidate) => candidate.id === id);
+    if (!card) return;
+
+    setSelectedObjectionCard({
+      id: card.id,
+      product_id: card.product_id,
+      objection_title: card.objection_title,
+      rebuttal_arguments: card.rebuttal_args,
+      created_at: card.created_at,
+    });
+    setIsObjectionDrawerOpen(false);
+    setIsObjectionEditorOpen(true);
+  };
+
   // Filter products
   const filteredProducts = products.filter((p) => {
     const matchesCategory = activeCategory === "all" || p.category === activeCategory;
@@ -72,7 +109,7 @@ export default function ProductsPage() {
   // Calculate Metrics
   const totalProducts = products.length;
   const inStockCount = products.filter((p) => p.in_stock).length;
-  const totalObjectionsCount = products.reduce((acc, p) => acc + (p.objections ? p.objections.length : 0), 0);
+  const totalObjectionsCount = objectionCards.length;
   const totalCatalogValue = products.reduce((acc, p) => acc + p.price * (p.stock_count || 50), 0);
 
   return (
@@ -236,6 +273,7 @@ export default function ProductsPage() {
         isOpen={isObjectionDrawerOpen}
         onClose={() => setIsObjectionDrawerOpen(false)}
         onProductUpdated={loadProducts}
+        onEditObjection={handleEditObjection}
       />
 
       {/* Add / Edit Product Modal */}

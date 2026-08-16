@@ -274,22 +274,22 @@ export interface Database {
       objections: {
         Row: {
           id: string;
-          workspace_id: string | null;
-          product_id: string;
+          workspace_id: string;
+          product_id: string | null;
           objection_title: string;
           rebuttal_args: string[];
           created_at: string;
         };
         Insert: {
           id?: string;
-          workspace_id?: string | null;
-          product_id: string;
+          workspace_id: string;
+          product_id?: string | null;
           objection_title: string;
           rebuttal_args: string[];
           created_at?: string;
         };
         Update: {
-          product_id?: string;
+          product_id?: string | null;
           objection_title?: string;
           rebuttal_args?: string[];
         };

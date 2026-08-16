@@ -8,10 +8,9 @@ export type ProductCategory = "supplements" | "cosmetics" | "electronics";
 
 export interface Objection {
   id: string;
-  product_id?: string;
+  product_id?: string | null;
   objection_title: string;
   rebuttal_args: string[];
-  frequency_score?: number;
 }
 
 export interface Product {
@@ -35,7 +34,7 @@ export async function getProducts(options?: {
   inStockOnly?: boolean;
 }): Promise<Product[]> {
   const data = await fetchProductsFromSupabase();
-  let filtered = data.map((product) => ({ ...product, objections: [] }));
+  let filtered = data;
 
   if (options?.category && options.category !== "all") {
     filtered = filtered.filter((product) => product.category === options.category);

@@ -18,8 +18,9 @@ import {
 import { Lead } from "@/lib/leads";
 import { useSpeechRecognition, SpeechLanguage } from "@/hooks/useSpeechRecognition";
 import { analyzeCallTranscriptAction } from "@/app/actions/copilot";
+import { listObjectionsAction } from "@/app/actions/objections";
 import type { CopilotAnalysisResult } from "@/lib/ai/types";
-import { matchObjectionToProduct } from "@/lib/objections";
+import { matchObjectionToProduct, ObjectionBattleCard } from "@/lib/objections";
 import { getProducts, Product } from "@/lib/products";
 import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
 import { SentimentHeatmap, SentimentSegment } from "./SentimentHeatmap";
@@ -71,6 +72,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
   const heatmapSegments: SentimentSegment[] = [];
 
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+  const [activeObjections, setActiveObjections] = useState<ObjectionBattleCard[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +85,36 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
       });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeProduct) {
+      const timer = setTimeout(() => setActiveObjections([]), 0);
+      return () => clearTimeout(timer);
+    }
+
+    void listObjectionsAction()
+      .then((cards) => {
+        if (!cancelled) {
+          setActiveObjections(
+            cards
+              .filter((card) => !card.product_id || card.product_id === activeProduct.id)
+              .map((card) => ({
+                id: card.id,
+                product_id: card.product_id,
+                objection_title: card.objection_title,
+                rebuttal_arguments: card.rebuttal_args,
+                created_at: card.created_at,
+              }))
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setActiveObjections([]);
+      });
+
+    return () => { cancelled = true; };
+  }, [activeProduct]);
 
   const [analysisResult, setAnalysisResult] = useState<CopilotAnalysisResult>(EMPTY_ANALYSIS_RESULT);
 
@@ -158,12 +190,12 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     );
 
     // Match detected objection against product battle-card DB
-    const matched = matchObjectionToProduct(rawResult.detectedObjection, activeProduct || undefined);
+    const matched = matchObjectionToProduct(rawResult.detectedObjection, activeObjections);
 
     setAnalysisResult({
       ...rawResult,
-      detectedObjection: matched.matchedTitle,
-      confidenceScore: matched.matchScore,
+      detectedObjection: matched.matchScore > 0 ? matched.matchedTitle : rawResult.detectedObjection,
+      confidenceScore: matched.matchScore > 0 ? matched.matchScore : rawResult.confidenceScore,
       rebuttalArguments: matched.rebuttalArgs.length > 0 ? matched.rebuttalArgs : rawResult.rebuttalArguments,
     });
 
