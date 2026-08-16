@@ -49,6 +49,7 @@ type ActivityRows = {
 type ActivityQueryOptions = {
   workspaceId: string;
   leadId?: string;
+  callId?: string;
   limit?: number;
 };
 
@@ -61,12 +62,13 @@ async function loadActivityRows(
   leadId?: string,
   includeCalls = true,
   includeOrders = true,
-  limit?: number
+  limit?: number,
+  callId?: string
 ): Promise<ActivityRows> {
   const supabase = await createDataClient();
 
   const callsQuery = includeCalls
-    ? fetchCalls(supabase, { workspaceId, leadId, limit })
+    ? fetchCalls(supabase, { workspaceId, leadId, callId, limit })
     : Promise.resolve({ data: [], error: null });
   const ordersQuery = includeOrders
     ? fetchOrders(supabase, { workspaceId, leadId, limit })
@@ -126,6 +128,7 @@ async function fetchCalls(
     .eq("workspace_id", options.workspaceId);
 
   if (options.leadId) query = query.eq("lead_id", options.leadId);
+  if (options.callId) query = query.eq("id", options.callId);
 
   query = query.order("created_at", { ascending: false });
   if (options.limit !== undefined) query = query.limit(options.limit);
@@ -189,6 +192,31 @@ export async function listWorkspaceCalls(
   }));
 }
 
+export async function getWorkspaceCall(
+  callId: string,
+  requestedWorkspaceId?: string
+): Promise<WorkspaceCallDTO | null> {
+  const context = await requireWorkspaceContext(requestedWorkspaceId);
+  const rows = await loadActivityRows(context.workspaceId, undefined, true, false, undefined, callId);
+  const call = rows.calls[0];
+  if (!call) return null;
+
+  const { customerNameFor, operatorNameFor } = buildLookups(rows);
+  return {
+    id: call.id,
+    lead_id: call.lead_id || "",
+    lead_name: customerNameFor(call.lead_id),
+    agent_id: call.agent_id,
+    agent_name: operatorNameFor(call.agent_id),
+    duration_seconds: call.duration_seconds || 0,
+    outcome: call.outcome,
+    sentiment: call.ai_sentiment || "Neutral",
+    order_value: 0,
+    transcript: call.transcript,
+    created_at: call.created_at,
+  };
+}
+
 export async function listWorkspaceOrders(
   requestedWorkspaceId?: string,
   limit?: number
@@ -200,6 +228,28 @@ export async function listWorkspaceOrders(
   return rows.orders.map((order) => ({
     id: order.id,
     lead_id: order.lead_id || "",
+    lead_name: customerNameFor(order.lead_id),
+    product_id: order.product_id || "",
+    product_title: order.products?.title || "Unknown product",
+    agent_id: order.agent_id,
+    agent_name: operatorNameFor(order.agent_id),
+    total_amount: Number(order.total_amount || 0),
+    status: order.status,
+    created_at: order.created_at,
+  }));
+}
+
+export async function listWorkspaceOrdersForLead(
+  leadId: string,
+  requestedWorkspaceId?: string
+): Promise<WorkspaceOrderDTO[]> {
+  const context = await requireWorkspaceContext(requestedWorkspaceId);
+  const rows = await loadActivityRows(context.workspaceId, leadId, false, true);
+  const { customerNameFor, operatorNameFor } = buildLookups(rows);
+
+  return rows.orders.map((order) => ({
+    id: order.id,
+    lead_id: order.lead_id || leadId,
     lead_name: customerNameFor(order.lead_id),
     product_id: order.product_id || "",
     product_title: order.products?.title || "Unknown product",

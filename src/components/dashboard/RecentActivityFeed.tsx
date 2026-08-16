@@ -30,6 +30,8 @@ function getCallOutcomeLabel(outcome: string): string {
       return "No answer";
     case "objection":
       return "Objection logged";
+    case "completed":
+      return "Completed";
     default:
       return outcome.replaceAll("_", " ");
   }

@@ -1,4 +1,4 @@
-import { listOrdersAction } from "@/app/actions/crm";
+import { listLeadOrdersAction, listOrdersAction } from "@/app/actions/crm";
 
 export interface Order {
   id: string;
@@ -28,6 +28,16 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function getOrdersByLeadId(leadId: string): Promise<Order[]> {
-  const orders = await getOrders();
-  return orders.filter((order) => order.lead_id === leadId);
+  const orders = await listLeadOrdersAction(leadId);
+  return orders.map((order) => ({
+    id: order.id,
+    lead_id: order.lead_id,
+    lead_name: order.lead_name,
+    product_id: order.product_id,
+    product_title: order.product_title,
+    total_amount: order.total_amount,
+    status: order.status,
+    agent_name: order.agent_name,
+    created_at: order.created_at,
+  }));
 }

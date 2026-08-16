@@ -8,7 +8,13 @@ import { createCallForWorkspace } from "@/lib/dal/calls";
 import type { CallDTO, CreateCallInput } from "@/lib/dal/calls";
 import { completeCallForWorkspace } from "@/lib/dal/callCompletion";
 import type { CompleteCallDTO, CompleteCallInput } from "@/lib/dal/callCompletion";
-import { listWorkspaceCalls, listWorkspaceOrders, listWorkspaceLeadActivity } from "@/lib/dal/activity";
+import {
+  getWorkspaceCall,
+  listWorkspaceCalls,
+  listWorkspaceOrders,
+  listWorkspaceOrdersForLead,
+  listWorkspaceLeadActivity,
+} from "@/lib/dal/activity";
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { Database } from "@/lib/supabase/types";
 
@@ -53,8 +59,22 @@ export async function listCallsAction(workspaceId?: string): Promise<WorkspaceCa
   return listWorkspaceCalls(workspaceId);
 }
 
+export async function getCallAction(
+  callId: string,
+  workspaceId?: string
+): Promise<WorkspaceCallDTO | null> {
+  return getWorkspaceCall(callId, workspaceId);
+}
+
 export async function listOrdersAction(workspaceId?: string): Promise<WorkspaceOrderDTO[]> {
   return listWorkspaceOrders(workspaceId);
+}
+
+export async function listLeadOrdersAction(
+  leadId: string,
+  workspaceId?: string
+): Promise<WorkspaceOrderDTO[]> {
+  return listWorkspaceOrdersForLead(leadId, workspaceId);
 }
 
 export async function listLeadActivityAction(

@@ -1,4 +1,7 @@
-import { listCallsAction } from "@/app/actions/crm";
+import { getCallAction, listCallsAction } from "@/app/actions/crm";
+import type { Database } from "./supabase/types";
+
+export type PersistedCallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
 export interface TranscriptEntry {
   speaker: "agent" | "customer";
@@ -12,7 +15,7 @@ export interface CallRecord {
   lead_name: string;
   agent_name: string;
   duration_seconds: number;
-  outcome: "order_placed" | "followup_scheduled" | "no_answer" | "objection_handled";
+  outcome: PersistedCallOutcome;
   sentiment: "Positive" | "Price Objection" | "Product Objection" | "Neutral";
   order_value: number;
   transcript: TranscriptEntry[];
@@ -29,10 +32,21 @@ function parseTranscript(value: string | null): TranscriptEntry[] {
   }
 }
 
-function mapCallOutcome(outcome: string): CallRecord["outcome"] {
-  if (outcome === "objection") return "objection_handled";
-  if (outcome === "completed") return "followup_scheduled";
-  return outcome as CallRecord["outcome"];
+export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
+  switch (outcome) {
+    case "order_placed":
+      return "Order placed";
+    case "followup_scheduled":
+      return "Follow-up scheduled";
+    case "objection":
+      return "Objection logged";
+    case "no_answer":
+      return "No answer";
+    case "completed":
+      return "Completed";
+    default:
+      return "Unknown outcome";
+  }
 }
 
 export async function getCalls(): Promise<CallRecord[]> {
@@ -44,7 +58,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     lead_name: call.lead_name,
     agent_name: call.agent_name,
     duration_seconds: call.duration_seconds || 0,
-    outcome: mapCallOutcome(call.outcome),
+    outcome: call.outcome,
     sentiment: (call.sentiment as CallRecord["sentiment"]) || "Neutral",
     order_value: call.order_value,
     transcript: parseTranscript(call.transcript),
@@ -53,6 +67,19 @@ export async function getCalls(): Promise<CallRecord[]> {
 }
 
 export async function getCallById(id: string): Promise<CallRecord | null> {
-  const calls = await getCalls();
-  return calls.find((call) => call.id === id) || null;
+  const call = await getCallAction(id);
+  if (!call) return null;
+
+  return {
+    id: call.id,
+    lead_id: call.lead_id || "",
+    lead_name: call.lead_name,
+    agent_name: call.agent_name,
+    duration_seconds: call.duration_seconds || 0,
+    outcome: call.outcome,
+    sentiment: (call.sentiment as CallRecord["sentiment"]) || "Neutral",
+    order_value: call.order_value,
+    transcript: parseTranscript(call.transcript),
+    created_at: call.created_at,
+  };
 }

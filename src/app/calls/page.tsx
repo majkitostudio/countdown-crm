@@ -14,7 +14,7 @@ import {
   User,
   Volume2
 } from "lucide-react";
-import { CallRecord, getCalls } from "@/lib/calls";
+import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 
 export default function CallLogsPage() {
@@ -215,7 +215,7 @@ export default function CallLogsPage() {
                   <td className="px-5 py-3 font-mono text-zinc-300">{formatDuration(c.duration_seconds)}</td>
                   <td className="px-5 py-3">
                     <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getOutcomeBadge(c.outcome)}`}>
-                      {c.outcome.replace("_", " ")}
+                      {formatCallOutcome(c.outcome)}
                     </span>
                   </td>
                   <td className="px-5 py-3">

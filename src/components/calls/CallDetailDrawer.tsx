@@ -11,7 +11,7 @@ import {
   TrendingUp,
   Volume2,
 } from "lucide-react";
-import { CallRecord } from "@/lib/calls";
+import { CallRecord, formatCallOutcome } from "@/lib/calls";
 
 interface CallDetailDrawerProps {
   call: CallRecord | null;
@@ -46,7 +46,7 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-semibold text-zinc-100 font-mono">Call Record #{call.id}</h2>
                 <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getOutcomeBadge()}`}>
-                  {call.outcome.replace("_", " ")}
+                  {formatCallOutcome(call.outcome)}
                 </span>
               </div>
               <p className="text-xs text-zinc-400 flex items-center gap-2 mt-0.5">

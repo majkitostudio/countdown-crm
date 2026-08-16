@@ -13,7 +13,7 @@ import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { ProductOrderPanel } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
-import { CallRecord } from "@/lib/calls";
+import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
 import { fetchWorkflowsFromSupabase } from "@/lib/supabase/workflowService";
@@ -93,7 +93,7 @@ function WorkspaceContent() {
   }, [leadIdParam]);
 
   const completeCall = async (
-    outcome: CallRecord["outcome"],
+    outcome: CompletionOutcome,
     outcomeLabel: string,
     orderStatus: PostCallSummary["orderStatus"],
     orderValue = 0,
@@ -262,7 +262,7 @@ function WorkspaceContent() {
       return;
     }
 
-    const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CallRecord["outcome"], string]> = {
+    const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CompletionOutcome, string]> = {
       call_later: ["no_answer", "No answer"],
       schedule: ["followup_scheduled", "Follow-up scheduled"],
       fail: ["objection_handled", "Not interested"],
