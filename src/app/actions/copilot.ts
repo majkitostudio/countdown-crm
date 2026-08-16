@@ -36,7 +36,7 @@ export async function analyzeCallTranscriptAction(
         "Listen actively to identify customer needs."
       ],
       nextBestAction: "Greet customer and ask open-ended question.",
-      aiSource: "unavailable"
+      aiSource: "unavailable",
     };
   }
 

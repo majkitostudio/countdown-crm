@@ -6,7 +6,7 @@ import type { CopilotAnalysisResult } from "@/lib/ai/types";
 export type { CopilotAnalysisResult } from "@/lib/ai/types";
 
 /**
- * Runs Gemini 2.5 Flash model analysis on call transcript with fallback engine
+ * Runs Gemini 2.5 Flash model analysis on call transcript with a transparent rule-engine fallback.
  */
 export async function analyzeTranscriptWithGemini(
   transcript: string,
@@ -16,8 +16,8 @@ export async function analyzeTranscriptWithGemini(
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
-    console.log("No GEMINI_API_KEY provided in environment, using intelligent fallback engine.");
-    return generateFallbackAnalysis(transcript, productTitle);
+    console.log("No GEMINI_API_KEY provided in environment, using the transparent rule engine.");
+    return analyzeTranscriptWithRuleEngine(transcript);
   }
 
   try {
@@ -58,32 +58,29 @@ Respond ONLY with valid JSON, no markdown code block formatting.
       aiSource: "gemini-flash",
     };
   } catch (err) {
-    console.warn("Gemini API call failed, falling back to rule engine:", err);
-    return generateFallbackAnalysis(transcript, productTitle);
+    console.warn("Gemini API call failed, using the transparent rule engine:", err);
+    return analyzeTranscriptWithRuleEngine(transcript);
   }
 }
 
 /**
- * Intelligent Fallback Engine when Gemini API key is not configured
+ * Deterministic offline analysis. It classifies conversation cues only and never invents product claims.
  */
-export function generateFallbackAnalysis(
-  transcript: string,
-  productTitle: string
-): CopilotAnalysisResult {
+export function analyzeTranscriptWithRuleEngine(transcript: string): CopilotAnalysisResult {
   const lower = transcript.toLowerCase();
 
   if (lower.includes("cena") || lower.includes("drahé") || lower.includes("expensive") || lower.includes("price") || lower.includes("kolik")) {
     return {
       sentiment: "Price Objection",
-      detectedObjection: "Customer perceives price as high",
-      confidenceScore: 92,
+      detectedObjection: "Price concern",
+      confidenceScore: 60,
       rebuttalArguments: [
-        `Highlight liposomal bioavailability of ${productTitle} (up to 800% higher absorption).`,
-        "Offer 3-month supply bundle discount which lowers monthly cost by 25%.",
-        "Emphasize 30-day money-back guarantee with zero risk."
+        "Acknowledge the customer's price concern.",
+        "Explain only the approved offer and total cost; do not invent discounts or guarantees.",
+        "Ask which information would help the customer decide."
       ],
-      nextBestAction: "Offer 15% VIP Closing discount or 3-month bundle plan.",
-      aiSource: "fallback-engine",
+      nextBestAction: "Ask one clarifying question before discussing approved options.",
+      aiSource: "rule-engine",
     };
   }
 
@@ -91,27 +88,27 @@ export function generateFallbackAnalysis(
     return {
       sentiment: "Positive",
       detectedObjection: null,
-      confidenceScore: 96,
+      confidenceScore: 60,
       rebuttalArguments: [
-        "Confirm customer shipping address and payment method.",
-        "Suggest adding complimentary skincare serum to increase order value.",
-        "Thank customer and reassure 24h dispatch time."
+        "Confirm that the customer wants to continue.",
+        "Review the approved product, price and delivery terms.",
+        "Place an order only after explicit customer confirmation."
       ],
-      nextBestAction: "Click 'Place Order' button immediately in right panel.",
-      aiSource: "fallback-engine",
+      nextBestAction: "Confirm explicit customer consent before opening checkout.",
+      aiSource: "rule-engine",
     };
   }
 
   return {
     sentiment: "Neutral",
-    detectedObjection: "General product inquiry",
-    confidenceScore: 80,
+    detectedObjection: null,
+    confidenceScore: 40,
     rebuttalArguments: [
-      `Explain main active ingredients and benefits of ${productTitle}.`,
-      "Ask customer about their primary health / beauty goals.",
-      "Share customer review quotes and clinical test results."
+      "Ask an open question to understand the customer's needs.",
+      "Use only approved product information.",
+      "Do not promise outcomes, discounts or delivery terms that are not confirmed."
     ],
-    nextBestAction: "Identify customer pain point before proposing price.",
-    aiSource: "fallback-engine",
+    nextBestAction: "Identify the customer's need before presenting the offer.",
+    aiSource: "rule-engine",
   };
 }
