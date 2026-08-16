@@ -1,4 +1,4 @@
-import { PhoneCall, Plus, Zap } from "lucide-react";
+import { PhoneCall, Plus } from "lucide-react";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { CallActivityChart } from "@/components/dashboard/CallActivityChart";
 import { TopPerformers } from "@/components/dashboard/TopPerformers";
@@ -61,4 +61,3 @@ export default function Home() {
     </div>
   );
 }
-

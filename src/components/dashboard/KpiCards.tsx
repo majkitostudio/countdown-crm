@@ -32,7 +32,7 @@ export function KpiCards() {
         { id: "calls", label: "Total Calls", value: String(calls.length), trend: "0%", subtext: "workspace total", icon: PhoneCall },
         { id: "conversion", label: "Conversion Rate", value: `${conversion.toFixed(1)}%`, trend: "0%", subtext: "orders / calls", icon: TrendingUp },
         { id: "revenue", label: "Total Revenue", value: `$${revenue.toFixed(2)}`, trend: "0%", subtext: `${orders.length} orders`, icon: DollarSign },
-        { id: "agents", label: "Active Agents", value: "1", trend: "100%", subtext: "current user", icon: Users },
+        { id: "agents", label: "Active Agents", value: "—", trend: "—", subtext: "presence data unavailable", icon: Users },
       ]);
     }).catch(() => undefined);
   }, []);
