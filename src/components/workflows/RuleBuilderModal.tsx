@@ -97,6 +97,8 @@ export function RuleBuilderModal({
 
   useEffect(() => {
     if (!isOpen) return;
+    // This modal intentionally resets its editable draft from the selected rule.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setName(editingRule?.name ?? "");
     setDescription(editingRule?.description ?? "");
     setTrigger(editingRule?.trigger ?? "on_call_ended");

@@ -5,6 +5,7 @@ import { X, Upload, Check } from "lucide-react";
 import { addCallTranscripts } from "@/lib/callTranscriptsStore";
 
 type UploadedFile = File | null;
+type ParsedRecord = Record<string, unknown>;
 
 export function CallTranscriptUploaderModal({
   isOpen,
@@ -33,7 +34,7 @@ export function CallTranscriptUploaderModal({
     const headers = lines[0].split(",");
     return lines.slice(1).map((row) => {
       const cols = row.split(",");
-      const obj: any = {};
+      const obj: ParsedRecord = {};
       headers.forEach((h, i) => {
         obj[h.trim()] = cols[i]?.trim();
       });
@@ -50,9 +51,13 @@ export function CallTranscriptUploaderModal({
     reader.onload = () => {
       try {
         const text = reader.result as string;
-        let records: any[] = [];
+        let records: ParsedRecord[] = [];
         if (file.name.endsWith(".json")) {
-          records = JSON.parse(text);
+          const parsed: unknown = JSON.parse(text);
+          if (!Array.isArray(parsed) || !parsed.every((record) => typeof record === "object" && record !== null)) {
+            throw new Error("JSON musí obsahovat seznam objektů.");
+          }
+          records = parsed as ParsedRecord[];
         } else if (file.name.endsWith(".csv")) {
           records = parseCSV(text);
         } else {
@@ -60,14 +65,14 @@ export function CallTranscriptUploaderModal({
         }
         // Normalize to CallTranscript shape
         const transcripts = records.map((r) => ({
-          callId: r.callId ?? r.call_id ?? undefined,
-          transcript: r.transcript ?? r.text ?? "",
+          callId: typeof r.callId === "string" ? r.callId : typeof r.call_id === "string" ? r.call_id : undefined,
+          transcript: typeof r.transcript === "string" ? r.transcript : typeof r.text === "string" ? r.text : "",
         }));
         addCallTranscripts(transcripts);
         setSuccess(`Úspěšně nahráno ${transcripts.length} transkriptů.`);
         setFile(null);
-      } catch (e: any) {
-        setError(e.message ?? "Neznámá chyba při zpracování souboru.");
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Neznámá chyba při zpracování souboru.");
       }
     };
     reader.readAsText(file);

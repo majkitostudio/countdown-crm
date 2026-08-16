@@ -24,11 +24,9 @@ import {
   Pie,
   Cell
 } from "recharts";
-import {
-  AnalyticsOverview,
-  getAnalyticsData,
-  exportAnalyticsToCSV,
-} from "@/lib/analytics";
+import type { AnalyticsOverview } from "@/lib/analytics";
+import { getAnalyticsDataAction } from "@/app/actions/analytics";
+import { exportAnalyticsToCSV } from "@/lib/analyticsExport";
 import { ReportGeneratorModal } from "@/components/analytics/ReportGeneratorModal";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
@@ -56,7 +54,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await getAnalyticsData();
+        const res = await getAnalyticsDataAction();
         setData(res);
         setLoadError(null);
       } catch (error: unknown) {

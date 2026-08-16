@@ -32,7 +32,11 @@ export default function ProductsPage() {
   };
 
   useEffect(() => {
-    loadProducts();
+    async function loadInitialProducts() {
+      await loadProducts();
+    }
+
+    void loadInitialProducts();
   }, []);
 
   const handleOpenObjections = (prod: Product) => {

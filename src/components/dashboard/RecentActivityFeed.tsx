@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Activity, ArrowUpRight, Clock, PhoneCall, ShoppingBag, User } from "lucide-react";
-import { getRecentActivity, RecentActivityEntry } from "@/lib/analytics";
+import { getRecentActivityAction } from "@/app/actions/analytics";
+import type { RecentActivityEntry } from "@/lib/analytics";
 
 function formatDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -50,7 +51,7 @@ export function RecentActivityFeed() {
       setIsLoading(true);
       setLoadError(null);
       try {
-        const entries = await getRecentActivity();
+        const entries = await getRecentActivityAction();
         if (!cancelled) setActivity(entries);
       } catch (error) {
         if (!cancelled) {

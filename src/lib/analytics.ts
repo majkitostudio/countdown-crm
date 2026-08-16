@@ -1,6 +1,9 @@
-import { createClient } from "./supabase/client";
-import { Database } from "./supabase/types";
-import { getCurrentWorkspaceId } from "./supabase/workspace";
+import "server-only";
+
+import type { Database } from "./supabase/types";
+import { createDataClient } from "./dal/db";
+import { requireWorkspaceContext } from "./dal/workspace";
+import { listWorkspaceCalls, listWorkspaceOrders } from "./dal/activity";
 
 export interface WeeklySalesPoint {
   day: string;
@@ -55,26 +58,6 @@ export interface RecentActivityEntry {
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
-type OrderWithProduct = OrderRow & { products?: { title: string } | null };
-
-function emptyAnalyticsData(): AnalyticsOverview {
-  return {
-    totalRevenue: 0,
-    projectedRevenue: 0,
-    forecastGrowthPercent: 0,
-    forecastAvailable: false,
-    avgOrderValue: 0,
-    totalCalls: 0,
-    conversionRate: 0,
-    objectionResolutionRate: null,
-    objectionMetricsAvailable: false,
-    weeklySales: [],
-    objectionBreakdown: [],
-    teamLeaderboard: [],
-    teamMetricsAvailable: false,
-  };
-}
 
 function getWeeklySales(orders: OrderRow[]): WeeklySalesPoint[] {
   const today = new Date();
@@ -157,85 +140,32 @@ function getTeamLeaderboard(
 
 /** Retrieves recent workspace activity with real customer and operator attribution. */
 export async function getRecentActivity(limit = 8): Promise<RecentActivityEntry[]> {
-  const supabase = createClient();
-  const workspaceId = await getCurrentWorkspaceId();
-  if (!workspaceId) return [];
-
   const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
-  const [callsRes, ordersRes] = await Promise.all([
-    supabase
-      .from("calls")
-      .select("*")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(safeLimit),
-    supabase
-      .from("orders")
-      .select("*, products(title)")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
-      .limit(safeLimit),
+  const [calls, orders] = await Promise.all([
+    listWorkspaceCalls(undefined, safeLimit),
+    listWorkspaceOrders(undefined, safeLimit),
   ]);
-
-  if (callsRes.error || ordersRes.error) throw new Error("Recent activity query failed");
-
-  const calls = (callsRes.data || []) as CallRow[];
-  const orders = (ordersRes.data || []) as unknown as OrderWithProduct[];
-  const leadIds = Array.from(
-    new Set(
-      [...calls, ...orders]
-        .map((entry) => entry.lead_id)
-        .filter((leadId): leadId is string => Boolean(leadId))
-    )
-  );
-  const agentIds = Array.from(
-    new Set(
-      [...calls, ...orders]
-        .map((entry) => entry.agent_id)
-        .filter((agentId): agentId is string => Boolean(agentId))
-    )
-  );
-
-  const [leadsRes, profilesRes] = await Promise.all([
-    leadIds.length
-      ? supabase.from("leads").select("*").eq("workspace_id", workspaceId).in("id", leadIds)
-      : Promise.resolve({ data: [], error: null }),
-    agentIds.length
-      ? supabase.from("profiles").select("id, full_name, email, role, status, avatar_url, created_at, updated_at").in("id", agentIds)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
-
-  if (leadsRes.error || profilesRes.error) throw new Error("Recent activity attribution lookup failed");
-
-  const leads = leadsRes.data as LeadRow[];
-  const profiles = profilesRes.data as ProfileRow[];
-  const leadNames = new Map(leads.map((lead) => [lead.id, lead.full_name.trim() || "Unknown customer"]));
-  const operatorNames = new Map(profiles.map((profile) => [profile.id, profile.full_name.trim() || "Unknown operator"]));
-  const customerNameFor = (leadId: string | null) =>
-    (leadId && leadNames.get(leadId)) || "Unknown customer";
-  const operatorNameFor = (agentId: string | null) =>
-    (agentId && operatorNames.get(agentId)) || "Unknown operator";
 
   const activity: RecentActivityEntry[] = [
     ...calls.map((call) => ({
       id: `call-${call.id}`,
       type: "call" as const,
       timestamp: call.created_at,
-      customerName: customerNameFor(call.lead_id),
-      operatorName: operatorNameFor(call.agent_id),
-      durationSeconds: call.duration_seconds || 0,
+      customerName: call.lead_name,
+      operatorName: call.agent_name,
+      durationSeconds: call.duration_seconds,
       outcome: call.outcome,
-      sentiment: call.ai_sentiment,
+      sentiment: call.sentiment,
     })),
     ...orders.map((order) => ({
       id: `order-${order.id}`,
       type: "order" as const,
       timestamp: order.created_at,
-      customerName: customerNameFor(order.lead_id),
-      operatorName: operatorNameFor(order.agent_id),
+      customerName: order.lead_name,
+      operatorName: order.agent_name,
       outcome: order.status,
-      productName: order.products?.title || "Unknown product",
-      amount: Number(order.total_amount || 0),
+      productName: order.product_title,
+      amount: order.total_amount,
     })),
   ];
 
@@ -246,13 +176,12 @@ export async function getRecentActivity(limit = 8): Promise<RecentActivityEntry[
 
 /** Retrieves manager analytics computed from workspace-scoped Supabase data. */
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
-  const supabase = createClient();
-  const workspaceId = await getCurrentWorkspaceId();
-  if (!workspaceId) return emptyAnalyticsData();
+  const context = await requireWorkspaceContext();
+  const supabase = await createDataClient();
 
   const [ordersRes, callsRes] = await Promise.all([
-    supabase.from("orders").select("*").eq("workspace_id", workspaceId),
-    supabase.from("calls").select("*").eq("workspace_id", workspaceId),
+    supabase.from("orders").select("*").eq("workspace_id", context.workspaceId),
+    supabase.from("calls").select("*").eq("workspace_id", context.workspaceId),
   ]);
 
   if (ordersRes.error || callsRes.error) throw new Error("Analytics query failed");
@@ -293,29 +222,4 @@ export async function getAnalyticsData(): Promise<AnalyticsOverview> {
     teamLeaderboard: getTeamLeaderboard(calls, orders, profiles),
     teamMetricsAvailable: agentIds.length > 0,
   };
-}
-
-export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
-  if (typeof window === "undefined") return;
-
-  let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += "Metric,Value\n";
-  csvContent += `Total Revenue,$${data.totalRevenue}\n`;
-  csvContent += `AI Forecast Revenue (Next 30d),${data.forecastAvailable ? `$${data.projectedRevenue}` : "Unavailable"}\n`;
-  csvContent += `Average Order Value (AOV),$${data.avgOrderValue}\n`;
-  csvContent += `Conversion Rate,${data.conversionRate}%\n`;
-  csvContent += `Objection Resolution Rate,${data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`}\n\n`;
-
-  csvContent += "Agent,Calls,Orders,Revenue,Conversion Rate%\n";
-  data.teamLeaderboard.forEach((agent) => {
-    csvContent += `"${agent.agentName}",${agent.callsCount},${agent.ordersCount},$${agent.revenueGenerated},${agent.conversionRate}%\n`;
-  });
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `countdown_analytics_report_${new Date().toISOString().split("T")[0]}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }

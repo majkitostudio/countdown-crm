@@ -39,6 +39,8 @@ export function ObjectionEditorModal({
 
   useEffect(() => {
     if (initialCard) {
+      // The modal form is an editable draft synchronized when the selected card changes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProductId(initialCard.product_id || "");
       setCategory(initialCard.objection_category);
       setCustomerPhrase(initialCard.customer_phrase);

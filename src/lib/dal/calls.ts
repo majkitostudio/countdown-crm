@@ -23,7 +23,6 @@ export type CallDTO = Pick<
 
 export interface CreateCallInput {
   lead_id?: string | null;
-  agent_id?: string | null;
   duration_seconds?: number;
   outcome?: CallOutcome;
   transcript?: string | null;
@@ -69,7 +68,7 @@ export async function createCallForWorkspace(
     .insert({
       workspace_id: context.workspaceId,
       lead_id: input.lead_id || null,
-      agent_id: input.agent_id || context.userId,
+      agent_id: context.userId,
       duration_seconds: input.duration_seconds ?? 0,
       outcome: input.outcome || "completed",
       transcript: input.transcript || null,

@@ -8,7 +8,7 @@ import { createDataClient } from "./db";
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
 
-export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "total_amount" | "status" | "created_at">;
+export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "agent_id" | "total_amount" | "status" | "created_at">;
 
 export interface CreateOrderInput {
   lead_id: string;
@@ -46,10 +46,11 @@ export async function createOrderForWorkspace(
       workspace_id: context.workspaceId,
       lead_id: input.lead_id,
       product_id: input.product_id,
+      agent_id: context.userId,
       total_amount: input.total_amount,
       status: input.status || "completed",
     })
-    .select("id, workspace_id, lead_id, product_id, total_amount, status, created_at")
+    .select("id, workspace_id, lead_id, product_id, agent_id, total_amount, status, created_at")
     .single();
 
   if (error || !data) {

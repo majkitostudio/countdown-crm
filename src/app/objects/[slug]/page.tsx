@@ -17,84 +17,24 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { schemaEngine } from "@/lib/schema/engine";
-import { ObjectSchema, RecordEntity } from "@/lib/schema/types";
+import { RecordEntity } from "@/lib/schema/types";
 import {
   fetchRecordEntitiesFromSupabase,
   saveRecordEntityToSupabase,
 } from "@/lib/supabase/schemaService";
-
-// Mock records generator per custom schema slug
-const MOCK_CUSTOM_RECORDS: Record<string, RecordEntity[]> = {
-  deals: [
-    {
-      id: "deal-1",
-      schemaSlug: "deals",
-      values: {
-        title: "Enterprise Bio-Boost Order — Apex Logistics",
-        amount: 24500,
-        stage: "proposal",
-        win_probability: 75,
-      },
-      createdAt: "2026-08-01T10:00:00Z",
-      updatedAt: "2026-08-01T10:00:00Z",
-    },
-    {
-      id: "deal-2",
-      schemaSlug: "deals",
-      values: {
-        title: "Skincare Line Expansion — Lumina Studio",
-        amount: 14200,
-        stage: "negotiation",
-        win_probability: 90,
-      },
-      createdAt: "2026-08-02T11:30:00Z",
-      updatedAt: "2026-08-02T11:30:00Z",
-    },
-    {
-      id: "deal-3",
-      schemaSlug: "deals",
-      values: {
-        title: "Smart Fitness Scale Fleet — Novák Tech",
-        amount: 38000,
-        stage: "closed_won",
-        win_probability: 100,
-      },
-      createdAt: "2026-07-28T09:15:00Z",
-      updatedAt: "2026-07-28T09:15:00Z",
-    },
-  ],
-};
 
 export default function CustomObjectPage() {
   const params = useParams();
   const router = useRouter();
   const slug = (params.slug as string) || "deals";
 
-  const [schema, setSchema] = useState<ObjectSchema | undefined>(undefined);
+  const schema = schemaEngine.getSchema(slug);
   const [records, setRecords] = useState<RecordEntity[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newRecordValues, setNewRecordValues] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
-    const s = schemaEngine.getSchema(slug);
-    setSchema(s);
-
-    const initial: RecordEntity[] = [];
-    /*
-      {
-        id: `rec-demo-1`,
-        schemaSlug: slug,
-        values: {
-          title: `Položka ${slug.toUpperCase()} #1`,
-          amount: 1500,
-          stage: "active",
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ];
-    ] : []; */
     void fetchRecordEntitiesFromSupabase(slug)
       .then(setRecords)
       .catch(() => setRecords([]));

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
-import { AgentLeaderboardPoint, getAnalyticsData } from "@/lib/analytics";
+import { getAnalyticsDataAction } from "@/app/actions/analytics";
+import type { AgentLeaderboardPoint } from "@/lib/analytics";
 
 export function TopPerformers() {
   const [leaderboard, setLeaderboard] = useState<AgentLeaderboardPoint[]>([]);
@@ -17,7 +18,7 @@ export function TopPerformers() {
       setLoadError(null);
 
       try {
-        const analytics = await getAnalyticsData();
+        const analytics = await getAnalyticsDataAction();
         if (!cancelled) setLeaderboard(analytics.teamLeaderboard);
       } catch (error) {
         if (!cancelled) {

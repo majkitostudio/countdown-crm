@@ -38,7 +38,11 @@ export default function LeadsPage() {
   };
 
   useEffect(() => {
-    loadLeads();
+    async function loadInitialLeads() {
+      await loadLeads();
+    }
+
+    void loadInitialLeads();
   }, []);
 
   const handleSelectLead = (lead: Lead) => {

@@ -19,6 +19,8 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated }: 
 
   React.useEffect(() => {
     if (product) {
+      // This local draft must follow the selected product before edits begin.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setObjections(product.objections || []);
     }
   }, [product]);

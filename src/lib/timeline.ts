@@ -113,99 +113,48 @@ const INITIAL_TIMELINE_DATA: Record<string, TimelineActivityEntry[]> = {
   ],
 };
 
-import { createClient } from "./supabase/client";
-import { getCurrentWorkspaceId } from "./supabase/workspace";
 import { isDemoModeActive } from "./demoMode";
+import { listLeadActivityAction } from "@/app/actions/crm";
 
 const timelineStore: Record<string, TimelineActivityEntry[]> = { ...INITIAL_TIMELINE_DATA };
-
-import { Database } from "./supabase/types";
-
-type CallRow = Database["public"]["Tables"]["calls"]["Row"];
-type OrderWithProduct = Database["public"]["Tables"]["orders"]["Row"] & { products?: { title: string } | null };
 
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
   if (isDemoModeActive()) {
     return timelineStore[leadId] || [];
   }
 
-  try {
-    const supabase = createClient();
-    const workspaceId = await getCurrentWorkspaceId();
-    if (!workspaceId) throw new Error("No active workspace");
+  const activity = await listLeadActivityAction(leadId);
+  const dbEntries: TimelineActivityEntry[] = [
+    ...activity.calls.map((call) => ({
+      id: `tl-call-${call.id}`,
+      lead_id: leadId,
+      type: "call" as const,
+      title: "Call Logged in Workspace",
+      description: `Duration: ${Math.round((call.duration_seconds || 0) / 60)}m ${(call.duration_seconds || 0) % 60}s • Outcome: ${call.outcome} • Sentiment: ${call.sentiment}`,
+      operator_name: call.agent_name,
+      timestamp: call.created_at,
+      metadata: {
+        call_duration_seconds: call.duration_seconds || 0,
+        call_outcome: call.outcome,
+      },
+    })),
+    ...activity.orders.map((order) => ({
+      id: `tl-ord-${order.id}`,
+      lead_id: leadId,
+      type: "order" as const,
+      title: `Order Completed ($${order.total_amount.toFixed(2)})`,
+      description: order.product_title,
+      operator_name: order.agent_name,
+      timestamp: order.created_at,
+      metadata: {
+        order_value: order.total_amount,
+      },
+    })),
+  ];
 
-    const [callsRes, ordersRes] = await Promise.all([
-      supabase.from("calls").select("*").eq("lead_id", leadId).eq("workspace_id", workspaceId),
-      supabase.from("orders").select("*, products(title)").eq("lead_id", leadId).eq("workspace_id", workspaceId),
-    ]);
-
-    if (callsRes.error || ordersRes.error) {
-      throw new Error("Timeline query failed");
-    }
-
-    const calls = (callsRes.data || []) as CallRow[];
-    const orders = (ordersRes.data || []) as unknown as OrderWithProduct[];
-    const agentIds = Array.from(
-      new Set(
-        [...calls, ...orders]
-          .map((entry) => entry.agent_id)
-          .filter((agentId): agentId is string => Boolean(agentId))
-      )
-    );
-    const { data: profiles, error: profilesError } = agentIds.length
-      ? await supabase.from("profiles").select("id, full_name").in("id", agentIds)
-      : { data: [], error: null };
-
-    if (profilesError) {
-      throw new Error("Timeline operator lookup failed");
-    }
-
-    const typedProfiles = profiles as Array<Pick<CallRow, "agent_id"> & { id: string; full_name: string }>;
-    const operatorNames = new Map(
-      typedProfiles.map((profile) => [profile.id, profile.full_name.trim() || "Unknown operator"])
-    );
-    const getOperatorName = (agentId: string | null) =>
-      (agentId && operatorNames.get(agentId)) || "Unknown operator";
-
-    const dbEntries: TimelineActivityEntry[] = [];
-
-    calls.forEach((c) => {
-      dbEntries.push({
-        id: `tl-call-${c.id}`,
-        lead_id: leadId,
-        type: "call",
-        title: "Call Logged in Workspace",
-        description: `Duration: ${Math.round((c.duration_seconds || 0) / 60)}m ${(c.duration_seconds || 0) % 60}s • Outcome: ${c.outcome} • Sentiment: ${c.ai_sentiment || "Neutral"}`,
-        operator_name: getOperatorName(c.agent_id),
-        timestamp: c.created_at,
-        metadata: {
-          call_duration_seconds: c.duration_seconds || 0,
-          call_outcome: c.outcome,
-        },
-      });
-    });
-
-    orders.forEach((o) => {
-      dbEntries.push({
-        id: `tl-ord-${o.id}`,
-        lead_id: leadId,
-        type: "order",
-        title: `Order Completed ($${Number(o.total_amount || 0).toFixed(2)})`,
-        description: o.products?.title || "Purchased Product Stack",
-        operator_name: getOperatorName(o.agent_id),
-        timestamp: o.created_at,
-        metadata: {
-          order_value: Number(o.total_amount || 0),
-        },
-      });
-    });
-
-    return dbEntries.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  } catch (err) {
-    throw err instanceof Error ? err : new Error("Timeline query failed");
-  }
+  return dbEntries.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
 }
 
 export function addTimelineEntry(
