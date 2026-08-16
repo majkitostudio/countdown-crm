@@ -182,7 +182,6 @@ export function LeadsTable({
               <th className="py-3 px-4">Contact Info</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4">AI Score</th>
-              <th className="py-3 px-4 text-right">Est. Value</th>
               <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -190,7 +189,7 @@ export function LeadsTable({
           <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-zinc-500 font-mono">
+                <td colSpan={5} className="py-12 text-center text-zinc-500 font-mono">
                   No leads found matching your filter criteria.
                 </td>
               </tr>
@@ -237,11 +236,6 @@ export function LeadsTable({
                   {/* AI Score */}
                   <td className="py-3 px-4">
                     {getScoreBadge(lead.ai_score)}
-                  </td>
-
-                  {/* Est Value */}
-                  <td className="py-3 px-4 text-right font-semibold text-zinc-200 font-mono">
-                    {lead.value != null ? `$${lead.value}` : "Unavailable"}
                   </td>
 
                   {/* Quick Action Buttons */}

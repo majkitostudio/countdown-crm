@@ -7,7 +7,6 @@ import {
   MapPin,
   Building,
   Sparkles,
-  DollarSign,
   History,
   ChevronDown,
   ShoppingBag
@@ -139,12 +138,6 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
           <span className="text-zinc-200 font-medium">{[activeLead.city, activeLead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
-          <span className="text-zinc-500 flex items-center gap-1.5">
-            <DollarSign className="w-3.5 h-3.5 text-zinc-400" /> Pipeline Value
-          </span>
-          <span className="text-zinc-100 font-mono font-bold">{activeLead.value != null ? `$${activeLead.value}` : "Unavailable"}</span>
-        </div>
       </div>
 
       {/* AI Data Enrichment Trigger */}

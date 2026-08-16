@@ -15,7 +15,6 @@ export interface Lead {
   ai_score: number;
   notes: string | null;
   company?: string | null;
-  value?: number;
   last_contacted_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -88,7 +87,6 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     country: lead.country || "CZ",
     notes: lead.notes || null,
     company: lead.company || null,
-    value: lead.value,
     last_contacted_at: lead.updated_at || lead.created_at,
   }));
 }

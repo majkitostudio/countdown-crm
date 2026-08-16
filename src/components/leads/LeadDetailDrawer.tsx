@@ -11,7 +11,6 @@ import {
   Send,
   UserCheck,
   PhoneCall,
-  DollarSign,
   FileText
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
@@ -146,7 +145,7 @@ export function LeadDetailDrawer({
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             
             {/* Quick Action Bar & AI Score Banner */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               
               {/* AI Score Box */}
               <div className={`p-4 rounded-xl border flex flex-col justify-center items-center ${getScoreColor()}`}>
@@ -176,16 +175,6 @@ export function LeadDetailDrawer({
                 </select>
               </div>
 
-              {/* Deal Value Box */}
-              <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl flex flex-col justify-center">
-                <span className="text-xs text-zinc-400 mb-1 font-medium flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-zinc-400" />
-                  Est. Deal Value
-                </span>
-                <span className="text-lg font-bold text-zinc-100 font-mono">
-                  ${currentLead.value || 850}
-                </span>
-              </div>
             </div>
 
             {/* Quick Action Button */}

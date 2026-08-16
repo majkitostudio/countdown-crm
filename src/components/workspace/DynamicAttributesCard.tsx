@@ -38,7 +38,6 @@ function leadToRecordEntity(lead: Lead): RecordEntity {
       ai_summary: lead.notes, // Map notes as initial AI summary source
       city: lead.city,
       country: lead.country,
-      value: lead.value,
     },
     createdAt: lead.created_at,
     updatedAt: lead.updated_at,

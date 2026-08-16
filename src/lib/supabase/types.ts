@@ -140,7 +140,6 @@ export interface Database {
           ai_score: number;
           notes: string | null;
           company?: string | null;
-          value?: number;
           created_at: string;
           updated_at: string;
         };
@@ -156,7 +155,6 @@ export interface Database {
           ai_score?: number;
           notes?: string | null;
           company?: string | null;
-          value?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -170,7 +168,6 @@ export interface Database {
           ai_score?: number;
           notes?: string | null;
           company?: string | null;
-          value?: number;
           updated_at?: string;
         };
         Relationships: [];

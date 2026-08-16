@@ -3,7 +3,6 @@
 import React from "react";
 import { Sparkles, PhoneCall, ChevronRight, ChevronLeft, Layers, Database } from "lucide-react";
 import { Lead, updateLead } from "@/lib/leads";
-import { formatCurrency } from "@/lib/utils";
 import { blueprintEngine } from "@/lib/blueprints/engine";
 
 interface KanbanBoardProps {
@@ -62,7 +61,6 @@ export function KanbanBoard({
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-h-[640px] items-start">
         {STAGES.map((stage) => {
           const stageLeads = leads.filter((l) => l.status === stage.id);
-          const stageValue = stageLeads.reduce((sum, l) => sum + (l.value ?? 0), 0);
           const avgScore =
             stageLeads.length > 0
               ? Math.round(stageLeads.reduce((sum, l) => sum + l.ai_score, 0) / stageLeads.length)
@@ -84,8 +82,7 @@ export function KanbanBoard({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono pt-1">
-                  <span>Sum: {formatCurrency(stageValue)}</span>
+                <div className="flex items-center justify-end text-[11px] text-zinc-400 font-mono pt-1">
                   {avgScore > 0 && (
                     <span className="flex items-center gap-1 text-zinc-400 font-mono">
                       <Sparkles className="w-3 h-3 text-zinc-400" />
@@ -139,13 +136,8 @@ export function KanbanBoard({
                         </div>
                       )}
 
-                      {/* Value Badge & Action */}
-                      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-                        <span className="text-xs font-semibold font-mono text-zinc-200">
-                          {lead.value != null ? formatCurrency(lead.value) : "Unavailable"}
-                        </span>
-
-                        {/* Quick Call Action */}
+                      {/* Quick Call Action */}
+                      <div className="flex items-center justify-end pt-2 border-t border-zinc-800/60">
                         <button
                           onClick={() => onStartCall(lead)}
                           className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 transition-colors cursor-pointer"

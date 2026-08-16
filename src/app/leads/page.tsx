@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Users, Sparkles, UserCheck, DollarSign, UserPlus, RefreshCw } from "lucide-react";
+import { Users, Sparkles, UserCheck, UserPlus, RefreshCw } from "lucide-react";
 import { listLeadsAction } from "@/app/actions/crm";
 import { Lead } from "@/lib/leads";
 import { LeadsTable } from "@/components/leads/LeadsTable";
@@ -89,8 +89,6 @@ export default function LeadsPage() {
   const qualifiedLeads = filteredLeads.filter((l) => l.status === "qualified" || l.status === "customer").length;
   const qualifiedRatio = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
   const avgScore = totalLeads > 0 ? Math.round(filteredLeads.reduce((acc, l) => acc + l.ai_score, 0) / totalLeads) : 0;
-  const totalPipelineValue = filteredLeads.reduce((acc, l) => acc + (l.value ?? 0), 0);
-
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       
@@ -149,7 +147,7 @@ export default function LeadsPage() {
       )}
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Total Leads Card */}
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
@@ -181,17 +179,6 @@ export default function LeadsPage() {
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
             <Sparkles className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Total Pipeline Value */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Pipeline Value</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">${totalPipelineValue.toLocaleString()}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <DollarSign className="w-4 h-4" />
           </div>
         </div>
 
