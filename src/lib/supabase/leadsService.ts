@@ -64,7 +64,6 @@ export async function fetchLeadsFromSupabase(options?: {
     ai_score: l.ai_score ?? 50,
     notes: l.notes || null,
     company: l.company || null,
-    last_contacted_at: l.updated_at || l.created_at,
     created_at: l.created_at,
     updated_at: l.updated_at,
   }));
@@ -112,7 +111,6 @@ export async function createLeadInSupabase(lead: Partial<Lead>): Promise<Lead | 
     ai_score: typedData.ai_score,
     notes: typedData.notes || null,
     company: typedData.company || null,
-    last_contacted_at: typedData.created_at,
     created_at: typedData.created_at,
     updated_at: typedData.updated_at,
   };
