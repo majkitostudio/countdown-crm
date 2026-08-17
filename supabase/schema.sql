@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
   agent_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   total_amount DECIMAL(10, 2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'completed', -- 'completed', 'pending', 'cancelled'
+  order_source TEXT NOT NULL DEFAULT 'previous_call',
+  source_note TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

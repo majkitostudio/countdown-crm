@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Sparkles, PhoneCall, ChevronRight, ChevronLeft, Layers, Database } from "lucide-react";
 import { Lead, updateLead } from "@/lib/leads";
 import { blueprintEngine } from "@/lib/blueprints/engine";
@@ -26,6 +26,7 @@ export function KanbanBoard({
   onStartCall,
   onLeadUpdated,
 }: KanbanBoardProps) {
+  const [updateError, setUpdateError] = useState<string | null>(null);
   const activeBlueprint = blueprintEngine.getActiveBlueprint();
 
   const handleMoveStage = async (lead: Lead, direction: "next" | "prev") => {
@@ -34,13 +35,23 @@ export function KanbanBoard({
     const nextIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
 
     if (nextIndex >= 0 && nextIndex < stageIds.length) {
-      await updateLead(lead.id, { status: stageIds[nextIndex] });
-      onLeadUpdated();
+      setUpdateError(null);
+      try {
+        await updateLead(lead.id, { status: stageIds[nextIndex] });
+        onLeadUpdated();
+      } catch (error: unknown) {
+        setUpdateError(error instanceof Error ? error.message : "Lead status could not be saved");
+      }
     }
   };
 
   return (
     <div className="space-y-4">
+      {updateError && (
+        <div className="rounded-xl border border-rose-900/80 bg-rose-950/30 px-4 py-3 text-sm text-rose-200" role="alert">
+          Status leadu nebyl uložen: {updateError}
+        </div>
+      )}
       {/* Active Industry Blueprint Header Pill */}
       <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-xs">
         <div className="flex items-center gap-2">

@@ -85,3 +85,70 @@ Roadmapa rozděluje vývoj platformy do logických fází. Všechny fáze jsou p
   - [x] **Voice Activity Detection (VAD)**: Bezdotykové odesílání hlasu po dokončení mluvení.
   - [x] **Live Teleprompter Reader**: Vizuální nápověda prodejního skriptu se zvýrazňováním fází hovoru.
 * **Výstup**: Plně hands-free simulátor se živou čtečkou skriptu pro špičkový trénink operátorů.
+
+---
+
+## ✅ Schválená změna: Samostatné vytvoření objednávky bez nového hovoru
+
+**Status:** schváleno k naplánování, zatím neimplementováno
+**Priorita:** P1 — reálný call-center provoz
+**Důvod:** Objednávka může vzniknout z předchozího hovoru, e-mailu, webového
+formuláře nebo administrativního zadání. Operátor proto nesmí být nucen znovu
+volat leadovi pouze proto, aby mohl objednávku zapsat do CRM.
+
+### Produktový záměr
+
+Zachovat dvě pravdivě oddělené cesty:
+
+1. **Objednávka během hovoru** — stávající workflow:
+   `Call Client → Connected → Order → call + order completion`.
+2. **Samostatná manuální objednávka** — nová workflow cesta z lead/customer
+   kontextu bez vytváření falešného hovoru:
+   `Create Order → checkout modal → order-only persistence`.
+
+### Požadovaný návrh
+
+- Přidat akci **Create Order** do lead/customer kontextu.
+- Použít stejný checkout modal jako u call-based objednávky.
+- Přidat povinný `order_source`, například:
+  - `previous_call`,
+  - `email`,
+  - `web_form`,
+  - `manual`,
+  - `other`.
+- Umožnit krátkou poznámku k důvodu nebo zdroji objednávky.
+- Vytvořit pouze order; nevytvářet falešný call a neměnit poslední call na
+  `order_placed`.
+- Zachovat `workspace_id`, autentizovaného `agent_id`, lead/product validaci,
+  auditní událost a zobrazení v timeline/customer history.
+- Po reloadu musí být manuální objednávka stále dohledatelná a správně
+  přiřazená operátorovi.
+
+### Ne-cíle
+
+- Neodemknout stávající call outcome `Order` mimo aktivní call bez rozlišení
+  typu objednávky.
+- Nevytvářet objednávku pouze z lokálního UI stavu.
+- Nevytvářet automaticky call jako náhradu chybějícího kontextu.
+- Neměnit atomickou call + order completion cestu pro existující tele-sales
+  workflow.
+
+### Akceptační kritéria
+
+- Operátor vytvoří objednávku bez vytáčení leadu.
+- Objednávka má platný lead, product, workspace a `agent_id`.
+- `order_source` je uložený a viditelný v detailu/timeline.
+- Nevznikne žádný nový call ani falešný `order_placed` call outcome.
+- Chyba při validaci leadu/productu/workspace je viditelná a nevznikne order.
+- Objednávka přežije browser reload.
+- Přímý SQL read-only check potvrdí vztahy, workspace a atribuci.
+- Stávající call-based `Order` flow zůstane funkční a beze změny významu.
+
+### Doporučená implementační hranice
+
+- rozšířit datový kontrakt orderu o `order_source` a případně `source_note`,
+- přidat samostatnou serverovou action/DAL cestu pro order-only vytvoření,
+- znovu použít `ProductOrderPanel` jako modal bez kopírování checkout logiky,
+- přidat audit event typu `ORDER_CREATED_MANUAL`,
+- ověřit browser → reload → timeline → přímá databáze,
+- implementovat jako samostatný reverzibilní slice bez současného call flow.

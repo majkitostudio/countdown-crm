@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useSyncExternalStore } from "react";
 import {
   Mail,
   MessageSquare,
@@ -16,6 +16,11 @@ import { Product } from "@/lib/products";
 import { generateFollowupAction, GenerateFollowupResult } from "@/app/actions/followup";
 import { addTimelineEntry } from "@/lib/timeline";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import {
+  getDemoModeServerSnapshot,
+  getDemoModeSnapshot,
+  subscribeDemoMode,
+} from "@/lib/demoMode";
 
 interface AiFollowupModalProps {
   lead: Lead | null;
@@ -33,6 +38,11 @@ export function AiFollowupModal({
   onClose,
 }: AiFollowupModalProps) {
   const { identity } = useOperatorIdentity();
+  const demoModeActive = useSyncExternalStore(
+    subscribeDemoMode,
+    getDemoModeSnapshot,
+    getDemoModeServerSnapshot,
+  );
   const [channel, setChannel] = useState<"email" | "whatsapp">("email");
   const [goal, setGoal] = useState<"order_paylink" | "discount_offer" | "callback_reminder" | "graceful_thanks">("order_paylink");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -87,6 +97,11 @@ export function AiFollowupModal({
   };
 
   const handleDispatch = () => {
+    if (!demoModeActive) {
+      setDispatchError("Follow-up dispatch is unavailable in Production DB. Copy the reviewed message or configure an approved messaging integration.");
+      return;
+    }
+
     // Record entry on Omnichannel Timeline (COMMIT-22)
     const added = addTimelineEntry(lead.id, {
       type: channel === "email" ? "note" : "sms_paylink",
@@ -123,8 +138,8 @@ export function AiFollowupModal({
               <Sparkles className="w-4 h-4 text-zinc-300" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">AI Email & WhatsApp Follow-up Generator</h2>
-              <p className="text-[11px] text-zinc-400 font-mono">1-Click personalized post-call messaging for {lead.full_name}</p>
+              <h2 className="text-sm font-semibold text-zinc-100">AI Email & WhatsApp Follow-up Preview</h2>
+              <p className="text-[11px] text-zinc-400 font-mono">Generate, review and copy a personalized message for {lead.full_name}</p>
             </div>
           </div>
 
@@ -240,8 +255,14 @@ export function AiFollowupModal({
         )}
 
         {/* Action Controls */}
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+        <div className="flex items-center justify-between gap-4 pt-2 border-t border-zinc-800">
+          <p className="text-[11px] text-zinc-500">
+            {demoModeActive
+              ? "Demo Sandbox: dispatch is a local simulation only."
+              : "Production DB: dispatch is unavailable; review and copy only."}
+          </p>
           <button
+            type="button"
             onClick={handleCopy}
             className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
           >
@@ -251,6 +272,7 @@ export function AiFollowupModal({
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={onClose}
               className="px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
             >
@@ -258,12 +280,13 @@ export function AiFollowupModal({
             </button>
 
             <button
+              type="button"
               onClick={handleDispatch}
-              disabled={isGenerating || !editableContent}
+              disabled={!demoModeActive || isGenerating || !editableContent}
               className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{channel === "email" ? "Send AI Email" : "Dispatch WhatsApp"}</span>
+              <span>{demoModeActive ? (channel === "email" ? "Send AI Email (Demo)" : "Dispatch WhatsApp (Demo)") : "Dispatch unavailable"}</span>
             </button>
           </div>
         </div>

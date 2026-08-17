@@ -17,3 +17,21 @@ export function setDemoMode(active: boolean): void {
     window.dispatchEvent(new CustomEvent("countdown-demo-mode-changed", { detail: { active } }));
   }
 }
+
+export function subscribeDemoMode(onStoreChange: () => void): () => void {
+  if (typeof window === "undefined") return () => undefined;
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener("countdown-demo-mode-changed", onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener("countdown-demo-mode-changed", onStoreChange);
+  };
+}
+
+export function getDemoModeSnapshot(): boolean {
+  return isDemoModeActive();
+}
+
+export function getDemoModeServerSnapshot(): boolean {
+  return false;
+}

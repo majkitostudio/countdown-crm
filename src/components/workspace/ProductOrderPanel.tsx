@@ -1,39 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import {
   ShoppingCart,
   Plus,
   Minus,
   CheckCircle2,
   Sparkles,
-  Zap
+  Zap,
+  X,
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
+import {
+  getDemoModeServerSnapshot,
+  getDemoModeSnapshot,
+  subscribeDemoMode,
+} from "@/lib/demoMode";
 
-interface OrderPlacementResult {
+export interface OrderPlacementResult {
   orderId: string;
   callCompleted: boolean;
 }
 
+type OrderSource = "previous_call" | "email" | "web_form" | "manual" | "other";
+
 interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
-  isOrderFlowOpen: boolean;
   appliedPitch?: string;
-  onOrderPlaced: (productId: string, totalAmount: number) => Promise<OrderPlacementResult | null>;
+  orderMode?: "call" | "manual";
+  onClose: () => void;
+  onOrderPlaced: (
+    productId: string,
+    totalAmount: number,
+    orderSource: OrderSource,
+    sourceNote: string | null,
+  ) => Promise<OrderPlacementResult | null>;
 }
 
 export function ProductOrderPanel({
   products,
   activeLead,
-  isOrderFlowOpen,
   appliedPitch,
+  orderMode = "call",
+  onClose,
   onOrderPlaced,
 }: ProductOrderPanelProps) {
+  const demoModeActive = useSyncExternalStore(
+    subscribeDemoMode,
+    getDemoModeSnapshot,
+    getDemoModeServerSnapshot,
+  );
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || "");
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
 
@@ -41,6 +61,8 @@ export function ProductOrderPanel({
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [callOutcome, setCallOutcome] = useState<string>("order_placed");
   const [wrapUpNotes, setWrapUpNotes] = useState<string>("");
+  const [orderSource, setOrderSource] = useState<OrderSource>("manual");
+  const [sourceNote, setSourceNote] = useState<string>("");
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
@@ -48,6 +70,10 @@ export function ProductOrderPanel({
 
   const handleSendPayLinkSms = () => {
     if (!activeLead) return;
+    if (!demoModeActive) {
+      setOrderError("SMS Pay-Link is unavailable in Production DB until a real messaging integration is configured.");
+      return;
+    }
     setIsSmsSent(true);
     setTimeout(() => setIsSmsSent(false), 5000);
   };
@@ -75,20 +101,6 @@ export function ProductOrderPanel({
   const discountAmount = (rawSubtotal * discountPercent) / 100;
   const grandTotal = Math.max(0, rawSubtotal - discountAmount);
 
-  if (!isOrderFlowOpen) {
-    return (
-      <section className="bg-zinc-900/30 border border-zinc-800/80 rounded-xl p-5 space-y-3 h-full">
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="w-4 h-4 text-zinc-500" />
-          <h2 className="text-sm font-semibold text-zinc-300">Order</h2>
-        </div>
-        <p className="text-xs leading-relaxed text-zinc-500">
-          Order details will appear here after the operator selects the Order outcome.
-        </p>
-      </section>
-    );
-  }
-
   const handleAddBundleItem = (rec: Recommendation) => {
     setBundleProduct(rec.recommendedProduct);
     setDiscountPercent(15);
@@ -98,7 +110,12 @@ export function ProductOrderPanel({
     if (!selectedProduct || !activeLead) return;
 
     setOrderError(null);
-    const result = await onOrderPlaced(selectedProduct.id, grandTotal);
+    const result = await onOrderPlaced(
+      selectedProduct.id,
+      grandTotal,
+      orderMode === "call" ? "previous_call" : orderSource,
+      orderMode === "manual" ? sourceNote.trim() || null : null,
+    );
     if (!result) {
       setOrderError("Order was not created. Check the error above and try again.");
       return;
@@ -124,7 +141,7 @@ export function ProductOrderPanel({
   };
 
   return (
-    <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-5 flex flex-col h-full overflow-y-auto">
+    <div className="bg-zinc-900/95 border border-zinc-700/80 backdrop-blur-md rounded-2xl p-5 shadow-2xl space-y-5 flex flex-col max-h-[calc(100vh-2rem)] overflow-y-auto">
       
       {/* Header Bar */}
       <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
@@ -133,10 +150,25 @@ export function ProductOrderPanel({
             <ShoppingCart className="w-3.5 h-3.5" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Sales Checkout & Cross-Sell</h2>
-            <p className="text-[11px] text-zinc-400">Order creation after call outcome selection</p>
+            <h2 id="order-dialog-title" className="text-sm font-semibold text-zinc-100">
+              {orderMode === "manual" ? "Create Order" : "Sales Checkout & Cross-Sell"}
+            </h2>
+            <p className="text-[11px] text-zinc-400">
+              {orderMode === "manual"
+                ? "Record an order without creating a new call"
+                : "Order creation after call outcome selection"}
+            </p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close order flow"
+          title="Close order flow"
+          className="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Success Notification Alert */}
@@ -162,14 +194,13 @@ export function ProductOrderPanel({
           Primary Product Selection
         </label>
 
-      <div className={`space-y-2 max-h-[140px] overflow-y-auto pr-1 ${!isOrderFlowOpen ? "opacity-60" : ""}`}>
+      <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
           {products.map((prod) => {
             const isSelected = prod.id === selectedProductId;
             return (
               <div
                 key={prod.id}
                 onClick={() => {
-                  if (!isOrderFlowOpen) return;
                   setSelectedProductId(prod.id);
                   setBundleProduct(null);
                 }}
@@ -313,17 +344,20 @@ export function ProductOrderPanel({
         {/* Order Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
           <button
+            type="button"
             onClick={handlePlaceOrder}
-            disabled={!isOrderFlowOpen || !selectedProduct || !activeLead}
+            disabled={!selectedProduct || !activeLead}
             className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            <span>{isOrderFlowOpen ? "Place Order" : "Select Success / Order first"}</span>
+            <span>Place Order</span>
           </button>
 
           <button
+            type="button"
             onClick={handleSendPayLinkSms}
-            disabled={!isOrderFlowOpen || !activeLead || isSmsSent}
+            disabled={!demoModeActive || !activeLead || isSmsSent}
+            title={demoModeActive ? "Simulate SMS pay-link in Demo Sandbox" : "SMS Pay-Link unavailable in Production DB"}
             className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 disabled:opacity-50 text-zinc-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             {isSmsSent ? (
@@ -334,15 +368,47 @@ export function ProductOrderPanel({
             ) : (
               <>
                 <Zap className="w-3.5 h-3.5 text-zinc-400" />
-                <span>Send SMS Pay-Link</span>
+                <span>{demoModeActive ? "Send SMS Pay-Link (Demo)" : "SMS Pay-Link unavailable"}</span>
               </>
             )}
           </button>
         </div>
+        <p className="text-[11px] text-zinc-500">
+          {demoModeActive
+            ? "Demo Sandbox: pay-link sending is a local simulation only."
+            : "Production DB: pay-link sending is unavailable until a real messaging integration is configured."}
+        </p>
       </div>
 
       {/* Post-Call Wrap Up Section */}
-      <div className="space-y-2 pt-2 border-t border-zinc-800">
+      {orderMode === "manual" && (
+        <div className="space-y-2 pt-2 border-t border-zinc-800">
+          <label htmlFor="order-source" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
+            Order source
+          </label>
+          <select
+            id="order-source"
+            value={orderSource}
+            onChange={(event) => setOrderSource(event.target.value as OrderSource)}
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
+          >
+            <option value="manual">Manual / administrative entry</option>
+            <option value="previous_call">Previous call</option>
+            <option value="email">E-mail</option>
+            <option value="web_form">Web form</option>
+            <option value="other">Other</option>
+          </select>
+          <textarea
+            rows={2}
+            value={sourceNote}
+            onChange={(event) => setSourceNote(event.target.value)}
+            placeholder="Optional note about where or why the order was received..."
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+          />
+        </div>
+      )}
+
+      {orderMode === "call" && <div className="space-y-2 pt-2 border-t border-zinc-800">
         <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
           Post-call outcome & notes
         </label>
@@ -365,7 +431,7 @@ export function ProductOrderPanel({
           placeholder="Record notes regarding customer reaction, agreed follow-up or objections..."
           className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
         />
-      </div>
+      </div>}
 
     </div>
   );

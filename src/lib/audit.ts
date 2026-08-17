@@ -13,7 +13,8 @@ export type AuditActionType =
   | "CALL_COMPLETED"
   | "SETTINGS_CHANGE"
   | "COMPLIANCE_VIOLATION"
-  | "ORDER_CREATED";
+  | "ORDER_CREATED"
+  | "ORDER_CREATED_MANUAL";
 
 export interface AuditLogEntry {
   id: string;

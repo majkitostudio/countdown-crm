@@ -16,6 +16,8 @@ export interface TimelineActivityEntry {
   metadata?: {
     order_id?: string;
     order_value?: number;
+    order_source?: string;
+    source_note?: string;
     call_duration_seconds?: number;
     call_outcome?: string;
     paylink_url?: string;
@@ -143,11 +145,13 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
       lead_id: leadId,
       type: "order" as const,
       title: `Order Completed ($${order.total_amount.toFixed(2)})`,
-      description: order.product_title,
+      description: `${order.product_title} • Source: ${order.order_source}${order.source_note ? ` • ${order.source_note}` : ""}`,
       operator_name: order.agent_name,
       timestamp: order.created_at,
       metadata: {
         order_value: order.total_amount,
+        order_source: order.order_source,
+        source_note: order.source_note || undefined,
       },
     })),
   ];

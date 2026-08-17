@@ -9,7 +9,8 @@ import {
   Sparkles,
   History,
   ChevronDown,
-  ShoppingBag
+  ShoppingBag,
+  ShoppingCart,
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { Order } from "@/lib/orders";
@@ -25,6 +26,7 @@ interface CustomerPanelProps {
   orders: Order[];
   activityRefreshToken: number;
   onSelectLead: (lead: Lead) => void;
+  onCreateOrder: () => void;
 }
 
 function normalizePhone(phone: string): string {
@@ -32,7 +34,7 @@ function normalizePhone(phone: string): string {
   return digits.startsWith("00") ? digits.slice(2) : digits;
 }
 
-export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken, onSelectLead }: CustomerPanelProps) {
+export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken, onSelectLead, onCreateOrder }: CustomerPanelProps) {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [enrichmentData, setEnrichmentData] = useState<EnrichedCompanyData | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
@@ -113,6 +115,14 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
             </div>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={onCreateOrder}
+          className="shrink-0 px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-colors"
+        >
+          <ShoppingCart className="w-3.5 h-3.5" />
+          <span>Create Order</span>
+        </button>
       </div>
 
       {/* Quick Info Grid */}
@@ -236,6 +246,7 @@ function OrderHistoryItem({ order }: { order: Order }) {
       {isOpen && (
         <div className="mt-2 pt-2 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-[11px] text-zinc-400">
           <span>Status <strong className="block text-zinc-200 capitalize">{order.status}</strong></span>
+          <span>Source <strong className="block text-zinc-200">{order.order_source.replace("_", " ")}</strong></span>
           <span>Quantity <strong className="block text-zinc-200">Not stored</strong></span>
           <span>Created <strong className="block text-zinc-200">{new Date(order.created_at).toLocaleString("en-US")}</strong></span>
           <span>Lead record <strong className="block text-zinc-200 font-mono">{order.lead_id.slice(0, 8)}…</strong></span>

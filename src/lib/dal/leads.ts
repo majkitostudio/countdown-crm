@@ -142,5 +142,30 @@ export async function updateLeadStatusForWorkspace(
     throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", context.userId)
+    .maybeSingle();
+
+  if (profileError) {
+    throw new DataAccessError("DATABASE", "Lead audit operator lookup failed");
+  }
+
+  const { error: auditError } = await supabase.from("audit_logs").insert({
+    workspace_id: context.workspaceId,
+    actor_id: context.userId,
+    actor_name: profile?.full_name?.trim() || "Unknown operator",
+    action: "LEAD_UPDATE",
+    target_resource: "System",
+    details: `Lead ${leadId} status changed to ${status}`,
+    severity: "low",
+    ip_address: "server",
+  });
+
+  if (auditError) {
+    throw new DataAccessError("DATABASE", "Lead status changed but audit event was not saved");
+  }
+
   return data as LeadDTO;
 }

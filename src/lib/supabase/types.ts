@@ -250,6 +250,8 @@ export interface Database {
           agent_id: string | null;
           total_amount: number;
           status: "completed" | "pending" | "cancelled";
+          order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
+          source_note: string | null;
           created_at: string;
         };
         Insert: {
@@ -260,6 +262,8 @@ export interface Database {
           agent_id?: string | null;
           total_amount: number;
           status?: "completed" | "pending" | "cancelled";
+          order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
+          source_note?: string | null;
           created_at?: string;
         };
         Update: {
@@ -268,6 +272,8 @@ export interface Database {
           agent_id?: string | null;
           total_amount?: number;
           status?: "completed" | "pending" | "cancelled";
+          order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
+          source_note?: string | null;
         };
         Relationships: [];
       };

@@ -8,6 +8,8 @@ export interface Order {
   product_title: string;
   total_amount: number;
   status: "completed" | "pending" | "cancelled";
+  order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
+  source_note: string | null;
   agent_name: string;
   created_at: string;
 }
@@ -22,6 +24,8 @@ export async function getOrders(): Promise<Order[]> {
     product_title: order.product_title,
     total_amount: order.total_amount,
     status: order.status,
+    order_source: order.order_source,
+    source_note: order.source_note,
     agent_name: order.agent_name,
     created_at: order.created_at,
   }));
@@ -37,6 +41,8 @@ export async function getOrdersByLeadId(leadId: string): Promise<Order[]> {
     product_title: order.product_title,
     total_amount: order.total_amount,
     status: order.status,
+    order_source: order.order_source,
+    source_note: order.source_note,
     agent_name: order.agent_name,
     created_at: order.created_at,
   }));

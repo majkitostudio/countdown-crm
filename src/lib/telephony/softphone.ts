@@ -58,8 +58,6 @@ export class WebRtcSoftphoneController {
       return false;
     }
 
-    const audioOk = await audioEngine.initialize();
-
     this.currentSession = {
       id: `call-wrtc-${Date.now()}`,
       leadId,
@@ -72,6 +70,8 @@ export class WebRtcSoftphoneController {
       isOnHold: false,
     };
     this.notify();
+
+    const audioOk = await audioEngine.initialize();
 
     // Simulate Network Peer connection delay (1.5s -> Ringing, 3.0s -> Connected)
     setTimeout(() => {

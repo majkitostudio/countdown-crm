@@ -14,10 +14,10 @@ import {
   FileText
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
+import { updateLeadStatusAction } from "@/app/actions/crm";
 import { WorkspaceActivity } from "@/lib/domain";
 import { addLeadActivity, getLeadActivities } from "@/lib/domainActivity";
 import { isDemoModeActive } from "@/lib/demoMode";
-import { updateLeadStatusInSupabase } from "@/lib/supabase/leadsService";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -39,6 +39,7 @@ export function LeadDetailDrawer({
   const [activities, setActivities] = useState<WorkspaceActivity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const canAddNotes = isDemoModeActive();
 
   React.useEffect(() => {
@@ -72,14 +73,19 @@ export function LeadDetailDrawer({
 
   const handleStatusChange = async (newStatus: Lead["status"]) => {
     if (!currentLead) return;
-    const saved = await updateLeadStatusInSupabase(currentLead.id, newStatus);
-    if (saved) {
-      const updated = {
+    setStatusError(null);
+
+    try {
+      const saved = await updateLeadStatusAction(currentLead.id, newStatus);
+      setCurrentLead({
         ...currentLead,
-        status: newStatus,
-        updated_at: new Date().toISOString(),
-      };
-      setCurrentLead(updated);
+        ...saved,
+        email: saved.email || null,
+        city: saved.city || null,
+        country: saved.country || "CZ",
+        notes: saved.notes || null,
+        company: saved.company || null,
+      });
       onLeadUpdated();
 
       setActivitiesError(null);
@@ -88,6 +94,8 @@ export function LeadDetailDrawer({
       } catch (error: unknown) {
         setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
       }
+    } catch (error: unknown) {
+      setStatusError(error instanceof Error ? error.message : "Lead status could not be saved");
     }
   };
 
@@ -173,6 +181,11 @@ export function LeadDetailDrawer({
                   <option value="customer">Customer</option>
                   <option value="unresponsive">Unresponsive</option>
                 </select>
+                {statusError && (
+                  <p className="mt-2 text-[11px] text-rose-300" role="alert">
+                    Status nebyl uložen: {statusError}
+                  </p>
+                )}
               </div>
 
             </div>

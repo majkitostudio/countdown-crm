@@ -1,5 +1,6 @@
+import { updateLeadStatusAction } from "@/app/actions/crm";
+import { fetchLeadsFromSupabase } from "./supabase/leadsService";
 import { createClient } from "./supabase/client";
-import { fetchLeadsFromSupabase, updateLeadStatusInSupabase } from "./supabase/leadsService";
 import { getCurrentWorkspaceId } from "./supabase/workspace";
 
 export type LeadStatus = "new" | "contacted" | "qualified" | "customer" | "unresponsive";
@@ -95,9 +96,25 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
     throw new Error("Only lead status updates are supported by the Supabase lead service");
   }
 
-  const saved = await updateLeadStatusInSupabase(id, updates.status);
-  if (!saved) throw new Error("Lead status was not saved to Supabase");
+  const saved = await updateLeadStatusAction(id, updates.status);
+  return mapLeadDTO(saved);
+}
 
-  const leads = await fetchLeadsFromSupabase();
-  return leads.find((lead) => lead.id === id) || null;
+type SavedLead = Awaited<ReturnType<typeof updateLeadStatusAction>>;
+
+function mapLeadDTO(lead: SavedLead): Lead {
+  return {
+    id: lead.id,
+    full_name: lead.full_name,
+    phone: lead.phone,
+    email: lead.email || null,
+    city: lead.city || null,
+    country: lead.country || "CZ",
+    status: lead.status,
+    ai_score: lead.ai_score,
+    notes: lead.notes || null,
+    company: lead.company || null,
+    created_at: lead.created_at,
+    updated_at: lead.updated_at,
+  };
 }

@@ -36,6 +36,8 @@ export type WorkspaceOrderDTO = {
   agent_name: string;
   total_amount: number;
   status: OrderRow["status"];
+  order_source: OrderRow["order_source"];
+  source_note: string | null;
   created_at: string;
 };
 
@@ -235,6 +237,8 @@ export async function listWorkspaceOrders(
     agent_name: operatorNameFor(order.agent_id),
     total_amount: Number(order.total_amount || 0),
     status: order.status,
+    order_source: order.order_source,
+    source_note: order.source_note,
     created_at: order.created_at,
   }));
 }
@@ -257,6 +261,8 @@ export async function listWorkspaceOrdersForLead(
     agent_name: operatorNameFor(order.agent_id),
     total_amount: Number(order.total_amount || 0),
     status: order.status,
+    order_source: order.order_source,
+    source_note: order.source_note,
     created_at: order.created_at,
   }));
 }
@@ -293,6 +299,8 @@ export async function listWorkspaceLeadActivity(
       agent_name: operatorNameFor(order.agent_id),
       total_amount: Number(order.total_amount || 0),
       status: order.status,
+      order_source: order.order_source,
+      source_note: order.source_note,
       created_at: order.created_at,
     })),
   };

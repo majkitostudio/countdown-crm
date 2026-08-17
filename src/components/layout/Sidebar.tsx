@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -47,6 +47,16 @@ export function Sidebar() {
   const [status, setStatus] = useState<OperatorStatus>("ready");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 
+  useEffect(() => {
+    const collapseForNarrowViewport = () => {
+      if (window.innerWidth < 768) setIsCollapsed(true);
+    };
+
+    collapseForNarrowViewport();
+    window.addEventListener("resize", collapseForNarrowViewport);
+    return () => window.removeEventListener("resize", collapseForNarrowViewport);
+  }, []);
+
   const getStatusColor = (s: OperatorStatus) => {
     switch (s) {
       case "ready":
@@ -72,7 +82,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "relative flex flex-col h-screen bg-zinc-950/90 backdrop-blur-md border-r border-zinc-800/80 transition-all duration-300 z-30 select-none",
+        "relative flex shrink-0 flex-col h-screen bg-zinc-950/90 backdrop-blur-md border-r border-zinc-800/80 transition-all duration-300 z-30 select-none",
         isCollapsed ? "w-18" : "w-64"
       )}
     >
