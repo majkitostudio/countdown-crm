@@ -127,3 +127,25 @@ The remaining unchecked items are follow-up hardening or product-surface work:
 negative foreign-workspace tests, leaked-password protection, duplicate policy
 cleanup, mock-only surfaces, persisted runtime rule evaluation, database-backed
 dashboard widgets, and explicit demo-sandbox separation.
+
+## Current follow-up map — 2026-08-17
+
+- [x] Workflow rules and executions use the server DAL/Server Actions and no
+      longer use a browser service or local execution-log storage.
+- [x] Built-in and custom object schemas are read through the server DAL with
+      workspace-scoped attributes; object records and EAV values use server
+      reads/writes with visible error states.
+- [x] Custom object creation is restricted to manager/admin and deletion is
+      restricted to empty non-built-in objects; objects with records are
+      rejected rather than cascaded.
+- [x] `/objects/deals` and `/settings` were checked in an authenticated browser
+      session after the server-boundary changes.
+- [ ] Remove or archive `Playwright Test Product` without deleting its six
+      completed orders. Current FK protection is working as intended.
+- [ ] Replace remaining client schema-engine consumers in the Leads and
+      Operator Console dynamic-attribute surfaces with a shared server-loaded
+      schema context before claiming the entire schema engine is free of local
+      fallback state.
+- [ ] Keep leaked-password protection, duplicate RLS policies, mock-only
+      monitor/timeline/training surfaces, dashboard activity/KPI hardening and
+      demo-sandbox separation as separate follow-up slices.

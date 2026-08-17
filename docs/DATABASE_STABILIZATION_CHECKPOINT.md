@@ -59,3 +59,32 @@ protection is disabled. Performance notices are informational unused-index
 reports plus duplicate permissive-policy warnings; they should be handled in a
 separate policy/performance migration, not hidden by changing the advisor
 configuration.
+
+## Latest hardening after this checkpoint — 2026-08-17
+
+The stabilization work continued in small, independently reversible slices:
+
+- `cc19eb4`: Product Catalog moved behind the server DAL and role boundary.
+- `adfcb10`: Audit Log moved behind the server DAL with server-derived
+  workspace and operator attribution.
+- `034b169`: Workflows moved behind the server DAL and Server Actions; the
+  browser service and `localStorage` execution history were removed.
+- Schema/custom-object work in the current slice moves custom objects,
+  attribute definitions, record entities, and record values behind the server
+  DAL and Server Actions. Built-in schemas remain available while workspace
+  attributes are merged from the database.
+
+The latest gates passed `npm run check` and `git diff --check`. An authenticated
+browser session verified `/objects/deals` loading the persisted deal and
+`/settings` loading workspace schemas. A temporary custom object also survived
+create → reload and was checked directly in SQL; its cleanup is intentionally
+kept separate until the destructive confirmation dialog is accepted.
+
+### Historical product cleanup blocker
+
+`Playwright Test Product` is still present because it is referenced by six
+completed orders. The live foreign key `orders_product_id_fkey` uses
+`ON DELETE RESTRICT`. No historical order was deleted during stabilization.
+The remaining product decision is archive-from-catalog versus explicit,
+separately approved deletion of those six orders; archive is the recommended
+production-safe option.

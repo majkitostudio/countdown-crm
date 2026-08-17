@@ -242,3 +242,53 @@ Zachovat dvě pravdivě oddělené cesty:
 - browser logy bez chyb,
 - přímý SQL check: `foreign_workspace_rows = 0`, `unattributed_rows = 0`,
 - bez změny SQL schématu.
+
+---
+
+## 🔒 Stabilizační checkpoint follow-up — 2026-08-17
+
+Tato poznámka mapuje poslední schválené kroky z roadmapy na skutečné změny,
+ověření a otevřené rozhodnutí.
+
+### Slice 1 — katalog a demo data
+
+- [x] Do katalogu byly přidány tři čitelné vzorové produkty: FlexiJoint Ultra
+  Collagen, Lumière Bio-Retinol Elixir a RoboClean Pro LiDAR V8.
+- [ ] `Playwright Test Product` zatím nebyl odstraněn. Má šest dokončených
+  objednávek a databázový cizí klíč `orders_product_id_fkey` používá
+  `ON DELETE RESTRICT`; odstranění produktu by proto bez další volby zničilo
+  historická data.
+- [ ] Další rozhodnutí: buď historický produkt archivovat mimo aktivní katalog,
+  nebo výslovně schválit odstranění jeho šesti objednávek. Doporučená cesta je
+  archivace.
+
+### Slice 2 — workflow server boundary
+
+- [x] Pravidla a execution log jsou za serverovou DAL/Server Action hranicí.
+- [x] Workspace a role se ověřují na serveru; klientský `workflowService` byl
+  odstraněn.
+- [x] Execution log už nepoužívá `localStorage` jako zdroj historie.
+- [x] Ověřeno autentizovaným UI: create → reload → delete; SQL potvrdilo, že
+  testovací pravidlo po cleanupu nezůstalo.
+- [x] Commit: `034b169 fix: move workflows behind server boundary`.
+
+### Slice 3 — schema/custom-object server boundary
+
+- [x] Schémata, atributy a EAV record entities čte a zapisuje serverová DAL
+  přes Server Actions s workspace a role kontrolou.
+- [x] `/objects/[slug]` už nepoužívá browser Supabase service ani lokální
+  fallback jako zdroj záznamů; chyby načtení a zápisu jsou viditelné.
+- [x] Nastavení načítá built-in i workspace custom schemas ze serveru.
+- [x] Custom object create/reload byl ověřen v autentizovaném UI a přímou SQL
+  kontrolou; mazání je omezené na manager/admin a objekty bez záznamů.
+- [ ] Cleanup dočasného smoke-test custom objectu čeká na potvrzení nativního
+  mazacího dialogu. Nejde o historický produkt ani produkční CRM data.
+
+### Společné kontrolní gates
+
+- [x] `npm run check` — lint, typecheck a production build.
+- [x] `git diff --check`.
+- [x] Ověření reálné autentizované session na `/objects/deals`, `/settings` a
+  `/workflows`.
+- [ ] Po uzavření smoke-test cleanupu commitnout schema slice a aktualizovat
+  checkpoint na stav bez otevřeného testovacího artefaktu.

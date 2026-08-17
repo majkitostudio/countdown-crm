@@ -440,3 +440,25 @@ The database-backed stabilization segment is therefore marked pilot-ready, not
 universally production-ready. Remaining follow-up items include leaked-password
 protection, explicit negative foreign-workspace tests, duplicate policy cleanup,
 remaining mock-only surfaces, and database-backed dashboard activity/KPI data.
+
+## 12. Stabilizační pokračování — 2026-08-17
+
+Po předchozím checkpointu byly dokončeny další serverové hranice:
+
+- Product Catalog: serverová DAL a role/workspace validace jsou v `cc19eb4`.
+- Audit Log: serverová DAL, serverová atribuce a viditelné chyby jsou v
+  `adfcb10`.
+- Workflows: pravidla a execution log jsou v serverové DAL/Server Action cestě
+  v `034b169`; klientský `workflowService` a lokální execution log byly
+  odstraněny.
+- Schema/custom object: připravená změna přesouvá čtení a zápis custom objects,
+  atributů a EAV recordů do serverové DAL/Server Actions. Built-in schema
+  definice zůstávají součástí kontraktu a server je doplňuje workspace
+  atributy; UI už nepovažuje prázdný výsledek po chybě za pravdivá data.
+
+Ověřený stav je pilot-ready pro pokryté cesty, nikoli obecně
+production-ready. Zůstává otevřené bezpečné odstranění historického
+`Playwright Test Product`: šest dokončených objednávek je chráněno
+`ON DELETE RESTRICT`. Produkt proto nesmí být odstraněn kaskádou; další změna
+musí být explicitně navržená archivace nebo samostatně schválené odstranění
+historie.
