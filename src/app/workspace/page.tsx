@@ -16,7 +16,7 @@ import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard"
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
-import { fetchWorkflowsFromSupabase } from "@/lib/supabase/workflowService";
+import { listWorkflowsAction } from "@/app/actions/workflows";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction, createOrderAction } from "@/app/actions/crm";
@@ -85,7 +85,7 @@ function WorkspaceContent() {
           getLeads(),
           getProducts(),
           getOrders(),
-          fetchWorkflowsFromSupabase(),
+          listWorkflowsAction(),
         ]);
 
         setLeads(fetchedLeads);

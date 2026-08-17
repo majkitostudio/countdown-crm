@@ -32,11 +32,11 @@ import {
 } from "@/lib/workflows/types";
 import { RuleBuilderModal } from "@/components/workflows/RuleBuilderModal";
 import {
-  fetchWorkflowExecutionsFromSupabase,
-  fetchWorkflowsFromSupabase,
-  saveWorkflowToSupabase,
-  deleteWorkflowFromSupabase,
-} from "@/lib/supabase/workflowService";
+  deleteWorkflowAction,
+  listWorkflowExecutionsAction,
+  listWorkflowsAction,
+  saveWorkflowAction,
+} from "@/app/actions/workflows";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 
 // ─── Icon Maps ──────────────────────────────────────────────────────────────
@@ -104,8 +104,8 @@ export default function WorkflowsPage() {
 
   const refreshState = useCallback(async () => {
     const [nextRules, nextLog] = await Promise.all([
-      fetchWorkflowsFromSupabase(),
-      fetchWorkflowExecutionsFromSupabase(),
+      listWorkflowsAction(),
+      listWorkflowExecutionsAction(),
     ]);
     workflowEngine.replaceRules(nextRules);
     setRules(nextRules);
@@ -131,10 +131,10 @@ export default function WorkflowsPage() {
     rule: Omit<WorkflowRule, "id" | "createdAt" | "updatedAt">
   ) => {
     if (editingRule) {
-      await saveWorkflowToSupabase({ ...editingRule, ...rule, updatedAt: new Date().toISOString() });
+      await saveWorkflowAction({ ...editingRule, ...rule, updatedAt: new Date().toISOString() });
     } else {
       const now = new Date().toISOString();
-      await saveWorkflowToSupabase({ ...rule, id: `rule-${Date.now()}`, createdAt: now, updatedAt: now });
+      await saveWorkflowAction({ ...rule, id: `rule-${Date.now()}`, createdAt: now, updatedAt: now });
     }
     setEditingRule(null);
     await refreshState();
@@ -143,12 +143,12 @@ export default function WorkflowsPage() {
   const handleToggle = async (id: string) => {
     const rule = rules.find((item) => item.id === id);
     if (!rule) return;
-    await saveWorkflowToSupabase({ ...rule, enabled: !rule.enabled, updatedAt: new Date().toISOString() });
+    await saveWorkflowAction({ ...rule, enabled: !rule.enabled, updatedAt: new Date().toISOString() });
     await refreshState();
   };
 
   const handleDelete = async (id: string) => {
-    await deleteWorkflowFromSupabase(id);
+    await deleteWorkflowAction(id);
     await refreshState();
   };
 
