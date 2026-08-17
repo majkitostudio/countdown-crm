@@ -501,3 +501,24 @@ identity nebo workspace fixtures.
 Průběžná persistence, resume po pádu browseru, samostatné HTTP/API endpointy,
 post-call audio/transcription a AI review funkce zůstávají mimo schválený
 rozsah.
+
+## 14. Release-readiness hardening — 2026-08-18
+
+V migraci `20260817235507_profile_and_lead_notes_policy_hardening.sql` byla
+zpřesněna role a workspace hranice databázových policies:
+
+- `profiles` už nejsou čitelné všemi authenticated users; SELECT je omezený na
+  profily členů workspace sdíleného s aktuálním uživatelem,
+- `lead_notes` SELECT/INSERT policies jsou explicitně cílené na
+  `authenticated`,
+- `anon` nemá table grants pro `lead_notes`,
+- RLS zůstává zapnuté na všech kontrolovaných public tabulkách.
+
+Migrace byla aplikována do připojeného Supabase projektu a ověřena read-only
+SQL kontrolou policies a grants. Security advisor po změně ponechal pouze
+známý externí bod `Leaked Password Protection Disabled`; tento Auth project
+setting se nebude obcházet SQL migrací.
+
+`aiStreamerBridge` a `sipAdapter` zůstávají kandidáty na samostatný cleanup po
+potvrzení dead-code usage. `audioEngine` je runtime závislostí
+`softphone.ts` a není součástí tohoto cleanupu.

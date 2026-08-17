@@ -397,3 +397,26 @@ completion-only persistence, Teamleader Review a reload persistence.
 - post-call audio upload/transcription,
 - AI review insights, komentáře a playback,
 - production `calls`, `orders` nebo `activities` z tréninkového workflow.
+
+## Release-readiness hardening — 2026-08-18
+
+### Policy hardening slice
+
+- [x] `profiles` jsou čitelné pouze authenticated uživatelem pro profily
+  členů workspace, který sdílí aktuální uživatel.
+- [x] `lead_notes` SELECT/INSERT policies jsou explicitně cílené na
+  `authenticated`; `anon` nemá table grants.
+- [x] Migrace `20260817235507_profile_and_lead_notes_policy_hardening.sql`
+  byla aplikována do připojeného Supabase projektu.
+- [x] Read-only SQL kontrola potvrdila nové role, predicate a grants.
+- [x] Security advisor po změně nehlásí nový RLS/table problém.
+
+### Otevřené release body
+
+- [ ] Supabase Auth `Leaked Password Protection` zůstává externí project
+  setting a musí být zapnutý v Auth konfiguraci, ne SQL migrací.
+- [ ] `aiStreamerBridge` a `sipAdapter` jsou kandidáti na samostatný dead-code
+  cleanup; `audioEngine` zůstává runtime závislostí `softphone` a nesmí být
+  odstraněn společně s nimi.
+- [ ] Agent role/cross-workspace runtime smoke vyžaduje druhou testovací
+  identity nebo disposable fixture; aktuální pilot má pouze jednoho admina.
