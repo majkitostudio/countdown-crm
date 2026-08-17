@@ -2,6 +2,7 @@
 
 import {
   createProductForWorkspace,
+  deleteProductForWorkspace,
   listProductsForWorkspace,
   updateProductForWorkspace,
 } from "@/lib/dal/products";
@@ -30,4 +31,8 @@ export async function updateProductAction(
   workspaceId?: string
 ): Promise<ProductDTO> {
   return updateProductForWorkspace(id, input, workspaceId);
+}
+
+export async function deleteProductAction(id: string, workspaceId?: string): Promise<void> {
+  return deleteProductForWorkspace(id, workspaceId);
 }

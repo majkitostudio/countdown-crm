@@ -3,7 +3,9 @@ import "server-only";
 import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceContext } from "./workspace";
+import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
+import { createAuditLogForWorkspace } from "./audit";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
@@ -91,4 +93,96 @@ export async function createOrderForWorkspace(
   }
 
   return data as OrderDTO;
+}
+
+export interface ReassignOrdersResult {
+  sourceProductId: string;
+  targetProductId: string;
+  movedOrderIds: string[];
+}
+
+export async function listOrderProductCountsForWorkspace(
+  requestedWorkspaceId?: string
+): Promise<Record<string, number>> {
+  const { workspaceId } = await requireWorkspaceContext(requestedWorkspaceId);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("product_id")
+    .eq("workspace_id", workspaceId);
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Unable to load order product counts.");
+  }
+
+  return (data || []).reduce<Record<string, number>>((counts, order) => {
+    if (order.product_id) {
+      counts[order.product_id] = (counts[order.product_id] || 0) + 1;
+    }
+    return counts;
+  }, {});
+}
+
+export async function reassignOrdersProductForWorkspace(
+  sourceProductId: string,
+  targetProductId: string,
+  requestedWorkspaceId?: string
+): Promise<ReassignOrdersResult> {
+  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+
+  if (!sourceProductId.trim() || !targetProductId.trim() || sourceProductId === targetProductId) {
+    throw new DataAccessError("VALIDATION", "Source and target products must be different.");
+  }
+
+  const supabase = await createDataClient();
+  const { data: products, error: productError } = await supabase
+    .from("products")
+    .select("id, title")
+    .eq("workspace_id", workspaceId)
+    .in("id", [sourceProductId, targetProductId]);
+
+  if (productError) {
+    throw new DataAccessError("DATABASE", "Unable to verify the selected products.");
+  }
+
+  const sourceProduct = products?.find((product) => product.id === sourceProductId);
+  const targetProduct = products?.find((product) => product.id === targetProductId);
+  if (!sourceProduct || !targetProduct) {
+    throw new DataAccessError("VALIDATION", "Both products must belong to the active workspace.");
+  }
+
+  const { data: orders, error: orderLookupError } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("product_id", sourceProductId);
+
+  if (orderLookupError) {
+    throw new DataAccessError("DATABASE", "Unable to load orders for product reassignment.");
+  }
+
+  const orderIds = (orders || []).map((order) => order.id);
+  if (orderIds.length === 0) {
+    return { sourceProductId, targetProductId, movedOrderIds: [] };
+  }
+
+  const { data: updatedOrders, error: updateError } = await supabase
+    .from("orders")
+    .update({ product_id: targetProductId })
+    .eq("workspace_id", workspaceId)
+    .eq("product_id", sourceProductId)
+    .select("id");
+
+  if (updateError || !updatedOrders) {
+    throw new DataAccessError("DATABASE", "Unable to reassign the selected orders.");
+  }
+
+  const movedOrderIds = updatedOrders.map((order) => order.id);
+  await createAuditLogForWorkspace({
+    action: "ORDER_PRODUCT_REASSIGNED",
+    severity: "medium",
+    details: `Reassigned ${movedOrderIds.length} order(s) from ${sourceProduct.title} to ${targetProduct.title}. Historical order totals were preserved.`,
+  });
+
+  return { sourceProductId, targetProductId, movedOrderIds };
 }

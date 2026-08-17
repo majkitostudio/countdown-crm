@@ -234,3 +234,46 @@ export async function updateProductForWorkspace(
 
   return mapProduct(data as ProductRow);
 }
+
+export async function deleteProductForWorkspace(
+  id: string,
+  requestedWorkspaceId?: string
+): Promise<void> {
+  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+
+  if (!id.trim()) {
+    throw new DataAccessError("VALIDATION", "Product ID is required.");
+  }
+
+  const supabase = await createDataClient();
+  const { count: orderCount, error: orderError } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .eq("product_id", id);
+
+  if (orderError) {
+    throw new DataAccessError("DATABASE", "Unable to verify product order history.");
+  }
+  if ((orderCount || 0) > 0) {
+    throw new DataAccessError(
+      "VALIDATION",
+      "Product cannot be deleted while it is referenced by order history. Reassign those orders first."
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Unable to delete the product.");
+  }
+  if (!data) {
+    throw new DataAccessError("NOT_FOUND", "Product not found in this workspace.");
+  }
+}

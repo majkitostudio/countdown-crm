@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Package, Search, Plus, ShieldAlert, Tag, DollarSign, Upload } from "lucide-react";
+import { Package, Search, Plus, ShieldAlert, Tag, DollarSign, Upload, ArrowRightLeft, X } from "lucide-react";
 import { Product, getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import { ProductModal } from "@/components/products/ProductModal";
 import { listObjectionsAction } from "@/app/actions/objections";
+import { deleteProductAction } from "@/app/actions/products";
+import { listOrderProductCountsAction, reassignOrdersProductAction } from "@/app/actions/crm";
 
 import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal";
 import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
@@ -15,6 +17,7 @@ import type { ObjectionBattleCard } from "@/lib/objections";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [orderCounts, setOrderCounts] = useState<Record<string, number>>({});
   const [objectionCards, setObjectionCards] = useState<ObjectionDTO[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -25,9 +28,19 @@ export default function ProductsPage() {
   const [isObjectionEditorOpen, setIsObjectionEditorOpen] = useState<boolean>(false);
   const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState<boolean>(false);
   const [selectedObjectionCard, setSelectedObjectionCard] = useState<ObjectionBattleCard | null>(null);
+  const [reassignSourceProduct, setReassignSourceProduct] = useState<Product | null>(null);
+  const [reassignTargetId, setReassignTargetId] = useState("");
+  const [isReassigning, setIsReassigning] = useState(false);
+  const [catalogActionError, setCatalogActionError] = useState<string | null>(null);
 
   const loadProducts = async () => {
-    const [data, cards] = await Promise.all([getProducts(), listObjectionsAction()]);
+    try {
+      const [data, cards, nextOrderCounts] = await Promise.all([
+        getProducts(),
+        listObjectionsAction(),
+        listOrderProductCountsAction(),
+      ]);
+      setOrderCounts(nextOrderCounts);
     setObjectionCards(cards);
     const objectionsByProduct = new Map<string, typeof cards>();
     for (const card of cards) {
@@ -39,15 +52,18 @@ export default function ProductsPage() {
       }
     }
 
-    setProducts(data.map((product) => ({
-      ...product,
-      objections: (objectionsByProduct.get(product.id) || []).map((card) => ({
-        id: card.id,
-        product_id: card.product_id,
-        objection_title: card.objection_title,
-        rebuttal_args: card.rebuttal_args,
-      })),
-    })));
+      setProducts(data.map((product) => ({
+        ...product,
+        objections: (objectionsByProduct.get(product.id) || []).map((card) => ({
+          id: card.id,
+          product_id: card.product_id,
+          objection_title: card.objection_title,
+          rebuttal_args: card.rebuttal_args,
+        })),
+      })));
+    } catch (error) {
+      setCatalogActionError(error instanceof Error ? error.message : "Katalog se nepodařilo načíst.");
+    }
   };
 
   useEffect(() => {
@@ -71,6 +87,41 @@ export default function ProductsPage() {
   const handleAddProduct = () => {
     setSelectedEditProduct(null);
     setIsProductModalOpen(true);
+  };
+
+  const handleOpenReassignOrders = (product: Product) => {
+    const firstTarget = products.find((candidate) => candidate.id !== product.id);
+    setReassignSourceProduct(product);
+    setReassignTargetId(firstTarget?.id || "");
+    setCatalogActionError(null);
+  };
+
+  const handleReassignOrders = async () => {
+    if (!reassignSourceProduct || !reassignTargetId) return;
+
+    setIsReassigning(true);
+    setCatalogActionError(null);
+    try {
+      await reassignOrdersProductAction(reassignSourceProduct.id, reassignTargetId);
+      setReassignSourceProduct(null);
+      await loadProducts();
+    } catch (error) {
+      setCatalogActionError(error instanceof Error ? error.message : "Objednávky se nepodařilo upravit.");
+    } finally {
+      setIsReassigning(false);
+    }
+  };
+
+  const handleDeleteProduct = async (product: Product) => {
+    if (!window.confirm(`Opravdu odstranit produkt „${product.title}“?`)) return;
+
+    setCatalogActionError(null);
+    try {
+      await deleteProductAction(product.id);
+      await loadProducts();
+    } catch (error) {
+      setCatalogActionError(error instanceof Error ? error.message : "Produkt se nepodařilo odstranit.");
+    }
   };
 
   const handleAddObjectionScript = () => {
@@ -249,6 +300,12 @@ export default function ProductsPage() {
 
       </div>
 
+      {catalogActionError && (
+        <div className="p-4 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300" role="alert">
+          {catalogActionError}
+        </div>
+      )}
+
       {/* Product Cards Grid */}
       {filteredProducts.length === 0 ? (
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center text-zinc-500 text-xs">
@@ -262,6 +319,9 @@ export default function ProductsPage() {
               product={prod}
               onOpenObjections={handleOpenObjections}
               onEditProduct={handleEditProduct}
+              orderCount={orderCounts[prod.id] || 0}
+              onReassignOrders={handleOpenReassignOrders}
+              onDeleteProduct={handleDeleteProduct}
             />
           ))}
         </div>
@@ -298,6 +358,72 @@ export default function ProductsPage() {
         isOpen={isTranscriptModalOpen}
         onClose={() => setIsTranscriptModalOpen(false)}
       />
+
+      {reassignSourceProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setReassignSourceProduct(null)}
+          />
+          <div className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <ArrowRightLeft className="w-5 h-5 text-zinc-300" />
+                <h3 className="text-base font-bold text-zinc-100">Přesměrovat objednávky</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReassignSourceProduct(null)}
+                className="p-1 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-400">
+              {orderCounts[reassignSourceProduct.id] || 0} objednávek nyní odkazuje na
+              <span className="text-zinc-200 font-medium"> {reassignSourceProduct.title}</span>.
+              Historické částky zůstanou beze změny.
+            </p>
+
+            <label className="space-y-1.5 block text-xs">
+              <span className="text-zinc-400 font-medium">Nový produkt</span>
+              <select
+                value={reassignTargetId}
+                onChange={(event) => setReassignTargetId(event.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none"
+              >
+                <option value="">Vyberte produkt...</option>
+                {products
+                  .filter((product) => product.id !== reassignSourceProduct.id)
+                  .map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.title} — ${product.price.toFixed(2)}
+                    </option>
+                  ))}
+              </select>
+            </label>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setReassignSourceProduct(null)}
+                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium rounded-xl border border-zinc-800 cursor-pointer"
+              >
+                Zrušit
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleReassignOrders()}
+                disabled={!reassignTargetId || isReassigning}
+                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 disabled:cursor-not-allowed text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              >
+                {isReassigning ? "Ukládám..." : "Přesměrovat objednávky"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
