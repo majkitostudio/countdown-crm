@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useState } from "react";
 import {
   ShoppingCart,
   Plus,
@@ -14,11 +14,6 @@ import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
-import {
-  getDemoModeServerSnapshot,
-  getDemoModeSnapshot,
-  subscribeDemoMode,
-} from "@/lib/demoMode";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -49,11 +44,6 @@ export function ProductOrderPanel({
   onClose,
   onOrderPlaced,
 }: ProductOrderPanelProps) {
-  const demoModeActive = useSyncExternalStore(
-    subscribeDemoMode,
-    getDemoModeSnapshot,
-    getDemoModeServerSnapshot,
-  );
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || "");
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
 
@@ -66,19 +56,6 @@ export function ProductOrderPanel({
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
-  const [isSmsSent, setIsSmsSent] = useState(false);
-
-  const handleSendPayLinkSms = () => {
-    if (!activeLead) return;
-    if (!demoModeActive) {
-      setOrderError("SMS Pay-Link is unavailable in Production DB until a real messaging integration is configured.");
-      return;
-    }
-    setIsSmsSent(true);
-    setTimeout(() => setIsSmsSent(false), 5000);
-  };
-
-
   const lastPitchRef = React.useRef<string | undefined>(undefined);
 
   React.useEffect(() => {
@@ -353,30 +330,17 @@ export function ProductOrderPanel({
             <span>Place Order</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleSendPayLinkSms}
-            disabled={!demoModeActive || !activeLead || isSmsSent}
-            title={demoModeActive ? "Simulate SMS pay-link in Demo Sandbox" : "SMS Pay-Link unavailable in Production DB"}
-            className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 disabled:opacity-50 text-zinc-300 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+          <div
+            role="status"
+            className="w-full py-2.5 bg-zinc-950/60 border border-zinc-800 text-zinc-500 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5"
+            title="SMS Pay-Link requires an approved messaging integration"
           >
-            {isSmsSent ? (
-              <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400 font-medium">SMS Odeslána</span>
-              </>
-            ) : (
-              <>
-                <Zap className="w-3.5 h-3.5 text-zinc-400" />
-                <span>{demoModeActive ? "Send SMS Pay-Link (Demo)" : "SMS Pay-Link unavailable"}</span>
-              </>
-            )}
-          </button>
+            <Zap className="w-3.5 h-3.5 text-zinc-600" />
+            <span>SMS Pay-Link unavailable</span>
+          </div>
         </div>
         <p className="text-[11px] text-zinc-500">
-          {demoModeActive
-            ? "Demo Sandbox: pay-link sending is a local simulation only."
-            : "Production DB: pay-link sending is unavailable until a real messaging integration is configured."}
+          SMS Pay-Link is not connected. The order above is still saved through the real CRM workflow.
         </p>
       </div>
 

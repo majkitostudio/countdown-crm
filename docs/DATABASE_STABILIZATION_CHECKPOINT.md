@@ -21,6 +21,9 @@ This checkpoint records the current decision point before the next commit.
 - operator presence is labelled unavailable until a real integration exists;
 - production reads no longer use mock data as their source of truth in the
   covered modules.
+- the user-facing Demo/Sandbox toggle and its local timeline/integration
+  simulations have been removed; development-only Demo Auth remains a
+  separate, explicitly guarded fallback.
 
 ## Follow-up hardening after the stabilization commit
 
@@ -73,6 +76,9 @@ The stabilization work continued in small, independently reversible slices:
   attribute definitions, record entities, and record values behind the server
   DAL and Server Actions. Built-in schemas remain available while workspace
   attributes are merged from the database.
+- The user-facing Demo/Sandbox UI was removed in the follow-up slice; SMS,
+  external follow-up dispatch, and quick notes now remain unavailable until
+  their real persistence/integrations exist.
 
 The latest gates passed `npm run check` and `git diff --check`. An authenticated
 browser session verified `/objects/deals` loading the persisted deal and

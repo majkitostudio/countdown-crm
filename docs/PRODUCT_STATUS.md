@@ -29,16 +29,20 @@ První MVP bude provozováno pro jednu firmu a jeden hlavní workspace. Přesto 
 - role agent, manager a admin zůstanou součástí návrhu,
 - izolace dat bude řešena na databázové a serverové vrstvě, ne pouze v UI.
 
-### Demo režim
+### Demo/Sandbox UI
 
-Demo režim zůstane zachován pro lokální vývoj, prezentace a bezpečné sandbox testování. Nesmí však:
+Uživatelský přepínač `Demo Sandbox / Production DB` byl odstraněn. Nebyl
+skutečným přepínačem databáze ani workspace a lokální simulace některých akcí
+vytvářely nejasnost mezi reálným zápisem a pouhým náhledem.
 
-- implicitně obcházet přihlášení,
-- být aktivní v produkčním prostředí,
-- zaměňovat mock data za skutečná CRM data,
-- maskovat databázové nebo integrační chyby.
+Objednávkové workflow nyní zapisuje přes skutečnou serverovou datovou vrstvu.
+SMS pay-link a externí follow-up zůstávají viditelně nedostupné, dokud nebude
+zapojena schválená integrace. Rychlé poznámky se nezapisují lokálně; jejich
+UI se vrátí až se skutečnou perzistencí a workspace autorizací.
 
-Demo režim musí být explicitně zapnutý environment konfigurací a viditelně oddělený od produkčního režimu.
+Vývojový `NEXT_PUBLIC_ALLOW_DEMO_AUTH` je samostatný autentizační fallback a
+není součástí uživatelského workflow. Zůstává mimo tento slic a nesmí být
+zapnutý ve sdíleném stagingu ani v produkci.
 
 ### Produktová priorita
 
@@ -205,7 +209,7 @@ Tyto části však budou označovány jako hotové teprve po ověření datovéh
 - Chybové stavy se na několika místech mění na mock/fallback data, takže chyba databáze může vypadat jako validní prázdný nebo demo výsledek.
 - Některé operace používají implicitní defaulty, které mohou vytvořit neplatnou objednávku nebo nepravdivou analytiku.
 
-### P1/P2 — demo a mock prolínání
+### P1/P2 — mock prolínání mimo odstraněné Sandbox UI
 
 Mock data existují v leads, products, calls, analytics, monitoringu, timeline, objektech, telephony a dalších modulech. Musíme přesně rozlišit:
 
@@ -281,9 +285,9 @@ nutné explicitně schválit.
 - odstranit implicitní a nebezpečné defaulty,
 - vyřešit produkční UUID versus demo ID.
 
-### Commit 8 — Demo/mock izolace
+### Commit 8 — Demo/mock izolace (nahrazeno odstraněním Sandbox UI)
 
-- oddělit sandbox data od produkčního toku,
+- odstranit uživatelský Sandbox přepínač, který nebyl skutečnou datovou izolací,
 - odstranit fallbacky, které maskují chyby,
 - zavést loading, empty a error stavy,
 - označit demonstrační integrace.

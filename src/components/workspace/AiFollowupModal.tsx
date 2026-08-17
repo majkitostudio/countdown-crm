@@ -1,26 +1,18 @@
 "use client";
 
-import React, { useCallback, useState, useEffect, useSyncExternalStore } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   Mail,
   MessageSquare,
   Sparkles,
   Copy,
   CheckCircle2,
-  Send,
   X,
   RefreshCw
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { Product } from "@/lib/products";
 import { generateFollowupAction, GenerateFollowupResult } from "@/app/actions/followup";
-import { addTimelineEntry } from "@/lib/timeline";
-import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
-import {
-  getDemoModeServerSnapshot,
-  getDemoModeSnapshot,
-  subscribeDemoMode,
-} from "@/lib/demoMode";
 
 interface AiFollowupModalProps {
   lead: Lead | null;
@@ -37,26 +29,16 @@ export function AiFollowupModal({
   isOpen,
   onClose,
 }: AiFollowupModalProps) {
-  const { identity } = useOperatorIdentity();
-  const demoModeActive = useSyncExternalStore(
-    subscribeDemoMode,
-    getDemoModeSnapshot,
-    getDemoModeServerSnapshot,
-  );
   const [channel, setChannel] = useState<"email" | "whatsapp">("email");
   const [goal, setGoal] = useState<"order_paylink" | "discount_offer" | "callback_reminder" | "graceful_thanks">("order_paylink");
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<GenerateFollowupResult | null>(null);
   const [editableContent, setEditableContent] = useState("");
   const [isCopied, setIsCopied] = useState(false);
-  const [isDispatched, setIsDispatched] = useState(false);
-  const [dispatchError, setDispatchError] = useState<string | null>(null);
 
   const handleGenerate = useCallback(async () => {
     if (!lead) return;
     setIsGenerating(true);
-    setIsDispatched(false);
-    setDispatchError(null);
 
     try {
       const res = await generateFollowupAction({
@@ -94,37 +76,6 @@ export function AiFollowupModal({
     navigator.clipboard.writeText(editableContent);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 3000);
-  };
-
-  const handleDispatch = () => {
-    if (!demoModeActive) {
-      setDispatchError("Follow-up dispatch is unavailable in Production DB. Copy the reviewed message or configure an approved messaging integration.");
-      return;
-    }
-
-    // Record entry on Omnichannel Timeline (COMMIT-22)
-    const added = addTimelineEntry(lead.id, {
-      type: channel === "email" ? "note" : "sms_paylink",
-      title: channel === "email" ? `AI Email Sent: ${result?.subject || "Follow-up"}` : `WhatsApp Dispatched to ${lead.phone}`,
-      description: editableContent,
-      operator_name: result?.operatorName || identity?.name || "Unknown operator",
-      metadata: {
-        paylink_url: result?.paylinkUrl,
-      },
-    });
-
-    if (!added) {
-      setDispatchError("Follow-up dispatch is unavailable in Production DB until timeline persistence is implemented.");
-      return;
-    }
-
-    setDispatchError(null);
-    setIsDispatched(true);
-
-    setTimeout(() => {
-      setIsDispatched(false);
-      onClose();
-    }, 2000);
   };
 
   return (
@@ -240,26 +191,10 @@ export function AiFollowupModal({
           />
         </div>
 
-        {/* Dispatched Notification Alert */}
-        {isDispatched && (
-          <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-2.5 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Message successfully dispatched to {lead.full_name} and recorded on Omnichannel Timeline!</span>
-          </div>
-        )}
-
-        {dispatchError && (
-          <div role="alert" className="bg-red-950/30 border border-red-900/60 text-red-300 p-2.5 rounded-xl text-xs">
-            {dispatchError}
-          </div>
-        )}
-
         {/* Action Controls */}
         <div className="flex items-center justify-between gap-4 pt-2 border-t border-zinc-800">
           <p className="text-[11px] text-zinc-500">
-            {demoModeActive
-              ? "Demo Sandbox: dispatch is a local simulation only."
-              : "Production DB: dispatch is unavailable; review and copy only."}
+            External dispatch is unavailable. Review and copy the message, or configure an approved messaging integration.
           </p>
           <button
             type="button"
@@ -279,15 +214,9 @@ export function AiFollowupModal({
               Cancel
             </button>
 
-            <button
-              type="button"
-              onClick={handleDispatch}
-              disabled={!demoModeActive || isGenerating || !editableContent}
-              className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>{demoModeActive ? (channel === "email" ? "Send AI Email (Demo)" : "Dispatch WhatsApp (Demo)") : "Dispatch unavailable"}</span>
-            </button>
+            <span className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-600 text-xs font-medium">
+              Dispatch unavailable
+            </span>
           </div>
         </div>
 

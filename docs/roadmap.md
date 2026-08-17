@@ -283,6 +283,20 @@ ověření a otevřené rozhodnutí.
 - [ ] Cleanup dočasného smoke-test custom objectu čeká na potvrzení nativního
   mazacího dialogu. Nejde o historický produkt ani produkční CRM data.
 
+### Slice 4 — odstranění uživatelského Demo/Sandbox UI
+
+- [x] Odstraněn přepínač `Demo Sandbox / Production DB` z hlavičky; nebyl
+  skutečným přepínačem databáze ani workspace.
+- [x] Objednávkové workflow zůstalo reálné a dál používá serverovou DAL cestu.
+- [x] Lokální SMS pay-link a follow-up dispatch simulace byly odstraněny;
+  nepřipojené externí akce jsou nyní viditelně nedostupné.
+- [x] Lokální mock timeline a in-memory quick notes byly odstraněny, aby se
+  historie nemíchala s databázovými aktivitami.
+- [x] `NEXT_PUBLIC_ALLOW_DEMO_AUTH` zůstal oddělený jako vývojový auth
+  fallback; tento slice nemění autentizační ani workspace kontrakt.
+- [x] Ověřeno `npm run lint`, `npm run typecheck`, `npm run build` a
+  `git diff --check`; runtime snapshot login layoutu už neobsahuje Demo toggle.
+
 ### Společné kontrolní gates
 
 - [x] `npm run check` — lint, typecheck a production build.

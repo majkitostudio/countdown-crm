@@ -81,7 +81,8 @@ not considered complete merely because it renders or because a build passes.
 - [ ] Load operator profile from the authenticated profile row.
 - [x] Replace fake online/operator presence with a clearly labelled
       `Presence unavailable` state until a real integration exists.
-- [ ] Keep `Demo Sandbox` opt-in and visibly separate from `Production DB`.
+- [x] Remove the misleading `Demo Sandbox / Production DB` toggle; keep
+      unsupported integrations visibly unavailable until they are real.
 
 ### 5. End-to-end verification
 
@@ -126,7 +127,7 @@ stabilization segment is complete for the verified one-company pilot scope.
 The remaining unchecked items are follow-up hardening or product-surface work:
 negative foreign-workspace tests, leaked-password protection, duplicate policy
 cleanup, mock-only surfaces, persisted runtime rule evaluation, database-backed
-dashboard widgets, and explicit demo-sandbox separation.
+dashboard widgets, and removal of the former demo-sandbox UI.
 
 ## Current follow-up map — 2026-08-17
 
@@ -150,5 +151,5 @@ dashboard widgets, and explicit demo-sandbox separation.
       schema context before claiming the entire schema engine is free of local
       fallback state.
 - [ ] Keep leaked-password protection, duplicate RLS policies, mock-only
-      monitor/timeline/training surfaces, dashboard activity/KPI hardening and
-      demo-sandbox separation as separate follow-up slices.
+      monitor/training surfaces, dashboard activity/KPI hardening and the
+      remaining timeline persistence work as separate follow-up slices.

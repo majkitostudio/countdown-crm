@@ -8,7 +8,6 @@ import {
   MapPin,
   Building,
   Sparkles,
-  Send,
   UserCheck,
   PhoneCall,
   FileText
@@ -16,8 +15,7 @@ import {
 import { Lead } from "@/lib/leads";
 import { updateLeadStatusAction } from "@/app/actions/crm";
 import { WorkspaceActivity } from "@/lib/domain";
-import { addLeadActivity, getLeadActivities } from "@/lib/domainActivity";
-import { isDemoModeActive } from "@/lib/demoMode";
+import { getLeadActivities } from "@/lib/domainActivity";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -34,13 +32,11 @@ export function LeadDetailDrawer({
   onLeadUpdated,
   onStartCall,
 }: LeadDetailDrawerProps) {
-  const [newNote, setNewNote] = useState("");
   const [currentLead, setCurrentLead] = useState<Lead | null>(lead);
   const [activities, setActivities] = useState<WorkspaceActivity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
-  const canAddNotes = isDemoModeActive();
 
   React.useEffect(() => {
     let cancelled = false;
@@ -97,19 +93,6 @@ export function LeadDetailDrawer({
     } catch (error: unknown) {
       setStatusError(error instanceof Error ? error.message : "Lead status could not be saved");
     }
-  };
-
-  const handleAddNote = () => {
-    if (!newNote.trim() || !currentLead || !canAddNotes) return;
-    const newEntry = addLeadActivity(currentLead.id, {
-      type: "note",
-      title: "Note Added",
-      description: newNote.trim(),
-      actor: "Unknown operator",
-    });
-    if (!newEntry) return;
-    setActivities((prev) => [newEntry, ...prev]);
-    setNewNote("");
   };
 
   const getScoreColor = () => {
@@ -258,29 +241,9 @@ export function LeadDetailDrawer({
               <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400 block">
                 Add Call Note
               </label>
-              {canAddNotes ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Type note regarding customer preference or agreement..."
-                    onKeyDown={(e) => e.key === "Enter" && handleAddNote()}
-                    className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
-                  />
-                  <button
-                    onClick={handleAddNote}
-                    className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors border border-zinc-700 cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    Add
-                  </button>
-                </div>
-              ) : (
-                <p className="text-xs text-zinc-500 border border-zinc-800 rounded-lg px-3 py-2">
-                  Notes unavailable in Production DB until note persistence is implemented.
-                </p>
-              )}
+              <p className="text-xs text-zinc-500 border border-zinc-800 rounded-lg px-3 py-2">
+                Quick notes are not yet persisted. Existing lead notes and saved activities remain visible below.
+              </p>
             </div>
 
             {/* Activity & Interaction Timeline */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Bell, ShieldCheck, Layers } from "lucide-react";
 import { blueprintEngine } from "@/lib/blueprints/engine";
@@ -9,7 +9,6 @@ import { OperatorPresenceBadge } from "./OperatorPresenceBadge";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { getOperatorInitials, getOperatorRoleLabel } from "@/lib/operatorIdentity";
 
-import { isDemoModeActive, setDemoMode } from "@/lib/demoMode";
 import { createClient } from "@/lib/supabase/client";
 
 export function Header() {
@@ -19,21 +18,6 @@ export function Header() {
   const [activeBlueprintName, setActiveBlueprintName] = useState(
     blueprintEngine.getActiveBlueprint().name
   );
-  const [demoActive, setDemoActive] = useState<boolean>(() => isDemoModeActive());
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      setDemoActive(isDemoModeActive());
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("countdown-demo-mode-changed", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("countdown-demo-mode-changed", handleStorageChange);
-    };
-  }, []);
-
   const rawOperatorName = identity?.name || (isOperatorLoading ? "Loading operator" : "Unknown operator");
   const nameParts = rawOperatorName.trim().split(" ");
   const firstName = nameParts[0] || "Unknown";
@@ -87,24 +71,6 @@ export function Header() {
 
         {/* Live Multi-Operator Presence */}
         <div className="hidden xl:block"><OperatorPresenceBadge /></div>
-
-        {/* Demo Mode Toggle Badge */}
-        <button
-          onClick={() => {
-            const next = !demoActive;
-            setDemoActive(next);
-            setDemoMode(next);
-          }}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-mono transition-all cursor-pointer ${
-            demoActive
-              ? "bg-amber-950/40 border-amber-800/80 text-amber-300"
-              : "bg-emerald-950/40 border-emerald-800/80 text-emerald-300"
-          }`}
-          title="Klikněte pro přepnutí mezi Sandbox Demo a Produkčním Supabase režimem"
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${demoActive ? "bg-amber-400 animate-pulse" : "bg-emerald-400"}`} />
-          <span className="hidden sm:inline whitespace-nowrap">{demoActive ? "Demo Sandbox" : "Production DB"}</span>
-        </button>
 
         {/* Live Indicator */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
