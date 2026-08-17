@@ -179,3 +179,37 @@ Zachovat dvě pravdivě oddělené cesty:
 - `foreign_workspace_count = 0`,
 - testovací řádky po ověření odstraněny,
 - bez změny SQL schématu a bez změny lead UI.
+
+---
+
+## 🔒 Stabilizační slice: Product Catalog server boundary
+
+**Status:** implementováno v navazujícím stabilizačním commitu
+**Priorita:** P1 — serverová workspace a role hranice
+
+### Rozsah
+
+- Čtení produktů nyní používá serverovou DAL a Server Action s explicitním
+  workspace filtrem a výběrem povolených polí.
+- Vytvoření a úprava produktu probíhá pouze přes serverovou DAL s rolí
+  `manager` nebo `admin`; běžný workspace member smí katalog číst.
+- Produktové vstupy se validují na serveru včetně názvu, kategorie, ceny,
+  textových limitů a typu dostupnosti.
+- Přímý browser Supabase service `ordersService` byl odstraněn po ověření,
+  že v runtime zajišťoval pouze produktový katalog.
+- Modal nyní zobrazuje chybu zápisu místo tichého selhání nebo zamrznutí stavu.
+
+### Ne-cíle
+
+- Bez změny databázového schématu a bez změny RLS politik, které už odpovídají
+  modelu workspace member read / manager-admin write.
+- Bez redesignu katalogu, objection cards nebo Operator Console workflow.
+
+### Ověření
+
+- `npm run check` (lint, typecheck, build),
+- `git diff --check`,
+- autentizované načtení katalogu a create/update/reload smoke test,
+- přímý SQL check workspace vazby a kontrola nulového průniku do cizích
+  workspace,
+- testovací produkt po ověření odstraněn.

@@ -1,8 +1,8 @@
 import {
-  fetchProductsFromSupabase,
-  createProductInSupabase,
-  updateProductInSupabase,
-} from "./supabase/ordersService";
+  createProductAction,
+  listProductsAction,
+  updateProductAction,
+} from "@/app/actions/products";
 
 export type ProductCategory = "supplements" | "cosmetics" | "electronics";
 
@@ -33,25 +33,23 @@ export async function getProducts(options?: {
   search?: string;
   inStockOnly?: boolean;
 }): Promise<Product[]> {
-  const data = await fetchProductsFromSupabase();
-  let filtered = data;
+  const data = await listProductsAction({
+    category: isProductCategory(options?.category) ? options.category : undefined,
+    search: options?.search,
+    inStockOnly: options?.inStockOnly,
+  });
 
-  if (options?.category && options.category !== "all") {
-    filtered = filtered.filter((product) => product.category === options.category);
-  }
-  if (options?.inStockOnly) {
-    filtered = filtered.filter((product) => product.in_stock);
-  }
-  if (options?.search) {
-    const query = options.search.toLowerCase();
-    filtered = filtered.filter((product) =>
-      [product.title, product.description, product.category].some((value) =>
-        value.toLowerCase().includes(query)
-      )
-    );
-  }
-
-  return filtered;
+  return data.map((product) => ({
+    id: product.id,
+    title: product.title,
+    category: product.category,
+    price: Number(product.price),
+    currency: product.currency || "USD",
+    description: product.description || "",
+    image_url: product.image_url || "",
+    in_stock: product.in_stock ?? true,
+    created_at: product.created_at,
+  }));
 }
 
 export async function createProduct(product: Partial<Product>): Promise<Product> {
@@ -65,11 +63,53 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     in_stock: product.in_stock ?? true,
   };
 
-  const saved = await createProductInSupabase(newProduct);
-  if (!saved) throw new Error("Product was not saved to Supabase");
-  return saved;
+  const saved = await createProductAction({
+    title: newProduct.title!,
+    category: newProduct.category!,
+    price: newProduct.price!,
+    currency: newProduct.currency,
+    description: newProduct.description,
+    image_url: newProduct.image_url,
+    in_stock: newProduct.in_stock,
+  });
+
+  return {
+    id: saved.id,
+    title: saved.title,
+    category: saved.category,
+    price: Number(saved.price),
+    currency: saved.currency || "USD",
+    description: saved.description || "",
+    image_url: saved.image_url || "",
+    in_stock: saved.in_stock ?? true,
+    created_at: saved.created_at,
+  };
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
-  return updateProductInSupabase(id, updates);
+  const saved = await updateProductAction(id, {
+    title: updates.title,
+    category: updates.category,
+    price: updates.price,
+    currency: updates.currency,
+    description: updates.description,
+    image_url: updates.image_url,
+    in_stock: updates.in_stock,
+  });
+
+  return {
+    id: saved.id,
+    title: saved.title,
+    category: saved.category,
+    price: Number(saved.price),
+    currency: saved.currency || "USD",
+    description: saved.description || "",
+    image_url: saved.image_url || "",
+    in_stock: saved.in_stock ?? true,
+    created_at: saved.created_at,
+  };
+}
+
+function isProductCategory(value: string | undefined): value is ProductCategory {
+  return value === "supplements" || value === "cosmetics" || value === "electronics";
 }
