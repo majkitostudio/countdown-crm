@@ -10,13 +10,13 @@ import {
   Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { schemaEngine } from "@/lib/schema/engine";
-import { AttributeDefinition, AttributeType } from "@/lib/schema/types";
+import { saveSchemaAction } from "@/app/actions/schema";
+import { AttributeDefinition, AttributeType, ObjectSchema } from "@/lib/schema/types";
 
 interface ObjectBuilderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSchemaCreated: () => void;
+  onSchemaCreated: (schema: ObjectSchema) => void | Promise<void>;
 }
 
 export function ObjectBuilderModal({
@@ -28,6 +28,8 @@ export function ObjectBuilderModal({
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [iconName] = useState("Database");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [attributes, setAttributes] = useState<AttributeDefinition[]>([
     {
@@ -73,19 +75,29 @@ export function ObjectBuilderModal({
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim() || !slug.trim()) return;
 
-    schemaEngine.addCustomSchema({
-      slug: slug.trim(),
-      name: name.trim(),
-      description: description.trim() || "Uživatelsky definovaný dynamický objekt",
-      iconName,
-      attributes,
-    });
+    setIsSaving(true);
+    setSaveError(null);
 
-    onSchemaCreated();
-    onClose();
+    try {
+      const createdSchema = await saveSchemaAction({
+        id: `schema-${slug.trim()}`,
+        slug: slug.trim(),
+        name: name.trim(),
+        description: description.trim() || "Uživatelsky definovaný dynamický objekt",
+        iconName,
+        attributes,
+      });
+
+      await onSchemaCreated(createdSchema);
+      onClose();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Objekt se nepodařilo uložit.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -234,6 +246,13 @@ export function ObjectBuilderModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/80 bg-zinc-950">
+          {saveError ? (
+            <p className="max-w-sm text-[11px] text-rose-400" role="alert">
+              {saveError}
+            </p>
+          ) : (
+            <span />
+          )}
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
@@ -242,16 +261,16 @@ export function ObjectBuilderModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={!name.trim() || !slug.trim()}
+            disabled={!name.trim() || !slug.trim() || isSaving}
             className={cn(
               "px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer",
-              name.trim() && slug.trim()
+              name.trim() && slug.trim() && !isSaving
                 ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
                 : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed"
             )}
           >
             <Check className="w-4 h-4" />
-            Vytvořit objekt
+            {isSaving ? "Ukládám..." : "Vytvořit objekt"}
           </button>
         </div>
       </div>

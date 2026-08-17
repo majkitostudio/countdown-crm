@@ -10,29 +10,68 @@ import {
   ChevronLeft,
   X,
 } from "lucide-react";
-import { schemaEngine } from "@/lib/schema/engine";
-import { RecordEntity } from "@/lib/schema/types";
-import {
-  fetchRecordEntitiesFromSupabase,
-  saveRecordEntityToSupabase,
-} from "@/lib/supabase/schemaService";
+import { listRecordsAction, listSchemasAction, createRecordAction } from "@/app/actions/schema";
+import { ObjectSchema, RecordEntity } from "@/lib/schema/types";
 
 export default function CustomObjectPage() {
   const params = useParams();
   const router = useRouter();
   const slug = (params.slug as string) || "deals";
 
-  const schema = schemaEngine.getSchema(slug);
+  const [schema, setSchema] = useState<ObjectSchema | null>(null);
   const [records, setRecords] = useState<RecordEntity[]>([]);
+  const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newRecordValues, setNewRecordValues] = useState<Record<string, unknown>>({});
 
   useEffect(() => {
-    void fetchRecordEntitiesFromSupabase(slug)
-      .then(setRecords)
-      .catch(() => setRecords([]));
+    let isCurrent = true;
+
+    void Promise.all([listSchemasAction(), listRecordsAction(slug)])
+      .then(([schemas, nextRecords]) => {
+        if (!isCurrent) return;
+        setLoadError(null);
+        setSchema(schemas.find((item) => item.slug === slug) || null);
+        setRecords(nextRecords);
+        setLoadedSlug(slug);
+      })
+      .catch((error) => {
+        if (!isCurrent) return;
+        setLoadError(error instanceof Error ? error.message : "Objekt se nepodařilo načíst.");
+        setSchema(null);
+        setRecords([]);
+        setLoadedSlug(slug);
+      })
+
+    return () => {
+      isCurrent = false;
+    };
   }, [slug]);
+
+  if (loadedSlug !== slug) {
+    return <div className="p-8 text-xs text-zinc-500">Načítám objekt z workspace...</div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="p-8 space-y-4 max-w-screen-2xl mx-auto">
+        <button
+          onClick={() => router.push("/settings")}
+          className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+        >
+          <ChevronLeft className="w-4 h-4" /> Zpět do nastavení
+        </button>
+        <div className="p-12 text-center bg-rose-950/20 border border-rose-900/60 rounded-2xl" role="alert">
+          <Database className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+          <h2 className="text-base font-bold text-zinc-200">Objekt se nepodařilo načíst</h2>
+          <p className="text-xs text-rose-300 mt-1">{loadError}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!schema) {
     return (
@@ -57,11 +96,15 @@ export default function CustomObjectPage() {
   }
 
   const handleAddRecord = async () => {
-    const newRecord = await saveRecordEntityToSupabase(slug, newRecordValues);
-    if (!newRecord) return;
-    setRecords((current) => [newRecord, ...current]);
-    setNewRecordValues({});
-    setIsAddModalOpen(false);
+    setSaveError(null);
+    try {
+      const newRecord = await createRecordAction(slug, newRecordValues);
+      setRecords((current) => [newRecord, ...current]);
+      setNewRecordValues({});
+      setIsAddModalOpen(false);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Záznam se nepodařilo uložit.");
+    }
   };
 
   const filteredRecords = records.filter((rec) => {
@@ -222,6 +265,11 @@ export default function CustomObjectPage() {
             </div>
 
             <div className="space-y-4 text-xs">
+              {saveError && (
+                <div className="p-3 rounded-lg border border-rose-900/60 bg-rose-950/20 text-rose-300" role="alert">
+                  {saveError}
+                </div>
+              )}
               {schema.attributes.map((attr) => (
                 <div key={attr.id} className="space-y-1.5">
                   <label className="text-zinc-400 font-medium block">

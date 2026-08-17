@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Settings as SettingsIcon,
   User,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
 import { sounds } from "@/lib/audio";
-import { schemaEngine } from "@/lib/schema/engine";
+import { deleteSchemaAction, listSchemasAction } from "@/app/actions/schema";
 import { ObjectSchema } from "@/lib/schema/types";
 import { ObjectBuilderModal } from "@/components/schema/ObjectBuilderModal";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
@@ -27,12 +27,46 @@ export default function SettingsPage() {
   const [isSavedAlert, setIsSavedAlert] = useState(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
   const [isObjectBuilderOpen, setIsObjectBuilderOpen] = useState(false);
-  const [schemas, setSchemas] = useState<ObjectSchema[]>(schemaEngine.getAllSchemas());
+  const [schemas, setSchemas] = useState<ObjectSchema[]>([]);
+  const [isSchemasLoading, setIsSchemasLoading] = useState(true);
+  const [schemaError, setSchemaError] = useState<string | null>(null);
+  const [schemaActionError, setSchemaActionError] = useState<string | null>(null);
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
 
-  const refreshSchemas = () => {
-    setSchemas(schemaEngine.getAllSchemas());
-  };
+  const loadSchemas = useCallback(async (showLoading = false) => {
+    if (showLoading) {
+      setIsSchemasLoading(true);
+      setSchemaError(null);
+    }
+    try {
+      setSchemas(await listSchemasAction());
+    } catch (error) {
+      setSchemaError(error instanceof Error ? error.message : "Schémata se nepodařilo načíst.");
+    } finally {
+      setIsSchemasLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    void listSchemasAction()
+      .then((nextSchemas) => {
+        if (isCurrent) setSchemas(nextSchemas);
+      })
+      .catch((error) => {
+        if (isCurrent) {
+          setSchemaError(error instanceof Error ? error.message : "Schémata se nepodařilo načíst.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setIsSchemasLoading(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +82,18 @@ export default function SettingsPage() {
       stopAudio();
       setIsPlayingTestSound(false);
     }, 2500);
+  };
+
+  const handleDeleteSchema = async (slug: string, name: string) => {
+    if (!window.confirm(`Opravdu odstranit custom object „${name}“?`)) return;
+
+    setSchemaActionError(null);
+    try {
+      await deleteSchemaAction(slug);
+      await loadSchemas(true);
+    } catch (error) {
+      setSchemaActionError(error instanceof Error ? error.message : "Schema se nepodařilo odstranit.");
+    }
   };
 
   return (
@@ -114,26 +160,51 @@ export default function SettingsPage() {
         </div>
 
         {/* Registered Objects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {schemas.map((s) => (
-            <div key={s.id} className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Database className="w-4 h-4 text-zinc-400" />
-                  <span className="font-semibold text-xs text-zinc-100">{s.name}</span>
+        {schemaError ? (
+          <div className="p-4 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300" role="alert">
+            Schémata se nepodařilo načíst: {schemaError}
+          </div>
+        ) : isSchemasLoading ? (
+          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/40 text-xs text-zinc-500">
+            Načítám schémata z workspace...
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {schemas.map((s) => (
+              <div key={s.id} className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-zinc-400" />
+                    <span className="font-semibold text-xs text-zinc-100">{s.name}</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded">
+                    {s.slug}
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded">
-                  {s.slug}
-                </span>
+                <p className="text-[11px] text-zinc-400 line-clamp-2">{s.description}</p>
+                <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] text-zinc-500">
+                  <span className="font-mono">{s.attributes.length} EAV atributů</span>
+                  {!["leads", "products", "deals"].includes(s.slug) ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteSchema(s.slug, s.name)}
+                      className="text-rose-400 hover:text-rose-300 font-mono cursor-pointer"
+                    >
+                      Odstranit
+                    </button>
+                  ) : (
+                    <span className="text-zinc-400 font-mono">Built-in schema</span>
+                  )}
+                </div>
               </div>
-              <p className="text-[11px] text-zinc-400 line-clamp-2">{s.description}</p>
-              <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] text-zinc-500">
-                <span className="font-mono">{s.attributes.length} EAV atributů</span>
-                <span className="text-zinc-400 font-mono">System Object</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+        {schemaActionError && (
+          <div className="p-3 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300" role="alert">
+            {schemaActionError}
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
@@ -300,7 +371,9 @@ export default function SettingsPage() {
       <ObjectBuilderModal
         isOpen={isObjectBuilderOpen}
         onClose={() => setIsObjectBuilderOpen(false)}
-        onSchemaCreated={refreshSchemas}
+        onSchemaCreated={async () => {
+          await loadSchemas(true);
+        }}
       />
     </div>
   );

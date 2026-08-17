@@ -9,7 +9,7 @@ import { IndustryCategory, IndustryBlueprint } from "./types";
 import { INDUSTRY_BLUEPRINTS } from "./registry";
 import { schemaEngine } from "../schema/engine";
 import { workflowEngine } from "../workflows/engine";
-import { saveAttributeDefinitionToSupabase } from "../supabase/schemaService";
+import { saveAttributeAction } from "@/app/actions/schema";
 
 const STORAGE_KEY = "countdown_active_blueprint";
 
@@ -82,7 +82,7 @@ class BlueprintEngine {
       const added = schemaEngine.addCustomAttribute("leads", attr);
       if (added) {
         addedAttributesCount++;
-        saveAttributeDefinitionToSupabase("leads", attr).catch((err) => {
+        saveAttributeAction("leads", attr).catch((err) => {
           console.warn("[BlueprintEngine] Failed to save attribute to Supabase:", err);
         });
       }
