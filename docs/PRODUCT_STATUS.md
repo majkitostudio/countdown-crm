@@ -37,8 +37,15 @@ vytvářely nejasnost mezi reálným zápisem a pouhým náhledem.
 
 Objednávkové workflow nyní zapisuje přes skutečnou serverovou datovou vrstvu.
 SMS pay-link a externí follow-up zůstávají viditelně nedostupné, dokud nebude
-zapojena schválená integrace. Rychlé poznámky se nezapisují lokálně; jejich
-UI se vrátí až se skutečnou perzistencí a workspace autorizací.
+zapojena schválená integrace. Rychlé poznámky nyní zapisuje workspace-scoped
+serverová DAL/Server Action do `lead_notes`; timeline je po vytvoření znovu
+načte a autor se odvozuje z autentizovaného operátora.
+
+Gemini enrichment při nedostupné integraci vrací explicitní `Unavailable` a
+nevyrábí lokální odhady firmy. Dokončení objednávky už také nemění lokální
+gamifikační profil s výchozími mock hodnotami. Training, Copilot, příchozí
+hovor a softphone zůstávají označené jako simulace nebo pilotní preview; nejsou
+zdrojem produkčních CRM záznamů ani důkazem live telephony integrace.
 
 Vývojový `NEXT_PUBLIC_ALLOW_DEMO_AUTH` je samostatný autentizační fallback a
 není součástí uživatelského workflow. Zůstává mimo tento slic a nesmí být

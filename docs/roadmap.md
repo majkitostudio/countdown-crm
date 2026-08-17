@@ -297,10 +297,60 @@ ověření a otevřené rozhodnutí.
 - [x] Ověřeno `npm run lint`, `npm run typecheck`, `npm run build` a
   `git diff --check`; runtime snapshot login layoutu už neobsahuje Demo toggle.
 
+### Slice 5 — perzistentní rychlé poznámky
+
+- [x] Přidána workspace-scoped tabulka `lead_notes` s vazbou na lead,
+  autora, text a čas vytvoření.
+- [x] RLS povoluje čtení členům workspace a vytvoření pouze přihlášeným
+  členům pro lead ze stejného workspace; aktualizace a mazání nejsou součástí
+  prvního kontraktu.
+- [x] Serverová DAL/Server Action odvozuje workspace a `author_id` z
+  autentizovaného kontextu a vrací jméno operátora pro timeline.
+- [x] `CustomerTimelineCard` i `LeadDetailDrawer` ukládají rychlou poznámku
+  přes stejnou serverovou cestu; po úspěchu se timeline znovu načte.
+- [x] Ověřeno autentizovaným UI: vytvoření poznámky → zobrazení jako
+  `Operator Note` → reload → přímá SQL kontrola stejného workspace, leadu a
+  autora. Doplněny také indexy pro FK `lead_id` a `author_id`.
+
+### Slice 6 — explicitní hranice zbývajících simulací
+
+- [x] Gemini enrichment už při chybě nebo chybějícím API klíči nevyrábí
+  uvěřitelné odhady firmy; UI zobrazí `Unavailable` a jasně uvede, že se žádná
+  inference nezobrazuje.
+- [x] Dokončení objednávky už nezapisuje gamifikační XP ani výchozí mock
+  statistiky do `localStorage`; nepersistovaný gamification modul byl odstraněn
+  z produkčního workflow.
+- [x] Live Team Monitor nyní výslovně uvádí, že je v pilotu nedostupný, dokud
+  nebude připojená presence/telephony integrace. Stejně tak zůstává označená
+  simulace hovoru, Training Mode, Copilot pilot simulation a WebSpeech fallback.
+- [x] Lokální `settings` storage zůstává pouze pro uživatelské preference;
+  není používán jako zdroj CRM záznamů, aktivit, objednávek ani metrik.
+- [ ] Zbývá uklidit nepoužívaný `aiStreamerBridge` a staré telephony simulátory
+  v samostatném telephony slice; jejich stav nyní nesmí být zaměněn za live
+  integraci.
+
+### Slice 7 — negativní workspace autorizace
+
+- [x] Order DAL vyžaduje lead i product lookup s dvojicí podmínek `id` +
+  aktivní `workspace_id`; při chybě parent reference odmítne operaci před
+  insert do `orders`.
+- [x] Read-only SQL ověření potvrdilo, že pilot má právě jednu workspace a
+  jednu membership; neplatné lead/product UUID se v aktivní workspace
+  nenachází.
+- [x] Plný runtime test cizího workspace parentu proběhl přes autentizovanou
+  session a stejnou `createOrderForWorkspace` DAL: server vrátil `VALIDATION`,
+  nevznikl order ani auditní row. Disposable workspace/product fixture byl po
+  testu explicitně odstraněn a SQL potvrdilo nulový zůstatek fixture.
+
 ### Společné kontrolní gates
 
 - [x] `npm run check` — lint, typecheck a production build.
 - [x] `git diff --check`.
+- [x] Quick-note smoke: UI create → timeline → reload → SQL row v `lead_notes`.
+- [x] Mock-boundary smoke: enrichment failure is explicit, monitor is marked
+  unavailable, and order completion no longer writes local gamification state.
+- [x] Authorization source/DB audit: order parent lookups are workspace-bound;
+  live foreign-workspace proof passed and disposable fixture was cleaned up.
 - [x] Ověření reálné autentizované session na `/objects/deals`, `/settings` a
   `/workflows`.
 - [x] Ověření katalogu: šest objednávek přešlo na `FlexiJoint Ultra Collagen`,

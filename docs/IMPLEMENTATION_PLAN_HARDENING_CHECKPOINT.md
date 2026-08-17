@@ -87,3 +87,20 @@ row and payload. The temporary smoke rule was deactivated after verification.
 Remaining items are intentionally outside this implementation slice: leaked
 password protection, duplicate policy cleanup, and the remaining mock-only
 surfaces.
+
+## Follow-up verification — 2026-08-17
+
+- Order parent lookups were rechecked in the current DAL: both `lead_id` and
+  `product_id` must exist in the authenticated workspace before an order
+  insert is attempted.
+- The live project currently contains one workspace and one membership. A
+  read-only SQL probe confirmed invalid lead/product UUIDs do not resolve in
+  that workspace.
+- A live foreign-workspace parent test was executed through the authenticated
+  session using a disposable workspace/product fixture. The DAL returned
+  `VALIDATION`, no order or audit row was created, and the fixture was removed;
+  final SQL counts confirmed zero fixture rows and the original workspace
+  count was restored.
+- The mock-boundary portion was tightened: enrichment now returns explicit
+  `Unavailable`, order completion no longer writes local gamification state,
+  and the Monitor UI labels presence/telephony as unavailable in the pilot.

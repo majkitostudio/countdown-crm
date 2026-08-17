@@ -172,6 +172,28 @@ export interface Database {
         };
         Relationships: [];
       };
+      lead_notes: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          lead_id: string;
+          author_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          lead_id: string;
+          author_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: {
+          body?: string;
+        };
+        Relationships: [];
+      };
       products: {
         Row: {
           id: string;

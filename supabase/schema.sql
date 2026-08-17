@@ -81,6 +81,19 @@ CREATE TABLE IF NOT EXISTS public.leads (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3b. LEAD NOTES TABLE (Persisted operator timeline notes)
+CREATE TABLE IF NOT EXISTS public.lead_notes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  lead_id UUID NOT NULL REFERENCES public.leads(id) ON DELETE CASCADE,
+  author_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
+  body TEXT NOT NULL CHECK (char_length(trim(body)) BETWEEN 1 AND 2000),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS lead_notes_workspace_lead_created_idx
+  ON public.lead_notes (workspace_id, lead_id, created_at DESC);
+
 -- 4. PRODUCTS TABLE (Catalog)
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -254,6 +267,7 @@ ALTER TABLE public.workflows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_executions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_gamification ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lead_notes ENABLE ROW LEVEL SECURITY;
 
 -- Workspace membership helper functions run as a definer to avoid recursive
 -- RLS evaluation when policies inspect workspace_members.
@@ -378,6 +392,22 @@ CREATE POLICY "System can insert workflow_executions" ON public.workflow_executi
 
 CREATE POLICY "Authenticated users can view audit_logs" ON public.audit_logs FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "System can insert audit_logs" ON public.audit_logs FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Workspace members can view lead notes" ON public.lead_notes
+  FOR SELECT USING (workspace_id IS NOT NULL AND public.is_workspace_member(workspace_id));
+CREATE POLICY "Workspace members can create lead notes" ON public.lead_notes
+  FOR INSERT WITH CHECK (
+    workspace_id IS NOT NULL
+    AND public.is_workspace_member(workspace_id)
+    AND author_id = (SELECT auth.uid())
+    AND EXISTS (
+      SELECT 1 FROM public.leads AS lead
+      WHERE lead.id = lead_notes.lead_id
+        AND lead.workspace_id = lead_notes.workspace_id
+    )
+  );
+
+GRANT SELECT, INSERT ON TABLE public.lead_notes TO authenticated;
 
 CREATE POLICY "Users can view gamification" ON public.user_gamification FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Users can manage own gamification" ON public.user_gamification FOR ALL USING (auth.role() = 'authenticated');

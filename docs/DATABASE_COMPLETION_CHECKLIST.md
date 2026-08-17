@@ -50,8 +50,8 @@ not considered complete merely because it renders or because a build passes.
 - [x] Audit log reads from `audit_logs`.
 - [x] Workflow rules and executions read from Supabase.
 - [x] Custom record entities and values read from Supabase.
-- [ ] Remove or isolate remaining mock-only components: monitor, timeline,
-      training fixtures, objection fixtures and dashboard activity widgets.
+- [ ] Remove or isolate remaining mock-only components: monitor, training
+      fixtures, objection fixtures and dashboard activity widgets.
 - [ ] Ensure query failures are visible to the user and are never converted
       into fabricated CRM records or metrics.
 
@@ -126,8 +126,8 @@ stabilization segment is complete for the verified one-company pilot scope.
 
 The remaining unchecked items are follow-up hardening or product-surface work:
 negative foreign-workspace tests, leaked-password protection, duplicate policy
-cleanup, mock-only surfaces, persisted runtime rule evaluation, database-backed
-dashboard widgets, and removal of the former demo-sandbox UI.
+cleanup, mock-only surfaces, persisted runtime rule evaluation, and
+database-backed dashboard widgets.
 
 ## Current follow-up map — 2026-08-17
 
@@ -141,6 +141,12 @@ dashboard widgets, and removal of the former demo-sandbox UI.
       rejected rather than cascaded.
 - [x] `/objects/deals` and `/settings` were checked in an authenticated browser
       session after the server-boundary changes.
+- [x] Persisted quick notes use `lead_notes` with workspace/lead/author RLS,
+      server-derived operator attribution, and authenticated create → reload →
+      SQL verification in the Operator Console.
+- [x] Fallback enrichment no longer returns fabricated company intelligence;
+      unavailable state is visible. Order completion no longer writes local
+      gamification state or fabricated default performance metrics.
 - [x] Reassign the six historical orders from `Playwright Test Product` to
       `FlexiJoint Ultra Collagen` while preserving their stored totals and
       writing an audit event.
@@ -150,6 +156,8 @@ dashboard widgets, and removal of the former demo-sandbox UI.
       Operator Console dynamic-attribute surfaces with a shared server-loaded
       schema context before claiming the entire schema engine is free of local
       fallback state.
-- [ ] Keep leaked-password protection, duplicate RLS policies, mock-only
-      monitor/training surfaces, dashboard activity/KPI hardening and the
-      remaining timeline persistence work as separate follow-up slices.
+- [ ] Keep leaked-password protection, duplicate RLS policies, the unused
+      telephony simulation bridge and dashboard activity/KPI hardening as
+      separate follow-up slices. Training and Copilot remain explicitly
+      labelled session-only simulations. SMS and external follow-up dispatch
+      still require real integrations.

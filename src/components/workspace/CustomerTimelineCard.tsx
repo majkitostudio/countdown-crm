@@ -8,8 +8,11 @@ import {
   Zap,
   FileText,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Plus,
+  Send,
 } from "lucide-react";
+import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
 import { getLeadActivities } from "@/lib/domainActivity";
 
@@ -21,6 +24,9 @@ interface CustomerTimelineCardProps {
 export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineCardProps) {
   const [entries, setEntries] = useState<WorkspaceActivity[]>([]);
   const [filterType, setFilterType] = useState<WorkspaceActivityType | "all">("all");
+  const [newNoteText, setNewNoteText] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [isSavingNote, setIsSavingNote] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -48,6 +54,25 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
       cancelled = true;
     };
   }, [leadId, refreshToken]);
+
+  const handleAddNote = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const body = newNoteText.trim();
+    if (!body || isSavingNote) return;
+
+    setIsSavingNote(true);
+    setLoadError(null);
+    try {
+      await createLeadNoteAction(leadId, body);
+      setEntries(await getLeadActivities(leadId));
+      setNewNoteText("");
+      setIsAddingNote(false);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Note could not be saved");
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
 
   const filteredEntries = filterType === "all"
     ? entries
@@ -93,13 +118,50 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
           </h3>
         </div>
 
-        <span className="text-[10px] text-zinc-500">Quick notes are not yet persisted</span>
+        <button
+          type="button"
+          onClick={() => setIsAddingNote((current) => !current)}
+          className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer"
+        >
+          <Plus className="w-3 h-3" />
+          <span>Note</span>
+        </button>
       </div>
 
       {loadError && (
         <div role="alert" className="p-3 bg-red-950/30 border border-red-900/60 rounded-xl text-xs text-red-300">
           Timeline unavailable: {loadError}
         </div>
+      )}
+
+      {isAddingNote && (
+        <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-200">
+          <textarea
+            rows={2}
+            value={newNoteText}
+            onChange={(event) => setNewNoteText(event.target.value)}
+            placeholder="Type customer activity note..."
+            maxLength={2000}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+          />
+          <div className="flex justify-end gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => setIsAddingNote(false)}
+              className="px-2.5 py-1 text-[11px] text-zinc-400 hover:text-zinc-200 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSavingNote || !newNoteText.trim()}
+              className="px-3 py-1 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-semibold rounded-lg text-[11px] flex items-center gap-1 cursor-pointer"
+            >
+              <Send className="w-3 h-3" />
+              <span>{isSavingNote ? "Saving..." : "Save Note"}</span>
+            </button>
+          </div>
+        </form>
       )}
 
       {/* Filter Category Chips */}

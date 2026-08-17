@@ -14,5 +14,5 @@ export interface EnrichedCompanyData {
   estimatedRevenue: string;
   techStack: string[];
   keyPainPoints: string;
-  enrichmentSource: "gemini-flash" | "fallback-enricher";
+  enrichmentSource: "gemini-flash" | "unavailable";
 }

@@ -25,8 +25,7 @@ export async function enrichLeadWithGemini(
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
-    console.log("[EnrichmentEngine] Using intelligent fallback enrichment generator.");
-    return generateFallbackEnrichment(companyName, email);
+    return getUnavailableEnrichment(companyName, email);
   }
 
   try {
@@ -69,51 +68,24 @@ Respond ONLY with valid JSON, no markdown code block formatting.
       enrichmentSource: "gemini-flash",
     };
   } catch (err) {
-    console.warn("[EnrichmentEngine] Gemini API call failed, using fallback enricher:", err);
-    return generateFallbackEnrichment(companyName, email);
+    console.warn("[EnrichmentEngine] Gemini API call failed; enrichment is unavailable:", err);
+    return getUnavailableEnrichment(companyName, email);
   }
 }
 
-/**
- * Intelligent Fallback Enrichment Generator
- */
-export function generateFallbackEnrichment(
+function getUnavailableEnrichment(
   companyName: string,
   email: string
 ): EnrichedCompanyData {
-  const lower = (companyName + " " + email).toLowerCase();
-
-  if (lower.includes("apex") || lower.includes("logistics")) {
-    return {
-      companyName,
-      industry: "Logistics & Transport CZ",
-      estimatedEmployees: "150 - 300 zaměstnanců",
-      estimatedRevenue: "120 mil. Kč ARR",
-      techStack: ["SAP ERP", "Salesforce", "Custom WMS"],
-      keyPainPoints: "Potřeba zrychlení vyřizování zákaznických požadavků a automatického volání.",
-      enrichmentSource: "fallback-enricher",
-    };
-  }
-
-  if (lower.includes("biotech") || lower.includes("medicare") || lower.includes("clinic")) {
-    return {
-      companyName,
-      industry: "Healthcare & Life Sciences",
-      estimatedEmployees: "45 - 90 zaměstnanců",
-      estimatedRevenue: "60 mil. Kč ARR",
-      techStack: ["Epic EHR", "HubSpot CRM", "Next.js"],
-      keyPainPoints: "Automatizace připomínek schůzek a zvýšení retence pacientů/klientů.",
-      enrichmentSource: "fallback-enricher",
-    };
-  }
-
   return {
     companyName,
-    industry: "B2B Professional Services",
-    estimatedEmployees: "25 - 50 zaměstnanců",
-    estimatedRevenue: "35 mil. Kč ARR",
-    techStack: ["Google Workspace", "PostgreSQL", "React"],
-    keyPainPoints: "Implementace AI nástrojů pro zrychlení prodejního cyklu a automatické skórování leadů.",
-    enrichmentSource: "fallback-enricher",
+    industry: "Unavailable",
+    estimatedEmployees: "Unavailable",
+    estimatedRevenue: "Unavailable",
+    techStack: [],
+    keyPainPoints: email
+      ? "Gemini enrichment is unavailable; no market intelligence was inferred from the contact data."
+      : "Gemini enrichment is unavailable; no market intelligence was inferred.",
+    enrichmentSource: "unavailable",
   };
 }

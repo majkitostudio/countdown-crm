@@ -170,16 +170,30 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
         {enrichmentData && (
           <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 text-xs animate-in fade-in duration-200">
             <div className="flex items-center justify-between">
-              <span className="text-zinc-400">Odvětví:</span>
-              <span className="font-semibold text-zinc-200">{enrichmentData.industry}</span>
+              <span className="text-zinc-400">Source:</span>
+              <span className="font-semibold text-zinc-200">
+                {enrichmentData.enrichmentSource === "gemini-flash" ? "Gemini result" : "Unavailable"}
+              </span>
             </div>
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="text-zinc-500">Velikost / Obrat:</span>
-              <span className="text-zinc-300">{enrichmentData.estimatedEmployees} ({enrichmentData.estimatedRevenue})</span>
-            </div>
-            <div className="text-[11px] text-zinc-400 pt-1 border-t border-zinc-800/60">
-              <span className="text-zinc-500">Klíčová potřeba:</span> {enrichmentData.keyPainPoints}
-            </div>
+            {enrichmentData.enrichmentSource === "unavailable" ? (
+              <p className="text-[11px] text-amber-300/80 pt-1 border-t border-zinc-800/60">
+                Market intelligence is unavailable. No inferred company data is shown.
+              </p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-500">Odvětví:</span>
+                  <span className="font-semibold text-zinc-200">{enrichmentData.industry}</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-500">Velikost / Obrat:</span>
+                  <span className="text-zinc-300">{enrichmentData.estimatedEmployees} ({enrichmentData.estimatedRevenue})</span>
+                </div>
+                <div className="text-[11px] text-zinc-400 pt-1 border-t border-zinc-800/60">
+                  <span className="text-zinc-500">Klíčová potřeba:</span> {enrichmentData.keyPainPoints}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

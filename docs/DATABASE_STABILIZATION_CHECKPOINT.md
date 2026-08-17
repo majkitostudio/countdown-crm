@@ -29,8 +29,8 @@ This checkpoint records the current decision point before the next commit.
 
 - verify invalid parent and foreign-workspace references are rejected;
 - verify the persisted workflow snapshot is loaded into the runtime evaluator;
-- isolate remaining mock-only monitor, timeline, training, objection and
-  dashboard activity surfaces;
+- isolate the unused telephony simulation bridge, training/objection
+  simulation boundaries and dashboard activity surfaces;
 - update the older product baseline wording where it still describes live RLS
   migrations as unapplied.
 
@@ -76,9 +76,10 @@ The stabilization work continued in small, independently reversible slices:
   attribute definitions, record entities, and record values behind the server
   DAL and Server Actions. Built-in schemas remain available while workspace
   attributes are merged from the database.
-- The user-facing Demo/Sandbox UI was removed in the follow-up slice; SMS,
-  external follow-up dispatch, and quick notes now remain unavailable until
-  their real persistence/integrations exist.
+- The user-facing Demo/Sandbox UI was removed in the follow-up slice. Quick
+  notes now persist through the workspace-scoped `lead_notes` contract and
+  appear in the timeline with server-derived operator attribution; SMS and
+  external follow-up dispatch remain unavailable until real integrations exist.
 
 The latest gates passed `npm run check` and `git diff --check`. An authenticated
 browser session verified `/objects/deals` loading the persisted deal and

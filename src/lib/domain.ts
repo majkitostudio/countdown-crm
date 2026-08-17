@@ -35,6 +35,6 @@ export interface WorkspaceActivity {
   description?: string;
   actor: string;
   timestamp: string;
-  source: "supabase" | "demo";
+  source: "supabase";
   metadata?: WorkspaceActivityMetadata;
 }

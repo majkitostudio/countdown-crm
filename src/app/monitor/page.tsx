@@ -83,11 +83,11 @@ export default function TeamMonitorPage() {
               Live Team Operator Monitor
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
-              Real-time Stream
+              Unavailable in pilot
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Real-time supervisor dashboard tracking active phone calls, AI detected objections, and operator status
+            Real-time supervisor data is unavailable until presence and telephony integrations are connected.
           </p>
         </div>
 
@@ -206,7 +206,7 @@ export default function TeamMonitorPage() {
         })}
       </div>
 
-      {/* Supervisor Audio Audit Modal Simulator */}
+      {/* Supervisor Audio Audit remains unavailable until a real stream exists. */}
       {activeAuditOperator && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-xs p-4">
           <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200 text-zinc-100">
@@ -216,8 +216,8 @@ export default function TeamMonitorPage() {
                   <Radio className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-zinc-100">Live Audio Supervisor Audit</h3>
-                  <p className="text-[11px] text-zinc-400">Monitoring {activeAuditOperator.agentName}</p>
+                  <h3 className="font-semibold text-sm text-zinc-100">Supervisor Audio Audit unavailable</h3>
+                  <p className="text-[11px] text-zinc-400">No live stream is connected for {activeAuditOperator.agentName}</p>
                 </div>
               </div>
               <button

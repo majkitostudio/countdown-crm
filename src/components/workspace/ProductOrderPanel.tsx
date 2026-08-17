@@ -13,7 +13,6 @@ import {
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
-import { addOperatorXp, unlockAchievement } from "@/lib/gamification";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -105,14 +104,6 @@ export function ProductOrderPanel({
     }
 
     setIsSuccessAlert(true);
-
-    // Gamification XP Rewards & Achievements
-    addOperatorXp(150, "Completed customer order");
-    unlockAchievement("first_deal");
-
-    if (bundleProduct) {
-      unlockAchievement("cross_sell_king");
-    }
 
     setTimeout(() => setIsSuccessAlert(false), 5000);
   };

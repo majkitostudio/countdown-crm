@@ -27,9 +27,13 @@ export interface TimelineActivityEntry {
 }
 
 import { listLeadActivityAction } from "@/app/actions/crm";
+import { listLeadNotesAction } from "@/app/actions/leadNotes";
 
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
-  const activity = await listLeadActivityAction(leadId);
+  const [activity, notes] = await Promise.all([
+    listLeadActivityAction(leadId),
+    listLeadNotesAction(leadId),
+  ]);
   const dbEntries: TimelineActivityEntry[] = [
     ...activity.calls.map((call) => ({
       id: `tl-call-${call.id}`,
@@ -57,6 +61,15 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
         order_source: order.order_source,
         source_note: order.source_note || undefined,
       },
+    })),
+    ...notes.map((note) => ({
+      id: `tl-note-${note.id}`,
+      lead_id: leadId,
+      type: "note" as const,
+      title: "Operator Note",
+      description: note.body,
+      operator_name: note.author_name,
+      timestamp: note.created_at,
     })),
   ];
 
