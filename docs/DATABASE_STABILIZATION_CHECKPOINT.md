@@ -82,9 +82,10 @@ kept separate until the destructive confirmation dialog is accepted.
 
 ### Historical product cleanup blocker
 
-`Playwright Test Product` is still present because it is referenced by six
-completed orders. The live foreign key `orders_product_id_fkey` uses
-`ON DELETE RESTRICT`. No historical order was deleted during stabilization.
-The remaining product decision is archive-from-catalog versus explicit,
-separately approved deletion of those six orders; archive is the recommended
-production-safe option.
+`Playwright Test Product` was initially protected because it was referenced by
+six completed orders. The live foreign key `orders_product_id_fkey` uses
+`ON DELETE RESTRICT`. The six orders were then explicitly reassigned to
+`FlexiJoint Ultra Collagen` through the authenticated manager/admin path; their
+historical `total_amount = 129.50` values were preserved and an
+`ORDER_PRODUCT_REASSIGNED` audit event was written. The original product now
+has zero order references and is ready for a separately confirmed delete.

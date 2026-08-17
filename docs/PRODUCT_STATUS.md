@@ -458,7 +458,8 @@ Po předchozím checkpointu byly dokončeny další serverové hranice:
 
 Ověřený stav je pilot-ready pro pokryté cesty, nikoli obecně
 production-ready. Zůstává otevřené bezpečné odstranění historického
-`Playwright Test Product`: šest dokončených objednávek je chráněno
-`ON DELETE RESTRICT`. Produkt proto nesmí být odstraněn kaskádou; další změna
-musí být explicitně navržená archivace nebo samostatně schválené odstranění
-historie.
+`Playwright Test Product` byl původně chráněn šesti dokončenými objednávkami a
+`ON DELETE RESTRICT`. Objednávky byly přes autorizovanou serverovou cestu
+přesměrovány na `FlexiJoint Ultra Collagen`, přičemž jejich uložené částky
+zůstaly zachované a vznikl auditní záznam. Produkt nyní nemá žádné order
+reference a čeká pouze na samostatně potvrzené odstranění.

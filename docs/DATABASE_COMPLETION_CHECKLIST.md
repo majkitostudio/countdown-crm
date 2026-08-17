@@ -140,8 +140,11 @@ dashboard widgets, and explicit demo-sandbox separation.
       rejected rather than cascaded.
 - [x] `/objects/deals` and `/settings` were checked in an authenticated browser
       session after the server-boundary changes.
-- [ ] Remove or archive `Playwright Test Product` without deleting its six
-      completed orders. Current FK protection is working as intended.
+- [x] Reassign the six historical orders from `Playwright Test Product` to
+      `FlexiJoint Ultra Collagen` while preserving their stored totals and
+      writing an audit event.
+- [ ] Delete `Playwright Test Product` after the final destructive confirmation;
+      no order currently references it.
 - [ ] Replace remaining client schema-engine consumers in the Leads and
       Operator Console dynamic-attribute surfaces with a shared server-loaded
       schema context before claiming the entire schema engine is free of local

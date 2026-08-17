@@ -254,13 +254,12 @@ ověření a otevřené rozhodnutí.
 
 - [x] Do katalogu byly přidány tři čitelné vzorové produkty: FlexiJoint Ultra
   Collagen, Lumière Bio-Retinol Elixir a RoboClean Pro LiDAR V8.
-- [ ] `Playwright Test Product` zatím nebyl odstraněn. Má šest dokončených
-  objednávek a databázový cizí klíč `orders_product_id_fkey` používá
-  `ON DELETE RESTRICT`; odstranění produktu by proto bez další volby zničilo
-  historická data.
-- [ ] Další rozhodnutí: buď historický produkt archivovat mimo aktivní katalog,
-  nebo výslovně schválit odstranění jeho šesti objednávek. Doporučená cesta je
-  archivace.
+- [x] Šest objednávek původně navázaných na `Playwright Test Product` bylo
+  přes autorizovanou manager/admin cestu přesměrováno na `FlexiJoint Ultra
+  Collagen`; historické částky zůstaly beze změny.
+- [ ] `Playwright Test Product` ještě nebyl odstraněn. Po přesunu objednávek už
+  není referencovaný a lze ho bezpečně odstranit; mazání je samostatná
+  potvrzovaná akce.
 
 ### Slice 2 — workflow server boundary
 
@@ -290,5 +289,7 @@ ověření a otevřené rozhodnutí.
 - [x] `git diff --check`.
 - [x] Ověření reálné autentizované session na `/objects/deals`, `/settings` a
   `/workflows`.
+- [x] Ověření katalogu: šest objednávek přešlo na `FlexiJoint Ultra Collagen`,
+  původní produkt má nulový počet objednávek a SQL potvrdilo cílový počet šest.
 - [ ] Po uzavření smoke-test cleanupu commitnout schema slice a aktualizovat
   checkpoint na stav bez otevřeného testovacího artefaktu.
