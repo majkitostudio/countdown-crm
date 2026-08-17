@@ -357,3 +357,43 @@ ověření a otevřené rozhodnutí.
   původní produkt má nulový počet objednávek a SQL potvrdilo cílový počet šest.
 - [ ] Po uzavření smoke-test cleanupu commitnout schema slice a aktualizovat
   checkpoint na stav bez otevřeného testovacího artefaktu.
+
+## Call Trainer closure — 2026-08-18
+
+Call Trainer live-turn slice je uzavřený jako session-only pilot. Byla
+ověřena kanonická serverová hranice pro turn, klientský lifecycle, explicitní
+endpointing stav, barge-in přerušení TTS, truthful provider fallback,
+completion-only persistence, Teamleader Review a reload persistence.
+
+### Ověřeno
+
+- [x] Authenticated typed turn přes `submitTrainingTurnAction`.
+- [x] Server-side canonical scenario lookup podle `scenarioId`.
+- [x] `Processing` → customer response → `Finish & evaluate`.
+- [x] Explicitní `Local training engine` / provider-unavailable notice.
+- [x] Completion-only zápis do `training_sessions` a
+  `training_session_turns`.
+- [x] Teamleader Review newest-first list, read-only detail a reload.
+- [x] Read-only SQL kontrola workspace, operator attribution, pořadí a
+  source turnů.
+- [x] Anonymous redirect na `/login` pro `/training` a `/training/reviews`.
+- [x] Authenticated not-found detail bez falešného transcriptu.
+
+### Omezení, která zůstávají přiznaná
+
+- [ ] Skutečný fyzický mikrofon a browser `SpeechRecognition` audio vstup
+  nebyly potvrzeny; jde o browser-dependent Web Speech preview.
+- [ ] Manuální voice/barge-in smoke s reálným audio vstupem čeká na pozdější
+  ruční ověření.
+- [ ] Agent role a cross-workspace izolace nebyly provedeny, protože aktuální
+  pilot má pouze jednoho admin člena v jednom workspace. Nebyly vytvářeny
+  testovací identity ani workspace fixtures.
+
+### Záměrné neimplementované části
+
+- průběžná persistence rozpracované session,
+- resume po pádu browseru,
+- samostatné HTTP/API endpointy pro telephony integraci,
+- post-call audio upload/transcription,
+- AI review insights, komentáře a playback,
+- production `calls`, `orders` nebo `activities` z tréninkového workflow.

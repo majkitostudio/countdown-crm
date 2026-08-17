@@ -474,3 +474,30 @@ production-ready. Zůstává otevřené bezpečné odstranění historického
 přesměrovány na `FlexiJoint Ultra Collagen`, přičemž jejich uložené částky
 zůstaly zachované a vznikl auditní záznam. Produkt nyní nemá žádné order
 reference a čeká pouze na samostatně potvrzené odstranění.
+
+## 13. Call Trainer — uzavřený session-only pilot
+
+Call Trainer je po schváleném live-turn slice uzavřený jako session-only
+tréninkový pilot. Živý průběh neprovádí production CRM zápisy. Dokončená
+session se uloží až po `Finish & evaluate` do oddělených tabulek
+`training_sessions` a `training_session_turns` a následně je dostupná v
+read-only Teamleader Review.
+
+Ověřena byla autentizovaná typed cesta, serverový kanonický scénář podle
+`scenarioId`, klientský turn lifecycle, endpointing stav, TTS barge-in
+mechanika, explicitní provider fallback, completion persistence, Teamleader
+Review, reload a read-only SQL atribuce workspace/operator/turnů. Anonymní
+`/training` i `/training/reviews` se přesměrovávají na `/login`; neexistující
+authenticated `sessionId` vrací truthful `Training session not found` bez
+falešného transcriptu.
+
+Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
+nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
+pozdější ruční voice/barge-in smoke test je otevřený. Aktuální databázový pilot
+má pouze jednoho admin člena v jednom workspace, proto nebyl proveden agent
+role ani cross-workspace runtime test; nebyly kvůli tomu vytvořeny testovací
+identity nebo workspace fixtures.
+
+Průběžná persistence, resume po pádu browseru, samostatné HTTP/API endpointy,
+post-call audio/transcription a AI review funkce zůstávají mimo schválený
+rozsah.

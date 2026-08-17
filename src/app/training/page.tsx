@@ -32,16 +32,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { generateTrainingResponseAction } from "@/app/actions/training";
+import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
 import { speakText, stopSpeaking, getPersonaVoiceSettings } from "@/lib/speechSynthesis";
 import { Volume2, VolumeX, Radio } from "lucide-react";
 
-type TrainingCallState = "idle" | "listening" | "processing" | "ai-speaking";
+type TrainingCallState = "idle" | "listening" | "endpointing" | "processing" | "ai-speaking";
 
 type SpeechRecognitionResultLike = {
   isFinal: boolean;
-  0: { transcript: string };
+  0: { transcript: string; confidence?: number };
 };
 
 type SpeechRecognitionEventLike = {
@@ -167,6 +167,8 @@ export default function TrainingPage() {
   const handsFreeVoiceRef = useRef(false);
   const startListeningRef = useRef<() => void>(() => undefined);
   const speechGenerationRef = useRef(0);
+  const turnRequestRef = useRef(0);
+  const endpointTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messageSequenceRef = useRef(0);
 
   useEffect(() => {
@@ -291,11 +293,16 @@ export default function TrainingPage() {
     setIsSimulating(false);
     sessionActiveRef.current = false;
     handsFreeVoiceRef.current = false;
+    turnRequestRef.current += 1;
     speechGenerationRef.current += 1;
     setCallState("idle");
     shouldSubmitRecognitionRef.current = false;
     recognitionRef.current?.stop();
     recognitionRef.current = null;
+    if (endpointTimerRef.current) {
+      clearTimeout(endpointTimerRef.current);
+      endpointTimerRef.current = null;
+    }
     stopSpeaking();
     setIsAiSpeaking(false);
 
@@ -313,7 +320,8 @@ export default function TrainingPage() {
 
   const handleSendMessage = async (
     messageOverride?: string,
-    source: "typed" | "browser_speech" = "typed"
+    source: "typed" | "browser_speech" = "typed",
+    confidence: number | null = null
   ) => {
     const userText = (messageOverride ?? inputText).trim();
     if (!userText || !selectedScenario || isBotThinking || isHungUp) return;
@@ -340,9 +348,25 @@ export default function TrainingPage() {
     const newHistory = [...messages, userMsg];
     setMessages(newHistory);
     setIsBotThinking(true);
+    const requestId = ++turnRequestRef.current;
 
     try {
-      const aiResponse = await generateTrainingResponseAction(selectedScenario, newHistory, userText);
+      const turnResult = await submitTrainingTurnAction({
+        scenarioId: selectedScenario.id,
+        history: messages,
+        userMessage: userText,
+        source,
+        confidence,
+      });
+
+      if (requestId !== turnRequestRef.current) return;
+      if (!turnResult.ok) {
+        setAiNotice(turnResult.message);
+        setCallState("listening");
+        return;
+      }
+
+      const aiResponse = turnResult.customerTurn;
       setAiSource(aiResponse.aiSource);
       setAiNotice(aiResponse.aiNotice || null);
 
@@ -442,10 +466,15 @@ export default function TrainingPage() {
       recognition.interimResults = true;
 
       let finalTranscript = "";
+      let finalConfidence: number | null = null;
       shouldSubmitRecognitionRef.current = true;
       recognitionRef.current = recognition;
 
       recognition.onstart = () => {
+        if (endpointTimerRef.current) {
+          clearTimeout(endpointTimerRef.current);
+          endpointTimerRef.current = null;
+        }
         setIsRecording(true);
         setCallState("listening");
       };
@@ -454,12 +483,16 @@ export default function TrainingPage() {
         recognitionRef.current = null;
         const transcriptToSubmit = finalTranscript.trim();
         setLiveTranscript("");
-        if (shouldSubmitRecognitionRef.current && transcriptToSubmit) {
-          void handleSendMessage(transcriptToSubmit, "browser_speech");
-        } else {
-          setCallState("listening");
-        }
-        shouldSubmitRecognitionRef.current = false;
+        setCallState("endpointing");
+        endpointTimerRef.current = setTimeout(() => {
+          endpointTimerRef.current = null;
+          if (shouldSubmitRecognitionRef.current && transcriptToSubmit) {
+            void handleSendMessage(transcriptToSubmit, "browser_speech", finalConfidence);
+          } else {
+            setCallState("listening");
+          }
+          shouldSubmitRecognitionRef.current = false;
+        }, 180);
       };
 
       recognition.onresult = (event: SpeechRecognitionEventLike) => {
@@ -469,6 +502,12 @@ export default function TrainingPage() {
           const transcript = event.results[index][0].transcript;
           if (event.results[index].isFinal) {
             finalTranscript += transcript;
+            const confidence = event.results[index][0].confidence;
+            if (typeof confidence === "number") {
+              finalConfidence = confidence;
+            } else {
+              finalConfidence = null;
+            }
           } else {
             interimTranscript += transcript;
           }
@@ -494,6 +533,10 @@ export default function TrainingPage() {
     if (isRecording) {
       handsFreeVoiceRef.current = false;
       shouldSubmitRecognitionRef.current = false;
+      if (endpointTimerRef.current) {
+        clearTimeout(endpointTimerRef.current);
+        endpointTimerRef.current = null;
+      }
       recognitionRef.current?.stop();
       recognitionRef.current = null;
       setIsRecording(false);
@@ -708,13 +751,13 @@ export default function TrainingPage() {
                 <span className="text-zinc-700">|</span>
                 <span className={cn(
                   "flex items-center gap-1.5",
-                  callState === "ai-speaking" ? "text-emerald-300" : callState === "processing" ? "text-amber-300" : "text-zinc-300"
+                  callState === "ai-speaking" ? "text-emerald-300" : callState === "processing" || callState === "endpointing" ? "text-amber-300" : "text-zinc-300"
                 )}>
                   <span className={cn(
                     "w-1.5 h-1.5 rounded-full",
-                    callState === "ai-speaking" ? "bg-emerald-400 animate-pulse" : callState === "processing" ? "bg-amber-400 animate-pulse" : "bg-zinc-500"
+                    callState === "ai-speaking" ? "bg-emerald-400 animate-pulse" : callState === "processing" || callState === "endpointing" ? "bg-amber-400 animate-pulse" : "bg-zinc-500"
                   )} />
-                  <span>{callState === "ai-speaking" ? "AI speaking" : callState === "processing" ? "Processing" : isRecording ? "Listening" : "Ready"}</span>
+                  <span>{callState === "ai-speaking" ? "AI speaking" : callState === "processing" ? "Processing" : callState === "endpointing" ? "Finishing turn" : isRecording ? "Listening" : "Ready"}</span>
                 </span>
               </div>
 

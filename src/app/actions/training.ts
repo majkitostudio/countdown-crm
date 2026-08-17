@@ -2,7 +2,7 @@
 
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
-import { TrainingScenario, TrainingMessage } from "@/lib/training";
+import { TRAINING_SCENARIOS, TrainingScenario, TrainingMessage } from "@/lib/training";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
 
 export interface RoleplayAIResponse {
@@ -13,6 +13,33 @@ export interface RoleplayAIResponse {
   aiSource: "gemini-flash" | "openai-responses" | "rule-engine";
   aiNotice?: string;
 }
+
+export type TrainingTurnSource = "typed" | "browser_speech";
+
+export type SubmitTrainingTurnInput = {
+  scenarioId: string;
+  history: TrainingMessage[];
+  userMessage: string;
+  source?: TrainingTurnSource;
+  confidence?: number | null;
+};
+
+export type SubmitTrainingTurnResult =
+  | {
+      ok: true;
+      operatorTurn: {
+        sequenceNumber: number;
+        text: string;
+        source: TrainingTurnSource;
+        confidence: number | null;
+      };
+      customerTurn: RoleplayAIResponse & { sequenceNumber: number };
+    }
+  | {
+      ok: false;
+      code: "VALIDATION" | "UNAVAILABLE" | "PROVIDER";
+      message: string;
+    };
 
 type ParsedTrainingResponse = {
   text?: unknown;
@@ -264,4 +291,61 @@ Odpověz POUZE platným JSON objektem bez označení markdown kódu.
     aiSource: "rule-engine",
     aiNotice,
   };
+}
+
+/**
+ * Submit one operator turn against a server-canonical training scenario.
+ * This intentionally remains session-only: it does not create CRM or
+ * training-session persistence records. Persistence remains an explicit
+ * completion step until the live-turn contract is separately approved.
+ */
+export async function submitTrainingTurnAction(
+  input: SubmitTrainingTurnInput
+): Promise<SubmitTrainingTurnResult> {
+  await requireAuthenticatedUser();
+
+  if (
+    !input ||
+    typeof input.scenarioId !== "string" ||
+    !Array.isArray(input.history) ||
+    typeof input.userMessage !== "string" ||
+    (input.source !== undefined && !["typed", "browser_speech"].includes(input.source)) ||
+    (input.confidence !== undefined &&
+      input.confidence !== null &&
+      (typeof input.confidence !== "number" || input.confidence < 0 || input.confidence > 1))
+  ) {
+    return { ok: false, code: "VALIDATION", message: "Training turn data is invalid." };
+  }
+
+  const scenario = TRAINING_SCENARIOS.find((candidate) => candidate.id === input.scenarioId);
+  if (!scenario) {
+    return { ok: false, code: "VALIDATION", message: "Training scenario is invalid." };
+  }
+
+  const source = input.source || "typed";
+  const confidence = input.confidence ?? null;
+  const userMessage = input.userMessage.trim();
+  if (!userMessage || userMessage.length > 4_000) {
+    return { ok: false, code: "VALIDATION", message: "Training message is invalid or too long." };
+  }
+
+  try {
+    const customerResponse = await generateTrainingResponseAction(scenario, input.history, userMessage);
+    return {
+      ok: true,
+      operatorTurn: {
+        sequenceNumber: input.history.length,
+        text: userMessage,
+        source,
+        confidence,
+      },
+      customerTurn: {
+        ...customerResponse,
+        sequenceNumber: input.history.length + 1,
+      },
+    };
+  } catch (error) {
+    console.error("Training turn submission failed:", error);
+    return { ok: false, code: "PROVIDER", message: "Training customer response is unavailable." };
+  }
 }
