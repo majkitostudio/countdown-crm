@@ -1,7 +1,6 @@
 // src/lib/audit.ts
 
-import { saveAuditLogToSupabase } from "./supabase/auditService";
-import { fetchAuditLogsFromSupabase } from "./supabase/auditService";
+import { createAuditLogAction, listAuditLogsAction } from "@/app/actions/audit";
 
 export type AuditSeverity = "low" | "medium" | "high" | "critical";
 
@@ -28,18 +27,41 @@ export interface AuditLogEntry {
 }
 
 export async function getAuditLogs(): Promise<AuditLogEntry[]> {
-  return fetchAuditLogsFromSupabase();
+  const rows = await listAuditLogsAction();
+  return rows.map((row) => ({
+    id: row.id,
+    timestamp: row.timestamp
+      ? new Date(row.timestamp).toISOString().replace("T", " ").substring(0, 19)
+      : "",
+    operatorId: row.actor_id,
+    operatorName: row.actor_name,
+    actionType: row.action as AuditActionType,
+    severity: row.severity as AuditSeverity,
+    details: row.details,
+    ipAddress: row.ip_address || "127.0.0.1",
+  }));
 }
 
 export async function addAuditLog(entry: Omit<AuditLogEntry, "id" | "timestamp">): Promise<AuditLogEntry> {
-  const newEntry: AuditLogEntry = {
-    ...entry,
-    id: `audit-${Date.now()}`,
-    timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+  const saved = await createAuditLogAction({
+    action: entry.actionType,
+    severity: entry.severity,
+    details: entry.details,
+    ipAddress: entry.ipAddress,
+  });
+
+  return {
+    id: saved.id,
+    timestamp: saved.timestamp
+      ? new Date(saved.timestamp).toISOString().replace("T", " ").substring(0, 19)
+      : "",
+    operatorId: saved.actor_id,
+    operatorName: saved.actor_name,
+    actionType: saved.action as AuditActionType,
+    severity: saved.severity as AuditSeverity,
+    details: saved.details,
+    ipAddress: saved.ip_address || "127.0.0.1",
   };
-  const saved = await saveAuditLogToSupabase(entry);
-  if (!saved) throw new Error("Audit log could not be saved");
-  return newEntry;
 }
 
 export function exportAuditLogsToCSV(logs: AuditLogEntry[]): void {

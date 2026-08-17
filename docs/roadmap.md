@@ -213,3 +213,32 @@ Zachovat dvě pravdivě oddělené cesty:
 - přímý SQL check workspace vazby a kontrola nulového průniku do cizích
   workspace,
 - testovací produkt po ověření odstraněn.
+
+---
+
+## 🔒 Stabilizační slice: Audit Log server boundary
+
+**Status:** implementováno v navazujícím stabilizačním commitu
+**Priorita:** P1 — auditní workspace a attribution hranice
+
+### Rozsah
+
+- Auditní čtení nyní prochází přes serverovou DAL a Server Action.
+- Čtení je serverově omezené na `manager` a `admin`, v souladu s produkční
+  RLS politikou.
+- Při novém auditním zápisu se `workspace_id`, `actor_id` a `actor_name`
+  odvozují ze serverové autentizované session; klient je nemůže podvrhnout.
+- Používá se explicitní výběr polí a serverová validace akce, závažnosti a
+  detailu.
+- Starý browser `auditService` byl odstraněn po ověření, že nemá runtime
+  použití.
+- Auditní stránka zobrazuje chybu oprávnění nebo načtení místo tichého
+  prázdného stavu.
+
+### Ověření
+
+- autentizované načtení `/audit` jako `majkito.studio` / `Admin`,
+- zobrazení 9 reálných auditních událostí z produkční databáze,
+- browser logy bez chyb,
+- přímý SQL check: `foreign_workspace_rows = 0`, `unattributed_rows = 0`,
+- bez změny SQL schématu.

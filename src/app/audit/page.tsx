@@ -21,13 +21,24 @@ export default function AuditPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all");
   const [isExporting, setIsExporting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadLogs = () => {
+    void getAuditLogs()
+      .then(setLogs)
+      .catch((error) => {
+        setLogs([]);
+        setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
+      });
+  };
 
   useEffect(() => {
-    void getAuditLogs().then(setLogs).catch(() => setLogs([]));
+    loadLogs();
   }, []);
 
   const handleRefresh = () => {
-    void getAuditLogs().then(setLogs).catch(() => setLogs([]));
+    setLoadError(null);
+    loadLogs();
   };
 
   const handleExport = () => {
@@ -93,6 +104,12 @@ export default function AuditPage() {
           </button>
         </div>
       </div>
+
+      {loadError ? (
+        <p role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/40 px-4 py-3 text-xs text-rose-300">
+          {loadError}
+        </p>
+      ) : null}
 
       {/* Stats Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
