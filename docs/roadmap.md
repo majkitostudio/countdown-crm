@@ -90,7 +90,7 @@ Roadmapa rozděluje vývoj platformy do logických fází. Všechny fáze jsou p
 
 ## ✅ Schválená změna: Samostatné vytvoření objednávky bez nového hovoru
 
-**Status:** schváleno k naplánování, zatím neimplementováno
+**Status:** implementováno v commitu `4455fec`
 **Priorita:** P1 — reálný call-center provoz
 **Důvod:** Objednávka může vzniknout z předchozího hovoru, e-mailu, webového
 formuláře nebo administrativního zadání. Operátor proto nesmí být nucen znovu
@@ -152,3 +152,30 @@ Zachovat dvě pravdivě oddělené cesty:
 - přidat audit event typu `ORDER_CREATED_MANUAL`,
 - ověřit browser → reload → timeline → přímá databáze,
 - implementovat jako samostatný reverzibilní slice bez současného call flow.
+
+---
+
+## 🔒 Stabilizační slice: Lead read/import server boundary
+
+**Status:** implementováno v navazujícím stabilizačním commitu
+**Priorita:** P1 — serverová workspace hranice
+
+### Rozsah
+
+- `getLeads()` nyní čte leady přes serverovou DAL a Server Action.
+- CSV bulk import používá serverovou DAL s ověřeným workspace membership.
+- Každý importovaný řádek prochází serverovou validací jména, telefonu,
+  statusu, skóre a limitů polí.
+- Přímý browser Supabase insert a klientský workspace resolver byly z této
+  kritické cesty odstraněny.
+- Starý nepoužívaný `leadsService` byl odstraněn po ověření, že nemá runtime
+  použití.
+
+### Ověření
+
+- autentizovaný CSV import dvou řádků,
+- reload stránky a dohledání obou leadů,
+- přímý SQL check workspace vazby,
+- `foreign_workspace_count = 0`,
+- testovací řádky po ověření odstraněny,
+- bez změny SQL schématu a bez změny lead UI.

@@ -8,6 +8,9 @@ import { createDataClient } from "./db";
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = LeadRow["status"];
 
+const LEAD_STATUSES: readonly LeadStatus[] = ["new", "contacted", "qualified", "customer", "unresponsive"];
+const LEAD_FIELDS = "id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at";
+
 export type LeadDTO = Pick<
   LeadRow,
   | "id"
@@ -38,20 +41,44 @@ export interface CreateLeadInput {
 }
 
 function assertLeadInput(input: CreateLeadInput): void {
-  if (!input.full_name.trim() || !input.phone.trim()) {
+  if (
+    !input ||
+    typeof input.full_name !== "string" ||
+    typeof input.phone !== "string" ||
+    !input.full_name.trim() ||
+    !input.phone.trim()
+  ) {
     throw new DataAccessError("VALIDATION", "Lead name and phone are required");
+  }
+
+  if (
+    (input.email !== undefined && input.email !== null && typeof input.email !== "string") ||
+    (input.city !== undefined && input.city !== null && typeof input.city !== "string") ||
+    (input.company !== undefined && input.company !== null && typeof input.company !== "string") ||
+    (input.country !== undefined && typeof input.country !== "string") ||
+    (input.notes !== undefined && input.notes !== null && typeof input.notes !== "string")
+  ) {
+    throw new DataAccessError("VALIDATION", "Lead text fields must be strings");
   }
 
   if (
     input.full_name.length > 200 ||
     input.phone.length > 40 ||
     (input.email?.length || 0) > 320 ||
-    (input.company?.length || 0) > 200
+    (input.company?.length || 0) > 200 ||
+    (input.notes?.length || 0) > 5000
   ) {
     throw new DataAccessError("VALIDATION", "Lead input is too long");
   }
 
-  if (input.ai_score !== undefined && (input.ai_score < 0 || input.ai_score > 100)) {
+  if (input.status !== undefined && !LEAD_STATUSES.includes(input.status)) {
+    throw new DataAccessError("VALIDATION", "Invalid lead status");
+  }
+
+  if (
+    input.ai_score !== undefined &&
+    (!Number.isFinite(input.ai_score) || input.ai_score < 0 || input.ai_score > 100)
+  ) {
     throw new DataAccessError("VALIDATION", "Lead score must be between 0 and 100");
   }
 }
@@ -60,14 +87,22 @@ export async function listLeadsForWorkspace(options?: {
   workspaceId?: string;
   status?: LeadStatus;
   search?: string;
+  sortBy?: "name" | "score" | "created";
 }): Promise<LeadDTO[]> {
   const context = await requireWorkspaceContext(options?.workspaceId);
   const supabase = await createDataClient();
   let query = supabase
     .from("leads")
-    .select("id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at")
+    .select(LEAD_FIELDS)
     .eq("workspace_id", context.workspaceId)
-    .order("created_at", { ascending: false });
+    .order(
+      options?.sortBy === "name"
+        ? "full_name"
+        : options?.sortBy === "score"
+          ? "ai_score"
+          : "created_at",
+      { ascending: options?.sortBy === "name" ? true : false },
+    );
 
   if (options?.status) {
     query = query.eq("status", options.status);
@@ -107,9 +142,9 @@ export async function createLeadForWorkspace(
       country: input.country?.trim() || "CZ",
       status: input.status || "new",
       ai_score: input.ai_score ?? 50,
-      notes: input.notes?.trim() || null,
-    })
-    .select("id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at")
+    notes: input.notes?.trim() || null,
+  })
+    .select(LEAD_FIELDS)
     .single();
 
   if (error || !data) {
@@ -117,6 +152,47 @@ export async function createLeadForWorkspace(
   }
 
   return data as LeadDTO;
+}
+
+export async function createLeadsForWorkspace(
+  inputs: CreateLeadInput[],
+  workspaceId?: string,
+): Promise<LeadDTO[]> {
+  if (!Array.isArray(inputs) || inputs.length === 0) {
+    throw new DataAccessError("VALIDATION", "Lead import requires at least one row");
+  }
+
+  if (inputs.length > 1000) {
+    throw new DataAccessError("VALIDATION", "Lead import is limited to 1000 rows per request");
+  }
+
+  inputs.forEach(assertLeadInput);
+  const context = await requireWorkspaceContext(workspaceId);
+  const supabase = await createDataClient();
+
+  const { data, error } = await supabase
+    .from("leads")
+    .insert(
+      inputs.map((input) => ({
+        workspace_id: context.workspaceId,
+        full_name: input.full_name.trim(),
+        phone: input.phone.trim(),
+        email: input.email?.trim() || null,
+        city: input.city?.trim() || null,
+        company: input.company?.trim() || null,
+        country: input.country?.trim() || "CZ",
+        status: input.status || "new",
+        ai_score: input.ai_score ?? 50,
+        notes: input.notes?.trim() || null,
+      })),
+    )
+    .select(LEAD_FIELDS);
+
+  if (error || !data || data.length !== inputs.length) {
+    throw new DataAccessError("DATABASE", "Lead import failed");
+  }
+
+  return data as LeadDTO[];
 }
 
 export async function updateLeadStatusForWorkspace(
@@ -131,7 +207,7 @@ export async function updateLeadStatusForWorkspace(
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", leadId)
     .eq("workspace_id", context.workspaceId)
-    .select("id, workspace_id, full_name, phone, email, city, company, country, status, ai_score, notes, created_at, updated_at")
+    .select(LEAD_FIELDS)
     .maybeSingle();
 
   if (error) {

@@ -1,7 +1,4 @@
-import { updateLeadStatusAction } from "@/app/actions/crm";
-import { fetchLeadsFromSupabase } from "./supabase/leadsService";
-import { createClient } from "./supabase/client";
-import { getCurrentWorkspaceId } from "./supabase/workspace";
+import { createLeadsBatchAction, listLeadsAction, updateLeadStatusAction } from "@/app/actions/crm";
 
 export type LeadStatus = "new" | "contacted" | "qualified" | "customer" | "unresponsive";
 
@@ -52,7 +49,13 @@ export async function getLeads(options?: {
   search?: string;
   sortBy?: "name" | "score" | "created";
 }): Promise<Lead[]> {
-  return fetchLeadsFromSupabase(options);
+  const data = await listLeadsAction({
+    status: isLeadStatus(options?.status) ? options.status : undefined,
+    search: options?.search,
+    sortBy: options?.sortBy,
+  });
+
+  return data.map(mapLeadDTO);
 }
 
 export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
@@ -60,12 +63,7 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     throw new Error("Lead name and phone are required");
   }
 
-  const supabase = createClient();
-  const workspaceId = await getCurrentWorkspaceId();
-  if (!workspaceId) throw new Error("No active workspace");
-
   const payload = leads.map((item) => ({
-    workspace_id: workspaceId,
     full_name: item.full_name!.trim(),
     phone: item.phone!.trim(),
     email: item.email || null,
@@ -77,18 +75,8 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
     notes: item.notes || null,
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("leads") as any).insert(payload).select();
-  if (error || !data) throw new Error("Lead batch insert failed");
-
-  return (data as Lead[]).map((lead) => ({
-    ...lead,
-    email: lead.email || null,
-    city: lead.city || null,
-    country: lead.country || "CZ",
-    notes: lead.notes || null,
-    company: lead.company || null,
-  }));
+  const data = await createLeadsBatchAction(payload);
+  return data.map(mapLeadDTO);
 }
 
 export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
@@ -101,6 +89,10 @@ export async function updateLead(id: string, updates: Partial<Lead>): Promise<Le
 }
 
 type SavedLead = Awaited<ReturnType<typeof updateLeadStatusAction>>;
+
+function isLeadStatus(value: string | undefined): value is LeadStatus {
+  return value === "new" || value === "contacted" || value === "qualified" || value === "customer" || value === "unresponsive";
+}
 
 function mapLeadDTO(lead: SavedLead): Lead {
   return {

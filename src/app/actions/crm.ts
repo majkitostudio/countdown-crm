@@ -1,6 +1,6 @@
 "use server";
 
-import { createLeadForWorkspace, listLeadsForWorkspace, updateLeadStatusForWorkspace } from "@/lib/dal/leads";
+import { createLeadForWorkspace, createLeadsForWorkspace, listLeadsForWorkspace, updateLeadStatusForWorkspace } from "@/lib/dal/leads";
 import type { CreateLeadInput, LeadDTO } from "@/lib/dal/leads";
 import { createOrderForWorkspace } from "@/lib/dal/orders";
 import type { CreateOrderInput, OrderDTO } from "@/lib/dal/orders";
@@ -24,12 +24,20 @@ export async function listLeadsAction(options?: {
   workspaceId?: string;
   status?: LeadStatus;
   search?: string;
+  sortBy?: "name" | "score" | "created";
 }): Promise<LeadDTO[]> {
   return listLeadsForWorkspace(options);
 }
 
 export async function createLeadAction(input: CreateLeadInput, workspaceId?: string): Promise<LeadDTO> {
   return createLeadForWorkspace(input, workspaceId);
+}
+
+export async function createLeadsBatchAction(
+  inputs: CreateLeadInput[],
+  workspaceId?: string,
+): Promise<LeadDTO[]> {
+  return createLeadsForWorkspace(inputs, workspaceId);
 }
 
 export async function updateLeadStatusAction(
