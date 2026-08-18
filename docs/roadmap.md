@@ -405,9 +405,9 @@ completion-only persistence, Teamleader Review a reload persistence.
   log potvrdil `GET /api/training/reviews → 403`; fixture byla odstraněna a
   SQL recheck potvrdil nulové zbytky i původní baseline.
 - [x] Read-only SQL recheck 2026-08-18 potvrdil stejný stav: jeden workspace,
-  jedna `admin` membership a jeden Auth účet. Další runtime proof proto čeká na
-  explicitně schválenou disposable Auth/workspace fixture nebo neprodukční
-  prostředí; tento recheck žádná live data neměnil.
+  jedna `admin` membership a jeden Auth účet po cleanupu. Schema RLS smoke
+  použil dočasný Postgres `authenticated` role path a žádná fixture data
+  nezůstala.
 
 ### Záměrné neimplementované části
 
@@ -457,3 +457,7 @@ completion-only persistence, Teamleader Review a reload persistence.
   se neaktivoval a serverní log potvrdil `GET /api/training/reviews → 403`.
   Auth účet, profil, membership i workspace byly po testu odstraněny; SQL
   kontrola potvrdila nulové fixture řádky a návrat k baseline.
+- [x] Schema metadata RLS hardening sjednotil SELECT na workspace members a
+  oddělil manager/admin INSERT/UPDATE/DELETE policies pro
+  `custom_objects` a `attribute_definitions`; authenticated Postgres smoke
+  potvrdil manager write, agent read-only a cross-workspace nulový výsledek.

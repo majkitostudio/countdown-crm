@@ -644,3 +644,33 @@ order-unlocked modal/context, odstraní stale pitch a nenechá staré oznámení
 vypadat jako aktivní call step. Post-call summary nyní rozlišuje `Automation
 completed`, `Automation failed`, `Automation skipped` a `No automation
 triggered` místo nejednoznačného `0 succeeded`.
+
+## 18. Schema metadata RLS policy hardening — 2026-08-18
+
+`custom_objects` a `attribute_definitions` měly překrývající se permissive
+SELECT policies: manager/admin `ALL` policy a samostatnou workspace-member
+SELECT policy. Migration
+`supabase/migrations/20260818183147_schema_policy_hardening.sql` nyní:
+
+- ponechává jediný SELECT path pro authenticated workspace members;
+- rozděluje manager/admin mutace na explicitní INSERT, UPDATE a DELETE
+  policies;
+- zachovává workspace ownership a vazbu atributu na objekt ve stejném
+  workspace;
+- zachovává `UPDATE` dvojici `USING` + `WITH CHECK`;
+- nemění grants: `authenticated` má CRUD, `anon` nemá přístup.
+
+Migration runner ji aplikoval do live projektu a remote history ji eviduje pod
+`20260818183234 / 20260818183147_schema_policy_hardening`. Performance advisor
+už nehlásí duplicate permissive policy pro `custom_objects` ani
+`attribute_definitions`; zbývající warnings patří ostatním tabulkám mimo tento
+slice.
+
+RLS smoke přes skutečný `authenticated` Postgres role path potvrdil:
+
+- manager může schema metadata číst a INSERT policy projde;
+- agent může vlastní workspace schema číst, ale schema mutation skončí
+  `new row violates row-level security policy`;
+- workspace bez membership vrací pro stejného uživatele nula řádků;
+- disposable workspaces, membership, custom objects a attributes byly po testu
+  odstraněny a primary admin membership zůstala zachována.
