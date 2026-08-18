@@ -517,7 +517,10 @@ zpřesněna role a workspace hranice databázových policies:
 Migrace byla aplikována do připojeného Supabase projektu a ověřena read-only
 SQL kontrolou policies a grants. Security advisor po změně ponechal pouze
 známý externí bod `Leaked Password Protection Disabled`; tento Auth project
-setting se nebude obcházet SQL migrací.
+setting se nebude obcházet SQL migrací. Pokus o zapnutí v Dashboardu byl
+proveden na správném projektu, ale Supabase uložení odmítl s důvodem, že
+HaveIBeenPwned ochrana je dostupná až na Pro plánu a vyšším; serverový stav
+proto zůstává vypnutý.
 
 Regresní browser smoke po migraci ověřil, že anonymní požadavek na
 `/training/reviews` skončí na `/login` a chráněný obsah se nezpřístupní bez
