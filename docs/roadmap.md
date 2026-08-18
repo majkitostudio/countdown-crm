@@ -446,5 +446,9 @@ completion-only persistence, Teamleader Review a reload persistence.
   turny; vlastní insert/update/delete lifecycle zůstal zachovaný. `auth.uid()`
   policies používají init-plan-safe `(select auth.uid())` variantu a training
   policy warnings zmizely z performance advisora.
-- [ ] Agent role/cross-workspace runtime smoke vyžaduje druhou testovací
-  identity nebo disposable fixture; aktuální pilot má pouze jednoho admina.
+- [x] Agent role/cross-workspace runtime smoke byl ověřen přes reverzibilní
+  `agent` membership switch na autentizované session a disposable workspace:
+  Teamleader Review odmítl agent roli a explicitní serverový dotaz do workspace
+  bez membership skončil `User is not a member of this workspace`; fixture byla
+  následně odstraněna. Druhá Auth identity nebyla vytvořena kvůli Supabase
+  email rate limitu.

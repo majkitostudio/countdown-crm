@@ -591,14 +591,59 @@ autorizací v DAL a API:
   duplicate permissive policy.
 
 Live SQL aplikace proběhla v jedné transakci a následná read-only kontrola
-potvrdila nové policies. Standardní Supabase `apply_migration` runner v tomto
-prostředí selhal na nekonzistentní chybě `relation public.training_sessions
-does not exist`, přestože stejný projekt tabulku přes SQL a `list_tables`
-vidí. Lokální auditní migration soubor je
-`supabase/migrations/202608180001_training_review_rls_hardening.sql`; změna se
-zatím nepropsala do remote migration history a tento runner/provenance bod
-zůstává otevřený pro samostatné reconciliation ověření.
+potvrdila nové policies. První pokus standardního Supabase `apply_migration`
+runneru v tomto prostředí selhal na nekonzistentní chybě `relation
+public.training_sessions does not exist`, přestože stejný projekt tabulku přes
+SQL a `list_tables` vidí. Po úpravě migration souboru na idempotentní replay
+runner proběhl úspěšně a read-only kontrola
+`supabase_migrations.schema_migrations` nyní potvrzuje remote history pro
+`202608180001_training_review_rls_hardening`.
+
+Stejným reconciliation postupem byla doplněna i chybějící remote history pro
+lokální `20260810_0009_seed_builtin_deals_schema`; stav Deals zůstal beze změny
+(1 custom object a 4 attributes). Migration provenance pro tyto dva dříve
+nesladěné soubory je tímto uzavřená.
 
 Security advisor zachovává pouze známý externí warning `Leaked Password
 Protection Disabled`. Obecné duplicate permissive policy warnings mimo
 Training Review zůstávají mimo tento slice.
+
+## 16. Runtime role boundary and workspace isolation smoke — 2026-08-18
+
+Byl proveden reverzibilní runtime smoke proti připojenému projektu:
+
+- existující autentizovaná testovací membership byla dočasně přepnuta na roli
+  `agent`; `/training/reviews` zobrazilo explicitní `Teamleader Review
+  unavailable` a manager/admin obsah se nezpřístupnil;
+- membership byla ihned obnovena na `admin` a read-only kontrola potvrdila
+  původní stav;
+- pro cross-workspace test vznikl disposable workspace bez dat a bez
+  membership aktuálního uživatele; skutečná serverová schema action s explicitním
+  fixture workspace ID vrátila `User is not a member of this workspace`;
+- fixture workspace byl smazán a následná kontrola potvrdila nulové rows pro
+  workspace, membership, leady, produkty i training sessions.
+
+Supabase Auth v průběhu testu odmítl další password signup kvůli email rate
+limitu, proto nebyla vytvářena druhá Auth identity ani obcházen její signup
+flow. Boundary je ověřená na reálné session, roli a workspace authorization
+path; druhá skutečná Auth identity zůstává vhodným rozšířením před širším
+pilotem.
+
+## 17. Workspace schema source of truth and terminal-state UX — 2026-08-18
+
+Produkční schema UI už nepoužívá `SchemaEngine` ani `localStorage` jako fallback
+nebo autoritativní zdroj:
+
+- schema metadata se načítá přes `listSchemasAction` a workspace-scoped DAL;
+- vytvoření vlastního lead pole jde přes `saveAttributeAction` a po uložení se
+  načte znovu ze serveru;
+- loading, unavailable a save error jsou v Leads, Filter Engine a Customer
+  Panelu viditelné stavy;
+- lokální uložené pohledy a aktivní blueprint zůstávají pouze uživatelskými
+  preferencemi a nejsou vydávány za schema persistence.
+
+V Operator Console byl uzavřen terminální stav hovoru: dokončení hovoru zruší
+order-unlocked modal/context, odstraní stale pitch a nenechá staré oznámení
+vypadat jako aktivní call step. Post-call summary nyní rozlišuje `Automation
+completed`, `Automation failed`, `Automation skipped` a `No automation
+triggered` místo nejednoznačného `0 succeeded`.
