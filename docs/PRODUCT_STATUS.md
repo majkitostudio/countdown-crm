@@ -504,6 +504,12 @@ persistence. Route Handler deleguje do existujícího
 databázová chyba `503`. Endpoint nepodporuje průběžné ukládání ani resume po
 pádu browseru.
 
+Read-only Teamleader Review API nyní vystavuje `GET /api/training/reviews` pro
+workspace-scoped seznam a `GET /api/training/reviews/:sessionId` pro detail s
+transcriptem. Oba endpointy používají stejnou manager/admin DAL autorizaci jako
+UI; vracejí explicitní `401`, `403`, `404` a `503` stavy a nepřidávají žádnou
+novou write cestu.
+
 Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
 nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
 pozdější ruční voice/barge-in smoke test je otevřený. Aktuální databázový pilot

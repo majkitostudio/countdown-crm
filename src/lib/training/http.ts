@@ -1,8 +1,8 @@
-export function trainingJsonError(message: string, status: number): Response {
+export function trainingJsonError(message: string, status: number, code?: string): Response {
   return Response.json(
     {
       ok: false,
-      code: status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION" : "UNAVAILABLE",
+      code: code || (status === 401 ? "UNAUTHORIZED" : status === 400 ? "VALIDATION" : "UNAVAILABLE"),
       message,
     },
     { status }

@@ -384,6 +384,9 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] `POST /api/training/session` má completion-only auth/JSON boundary,
   deleguje do `saveTrainingSessionAction`, vrací `201` se `sessionId` a
   nepřidává průběžnou persistence ani resume.
+- [x] Read-only Teamleader Review API poskytuje workspace-scoped list a detail
+  přes `GET /api/training/reviews` a `GET /api/training/reviews/:sessionId`;
+  role, `404` not-found a error stavy zůstávají explicitní.
 
 ### Omezení, která zůstávají přiznaná
 
