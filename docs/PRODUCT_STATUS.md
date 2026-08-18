@@ -519,6 +519,12 @@ SQL kontrolou policies a grants. Security advisor po změně ponechal pouze
 známý externí bod `Leaked Password Protection Disabled`; tento Auth project
 setting se nebude obcházet SQL migrací.
 
+Regresní browser smoke po migraci ověřil, že anonymní požadavek na
+`/training/reviews` skončí na `/login` a chráněný obsah se nezpřístupní bez
+session. Autentizovaný průchod po migraci nebylo možné zopakovat, protože
+ověřovací browser session v tomto běhu expirovala; heslo nebylo dostupné a
+nebylo nahrazováno hádáním ani čtením session údajů.
+
 Audit importů potvrdil, že `aiStreamerBridge` a `sipAdapter` nejsou součástí
 runtime flow; oba nepoužívané moduly byly odstraněny v samostatném cleanup
 commitu. `audioEngine` a `softphone` zůstávají zachované, protože jsou stále

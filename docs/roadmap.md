@@ -411,6 +411,10 @@ completion-only persistence, Teamleader Review a reload persistence.
   byla aplikována do připojeného Supabase projektu.
 - [x] Read-only SQL kontrola potvrdila nové role, predicate a grants.
 - [x] Security advisor po změně nehlásí nový RLS/table problém.
+- [x] Anonymní browser smoke `/training/reviews` skončil očekávaným redirectem
+  na `/login`.
+- [ ] Autentizovaný browser smoke po migraci vyžaduje znovu aktivní testovací
+  session; v tomto běhu nebylo bezpečně dostupné heslo.
 
 ### Otevřené release body
 
