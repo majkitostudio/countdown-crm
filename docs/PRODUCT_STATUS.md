@@ -519,6 +519,8 @@ SQL kontrolou policies a grants. Security advisor po změně ponechal pouze
 známý externí bod `Leaked Password Protection Disabled`; tento Auth project
 setting se nebude obcházet SQL migrací.
 
-`aiStreamerBridge` a `sipAdapter` zůstávají kandidáty na samostatný cleanup po
-potvrzení dead-code usage. `audioEngine` je runtime závislostí
-`softphone.ts` a není součástí tohoto cleanupu.
+Audit importů potvrdil, že `aiStreamerBridge` a `sipAdapter` nejsou součástí
+runtime flow; oba nepoužívané moduly byly odstraněny v samostatném cleanup
+commitu. `audioEngine` a `softphone` zůstávají zachované, protože jsou stále
+importované aktuálním Operator Console pilotem. Tato úklidová změna nemění
+tvrzení o dostupnosti skutečného telephony providera.

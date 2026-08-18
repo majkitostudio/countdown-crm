@@ -325,9 +325,10 @@ ověření a otevřené rozhodnutí.
   simulace hovoru, Training Mode, Copilot pilot simulation a WebSpeech fallback.
 - [x] Lokální `settings` storage zůstává pouze pro uživatelské preference;
   není používán jako zdroj CRM záznamů, aktivit, objednávek ani metrik.
-- [ ] Zbývá uklidit nepoužívaný `aiStreamerBridge` a staré telephony simulátory
-  v samostatném telephony slice; jejich stav nyní nesmí být zaměněn za live
-  integraci.
+- [x] Audit importů dokončen: nepoužívané `aiStreamerBridge` a `sipAdapter` byly
+  odstraněny; runtime-používané `audioEngine` a `softphone` zůstávají
+  zachované. Staré telephony simulátory a skutečný provider zůstávají
+  odděleným release tématem.
 
 ### Slice 7 — negativní workspace autorizace
 
@@ -415,8 +416,8 @@ completion-only persistence, Teamleader Review a reload persistence.
 
 - [ ] Supabase Auth `Leaked Password Protection` zůstává externí project
   setting a musí být zapnutý v Auth konfiguraci, ne SQL migrací.
-- [ ] `aiStreamerBridge` a `sipAdapter` jsou kandidáti na samostatný dead-code
-  cleanup; `audioEngine` zůstává runtime závislostí `softphone` a nesmí být
-  odstraněn společně s nimi.
+- [x] `aiStreamerBridge` a `sipAdapter` byly po ověření importů odstraněny jako
+  dead code; `audioEngine` zůstává runtime závislostí `softphone` a byl
+  zachován.
 - [ ] Agent role/cross-workspace runtime smoke vyžaduje druhou testovací
   identity nebo disposable fixture; aktuální pilot má pouze jednoho admina.
