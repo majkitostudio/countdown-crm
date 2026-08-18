@@ -64,6 +64,44 @@ The **Workflow Engine** enables user-configured event-driven rule chains:
 - 🏷️ **`update_lead_status`**: Automatically advances pipeline stage.
 - 🔔 **`notify_manager`**: Sends alerts to the Team Leader with template variable interpolation (`{{lead_name}}`).
 
+### 3.1 Operational Assignment and Routing Model
+
+The approved call-center workflow separates the CRM lead directory from the
+operator work queue:
+
+- **Lead Directory** is the complete CRM directory for Team Leaders and
+  Administrators.
+- **Available Pool** is an internal routing pool. Operators do not browse it
+  or choose a lead from it.
+- **My Work** is a server-controlled operator scope. The Operator receives
+  exactly one current lead and does not see a list of queued lead identities.
+- **Current Lead** is limited to one `in_progress` lead per Operator.
+- **Routing Engine** atomically claims the next eligible lead after the
+  previous outcome is closed.
+
+The database, rather than the UI, must enforce that one lead has at most one
+active assignment and one Operator has at most one current lead. Assignment
+history is retained separately from the CRM lead record so reassignment,
+release, callback, recovery and supervisor overrides remain auditable.
+
+Outcome routing is explicit: an order closes the prospecting assignment and
+routes the next lead; no-answer/call-later releases the lead into a retry
+schedule; a scheduled callback prefers the original Operator only when that
+Operator is available; and not-interested closes the lead until a Team Leader
+or Administrator explicitly reopens it.
+
+The canonical resource URL is `/leads/[leadId]`, while `/leads` remains the
+Team Leader/Administrator directory. Opening a URL is read-only and never
+starts a call. An Operator may see only a server-authorized current assignment
+or callback context. Starting a call is a separate server operation that
+requires the current assignment ID, owner, lease, presence and capacity checks.
+
+The planned queue implementation includes transactional claiming, operator
+presence/capacity, lease/heartbeat recovery, callback affinity and audited
+Team Leader actions `View`, `Reassign`, `Release` and `Reopen`. This is an
+approved follow-up scope and is not yet represented as a completed runtime
+feature.
+
 ---
 
 ## 📦 4. Industry Blueprints & Oborové Balíčky

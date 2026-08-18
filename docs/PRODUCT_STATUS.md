@@ -696,3 +696,87 @@ skutečný inbound/call-queue assignment mechanismus, proto Operator Console
 zobrazuje pravdivý stav čekání na přiřazeného zákazníka místo toho, aby
 Operatorovi vystavila celý workspace lead directory. Assignment přes skutečný
 telephony nebo call-queue provider je samostatný navazující scope.
+
+## Schválený assignment model — 2026-08-19
+
+Assignment model je schválený produktový kontrakt pro další implementační
+slice, ale v aktuálním pilotu ještě není implementovaný. Dnešní stav proto
+zůstává pravdivý: Operator Console čeká na skutečný routing/assignment
+mechanismus a Operator nemá přístup k lead directory.
+
+### Oddělení CRM adresáře a pracovní fronty
+
+- **Lead Directory** je úplná CRM databáze leadů. Přístup mají pouze Team
+  Leaders a Administrators.
+- **Available Pool** je interní systémová fronta. Operator ji nikdy
+  neprochází ani si z ní lead nevybírá.
+- **My Work** je pracovní scope konkrétního Operatora. Nezobrazuje seznam
+  leadů; server Operatorovi poskytne pouze aktuální pracovní kontakt a
+  případný stav plánovaného callbacku.
+- **Current Lead** je maximálně jeden lead ve stavu `in_progress` na
+  Operatora.
+- **Routing Engine** atomicky rozhoduje, který lead dostane Operator jako
+  další.
+
+Základní databázová pravidla budou vynucená mimo UI:
+
+- jeden lead může mít maximálně jeden aktivní assignment,
+- jeden Operator může mít maximálně jeden aktuální lead,
+- claim dalšího leadu bude transakční a konkurentně bezpečný,
+- historická přiřazení se nemažou.
+
+### Assignment a outcome lifecycle
+
+Lead jako CRM záznam a stav ve frontě budou oddělené. CRM status například
+`qualified`, `customer` nebo `closed_lost` nebude nahrazovat provozní queue
+state `available`, `assigned`, `in_progress`, `waiting_callback` nebo
+`closed`.
+
+- **Order:** zapíše call a order, lead přejde na `customer`, aktuální
+  assignment se uzavře a routing přidělí další kontakt.
+- **No Answer / Call Later:** aktuální assignment se uvolní a lead dostane
+  retry termín; před jeho uplynutím se nevrací do Available Pool.
+- **Schedule Callback:** vznikne plánovaný callback. Původní Operator je
+  pouze preferovaný, nikoli trvalý vlastník.
+- **Fail / Not Interested:** lead přejde do `closed_lost` a automaticky se
+  nevrací do fronty. Reopen provádí explicitně Team Leader nebo Administrator.
+
+### Callback affinity a dostupnost
+
+Callback se preferenčně vrátí původnímu Operatorovi pouze tehdy, když je ve
+stavu `available` a nemá aktivní assignment. Pokud je offline, na pauze nebo
+v hovoru, callback dostane jiný dostupný Operator. Pokud není dostupný nikdo,
+callback zůstane v routing procesu do dalšího cyklu.
+
+Assignment bude obsahovat lease/heartbeat ochranu proti pádu browseru nebo
+odpojení. Po skončení ochranné lhůty se neaktivní assignment bezpečně uvolní,
+aby lead nezůstal trvale zamčený u neaktivního Operatora.
+
+### URL a oprávnění
+
+Kanonická URL pro lead bude `/leads/[leadId]`; `/leads` zůstává Team
+Leader/Administrator Lead Directory. Otevření detailové URL samo o sobě
+nezahájí hovor ani nepřidělí lead.
+
+- Team Leader/Administrator mohou přes detail zobrazit lead podle své role.
+- Operator může zobrazit pouze serverem povolený detail svého aktuálního
+  assignmentu nebo platného pracovního callbacku.
+- Přímé UUID ani URL Operatorovi neposkytne cizí lead a nebude fungovat jako
+  permission bypass.
+- Start hovoru bude samostatná serverová operace, která ověří aktuální
+  `assignment_id`, vlastníka, stav assignmentu, kapacitu Operatora a lease.
+
+Team Leader akce `View`, `Reassign`, `Release` a `Reopen` budou oddělené,
+serverově autorizované a auditované. `Reassign` přesune lead konkrétnímu
+Operatorovi; `Release` ho vrátí do Available Pool.
+
+### Navazující implementační scope
+
+Schválený slice bude obsahovat `lead_queue_items`, historii assignmentů a
+queue událostí, routing engine, atomický claim, aktuální Operator Console
+context, presence/capacity, callback scheduling, lease/heartbeat/recovery,
+Team Leader override a context-aware `/leads/[leadId]` route.
+
+Completion call path bude vyžadovat nejen `lead_id`, ale také aktuální
+`assignment_id`, aby Operator nemohl dokončit call nad leadem, který mu právě
+nepřísluší.

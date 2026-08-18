@@ -17,6 +17,33 @@ Dokud nebude zapojený inbound/call-queue provider, Operator uvidí stav čekán
 na přiřazení. Agent se používá pouze pro AI, například AI agent, AI roleplay a
 agentic workflow.
 
+## Schválený assignment model — navazující scope
+
+Operator nebude zobrazovat ani procházet svou frontu. Routing Engine mu vždy
+přidělí pouze jeden aktuální lead; po uzavření outcome server uzavře assignment
+a přidělí další kontakt.
+
+- Lead Directory je úplný adresář pro Team Leadera a Administratora.
+- Available Pool je interní systémová fronta, nikoli Operatorův seznam.
+- My Work obsahuje pouze aktuální kontakt, případný stav callbacku a počet
+  dalších čekajících položek bez jejich detailů.
+- Jeden lead může mít maximálně jeden aktivní assignment a jeden Operator
+  maximálně jeden `in_progress` lead.
+- Callback preferuje původního Operatora, pokud je `available`; jinak se
+  přiřadí jinému volnému Operatorovi.
+- Team Leader může přes auditované akce View, Reassign, Release a Reopen
+  zasáhnout do assignmentu.
+- URL `/leads/[leadId]` pouze zobrazí serverem povolený detail. Samotné
+  otevření URL neznamená oprávnění k hovoru; start hovoru vyžaduje platný
+  assignment a samostatnou serverovou kontrolu.
+- Pád browseru se řeší lease/heartbeat/recovery mechanismem, ne trvalým
+  zámkem leadu.
+
+Tento scope zatím není implementovaný. Před jeho uzavřením musí projít
+concurrency smoke test, negativní přímá URL kontrola, callback routing,
+reassign/release audit, reload persistence a SQL kontrola nulového dvojího
+přiřazení.
+
 ---
 
 ## 🚀 Fáze 1: Základní Infrastruktura & Katalog Produktů (Sprint 1)
