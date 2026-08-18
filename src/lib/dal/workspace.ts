@@ -2,11 +2,11 @@ import "server-only";
 
 import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
-import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
+import type { WorkspaceRole } from "@/lib/auth/roles";
 
-export type WorkspaceRole = Database["public"]["Tables"]["workspace_members"]["Row"]["role"];
+export type { WorkspaceRole } from "@/lib/auth/roles";
 
 export interface WorkspaceContext {
   userId: string;
@@ -33,7 +33,7 @@ export async function requireWorkspaceContext(
     return {
       userId: user.id,
       workspaceId: DEMO_WORKSPACE_ID,
-      role: "admin",
+      role: "administrator",
     };
   }
 

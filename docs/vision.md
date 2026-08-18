@@ -12,7 +12,7 @@ Projekt je navržen tak, aby v prototypové fázi dosahoval **nulových provozn�
 
 ## 2. Klíčové Zásady Systému (Core Principles)
 
-1. **Zero-Latency Agent Experience**: Operátor nesmí čekat na načítání stránek. Všechny informace o zákazníkovi, historii a produktech musí být dostupné okamžitě (pod 100 ms).
+1. **Zero-Latency Operator Experience**: Operátor nesmí čekat na načítání stránek. Všechny informace o zákazníkovi, historii a produktech musí být dostupné okamžitě (pod 100 ms).
 2. **AI v Reálném Čase (Live AI Copilot)**: AI nepomáhá až po hovoru, ale přímo během komunikace se zákazníkem — nabízí argumenty na obcházení námitek.
 3. **Multi-Product Flexibility**: Systém jednoduše zvládá specifika různých produktových kategorií (dávkování u doplňků stravy, odstíny a typy pleti u kosmetiky, záruky a technické parametry u elektra).
 4. **Zero-Cost Foundation**: Architektura stvořená tak, aby prototyp běžel bez potřeby platit měsíční paušály za servery, databáze či telefonní ústředny.
@@ -21,17 +21,17 @@ Projekt je navržen tak, aby v prototypové fázi dosahoval **nulových provozn�
 
 ## 3. Uživatelské Role a Jejich Práce v CRM
 
-### A. Operátor Call Centra (Sales Agent)
+### A. Operátor Call Centra
 * **Pult operátora (Workspace)**: Integrovaný softphone / simulátor hovorů, přepis řeči na text v reálném čase.
 * **Objection Handling Engine**: Při detekci věty zákazníka typu *"Je to moc drahé"* se okamžitě zobrazí 3 prověřené prodejní argumenty navržené AI.
 * **Rychlé vytvoření objednávky**: Předvyplněný košík na základě rozhovoru, výběr akčních balíčků jedním klikem.
 
-### B. Manažer / Supervisor
+### B. Team Leader
 * **Živý monitoring**: Přehled o probíhajících hovorech, aktuálním sentimentu zákazníků a vytížení operátorů.
 * **A/B Testování scénářů**: Možnost porovnávat úspěšnost AI scénářů a argumentů mezi jednotlivými týmy.
 * **Analytika prodejů**: Přehled tržeb podle kategorií produktů, úspěšnosti cross-sellu a stornovosti.
 
-### C. Administrátor
+### C. Administrator
 * **Správa katalogu produktů**: Zadávání produktů, tvorba prodejních argumentů, nastavení křížového prodeje.
 * **Import & Skórování leadů**: Nahrávání databází kontaktů (CSV/Excel) a jejich automatické AI skórování.
 
@@ -51,7 +51,7 @@ Projekt je navržen tak, aby v prototypové fázi dosahoval **nulových provozn�
 
 ## 5. Datové Entity (Základní Schéma)
 
-1. **Users / Agents**: Profil operátora, role, statistiky.
+1. **Users / Operators**: Profil operátora, role, statistiky.
 2. **Leads / Customers**: Kontaktní údaje, nákupní historie, AI skóre nákupního potenciálu, preference.
 3. **Products**: Název, kategorie (doplňky, kosmetika, elektro), specifikace, skladovost, akční ceny.
 4. **Objections & Pitch Templates**: Databáze námitek a nejlepších prodejních argumentů propojených s produkty.

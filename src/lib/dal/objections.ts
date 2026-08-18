@@ -94,7 +94,7 @@ export async function createObjectionForWorkspace(
   input: ObjectionInput,
   requestedWorkspaceId?: string
 ): Promise<ObjectionDTO> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const validated = validateInput(input);
   await assertProductInWorkspace(validated.product_id, workspaceId);
 
@@ -122,7 +122,7 @@ export async function updateObjectionForWorkspace(
   input: ObjectionInput,
   requestedWorkspaceId?: string
 ): Promise<ObjectionDTO> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const validated = validateInput(input);
   await assertProductInWorkspace(validated.product_id, workspaceId);
 
@@ -154,7 +154,7 @@ export async function deleteObjectionForWorkspace(
   id: string,
   requestedWorkspaceId?: string
 ): Promise<void> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("objections")

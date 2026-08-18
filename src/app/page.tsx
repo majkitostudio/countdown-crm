@@ -21,7 +21,7 @@ export default function Home() {
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Real-time tele-sales metrics, live call stream, and agent performance tracking
+            Real-time tele-sales metrics, live call stream, and operator performance tracking
           </p>
         </div>
 

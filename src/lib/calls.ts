@@ -4,7 +4,7 @@ import type { Database } from "./supabase/types";
 export type PersistedCallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
 export interface TranscriptEntry {
-  speaker: "agent" | "customer";
+  speaker: "operator" | "customer";
   text: string;
   timestamp: string;
 }

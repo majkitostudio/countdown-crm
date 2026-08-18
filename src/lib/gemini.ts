@@ -23,7 +23,7 @@ export async function analyzeTranscriptWithGemini(
   try {
     const ai = new GoogleGenAI({ apiKey });
     const prompt = `
-You are an expert sales AI copilot in a call center. Analyze the following live call transcript between an agent and customer "${customerName}" regarding the product "${productTitle}".
+You are an expert sales AI copilot in a call center. Analyze the following live call transcript between an operator and customer "${customerName}" regarding the product "${productTitle}".
 
 Transcript:
 "${transcript}"
@@ -33,8 +33,8 @@ Provide a JSON response strictly matching this JSON schema:
   "sentiment": "Positive" | "Price Objection" | "Product Objection" | "Neutral",
   "detectedObjection": string or null,
   "confidenceScore": number between 70 and 99,
-  "rebuttalArguments": array of 3 bullet point strings for the agent to say,
-  "nextBestAction": string recommendation for the agent
+  "rebuttalArguments": array of 3 bullet point strings for the operator to say,
+  "nextBestAction": string recommendation for the operator
 }
 
 Respond ONLY with valid JSON, no markdown code block formatting.

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Users, Sparkles, UserCheck, UserPlus, RefreshCw } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Users, Sparkles, UserCheck, UserPlus, RefreshCw, LockKeyhole } from "lucide-react";
 import { listLeadsAction } from "@/app/actions/crm";
 import { Lead } from "@/lib/leads";
 import { LeadsTable } from "@/components/leads/LeadsTable";
@@ -11,6 +11,8 @@ import { CreateLeadModal } from "@/components/leads/CreateLeadModal";
 import { ViewSwitcher, ViewMode } from "@/components/views/ViewSwitcher";
 import { KanbanBoard } from "@/components/views/KanbanBoard";
 import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBar";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import { canManageLeads } from "@/lib/auth/roles";
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -22,8 +24,11 @@ export default function LeadsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+  const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
+  const canManageLeadRecords = canManageLeads(identity?.role);
 
-  const loadLeads = async () => {
+  const loadLeads = useCallback(async () => {
+    if (!canManageLeadRecords) return;
     setIsLoading(true);
     setLoadError(null);
     try {
@@ -35,15 +40,37 @@ export default function LeadsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [canManageLeadRecords]);
 
   useEffect(() => {
+    if (isIdentityLoading) return;
     async function loadInitialLeads() {
       await loadLeads();
     }
-
     void loadInitialLeads();
-  }, []);
+  }, [isIdentityLoading, loadLeads]);
+
+  if (isIdentityLoading || isLoading && !identity) {
+    return (
+      <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-400">
+        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+        Načítám oprávnění workspace…
+      </div>
+    );
+  }
+
+  if (!canManageLeadRecords) {
+    return (
+      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+        <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
+        <h1 className="text-base font-semibold text-zinc-100">Lead management unavailable</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
+          Operators do not receive a lead directory or manual lead creation and editing access.
+          Assignment will become available after a real inbound or call-queue integration is connected.
+        </p>
+      </div>
+    );
+  }
 
   const handleSelectLead = (lead: Lead) => {
     setSelectedLead(lead);
@@ -51,7 +78,7 @@ export default function LeadsPage() {
   };
 
   const handleStartCall = (lead: Lead) => {
-    alert(`Initiating virtual call with ${lead.full_name} (${lead.phone})... Redirecting to Agent Workspace.`);
+    alert(`Initiating virtual call with ${lead.full_name} (${lead.phone})... Redirecting to Operator Console.`);
   };
 
   const handleImportComplete = () => {

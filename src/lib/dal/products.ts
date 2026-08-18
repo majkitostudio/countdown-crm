@@ -169,7 +169,7 @@ export async function createProductForWorkspace(
   input: ProductInput,
   requestedWorkspaceId?: string
 ): Promise<ProductDTO> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const validated = validateProductInput(input);
   const supabase = await createDataClient();
 
@@ -191,7 +191,7 @@ export async function updateProductForWorkspace(
   input: Partial<ProductInput>,
   requestedWorkspaceId?: string
 ): Promise<ProductDTO> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
 
   if (!id.trim()) {
     throw new DataAccessError("VALIDATION", "Product ID is required.");
@@ -239,7 +239,7 @@ export async function deleteProductForWorkspace(
   id: string,
   requestedWorkspaceId?: string
 ): Promise<void> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
 
   if (!id.trim()) {
     throw new DataAccessError("VALIDATION", "Product ID is required.");

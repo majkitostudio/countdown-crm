@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { getLeads, Lead } from "@/lib/leads";
 import { getProducts, Product } from "@/lib/products";
+import { useOperatorIdentity } from "./OperatorIdentityProvider";
+import { canManageLeads, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +27,7 @@ export function CommandPalette() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const router = useRouter();
+  const { identity } = useOperatorIdentity();
 
   // Listen for Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
@@ -44,10 +47,12 @@ export function CommandPalette() {
   // Load search data on open
   useEffect(() => {
     if (isOpen) {
-      getLeads().then(setLeads);
+      if (canManageLeads(identity?.role)) {
+        getLeads().then(setLeads).catch(() => setLeads([]));
+      }
       getProducts().then(setProducts);
     }
-  }, [isOpen]);
+  }, [identity?.role, isOpen]);
 
   if (!isOpen) return null;
 
@@ -60,7 +65,7 @@ export function CommandPalette() {
   const q = query.toLowerCase().trim();
 
   // Filtered Leads
-  const filteredLeads = leads
+  const filteredLeads = (canManageLeads(identity?.role) ? leads : [])
     .filter((l) => !q || l.full_name.toLowerCase().includes(q) || l.phone.includes(q) || (l.company && l.company.toLowerCase().includes(q)))
     .slice(0, 4);
 
@@ -73,14 +78,17 @@ export function CommandPalette() {
   const navItems = [
     { label: "Dashboard Overview", path: "/", icon: LayoutDashboard },
     { label: "Operator Console (Workspace)", path: "/workspace", icon: PhoneCall },
-    { label: "Leads & Contacts", path: "/leads", icon: Users },
+    { label: "Leads & Contacts", path: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
     { label: "Product Catalog", path: "/products", icon: Package },
     { label: "Analytics BI", path: "/analytics", icon: BarChart3 },
     { label: "Live Team Monitor", path: "/monitor", icon: Activity },
     { label: "AI Roleplay Training", path: "/training", icon: GraduationCap },
-    { label: "Teamleader Review", path: "/training/reviews", icon: ClipboardList },
+    { label: "Team Leader Review", path: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
     { label: "Settings", path: "/settings", icon: Settings },
-  ].filter((item) => !q || item.label.toLowerCase().includes(q));
+  ].filter((item) =>
+    (!item.roles || (identity?.role && isTeamLeaderOrAdministrator(identity.role))) &&
+    (!q || item.label.toLowerCase().includes(q))
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-150">

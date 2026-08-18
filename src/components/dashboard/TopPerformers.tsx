@@ -43,7 +43,7 @@ export function TopPerformers() {
         <div className="flex items-center gap-2">
           <Trophy className="w-4 h-4 text-zinc-400" />
           <h3 className="text-sm font-semibold text-zinc-100">
-            Top Performing Agents
+            Top Performing Operators
           </h3>
         </div>
         <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">

@@ -68,21 +68,21 @@ export interface Database {
         Row: {
           workspace_id: string;
           user_id: string;
-          role: "admin" | "manager" | "agent";
+          role: "administrator" | "team_leader" | "operator";
           created_at: string;
           updated_at: string;
         };
         Insert: {
           workspace_id: string;
           user_id: string;
-          role?: "admin" | "manager" | "agent";
+          role?: "administrator" | "team_leader" | "operator";
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           workspace_id?: string;
           user_id?: string;
-          role?: "admin" | "manager" | "agent";
+          role?: "administrator" | "team_leader" | "operator";
           updated_at?: string;
         };
         Relationships: [
@@ -100,7 +100,7 @@ export interface Database {
           id: string;
           full_name: string;
           email: string;
-          role: "admin" | "manager" | "agent";
+          role: "administrator" | "team_leader" | "operator";
           status: "ready" | "in_call" | "break";
           avatar_url: string | null;
           created_at: string;
@@ -110,7 +110,7 @@ export interface Database {
           id: string;
           full_name: string;
           email: string;
-          role?: "admin" | "manager" | "agent";
+          role?: "administrator" | "team_leader" | "operator";
           status?: "ready" | "in_call" | "break";
           avatar_url?: string | null;
           created_at?: string;
@@ -120,7 +120,7 @@ export interface Database {
           id?: string;
           full_name?: string;
           email?: string;
-          role?: "admin" | "manager" | "agent";
+          role?: "administrator" | "team_leader" | "operator";
           status?: "ready" | "in_call" | "break";
           avatar_url?: string | null;
           updated_at?: string;

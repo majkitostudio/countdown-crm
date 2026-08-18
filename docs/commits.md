@@ -134,9 +134,9 @@ feat: add product catalog with multi-category support and objection templates
 
 > **Priorita: VYSOKÁ** — Toto je hlavní "obrazovka práce" operátora. Musí být co nejrychlejší a nejintuitivnější.
 
-### ✅ HOTOVO: COMMIT-06 — Agent Workspace layout
+### ✅ HOTOVO: COMMIT-06 — Operator Workspace layout
 ```
-feat: add agent workspace base layout with customer info panel
+feat: add operator workspace base layout with customer info panel
 ```
 **Co**: Layout hlavní pracovní plochy operátora při hovoru — panel zákazníka, panel produktů, panel AI.
 
@@ -276,7 +276,7 @@ feat: add one-click order creation from call context
 **Co**: Operátor jedním klikem přidá produkt do košíku a vytvoří objednávku.
 
 **Jak**:
-- Panel košíku v Agent Workspace (přidat/odebrat produkt, množství)
+- Panel košíku v Operator Workspace (přidat/odebrat produkt, množství)
 - Výběr z cross-sell doporučení AI nebo z katalogu
 - Potvrzení objednávky → uložení do Supabase
 - Generování jednoduchého potvrzení (číslo objednávky, souhrn)
@@ -345,7 +345,7 @@ feat: complete project with UI animations, polish and final release documentatio
 | COMMIT-03 | Supabase integrace & proxy auth | ✅ Hotovo |
 | COMMIT-04 | Modul Leady & CSV Import | ✅ Hotovo |
 | COMMIT-05 | Modul Produkty & Objection Cards | ✅ Hotovo |
-| COMMIT-06 | Agent Workspace 3-sloupcový layout | ✅ Hotovo |
+| COMMIT-06 | Operator Workspace 3-sloupcový layout | ✅ Hotovo |
 | COMMIT-07 | Telefonní simulátor & Web Audio API | ✅ Hotovo |
 | COMMIT-08 | Web Speech API přepis v reálném čase | ✅ Hotovo |
 | COMMIT-09 | Google Gemini 2.5 Flash API integrace | ✅ Hotovo |
@@ -599,7 +599,7 @@ feat(schema): expand Supabase DDL schema with dynamic EAV tables, workflow rules
 
 **Jak**:
 - DDL skript v `supabase/schema.sql` definující tabulky `custom_objects`, `attribute_definitions`, `record_entities`, `record_values`, `workflows`, `workflow_executions`, `audit_logs` a `user_gamification`.
-- RLS politiky pro kontrolu přístupu podle rolí (`admin`, `manager`, `agent`).
+- RLS politiky pro kontrolu přístupu podle rolí (Administrator, Team Leader, Operator).
 - Typové rozhraní `Database` v `src/lib/supabase/types.ts`.
 
 ---
@@ -676,7 +676,7 @@ feat(core): add explicit Demo Mode toggle and data isolation guard
 
 ---
 
-### ✅ HOTOVO: COMMIT-40 — Real Supabase SQL Aggregations & Manager BI Metrics
+### ✅ HOTOVO: COMMIT-40 — Real Supabase SQL Aggregations & Team Leader BI Metrics
 ```
 feat(analytics): replace mock analytics with real Supabase SQL aggregations and live metrics
 ```
@@ -839,8 +839,6 @@ refactor: eliminate all any types, fix React hook purity, and achieve strict bui
 - Oprava React hooků a odstranění synchrónních `setState` volání uvnitř těl efektů (`CallStatusBar.tsx`, `AiCopilotPanel.tsx`, `AiFollowupModal.tsx`, `ProductModal.tsx`, `FilterEngineBar.tsx`).
 - Vyčištění nepoužitých proměnných a importů v celé kódové základně.
 - Ověřeno: `npm run lint` čisto, `npx tsc --noEmit` 0 chyb, `npm run build` zelený produkční build v Next.js 16 (Turbopack).
-
-
 
 
 

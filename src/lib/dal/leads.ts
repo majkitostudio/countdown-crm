@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
-import { requireWorkspaceContext } from "./workspace";
+import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
@@ -89,7 +89,7 @@ export async function listLeadsForWorkspace(options?: {
   search?: string;
   sortBy?: "name" | "score" | "created";
 }): Promise<LeadDTO[]> {
-  const context = await requireWorkspaceContext(options?.workspaceId);
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], options?.workspaceId);
   const supabase = await createDataClient();
   let query = supabase
     .from("leads")
@@ -127,7 +127,7 @@ export async function createLeadForWorkspace(
   workspaceId?: string
 ): Promise<LeadDTO> {
   assertLeadInput(input);
-  const context = await requireWorkspaceContext(workspaceId);
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
 
   const { data, error } = await supabase
@@ -167,7 +167,7 @@ export async function createLeadsForWorkspace(
   }
 
   inputs.forEach(assertLeadInput);
-  const context = await requireWorkspaceContext(workspaceId);
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
 
   const { data, error } = await supabase
@@ -200,7 +200,7 @@ export async function updateLeadStatusForWorkspace(
   status: LeadStatus,
   workspaceId?: string
 ): Promise<LeadDTO> {
-  const context = await requireWorkspaceContext(workspaceId);
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("leads")

@@ -53,7 +53,7 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
                 <User className="w-3.5 h-3.5 text-zinc-500" />
                 <span>Customer: <strong className="text-zinc-200">{call.lead_name}</strong></span>
                 <span>•</span>
-                <span>Agent: {call.agent_name}</span>
+                <span>Operator: {call.agent_name}</span>
               </p>
             </div>
           </div>
@@ -128,14 +128,14 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
                   <div
                     key={idx}
                     className={`p-3 rounded-xl border space-y-1 text-xs ${
-                      item.speaker === "agent"
+                      item.speaker === "operator"
                         ? "bg-zinc-950/60 border-zinc-800 text-zinc-200 ml-4"
                         : "bg-zinc-900 border-zinc-800 text-zinc-300 mr-4"
                     }`}
                   >
                     <div className="flex items-center justify-between text-[10px] font-semibold">
                       <span className="text-zinc-400 font-mono">
-                        {item.speaker === "agent" ? `OPERATOR (${call.agent_name})` : `CUSTOMER (${call.lead_name})`}
+                      {item.speaker === "operator" ? `OPERATOR (${call.agent_name})` : `CUSTOMER (${call.lead_name})`}
                       </span>
                       <span className="text-zinc-500 font-mono">{item.timestamp}</span>
                     </div>

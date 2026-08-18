@@ -195,7 +195,7 @@ export async function saveSchemaForWorkspace(
   schema: ObjectSchema,
   requestedWorkspaceId?: string
 ): Promise<ObjectSchema> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const validated = validateSchema(schema);
   const supabase = await createDataClient();
 
@@ -246,7 +246,7 @@ export async function saveAttributeForWorkspace(
   attribute: AttributeDefinition,
   requestedWorkspaceId?: string
 ): Promise<AttributeDefinition> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const slug = await assertSchemaInWorkspace(objectSlug, workspaceId);
   const validated = validateAttribute(attribute);
   const supabase = await createDataClient();
@@ -279,7 +279,7 @@ export async function deleteSchemaForWorkspace(
   objectSlug: string,
   requestedWorkspaceId?: string
 ): Promise<void> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const slug = normalizeSlug(objectSlug);
 
   if (DEFAULT_SCHEMAS.some((schema) => schema.slug === slug)) {

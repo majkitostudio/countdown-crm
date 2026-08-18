@@ -21,6 +21,7 @@ import { ObjectSchema } from "@/lib/schema/types";
 import { ObjectBuilderModal } from "@/components/schema/ObjectBuilderModal";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
+import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(getUserSettings());
@@ -32,6 +33,7 @@ export default function SettingsPage() {
   const [schemaError, setSchemaError] = useState<string | null>(null);
   const [schemaActionError, setSchemaActionError] = useState<string | null>(null);
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
+  const canManageWorkspaceSchema = isTeamLeaderOrAdministrator(identity?.role);
 
   const loadSchemas = useCallback(async (showLoading = false) => {
     if (showLoading) {
@@ -115,14 +117,16 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsObjectBuilderOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-xl transition-all shadow-sm cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Vytvořit Custom Object</span>
-        </button>
+        {canManageWorkspaceSchema && (
+          <button
+            type="button"
+            onClick={() => setIsObjectBuilderOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-xl transition-all shadow-sm cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Vytvořit Custom Object</span>
+          </button>
+        )}
       </div>
 
       {/* Success Notification Alert */}
@@ -136,7 +140,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Section: Custom Schema & Objects Manager (Attio Engine) */}
+      {/* Section: Custom Schema & Objects (Attio Engine) */}
       <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-5">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
@@ -149,14 +153,16 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsObjectBuilderOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-800 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Nové Schema</span>
-          </button>
+          {canManageWorkspaceSchema && (
+            <button
+              type="button"
+              onClick={() => setIsObjectBuilderOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-800 transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Nové Schema</span>
+            </button>
+          )}
         </div>
 
         {/* Registered Objects Grid */}
@@ -184,7 +190,7 @@ export default function SettingsPage() {
                 <p className="text-[11px] text-zinc-400 line-clamp-2">{s.description}</p>
                 <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] text-zinc-500">
                   <span className="font-mono">{s.attributes.length} EAV atributů</span>
-                  {!["leads", "products", "deals"].includes(s.slug) ? (
+                  {!["leads", "products", "deals"].includes(s.slug) && canManageWorkspaceSchema ? (
                     <button
                       type="button"
                       onClick={() => void handleDeleteSchema(s.slug, s.name)}

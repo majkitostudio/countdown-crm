@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
               <BarChart3 className="w-5 h-5 text-zinc-400" />
-              Manager BI & Revenue Analytics
+              Team Leader BI & Revenue Analytics
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
               Workspace DB

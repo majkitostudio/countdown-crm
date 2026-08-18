@@ -120,8 +120,8 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
   },
   {
     type: "notify_manager",
-    label: "Notify Manager",
-    description: "Sends a notification to the team manager about this event",
+    label: "Notify Team Leader",
+    description: "Sends a notification to the Team Leader about this event",
     icon: "Bell",
     configFields: [
       { key: "message", label: "Notification Message", type: "text", placeholder: "E.g. High-value order placed by {{lead_name}}" },

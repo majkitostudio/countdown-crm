@@ -31,7 +31,7 @@ import { Mail } from "lucide-react";
 
 interface TranscriptMessage {
   id: string;
-  speaker: "agent" | "customer";
+  speaker: "operator" | "customer";
   text: string;
   timestamp: string;
 }
@@ -148,11 +148,11 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
     }
   }, [isCallActive, startListening, stopListening]);
 
-  // Check compliance on agent speech
+  // Check compliance on operator speech
   useEffect(() => {
-    const agentText = transcript.filter((t) => t.speaker === "agent").map((t) => t.text).join(" ");
-    if (agentText) {
-      const violations = checkCompliance(agentText);
+    const operatorText = transcript.filter((t) => t.speaker === "operator").map((t) => t.text).join(" ");
+    if (operatorText) {
+      const violations = checkCompliance(operatorText);
       const timer = setTimeout(() => {
         setComplianceViolations(violations);
       }, 0);
@@ -169,7 +169,7 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
           ...prev,
           {
             id: `t-mic-${Date.now()}`,
-            speaker: "agent",
+            speaker: "operator",
             text: lastLine,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
           },
@@ -394,14 +394,14 @@ export function AiCopilotPanel({ isCallActive, activeLead, onApplyPitch }: AiCop
             <div
               key={msg.id}
               className={`p-3 rounded-xl border space-y-1 ${
-                msg.speaker === "agent"
+                msg.speaker === "operator"
                   ? "bg-zinc-900/60 border-zinc-800 text-zinc-200 ml-4"
                   : "bg-zinc-950 border-zinc-800 text-zinc-300 mr-4"
               }`}
             >
               <div className="flex items-center justify-between text-[10px] font-medium text-zinc-400">
-                <span className={msg.speaker === "agent" ? "text-zinc-300" : "text-zinc-400"}>
-                  {msg.speaker === "agent" ? "OPERATOR (You)" : `CUSTOMER (${activeLead?.full_name || "Lead"})`}
+                <span className={msg.speaker === "operator" ? "text-zinc-300" : "text-zinc-400"}>
+                  {msg.speaker === "operator" ? "OPERATOR (You)" : `CUSTOMER (${activeLead?.full_name || "Lead"})`}
                 </span>
                 <span className="text-zinc-500 font-mono">{msg.timestamp}</span>
               </div>

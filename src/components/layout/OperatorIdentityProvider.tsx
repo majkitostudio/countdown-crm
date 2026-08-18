@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { OperatorIdentity } from "@/lib/operatorIdentity";
 import type { Database } from "@/lib/supabase/types";
+import { getCurrentWorkspaceContextAction } from "@/app/actions/workspace";
 
 type OperatorProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -60,20 +61,31 @@ export function OperatorIdentityProvider({ children }: { children: React.ReactNo
       }
 
       const typedProfile = profile as OperatorProfileRow | null;
+      let workspaceRole: OperatorIdentity["role"] = null;
+      try {
+        const workspaceContext = await getCurrentWorkspaceContextAction();
+        workspaceRole = workspaceContext.role;
+      } catch {
+        setIdentity(null);
+        setError("Authenticated workspace membership is unavailable");
+        setIsLoading(false);
+        return;
+      }
+
       setIdentity(
         typedProfile
           ? {
               id: typedProfile.id,
               name: typedProfile.full_name.trim() || "Unknown operator",
               email: typedProfile.email.trim(),
-              role: typedProfile.role,
+              role: workspaceRole,
               avatarUrl: typedProfile.avatar_url,
             }
           : {
               id: user.id,
               name: "Unknown operator",
               email: user.email || "",
-              role: null,
+              role: workspaceRole,
               avatarUrl: null,
             }
       );

@@ -32,7 +32,7 @@ Současně stále existují tato omezení:
 - některé služby obsahují `as any`,
 - business RLS politiky jsou stále příliš široké,
 - aplikace nemá jednotný serverový resolver aktivního workspace,
-- role `admin`, `manager` a `agent` nejsou konzistentně vynucovány v databázi,
+- role Administrator, Team Leader a Operator nejsou konzistentně vynucovány v databázi,
 - lokální demo režim nesmí být zaměněn za produkční authorization mechanismus.
 
 ## 3. Navržený rozsah implementace
@@ -87,15 +87,18 @@ business zápisy a role-sensitive operace musí projít serverovou hranicí.
 
 Definovat minimální role matrix pro MVP:
 
-| Operace | Agent | Manager | Admin |
+| Operace | Operator | Team Leader | Administrator |
 |---|---:|---:|---:|
-| číst leads, produkty, hovory a objednávky | ano | ano | ano |
-| vytvářet hovory a objednávky | ano | ano | ano |
+| číst lead directory a spravovat leady | ne | ano | ano |
+| používat Operator Console s přiřazeným zákazníkem | čeká na skutečný assignment provider | ano | ano |
 | upravovat katalog a objection data | ne | ano | ano |
 | spravovat workflows | ne | ano | ano |
 | spravovat workspace members | ne | ne | ano |
 | měnit workspace/organizaci | ne | ne | ano |
-| číst audit log | podle schváleného rozsahu | ano | ano |
+| číst Team Leader Review a audit log | ne | ano | ano |
+
+Termín agent je vyhrazený pro AI a agentic runtime; není to role lidského
+workspace člena.
 
 Finální business rozhodnutí u audit logu a katalogu musí být potvrzeno při
 implementaci, pokud existující UI vyžaduje jiný rozsah. Nesmí se však vrátit
@@ -212,7 +215,7 @@ Commit 6 bude považován za hotový pouze tehdy, když:
 
 - serverová cesta odmítne nepřihlášeného uživatele,
 - uživatel bez membership nedostane data workspace,
-- agent nemůže provést admin-only operaci,
+- Operator nemůže provést Administrator-only operaci,
 - každý podporovaný business zápis nese workspace context,
 - dotazy explicitně respektují workspace boundary,
 - RLS politiky už nepoužívají globální authenticated-only přístup pro
@@ -257,7 +260,7 @@ SELECT COUNT(*) FROM public.workspace_members;
 3. Přidat serverové DAL funkce pro nejkritičtější lead/call/order tok.
 4. Přesměrovat existující Server Actions a citlivé zápisy na DAL.
 5. Doplnit workspace filtr a bezpečné DTO návraty pro čtení.
-6. Doplnit role checks a bootstrap admin membership.
+6. Doplnit role checks a bootstrap Administrator membership.
 7. Připravit a zkontrolovat RLS policy migraci.
 8. Provést statickou a aplikační verifikaci.
 9. Teprve po úspěchu zvážit `NOT NULL` a finální uzavření přechodového stavu.

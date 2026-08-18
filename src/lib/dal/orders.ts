@@ -128,7 +128,7 @@ export async function reassignOrdersProductForWorkspace(
   targetProductId: string,
   requestedWorkspaceId?: string
 ): Promise<ReassignOrdersResult> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"], requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
 
   if (!sourceProductId.trim() || !targetProductId.trim() || sourceProductId === targetProductId) {
     throw new DataAccessError("VALIDATION", "Source and target products must be different.");

@@ -37,7 +37,7 @@ async function getOperatorProfiles(
 }
 
 export async function getTrainingSessionReviews(): Promise<TrainingSessionReview[]> {
-  const context = await requireWorkspaceRole(["manager", "admin"]);
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   const supabase = await createDataClient();
   const { data: sessions, error: sessionsError } = await supabase
     .from("training_sessions")
@@ -84,7 +84,7 @@ export async function getTrainingSessionReviews(): Promise<TrainingSessionReview
 export async function getTrainingSessionReview(
   sessionId: string
 ): Promise<TrainingSessionReviewDetail | null> {
-  const context = await requireWorkspaceRole(["manager", "admin"]);
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   const supabase = await createDataClient();
   const { data: session, error: sessionError } = await supabase
     .from("training_sessions")

@@ -26,7 +26,8 @@ První MVP bude provozováno pro jednu firmu a jeden hlavní workspace. Přesto 
 
 - entity budou připravené na vazbu k workspace/organizaci,
 - oprávnění nebudou navržena pouze jako globální authenticated/unauthenticated přepínač,
-- role agent, manager a admin zůstanou součástí návrhu,
+- role operator, team leader a administrator jsou určeny pro lidské workspace
+  členy; termín agent je rezervovaný pro AI a agentic runtime,
 - izolace dat bude řešena na databázové a serverové vrstvě, ne pouze v UI.
 
 ### Demo/Sandbox UI
@@ -130,7 +131,7 @@ Součástí jsou:
 - `organizations`,
 - `workspaces`,
 - `workspace_members`,
-- omezené role `admin`, `manager`, `agent`,
+- omezené role administrator, team_leader, operator,
 - membership helper pouze na serveru,
 - základní RLS pro organizační tabulky,
 - opakovatelná SQL migrace v `supabase/migrations/`.
@@ -168,7 +169,7 @@ workspace authorization:
 - workspace ID při legacy zápisech, pokud je dostupný aktivní membership,
 - workspace-aware RLS migrace,
 - ochrana proti změně `workspace_id` při UPDATE,
-- role boundary pro manager/admin operace.
+- role boundary pro Team Leader/Administrator operace.
 
 RLS migrace je připravená v
 `supabase/migrations/20260810_0003_workspace_aware_rls.sql`. V tomto lokálním
@@ -506,7 +507,7 @@ pádu browseru.
 
 Read-only Teamleader Review API nyní vystavuje `GET /api/training/reviews` pro
 workspace-scoped seznam a `GET /api/training/reviews/:sessionId` pro detail s
-transcriptem. Oba endpointy používají stejnou manager/admin DAL autorizaci jako
+transcriptem. Oba endpointy používají stejnou Team Leader/Administrator DAL autorizaci jako
 UI; vracejí explicitní `401`, `403`, `404` a `503` stavy a nepřidávají žádnou
 novou write cestu.
 
@@ -520,10 +521,10 @@ nepotvrzeným browser-dependent gate.
 
 Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
 nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
-pozdější ruční voice/barge-in smoke test je otevřený. Agent role a
+pozdější ruční voice/barge-in smoke test je otevřený. Operator role a
 cross-workspace runtime proof už ale proběhl přes reverzibilní disposable
 fixture bez změny plánu Supabase. Po úklidu zůstal live projekt na jednom
-workspace, jedné `admin` membership a jednom Auth účtu; tento smoke po sobě
+workspace, jedné `administrator` membership a jednom Auth účtu; tento smoke po sobě
 nezanechal live testovací data.
 
 Průběžná persistence, resume po pádu browseru, samostatné HTTP/API endpointy,
@@ -570,10 +571,10 @@ tvrzení o dostupnosti skutečného telephony providera.
 
 ## 15. Training Review RLS hardening — 2026-08-18
 
-Databázová hranice Training Review byla sladěna s již existující manager/admin
+Databázová hranice Training Review byla sladěna s již existující Team Leader/Administrator
 autorizací v DAL a API:
 
-- manager/admin mohou číst všechny `training_sessions` a
+- Team Leaders/Administrators mohou číst všechny `training_sessions` a
   `training_session_turns` ve workspace;
 - operátor může číst pouze vlastní session a turny, aby zůstal funkční vlastní
   session lifecycle bez zpřístupnění týmových review;
@@ -606,9 +607,9 @@ Training Review zůstávají mimo tento slice.
 Byl proveden reverzibilní runtime smoke proti připojenému projektu:
 
 - existující autentizovaná testovací membership byla dočasně přepnuta na roli
-  `agent`; `/training/reviews` zobrazilo explicitní `Teamleader Review
-  unavailable` a manager/admin obsah se nezpřístupnil;
-- membership byla ihned obnovena na `admin` a read-only kontrola potvrdila
+  `operator`; `/training/reviews` zobrazilo explicitní `Teamleader Review
+  unavailable` a Team Leader/Administrator obsah se nezpřístupnil;
+- membership byla ihned obnovena na `administrator` a read-only kontrola potvrdila
   původní stav;
 - pro cross-workspace test vznikl disposable workspace bez dat a bez
   membership aktuálního uživatele; skutečná serverová schema action s explicitním
@@ -616,7 +617,7 @@ Byl proveden reverzibilní runtime smoke proti připojenému projektu:
 - fixture workspace byl smazán a následná kontrola potvrdila nulové rows pro
   workspace, membership, leady, produkty i training sessions;
 - následný smoke se samostatnou disposable Auth identitou zobrazil správnou
-  `agent` identitu, ponechal `/training` dostupné, odmítl Teamleader Review,
+  `operator` identitu, ponechal `/training` dostupné, odmítl Teamleader Review,
   workspace-scoped lead list vrátil `0` proti jednomu leadu v hlavním
   workspace a přímý `leadId` z hlavního workspace se neaktivoval;
 - serverní log potvrdil skutečný `GET /api/training/reviews → 403` pro agenta;
@@ -648,12 +649,12 @@ triggered` místo nejednoznačného `0 succeeded`.
 ## 18. Schema metadata RLS policy hardening — 2026-08-18
 
 `custom_objects` a `attribute_definitions` měly překrývající se permissive
-SELECT policies: manager/admin `ALL` policy a samostatnou workspace-member
+SELECT policies: Team Leader/Administrator `ALL` policy a samostatnou workspace-member
 SELECT policy. Migration
 `supabase/migrations/20260818183147_schema_policy_hardening.sql` nyní:
 
 - ponechává jediný SELECT path pro authenticated workspace members;
-- rozděluje manager/admin mutace na explicitní INSERT, UPDATE a DELETE
+- rozděluje Team Leader/Administrator mutace na explicitní INSERT, UPDATE a DELETE
   policies;
 - zachovává workspace ownership a vazbu atributu na objekt ve stejném
   workspace;
@@ -668,9 +669,30 @@ slice.
 
 RLS smoke přes skutečný `authenticated` Postgres role path potvrdil:
 
-- manager může schema metadata číst a INSERT policy projde;
-- agent může vlastní workspace schema číst, ale schema mutation skončí
+- Team Leader může schema metadata číst a INSERT policy projde;
+- Operator může vlastní workspace schema číst, ale schema mutation skončí
   `new row violates row-level security policy`;
 - workspace bez membership vrací pro stejného uživatele nula řádků;
 - disposable workspaces, membership, custom objects a attributes byly po testu
-  odstraněny a primary admin membership zůstala zachována.
+  odstraněny a primary Administrator membership zůstala zachována.
+### Role a oprávnění
+
+Countdown rozlišuje lidské workspace role a AI terminologii:
+
+| Produktová role | Databázový klíč | Oprávnění |
+|---|---|---|
+| Operator | operator | Přístup k Operator Console a AI Training. Nemá lead directory, ruční lead CRUD, Team Leader Review, auditní čtení ani administraci workspace. |
+| Team Leader | team_leader | Všechna oprávnění Operatora plus lead directory a lead CRUD, produktový katalog, objection cards, workflows, schema metadata, audit log a Team Leader Review. |
+| Administrator | administrator | Všechna oprávnění Team Leadera plus správa workspace členů, změna rolí a workspace/organizace nastavení. |
+
+Agent není lidská role. Používá se pouze pro AI/call-trainer terminologii,
+například AI agent nebo agentic workflow. Historické názvy databázových sloupců
+agent_id zůstávají kvůli kompatibilitě datového modelu, ale UI a dokumentace
+pro lidské uživatele používají výhradně označení Operator.
+
+Lead management je záměrně oddělený od Operator Console. Operator nesmí číst
+seznam leadů ani vytvářet, upravovat nebo mazat leady. Aktuální pilot nemá
+skutečný inbound/call-queue assignment mechanismus, proto Operator Console
+zobrazuje pravdivý stav čekání na přiřazeného zákazníka místo toho, aby
+Operatorovi vystavila celý workspace lead directory. Assignment přes skutečný
+telephony nebo call-queue provider je samostatný navazující scope.

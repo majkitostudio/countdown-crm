@@ -4,6 +4,7 @@ import type { Database } from "./supabase/types";
 import { createDataClient } from "./dal/db";
 import { requireWorkspaceContext } from "./dal/workspace";
 import { listWorkspaceCalls, listWorkspaceOrders } from "./dal/activity";
+import { getWorkspaceRoleLabel } from "./auth/roles";
 
 export interface WeeklySalesPoint {
   day: string;
@@ -114,7 +115,7 @@ function getTeamLeaderboard(
     .map(([agentId, stats]) => {
       const profile = profileById.get(agentId);
       const agentName = profile?.full_name?.trim() || "Unknown operator";
-      const role = profile?.role || "Role unavailable";
+      const role = profile?.role ? getWorkspaceRoleLabel(profile.role) : "Role unavailable";
 
       return {
         agentName,
@@ -174,7 +175,7 @@ export async function getRecentActivity(limit = 8): Promise<RecentActivityEntry[
     .slice(0, safeLimit);
 }
 
-/** Retrieves manager analytics computed from workspace-scoped Supabase data. */
+/** Retrieves Team Leader analytics computed from workspace-scoped Supabase data. */
 export async function getAnalyticsData(): Promise<AnalyticsOverview> {
   const context = await requireWorkspaceContext();
   const supabase = await createDataClient();

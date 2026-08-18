@@ -1,6 +1,6 @@
-import type { Database } from "@/lib/supabase/types";
+import type { WorkspaceRole } from "@/lib/auth/roles";
 
-export type OperatorRole = Database["public"]["Tables"]["profiles"]["Row"]["role"];
+export type OperatorRole = WorkspaceRole;
 
 export interface OperatorIdentity {
   id: string;
@@ -11,16 +11,12 @@ export interface OperatorIdentity {
 }
 
 export function getOperatorRoleLabel(role: OperatorRole | null): string {
-  switch (role) {
-    case "admin":
-      return "Admin";
-    case "manager":
-      return "Manager";
-    case "agent":
-      return "Agent";
-    default:
-      return "Role unavailable";
-  }
+  if (!role) return "Role unavailable";
+  return role === "operator"
+    ? "Operator"
+    : role === "team_leader"
+      ? "Team Leader"
+      : "Administrator";
 }
 
 export function getOperatorInitials(name: string): string {

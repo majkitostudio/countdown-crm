@@ -11,7 +11,7 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
   csvContent += `Conversion Rate,${data.conversionRate}%\n`;
   csvContent += `Objection Resolution Rate,${data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`}\n\n`;
 
-  csvContent += "Agent,Calls,Orders,Revenue,Conversion Rate%\n";
+  csvContent += "Operator,Calls,Orders,Revenue,Conversion Rate%\n";
   data.teamLeaderboard.forEach((agent) => {
     csvContent += `"${agent.agentName}",${agent.callsCount},${agent.ordersCount},$${agent.revenueGenerated},${agent.conversionRate}%\n`;
   });

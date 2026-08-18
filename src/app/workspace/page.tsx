@@ -20,6 +20,8 @@ import { listWorkflowsAction } from "@/app/actions/workflows";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction, createOrderAction } from "@/app/actions/crm";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
 interface PostCallSummary {
   leadName: string;
@@ -51,6 +53,7 @@ function WorkspaceContent() {
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const stopAudioRef = React.useRef<(() => void) | null>(null);
+  const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
   const isCallActive = softphoneSession.state === "connected" || softphoneSession.state === "on_hold";
@@ -77,10 +80,26 @@ function WorkspaceContent() {
   }, [isCallActive, isDialing]);
 
   useEffect(() => {
+    if (isIdentityLoading) return;
+
     async function loadData() {
       setIsLoading(true);
       setLoadError(null);
       try {
+        if (!identity) {
+          throw new Error("Authenticated workspace role is unavailable");
+        }
+
+        if (!isTeamLeaderOrAdministrator(identity.role)) {
+          const fetchedProducts = await getProducts();
+          setLeads([]);
+          setProducts(fetchedProducts);
+          setOrders([]);
+          setActiveLead(null);
+          setIsLoading(false);
+          return;
+        }
+
         const [fetchedLeads, fetchedProducts, fetchedOrders, fetchedWorkflows] = await Promise.all([
           getLeads(),
           getProducts(),
@@ -106,7 +125,7 @@ function WorkspaceContent() {
       setIsLoading(false);
     }
     loadData();
-  }, [leadIdParam]);
+  }, [identity, isIdentityLoading, leadIdParam]);
 
   const completeCall = async (
     outcome: CompletionOutcome,
@@ -367,7 +386,7 @@ function WorkspaceContent() {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
         <RefreshCw className="w-5 h-5 animate-spin mr-2 text-zinc-300" />
-        <span>Loading Agent Workspace Environment...</span>
+        <span>Loading Operator Workspace Environment...</span>
       </div>
     );
   }
@@ -377,6 +396,18 @@ function WorkspaceContent() {
       <div className="mx-auto max-w-xl rounded-xl border border-rose-900/60 bg-rose-950/30 p-6 text-sm text-rose-200">
         <h1 className="font-semibold">Workspace data could not be loaded</h1>
         <p className="mt-2 text-xs text-rose-300">{loadError}</p>
+      </div>
+    );
+  }
+
+  if (identity?.role === "operator") {
+    return (
+      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+        <RefreshCw className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
+        <h1 className="text-base font-semibold text-zinc-100">Operator Console waiting for assignment</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
+          Operators do not browse the lead directory. The active customer will appear here after a real inbound call or an authorized call-queue assignment is available.
+        </p>
       </div>
     );
   }

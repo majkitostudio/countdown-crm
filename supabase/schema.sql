@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  role TEXT NOT NULL DEFAULT 'agent', -- 'admin', 'manager', 'agent'
+  role TEXT NOT NULL DEFAULT 'operator', -- 'administrator', 'team_leader', 'operator'
   status TEXT NOT NULL DEFAULT 'ready', -- 'ready', 'in_call', 'break'
   avatar_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -52,7 +52,7 @@ ON CONFLICT (organization_id, slug) DO NOTHING;
 CREATE TABLE IF NOT EXISTS public.workspace_members (
   workspace_id UUID REFERENCES public.workspaces(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role TEXT NOT NULL DEFAULT 'agent' CHECK (role IN ('admin', 'manager', 'agent')),
+  role TEXT NOT NULL DEFAULT 'operator' CHECK (role IN ('administrator', 'team_leader', 'operator')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (workspace_id, user_id)
@@ -298,7 +298,7 @@ AS $$
     FROM public.workspace_members AS member
     WHERE member.workspace_id = target_workspace_id
       AND member.user_id = auth.uid()
-      AND member.role = 'admin'
+      AND member.role = 'administrator'
   );
 $$;
 

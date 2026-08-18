@@ -28,7 +28,7 @@ export default async function TrainingReviewsPage() {
 
   if (loadError) {
     const message = isDataAccessError(loadError) && loadError.code === "FORBIDDEN"
-      ? "This review area is available to workspace managers and admins only."
+      ? "This review area is available to Team Leaders and Administrators only."
       : "Training reviews could not be loaded. No data was fabricated.";
 
     return (
@@ -68,7 +68,7 @@ export default async function TrainingReviewsPage() {
           <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-16 text-center">
             <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
             <h2 className="text-sm font-semibold text-zinc-200">No training sessions yet</h2>
-            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Completed training sessions will appear here for manager and admin review.</p>
+            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Completed training sessions will appear here for Team Leader and Administrator review.</p>
             <Link href="/training" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-zinc-200">
               Open AI Training
               <ArrowRight className="h-3.5 w-3.5" />

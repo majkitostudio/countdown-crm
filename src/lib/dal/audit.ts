@@ -88,7 +88,7 @@ function mapAuditLog(row: AuditLogRow): AuditLogDTO {
 }
 
 export async function listAuditLogsForWorkspace(): Promise<AuditLogDTO[]> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"]);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("audit_logs")

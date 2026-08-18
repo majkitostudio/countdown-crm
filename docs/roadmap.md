@@ -1,6 +1,21 @@
 # AI-Native Call Center CRM — Roadmapa Vývoje
 
-Roadmapa rozděluje vývoj platformy do logických fází. Všechny fáze jsou plně dokončené, otestované a nasazené v produkční kvalitě v monochromatickém Attio designu.
+Roadmapa rozděluje vývoj platformy do logických fází. Ověřený pilotní scope
+rozlišuje lidské role Operator, Team Leader a Administrator; termín Agent je
+rezervovaný pro AI a agentic runtime.
+
+## Role a autorizační kontrakt
+
+| Role | Klíč | Hlavní rozsah |
+|---|---|---|
+| Operator | operator | Operator Console a AI Training. Bez lead directory a bez ručního lead CRUD. |
+| Team Leader | team_leader | Lead management, katalog, objections, workflows, schema, audit a Team Leader Review. |
+| Administrator | administrator | Team Leader rozsah plus workspace members, role a workspace/organizace settings. |
+
+Operator Console nesmí nahrazovat skutečný assignment seznamem všech leadů.
+Dokud nebude zapojený inbound/call-queue provider, Operator uvidí stav čekání
+na přiřazení. Agent se používá pouze pro AI, například AI agent, AI roleplay a
+agentic workflow.
 
 ---
 
@@ -16,9 +31,9 @@ Roadmapa rozděluje vývoj platformy do logických fází. Všechny fáze jsou p
 ---
 
 ## 🎙️ Fáze 2: Operátorský Pult & Telefonní Simulátor (Sprint 2)
-* **Cíl**: Vytvoření moderního rozhraní operátora (Agent Workspace) se simulátorem volání a živým přepisem řeči.
+* **Cíl**: Vytvoření moderního rozhraní operátora (Operator Workspace) se simulátorem volání a živým přepisem řeči.
 * **Klíčové úkoly**:
-  - [x] Návrh Agent Workspace (informace o zákazníkovi, produktová karta, ovládací prvky hovoru).
+  - [x] Návrh Operator Workspace (informace o zákazníkovi, produktová karta, ovládací prvky hovoru).
   - [x] Vývoj **Virtual Call Simulátoru** (simulace odchozího/příchozího hovoru s hlasovým testovacím vstupem).
   - [x] Integrace **Web Speech API** pro okamžitý přepis řeči operátora i simulovaného zákazníka.
   - [x] Supabase Realtime propojení pro okamžitou změnu stavu operátora (Volá, Přestávka, Po-hovorová práca).
@@ -192,7 +207,7 @@ Zachovat dvě pravdivě oddělené cesty:
 - Čtení produktů nyní používá serverovou DAL a Server Action s explicitním
   workspace filtrem a výběrem povolených polí.
 - Vytvoření a úprava produktu probíhá pouze přes serverovou DAL s rolí
-  `manager` nebo `admin`; běžný workspace member smí katalog číst.
+  Team Leader nebo Administrator; běžný workspace member smí katalog číst.
 - Produktové vstupy se validují na serveru včetně názvu, kategorie, ceny,
   textových limitů a typu dostupnosti.
 - Přímý browser Supabase service `ordersService` byl odstraněn po ověření,
@@ -202,7 +217,7 @@ Zachovat dvě pravdivě oddělené cesty:
 ### Ne-cíle
 
 - Bez změny databázového schématu a bez změny RLS politik, které už odpovídají
-  modelu workspace member read / manager-admin write.
+  modelu workspace member read / Team Leader-Administrator write.
 - Bez redesignu katalogu, objection cards nebo Operator Console workflow.
 
 ### Ověření
@@ -224,7 +239,7 @@ Zachovat dvě pravdivě oddělené cesty:
 ### Rozsah
 
 - Auditní čtení nyní prochází přes serverovou DAL a Server Action.
-- Čtení je serverově omezené na `manager` a `admin`, v souladu s produkční
+- Čtení je serverově omezené na Team Leadera a Administratora, v souladu s produkční
   RLS politikou.
 - Při novém auditním zápisu se `workspace_id`, `actor_id` a `actor_name`
   odvozují ze serverové autentizované session; klient je nemůže podvrhnout.
@@ -237,7 +252,7 @@ Zachovat dvě pravdivě oddělené cesty:
 
 ### Ověření
 
-- autentizované načtení `/audit` jako `majkito.studio` / `Admin`,
+- autentizované načtení `/audit` jako `majkito.studio` / `Administrator`,
 - zobrazení 9 reálných auditních událostí z produkční databáze,
 - browser logy bez chyb,
 - přímý SQL check: `foreign_workspace_rows = 0`, `unattributed_rows = 0`,
@@ -255,7 +270,7 @@ ověření a otevřené rozhodnutí.
 - [x] Do katalogu byly přidány tři čitelné vzorové produkty: FlexiJoint Ultra
   Collagen, Lumière Bio-Retinol Elixir a RoboClean Pro LiDAR V8.
 - [x] Šest objednávek původně navázaných na `Playwright Test Product` bylo
-  přes autorizovanou manager/admin cestu přesměrováno na `FlexiJoint Ultra
+  přes autorizovanou Team Leader/Administrator cestu přesměrováno na `FlexiJoint Ultra
   Collagen`; historické částky zůstaly beze změny.
 - [ ] `Playwright Test Product` ještě nebyl odstraněn. Po přesunu objednávek už
   není referencovaný a lze ho bezpečně odstranit; mazání je samostatná
@@ -279,7 +294,7 @@ ověření a otevřené rozhodnutí.
   fallback jako zdroj záznamů; chyby načtení a zápisu jsou viditelné.
 - [x] Nastavení načítá built-in i workspace custom schemas ze serveru.
 - [x] Custom object create/reload byl ověřen v autentizovaném UI a přímou SQL
-  kontrolou; mazání je omezené na manager/admin a objekty bez záznamů.
+  kontrolou; mazání je omezené na Team Leader/Administrator a objekty bez záznamů.
 - [ ] Cleanup dočasného smoke-test custom objectu čeká na potvrzení nativního
   mazacího dialogu. Nejde o historický produkt ani produkční CRM data.
 
@@ -397,15 +412,15 @@ completion-only persistence, Teamleader Review a reload persistence.
   nebyly potvrzeny; jde o browser-dependent Web Speech preview.
 - [ ] Manuální voice/barge-in smoke s reálným audio vstupem čeká na pozdější
   ruční ověření.
-- [x] Agent role a cross-workspace izolace byly ověřeny 2026-08-18 přes
-  disposable Auth identity, `agent` membership a workspace fixture. Agentní
+- [x] Operator role a cross-workspace izolace byly ověřeny 2026-08-18 přes
+  disposable Auth identity, `operator` membership a workspace fixture. Operátorská
   session zobrazila vlastní identitu, `/training` zůstal dostupný,
-  `/training/reviews` skončil explicitním manager/admin deny a přímý pokus
+  `/training/reviews` skončil explicitním Team Leader/Administrator deny a přímý pokus
   otevřít lead z hlavního workspace neaktivoval žádného zákazníka. Serverní
   log potvrdil `GET /api/training/reviews → 403`; fixture byla odstraněna a
   SQL recheck potvrdil nulové zbytky i původní baseline.
 - [x] Read-only SQL recheck 2026-08-18 potvrdil stejný stav: jeden workspace,
-  jedna `admin` membership a jeden Auth účet po cleanupu. Schema RLS smoke
+  jedna `administrator` membership a jeden Auth účet po cleanupu. Schema RLS smoke
   použil dočasný Postgres `authenticated` role path a žádná fixture data
   nezůstala.
 
@@ -445,19 +460,20 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] `aiStreamerBridge` a `sipAdapter` byly po ověření importů odstraněny jako
   dead code; `audioEngine` zůstává runtime závislostí `softphone` a byl
   zachován.
-- [x] Training Review RLS byla sladěna s manager/admin boundary: manager/admin
+- [x] Training Review RLS byla sladěna s Team Leader/Administrator boundary:
+  Team Leaders/Administrators
   mohou číst všechny session/turny workspace, operátor pouze vlastní session a
   turny; vlastní insert/update/delete lifecycle zůstal zachovaný. `auth.uid()`
   policies používají init-plan-safe `(select auth.uid())` variantu a training
   policy warnings zmizely z performance advisora.
-- [x] Agent role/cross-workspace runtime smoke byl ověřen přes samostatnou
-  disposable Auth identity, `agent` membership a workspace fixture:
-  Teamleader Review odmítl agent roli, workspace-scoped lead list vrátil nulu
+- [x] Operator role/cross-workspace runtime smoke byl ověřen přes samostatnou
+  disposable Auth identity, `operator` membership a workspace fixture:
+  Teamleader Review odmítl roli Operatora, workspace-scoped lead list vrátil nulu
   proti jednomu leadu v hlavním workspace, přímý `leadId` z hlavního workspace
   se neaktivoval a serverní log potvrdil `GET /api/training/reviews → 403`.
   Auth účet, profil, membership i workspace byly po testu odstraněny; SQL
   kontrola potvrdila nulové fixture řádky a návrat k baseline.
 - [x] Schema metadata RLS hardening sjednotil SELECT na workspace members a
-  oddělil manager/admin INSERT/UPDATE/DELETE policies pro
+  oddělil Team Leader/Administrator INSERT/UPDATE/DELETE policies pro
   `custom_objects` a `attribute_definitions`; authenticated Postgres smoke
-  potvrdil manager write, agent read-only a cross-workspace nulový výsledek.
+  potvrdil Team Leader write, Operator read-only a cross-workspace nulový výsledek.

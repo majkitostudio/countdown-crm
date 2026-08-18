@@ -179,7 +179,7 @@ export default function ProductsPage() {
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Manage multi-category inventory, sales battle-cards, and cross-sell rules for call center agents.
+            Manage multi-category inventory, sales battle-cards, and cross-sell rules for call center operators.
           </p>
         </div>
 

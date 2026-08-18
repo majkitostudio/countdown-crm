@@ -4,8 +4,9 @@ import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import type { WorkspaceRole } from "@/lib/auth/roles";
 
-export type WorkspaceRole = Database["public"]["Tables"]["workspace_members"]["Row"]["role"];
+export type { WorkspaceRole } from "@/lib/auth/roles";
 export type WorkspaceMembership =
   Database["public"]["Tables"]["workspace_members"]["Row"];
 
@@ -18,7 +19,7 @@ export async function getCurrentWorkspaceMembership(
     return {
       workspace_id: workspaceId,
       user_id: user.id,
-      role: "admin",
+      role: "administrator",
       created_at: new Date(0).toISOString(),
       updated_at: new Date(0).toISOString(),
     };

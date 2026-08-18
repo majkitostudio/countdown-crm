@@ -25,7 +25,7 @@ export async function GET(): Promise<Response> {
 
     if (isDataAccessError(error) && error.code === "FORBIDDEN") {
       return trainingJsonError(
-        "Training reviews are available to workspace managers and admins only.",
+        "Training reviews are available to Team Leaders and Administrators only.",
         403,
         "FORBIDDEN"
       );

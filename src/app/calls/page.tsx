@@ -134,7 +134,7 @@ export default function CallLogsPage() {
             <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search customer, agent or call ID..."
+              placeholder="Search customer, operator or call ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700"
@@ -185,7 +185,7 @@ export default function CallLogsPage() {
             <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
               <tr>
                 <th className="px-5 py-3">Call ID & Customer</th>
-                <th className="px-5 py-3">Agent</th>
+                <th className="px-5 py-3">Operator</th>
                 <th className="px-5 py-3">Duration</th>
                 <th className="px-5 py-3">Outcome</th>
                 <th className="px-5 py-3">Sentiment</th>

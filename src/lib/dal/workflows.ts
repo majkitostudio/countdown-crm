@@ -171,7 +171,7 @@ export async function listWorkflowsForWorkspace(): Promise<WorkflowRule[]> {
 }
 
 export async function saveWorkflowForWorkspace(rule: WorkflowRule): Promise<WorkflowRule> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"]);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
   const validated = validateWorkflow(rule);
   const supabase = await createDataClient();
   const persistedId = validated.id && !validated.id.startsWith("rule-") ? validated.id : undefined;
@@ -200,7 +200,7 @@ export async function saveWorkflowForWorkspace(rule: WorkflowRule): Promise<Work
 }
 
 export async function deleteWorkflowForWorkspace(id: string): Promise<void> {
-  const { workspaceId } = await requireWorkspaceRole(["manager", "admin"]);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
   if (!id.trim() || id.startsWith("rule-")) {
     throw new DataAccessError("VALIDATION", "Persisted workflow ID is required.");
   }

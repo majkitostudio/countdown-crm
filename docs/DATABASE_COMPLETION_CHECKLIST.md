@@ -11,7 +11,7 @@ not considered complete merely because it renders or because a build passes.
 ## Current baseline
 
 - Supabase project is the existing project with mock/demo rows removed.
-- The authenticated pilot user exists in Supabase Auth and has an admin
+- The authenticated pilot user exists in Supabase Auth and has an Administrator
   membership in the `main` workspace.
 - Workspace-aware RLS migrations are applied remotely through migration
   `20260810071051` through `20260810071346`.
@@ -136,7 +136,7 @@ database-backed dashboard widgets.
 - [x] Built-in and custom object schemas are read through the server DAL with
       workspace-scoped attributes; object records and EAV values use server
       reads/writes with visible error states.
-- [x] Custom object creation is restricted to manager/admin and deletion is
+- [x] Custom object creation is restricted to Team Leader/Administrator and deletion is
       restricted to empty non-built-in objects; objects with records are
       rejected rather than cascaded.
 - [x] `/objects/deals` and `/settings` were checked in an authenticated browser
