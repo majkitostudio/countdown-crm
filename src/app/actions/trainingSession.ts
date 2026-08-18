@@ -9,7 +9,7 @@ export type TrainingSessionSaveResult =
   | { ok: true; sessionId: string }
   | { ok: false; code: "UNAVAILABLE" | "DATABASE" | "VALIDATION"; message: string };
 
-type SaveTrainingSessionInput = {
+export type SaveTrainingSessionInput = {
   scenario: TrainingScenario;
   messages: TrainingMessage[];
   scorecard: TrainingScorecard;

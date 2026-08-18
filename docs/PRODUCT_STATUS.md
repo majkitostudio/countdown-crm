@@ -497,6 +497,13 @@ vlastní autentizační boundary, validní JSON deleguje do stejné
 503. Endpoint zůstává session-only: nevytváří CRM `calls`, `orders` ani
 průběžné training-session rows.
 
+Druhý endpointový slice přidal `POST /api/training/session` pro completion-only
+persistence. Route Handler deleguje do existujícího
+`saveTrainingSessionAction`, odvozuje workspace a operátora na serveru a při
+úspěchu vrací `201` se `sessionId`; validační chyba je `400`, nedostupnost nebo
+databázová chyba `503`. Endpoint nepodporuje průběžné ukládání ani resume po
+pádu browseru.
+
 Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
 nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
 pozdější ruční voice/barge-in smoke test je otevřený. Aktuální databázový pilot

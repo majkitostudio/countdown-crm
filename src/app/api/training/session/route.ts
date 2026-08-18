@@ -1,10 +1,12 @@
-import { submitTrainingTurnAction, type SubmitTrainingTurnInput } from "@/app/actions/training";
+import {
+  saveTrainingSessionAction,
+  type SaveTrainingSessionInput,
+} from "@/app/actions/trainingSession";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
 import { isUnauthorizedError, trainingJsonError } from "@/lib/training/http";
 
-function getResultStatus(code: "VALIDATION" | "UNAVAILABLE" | "PROVIDER"): number {
-  if (code === "VALIDATION") return 400;
-  return 503;
+function getResultStatus(code: "UNAVAILABLE" | "DATABASE" | "VALIDATION"): number {
+  return code === "VALIDATION" ? 400 : 503;
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -15,8 +17,8 @@ export async function POST(request: Request): Promise<Response> {
       return trainingJsonError("Authentication is required.", 401);
     }
 
-    console.error("Training turn authentication failed:", error);
-    return trainingJsonError("Training turn is unavailable.", 503);
+    console.error("Training session authentication failed:", error);
+    return trainingJsonError("Training session is unavailable.", 503);
   }
 
   let body: unknown;
@@ -26,21 +28,21 @@ export async function POST(request: Request): Promise<Response> {
     return trainingJsonError("Request body must be valid JSON.", 400);
   }
 
-  let result: Awaited<ReturnType<typeof submitTrainingTurnAction>>;
+  let result: Awaited<ReturnType<typeof saveTrainingSessionAction>>;
   try {
-    result = await submitTrainingTurnAction(body as SubmitTrainingTurnInput);
+    result = await saveTrainingSessionAction(body as SaveTrainingSessionInput);
   } catch (error) {
     if (isUnauthorizedError(error)) {
       return trainingJsonError("Authentication is required.", 401);
     }
 
-    console.error("Training turn execution failed:", error);
-    return trainingJsonError("Training turn is unavailable.", 503);
+    console.error("Training session save failed:", error);
+    return trainingJsonError("Training session is unavailable.", 503);
   }
 
   if (!result.ok) {
     return Response.json(result, { status: getResultStatus(result.code) });
   }
 
-  return Response.json(result, { status: 200 });
+  return Response.json(result, { status: 201 });
 }

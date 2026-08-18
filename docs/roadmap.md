@@ -381,6 +381,9 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] Authenticated not-found detail bez falešného transcriptu.
 - [x] `POST /api/training/turn` má vlastní auth/JSON HTTP boundary, deleguje do
   existující typed turn logiky a nepíše do production CRM tabulek.
+- [x] `POST /api/training/session` má completion-only auth/JSON boundary,
+  deleguje do `saveTrainingSessionAction`, vrací `201` se `sessionId` a
+  nepřidává průběžnou persistence ani resume.
 
 ### Omezení, která zůstávají přiznaná
 
