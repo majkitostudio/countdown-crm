@@ -520,7 +520,10 @@ známý externí bod `Leaked Password Protection Disabled`; tento Auth project
 setting se nebude obcházet SQL migrací. Pokus o zapnutí v Dashboardu byl
 proveden na správném projektu, ale Supabase uložení odmítl s důvodem, že
 HaveIBeenPwned ochrana je dostupná až na Pro plánu a vyšším; serverový stav
-proto zůstává vypnutý.
+proto zůstává vypnutý. Vzhledem k tomu, že jde o interní pilot a aktuální
+finanční omezení, upgrade Supabase se nyní neplánuje. Warning je vědomě
+odložený hardening bod, nikoli důvod blokovat další vývoj; k přehodnocení se
+vrátíme před širším nebo veřejným rolloutem.
 
 Regresní browser smoke po migraci ověřil, že anonymní požadavek na
 `/training/reviews` skončí na `/login` a chráněný obsah se nezpřístupní bez

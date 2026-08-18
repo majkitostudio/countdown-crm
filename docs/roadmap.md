@@ -419,10 +419,10 @@ completion-only persistence, Teamleader Review a reload persistence.
 
 ### Otevřené release body
 
-- [ ] Supabase Auth `Leaked Password Protection` zůstává externí project
-  setting a musí být zapnutý v Auth konfiguraci, ne SQL migrací. Dashboard
-  pokus na správném projektu potvrdil plan gate: aktuální `Free` plán uložení
-  odmítá; zapnutí vyžaduje Pro plán nebo vyšší.
+- [ ] Odloženo z finančních důvodů: Supabase Auth `Leaked Password Protection`
+  zůstává externí project setting a aktuální `Free` plán jeho uložení odmítá.
+  Není to blocker interního pilotu; přehodnotit před širším nebo veřejným
+  rolloutem, případně po změně Supabase plánu.
 - [x] `aiStreamerBridge` a `sipAdapter` byly po ověření importů odstraněny jako
   dead code; `audioEngine` zůstává runtime závislostí `softphone` a byl
   zachován.
