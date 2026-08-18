@@ -379,6 +379,8 @@ completion-only persistence, Teamleader Review a reload persistence.
   source turnů.
 - [x] Anonymous redirect na `/login` pro `/training` a `/training/reviews`.
 - [x] Authenticated not-found detail bez falešného transcriptu.
+- [x] `POST /api/training/turn` má vlastní auth/JSON HTTP boundary, deleguje do
+  existující typed turn logiky a nepíše do production CRM tabulek.
 
 ### Omezení, která zůstávají přiznaná
 

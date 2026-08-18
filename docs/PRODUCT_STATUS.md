@@ -491,6 +491,12 @@ Review, reload a read-only SQL atribuce workspace/operator/turnů. Anonymní
 authenticated `sessionId` vrací truthful `Training session not found` bez
 falešného transcriptu.
 
+První endpointový slice přidal `POST /api/training/turn`. Route Handler má
+vlastní autentizační boundary, validní JSON deleguje do stejné
+`submitTrainingTurnAction` logiky jako UI a HTTP výsledky mapuje na 400, 401 a
+503. Endpoint zůstává session-only: nevytváří CRM `calls`, `orders` ani
+průběžné training-session rows.
+
 Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
 nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
 pozdější ruční voice/barge-in smoke test je otevřený. Aktuální databázový pilot
