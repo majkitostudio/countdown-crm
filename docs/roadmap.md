@@ -441,5 +441,10 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] `aiStreamerBridge` a `sipAdapter` byly po ověření importů odstraněny jako
   dead code; `audioEngine` zůstává runtime závislostí `softphone` a byl
   zachován.
+- [x] Training Review RLS byla sladěna s manager/admin boundary: manager/admin
+  mohou číst všechny session/turny workspace, operátor pouze vlastní session a
+  turny; vlastní insert/update/delete lifecycle zůstal zachovaný. `auth.uid()`
+  policies používají init-plan-safe `(select auth.uid())` variantu a training
+  policy warnings zmizely z performance advisora.
 - [ ] Agent role/cross-workspace runtime smoke vyžaduje druhou testovací
   identity nebo disposable fixture; aktuální pilot má pouze jednoho admina.

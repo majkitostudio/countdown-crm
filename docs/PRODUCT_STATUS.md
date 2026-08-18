@@ -574,3 +574,31 @@ runtime flow; oba nepoužívané moduly byly odstraněny v samostatném cleanup
 commitu. `audioEngine` a `softphone` zůstávají zachované, protože jsou stále
 importované aktuálním Operator Console pilotem. Tato úklidová změna nemění
 tvrzení o dostupnosti skutečného telephony providera.
+
+## 15. Training Review RLS hardening — 2026-08-18
+
+Databázová hranice Training Review byla sladěna s již existující manager/admin
+autorizací v DAL a API:
+
+- manager/admin mohou číst všechny `training_sessions` a
+  `training_session_turns` ve workspace;
+- operátor může číst pouze vlastní session a turny, aby zůstal funkční vlastní
+  session lifecycle bez zpřístupnění týmových review;
+- insert/update/delete policies pro vlastní session zůstaly zachované;
+- `auth.uid()` byl v training policies obalený přes `(select auth.uid())`;
+- redundantní training DELETE policies byly sloučeny;
+- performance advisor už nehlásí training RLS init-plan warning ani training
+  duplicate permissive policy.
+
+Live SQL aplikace proběhla v jedné transakci a následná read-only kontrola
+potvrdila nové policies. Standardní Supabase `apply_migration` runner v tomto
+prostředí selhal na nekonzistentní chybě `relation public.training_sessions
+does not exist`, přestože stejný projekt tabulku přes SQL a `list_tables`
+vidí. Lokální auditní migration soubor je
+`supabase/migrations/202608180001_training_review_rls_hardening.sql`; změna se
+zatím nepropsala do remote migration history a tento runner/provenance bod
+zůstává otevřený pro samostatné reconciliation ověření.
+
+Security advisor zachovává pouze známý externí warning `Leaked Password
+Protection Disabled`. Obecné duplicate permissive policy warnings mimo
+Training Review zůstávají mimo tento slice.
