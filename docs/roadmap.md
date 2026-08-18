@@ -397,9 +397,13 @@ completion-only persistence, Teamleader Review a reload persistence.
   nebyly potvrzeny; jde o browser-dependent Web Speech preview.
 - [ ] Manuální voice/barge-in smoke s reálným audio vstupem čeká na pozdější
   ruční ověření.
-- [ ] Agent role a cross-workspace izolace nebyly provedeny, protože aktuální
-  pilot má pouze jednoho admin člena v jednom workspace. Nebyly vytvářeny
-  testovací identity ani workspace fixtures.
+- [x] Agent role a cross-workspace izolace byly ověřeny 2026-08-18 přes
+  disposable Auth identity, `agent` membership a workspace fixture. Agentní
+  session zobrazila vlastní identitu, `/training` zůstal dostupný,
+  `/training/reviews` skončil explicitním manager/admin deny a přímý pokus
+  otevřít lead z hlavního workspace neaktivoval žádného zákazníka. Serverní
+  log potvrdil `GET /api/training/reviews → 403`; fixture byla odstraněna a
+  SQL recheck potvrdil nulové zbytky i původní baseline.
 - [x] Read-only SQL recheck 2026-08-18 potvrdil stejný stav: jeden workspace,
   jedna `admin` membership a jeden Auth účet. Další runtime proof proto čeká na
   explicitně schválenou disposable Auth/workspace fixture nebo neprodukční
@@ -446,9 +450,10 @@ completion-only persistence, Teamleader Review a reload persistence.
   turny; vlastní insert/update/delete lifecycle zůstal zachovaný. `auth.uid()`
   policies používají init-plan-safe `(select auth.uid())` variantu a training
   policy warnings zmizely z performance advisora.
-- [x] Agent role/cross-workspace runtime smoke byl ověřen přes reverzibilní
-  `agent` membership switch na autentizované session a disposable workspace:
-  Teamleader Review odmítl agent roli a explicitní serverový dotaz do workspace
-  bez membership skončil `User is not a member of this workspace`; fixture byla
-  následně odstraněna. Druhá Auth identity nebyla vytvořena kvůli Supabase
-  email rate limitu.
+- [x] Agent role/cross-workspace runtime smoke byl ověřen přes samostatnou
+  disposable Auth identity, `agent` membership a workspace fixture:
+  Teamleader Review odmítl agent roli, workspace-scoped lead list vrátil nulu
+  proti jednomu leadu v hlavním workspace, přímý `leadId` z hlavního workspace
+  se neaktivoval a serverní log potvrdil `GET /api/training/reviews → 403`.
+  Auth účet, profil, membership i workspace byly po testu odstraněny; SQL
+  kontrola potvrdila nulové fixture řádky a návrat k baseline.

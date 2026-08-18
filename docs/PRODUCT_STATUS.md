@@ -520,18 +520,11 @@ nepotvrzeným browser-dependent gate.
 
 Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
 nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
-pozdější ruční voice/barge-in smoke test je otevřený. Aktuální databázový pilot
-má pouze jednoho admin člena v jednom workspace, proto nebyl proveden agent
-role ani cross-workspace runtime test; nebyly kvůli tomu vytvořeny testovací
-identity nebo workspace fixtures.
-
-Read-only SQL recheck z 2026-08-18 tento limit potvrdil: live projekt má jeden
-workspace, jednu membership s rolí `admin` a jeden Auth účet. Neexistuje tedy
-bezpečný existující druhý účet nebo workspace, který by šel použít pro další
-runtime smoke bez nové externí fixture. Agent/cross-workspace proof zůstává
-odděleným gate; jeho provedení vyžaduje explicitně vytvořenou disposable Auth
-identitu a workspace, nebo samostatné neprodukční prostředí. Tento slice žádná
-live data neměnil.
+pozdější ruční voice/barge-in smoke test je otevřený. Agent role a
+cross-workspace runtime proof už ale proběhl přes reverzibilní disposable
+fixture bez změny plánu Supabase. Po úklidu zůstal live projekt na jednom
+workspace, jedné `admin` membership a jednom Auth účtu; tento smoke po sobě
+nezanechal live testovací data.
 
 Průběžná persistence, resume po pádu browseru, samostatné HTTP/API endpointy,
 post-call audio/transcription a AI review funkce zůstávají mimo schválený
@@ -621,13 +614,17 @@ Byl proveden reverzibilní runtime smoke proti připojenému projektu:
   membership aktuálního uživatele; skutečná serverová schema action s explicitním
   fixture workspace ID vrátila `User is not a member of this workspace`;
 - fixture workspace byl smazán a následná kontrola potvrdila nulové rows pro
-  workspace, membership, leady, produkty i training sessions.
+  workspace, membership, leady, produkty i training sessions;
+- následný smoke se samostatnou disposable Auth identitou zobrazil správnou
+  `agent` identitu, ponechal `/training` dostupné, odmítl Teamleader Review,
+  workspace-scoped lead list vrátil `0` proti jednomu leadu v hlavním
+  workspace a přímý `leadId` z hlavního workspace se neaktivoval;
+- serverní log potvrdil skutečný `GET /api/training/reviews → 403` pro agenta;
+- Auth účet, profil, membership i workspace byly po testu odstraněny a
+  read-only SQL kontrola potvrdila návrat na původní baseline.
 
-Supabase Auth v průběhu testu odmítl další password signup kvůli email rate
-limitu, proto nebyla vytvářena druhá Auth identity ani obcházen její signup
-flow. Boundary je ověřená na reálné session, roli a workspace authorization
-path; druhá skutečná Auth identity zůstává vhodným rozšířením před širším
-pilotem.
+Boundary je tímto ověřená na reálné druhé Auth session, roli a workspace
+authorization path bez Supabase upgrade a bez ponechaných testovacích dat.
 
 ## 17. Workspace schema source of truth and terminal-state UX — 2026-08-18
 
