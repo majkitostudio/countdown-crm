@@ -27,6 +27,8 @@ interface CustomerPanelProps {
   activityRefreshToken: number;
   onSelectLead: (lead: Lead) => void;
   onCreateOrder: () => void;
+  queueControlled?: boolean;
+  canCreateOrder?: boolean;
 }
 
 function normalizePhone(phone: string): string {
@@ -34,7 +36,7 @@ function normalizePhone(phone: string): string {
   return digits.startsWith("00") ? digits.slice(2) : digits;
 }
 
-export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken, onSelectLead, onCreateOrder }: CustomerPanelProps) {
+export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken, onSelectLead, onCreateOrder, queueControlled = false, canCreateOrder = true }: CustomerPanelProps) {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
   const [enrichmentData, setEnrichmentData] = useState<EnrichedCompanyData | null>(null);
   const [isEnriching, setIsEnriching] = useState(false);
@@ -80,25 +82,32 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
       {/* Lead Selector Header */}
       <div className="space-y-1.5 pb-4 border-b border-zinc-800">
         <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-          Active Customer Selection
+          {queueControlled ? "Current Assigned Contact" : "Active Customer Selection"}
         </label>
-        <div className="relative">
-          <select
-            value={activeLead.id}
-            onChange={(e) => {
-              const selected = leads.find((l) => l.id === e.target.value);
-              if (selected) onSelectLead(selected);
-            }}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-200 font-semibold focus:outline-none focus:border-zinc-700 appearance-none cursor-pointer pr-8"
-          >
-            {leads.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.full_name} ({l.city || "Location unavailable"})
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        {queueControlled ? (
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-xs font-semibold text-zinc-200">
+            {activeLead.full_name}
+            <span className="mt-1 block text-[10px] font-normal text-zinc-500">Selected by server routing. Operators cannot choose another lead.</span>
+          </div>
+        ) : (
+          <div className="relative">
+            <select
+              value={activeLead.id}
+              onChange={(e) => {
+                const selected = leads.find((l) => l.id === e.target.value);
+                if (selected) onSelectLead(selected);
+              }}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-200 font-semibold focus:outline-none focus:border-zinc-700 appearance-none cursor-pointer pr-8"
+            >
+              {leads.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.full_name} ({l.city || "Location unavailable"})
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-zinc-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        )}
       </div>
 
       {/* Customer Profile Card */}
@@ -115,14 +124,16 @@ export function CustomerPanel({ leads, activeLead, orders, activityRefreshToken,
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onCreateOrder}
-          className="shrink-0 px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-colors"
-        >
-          <ShoppingCart className="w-3.5 h-3.5" />
-          <span>Create Order</span>
-        </button>
+        {canCreateOrder && (
+          <button
+            type="button"
+            onClick={onCreateOrder}
+            className="shrink-0 px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <ShoppingCart className="w-3.5 h-3.5" />
+            <span>Create Order</span>
+          </button>
+        )}
       </div>
 
       {/* Quick Info Grid */}

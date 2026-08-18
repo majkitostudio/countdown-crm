@@ -21,9 +21,10 @@ interface CallStatusBarProps {
   onSimulateIncoming: () => void;
   onStatusChange: (newStatus: OperatorStatus) => void;
   onCallOutcome: (outcome: CallOutcome) => void;
+  showIncomingSimulator?: boolean;
 }
 
-export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, onCallOutcome }: CallStatusBarProps) {
+export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, onCallOutcome, showIncomingSimulator = true }: CallStatusBarProps) {
   const formatTimer = (totalSeconds: number) => `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
   const statusLabel = status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break";
   const statusColor = status === "ready" ? "bg-emerald-500" : status === "in_call" ? "bg-rose-500" : "bg-amber-500";
@@ -70,7 +71,7 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
           <button onClick={() => onCallOutcome("fail")} title="Customer is not interested" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" />Not Interested</button>
           <button onClick={() => onCallOutcome("order")} title="Open the order flow" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-100 flex items-center gap-1.5"><ShoppingBag className="w-3.5 h-3.5" />Order</button>
         </>}
-        {!isCallActive && !isDialing && <button onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call" className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"><PhoneIncoming className="w-4 h-4" /></button>}
+        {!isCallActive && !isDialing && showIncomingSimulator && <button onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call" className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"><PhoneIncoming className="w-4 h-4" /></button>}
       </div>
     </section>
   );

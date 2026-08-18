@@ -20,6 +20,14 @@ import { listWorkflowsAction } from "@/app/actions/workflows";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction, createOrderAction } from "@/app/actions/crm";
+import {
+  claimNextLeadAction,
+  completeLeadCallAction,
+  getCurrentLeadAction,
+  heartbeatLeadAssignmentAction,
+  setOperatorPresenceAction,
+  startLeadCallAction,
+} from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
@@ -41,6 +49,7 @@ function WorkspaceContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
   const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
@@ -80,6 +89,20 @@ function WorkspaceContent() {
   }, [isCallActive, isDialing]);
 
   useEffect(() => {
+    if (identity?.role !== "operator" || !activeQueueItemId) return;
+
+    const sendHeartbeat = () => {
+      void heartbeatLeadAssignmentAction(activeQueueItemId).catch((error) => {
+        setNotificationToast(error instanceof Error ? error.message : "Lead assignment heartbeat failed.");
+      });
+    };
+
+    sendHeartbeat();
+    const interval = window.setInterval(sendHeartbeat, 30_000);
+    return () => window.clearInterval(interval);
+  }, [activeQueueItemId, identity?.role]);
+
+  useEffect(() => {
     if (isIdentityLoading) return;
 
     async function loadData() {
@@ -90,12 +113,21 @@ function WorkspaceContent() {
           throw new Error("Authenticated workspace role is unavailable");
         }
 
-        if (!isTeamLeaderOrAdministrator(identity.role)) {
+        if (identity.role === "operator") {
           const fetchedProducts = await getProducts();
-          setLeads([]);
+          let currentAssignment = await getCurrentLeadAction();
+
+          if (!currentAssignment) {
+            await setOperatorPresenceAction("available");
+            currentAssignment = await claimNextLeadAction();
+          }
+
           setProducts(fetchedProducts);
           setOrders([]);
-          setActiveLead(null);
+          setLeads(currentAssignment ? [currentAssignment.lead] : []);
+          setActiveLead(currentAssignment?.lead || null);
+          setActiveQueueItemId(currentAssignment?.queue_item_id || null);
+          setOperatorStatus(currentAssignment?.assignment_state === "in_progress" ? "in_call" : "ready");
           setIsLoading(false);
           return;
         }
@@ -110,6 +142,7 @@ function WorkspaceContent() {
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
         setOrders(fetchedOrders);
+        setActiveQueueItemId(null);
         workflowEngine.replaceRules(fetchedWorkflows);
 
         if (leadIdParam) {
@@ -146,6 +179,45 @@ function WorkspaceContent() {
       ? Math.max(0, Math.round((Date.parse(new Date().toISOString()) - Date.parse(callStartedAt)) / 1000))
       : 0;
     try {
+      if (identity?.role === "operator") {
+        if (!activeQueueItemId) {
+          throw new Error("No active server assignment is available for call completion");
+        }
+
+        const queueOutcome = outcome === "objection_handled" ? "objection" : outcome;
+        const completion = await completeLeadCallAction({
+          queue_item_id: activeQueueItemId,
+          duration_seconds: durationSeconds,
+          outcome: queueOutcome,
+          ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+          order_product_id: orderProductId || null,
+          order_total_amount: orderProductId ? orderValue : null,
+          transcript: null,
+          callback_scheduled_at: queueOutcome === "followup_scheduled"
+            ? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+            : null,
+        });
+
+        const nextAssignment = completion.next_lead;
+        setActiveQueueItemId(nextAssignment?.queue_item_id || null);
+        setActiveLead(nextAssignment?.lead || null);
+        setLeads(nextAssignment ? [nextAssignment.lead] : []);
+        setOperatorStatus("ready");
+
+        const workflowEntries: ExecutionLogEntry[] = [];
+        setPostCallSummary({
+          leadName: activeLead.full_name,
+          outcomeLabel,
+          durationSeconds,
+          orderStatus,
+          transcriptStatus: "unavailable",
+          orderId: completion.order_id || undefined,
+          workflowEntries,
+        });
+        setActivityRefreshToken((current) => current + 1);
+        return { callId: completion.call_id, orderId: completion.order_id || undefined };
+      }
+
       const completion = await completeCallAction({
         lead_id: activeLead.id,
         duration_seconds: durationSeconds,
@@ -225,6 +297,40 @@ function WorkspaceContent() {
         return;
       }
 
+      if (identity?.role === "operator") {
+        if (!activeQueueItemId) {
+          setNotificationToast("No active server assignment is available for this call.");
+          return;
+        }
+
+        void startLeadCallAction(activeQueueItemId)
+          .then((startedAssignment) => {
+            setActiveLead(startedAssignment.lead);
+            setLeads([startedAssignment.lead]);
+            setOperatorStatus("in_call");
+            const stopTone = sounds.playDialTone();
+            stopAudioRef.current = stopTone;
+            return softphoneController.dial(
+              startedAssignment.lead.id,
+              startedAssignment.lead.phone,
+              startedAssignment.lead.full_name,
+            );
+          })
+          .catch((error) => {
+            if (stopAudioRef.current) {
+              stopAudioRef.current();
+              stopAudioRef.current = null;
+            }
+            setOperatorStatus("ready");
+            setNotificationToast(
+              error instanceof Error
+                ? `Call could not be started: ${error.message}`
+                : "Call could not be started. No CRM activity was recorded."
+            );
+          });
+        return;
+      }
+
       setOperatorStatus("in_call");
       const stopTone = sounds.playDialTone();
       stopAudioRef.current = stopTone;
@@ -238,7 +344,7 @@ function WorkspaceContent() {
         setNotificationToast(
           error instanceof Error
             ? `Call could not be started: ${error.message}`
-          : "Call could not be started. No CRM activity was recorded."
+            : "Call could not be started. No CRM activity was recorded."
         );
       });
     }
@@ -375,7 +481,9 @@ function WorkspaceContent() {
   const handleNextLead = () => {
     setPostCallSummary(null);
     setNotificationToast(null);
-    advanceToNextLead();
+    if (identity?.role !== "operator") {
+      advanceToNextLead();
+    }
   };
 
   const handleApplyPitch = (pitchText: string) => {
@@ -400,13 +508,13 @@ function WorkspaceContent() {
     );
   }
 
-  if (identity?.role === "operator") {
+  if (identity?.role === "operator" && !activeLead) {
     return (
       <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
         <RefreshCw className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Operator Console waiting for assignment</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-          Operators do not browse the lead directory. The active customer will appear here after a real inbound call or an authorized call-queue assignment is available.
+          No callable contact is currently assigned. The routing service will place one here when an available lead is ready; Operators never browse or choose from the lead directory.
         </p>
       </div>
     );
@@ -447,9 +555,20 @@ function WorkspaceContent() {
         onToggleHold={() => softphoneController.toggleHold()}
         onSimulateIncoming={handleSimulateIncoming}
         onStatusChange={(newStatus) => {
+          if (identity?.role === "operator") {
+            if (newStatus === "in_call" && !isCallActive && !isDialing) {
+              setNotificationToast("In-call presence is controlled by the active server assignment.");
+              return;
+            }
+            const nextPresence = newStatus === "ready" ? "available" : newStatus === "break" ? "break" : "in_call";
+            void setOperatorPresenceAction(nextPresence).catch((error) => {
+              setNotificationToast(error instanceof Error ? error.message : "Operator presence could not be updated.");
+            });
+          }
           setOperatorStatus(newStatus);
         }}
         onCallOutcome={handleCallOutcome}
+        showIncomingSimulator={identity?.role !== "operator"}
       />
 
       {/* Main 3-Column Operator Workspace Grid */}
@@ -460,10 +579,12 @@ function WorkspaceContent() {
           <CustomerPanel
             leads={leads}
             activeLead={activeLead}
-              orders={orders}
-              activityRefreshToken={activityRefreshToken}
-              onSelectLead={(lead) => setActiveLead(lead)}
-              onCreateOrder={() => setOrderFlowMode("manual")}
+            orders={orders}
+            activityRefreshToken={activityRefreshToken}
+            onSelectLead={(lead) => setActiveLead(lead)}
+            onCreateOrder={() => setOrderFlowMode("manual")}
+            queueControlled={identity?.role === "operator"}
+            canCreateOrder={identity?.role !== "operator"}
           />
         </div>
 

@@ -172,6 +172,124 @@ export interface Database {
         };
         Relationships: [];
       };
+      operator_presence: {
+        Row: {
+          workspace_id: string;
+          operator_id: string;
+          state: "offline" | "available" | "break" | "in_call" | "after_call";
+          last_heartbeat_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          workspace_id: string;
+          operator_id: string;
+          state?: "offline" | "available" | "break" | "in_call" | "after_call";
+          last_heartbeat_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          state?: "offline" | "available" | "break" | "in_call" | "after_call";
+          last_heartbeat_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      lead_queue_items: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          lead_id: string;
+          assigned_operator_id: string | null;
+          preferred_operator_id: string | null;
+          state: "available" | "assigned" | "in_progress" | "waiting_callback" | "closed" | "paused";
+          priority: number;
+          available_at: string;
+          scheduled_at: string | null;
+          attempt_count: number;
+          claimed_at: string | null;
+          last_heartbeat_at: string | null;
+          lease_expires_at: string | null;
+          last_outcome: string | null;
+          released_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          lead_id: string;
+          assigned_operator_id?: string | null;
+          preferred_operator_id?: string | null;
+          state?: "available" | "assigned" | "in_progress" | "waiting_callback" | "closed" | "paused";
+          priority?: number;
+          available_at?: string;
+          scheduled_at?: string | null;
+          attempt_count?: number;
+          claimed_at?: string | null;
+          last_heartbeat_at?: string | null;
+          lease_expires_at?: string | null;
+          last_outcome?: string | null;
+          released_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          assigned_operator_id?: string | null;
+          preferred_operator_id?: string | null;
+          state?: "available" | "assigned" | "in_progress" | "waiting_callback" | "closed" | "paused";
+          priority?: number;
+          available_at?: string;
+          scheduled_at?: string | null;
+          attempt_count?: number;
+          claimed_at?: string | null;
+          last_heartbeat_at?: string | null;
+          lease_expires_at?: string | null;
+          last_outcome?: string | null;
+          released_at?: string | null;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      lead_queue_events: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          queue_item_id: string;
+          lead_id: string;
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "reopened" | "paused";
+          from_state: string | null;
+          to_state: string;
+          from_operator_id: string | null;
+          to_operator_id: string | null;
+          actor_id: string | null;
+          reason: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          queue_item_id: string;
+          lead_id: string;
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "reopened" | "paused";
+          from_state?: string | null;
+          to_state: string;
+          from_operator_id?: string | null;
+          to_operator_id?: string | null;
+          actor_id?: string | null;
+          reason?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          reason?: string | null;
+          metadata?: Json;
+        };
+        Relationships: [];
+      };
       lead_notes: {
         Row: {
           id: string;
