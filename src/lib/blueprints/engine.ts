@@ -1,13 +1,13 @@
 /**
  * Industry Blueprint Engine — Application Logic & Persistence
  *
- * Handles preset switching, registering custom EAV attributes in SchemaEngine,
+ * Handles preset switching, persisting custom EAV attributes through the
+ * authenticated schema action,
  * loading preset workflow rules into WorkflowEngine, and persisting active choices.
  */
 
 import { IndustryCategory, IndustryBlueprint } from "./types";
 import { INDUSTRY_BLUEPRINTS } from "./registry";
-import { schemaEngine } from "../schema/engine";
 import { workflowEngine } from "../workflows/engine";
 import { saveAttributeAction } from "@/app/actions/schema";
 
@@ -59,15 +59,15 @@ class BlueprintEngine {
   /**
    * Applies an industry blueprint to the CRM workspace:
    * 1. Updates active blueprint state & persists
-   * 2. Registers custom EAV attributes into SchemaEngine ('leads' schema)
+   * 2. Registers custom EAV attributes through the server schema DAL
    * 3. Registers preset workflow rules into WorkflowEngine
    */
-  public applyBlueprint(blueprintId: IndustryCategory): {
+  public async applyBlueprint(blueprintId: IndustryCategory): Promise<{
     success: boolean;
     addedAttributesCount: number;
     addedRulesCount: number;
     blueprint: IndustryBlueprint;
-  } {
+  }> {
     const blueprint = this.getBlueprintById(blueprintId);
     if (!blueprint) {
       throw new Error(`Blueprint with ID '${blueprintId}' not found.`);
@@ -76,17 +76,11 @@ class BlueprintEngine {
     this.activeBlueprintId = blueprintId;
     this.persistActiveBlueprint(blueprintId);
 
-    // 1. Inject custom attributes into 'leads' schema (Local + Supabase)
-    let addedAttributesCount = 0;
-    blueprint.customAttributes.forEach((attr) => {
-      const added = schemaEngine.addCustomAttribute("leads", attr);
-      if (added) {
-        addedAttributesCount++;
-        saveAttributeAction("leads", attr).catch((err) => {
-          console.warn("[BlueprintEngine] Failed to save attribute to Supabase:", err);
-        });
-      }
-    });
+    // 1. Persist custom attributes through the authenticated workspace DAL.
+    const savedAttributes = await Promise.all(
+      blueprint.customAttributes.map((attr) => saveAttributeAction("leads", attr))
+    );
+    const addedAttributesCount = savedAttributes.length;
 
     // 2. Inject default workflow rules into WorkflowEngine
     let addedRulesCount = 0;

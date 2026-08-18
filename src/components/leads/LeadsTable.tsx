@@ -11,8 +11,9 @@ import {
   UserPlus
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
-import { schemaEngine } from "@/lib/schema/engine";
 import { AttributeDefinition } from "@/lib/schema/types";
+import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
+import { saveAttributeAction } from "@/app/actions/schema";
 import { AddCustomFieldModal } from "@/components/schema/AddCustomFieldModal";
 
 interface LeadsTableProps {
@@ -32,8 +33,18 @@ export function LeadsTable({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "score" | "name">("score");
   const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
-  const handleAddField = (newAttr: AttributeDefinition) => {
-    schemaEngine.addCustomAttribute("leads", newAttr);
+  const [schemaError, setSchemaError] = useState<string | null>(null);
+  const { schema, isLoading: isSchemaLoading, refresh: refreshSchema } = useWorkspaceSchema("leads");
+
+  const handleAddField = async (newAttr: AttributeDefinition) => {
+    setSchemaError(null);
+    try {
+      await saveAttributeAction("leads", newAttr);
+      await refreshSchema();
+    } catch (cause) {
+      setSchemaError(cause instanceof Error ? cause.message : "Vlastní pole se nepodařilo uložit.");
+      throw cause;
+    }
   };
 
   // Filter & Sort Logic
@@ -172,6 +183,24 @@ export function LeadsTable({
         onClose={() => setIsAddCustomFieldOpen(false)}
         onAddField={handleAddField}
       />
+
+      {schemaError && (
+        <div className="border-b border-rose-900/60 bg-rose-950/30 px-4 py-2 text-xs text-rose-300" role="alert">
+          {schemaError}
+        </div>
+      )}
+
+      {isSchemaLoading && (
+        <div className="border-b border-zinc-800/80 px-4 py-2 text-[11px] text-zinc-500" role="status">
+          Načítám workspace schéma…
+        </div>
+      )}
+
+      {!isSchemaLoading && !schema && (
+        <div className="border-b border-amber-900/60 bg-amber-950/20 px-4 py-2 text-xs text-amber-200" role="status">
+          Dynamická pole nejsou dostupná, protože workspace schéma nebylo načteno.
+        </div>
+      )}
 
       {/* Table Body */}
       <div className="overflow-x-auto">

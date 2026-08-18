@@ -52,10 +52,10 @@ export function BlueprintPickerModal({
   const selectedBlueprint =
     blueprints.find((b) => b.id === selectedId) || blueprints[0];
 
-  const handleApply = () => {
+  const handleApply = async () => {
     setIsApplying(true);
     try {
-      const result = blueprintEngine.applyBlueprint(selectedId);
+      const result = await blueprintEngine.applyBlueprint(selectedId);
       const msg = `Šablona "${result.blueprint.name}" byla úspěšně aktivována! Načteno +${result.addedAttributesCount} EAV polí a +${result.addedRulesCount} automatizací.`;
       setApplyResult(msg);
 
@@ -71,6 +71,7 @@ export function BlueprintPickerModal({
     } catch (err) {
       console.error("Blueprint error:", err);
       setIsApplying(false);
+      setApplyResult("Šablonu se nepodařilo uložit do workspace schématu.");
     }
   };
 

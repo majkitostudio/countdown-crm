@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
-import { DEFAULT_SCHEMAS } from "@/lib/schema/engine";
+import { DEFAULT_SCHEMAS } from "@/lib/schema/defaults";
 import type {
   AttributeDefinition,
   ObjectSchema,

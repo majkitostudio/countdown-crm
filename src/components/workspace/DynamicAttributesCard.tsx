@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Lead } from "@/lib/leads";
-import { schemaEngine } from "@/lib/schema/engine";
 import { AttributeDefinition, RecordEntity } from "@/lib/schema/types";
+import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
 import { computeAiAttributeAction } from "@/app/actions/aiAttributes";
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -158,9 +158,19 @@ function AttributeField({
 export function DynamicAttributesCard({ lead }: DynamicAttributesCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [localValues, setLocalValues] = useState<Record<string, unknown>>({});
+  const { schema: leadsSchema, isLoading, error } = useWorkspaceSchema("leads");
 
-  const leadsSchema = schemaEngine.getSchema("leads");
-  if (!leadsSchema) return null;
+  if (isLoading) {
+    return <div className="text-[11px] text-zinc-500">Načítám workspace schéma…</div>;
+  }
+
+  if (!leadsSchema) {
+    return (
+      <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-[11px] text-amber-200" role="status">
+        {error || "Dynamická pole nejsou dostupná, protože workspace schéma nebylo načteno."}
+      </div>
+    );
+  }
 
   // Build record entity from lead + any locally updated AI values
   const baseRecord = leadToRecordEntity(lead);

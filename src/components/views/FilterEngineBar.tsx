@@ -10,8 +10,8 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { schemaEngine } from "@/lib/schema/engine";
 import { AttributeDefinition } from "@/lib/schema/types";
+import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
 
 export interface ActiveFilter {
   id: string;
@@ -92,10 +92,11 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
     useState<ActiveFilter["operator"]>("greater_than");
   const [inputValue, setInputValue] = useState("");
 
-  const availableAttributes = React.useMemo(() => {
-    const schema = schemaEngine.getSchema("leads");
-    return (schema?.attributes || []) as AttributeDefinition[];
-  }, []);
+  const { schema, isLoading: isSchemaLoading, error: schemaError } = useWorkspaceSchema("leads");
+  const availableAttributes = React.useMemo(
+    () => (schema?.attributes || []) as AttributeDefinition[],
+    [schema]
+  );
 
   const persistSavedViews = (views: SavedView[]) => {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -179,6 +180,14 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
 
   return (
     <div className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-3 shadow-sm space-y-3">
+      {(isSchemaLoading || schemaError || availableAttributes.length === 0) && (
+        <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200" role="status">
+          {isSchemaLoading
+            ? "Načítám workspace schéma pro filtry…"
+            : schemaError || "Filtry dynamických polí nejsou dostupné, protože workspace schéma nebylo načteno."}
+        </div>
+      )}
+
       {/* Top Row: Saved Views Presets */}
       <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 scrollbar-none">
         <div className="flex items-center gap-2">
@@ -301,6 +310,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
             <select
               value={selectedFieldKey}
               onChange={(e) => setSelectedFieldKey(e.target.value)}
+              disabled={availableAttributes.length === 0}
               className="bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1 focus:outline-none"
             >
               {availableAttributes.map((attr) => (
