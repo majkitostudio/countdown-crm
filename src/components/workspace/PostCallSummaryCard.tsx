@@ -50,6 +50,13 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
   const successCount = entries.filter((e) => e.status === "success").length;
   const failureCount = entries.filter((e) => e.status === "failure").length;
   const skippedCount = entries.filter((e) => e.status === "skipped").length;
+  const automationSummary = failureCount > 0
+    ? `Automation failed — ${failureCount} action${failureCount === 1 ? "" : "s"}`
+    : successCount > 0
+    ? `Automation completed — ${successCount} action${successCount === 1 ? "" : "s"}`
+    : skippedCount > 0
+    ? `Automation skipped — ${skippedCount} rule${skippedCount === 1 ? "" : "s"}`
+    : "No automation triggered";
 
   return (
     <div className="bg-zinc-900/80 border border-zinc-700/80 rounded-xl p-4 shadow-xl backdrop-blur-sm space-y-3 animate-in fade-in slide-in-from-top-3 duration-400">
@@ -95,7 +102,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
         </div>
         <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
           <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Automation</span>
-          <strong className="mt-1 block text-zinc-100">{successCount} succeeded</strong>
+          <strong className="mt-1 block text-zinc-100">{automationSummary}</strong>
         </div>
       </div>
 

@@ -119,6 +119,8 @@ function WorkspaceContent() {
 
     softphoneController.hangup();
     setOrderFlowMode(null);
+    setAppliedPitch("");
+    setNotificationToast(null);
     setOperatorStatus("ready");
     sounds.playCallEndSound();
     const durationSeconds = callStartedAt
