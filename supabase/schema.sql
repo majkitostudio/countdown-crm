@@ -94,6 +94,77 @@ CREATE TABLE IF NOT EXISTS public.lead_notes (
 CREATE INDEX IF NOT EXISTS lead_notes_workspace_lead_created_idx
   ON public.lead_notes (workspace_id, lead_id, created_at DESC);
 
+-- 3c. SERVER-CONTROLLED LEAD QUEUE
+-- Operators receive one routed assignment; they do not browse this pool.
+CREATE TABLE IF NOT EXISTS public.operator_presence (
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  operator_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  state TEXT NOT NULL DEFAULT 'offline'
+    CHECK (state IN ('offline', 'available', 'break', 'in_call', 'after_call')),
+  last_heartbeat_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (workspace_id, operator_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.lead_queue_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  lead_id UUID NOT NULL REFERENCES public.leads(id) ON DELETE CASCADE,
+  assigned_operator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  preferred_operator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  state TEXT NOT NULL DEFAULT 'available'
+    CHECK (state IN ('available', 'assigned', 'in_progress', 'waiting_callback', 'closed', 'paused')),
+  priority INTEGER NOT NULL DEFAULT 0,
+  available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  scheduled_at TIMESTAMPTZ,
+  attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+  claimed_at TIMESTAMPTZ,
+  last_heartbeat_at TIMESTAMPTZ,
+  lease_expires_at TIMESTAMPTZ,
+  last_outcome TEXT,
+  released_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (workspace_id, lead_id),
+  CHECK (
+    (state IN ('assigned', 'in_progress') AND assigned_operator_id IS NOT NULL)
+    OR (state IN ('available', 'waiting_callback', 'closed', 'paused') AND assigned_operator_id IS NULL)
+  )
+);
+
+CREATE TABLE IF NOT EXISTS public.lead_queue_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  queue_item_id UUID NOT NULL REFERENCES public.lead_queue_items(id) ON DELETE CASCADE,
+  lead_id UUID NOT NULL REFERENCES public.leads(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL CHECK (event_type IN (
+    'created', 'claimed', 'started', 'heartbeat', 'completed', 'released',
+    'reassigned', 'callback_scheduled', 'requeued', 'lease_expired',
+    'reopened', 'paused'
+  )),
+  from_state TEXT,
+  to_state TEXT NOT NULL,
+  from_operator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  to_operator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  actor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  reason TEXT,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS lead_queue_one_current_per_operator_idx
+  ON public.lead_queue_items (workspace_id, assigned_operator_id)
+  WHERE state IN ('assigned', 'in_progress');
+CREATE INDEX IF NOT EXISTS lead_queue_routing_idx
+  ON public.lead_queue_items (workspace_id, state, available_at, priority DESC, created_at);
+CREATE INDEX IF NOT EXISTS lead_queue_preferred_operator_idx
+  ON public.lead_queue_items (workspace_id, preferred_operator_id, state, available_at);
+CREATE INDEX IF NOT EXISTS lead_queue_events_item_created_idx
+  ON public.lead_queue_events (queue_item_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS lead_queue_events_workspace_created_idx
+  ON public.lead_queue_events (workspace_id, created_at DESC);
+
 -- 4. PRODUCTS TABLE (Catalog)
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -268,6 +339,9 @@ ALTER TABLE public.workflow_executions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_gamification ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lead_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.operator_presence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lead_queue_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lead_queue_events ENABLE ROW LEVEL SECURITY;
 
 -- Workspace membership helper functions run as a definer to avoid recursive
 -- RLS evaluation when policies inspect workspace_members.
@@ -408,6 +482,54 @@ CREATE POLICY "Workspace members can create lead notes" ON public.lead_notes
   );
 
 GRANT SELECT, INSERT ON TABLE public.lead_notes TO authenticated;
+
+REVOKE ALL ON TABLE public.operator_presence, public.lead_queue_items, public.lead_queue_events
+  FROM anon, authenticated;
+GRANT SELECT ON TABLE public.operator_presence, public.lead_queue_items, public.lead_queue_events TO authenticated;
+
+DROP POLICY IF EXISTS "Team Leaders and Administrators can view operator presence" ON public.operator_presence;
+CREATE POLICY "Team Leaders and Administrators can view operator presence"
+  ON public.operator_presence FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.workspace_members AS member
+    WHERE member.workspace_id = operator_presence.workspace_id
+      AND member.user_id = (SELECT auth.uid())
+      AND member.role IN ('team_leader', 'administrator')
+  ));
+
+DROP POLICY IF EXISTS "Operators can view own presence" ON public.operator_presence;
+CREATE POLICY "Operators can view own presence"
+  ON public.operator_presence FOR SELECT TO authenticated
+  USING (operator_id = (SELECT auth.uid()) AND public.is_workspace_member(workspace_id));
+
+DROP POLICY IF EXISTS "Team Leaders and Administrators can view queue items" ON public.lead_queue_items;
+CREATE POLICY "Team Leaders and Administrators can view queue items"
+  ON public.lead_queue_items FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.workspace_members AS member
+    WHERE member.workspace_id = lead_queue_items.workspace_id
+      AND member.user_id = (SELECT auth.uid())
+      AND member.role IN ('team_leader', 'administrator')
+  ));
+
+DROP POLICY IF EXISTS "Operators can view current queue item" ON public.lead_queue_items;
+CREATE POLICY "Operators can view current queue item"
+  ON public.lead_queue_items FOR SELECT TO authenticated
+  USING (
+    assigned_operator_id = (SELECT auth.uid())
+    AND state IN ('assigned', 'in_progress')
+    AND public.is_workspace_member(workspace_id)
+  );
+
+DROP POLICY IF EXISTS "Team Leaders and Administrators can view queue events" ON public.lead_queue_events;
+CREATE POLICY "Team Leaders and Administrators can view queue events"
+  ON public.lead_queue_events FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.workspace_members AS member
+    WHERE member.workspace_id = lead_queue_events.workspace_id
+      AND member.user_id = (SELECT auth.uid())
+      AND member.role IN ('team_leader', 'administrator')
+  ));
 
 CREATE POLICY "Users can view gamification" ON public.user_gamification FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Users can manage own gamification" ON public.user_gamification FOR ALL USING (auth.role() = 'authenticated');

@@ -4,6 +4,7 @@ import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import {
   deleteWorkspaceMember,
   listWorkspaceMembers,
+  listWorkspaceOperators,
   updateWorkspaceMemberRole,
 } from "@/lib/dal/memberships";
 import type { WorkspaceRole } from "@/lib/auth/roles";
@@ -20,6 +21,10 @@ export async function getCurrentWorkspaceContextAction() {
 
 export async function listWorkspaceMembersAction(): Promise<WorkspaceMemberDTO[]> {
   return listWorkspaceMembers();
+}
+
+export async function listWorkspaceOperatorsAction(): Promise<WorkspaceMemberDTO[]> {
+  return listWorkspaceOperators();
 }
 
 export async function updateWorkspaceMemberRoleAction(

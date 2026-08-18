@@ -170,6 +170,25 @@ export async function heartbeatLeadAssignmentForWorkspace(queueItemId: string): 
   return requireRpcData(data, error, "Lead assignment heartbeat failed");
 }
 
+export async function abortLeadCallStartForWorkspace(
+  queueItemId: string,
+  reason?: string | null,
+): Promise<LeadQueueSnapshot> {
+  if (!queueItemId) {
+    throw new DataAccessError("VALIDATION", "Call start recovery requires an active queue assignment");
+  }
+
+  await requireWorkspaceRole(["operator"]);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("abort_lead_call_start", {
+    target_queue_item_id: queueItemId,
+    abort_reason: reason || null,
+  });
+  const snapshot = requireRpcData<LeadQueueSnapshot | null>(data, error, "Call start recovery failed");
+  if (!snapshot) throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
+  return snapshot;
+}
+
 export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
   assertQueueInput(input);
   await requireWorkspaceRole(["operator"]);

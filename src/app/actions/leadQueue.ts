@@ -2,6 +2,7 @@
 
 import {
   claimNextLeadForWorkspace,
+  abortLeadCallStartForWorkspace,
   completeLeadCallForWorkspace,
   getCurrentLeadForWorkspace,
   getScopedLeadForWorkspace,
@@ -45,6 +46,13 @@ export async function heartbeatLeadAssignmentAction(
   queueItemId: string,
 ): Promise<{ queue_item_id: string; lease_expires_at: string }> {
   return heartbeatLeadAssignmentForWorkspace(queueItemId);
+}
+
+export async function abortLeadCallStartAction(
+  queueItemId: string,
+  reason?: string | null,
+): Promise<LeadQueueSnapshot> {
+  return abortLeadCallStartForWorkspace(queueItemId, reason);
 }
 
 export async function completeLeadCallAction(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {

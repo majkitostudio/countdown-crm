@@ -96,11 +96,11 @@ starts a call. An Operator may see only a server-authorized current assignment
 or callback context. Starting a call is a separate server operation that
 requires the current assignment ID, owner, lease, presence and capacity checks.
 
-The planned queue implementation includes transactional claiming, operator
+The implemented queue slice includes transactional claiming, operator
 presence/capacity, lease/heartbeat recovery, callback affinity and audited
-Team Leader actions `View`, `Reassign`, `Release` and `Reopen`. This is an
-approved follow-up scope and is not yet represented as a completed runtime
-feature.
+Team Leader actions `View`, `Reassign`, `Release` and `Reopen`. The runtime
+still needs multi-operator browser smoke and an external telephony/inbound
+provider integration; those are explicitly outside this local softphone slice.
 
 ---
 

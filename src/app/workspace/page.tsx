@@ -21,6 +21,7 @@ import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction, createOrderAction } from "@/app/actions/crm";
 import {
+  abortLeadCallStartAction,
   claimNextLeadAction,
   completeLeadCallAction,
   getCurrentLeadAction,
@@ -29,7 +30,6 @@ import {
   startLeadCallAction,
 } from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
-import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
 interface PostCallSummary {
   leadName: string;
@@ -60,6 +60,7 @@ function WorkspaceContent() {
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [orderFlowMode, setOrderFlowMode] = useState<"call" | "manual" | null>(null);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
+  const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
@@ -303,8 +304,10 @@ function WorkspaceContent() {
           return;
         }
 
+        let queueCallStarted = false;
         void startLeadCallAction(activeQueueItemId)
           .then((startedAssignment) => {
+            queueCallStarted = true;
             setActiveLead(startedAssignment.lead);
             setLeads([startedAssignment.lead]);
             setOperatorStatus("in_call");
@@ -314,9 +317,19 @@ function WorkspaceContent() {
               startedAssignment.lead.id,
               startedAssignment.lead.phone,
               startedAssignment.lead.full_name,
-            );
+            ).then((audioReady) => {
+              if (!audioReady) throw new Error("Audio session could not be initialized");
+              return audioReady;
+            });
           })
-          .catch((error) => {
+          .catch(async (error) => {
+            if (queueCallStarted) {
+              try {
+                await abortLeadCallStartAction(activeQueueItemId, "Softphone start failed");
+              } catch (recoveryError) {
+                setNotificationToast(recoveryError instanceof Error ? recoveryError.message : "Call start recovery failed.");
+              }
+            }
             if (stopAudioRef.current) {
               stopAudioRef.current();
               stopAudioRef.current = null;
@@ -386,8 +399,6 @@ function WorkspaceContent() {
     setIsIncomingCallOpen(false);
     sounds.playCallEndSound();
   };
-
-  const [notificationToast, setNotificationToast] = useState<string | null>(null);
 
   const advanceToNextLead = () => {
     if (!activeLead || leads.length === 0) return;

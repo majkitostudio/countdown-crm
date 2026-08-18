@@ -39,10 +39,14 @@ a přidělí další kontakt.
 - Pád browseru se řeší lease/heartbeat/recovery mechanismem, ne trvalým
   zámkem leadu.
 
-Tento scope zatím není implementovaný. Před jeho uzavřením musí projít
-concurrency smoke test, negativní přímá URL kontrola, callback routing,
-reassign/release audit, reload persistence a SQL kontrola nulového dvojího
-přiřazení.
+První runtime slice tohoto scope je implementovaný: queue tabulky a constrainty,
+serverový claim/start/completion/heartbeat, presence, lease recovery,
+callback preference, Team Leader queue operations a scoped `/leads/[leadId]`
+detail. Před jeho uzavřením ještě musí projít browser concurrency smoke test
+se dvěma autentizovanými Operátory, negativní přímá URL kontrola v reálném
+browser session, callback routing pod více přítomnostmi, reload persistence a
+SQL kontrola nulového dvojího přiřazení. Externí telephony/inbound provider je
+samostatná integrační fáze.
 
 ---
 

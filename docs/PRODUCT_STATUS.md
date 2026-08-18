@@ -691,18 +691,20 @@ agent_id zůstávají kvůli kompatibilitě datového modelu, ale UI a dokumenta
 pro lidské uživatele používají výhradně označení Operator.
 
 Lead management je záměrně oddělený od Operator Console. Operator nesmí číst
-seznam leadů ani vytvářet, upravovat nebo mazat leady. Aktuální pilot nemá
-skutečný inbound/call-queue assignment mechanismus, proto Operator Console
-zobrazuje pravdivý stav čekání na přiřazeného zákazníka místo toho, aby
-Operatorovi vystavila celý workspace lead directory. Assignment přes skutečný
-telephony nebo call-queue provider je samostatný navazující scope.
+seznam leadů ani vytvářet, upravovat nebo mazat leady. Operator Console nyní
+pracuje přes serverem řízený queue assignment a zobrazí nejvýše jeden aktuální
+kontakt. Pokud žádný callable kontakt není k dispozici, zobrazí pravdivý stav
+čekání místo workspace lead directory. Napojení na skutečný telephony nebo
+inbound provider zůstává samostatný integrační scope.
 
-## Schválený assignment model — 2026-08-19
+## Implementovaný assignment slice — 2026-08-19
 
-Assignment model je schválený produktový kontrakt pro další implementační
-slice, ale v aktuálním pilotu ještě není implementovaný. Dnešní stav proto
-zůstává pravdivý: Operator Console čeká na skutečný routing/assignment
-mechanismus a Operator nemá přístup k lead directory.
+Schválený assignment model je nyní částečně implementovaný v databázi,
+serverové datové vrstvě a Operator Console. Queue, assignment, presence,
+lease/heartbeat, recovery, callback preference, auditní eventy a Team Leader
+override operace jsou napojené na workspace authorization. Zbývá ověřit
+produkční browser flow s více skutečnými Operátory a napojit případný externí
+telephony/inbound provider.
 
 ### Oddělení CRM adresáře a pracovní fronty
 
@@ -738,8 +740,10 @@ state `available`, `assigned`, `in_progress`, `waiting_callback` nebo
   retry termín; před jeho uplynutím se nevrací do Available Pool.
 - **Schedule Callback:** vznikne plánovaný callback. Původní Operator je
   pouze preferovaný, nikoli trvalý vlastník.
-- **Fail / Not Interested:** lead přejde do `closed_lost` a automaticky se
-  nevrací do fronty. Reopen provádí explicitně Team Leader nebo Administrator.
+- **Fail / Not Interested:** v aktuálním CRM status modelu lead přejde do
+  `unresponsive` a automaticky se nevrací do fronty. Reopen provádí explicitně
+  Team Leader nebo Administrator. Samostatný status `closed_lost` zůstává
+  budoucí rozšíření CRM lifecycle, nikoli předstíraný aktuální stav.
 
 ### Callback affinity a dostupnost
 
@@ -766,17 +770,20 @@ nezahájí hovor ani nepřidělí lead.
 - Start hovoru bude samostatná serverová operace, která ověří aktuální
   `assignment_id`, vlastníka, stav assignmentu, kapacitu Operatora a lease.
 
-Team Leader akce `View`, `Reassign`, `Release` a `Reopen` budou oddělené,
-serverově autorizované a auditované. `Reassign` přesune lead konkrétnímu
-Operatorovi; `Release` ho vrátí do Available Pool.
+Team Leader akce `View`, `Reassign`, `Release` a `Reopen` jsou oddělené,
+serverově autorizované a auditované přes queue eventy. `Reassign` přesune lead
+konkrétnímu Operatorovi; `Release` ho vrátí do Available Pool.
 
-### Navazující implementační scope
+### Zbývající implementační scope
 
-Schválený slice bude obsahovat `lead_queue_items`, historii assignmentů a
+Implementovaný slice obsahuje `lead_queue_items`, historii assignmentů a
 queue událostí, routing engine, atomický claim, aktuální Operator Console
 context, presence/capacity, callback scheduling, lease/heartbeat/recovery,
 Team Leader override a context-aware `/leads/[leadId]` route.
 
-Completion call path bude vyžadovat nejen `lead_id`, ale také aktuální
-`assignment_id`, aby Operator nemohl dokončit call nad leadem, který mu právě
-nepřísluší.
+Completion call path nyní vyžaduje aktuální `assignment_id`, takže Operator
+nemůže dokončit call nad leadem, který mu právě nepřísluší.
+
+Zbývá browser smoke s více Operátory, konkurenční claim test proti dvěma
+autentizovaným sessions, detailnější callback scheduler a případná integrace
+telephony/inbound providera.

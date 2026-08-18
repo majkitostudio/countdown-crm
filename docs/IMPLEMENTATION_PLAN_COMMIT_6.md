@@ -90,7 +90,7 @@ Definovat minimální role matrix pro MVP:
 | Operace | Operator | Team Leader | Administrator |
 |---|---:|---:|---:|
 | číst lead directory a spravovat leady | ne | ano | ano |
-| používat Operator Console s routingem přiděleným zákazníkem | plánovaný assignment/routing slice | ano | ano |
+| používat Operator Console s routingem přiděleným zákazníkem | implementovaný serverový assignment/routing slice; externí telephony provider zbývá | ano | ano |
 | upravovat katalog a objection data | ne | ano | ano |
 | spravovat workflows | ne | ano | ano |
 | spravovat workspace members | ne | ne | ano |

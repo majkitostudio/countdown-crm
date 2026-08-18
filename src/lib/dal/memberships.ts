@@ -74,6 +74,27 @@ export async function listWorkspaceMembers(): Promise<WorkspaceMemberDTO[]> {
   );
 }
 
+export async function listWorkspaceOperators(): Promise<WorkspaceMemberDTO[]> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+  const supabase = await createDataClient();
+  const { data: memberships, error } = await supabase
+    .from("workspace_members")
+    .select("workspace_id, user_id, role, created_at, updated_at")
+    .eq("workspace_id", context.workspaceId)
+    .eq("role", "operator")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Workspace operators could not be loaded");
+  }
+
+  return Promise.all(
+    ((memberships || []) as MembershipRow[]).map((membership) =>
+      loadMember(context.workspaceId, membership.user_id, supabase),
+    ),
+  );
+}
+
 export async function updateWorkspaceMemberRole(
   userId: string,
   role: WorkspaceRole,
