@@ -387,6 +387,9 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] Read-only Teamleader Review API poskytuje workspace-scoped list a detail
   přes `GET /api/training/reviews` a `GET /api/training/reviews/:sessionId`;
   role, `404` not-found a error stavy zůstávají explicitní.
+- [x] Authenticated browser voice smoke ověřil odmítnuté mikrofonní oprávnění,
+  persistentní inline fallback notice, žádný falešný speech request a funkční
+  typed fallback s local training engine response.
 
 ### Omezení, která zůstávají přiznaná
 

@@ -510,6 +510,14 @@ transcriptem. Oba endpointy používají stejnou manager/admin DAL autorizaci ja
 UI; vracejí explicitní `401`, `403`, `404` a `503` stavy a nepřidávají žádnou
 novou write cestu.
 
+Authenticated browser voice smoke z 2026-08-18 narazil na odmítnuté mikrofonní
+oprávnění. UI nyní zobrazuje persistentní inline notice
+`Microphone permission was denied. Use the typed reply instead.`, nevytváří
+falešný speech transcript ani request a typed fallback zůstává funkční; local
+training engine vrátil odpověď a explicitní provider notice. Úspěšný fyzický
+`SpeechRecognition` vstup, skutečné TTS audio a barge-in proto zůstávají
+nepotvrzeným browser-dependent gate.
+
 Skutečný fyzický mikrofon a reálný browser `SpeechRecognition` audio vstup
 nebyly potvrzeny. Web Speech zůstává označeným browser-dependent preview a
 pozdější ruční voice/barge-in smoke test je otevřený. Aktuální databázový pilot

@@ -55,6 +55,7 @@ type SpeechRecognitionLike = {
   onstart: (() => void) | null;
   onend: (() => void) | null;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: { error?: string }) => void) | null;
   start: () => void;
   stop: () => void;
 };
@@ -442,7 +443,8 @@ export default function TrainingPage() {
 
   const startRecognition = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      alert("Your browser does not support Web Speech API voice recognition.");
+      setAiNotice("Browser voice recognition is unavailable. Use the typed reply instead.");
+      setCallState("listening");
       return;
     }
 
@@ -456,6 +458,7 @@ export default function TrainingPage() {
       const speechWindow = window as SpeechRecognitionWindow;
       const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
       if (!SpeechRecognition) {
+        setAiNotice("Browser voice recognition is unavailable. Use the typed reply instead.");
         setCallState("listening");
         return;
       }
@@ -475,8 +478,20 @@ export default function TrainingPage() {
           clearTimeout(endpointTimerRef.current);
           endpointTimerRef.current = null;
         }
+        setAiNotice(null);
         setIsRecording(true);
         setCallState("listening");
+      };
+      recognition.onerror = (event) => {
+        shouldSubmitRecognitionRef.current = false;
+        setIsRecording(false);
+        recognitionRef.current = null;
+        setCallState("listening");
+        setAiNotice(
+          event.error === "not-allowed" || event.error === "service-not-allowed"
+            ? "Microphone permission was denied. Use the typed reply instead."
+            : "Browser voice recognition failed. Use the typed reply instead."
+        );
       };
       recognition.onend = () => {
         setIsRecording(false);
@@ -522,6 +537,7 @@ export default function TrainingPage() {
       recognitionRef.current = null;
       setIsRecording(false);
       setCallState("listening");
+      setAiNotice("Browser voice recognition could not be started. Use the typed reply instead.");
     }
   };
 
