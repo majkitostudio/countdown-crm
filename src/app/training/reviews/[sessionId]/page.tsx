@@ -25,7 +25,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
 
   if (loadError) {
     const message = isDataAccessError(loadError) && loadError.code === "FORBIDDEN"
-      ? "This review is available to workspace managers and admins only."
+      ? "This review is available to Team Leaders and Administrators only."
       : "This training review could not be loaded. No data was fabricated.";
 
     return (
@@ -142,7 +142,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           </div>
           <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-5">
             <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><LockKeyhole className="h-4 w-4 text-zinc-400" /> Access boundary</h2>
-            <p className="mt-3 text-xs leading-relaxed text-zinc-400">This review is visible only to managers and admins who are members of the same workspace.</p>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-400">This review is visible only to Team Leaders and Administrators who are members of the same workspace.</p>
           </div>
         </div>
       </div>

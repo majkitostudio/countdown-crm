@@ -62,7 +62,7 @@ The **Workflow Engine** enables user-configured event-driven rule chains:
 - ✨ **`compute_ai_summary`**: Calls Gemini API to generate transcript summary.
 - 📧 **`send_email_followup`**: Sends automated follow-up email.
 - 🏷️ **`update_lead_status`**: Automatically advances pipeline stage.
-- 🔔 **`notify_manager`**: Sends alerts with template variable interpolation (`{{lead_name}}`).
+- 🔔 **`notify_manager`**: Sends alerts to the Team Leader with template variable interpolation (`{{lead_name}}`).
 
 ---
 
@@ -130,4 +130,3 @@ src/
     ├── training.ts     # AI Training Scenarios & Dynamic Customer Psychology
     └── workflows/      # Rule Evaluator, Execution Engine & Audit Logger
 ```
-
