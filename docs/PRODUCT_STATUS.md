@@ -521,9 +521,12 @@ setting se nebude obcházet SQL migrací.
 
 Regresní browser smoke po migraci ověřil, že anonymní požadavek na
 `/training/reviews` skončí na `/login` a chráněný obsah se nezpřístupní bez
-session. Autentizovaný průchod po migraci nebylo možné zopakovat, protože
-ověřovací browser session v tomto běhu expirovala; heslo nebylo dostupné a
-nebylo nahrazováno hádáním ani čtením session údajů.
+session. Následně autentizovaná session otevřela Teamleader Review, zobrazila
+workspace-scoped training session s operátorem `majkito.studio`, přežila
+navigaci i reload a po návratu načetla Operator Console s leadem, timeline a
+profilovou atribucí `by majkito.studio`. V console logu nebyla runtime chyba;
+zůstal pouze existující development/accessibility hint pro `autocomplete` na
+login inputu.
 
 Audit importů potvrdil, že `aiStreamerBridge` a `sipAdapter` nejsou součástí
 runtime flow; oba nepoužívané moduly byly odstraněny v samostatném cleanup

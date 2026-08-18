@@ -413,8 +413,9 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] Security advisor po změně nehlásí nový RLS/table problém.
 - [x] Anonymní browser smoke `/training/reviews` skončil očekávaným redirectem
   na `/login`.
-- [ ] Autentizovaný browser smoke po migraci vyžaduje znovu aktivní testovací
-  session; v tomto běhu nebylo bezpečně dostupné heslo.
+- [x] Autentizovaný browser smoke otevřel Teamleader Review, přežil navigaci i
+  reload a následně načetl Operator Console s workspace leadem, timeline a
+  atribucí `by majkito.studio`; bez runtime console chyby.
 
 ### Otevřené release body
 
