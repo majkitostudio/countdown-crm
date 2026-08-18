@@ -498,6 +498,14 @@ má pouze jednoho admin člena v jednom workspace, proto nebyl proveden agent
 role ani cross-workspace runtime test; nebyly kvůli tomu vytvořeny testovací
 identity nebo workspace fixtures.
 
+Read-only SQL recheck z 2026-08-18 tento limit potvrdil: live projekt má jeden
+workspace, jednu membership s rolí `admin` a jeden Auth účet. Neexistuje tedy
+bezpečný existující druhý účet nebo workspace, který by šel použít pro další
+runtime smoke bez nové externí fixture. Agent/cross-workspace proof zůstává
+odděleným gate; jeho provedení vyžaduje explicitně vytvořenou disposable Auth
+identitu a workspace, nebo samostatné neprodukční prostředí. Tento slice žádná
+live data neměnil.
+
 Průběžná persistence, resume po pádu browseru, samostatné HTTP/API endpointy,
 post-call audio/transcription a AI review funkce zůstávají mimo schválený
 rozsah.

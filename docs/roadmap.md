@@ -389,6 +389,10 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [ ] Agent role a cross-workspace izolace nebyly provedeny, protože aktuální
   pilot má pouze jednoho admin člena v jednom workspace. Nebyly vytvářeny
   testovací identity ani workspace fixtures.
+- [x] Read-only SQL recheck 2026-08-18 potvrdil stejný stav: jeden workspace,
+  jedna `admin` membership a jeden Auth účet. Další runtime proof proto čeká na
+  explicitně schválenou disposable Auth/workspace fixture nebo neprodukční
+  prostředí; tento recheck žádná live data neměnil.
 
 ### Záměrné neimplementované části
 
