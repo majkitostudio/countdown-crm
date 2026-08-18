@@ -7,6 +7,8 @@ DROP POLICY IF EXISTS "Workspace members can view training sessions"
   ON public.training_sessions;
 DROP POLICY IF EXISTS "Workspace managers can view training sessions"
   ON public.training_sessions;
+DROP POLICY IF EXISTS "Training sessions are visible to owners and managers"
+  ON public.training_sessions;
 CREATE POLICY "Training sessions are visible to owners and managers"
   ON public.training_sessions
   FOR SELECT TO authenticated
@@ -62,6 +64,8 @@ CREATE POLICY "Operators and managers can delete training sessions"
 DROP POLICY IF EXISTS "Workspace members can view training turns"
   ON public.training_session_turns;
 DROP POLICY IF EXISTS "Workspace managers can view training turns"
+  ON public.training_session_turns;
+DROP POLICY IF EXISTS "Training turns are visible to owners and managers"
   ON public.training_session_turns;
 CREATE POLICY "Training turns are visible to owners and managers"
   ON public.training_session_turns
