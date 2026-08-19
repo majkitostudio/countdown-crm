@@ -787,3 +787,32 @@ nemůže dokončit call nad leadem, který mu právě nepřísluší.
 Zbývá browser smoke s více Operátory, konkurenční claim test proti dvěma
 autentizovaným sessions, detailnější callback scheduler a případná integrace
 telephony/inbound providera.
+
+## Telephony boundary hardening — 2026-08-19
+
+Schválený provider-neutral telephony slice je dokončený. Lokální softphone už
+není zdrojem falešného nebo opožděného call stavu:
+
+- [x] `WebRtcSoftphoneController` ruší delayed dialing timers při cancelu,
+  audio failure i ukončení session; starý timer nemůže přepnout nový call do
+  `connected`.
+- [x] Selhání microphone/WebAudio inicializace vrací softphone do `idle` a
+  nepředstírá aktivní audio session.
+- [x] `TelephonyAudioEngine` uvolňuje media stream, AudioContext a WebAudio
+  nodes po ukončení nebo neúspěšném startu; callback subscribers zůstávají
+  znovu použitelné pro další call.
+- [x] Operator Console rozlišuje `Starting Call`, `Cancel Dial` a `End Call`.
+  Zrušení dialingu používá serverový abort/requeue a nevytváří CRM call.
+- [x] Start request je lokálně serializovaný proti dvojkliku a completion je
+  chráněný proti souběžnému dvojímu odeslání.
+- [x] Při chybě serverového completion zůstává chyba viditelná a lokální call
+  se ukončí až po úspěšném serverovém zápisu; outcome lze bezpečně opakovat.
+- [x] Browser smoke ověřil start/reload/cancel bez nového callu; SQL recheck
+  potvrdil nezměněný počet callů, `available` queue state a žádného vlastníka.
+- [x] Vitest regresní testy pokrývají audio failure, cancel dial a ochranu
+  před resetem nové session starým ended timerem.
+
+Tento slice nemění Supabase schema ani vzdálené RPC. Zůstává záměrně
+simulátor/provider-neutral: skutečný telephony/inbound provider, webhooky,
+audio upload, transcription a AI analýza produkčního hovoru jsou samostatná
+integrační fáze.

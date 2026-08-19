@@ -508,3 +508,17 @@ completion-only persistence, Teamleader Review a reload persistence.
   oddělil Team Leader/Administrator INSERT/UPDATE/DELETE policies pro
   `custom_objects` a `attribute_definitions`; authenticated Postgres smoke
   potvrdil Team Leader write, Operator read-only a cross-workspace nulový výsledek.
+
+## Telephony boundary hardening — 2026-08-19
+
+- [x] Lokální softphone ruší pending dial timers při audio failure, cancelu a
+  ukončení session; odmítnutý mikrofon nevytvoří opožděný `connected` stav.
+- [x] WebAudio/media stream se po call lifecycle uvolňuje a failure stav je
+  viditelný místo falešného úspěchu.
+- [x] Operator Console rozlišuje `Starting Call`, `Cancel Dial` a `End Call`.
+  Cancel dialingu provede serverový abort/requeue bez zápisu callu.
+- [x] Start a completion jsou chráněné proti souběžnému dvojkliku.
+- [x] Vitest a authenticated browser smoke ověřily cancel/reload lifecycle;
+  SQL recheck potvrdil nulový nový call a obnovený `available` queue stav.
+- [ ] Skutečný provider-neutral adapter pro externí telephony/inbound službu,
+  webhooky a produkční audio pipeline zůstává samostatným schváleným krokem.

@@ -42,6 +42,12 @@ export class TelephonyAudioEngine {
     if (typeof window === "undefined") return false;
 
     try {
+      this.release();
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        return false;
+      }
+
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: this.config.echoCancellation,
@@ -51,6 +57,9 @@ export class TelephonyAudioEngine {
       });
 
       const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtxClass) {
+        throw new Error("Web Audio API is unavailable");
+      }
       this.audioCtx = new AudioCtxClass({ sampleRate: this.config.sampleRate || 16000 });
 
       this.sourceNode = this.audioCtx.createMediaStreamSource(this.mediaStream);
@@ -79,6 +88,7 @@ export class TelephonyAudioEngine {
       return true;
     } catch (err) {
       console.warn("[TelephonyAudioEngine] Microphone access failed or denied:", err);
+      this.release();
       return false;
     }
   }
@@ -134,14 +144,42 @@ export class TelephonyAudioEngine {
     this.onAudioChunkCallbacks.delete(cb);
   }
 
-  public destroy() {
+  /**
+   * Releases the microphone and WebAudio graph for the current local call.
+   * Callbacks remain registered so a later call can reuse the engine.
+   */
+  public release() {
     this.stopRecording();
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach((t) => t.stop());
+
+    try {
+      this.sourceNode?.disconnect();
+      this.gainNode?.disconnect();
+      this.analyserNode?.disconnect();
+      this.scriptProcessor?.disconnect();
+    } catch {
+      // Browser implementations may already have disconnected a node.
     }
-    if (this.audioCtx) {
-      this.audioCtx.close();
+
+    if (this.scriptProcessor) {
+      this.scriptProcessor.onaudioprocess = null;
     }
+
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    if (this.audioCtx && this.audioCtx.state !== "closed") {
+      void this.audioCtx.close();
+    }
+
+    this.mediaStream = null;
+    this.audioCtx = null;
+    this.sourceNode = null;
+    this.gainNode = null;
+    this.analyserNode = null;
+    this.scriptProcessor = null;
+    this.isMuted = false;
+  }
+
+  public destroy() {
+    this.release();
     this.onAudioChunkCallbacks.clear();
   }
 }

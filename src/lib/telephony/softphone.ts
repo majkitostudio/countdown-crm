@@ -31,6 +31,8 @@ export class WebRtcSoftphoneController {
 
   private listeners: Set<CallStateListener> = new Set();
   private timerInterval: NodeJS.Timeout | null = null;
+  private dialTimers: ReturnType<typeof setTimeout>[] = [];
+  private endedResetTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {}
 
@@ -49,6 +51,36 @@ export class WebRtcSoftphoneController {
     this.listeners.forEach((fn) => fn(copy));
   }
 
+  private clearDialTimers() {
+    this.dialTimers.forEach((timer) => clearTimeout(timer));
+    this.dialTimers = [];
+  }
+
+  private clearEndedResetTimer() {
+    if (this.endedResetTimer) {
+      clearTimeout(this.endedResetTimer);
+      this.endedResetTimer = null;
+    }
+  }
+
+  private isCurrentSession(sessionId: string, ...states: CallState[]) {
+    return this.currentSession.id === sessionId && states.includes(this.currentSession.state);
+  }
+
+  private resetToIdle() {
+    this.stopTimer();
+    audioEngine.release();
+    this.currentSession = {
+      ...this.currentSession,
+      state: "idle",
+      startTime: null,
+      durationSeconds: 0,
+      isMuted: false,
+      isOnHold: false,
+    };
+    this.notify();
+  }
+
   /**
    * Start an outbound call session
    */
@@ -58,6 +90,8 @@ export class WebRtcSoftphoneController {
       return false;
     }
 
+    this.clearDialTimers();
+    this.clearEndedResetTimer();
     this.currentSession = {
       id: `call-wrtc-${Date.now()}`,
       leadId,
@@ -72,26 +106,41 @@ export class WebRtcSoftphoneController {
     this.notify();
 
     const audioOk = await audioEngine.initialize();
+    const sessionId = this.currentSession.id;
+
+    if (!audioOk) {
+      if (this.isCurrentSession(sessionId, "dialing")) {
+        this.cancelDial();
+      } else {
+        audioEngine.release();
+      }
+      return false;
+    }
+
+    if (!this.isCurrentSession(sessionId, "dialing")) {
+      audioEngine.release();
+      return false;
+    }
 
     // Simulate Network Peer connection delay (1.5s -> Ringing, 3.0s -> Connected)
-    setTimeout(() => {
-      if (this.currentSession.state === "dialing") {
+    this.dialTimers.push(setTimeout(() => {
+      if (this.isCurrentSession(sessionId, "dialing")) {
         this.currentSession.state = "ringing";
         this.notify();
       }
-    }, 1500);
+    }, 1500));
 
-    setTimeout(() => {
-      if (this.currentSession.state === "ringing") {
+    this.dialTimers.push(setTimeout(() => {
+      if (this.isCurrentSession(sessionId, "ringing")) {
         this.currentSession.state = "connected";
         this.currentSession.startTime = new Date();
         audioEngine.startRecording();
         this.startTimer();
         this.notify();
       }
-    }, 3200);
+    }, 3200));
 
-    return audioOk;
+    return true;
   }
 
   /**
@@ -99,6 +148,11 @@ export class WebRtcSoftphoneController {
    */
   public async answer(): Promise<boolean> {
     const audioOk = await audioEngine.initialize();
+    if (!audioOk) {
+      this.resetToIdle();
+      return false;
+    }
+
     this.currentSession.state = "connected";
     this.currentSession.startTime = new Date();
     audioEngine.startRecording();
@@ -111,16 +165,37 @@ export class WebRtcSoftphoneController {
    * Hang up active call
    */
   public hangup() {
+    if (this.currentSession.state === "idle" || this.currentSession.state === "ended") return;
+
+    if (this.currentSession.state === "dialing" || this.currentSession.state === "ringing") {
+      this.cancelDial();
+      return;
+    }
+
+    const sessionId = this.currentSession.id;
+    this.clearDialTimers();
+    this.clearEndedResetTimer();
     this.stopTimer();
-    audioEngine.stopRecording();
+    audioEngine.release();
     this.currentSession.state = "ended";
     this.notify();
 
-    setTimeout(() => {
-      this.currentSession.state = "idle";
-      this.currentSession.durationSeconds = 0;
-      this.notify();
+    this.endedResetTimer = setTimeout(() => {
+      if (this.currentSession.id !== sessionId || this.currentSession.state !== "ended") return;
+      this.resetToIdle();
     }, 2000);
+  }
+
+  /**
+   * Cancels a local dial/ringing attempt without creating a call record.
+   */
+  public cancelDial(): boolean {
+    if (this.currentSession.state !== "dialing" && this.currentSession.state !== "ringing") return false;
+
+    this.clearDialTimers();
+    this.clearEndedResetTimer();
+    this.resetToIdle();
+    return true;
   }
 
   public toggleMute(): boolean {
