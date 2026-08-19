@@ -590,6 +590,38 @@ function WorkspaceContent() {
     setAppliedPitch(pitchText);
   };
 
+  const handleOperatorStatusChange = async (newStatus: OperatorStatus) => {
+    if (identity?.role !== "operator") {
+      setOperatorStatus(newStatus);
+      return;
+    }
+
+    if (newStatus === "in_call" && !isCallActive && !isDialing) {
+      setNotificationToast("In-call presence is controlled by the active server assignment.");
+      return;
+    }
+
+    const nextPresence = newStatus === "ready" ? "available" : newStatus === "break" ? "break" : "in_call";
+
+    try {
+      await setOperatorPresenceAction(nextPresence);
+      setOperatorStatus(newStatus);
+
+      if (newStatus === "ready" && !activeQueueItemId && !activeLead) {
+        try {
+          const nextAssignment = await claimNextLeadAction();
+          setActiveQueueItemId(nextAssignment?.queue_item_id || null);
+          setActiveLead(nextAssignment?.lead || null);
+          setLeads(nextAssignment ? [nextAssignment.lead] : []);
+        } catch (error) {
+          setNotificationToast(error instanceof Error ? error.message : "Priority callback could not be claimed.");
+        }
+      }
+    } catch (error) {
+      setNotificationToast(error instanceof Error ? error.message : "Operator presence could not be updated.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
@@ -654,19 +686,7 @@ function WorkspaceContent() {
         onToggleMute={() => softphoneController.toggleMute()}
         onToggleHold={() => softphoneController.toggleHold()}
         onSimulateIncoming={handleSimulateIncoming}
-        onStatusChange={(newStatus) => {
-          if (identity?.role === "operator") {
-            if (newStatus === "in_call" && !isCallActive && !isDialing) {
-              setNotificationToast("In-call presence is controlled by the active server assignment.");
-              return;
-            }
-            const nextPresence = newStatus === "ready" ? "available" : newStatus === "break" ? "break" : "in_call";
-            void setOperatorPresenceAction(nextPresence).catch((error) => {
-              setNotificationToast(error instanceof Error ? error.message : "Operator presence could not be updated.");
-            });
-          }
-          setOperatorStatus(newStatus);
-        }}
+        onStatusChange={handleOperatorStatusChange}
         onCallOutcome={handleCallOutcome}
         onScheduleCallback={() => {
           setCallbackScheduleError(null);

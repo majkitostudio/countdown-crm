@@ -31,6 +31,11 @@ a přidělí další kontakt.
   maximálně jeden `in_progress` lead.
 - Callback preferuje původního Operatora, pokud je `available`; jinak se
   přiřadí jinému volnému Operatorovi.
+- Splatné callbacky mají přednost před běžnými leady; pokud není nikdo volný,
+  zůstanou ve `waiting_callback` a při dalším dostupném claimu se vezmou jako
+  první.
+- Callback nepřeruší aktivní hovor. Návrat Operátora do `available` spustí
+  nový claim, který nejprve zkusí splatný callback.
 - Team Leader může přes auditované akce View, Reassign, Release a Reopen
   zasáhnout do assignmentu.
 - URL `/leads/[leadId]` pouze zobrazí serverem povolený detail. Samotné
@@ -562,3 +567,13 @@ completion-only persistence, Teamleader Review a reload persistence.
   leadů, reload workflow a fallback callbacku na druhého dostupného Operátora
   při `break` preferovaného Operátora. Po testu zůstaly všechny Auth, profile,
   membership, presence, lead, queue a event fixture řádky na nule.
+- [x] Migration `20260819143532_callback_priority_routing.sql` řadí splatné
+  `waiting_callback` položky před běžné `available` leady; preference původního
+  Operátora zůstává tie-breakerem a deterministické pořadí používá termín,
+  vytvoření a ID položky.
+- [x] Migration `20260819144339_callback_affinity_capacity.sql` považuje
+  preferovaného Operátora za obsazeného i před zahájením hovoru, pokud už má
+  jiný aktivní assignment; callback proto může bezpečně fallbackovat jinam.
+- [x] Návrat Operátora do `Ready for Calls` po pauze provede nový serverový
+  claim, pokud nemá aktivní assignment, takže splatný callback dostane prioritu
+  i bez samostatného timer scheduleru. Aktivní hovor se nepřerušuje.

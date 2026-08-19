@@ -769,6 +769,14 @@ stavu `available` a nemá aktivní assignment. Pokud je offline, na pauze nebo
 v hovoru, callback dostane jiný dostupný Operator. Pokud není dostupný nikdo,
 callback zůstane v routing procesu do dalšího cyklu.
 
+Splatné callbacky mají v routing claimu vždy přednost před běžnými leady,
+nezávisle na jejich běžné hodnotě `priority`. Preference původního Operátora
+se vyhodnocuje až jako tie-breaker mezi routovatelnými položkami. Callback
+nepřeruší probíhající hovor; při návratu Operátora do `available` nebo při
+novém claimu se vezme první splatný callback. Pokud není dostupný nikdo,
+callback zůstává ve stavu `waiting_callback` a neprovádí se žádný umělý
+reschedule.
+
 Assignment bude obsahovat lease/heartbeat ochranu proti pádu browseru nebo
 odpojení. Po skončení ochranné lhůty se neaktivní assignment bezpečně uvolní,
 aby lead nezůstal trvale zamčený u neaktivního Operatora.
@@ -801,9 +809,11 @@ Team Leader override a context-aware `/leads/[leadId]` route.
 Completion call path nyní vyžaduje aktuální `assignment_id`, takže Operator
 nemůže dokončit call nad leadem, který mu právě nepřísluší.
 
-Browser smoke s více Operátory a konkurenční claim test jsou ověřené. Zbývá
-detailnější callback scheduler a případná integrace telephony/inbound
-providera.
+Browser smoke s více Operátory, konkurenční claim test a prioritní callback
+claim jsou ověřené. Pro schválený MVP model není potřeba samostatný timer
+scheduler: callback se routuje při claimu dostupného Operátora, po reloadu,
+po dokončení outcome nebo při návratu z pauzy. Zbývá případná integrace
+telephony/inbound providera.
 
 Serverní část tohoto routing gate byla následně ověřena 2026-08-19 rollback-safe
 SQL smoke testem: dva souběžné claimy rozdělily dvě dostupné položky mezi dva
