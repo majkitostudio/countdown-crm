@@ -805,6 +805,13 @@ Zbývá browser smoke s více Operátory, konkurenční claim test proti dvěma
 autentizovaným sessions, detailnější callback scheduler a případná integrace
 telephony/inbound providera.
 
+Serverní část tohoto routing gate byla následně ověřena 2026-08-19 rollback-safe
+SQL smoke testem: dva souběžné claimy rozdělily dvě dostupné položky mezi dva
+Operator identity a callback se při `break` preferovaného Operátora přidělil
+druhému dostupnému Operátorovi. Všechny disposable Auth, membership, profile,
+lead, queue a event fixture řádky byly odstraněny; browser test se dvěma
+oddělenými autentizovanými contexty zůstává otevřený.
+
 ## Telephony boundary hardening — 2026-08-19
 
 Schválený provider-neutral telephony slice je dokončený. Lokální softphone už

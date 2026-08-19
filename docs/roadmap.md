@@ -544,3 +544,19 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [ ] Záměrně mimo tento slice zůstává Google/Outlook synchronizace, e-mail,
   SMS, push notifikace, týmové reminders a externí callback notification
   scheduler.
+
+## Callback routing concurrency a fallback smoke — 2026-08-19
+
+- [x] Stávající serverový routing používá atomický claim s `FOR UPDATE SKIP
+  LOCKED`; dva souběžné RPC claimy rozdělily dvě dostupné fixture položky mezi
+  dva dočasné Operator identity bez dvojího aktivního assignmentu.
+- [x] Callback s `preferred_operator_id` byl při `break` preferovaného
+  Operátora převzat druhým dostupným Operátorem. Presence heartbeat a stav
+  `available`/`break` se vyhodnocují na serveru, nikoli podle UI.
+- [x] SQL kontrola po testu potvrdila nulové zbytky Auth users, profiles,
+  workspace memberships, presence, leadů, queue položek a queue eventů. Původní
+  produkční queue položka se vrátila do baseline `available` s nulovým počtem
+  pokusů a bez assignmentu.
+- [ ] Zbývá browser smoke se dvěma skutečně oddělenými autentizovanými
+  session/contexty. Připojený in-app browser sdílí jednu session, proto tento
+  bod nelze pravdivě označit za hotový pouze dvěma taby.
