@@ -39,14 +39,14 @@ a přidělí další kontakt.
 - Pád browseru se řeší lease/heartbeat/recovery mechanismem, ne trvalým
   zámkem leadu.
 
-První runtime slice tohoto scope je implementovaný: queue tabulky a constrainty,
-serverový claim/start/completion/heartbeat, presence, lease recovery,
-callback preference, Team Leader queue operations a scoped `/leads/[leadId]`
-detail. Před jeho uzavřením ještě musí projít browser concurrency smoke test
-se dvěma autentizovanými Operátory, negativní přímá URL kontrola v reálném
-browser session, callback routing pod více přítomnostmi, reload persistence a
-SQL kontrola nulového dvojího přiřazení. Externí telephony/inbound provider je
-samostatná integrační fáze.
+První runtime slice tohoto scope je implementovaný a ověřený: queue tabulky a
+constrainty, serverový claim/start/completion/heartbeat, presence, lease
+recovery, callback preference, Team Leader queue operations a scoped
+`/leads/[leadId]` detail. Oddělené browser sessions potvrdily, že dva Operátoři
+dostanou různé leady a že callback při pauze preferovaného Operátora převezme
+druhý dostupný Operator; přímé SQL kontroly potvrdily atomický claim a nulový
+dvojí assignment. Externí telephony/inbound provider je samostatná integrační
+fáze.
 
 ---
 
@@ -557,6 +557,8 @@ completion-only persistence, Teamleader Review a reload persistence.
   workspace memberships, presence, leadů, queue položek a queue eventů. Původní
   produkční queue položka se vrátila do baseline `available` s nulovým počtem
   pokusů a bez assignmentu.
-- [ ] Zbývá browser smoke se dvěma skutečně oddělenými autentizovanými
-  session/contexty. Připojený in-app browser sdílí jednu session, proto tento
-  bod nelze pravdivě označit za hotový pouze dvěma taby.
+- [x] Browser smoke ve dvou skutečně oddělených Playwright sessions potvrdil
+  reálné přihlášení dvou disposable Operator identit, serverový claim různých
+  leadů, reload workflow a fallback callbacku na druhého dostupného Operátora
+  při `break` preferovaného Operátora. Po testu zůstaly všechny Auth, profile,
+  membership, presence, lead, queue a event fixture řádky na nule.

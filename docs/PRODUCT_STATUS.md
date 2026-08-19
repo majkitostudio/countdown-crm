@@ -716,12 +716,12 @@ inbound provider zůstává samostatný integrační scope.
 
 ## Implementovaný assignment slice — 2026-08-19
 
-Schválený assignment model je nyní částečně implementovaný v databázi,
-serverové datové vrstvě a Operator Console. Queue, assignment, presence,
-lease/heartbeat, recovery, callback preference, auditní eventy a Team Leader
-override operace jsou napojené na workspace authorization. Zbývá ověřit
-produkční browser flow s více skutečnými Operátory a napojit případný externí
-telephony/inbound provider.
+Schválený assignment model je nyní implementovaný v databázi, serverové datové
+vrstvě a Operator Console. Queue, assignment, presence, lease/heartbeat,
+recovery, callback preference, auditní eventy a Team Leader override operace
+jsou napojené na workspace authorization. Izolovaný autentizovaný browser
+smoke s více disposable Operátory je ověřený; zbývá detailnější callback
+scheduler a případný externí telephony/inbound provider.
 
 ### Oddělení CRM adresáře a pracovní fronty
 
@@ -801,16 +801,18 @@ Team Leader override a context-aware `/leads/[leadId]` route.
 Completion call path nyní vyžaduje aktuální `assignment_id`, takže Operator
 nemůže dokončit call nad leadem, který mu právě nepřísluší.
 
-Zbývá browser smoke s více Operátory, konkurenční claim test proti dvěma
-autentizovaným sessions, detailnější callback scheduler a případná integrace
-telephony/inbound providera.
+Browser smoke s více Operátory a konkurenční claim test jsou ověřené. Zbývá
+detailnější callback scheduler a případná integrace telephony/inbound
+providera.
 
 Serverní část tohoto routing gate byla následně ověřena 2026-08-19 rollback-safe
 SQL smoke testem: dva souběžné claimy rozdělily dvě dostupné položky mezi dva
 Operator identity a callback se při `break` preferovaného Operátora přidělil
-druhému dostupnému Operátorovi. Všechny disposable Auth, membership, profile,
-lead, queue a event fixture řádky byly odstraněny; browser test se dvěma
-oddělenými autentizovanými contexty zůstává otevřený.
+druhému dostupnému Operátorovi. Navazující browser smoke ve dvou skutečně
+oddělených Playwright sessions ověřil přihlášení, claim různých leadů, reload a
+stejný callback fallback přes Operator Console. Všechny disposable Auth,
+membership, profile, presence, lead, queue a event fixture řádky byly po testu
+odstraněny.
 
 ## Telephony boundary hardening — 2026-08-19
 
