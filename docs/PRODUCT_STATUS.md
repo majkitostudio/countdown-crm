@@ -852,3 +852,24 @@ Tento slice nemění Supabase schema ani vzdálené RPC. Zůstává záměrně
 simulátor/provider-neutral: skutečný telephony/inbound provider, webhooky,
 audio upload, transcription a AI analýza produkčního hovoru jsou samostatná
 integrační fáze.
+
+## Operator Console first — redesign direction — 2026-08-19
+
+Po uzavření queue, assignmentu, callback routingu a autentizovaného browser
+smoke se mění produktová priorita další etapy: **Operator Console je primární
+pracovní plocha produktu**. Její pracovní model, stavy a informační hierarchie
+budou určovat další operator-facing obrazovky.
+
+První vizuální audit skutečného autentizovaného běhu zachytil Dashboard a
+Operator Console do `output/operator-console-redesign-audit-2026-08-19/`.
+Designový základ je konzistentní a použitelný, ale důležité, podpůrné,
+unavailable a historické informace často dostávají podobnou vizuální váhu.
+To platí pro Dashboard i pro Console.
+
+Další redesign proto nebude plošné překreslení. Zaměří se na priority P0/P1
+(aktuální stav a nejbližší akce), P2 (rozhodovací kontext) a P3 (historie a
+sekundární podpora). Operator Console redesign je další hlavní produktová
+etapa; externí telephony/inbound integrace zůstává pozdější samostatný scope.
+
+Podrobný návrhový brief a akceptační kritéria jsou v
+`docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.

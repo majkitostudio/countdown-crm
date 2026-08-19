@@ -98,9 +98,9 @@ requires the current assignment ID, owner, lease, presence and capacity checks.
 
 The implemented queue slice includes transactional claiming, operator
 presence/capacity, lease/heartbeat recovery, callback affinity and audited
-Team Leader actions `View`, `Reassign`, `Release` and `Reopen`. The runtime
-still needs multi-operator browser smoke and an external telephony/inbound
-provider integration; those are explicitly outside this local softphone slice.
+Team Leader actions `View`, `Reassign`, `Release` and `Reopen`. The
+multi-operator browser smoke is complete. External telephony/inbound provider
+integration remains a separate scope outside this local softphone slice.
 
 ---
 

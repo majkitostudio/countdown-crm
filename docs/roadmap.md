@@ -577,3 +577,23 @@ completion-only persistence, Teamleader Review a reload persistence.
 - [x] Návrat Operátora do `Ready for Calls` po pauze provede nový serverový
   claim, pokud nemá aktivní assignment, takže splatný callback dostane prioritu
   i bez samostatného timer scheduleru. Aktivní hovor se nepřerušuje.
+
+## Operator Console first — další produktová etapa — 2026-08-19
+
+Queue, assignment, callback routing, reminders a dvouuživatelský browser smoke
+jsou uzavřené. Další hlavní produktová etapa je redesign Operator Console.
+
+Operator Console bude primární pracovní plocha; Dashboard bude orientační a
+manažerská vrstva. Redesign musí nejdříve opravit informační hierarchii:
+
+- P0: aktuální stav, blokace, callback a error,
+- P1: nejbližší akce operátora,
+- P2: lead a rozhodovací kontext,
+- P3: historie, sekundární AI podpora a doplňkové metriky.
+
+Nejdříve vznikne state map a information architecture pro před-call, in-call,
+post-call, callback, pause a recovery stavy. Teprve potom se upraví layout a
+vizuální váha existujících komponent. Queue/RLS/serverové kontrakty se v tomto
+designovém slice nemění.
+
+Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.

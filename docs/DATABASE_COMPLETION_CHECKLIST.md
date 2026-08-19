@@ -4,6 +4,12 @@
 **Scope:** clean Supabase project, one-company MVP, workspace-ready data model  
 **Status:** complete for the verified one-company pilot scope; follow-up hardening remains
 
+> **Current-state note — 2026-08-19:** This checklist is a historical database
+> stabilization snapshot. For the current product status and next work, use
+> `docs/PRODUCT_STATUS.md` and `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
+> Items below that predate the later queue, schema, role and runtime smokes must
+> not be treated as the current roadmap without revalidation.
+
 This document is the working checklist for finishing the database-backed CRM
 segment. It is intentionally separate from the product roadmap: a screen is
 not considered complete merely because it renders or because a build passes.
