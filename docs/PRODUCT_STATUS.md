@@ -4,6 +4,23 @@
 **Status:** stabilizační a auditní fáze  
 **Produktový cíl:** Attio-grade CRM pro call-centra s AI copilotem, telephony workflow a bezpečným interním provozem
 
+## Ověřený slice: Operator Calendar (2026-08-19)
+
+Operator Console nyní rozlišuje dvě nezávislé věci, které operátor vidí v
+jednom kalendáři:
+
+- callback vzniká z explicitního plánování v call flow (outcome `Schedule
+  Callback`; také při ukončení aktivního hovoru je nutné vybrat termín) a
+  zůstává součástí `lead_queue_items`,
+- osobní reminder je samostatný workspace-scoped záznam v
+  `operator_reminders` a nemění stav call queue.
+
+Kalendář podporuje zobrazení, filtrování, vytvoření, úpravu, dokončení a
+zrušení reminderu. Připomínky jsou zatím pouze in-app; tato změna nezavádí
+Google/Outlook synchronizaci, e-mail, SMS, push notifikace ani týmové
+remindery. Přístup je chráněn autentizací, workspace/RLS pravidly a serverovou
+DAL/Server Action vrstvou.
+
 ## 1. Proč tento dokument vzniká
 
 Countdown CRM má velký rozsah implementovaných obrazovek, doménových modulů a prototypových workflow. Dosavadní vývoj byl rychlý, ale kontrola kvality nebyla konzistentní. Některé reporty označovaly projekt za plně ověřený, přestože se část problémů řešila změnou ESLint konfigurace, fallbacky nebo mock daty místo opravy skutečného chování.

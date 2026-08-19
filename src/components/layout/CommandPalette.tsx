@@ -14,7 +14,8 @@ import {
   Activity,
   ArrowRight,
   Sparkles,
-  ClipboardList
+  ClipboardList,
+  CalendarDays
 } from "lucide-react";
 import { getLeads, Lead } from "@/lib/leads";
 import { getProducts, Product } from "@/lib/products";
@@ -78,6 +79,7 @@ export function CommandPalette() {
   const navItems = [
     { label: "Dashboard Overview", path: "/", icon: LayoutDashboard },
     { label: "Operator Console (Workspace)", path: "/workspace", icon: PhoneCall },
+    { label: "My Calendar", path: "/calendar", icon: CalendarDays },
     { label: "Leads & Contacts", path: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
     { label: "Product Catalog", path: "/products", icon: Package },
     { label: "Analytics BI", path: "/analytics", icon: BarChart3 },

@@ -331,7 +331,8 @@ function WorkspaceContent() {
     }
 
     if (isCallActive) {
-      void completeCall("followup_scheduled", "Follow-up scheduled", "not_created");
+      setCallbackScheduleError(null);
+      setIsCallbackScheduleOpen(true);
     } else {
       // Start Outbound Call
       if (!activeLead) {
@@ -732,6 +733,7 @@ function WorkspaceContent() {
       />
 
       <CallbackScheduleModal
+        key={isCallbackScheduleOpen ? "callback-open" : "callback-closed"}
         isOpen={isCallbackScheduleOpen}
         leadName={activeLead?.full_name}
         isSubmitting={isCallbackSchedulePending}

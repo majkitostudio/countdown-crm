@@ -94,7 +94,35 @@ CREATE TABLE IF NOT EXISTS public.lead_notes (
 CREATE INDEX IF NOT EXISTS lead_notes_workspace_lead_created_idx
   ON public.lead_notes (workspace_id, lead_id, created_at DESC);
 
--- 3c. SERVER-CONTROLLED LEAD QUEUE
+-- 3c. PERSONAL OPERATOR REMINDERS
+CREATE TABLE IF NOT EXISTS public.operator_reminders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
+  owner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  lead_id UUID REFERENCES public.leads(id) ON DELETE SET NULL,
+  title TEXT NOT NULL CHECK (char_length(trim(title)) BETWEEN 1 AND 200),
+  note TEXT CHECK (note IS NULL OR char_length(note) <= 2000),
+  due_at TIMESTAMPTZ NOT NULL,
+  remind_at TIMESTAMPTZ NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'completed', 'cancelled')),
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (remind_at <= due_at),
+  CHECK (
+    (status = 'completed' AND completed_at IS NOT NULL)
+    OR (status IN ('open', 'cancelled') AND completed_at IS NULL)
+  )
+);
+
+CREATE INDEX IF NOT EXISTS operator_reminders_owner_due_idx
+  ON public.operator_reminders (workspace_id, owner_id, status, due_at);
+CREATE INDEX IF NOT EXISTS operator_reminders_owner_id_idx
+  ON public.operator_reminders (owner_id);
+CREATE INDEX IF NOT EXISTS operator_reminders_lead_id_idx
+  ON public.operator_reminders (lead_id);
+
+-- 3d. SERVER-CONTROLLED LEAD QUEUE
 -- Operators receive one routed assignment; they do not browse this pool.
 CREATE TABLE IF NOT EXISTS public.operator_presence (
   workspace_id UUID NOT NULL REFERENCES public.workspaces(id) ON DELETE CASCADE,
@@ -339,6 +367,7 @@ ALTER TABLE public.workflow_executions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_gamification ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lead_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.operator_reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.operator_presence ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lead_queue_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lead_queue_events ENABLE ROW LEVEL SECURITY;
@@ -481,11 +510,36 @@ CREATE POLICY "Workspace members can create lead notes" ON public.lead_notes
     )
   );
 
+CREATE POLICY "Operators can view own reminders" ON public.operator_reminders
+  FOR SELECT TO authenticated
+  USING (owner_id = (SELECT auth.uid()) AND public.is_workspace_member(workspace_id));
+CREATE POLICY "Operators can create own reminders" ON public.operator_reminders
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    owner_id = (SELECT auth.uid())
+    AND status = 'open'
+    AND completed_at IS NULL
+    AND public.is_workspace_member(workspace_id)
+    AND (
+      lead_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM public.leads AS lead
+        WHERE lead.id = operator_reminders.lead_id
+          AND lead.workspace_id = operator_reminders.workspace_id
+      )
+    )
+  );
+CREATE POLICY "Operators can update own reminders" ON public.operator_reminders
+  FOR UPDATE TO authenticated
+  USING (owner_id = (SELECT auth.uid()) AND public.is_workspace_member(workspace_id))
+  WITH CHECK (owner_id = (SELECT auth.uid()) AND public.is_workspace_member(workspace_id));
+
 GRANT SELECT, INSERT ON TABLE public.lead_notes TO authenticated;
 
-REVOKE ALL ON TABLE public.operator_presence, public.lead_queue_items, public.lead_queue_events
+REVOKE ALL ON TABLE public.operator_presence, public.lead_queue_items, public.lead_queue_events, public.operator_reminders
   FROM anon, authenticated;
 GRANT SELECT ON TABLE public.operator_presence, public.lead_queue_items, public.lead_queue_events TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.operator_reminders TO authenticated;
 
 DROP POLICY IF EXISTS "Team Leaders and Administrators can view operator presence" ON public.operator_presence;
 CREATE POLICY "Team Leaders and Administrators can view operator presence"

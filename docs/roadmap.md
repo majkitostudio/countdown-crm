@@ -522,3 +522,25 @@ completion-only persistence, Teamleader Review a reload persistence.
   SQL recheck potvrdil nulový nový call a obnovený `available` queue stav.
 - [ ] Skutečný provider-neutral adapter pro externí telephony/inbound službu,
   webhooky a produkční audio pipeline zůstává samostatným schváleným krokem.
+
+## Operator Calendar a osobní reminders — 2026-08-19
+
+- [x] `/calendar` je workspace-authenticated stránka pro callbacky a osobní
+  reminders; Operator si neprochází lead directory ani available pool.
+- [x] Callbacky se čtou z `lead_queue_items` ve stavu `waiting_callback` a
+  Operator vidí pouze callbacky preferované pro vlastní účet; Team Leader a
+  Administrator mají workspace-scoped dohled podle existující queue boundary.
+- [x] `operator_reminders` má workspace/owner/lead vazby, RLS, grants,
+  serverovou DAL a Server Actions pro create, update, complete a cancel.
+  Reminder nemění stav call queue.
+- [x] Callback scheduling v Operator Console vyžaduje explicitní datum a čas;
+  po uložení se callback vrací do kalendáře a jeho detailní URL sama o sobě
+  neuděluje oprávnění k volání.
+- [x] Authenticated browser smoke ověřil vytvoření reminderu, reload
+  persistence, úpravu, dokončení, zobrazení disposable callback fixture,
+  SQL status a nulový zůstatek po cleanupu.
+- [x] `npm test -- --run`, lint, typecheck, production build a `git diff --check`
+  prošly.
+- [ ] Záměrně mimo tento slice zůstává Google/Outlook synchronizace, e-mail,
+  SMS, push notifikace, týmové reminders a externí callback notification
+  scheduler.

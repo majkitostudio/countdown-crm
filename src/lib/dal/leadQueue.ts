@@ -58,6 +58,16 @@ export interface QueueItemDTO {
   preferred_operator: { id: string; full_name: string; email: string } | null;
 }
 
+export interface ScheduledCallbackDTO {
+  id: string;
+  workspace_id: string;
+  lead_id: string;
+  scheduled_at: string;
+  preferred_operator_id: string | null;
+  lead: { id: string; full_name: string; phone: string; email: string | null };
+  preferred_operator: { id: string; full_name: string; email: string } | null;
+}
+
 export interface CompleteLeadCallInput {
   queue_item_id: string;
   duration_seconds: number;
@@ -228,6 +238,36 @@ export async function listQueueItemsForWorkspace(workspaceId?: string): Promise<
   }
 
   return (data || []) as unknown as QueueItemDTO[];
+}
+
+export async function listScheduledCallbacksForWorkspace(
+  from: string,
+  to: string,
+  workspaceId?: string,
+): Promise<ScheduledCallbackDTO[]> {
+  const context = await requireWorkspaceContext(workspaceId);
+  const supabase = await createDataClient();
+  let query = supabase
+    .from("lead_queue_items")
+    .select(`
+      id, workspace_id, lead_id, scheduled_at, preferred_operator_id,
+      lead:leads(id, full_name, phone, email),
+      preferred_operator:profiles!lead_queue_items_preferred_operator_id_fkey(id, full_name, email)
+    `)
+    .eq("workspace_id", context.workspaceId)
+    .eq("state", "waiting_callback")
+    .not("scheduled_at", "is", null)
+    .gte("scheduled_at", from)
+    .lte("scheduled_at", to)
+    .order("scheduled_at", { ascending: true });
+
+  if (context.role === "operator") {
+    query = query.eq("preferred_operator_id", context.userId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded.");
+  return (data || []) as unknown as ScheduledCallbackDTO[];
 }
 
 export async function releaseLeadAssignmentForWorkspace(

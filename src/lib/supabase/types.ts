@@ -312,6 +312,69 @@ export interface Database {
         };
         Relationships: [];
       };
+      operator_reminders: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          owner_id: string;
+          lead_id: string | null;
+          title: string;
+          note: string | null;
+          due_at: string;
+          remind_at: string;
+          status: "open" | "completed" | "cancelled";
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          owner_id: string;
+          lead_id?: string | null;
+          title: string;
+          note?: string | null;
+          due_at: string;
+          remind_at: string;
+          status?: "open" | "completed" | "cancelled";
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          lead_id?: string | null;
+          title?: string;
+          note?: string | null;
+          due_at?: string;
+          remind_at?: string;
+          status?: "open" | "completed" | "cancelled";
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "operator_reminders_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "operator_reminders_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "operator_reminders_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       products: {
         Row: {
           id: string;
