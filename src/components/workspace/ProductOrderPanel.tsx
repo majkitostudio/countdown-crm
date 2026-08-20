@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
+import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 
 export interface OrderPlacementResult {
@@ -24,6 +25,7 @@ type OrderSource = "previous_call" | "email" | "web_form" | "manual" | "other";
 interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
+  leadNotes?: LeadNoteDTO[];
   appliedPitch?: string;
   orderMode?: "call" | "manual";
   onClose: () => void;
@@ -38,6 +40,7 @@ interface ProductOrderPanelProps {
 export function ProductOrderPanel({
   products,
   activeLead,
+  leadNotes = [],
   appliedPitch,
   orderMode = "call",
   onClose,
@@ -56,6 +59,26 @@ export function ProductOrderPanel({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
   const lastPitchRef = React.useRef<string | undefined>(undefined);
+  const leadNotesInitializedRef = React.useRef(false);
+
+  const formattedLeadNotes = leadNotes
+    .map((note) => {
+      const timestamp = new Date(note.created_at).toLocaleString("cs-CZ", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `[${timestamp} · ${note.author_name}]\n${note.body}`;
+    })
+    .join("\n\n");
+
+  React.useEffect(() => {
+    if (orderMode === "manual" && !leadNotesInitializedRef.current && formattedLeadNotes) {
+      leadNotesInitializedRef.current = true;
+      setSourceNote(formattedLeadNotes);
+    }
+  }, [formattedLeadNotes, orderMode]);
 
   React.useEffect(() => {
     if (appliedPitch && appliedPitch !== lastPitchRef.current) {
@@ -335,6 +358,18 @@ export function ProductOrderPanel({
         </p>
       </div>
 
+      {leadNotes.length > 0 && (
+        <section className="space-y-2 border-t border-zinc-800 pt-3">
+          <div>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Lead notes from consultation</h3>
+            <p className="mt-1 text-[11px] text-zinc-500">Existing notes are carried into this order flow for context.</p>
+          </div>
+          <div className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3 text-xs leading-relaxed text-zinc-300">
+            {formattedLeadNotes}
+          </div>
+        </section>
+      )}
+
       {/* Post-Call Wrap Up Section */}
       {orderMode === "manual" && (
         <div className="space-y-2 pt-2 border-t border-zinc-800">
@@ -353,11 +388,15 @@ export function ProductOrderPanel({
             <option value="web_form">Web form</option>
             <option value="other">Other</option>
           </select>
+          <label htmlFor="order-note" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
+            Order note
+          </label>
           <textarea
+            id="order-note"
             rows={2}
             value={sourceNote}
             onChange={(event) => setSourceNote(event.target.value)}
-            placeholder="Optional note about where or why the order was received..."
+            placeholder="Optional note about the order or consultation..."
             className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
           />
         </div>
