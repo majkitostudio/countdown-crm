@@ -1,5 +1,14 @@
 import { listLeadOrdersAction, listOrdersAction } from "@/app/actions/crm";
 
+export type OrderStatus =
+  | "completed"
+  | "pending"
+  | "in_progress"
+  | "sent"
+  | "cancelled"
+  | "delivered"
+  | "returned";
+
 export interface Order {
   id: string;
   lead_id: string;
@@ -7,7 +16,7 @@ export interface Order {
   product_id: string;
   product_title: string;
   total_amount: number;
-  status: "completed" | "pending" | "cancelled";
+  status: OrderStatus;
   order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
   source_note: string | null;
   agent_name: string;

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Calendar, ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneMissed, PhoneOff, Play, Radio, ShoppingBag, XCircle } from "lucide-react";
+import Link from "next/link";
+import { Calendar, ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneMissed, PhoneOff, Play, Radio, Settings, ShoppingBag, XCircle } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 
 export type CallOutcome = "call_later" | "schedule" | "fail" | "order";
@@ -61,13 +62,14 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
       </div>
 
       <div className="flex flex-wrap items-center gap-2 justify-end">
-        <button type="button" onClick={onToggleCall} disabled={isStarting} aria-busy={isStarting} className={`px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${isCallActive ? "bg-rose-900/80 border border-rose-800 text-rose-100 hover:bg-rose-900" : "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"}`}>
+        <button type="button" onClick={onToggleCall} disabled={isStarting} aria-busy={isStarting} aria-label={isCallActive ? `End call with ${activeLeadName || "current lead"}` : isDialing ? "Cancel dialing" : "Call client"} title={isCallActive ? "End call" : isDialing ? "Cancel dialing" : "Call client"} className={`rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${isCallActive ? "p-2.5 bg-rose-900/80 border border-rose-800 text-rose-100 hover:bg-rose-900" : "px-5 py-2.5 bg-zinc-100 text-zinc-950 hover:bg-zinc-200"}`}>
           {isCallActive ? <PhoneOff className="w-4 h-4" /> : <PhoneCall className="w-4 h-4 fill-current" />}
-          <span>{isStarting ? "Starting Call..." : isDialing ? "Cancel Dial" : isCallActive ? "End Call" : "Call Client"}</span>
+          <span className={isCallActive ? "sr-only" : ""}>{isStarting ? "Starting Call..." : isDialing ? "Cancel Dial" : isCallActive ? "End Call" : "Call Client"}</span>
         </button>
         {isCallActive && <>
           <button type="button" onClick={onToggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} title={isMuted ? "Unmute microphone" : "Mute microphone"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</button>
           <button type="button" onClick={onToggleHold} aria-label={isOnHold ? "Resume call" : "Put call on hold"} title={isOnHold ? "Resume call" : "Put call on hold"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</button>
+          <Link href="/settings" aria-label="Open settings" title="Open settings" className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"><Settings className="w-4 h-4" /></Link>
           <button onClick={() => onCallOutcome("call_later")} title="Customer did not answer" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><PhoneMissed className="w-3.5 h-3.5" />No Answer</button>
           <button onClick={() => onScheduleCallback ? onScheduleCallback() : onCallOutcome("schedule")} title="Schedule a follow-up call" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />Schedule Callback</button>
           <button onClick={() => onCallOutcome("fail")} title="Customer is not interested" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" />Not Interested</button>
