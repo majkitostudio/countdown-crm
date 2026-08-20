@@ -452,7 +452,7 @@ export interface Database {
           product_id: string | null;
           agent_id: string | null;
           total_amount: number;
-          status: "completed" | "pending" | "cancelled";
+          status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note: string | null;
           created_at: string;
@@ -464,7 +464,7 @@ export interface Database {
           product_id?: string | null;
           agent_id?: string | null;
           total_amount: number;
-          status?: "completed" | "pending" | "cancelled";
+          status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
           created_at?: string;
@@ -474,7 +474,7 @@ export interface Database {
           product_id?: string | null;
           agent_id?: string | null;
           total_amount?: number;
-          status?: "completed" | "pending" | "cancelled";
+          status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
         };

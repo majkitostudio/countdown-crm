@@ -52,6 +52,7 @@ type ActivityQueryOptions = {
   workspaceId: string;
   leadId?: string;
   callId?: string;
+  agentId?: string;
   limit?: number;
 };
 
@@ -65,7 +66,8 @@ async function loadActivityRows(
   includeCalls = true,
   includeOrders = true,
   limit?: number,
-  callId?: string
+  callId?: string,
+  orderAgentId?: string
 ): Promise<ActivityRows> {
   const supabase = await createDataClient();
 
@@ -73,7 +75,7 @@ async function loadActivityRows(
     ? fetchCalls(supabase, { workspaceId, leadId, callId, limit })
     : Promise.resolve({ data: [], error: null });
   const ordersQuery = includeOrders
-    ? fetchOrders(supabase, { workspaceId, leadId, limit })
+    ? fetchOrders(supabase, { workspaceId, leadId, agentId: orderAgentId, limit })
     : Promise.resolve({ data: [], error: null });
 
   const [callsResult, ordersResult] = await Promise.all([callsQuery, ordersQuery]);
@@ -148,6 +150,7 @@ async function fetchOrders(
     .eq("workspace_id", options.workspaceId);
 
   if (options.leadId) query = query.eq("lead_id", options.leadId);
+  if (options.agentId) query = query.eq("agent_id", options.agentId);
 
   query = query.order("created_at", { ascending: false });
   if (options.limit !== undefined) query = query.limit(options.limit);
@@ -224,7 +227,15 @@ export async function listWorkspaceOrders(
   limit?: number
 ): Promise<WorkspaceOrderDTO[]> {
   const context = await requireWorkspaceContext(requestedWorkspaceId);
-  const rows = await loadActivityRows(context.workspaceId, undefined, false, true, limit);
+  const rows = await loadActivityRows(
+    context.workspaceId,
+    undefined,
+    false,
+    true,
+    limit,
+    undefined,
+    context.role === "operator" ? context.userId : undefined,
+  );
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
   return rows.orders.map((order) => ({
@@ -248,7 +259,15 @@ export async function listWorkspaceOrdersForLead(
   requestedWorkspaceId?: string
 ): Promise<WorkspaceOrderDTO[]> {
   const context = await requireWorkspaceContext(requestedWorkspaceId);
-  const rows = await loadActivityRows(context.workspaceId, leadId, false, true);
+  const rows = await loadActivityRows(
+    context.workspaceId,
+    leadId,
+    false,
+    true,
+    undefined,
+    undefined,
+    context.role === "operator" ? context.userId : undefined,
+  );
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
   return rows.orders.map((order) => ({
@@ -272,7 +291,15 @@ export async function listWorkspaceLeadActivity(
   requestedWorkspaceId?: string
 ): Promise<{ calls: WorkspaceCallDTO[]; orders: WorkspaceOrderDTO[] }> {
   const context = await requireWorkspaceContext(requestedWorkspaceId);
-  const rows = await loadActivityRows(context.workspaceId, leadId);
+  const rows = await loadActivityRows(
+    context.workspaceId,
+    leadId,
+    true,
+    true,
+    undefined,
+    undefined,
+    context.role === "operator" ? context.userId : undefined,
+  );
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
   return {

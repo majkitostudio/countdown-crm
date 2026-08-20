@@ -50,6 +50,7 @@ interface PostCallSummary {
 function WorkspaceContent() {
   const searchParams = useSearchParams();
   const leadIdParam = searchParams.get("leadId");
+  const createOrderRequested = searchParams.get("createOrder") === "1";
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -75,6 +76,7 @@ function WorkspaceContent() {
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
   const completionInFlightRef = React.useRef(false);
+  const createOrderRequestHandledRef = React.useRef(false);
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
@@ -92,6 +94,19 @@ function WorkspaceContent() {
   }, [activeQueueItemId, identity?.role]);
 
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
+
+  useEffect(() => {
+    if (!createOrderRequested) {
+      createOrderRequestHandledRef.current = false;
+      return;
+    }
+
+    if (activeLeadId && !createOrderRequestHandledRef.current) {
+      createOrderRequestHandledRef.current = true;
+      setNotificationToast(null);
+      setOrderFlowMode("manual");
+    }
+  }, [activeLeadId, createOrderRequested]);
 
   useEffect(() => {
     return () => {

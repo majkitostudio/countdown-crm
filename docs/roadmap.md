@@ -597,3 +597,67 @@ vizuální váha existujících komponent. Queue/RLS/serverové kontrakty se v t
 designovém slice nemění.
 
 Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
+
+## Schválený budoucí slice: Operator Order Pipeline a delivery follow-up — 2026-08-20
+
+**Status:** produktový záměr schválen, implementace dosud nezačala.
+
+**Priorita:** navazující operator-facing etapa po stabilizaci Operator Console.
+
+Operátor potřebuje samostatný seznam vlastních objednávek, aby mohl sledovat
+jejich další životní cyklus a provádět cílený follow-up. Pipeline nesmí být
+pouze vizuální filtr nad dnešními stavy `completed`, `pending` a `cancelled`;
+před implementací je nutné rozšířit skutečný order status kontrakt a jeho
+serverovou persistenci.
+
+### Zamýšlené stavy a filtry
+
+- `In-Progress` — objednávka je vytvořená a zpracovává se.
+- `Sent` — zásilka byla předaná dopravci nebo odeslaná zákazníkovi.
+- `Cancelled` — objednávka byla zrušená.
+- `Delivered` — doručení bylo potvrzené.
+- `Returned` — zásilka nebyla úspěšně doručená a byla vrácená nebo je vedena
+  v odpovídajícím návratovém procesu.
+
+Před databázovou migrací musí být výslovně rozhodnuto, zda stav
+`Undelivered` bude samostatný stav, nebo logistický důvod/fáze vedoucí ke
+stavu `Returned`. UI nesmí zaměňovat odeslanou zásilku, neúspěšný pokus o
+doručení a skutečně vrácený balík.
+
+### Operátorský workflow
+
+- Operator uvidí pouze své objednávky podle serverově odvozeného `agent_id`;
+  Team Leader a Administrator mohou mít samostatný workspace-scoped dohled.
+- Pipeline umožní filtrovat minimálně `Sent` a `Returned` a vytvořit tak
+  pracovní seznam odeslaných a nedoručených/vrácených zásilek.
+- Z položky pipeline půjde zahájit follow-up se zákazníkem a zobrazit lead,
+  produkt, poslední známý logistický stav, historii změn a poznámky.
+- Follow-up hovor nesmí obejít assignment, presence ani jeden-aktivní-hovor
+  kontrakt. Objednávka vytvoří nebo vyžádá auditovatelnou queue/follow-up
+  položku a Operator bude volat až ze serverem povoleného kontextu.
+- Pipeline bude obsahovat druhé tlačítko `Create Order`; první zůstává v
+  Operator Console u aktuálního leadu.
+
+### Datové a bezpečnostní hranice
+
+- Status objednávky musí být uložený v Supabase a po reloadu zůstat
+  dohledatelný; lokální UI stav ani odvozený badge nejsou zdrojem pravdy.
+- Každá změna statusu musí zachovat `workspace_id`, autorizaci role,
+  serverově odvozenou identitu aktéra a auditní historii.
+- Integrace dopravce, webhooky a mapování externích logistických stavů jsou
+  samostatný integrační scope. Dokud neexistuje ověřený zdroj, CRM nesmí
+  předstírat automaticky potvrzené odeslání, doručení nebo vrácení.
+- Operátor nesmí získat obecný přístup k cizím objednávkám pouze změnou filtru
+  nebo URL parametru.
+
+### Akceptační kritéria budoucího slice
+
+- Operator zobrazí a filtruje pouze své objednávky podle požadovaných stavů.
+- Filtry `Sent` a `Returned` vrátí perzistentní serverová data a rozlišují
+  skutečný logistický význam stavů.
+- Z objednávky lze bezpečně vytvořit follow-up úkol/hovor bez porušení queue
+  a assignment kontraktu.
+- Změna statusu, reload, timeline/audit a přímý read-only databázový check
+  potvrdí stejný workspace, objednávku, operátora a stav.
+- Cross-workspace a cizí operator order access selže uzavřeně a nevytvoří
+  žádný follow-up ani změnu objednávky.
