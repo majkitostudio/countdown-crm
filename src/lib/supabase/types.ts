@@ -452,7 +452,8 @@ export interface Database {
           product_id: string | null;
           agent_id: string | null;
           total_amount: number;
-          status: "completed" | "pending" | "cancelled";
+          currency: string;
+          status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note: string | null;
           created_at: string;
@@ -464,7 +465,8 @@ export interface Database {
           product_id?: string | null;
           agent_id?: string | null;
           total_amount: number;
-          status?: "completed" | "pending" | "cancelled";
+          currency?: string;
+          status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
           created_at?: string;
@@ -474,11 +476,125 @@ export interface Database {
           product_id?: string | null;
           agent_id?: string | null;
           total_amount?: number;
-          status?: "completed" | "pending" | "cancelled";
+          currency?: string;
+          status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
         };
         Relationships: [];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          order_id: string;
+          product_id: string;
+          product_title_snapshot: string;
+          unit_price: number;
+          minimum_unit_price: number;
+          quantity: number;
+          line_total: number;
+          currency: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          order_id: string;
+          product_id: string;
+          product_title_snapshot: string;
+          unit_price: number;
+          minimum_unit_price: number;
+          quantity: number;
+          line_total: number;
+          currency: string;
+          created_at?: string;
+        };
+        Update: {
+          product_title_snapshot?: string;
+          unit_price?: number;
+          minimum_unit_price?: number;
+          quantity?: number;
+          line_total?: number;
+          currency?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_items_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      order_status_history: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          order_id: string;
+          from_status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned" | null;
+          to_status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
+          actor_id: string | null;
+          actor_name: string;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          order_id: string;
+          from_status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned" | null;
+          to_status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
+          actor_id?: string | null;
+          actor_name: string;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          from_status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned" | null;
+          to_status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
+          actor_id?: string | null;
+          actor_name?: string;
+          note?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_status_history_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_status_history_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       objections: {
         Row: {

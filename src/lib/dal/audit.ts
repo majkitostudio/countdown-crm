@@ -17,7 +17,8 @@ export type AuditActionType =
   | "COMPLIANCE_VIOLATION"
   | "ORDER_CREATED"
   | "ORDER_CREATED_MANUAL"
-  | "ORDER_PRODUCT_REASSIGNED";
+  | "ORDER_PRODUCT_REASSIGNED"
+  | "ORDER_STATUS_CHANGED";
 
 export type AuditSeverity = "low" | "medium" | "high" | "critical";
 

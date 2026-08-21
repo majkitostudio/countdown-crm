@@ -4,13 +4,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
+import { getScopedLeadForWorkspace } from "./leadQueue";
 import { requireWorkspaceContext } from "./workspace";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
+type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"];
+type OrderStatusHistoryRow = Database["public"]["Tables"]["order_status_history"]["Row"];
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type OrderWithProduct = OrderRow & { products?: { title: string } | null };
+type OrderWithProduct = OrderRow & { products?: { title: string } | null; order_items?: OrderItemRow[] | null };
 
 export type WorkspaceCallDTO = {
   id: string;
@@ -35,11 +38,30 @@ export type WorkspaceOrderDTO = {
   agent_id: string | null;
   agent_name: string;
   total_amount: number;
+  currency: string;
+  items: WorkspaceOrderItemDTO[];
   status: OrderRow["status"];
   order_source: OrderRow["order_source"];
   source_note: string | null;
+  status_history: WorkspaceOrderStatusHistoryDTO[];
   created_at: string;
 };
+
+export type WorkspaceOrderItemDTO = {
+  id: string;
+  product_id: string;
+  product_title: string;
+  unit_price: number;
+  minimum_unit_price: number;
+  quantity: number;
+  line_total: number;
+  currency: string;
+};
+
+export type WorkspaceOrderStatusHistoryDTO = Pick<
+  OrderStatusHistoryRow,
+  "id" | "from_status" | "to_status" | "actor_id" | "actor_name" | "note" | "created_at"
+>;
 
 type ActivityRows = {
   calls: CallRow[];
@@ -52,6 +74,7 @@ type ActivityQueryOptions = {
   workspaceId: string;
   leadId?: string;
   callId?: string;
+  orderId?: string;
   limit?: number;
 };
 
@@ -65,7 +88,8 @@ async function loadActivityRows(
   includeCalls = true,
   includeOrders = true,
   limit?: number,
-  callId?: string
+  callId?: string,
+  orderId?: string,
 ): Promise<ActivityRows> {
   const supabase = await createDataClient();
 
@@ -73,7 +97,7 @@ async function loadActivityRows(
     ? fetchCalls(supabase, { workspaceId, leadId, callId, limit })
     : Promise.resolve({ data: [], error: null });
   const ordersQuery = includeOrders
-    ? fetchOrders(supabase, { workspaceId, leadId, limit })
+    ? fetchOrders(supabase, { workspaceId, leadId, orderId, limit })
     : Promise.resolve({ data: [], error: null });
 
   const [callsResult, ordersResult] = await Promise.all([callsQuery, ordersQuery]);
@@ -144,10 +168,11 @@ async function fetchOrders(
 ) {
   let query = supabase
     .from("orders")
-    .select("*, products(title)")
+    .select("*, products(title), order_items(id, product_id, product_title_snapshot, unit_price, minimum_unit_price, quantity, line_total, currency)")
     .eq("workspace_id", options.workspaceId);
 
   if (options.leadId) query = query.eq("lead_id", options.leadId);
+  if (options.orderId) query = query.eq("id", options.orderId);
 
   query = query.order("created_at", { ascending: false });
   if (options.limit !== undefined) query = query.limit(options.limit);
@@ -227,20 +252,89 @@ export async function listWorkspaceOrders(
   const rows = await loadActivityRows(context.workspaceId, undefined, false, true, limit);
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
-  return rows.orders.map((order) => ({
+  return rows.orders.map((order) => toWorkspaceOrderDTO(order, customerNameFor(order.lead_id), operatorNameFor(order.agent_id)));
+}
+
+export async function getWorkspaceOrder(
+  orderId: string,
+  requestedWorkspaceId?: string,
+): Promise<WorkspaceOrderDTO | null> {
+  const context = await requireWorkspaceContext(requestedWorkspaceId);
+  const rows = await loadActivityRows(context.workspaceId, undefined, false, true, undefined, undefined, orderId);
+  const order = rows.orders[0];
+  if (!order) return null;
+
+  const { customerNameFor, operatorNameFor } = buildLookups(rows);
+  let leadName = customerNameFor(order.lead_id);
+  if (context.role === "operator" && order.lead_id) {
+    try {
+      const scopedLead = await getScopedLeadForWorkspace(order.lead_id, context.workspaceId);
+      leadName = scopedLead.full_name;
+    } catch {
+      // Keep the explicit unavailable state when the lead is no longer the operator's assignment.
+    }
+  }
+
+  const supabase = await createDataClient();
+  const { data: history, error: historyError } = await supabase
+    .from("order_status_history")
+    .select("id, from_status, to_status, actor_id, actor_name, note, created_at")
+    .eq("workspace_id", context.workspaceId)
+    .eq("order_id", order.id)
+    .order("created_at", { ascending: true });
+
+  if (historyError) {
+    throw new DataAccessError("DATABASE", "Order status history query failed");
+  }
+
+  return toWorkspaceOrderDTO(order, leadName, operatorNameFor(order.agent_id), (history || []) as OrderStatusHistoryRow[]);
+}
+
+function orderItemsFor(order: OrderWithProduct): WorkspaceOrderItemDTO[] {
+  return (order.order_items || []).map((item) => ({
+    id: item.id,
+    product_id: item.product_id,
+    product_title: item.product_title_snapshot,
+    unit_price: Number(item.unit_price || 0),
+    minimum_unit_price: Number(item.minimum_unit_price || 0),
+    quantity: item.quantity,
+    line_total: Number(item.line_total || 0),
+    currency: item.currency,
+  }));
+}
+
+function toWorkspaceOrderDTO(
+  order: OrderWithProduct,
+  leadName: string,
+  operatorName: string,
+  statusHistory: OrderStatusHistoryRow[] = [],
+): WorkspaceOrderDTO {
+  const items = orderItemsFor(order);
+  return {
     id: order.id,
     lead_id: order.lead_id || "",
-    lead_name: customerNameFor(order.lead_id),
-    product_id: order.product_id || "",
-    product_title: order.products?.title || "Unknown product",
+    lead_name: leadName,
+    product_id: order.product_id || items[0]?.product_id || "",
+    product_title: items[0]?.product_title || order.products?.title || "Unknown product",
     agent_id: order.agent_id,
-    agent_name: operatorNameFor(order.agent_id),
+    agent_name: operatorName,
     total_amount: Number(order.total_amount || 0),
+    currency: order.currency || items[0]?.currency || "USD",
+    items,
     status: order.status,
     order_source: order.order_source,
     source_note: order.source_note,
+    status_history: statusHistory.map((entry) => ({
+      id: entry.id,
+      from_status: entry.from_status,
+      to_status: entry.to_status,
+      actor_id: entry.actor_id,
+      actor_name: entry.actor_name,
+      note: entry.note,
+      created_at: entry.created_at,
+    })),
     created_at: order.created_at,
-  }));
+  };
 }
 
 export async function listWorkspaceOrdersForLead(
@@ -251,20 +345,7 @@ export async function listWorkspaceOrdersForLead(
   const rows = await loadActivityRows(context.workspaceId, leadId, false, true);
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
-  return rows.orders.map((order) => ({
-    id: order.id,
-    lead_id: order.lead_id || leadId,
-    lead_name: customerNameFor(order.lead_id),
-    product_id: order.product_id || "",
-    product_title: order.products?.title || "Unknown product",
-    agent_id: order.agent_id,
-    agent_name: operatorNameFor(order.agent_id),
-    total_amount: Number(order.total_amount || 0),
-    status: order.status,
-    order_source: order.order_source,
-    source_note: order.source_note,
-    created_at: order.created_at,
-  }));
+  return rows.orders.map((order) => toWorkspaceOrderDTO(order, customerNameFor(order.lead_id) || leadId, operatorNameFor(order.agent_id)));
 }
 
 export async function listWorkspaceLeadActivity(
@@ -289,19 +370,6 @@ export async function listWorkspaceLeadActivity(
       transcript: call.transcript,
       created_at: call.created_at,
     })),
-    orders: rows.orders.map((order) => ({
-      id: order.id,
-      lead_id: order.lead_id || leadId,
-      lead_name: customerNameFor(order.lead_id),
-      product_id: order.product_id || "",
-      product_title: order.products?.title || "Unknown product",
-      agent_id: order.agent_id,
-      agent_name: operatorNameFor(order.agent_id),
-      total_amount: Number(order.total_amount || 0),
-      status: order.status,
-      order_source: order.order_source,
-      source_note: order.source_note,
-      created_at: order.created_at,
-    })),
+    orders: rows.orders.map((order) => toWorkspaceOrderDTO(order, customerNameFor(order.lead_id) || leadId, operatorNameFor(order.agent_id))),
   };
 }
