@@ -12,7 +12,7 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
 type OrderSource = OrderRow["order_source"];
 
-export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "agent_id" | "total_amount" | "currency" | "status" | "order_source" | "source_note" | "created_at">;
+export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "agent_id" | "total_amount" | "currency" | "status" | "order_source" | "source_note" | "revision" | "created_at">;
 
 export interface CreateOrderItemInput {
   product_id: string;
@@ -32,6 +32,21 @@ export interface UpdateOrderStatusInput {
   orderId: string;
   status: OrderStatus;
   note?: string | null;
+}
+
+export interface UpdateOrderDetailsItemInput {
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+}
+
+export interface UpdateOrderDetailsInput {
+  orderId: string;
+  expectedRevision: number;
+  items: UpdateOrderDetailsItemInput[];
+  order_source: OrderSource;
+  source_note?: string | null;
+  reason?: string | null;
 }
 
 export async function createOrderForWorkspace(
@@ -112,6 +127,79 @@ export async function updateOrderStatusForWorkspace(
     throw new DataAccessError("DATABASE", "Order status update failed");
   }
 
+  if ((row as OrderRow).workspace_id !== context.workspaceId) {
+    throw new DataAccessError("FORBIDDEN", "Order is not available in the active workspace");
+  }
+
+  return row as OrderDTO;
+}
+
+function orderDetailsError(error: { message?: string } | null): DataAccessError {
+  const message = error?.message || "Order details update failed";
+  if (message.includes("changed since it was opened")) {
+    return new DataAccessError("VALIDATION", "The order changed since it was opened. Reload and try again.");
+  }
+  if (message.includes("can no longer be edited") || message.includes("administrator and a reason")) {
+    return new DataAccessError("FORBIDDEN", "This order is read-only for your current role and status.");
+  }
+  if (message.includes("reason") || message.includes("item") || message.includes("source") || message.includes("currency")) {
+    return new DataAccessError("VALIDATION", message);
+  }
+  return new DataAccessError("DATABASE", "Order details update failed");
+}
+
+export async function updateOrderDetailsForWorkspace(
+  input: UpdateOrderDetailsInput,
+): Promise<OrderDTO> {
+  if (!input.orderId.trim()) {
+    throw new DataAccessError("VALIDATION", "Order id is required");
+  }
+  if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 1) {
+    throw new DataAccessError("VALIDATION", "Order revision is required");
+  }
+  if (!Array.isArray(input.items) || input.items.length < 1 || input.items.length > 50) {
+    throw new DataAccessError("VALIDATION", "Order must contain between 1 and 50 items");
+  }
+  if (new Set(input.items.map((item) => item.product_id)).size !== input.items.length) {
+    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+  }
+  for (const item of input.items) {
+    if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+    }
+    if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1_000_000_000) {
+      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+    }
+  }
+  if (!input.order_source) {
+    throw new DataAccessError("VALIDATION", "Order source is required");
+  }
+  if (input.source_note && input.source_note.trim().length > 1000) {
+    throw new DataAccessError("VALIDATION", "Order source note is too long");
+  }
+  if (input.reason && input.reason.trim().length > 500) {
+    throw new DataAccessError("VALIDATION", "Order edit reason is too long");
+  }
+
+  const context = await requireWorkspaceContext();
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("update_order_with_items", {
+    p_order_id: input.orderId,
+    p_expected_revision: input.expectedRevision,
+    p_items: input.items.map((item) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    })),
+    p_order_source: input.order_source,
+    p_source_note: input.source_note?.trim() || null,
+    p_reason: input.reason?.trim() || null,
+  } as never);
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
+    throw orderDetailsError(error);
+  }
   if ((row as OrderRow).workspace_id !== context.workspaceId) {
     throw new DataAccessError("FORBIDDEN", "Order is not available in the active workspace");
   }

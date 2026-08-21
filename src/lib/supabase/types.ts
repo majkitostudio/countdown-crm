@@ -456,6 +456,7 @@ export interface Database {
           status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note: string | null;
+          revision: number;
           created_at: string;
         };
         Insert: {
@@ -469,6 +470,7 @@ export interface Database {
           status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
+          revision?: number;
           created_at?: string;
         };
         Update: {
@@ -480,6 +482,7 @@ export interface Database {
           status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
+          revision?: number;
         };
         Relationships: [];
       };
@@ -589,6 +592,63 @@ export interface Database {
           },
           {
             foreignKeyName: "order_status_history_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      order_change_history: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          order_id: string;
+          actor_id: string | null;
+          actor_name: string;
+          change_kind: "details_updated";
+          reason: string | null;
+          before_state: Json;
+          after_state: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          order_id: string;
+          actor_id?: string | null;
+          actor_name: string;
+          change_kind?: "details_updated";
+          reason?: string | null;
+          before_state: Json;
+          after_state: Json;
+          created_at?: string;
+        };
+        Update: {
+          actor_id?: string | null;
+          actor_name?: string;
+          change_kind?: "details_updated";
+          reason?: string | null;
+          before_state?: Json;
+          after_state?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_change_history_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_change_history_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "order_change_history_actor_id_fkey";
             columns: ["actor_id"];
             isOneToOne: false;
             referencedRelation: "profiles";

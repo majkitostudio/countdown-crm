@@ -18,7 +18,8 @@ export type AuditActionType =
   | "ORDER_CREATED"
   | "ORDER_CREATED_MANUAL"
   | "ORDER_PRODUCT_REASSIGNED"
-  | "ORDER_STATUS_CHANGED";
+  | "ORDER_STATUS_CHANGED"
+  | "ORDER_DETAILS_UPDATED";
 
 export type AuditSeverity = "low" | "medium" | "high" | "critical";
 

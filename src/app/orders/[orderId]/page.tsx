@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, Package, ShoppingCart, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, Package, Pencil, ShoppingCart, UserRound } from "lucide-react";
 import { getWorkspaceOrder } from "@/lib/dal/activity";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { OrderStatusEditor } from "@/components/orders/OrderStatusEditor";
@@ -24,7 +24,7 @@ function statusLabel(status: string): string {
 }
 
 type OrderLoadResult =
-  | { order: Awaited<ReturnType<typeof getWorkspaceOrder>>; canEdit: boolean; isManager: boolean }
+  | { order: Awaited<ReturnType<typeof getWorkspaceOrder>>; canEdit: boolean; canEditDetails: boolean; isManager: boolean }
   | { error: unknown };
 
 async function loadOrder(orderId: string): Promise<OrderLoadResult> {
@@ -36,6 +36,13 @@ async function loadOrder(orderId: string): Promise<OrderLoadResult> {
     return {
       order,
       canEdit: context.role === "operator" || context.role === "team_leader" || context.role === "administrator",
+      canEditDetails: Boolean(
+        order && (
+          context.role === "administrator"
+          || (context.role === "team_leader" && ["pending", "in_progress"].includes(order.status))
+          || (context.role === "operator" && order.agent_id === context.userId && ["pending", "in_progress"].includes(order.status))
+        )
+      ),
       isManager: context.role === "team_leader" || context.role === "administrator",
     };
   } catch (error) {
@@ -70,7 +77,7 @@ export default async function OrderDetailPage({
     );
   }
 
-  const { order, canEdit, isManager } = result;
+  const { order, canEdit, canEditDetails, isManager } = result;
 
   if (!order) {
     return (
@@ -111,7 +118,18 @@ export default async function OrderDetailPage({
             <p className="mt-1 text-xs text-zinc-400">Created {formatDate(order.created_at)}</p>
           </div>
         </div>
-        <span className={`w-fit rounded-md border px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider ${statusClass(order.status)}`}>{statusLabel(order.status)}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {canEditDetails && (
+            <Link
+              href={`/orders/${order.id}/edit${requestedOrigin === "workspace" ? "?origin=workspace" : ""}`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit details
+            </Link>
+          )}
+          <span className={`w-fit rounded-md border px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider ${statusClass(order.status)}`}>{statusLabel(order.status)}</span>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -205,6 +223,12 @@ export default async function OrderDetailPage({
 
         <aside className="h-fit space-y-6 lg:sticky lg:top-0">
           <OrderStatusEditor orderId={order.id} currentStatus={order.status} canEdit={canEdit} isManager={isManager} />
+          {!canEditDetails && order.status !== "pending" && order.status !== "in_progress" && (
+            <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
+              <p className="text-xs font-medium text-zinc-300">Order details are read-only</p>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-500">After the order is sent, only an administrator can edit its details. Status changes remain a separate workflow.</p>
+            </section>
+          )}
           <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>

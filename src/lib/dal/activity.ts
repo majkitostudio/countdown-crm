@@ -44,6 +44,7 @@ export type WorkspaceOrderDTO = {
   order_source: OrderRow["order_source"];
   source_note: string | null;
   status_history: WorkspaceOrderStatusHistoryDTO[];
+  revision: number;
   created_at: string;
 };
 
@@ -333,6 +334,7 @@ function toWorkspaceOrderDTO(
       note: entry.note,
       created_at: entry.created_at,
     })),
+    revision: order.revision,
     created_at: order.created_at,
   };
 }
