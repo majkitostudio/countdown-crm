@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/node_modules-*/
 /.pnp
 .pnp.*
 .yarn/*
@@ -12,9 +13,12 @@
 
 # testing
 /coverage
+/.playwright-cli/
+/output/
 
 # next.js
 /.next/
+/.next-recovery-*/
 /out/
 
 # production
@@ -37,6 +41,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# local recovery and connector state
+/supabase/.temp/
 
 # vscode
 .vscode/
