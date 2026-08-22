@@ -616,9 +616,12 @@ feature branchi:
 - [x] Lokální gate: 22 Vitest testů, lint, typecheck, production build a
   `git diff --check` prošly. Unauthenticated route smoke správně skončil na
   `/login`.
+- [x] Authenticated Administrator save → reload persistence prošel přes
+  skutečný browser; marker byl po ověření odstraněn a SQL baseline je čistý.
+- [x] Authenticated Postgres RLS simulation s Operator membership potvrdila
+  read access, odmítnutý INSERT (`42501`) a 0 aktualizovaných řádků.
 
-Před úplným uzavřením acceptance gate zbývá authenticated browser/SQL smoke:
-  Administrator save → reload persistence → Operator/Team Leader read-only →
-  cross-workspace rejection → cleanup/recheck. Tato relace neměla k dispozici
-  přihlášený browser ani testovací heslo; není proto vydáváno falešné tvrzení,
-  že tento poslední krok prošel.
+Zbývá pouze otevření samostatné Operator/Team Leader UI relace pro vizuální
+read-only smoke. Aktuální workspace má Administrator + 2 Operators a nemá
+Team Leader membership; po Administrator smoke byla relace odhlášena. Serverní
+cross-workspace guard, product workspace check a RLS jsou ověřené.

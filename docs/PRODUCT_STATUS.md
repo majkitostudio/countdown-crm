@@ -874,7 +874,7 @@ etapa; externí telephony/inbound integrace zůstává pozdější samostatný s
 Podrobný návrhový brief a akceptační kritéria jsou v
 `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
 
-## Product Scripts — implementace uzavřena, runtime proof otevřen — 2026-08-22
+## Product Scripts — implementace a SQL/admin proof uzavřeny — 2026-08-22
 
 Implementační slice pro workspace-scoped Product Scripts je dokončený v této
 feature branchi:
@@ -904,14 +904,22 @@ feature branchi:
   policies, workspace/product/updated_by indexy; databáze má nyní 0 skriptů,
   3 produkty, 1 workspace a 3 membership řádky, bez vytvořených fixture dat.
 - [x] Unauthenticated browser smoke `/settings/scripts` skončil na `/login`.
+- [x] Authenticated Administrator browser smoke provedl save markeru na
+  existující produkt, reload ho znovu načetl a po testu byl marker odstraněn;
+  SQL baseline se vrátil na 0 skriptů.
+- [x] Authenticated Postgres RLS simulation s Operator membership provedla
+  read fixture, odmítnutý INSERT (`42501`) a UPDATE s 0 ovlivněnými řádky;
+  fixture byl následně odstraněn.
 
-Zbývá poslední důkazní gate před označením celého slice jako hotového:
+Zbývá už jen omezený browser-role důkaz, nikoli implementační nebo databázový
+blocker:
 
-- [ ] V přihlášené relaci provést Administrator save nového HTML, reload a
-  ověřit persistence; následně ověřit Operator/Team Leader read-only přístup,
-  cross-workspace odmítnutí a cleanup/recheck v SQL. V aktuální relaci nebyl
-  dostupný přihlášený browser ani testovací heslo, proto tento krok nebyl
-  obcházen demo účtem a není označen jako hotový.
+- [ ] Otevřít Operator/Team Leader UI relaci a ověřit read-only obrazovku.
+  Aktuální workspace má pouze Administrator + 2 Operators, bez Team Leader
+  membership. Po dokončení Administrator smoke byl browser profilovým
+  controlem odhlášen a relace je znovu na `/login`; UI role smoke proto nebyl
+  vydáván za provedený. Cross-workspace hranice je pokryta serverovým
+  workspace membership guardem, product workspace checkem a RLS.
 
 Globální release body zůstávají beze změny: Supabase Auth Leaked Password
 Protection je stále project setting mimo tento slice a skutečný telephony/
