@@ -873,3 +873,46 @@ etapa; externí telephony/inbound integrace zůstává pozdější samostatný s
 
 Podrobný návrhový brief a akceptační kritéria jsou v
 `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
+
+## Product Scripts — implementace uzavřena, runtime proof otevřen — 2026-08-22
+
+Implementační slice pro workspace-scoped Product Scripts je dokončený v této
+feature branchi:
+
+- [x] Administrator-only `/settings/scripts` načítá produkty a uložené skripty
+  přes serverový DAL; Team Leader/Operator nemají editor ani save oprávnění.
+- [x] Server Actions znovu ověřují přihlášení, workspace membership a roli;
+  workspace a product vazba se kontroluje na serveru před upsertem.
+- [x] `public.product_scripts` má unique `(workspace_id, product_id)`, RLS,
+  authenticated grants, workspace member SELECT a Administrator-only
+  INSERT/UPDATE policies s `updated_by = auth.uid()` a stejným workspace
+  produktem.
+- [x] HTML se čistí na clientu i serveru na omezenou allowlist struktury a
+  textových značek; executable tags, event attributes, odkazy, styly a zdroje
+  se neukládají. Operator Console při DB chybě nezobrazuje uložený obsah jako
+  fallback; fallback se zobrazí jen při explicitním `not_found`.
+- [x] Operator Console zobrazuje uložený continuous script, případně zřetelně
+  označený vestavěný pilot fallback. Pilot suggestion je oddělený od schváleného
+  uloženého textu; osobní highlights a view preferences jsou session-only.
+- [x] Přidán index `product_scripts.updated_by`; vzdálený Supabase migration
+  history obsahuje `product_scripts_updated_by_index` ve verzi
+  `20260822023345`. Lokální migration soubor má timestamp
+  `20260822023213`; objekt a SQL byly ověřeny proti vzdálenému projektu.
+- [x] Lokální důkazy: `npm test -- --run` = 22/22, lint, typecheck, production
+  build a `git diff --check` prošly. Build obsahuje `/settings/scripts`.
+- [x] Read-only SQL ověření: `product_scripts` má RLS enabled, tři očekávané
+  policies, workspace/product/updated_by indexy; databáze má nyní 0 skriptů,
+  3 produkty, 1 workspace a 3 membership řádky, bez vytvořených fixture dat.
+- [x] Unauthenticated browser smoke `/settings/scripts` skončil na `/login`.
+
+Zbývá poslední důkazní gate před označením celého slice jako hotového:
+
+- [ ] V přihlášené relaci provést Administrator save nového HTML, reload a
+  ověřit persistence; následně ověřit Operator/Team Leader read-only přístup,
+  cross-workspace odmítnutí a cleanup/recheck v SQL. V aktuální relaci nebyl
+  dostupný přihlášený browser ani testovací heslo, proto tento krok nebyl
+  obcházen demo účtem a není označen jako hotový.
+
+Globální release body zůstávají beze změny: Supabase Auth Leaked Password
+Protection je stále project setting mimo tento slice a skutečný telephony/
+inbound provider není jeho součástí.

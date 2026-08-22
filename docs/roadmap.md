@@ -597,3 +597,28 @@ vizuální váha existujících komponent. Queue/RLS/serverové kontrakty se v t
 designovém slice nemění.
 
 Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
+
+## Product Scripts — 2026-08-22
+
+Implementační část workspace-scoped schválených Product Scripts je hotová na
+feature branchi:
+
+- [x] Administrator-only `/settings/scripts` s kontinuálním editorem,
+  preview, bezpečným textovým formátováním a ochranou před ztrátou
+  neuložených změn při přepnutí produktu.
+- [x] Server Actions a DAL ověřují auth, membership, workspace, Administrator
+  roli a vlastnictví produktu; Operator Console pouze čte uloženou verzi.
+- [x] Supabase `product_scripts` má workspace/product unique constraint, RLS,
+  role-scoped policies, grants a index pro `updated_by`; aplikovaný remote
+  migration history byl znovu ověřen 2026-08-22.
+- [x] Client/server sanitizace HTML odstraňuje executable markup a ukládá jen
+  podporovanou strukturu textu; DB error nepředstírá dostupnost skriptu.
+- [x] Lokální gate: 22 Vitest testů, lint, typecheck, production build a
+  `git diff --check` prošly. Unauthenticated route smoke správně skončil na
+  `/login`.
+
+Před úplným uzavřením acceptance gate zbývá authenticated browser/SQL smoke:
+  Administrator save → reload persistence → Operator/Team Leader read-only →
+  cross-workspace rejection → cleanup/recheck. Tato relace neměla k dispozici
+  přihlášený browser ani testovací heslo; není proto vydáváno falešné tvrzení,
+  že tento poslední krok prošel.
