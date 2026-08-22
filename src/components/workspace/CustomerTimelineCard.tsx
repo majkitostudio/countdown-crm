@@ -114,7 +114,7 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
         <div className="flex items-center gap-1.5">
           <History className="w-3.5 h-3.5 text-zinc-400" />
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-            Omnichannel Timeline ({filteredEntries.length})
+            Lead Timeline ({filteredEntries.length})
           </h3>
         </div>
 

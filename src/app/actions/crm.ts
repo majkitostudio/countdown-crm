@@ -6,8 +6,16 @@ import {
   createOrderForWorkspace,
   listOrderProductCountsForWorkspace,
   reassignOrdersProductForWorkspace,
+  updateOrderDetailsForWorkspace,
+  updateOrderStatusForWorkspace,
 } from "@/lib/dal/orders";
-import type { CreateOrderInput, OrderDTO, ReassignOrdersResult } from "@/lib/dal/orders";
+import type {
+  CreateOrderInput,
+  OrderDTO,
+  ReassignOrdersResult,
+  UpdateOrderDetailsInput,
+  UpdateOrderStatusInput,
+} from "@/lib/dal/orders";
 import { createCallForWorkspace } from "@/lib/dal/calls";
 import type { CallDTO, CreateCallInput } from "@/lib/dal/calls";
 import { completeCallForWorkspace } from "@/lib/dal/callCompletion";
@@ -54,6 +62,20 @@ export async function updateLeadStatusAction(
 
 export async function createOrderAction(input: CreateOrderInput, workspaceId?: string): Promise<OrderDTO> {
   return createOrderForWorkspace(input, workspaceId);
+}
+
+export async function updateOrderStatusAction(
+  orderId: string,
+  status: UpdateOrderStatusInput["status"],
+  note?: string | null,
+): Promise<OrderDTO> {
+  return updateOrderStatusForWorkspace({ orderId, status, note });
+}
+
+export async function updateOrderDetailsAction(
+  input: UpdateOrderDetailsInput,
+): Promise<OrderDTO> {
+  return updateOrderDetailsForWorkspace(input);
 }
 
 export async function reassignOrdersProductAction(

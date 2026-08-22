@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { Order, getOrders } from "@/lib/orders";
 import { OperatorStatus } from "@/components/layout/Sidebar";
-import { CallStatusBar, CallOutcome } from "@/components/workspace/CallStatusBar";
+import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import { CustomerPanel } from "@/components/workspace/CustomerPanel";
+import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
 import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { ProductOrderPanel, type OrderPlacementResult } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
@@ -20,7 +21,7 @@ import { workflowEngine } from "@/lib/workflows/engine";
 import { listWorkflowsAction } from "@/app/actions/workflows";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
-import { completeCallAction, createOrderAction } from "@/app/actions/crm";
+import { completeCallAction } from "@/app/actions/crm";
 import {
   abortLeadCallStartAction,
   claimNextLeadAction,
@@ -43,6 +44,7 @@ interface PostCallSummary {
 }
 
 function WorkspaceContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const leadIdParam = searchParams.get("leadId");
 
@@ -51,7 +53,7 @@ function WorkspaceContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
-  const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
+  const [, setOperatorStatus] = useState<OperatorStatus>("ready");
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
   
@@ -59,7 +61,7 @@ function WorkspaceContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
-  const [orderFlowMode, setOrderFlowMode] = useState<"call" | "manual" | null>(null);
+  const [orderFlowMode, setOrderFlowMode] = useState<"call" | null>(null);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [isCallbackScheduleOpen, setIsCallbackScheduleOpen] = useState(false);
@@ -538,46 +540,6 @@ function WorkspaceContent() {
     }
   };
 
-  const handleManualOrderPlaced = async (
-    productId: string,
-    totalAmount: number,
-    orderSource: "previous_call" | "email" | "web_form" | "manual" | "other",
-    sourceNote: string | null,
-  ): Promise<OrderPlacementResult | null> => {
-    if (!activeLead) return null;
-
-    try {
-      const order = await createOrderAction({
-        lead_id: activeLead.id,
-        product_id: productId,
-        total_amount: totalAmount,
-        order_source: orderSource,
-        source_note: sourceNote,
-        status: "completed",
-      });
-      let orderHistoryRefreshFailed = false;
-      try {
-        setOrders(await getOrders());
-      } catch {
-        orderHistoryRefreshFailed = true;
-        setNotificationToast(`Order #${order.id} was created, but customer order history could not be refreshed.`);
-      }
-      setActivityRefreshToken((current) => current + 1);
-      setOrderFlowMode(null);
-      if (!orderHistoryRefreshFailed) {
-        setNotificationToast(`Order #${order.id} was created without a new call.`);
-      }
-      return { orderId: order.id, callCompleted: true };
-    } catch (error) {
-      setNotificationToast(
-        error instanceof Error
-          ? `Order creation failed: ${error.message}`
-          : "Order creation failed. Nothing was recorded."
-      );
-      return null;
-    }
-  };
-
   const handleNextLead = () => {
     setPostCallSummary(null);
     setNotificationToast(null);
@@ -588,38 +550,6 @@ function WorkspaceContent() {
 
   const handleApplyPitch = (pitchText: string) => {
     setAppliedPitch(pitchText);
-  };
-
-  const handleOperatorStatusChange = async (newStatus: OperatorStatus) => {
-    if (identity?.role !== "operator") {
-      setOperatorStatus(newStatus);
-      return;
-    }
-
-    if (newStatus === "in_call" && !isCallActive && !isDialing) {
-      setNotificationToast("In-call presence is controlled by the active server assignment.");
-      return;
-    }
-
-    const nextPresence = newStatus === "ready" ? "available" : newStatus === "break" ? "break" : "in_call";
-
-    try {
-      await setOperatorPresenceAction(nextPresence);
-      setOperatorStatus(newStatus);
-
-      if (newStatus === "ready" && !activeQueueItemId && !activeLead) {
-        try {
-          const nextAssignment = await claimNextLeadAction();
-          setActiveQueueItemId(nextAssignment?.queue_item_id || null);
-          setActiveLead(nextAssignment?.lead || null);
-          setLeads(nextAssignment ? [nextAssignment.lead] : []);
-        } catch (error) {
-          setNotificationToast(error instanceof Error ? error.message : "Priority callback could not be claimed.");
-        }
-      }
-    } catch (error) {
-      setNotificationToast(error instanceof Error ? error.message : "Operator presence could not be updated.");
-    }
   };
 
   if (isLoading) {
@@ -672,55 +602,51 @@ function WorkspaceContent() {
         />
       )}
 
-      {/* Top Status & Call Controller Bar */}
-      <CallStatusBar
-        status={operatorStatus}
-        isCallActive={isCallActive}
-        isDialing={isDialing}
-        durationSeconds={softphoneSession.durationSeconds}
-        isMuted={softphoneSession.isMuted}
-        isOnHold={softphoneSession.isOnHold}
-        activeLeadName={activeLead?.full_name}
-        activeLeadPhone={activeLead?.phone}
-        onToggleCall={handleToggleCall}
-        onToggleMute={() => softphoneController.toggleMute()}
-        onToggleHold={() => softphoneController.toggleHold()}
-        onSimulateIncoming={handleSimulateIncoming}
-        onStatusChange={handleOperatorStatusChange}
-        onCallOutcome={handleCallOutcome}
-        onScheduleCallback={() => {
-          setCallbackScheduleError(null);
-          setIsCallbackScheduleOpen(true);
-        }}
-        showIncomingSimulator={identity?.role !== "operator"}
-        isStarting={isCallStartPending}
-      />
-
-      {/* Main 3-Column Operator Workspace Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[720px]">
-        
-        {/* Left Column: Customer Details & Timeline (3 cols) */}
-        <div className="lg:col-span-3 h-full">
+      {/* Main Operator Workspace Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 min-h-[720px]">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-9">
           <CustomerPanel
             leads={leads}
             activeLead={activeLead}
             orders={orders}
             activityRefreshToken={activityRefreshToken}
-            onSelectLead={(lead) => setActiveLead(lead)}
-            onCreateOrder={() => setOrderFlowMode("manual")}
+            onCreateOrder={() => {
+              if (isCallActive || isDialing) {
+                setNotificationToast("Finish the active call before opening order creation.");
+                return;
+              }
+              if (activeLead) router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace`);
+            }}
             queueControlled={identity?.role === "operator"}
-            canCreateOrder={identity?.role !== "operator"}
+            canCreateOrder={Boolean(identity)}
+            isCallActive={isCallActive}
+            isDialing={isDialing}
+            durationSeconds={softphoneSession.durationSeconds}
+            isMuted={softphoneSession.isMuted}
+            onToggleCall={handleToggleCall}
+            onToggleMute={() => softphoneController.toggleMute()}
+            onCallOutcome={handleCallOutcome}
+            onScheduleCallback={() => {
+              setCallbackScheduleError(null);
+              setIsCallbackScheduleOpen(true);
+            }}
+            onSimulateIncoming={identity?.role !== "operator" ? handleSimulateIncoming : undefined}
+            isStarting={isCallStartPending}
+            showTimeline={false}
           />
-        </div>
 
-        {/* Middle Column: Product script and contextual AI suggestion */}
-        <div className="lg:col-span-9 h-full">
           <ProductScriptPanel
             isCallActive={isCallActive}
             product={products[0]}
             onApplyPitch={handleApplyPitch}
           />
         </div>
+
+        <aside className="min-w-0 lg:col-span-3">
+          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm lg:sticky lg:top-0">
+            {activeLead && <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} />}
+          </div>
+        </aside>
 
       </div>
 
@@ -738,7 +664,7 @@ function WorkspaceContent() {
                 appliedPitch={appliedPitch}
                 orderMode={orderFlowMode}
                 onClose={() => setOrderFlowMode(null)}
-                onOrderPlaced={orderFlowMode === "manual" ? handleManualOrderPlaced : handleOrderPlaced}
+                onOrderPlaced={handleOrderPlaced}
             />
           </div>
         </div>

@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
+import { getScopedLeadForWorkspace } from "./leadQueue";
 import { requireWorkspaceContext } from "./workspace";
 import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
@@ -11,23 +12,60 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
 type OrderSource = OrderRow["order_source"];
 
-export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "agent_id" | "total_amount" | "status" | "order_source" | "source_note" | "created_at">;
+export type OrderDTO = Pick<OrderRow, "id" | "workspace_id" | "lead_id" | "product_id" | "agent_id" | "total_amount" | "currency" | "status" | "order_source" | "source_note" | "revision" | "created_at">;
+
+export interface CreateOrderItemInput {
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+}
 
 export interface CreateOrderInput {
   lead_id: string;
-  product_id: string;
-  total_amount: number;
+  items: CreateOrderItemInput[];
   order_source: OrderSource;
   source_note?: string | null;
   status?: OrderStatus;
+}
+
+export interface UpdateOrderStatusInput {
+  orderId: string;
+  status: OrderStatus;
+  note?: string | null;
+}
+
+export interface UpdateOrderDetailsItemInput {
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+}
+
+export interface UpdateOrderDetailsInput {
+  orderId: string;
+  expectedRevision: number;
+  items: UpdateOrderDetailsItemInput[];
+  order_source: OrderSource;
+  source_note?: string | null;
+  reason?: string | null;
 }
 
 export async function createOrderForWorkspace(
   input: CreateOrderInput,
   workspaceId?: string
 ): Promise<OrderDTO> {
-  if (!Number.isFinite(input.total_amount) || input.total_amount < 0) {
-    throw new DataAccessError("VALIDATION", "Order amount must be a non-negative number");
+  if (!Array.isArray(input.items) || !input.items.length || input.items.length > 50) {
+    throw new DataAccessError("VALIDATION", "Order must contain between 1 and 50 items");
+  }
+  if (new Set(input.items.map((item) => item.product_id)).size !== input.items.length) {
+    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+  }
+  for (const item of input.items) {
+    if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+    }
+    if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1000000000) {
+      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+    }
   }
   if (input.source_note && input.source_note.trim().length > 1000) {
     throw new DataAccessError("VALIDATION", "Order source note is too long");
@@ -36,63 +74,137 @@ export async function createOrderForWorkspace(
   const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
 
-  const [leadResult, productResult] = await Promise.all([
-    supabase.from("leads").select("id").eq("id", input.lead_id).eq("workspace_id", context.workspaceId).maybeSingle(),
-    supabase.from("products").select("id").eq("id", input.product_id).eq("workspace_id", context.workspaceId).maybeSingle(),
-  ]);
-
-  if (leadResult.error || productResult.error) {
-    throw new DataAccessError("DATABASE", "Order relation lookup failed");
-  }
-  if (!leadResult.data || !productResult.data) {
-    throw new DataAccessError("VALIDATION", "Order requires valid lead and product in the active workspace");
+  if (context.role === "operator") {
+    await getScopedLeadForWorkspace(input.lead_id, context.workspaceId).catch(() => {
+      throw new DataAccessError("VALIDATION", "Order lead is not available in the active workspace");
+    });
   }
 
-  const { data, error } = await supabase
-    .from("orders")
-    .insert({
-      workspace_id: context.workspaceId,
-      lead_id: input.lead_id,
-      product_id: input.product_id,
-      agent_id: context.userId,
-      total_amount: input.total_amount,
-      status: input.status || "completed",
-      order_source: input.order_source,
-      source_note: input.source_note?.trim() || null,
-    })
-    .select("id, workspace_id, lead_id, product_id, agent_id, total_amount, status, order_source, source_note, created_at")
-    .single();
+  const { data, error } = await supabase.rpc("create_order_with_items", {
+    p_workspace_id: context.workspaceId,
+    p_lead_id: input.lead_id,
+    p_items: input.items.map((item) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    })),
+    p_order_source: input.order_source,
+    p_source_note: input.source_note?.trim() || null,
+    p_status: input.status || "completed",
+  } as never);
 
-  if (error || !data) {
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
     throw new DataAccessError("DATABASE", "Order creation failed");
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", context.userId)
-    .maybeSingle();
+  return row as OrderDTO;
+}
 
-  if (profileError) {
-    throw new DataAccessError("DATABASE", "Order audit operator lookup failed");
+export async function updateOrderStatusForWorkspace(
+  input: UpdateOrderStatusInput,
+): Promise<OrderDTO> {
+  if (!input.orderId.trim()) {
+    throw new DataAccessError("VALIDATION", "Order id is required");
+  }
+  if (!input.status) {
+    throw new DataAccessError("VALIDATION", "Order status is required");
+  }
+  if (input.note && input.note.trim().length > 500) {
+    throw new DataAccessError("VALIDATION", "Order status note is too long");
   }
 
-  const { error: auditError } = await supabase.from("audit_logs").insert({
-    workspace_id: context.workspaceId,
-    actor_id: context.userId,
-    actor_name: profile?.full_name?.trim() || "Unknown operator",
-    action: "ORDER_CREATED_MANUAL",
-    target_resource: "Order",
-    details: `Order ${data.id} created from ${input.order_source}${input.source_note?.trim() ? `: ${input.source_note.trim()}` : ""}`,
-    severity: "low",
-    ip_address: "server",
-  });
+  const context = await requireWorkspaceContext();
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("update_order_status_with_history", {
+    p_order_id: input.orderId,
+    p_status: input.status,
+    p_note: input.note?.trim() || null,
+  } as never);
 
-  if (auditError) {
-    throw new DataAccessError("DATABASE", "Order was created but the audit event was not saved");
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
+    throw new DataAccessError("DATABASE", "Order status update failed");
   }
 
-  return data as OrderDTO;
+  if ((row as OrderRow).workspace_id !== context.workspaceId) {
+    throw new DataAccessError("FORBIDDEN", "Order is not available in the active workspace");
+  }
+
+  return row as OrderDTO;
+}
+
+function orderDetailsError(error: { message?: string } | null): DataAccessError {
+  const message = error?.message || "Order details update failed";
+  if (message.includes("changed since it was opened")) {
+    return new DataAccessError("VALIDATION", "The order changed since it was opened. Reload and try again.");
+  }
+  if (message.includes("can no longer be edited") || message.includes("administrator and a reason")) {
+    return new DataAccessError("FORBIDDEN", "This order is read-only for your current role and status.");
+  }
+  if (message.includes("reason") || message.includes("item") || message.includes("source") || message.includes("currency")) {
+    return new DataAccessError("VALIDATION", message);
+  }
+  return new DataAccessError("DATABASE", "Order details update failed");
+}
+
+export async function updateOrderDetailsForWorkspace(
+  input: UpdateOrderDetailsInput,
+): Promise<OrderDTO> {
+  if (!input.orderId.trim()) {
+    throw new DataAccessError("VALIDATION", "Order id is required");
+  }
+  if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 1) {
+    throw new DataAccessError("VALIDATION", "Order revision is required");
+  }
+  if (!Array.isArray(input.items) || input.items.length < 1 || input.items.length > 50) {
+    throw new DataAccessError("VALIDATION", "Order must contain between 1 and 50 items");
+  }
+  if (new Set(input.items.map((item) => item.product_id)).size !== input.items.length) {
+    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+  }
+  for (const item of input.items) {
+    if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+    }
+    if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1_000_000_000) {
+      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+    }
+  }
+  if (!input.order_source) {
+    throw new DataAccessError("VALIDATION", "Order source is required");
+  }
+  if (input.source_note && input.source_note.trim().length > 1000) {
+    throw new DataAccessError("VALIDATION", "Order source note is too long");
+  }
+  if (input.reason && input.reason.trim().length > 500) {
+    throw new DataAccessError("VALIDATION", "Order edit reason is too long");
+  }
+
+  const context = await requireWorkspaceContext();
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("update_order_with_items", {
+    p_order_id: input.orderId,
+    p_expected_revision: input.expectedRevision,
+    p_items: input.items.map((item) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    })),
+    p_order_source: input.order_source,
+    p_source_note: input.source_note?.trim() || null,
+    p_reason: input.reason?.trim() || null,
+  } as never);
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
+    throw orderDetailsError(error);
+  }
+  if ((row as OrderRow).workspace_id !== context.workspaceId) {
+    throw new DataAccessError("FORBIDDEN", "Order is not available in the active workspace");
+  }
+
+  return row as OrderDTO;
 }
 
 export interface ReassignOrdersResult {
