@@ -1,5 +1,7 @@
 # AI-Native Call Center CRM — Roadmapa Vývoje
 
+> **Aktuální pořadí práce:** Pro dnešní stav používej [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tato roadmapa obsahuje historické fáze i detailní záznamy dokončených slice; není sama o sobě autoritou pro pořadí nejbližších commitů.
+
 Roadmapa rozděluje vývoj platformy do logických fází. Ověřený pilotní scope
 rozlišuje lidské role Operator, Team Leader a Administrator; termín Agent je
 rezervovaný pro AI a agentic runtime.
@@ -621,7 +623,15 @@ feature branchi:
 - [x] Authenticated Postgres RLS simulation s Operator membership potvrdila
   read access, odmítnutý INSERT (`42501`) a 0 aktualizovaných řádků.
 
-Zbývá pouze otevření samostatné Operator/Team Leader UI relace pro vizuální
-read-only smoke. Aktuální workspace má Administrator + 2 Operators a nemá
-Team Leader membership; po Administrator smoke byla relace odhlášena. Serverní
-cross-workspace guard, product workspace check a RLS jsou ověřené.
+- [x] Verzovací workflow s draft/publish/archive stavem, workspace-scoped RPC
+  a operator-facing published projection je implementovaný a pushnutý v
+  commitu `baabfc3`; lokální migration history odpovídá remote verzím
+  `20260822114853`, `20260822115016` a `20260822120928`.
+- [ ] Přihlášený browser smoke draft → reload → publish → Operator Console read
+  a ověření archivace předchozí publikované verze.
+
+Zbývá omezený browser důkaz: publish workflow a samostatná Operator/Team Leader
+UI relace pro vizuální read-only smoke. Aktuální workspace má Administrator +
+2 Operators a nemá Team Leader membership; po Administrator smoke byla relace
+odhlášena. Serverní cross-workspace guard, product workspace check a RLS jsou
+ověřené.

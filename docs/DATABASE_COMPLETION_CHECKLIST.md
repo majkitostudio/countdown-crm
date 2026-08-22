@@ -1,8 +1,15 @@
 # Countdown CRM — Database Completion Checklist
 
-**Updated:** 2026-08-10  
+**Updated:** 2026-08-22
 **Scope:** clean Supabase project, one-company MVP, workspace-ready data model  
 **Status:** complete for the verified one-company pilot scope; follow-up hardening remains
+
+> **Current-state note — 2026-08-22:** Tento checklist je převážně historický
+> checkpoint databázové stabilizace. Aktuální fáze, pořadí commitů a závazná
+> pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md).
+> Remote Supabase už obsahuje i order detail/edit a Product Script versioning
+> migrations; před další migrací je nutné porovnat remote history s lokálními
+> názvy. Historické počty lint chyb níže nejsou dnešní gate.
 
 > **Current-state note — 2026-08-19:** This checklist is a historical database
 > stabilization snapshot. For the current product status and next work, use

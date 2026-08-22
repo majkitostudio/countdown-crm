@@ -85,6 +85,10 @@ Aplikace bude dostupná na adrese `http://localhost:3000`.
 
 ## 📜 Architektura & Dokumentace
 
+- **Aktuální stav a nové desatero pro Codex**: [`docs/AKTUALNI_STAV_A_DESATERO.md`](docs/AKTUALNI_STAV_A_DESATERO.md)
+- **Podrobný produktový status a auditní historie**: [`docs/PRODUCT_STATUS.md`](docs/PRODUCT_STATUS.md)
+- **Roadmapa a historický katalog commitů**: [`docs/roadmap.md`](docs/roadmap.md), [`docs/commits.md`](docs/commits.md)
+
 - [Architektura Systému](docs/architecture.md)
 - [Roadmapa Vývoje](docs/roadmap.md)
 - [Historie Commitů](docs/commits.md)

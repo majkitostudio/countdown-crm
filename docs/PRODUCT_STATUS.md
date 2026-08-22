@@ -1,8 +1,23 @@
 # Countdown CRM — Product Status & Refactoring Baseline
 
-**Datum baseline:** 2026-08-09  
-**Status:** stabilizační a auditní fáze  
+**Datum aktualizace:** 2026-08-22
+**Status:** stabilizace před bezpečným interním pilotem; Operator Console je další hlavní produktová etapa
 **Produktový cíl:** Attio-grade CRM pro call-centra s AI copilotem, telephony workflow a bezpečným interním provozem
+
+> **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
+
+## Aktuální checkpoint — 2026-08-22
+
+Jádro CRM je v pilot-ready stavu pro ověřené workflow: auth/workspace/role hranice, leady, produkty, hovory, objednávky, queue/callback routing, kalendář, training review a Product Script základ mají skutečné serverové a databázové cesty. Projekt ale není obecně production-ready.
+
+Product Script verzování, publikování a archivace je implementačně uzavřené v
+`baabfc3`, který je pushnutý na `feat/order-detail-edit`. Remote Supabase i lokální
+migration files evidují `20260822114853`, `20260822115016` a `20260822120928`;
+`archived` je sjednocený v SQL, TypeScriptu, DAL i UI. Zbývá přihlášený browser
+smoke draft → publish → reload a role read-only relace; migrace se nesmí slepě
+znovu aplikovat.
+
+Aktuální checkout obsahuje necommitované docs/dependency změny a generované/recovery složky mimo produktový zdroj; Product Script změny jsou již oddělené v `baabfc3`. Proto je nejbližší práce browser proof a čistý quality gate, teprve poté Operator Console redesign.
 
 ## Ověřený slice: Operator Calendar (2026-08-19)
 
@@ -91,26 +106,28 @@ Současný vizuální směr má použitelný základ a nebude plošně zahazová
 
 ### Aktuální Git baseline
 
-Dokument vychází z commitovaného HEAD:
+Dokument vychází z aktuálního checkoutu, ne ze starého historického baseline:
 
 ```text
-42ed707 docs: record Commit 51 in commits log
-1039ddf refactor: eliminate all any types, fix React hook purity, and achieve strict build compliance
-b6edcac chore: migrate middleware to proxy for Next.js 16 and optimize eslint config
+branch: feat/order-detail-edit
+HEAD: baabfc3 feat: finalize product script versioning and publishing
+origin/feat/order-detail-edit: baabfc3 feat: finalize product script versioning and publishing
 ```
 
-V pracovním stromu existují samostatné necommitované bezpečnostní úpravy z počátečního refactoringového průchodu. Tyto změny nejsou součástí tohoto dokumentačního commitu a budou posouzeny jako samostatný schválený krok.
+Lokální větev je synchronizovaná s remote feature větví. Pracovní strom je navíc
+nečistý: obsahuje necommitované docs/dependency změny a generované/recovery
+artefakty. Product Script implementace a tři migration files jsou v `baabfc3`.
 
 ### Ověřovací baseline
 
 Na aktuálním pracovním stavu platí:
 
-- TypeScript (`npm run typecheck`) je aktuálně blokován nesouvisející rozpracovanou
-  Product Script změnou v `src/app/settings/scripts/page.tsx:29` (`versions` mimo scope),
-- produkční build musí být po opravě této paralelní změny zopakován,
-- ESLint (`npm run lint`) prochází pro zdrojový kód, testy a Vitest konfiguraci,
-- kontraktní testy tréninkových HTTP endpointů (`npm test`) procházejí (`22/22`),
-- dependency audit (`npm audit` i `npm audit --omit=dev`) je po aktualizaci frameworku čistý.
+- kontraktní a regresní testy (`npm test -- --run`) prošly: 3 soubory, 22 testů,
+- `npm run lint` prošel a `npm audit --omit=dev --audit-level=high` hlásí 0 zranitelností,
+- filtrovaný TypeScript check zdrojů prošel pro 173 souborů; `npm run typecheck` v běžném checkoutu stále načítá rozbité `node_modules-recovery-*` složky z globálního include, proto není platným zeleným gate,
+- `npm run build` ještě nebyl po čisté instalaci zopakován; gate je nutné uzavřít odděleně,
+- historické výsledky z předchozích ověřených slice jsou důležité jako evidence, ale nejsou náhradou za kontrolu aktuálního checkoutu,
+- dependency audit z aktuálního necommitovaného upgrade je potřeba znovu potvrdit spolu s čistým lockfile gate.
 
 ### Dependency hardening — 2026-08-22
 
@@ -884,10 +901,10 @@ etapa; externí telephony/inbound integrace zůstává pozdější samostatný s
 Podrobný návrhový brief a akceptační kritéria jsou v
 `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
 
-## Product Scripts — implementace a SQL/admin proof uzavřeny — 2026-08-22
+## Product Scripts — implementace verzování uzavřena, browser smoke zbývá — 2026-08-22
 
-Implementační slice pro workspace-scoped Product Scripts je dokončený v této
-feature branchi:
+Základní slice pro workspace-scoped Product Scripts je dokončený v commitech
+`e4c0947` a `fb68f68`; verzování, publish a archivace jsou v `baabfc3`.
 
 - [x] Administrator-only `/settings/scripts` načítá produkty a uložené skripty
   přes serverový DAL; Team Leader/Operator nemají editor ani save oprávnění.
@@ -908,8 +925,9 @@ feature branchi:
   history obsahuje `product_scripts_updated_by_index` ve verzi
   `20260822023345`. Lokální migration soubor má timestamp
   `20260822023213`; objekt a SQL byly ověřeny proti vzdálenému projektu.
-- [x] Lokální důkazy: `npm test -- --run` = 22/22, lint, typecheck, production
-  build a `git diff --check` prošly. Build obsahuje `/settings/scripts`.
+- [x] Historické lokální důkazy pro základní Product Script slice: `npm test -- --run`
+  = 22/22, lint, typecheck, production build a `git diff --check` prošly. Tento
+  bod nepředstavuje aktuální gate pro čistou instalaci.
 - [x] Read-only SQL ověření: `product_scripts` má RLS enabled, tři očekávané
   policies, workspace/product/updated_by indexy; databáze má nyní 0 skriptů,
   3 produkty, 1 workspace a 3 membership řádky, bez vytvořených fixture dat.
@@ -920,6 +938,15 @@ feature branchi:
 - [x] Authenticated Postgres RLS simulation s Operator membership provedla
   read fixture, odmítnutý INSERT (`42501`) a UPDATE s 0 ovlivněnými řádky;
   fixture byl následně odstraněn.
+
+Verzovací vrstva používá tabulku `product_script_versions`, draft, publish a
+archive RPC. Remote Supabase i lokální migration files evidují stejné verze
+`20260822114853`, `20260822115016` a `20260822120928`; `archived` je sjednocený
+v SQL, typech, DAL a UI. Remote tabulka je po cleanupu bez fixture řádků.
+
+Implementační slice je uzavřený commitem `baabfc3`. Zbývá pouze přihlášený
+browser proof draft → reload → publish → Operator Console read a role smoke;
+bez něj nelze tvrdit, že je celý runtime workflow ověřený.
 
 Zbývá už jen omezený browser-role důkaz, nikoli implementační nebo databázový
 blocker:
