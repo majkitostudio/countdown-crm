@@ -4,7 +4,7 @@
 
 **Countdown CRM** je moderní, vysoce výkonná webová platforma navržená pro operátory, obchodní týmy a manažery. Systém v reálném čase analyzuje živé hovory pomocí **Google Gemini 2.5 Flash API**, vyhodnocuje náladu zákazníka, detekuje prodejní námitky, doporučuje protiargumenty a automatizuje výstupy z hovorů.
 
-![Next.js 16](https://img.shields.io/badge/Next.js-16.2.12-black?style=flat-square&logo=next.js)
+![Next.js 16](https://img.shields.io/badge/Next.js-16.3.2-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
 ![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?style=flat-square&logo=google)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
@@ -52,7 +52,7 @@
 
 ## 🛠️ Technologický Stos
 
-- **Framework**: Next.js 16.2.12 (Turbopack) & React 19
+- **Framework**: Next.js 16.3.2 (Turbopack) & React 19
 - **AI LLM Engine**: Google Gemini 2.5 Flash API (`@google/genai`)
 - **Styling**: Tailwind CSS v4 & Lucide React ikony
 - **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr`

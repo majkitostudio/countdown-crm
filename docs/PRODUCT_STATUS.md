@@ -81,7 +81,7 @@ Současný vizuální směr má použitelný základ a nebude plošně zahazová
 
 ### Základní stack
 
-- Next.js 16.2.12, App Router, Turbopack
+- Next.js 16.3.2, App Router, Turbopack
 - React 19.2.4
 - TypeScript 5
 - Tailwind CSS 4
@@ -105,11 +105,21 @@ V pracovním stromu existují samostatné necommitované bezpečnostní úpravy 
 
 Na aktuálním pracovním stavu platí:
 
-- TypeScript (`npx tsc --noEmit`) prochází,
-- produkční build (`npm run build`) prochází,
-- striktní ESLint aktuálně odhaluje 29 chyb a 116 varování,
-- v repozitáři není dostatečná automatizovaná testovací sada pro kritická CRM workflow,
-- dependency audit dříve odhalil závažné zranitelnosti v produkčních závislostech, které musí být znovu ověřeny v rámci release přípravy.
+- TypeScript (`npm run typecheck`) je aktuálně blokován nesouvisející rozpracovanou
+  Product Script změnou v `src/app/settings/scripts/page.tsx:29` (`versions` mimo scope),
+- produkční build musí být po opravě této paralelní změny zopakován,
+- ESLint (`npm run lint`) prochází pro zdrojový kód, testy a Vitest konfiguraci,
+- kontraktní testy tréninkových HTTP endpointů (`npm test`) procházejí (`22/22`),
+- dependency audit (`npm audit` i `npm audit --omit=dev`) je po aktualizaci frameworku čistý.
+
+### Dependency hardening — 2026-08-22
+
+- [x] Next.js a `eslint-config-next` byly sjednoceny na `16.3.2` bez `--force` upgradu.
+- [x] Lockfile nyní používá PostCSS `8.5.23`, Sharp `0.35.3` a Nanoid `3.3.18`.
+- [x] `npm audit` i produkční varianta `npm audit --omit=dev --audit-level=high` hlásí
+  `0 vulnerabilities`.
+- [ ] Ruční Chrome gate pro mikrofon, Web Speech API a barge-in zůstává odložený do
+  finální polish fáze.
 
 Úspěšný build proto není považován za důkaz produkční připravenosti.
 
