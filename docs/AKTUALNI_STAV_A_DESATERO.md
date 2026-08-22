@@ -9,7 +9,7 @@
 
 Jsme ve fázi **stabilizace před bezpečným interním pilotem**. Základní CRM už není jen maketa: přihlášení, workspace hranice, role, leady, produkty, hovory, objednávky, fronta, callbacky, kalendář a část trainingu mají skutečnou serverovou a databázovou cestu.
 
-Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „produkčně hotovo“. Product Script workflow s verzemi, publikováním a archivací je implementačně commitnuté a pushnuté; zbývá přihlášený browser smoke. Pracovní strom stále obsahuje necommitované docs/dependency změny a recovery artefakty, které zkreslují běžný TypeScript gate. Další krok je čisté ověření současné práce, ne přidávání další velké funkce.
+Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „produkčně hotovo“. Product Script workflow s verzemi, publikováním a archivací je implementačně commitnuté a pushnuté; hlavní přihlášený browser smoke je nyní ověřený. Zbývá pouze oddělená role-only UI relace, protože aktuální workspace nemá Team Leader membership. Pracovní strom obsahuje generované/recovery artefakty mimo produktový zdroj. Další krok je čistý quality gate, ne přidávání další velké funkce.
 
 ## Stav po oblastech
 
@@ -21,7 +21,7 @@ Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „pro
 | Operator Console | **Funkční pilotní pracovní plocha, další hlavní produktová etapa.** Queue, assignment, callback routing a recovery jsou ověřené; vizuální a informační redesign je stále před námi. |
 | Callbacky a kalendář | **Pilot-ready pro schválený model.** Callbacky a osobní reminders jsou oddělené; splatný callback nepřeruší aktivní hovor a při obsazeném preferovaném operátorovi přejde jinam. |
 | Product Scripts — základ | **Uzavřený základ.** Administrator editor, workspace ownership, sanitizace, RLS a read-only Operator Console cesta jsou ověřené. |
-| Product Scripts — verze/publish/archive | **Implementačně uzavřeno, runtime smoke zbývá.** Remote i lokální migration soubory používají `20260822114853`, `20260822115016` a `20260822120928`; `archived` je sjednocený v SQL, typech, DAL i UI. Změna je v pushnutém commitu `baabfc3`. |
+| Product Scripts — verze/publish/archive | **Runtime smoke ověřený, role-only UI relace zbývá.** Draft → publish → reload → Operator Console read proběhl v produkčním buildu a předchozí publikovaná verze se archivovala. Remote i lokální migration soubory používají `20260822114853`, `20260822115016` a `20260822120928`; `archived` je sjednocený v SQL, typech, DAL i UI. Změna je v pushnutém commitu `baabfc3`. |
 | Training | **Session-only pilot.** Uložené review je oddělené od CRM; fyzický mikrofon, SpeechRecognition a skutečné TTS/barge-in nejsou potvrzené. |
 | AI Copilot, enrichment a follow-up | **Preview nebo unavailable.** Gemini a externí dispatch se nesmí tvářit jako produkční integrace. Chyba nemá být nahrazena vymyšlenými daty. |
 | Telephony | **Provider-neutral simulátor s opraveným lifecycle.** Zrušení, audio failure a cleanup jsou ošetřené; skutečný telefonní/inbound provider, webhooky a transkripce nejsou zapojené. |
@@ -30,7 +30,7 @@ Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „pro
 
 ## Co je teď nejdůležitější
 
-1. Ověřit Product Script draft → publish → reload v přihlášeném browseru a role read-only relaci; migrace znovu nespouštět.
+1. Uzavřít oddělený role-only browser smoke Product Scripts, pokud bude k dispozici Operator/Team Leader relace; migrace znovu nespouštět.
 2. Obnovit čistý dependency/quality gate bez recovery složek a oddělit necommitované docs/dependency změny od produktových commitů.
 3. Z pracovní větve udělat čistý, ověřený handoff pro order detail fix (`7a6a0ea`) a následně ho publikovat podle výsledku review.
 4. Přidat pilotní E2E gate pro kritická workflow.
@@ -39,7 +39,7 @@ Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „pro
 ## Co jsem při auditu ověřil
 
 - Live Supabase má 1 organizaci, 1 workspace, 3 membership řádky a kontrolované tabulky mají zapnuté RLS.
-- Remote migration history obsahuje order lifecycle/edit, Product Scripts i tři Product Script version migrations. Poslední remote verze je `20260822120928` a lokální soubor má stejný název; stavový model i migrace jsou v `baabfc3`, browser proof ještě zbývá.
+- Remote migration history obsahuje order lifecycle/edit, Product Scripts i tři Product Script version migrations. Poslední remote verze je `20260822120928` a lokální soubor má stejný název; stavový model i migrace jsou v `baabfc3`, hlavní browser proof je dokončený.
 - `product_script_versions` je na live projektu prázdná; nezůstal v ní testovací fixture.
 - Security advisor hlásí jeden externí warning: vypnutou ochranu proti uniklým heslům. To je nastavení Supabase projektu, ne bezpečná SQL zkratka v repozitáři.
 - Performance advisor hlásí několik chybějících indexů a duplicate permissive policy warnings. Řešit je až samostatným, změřeným databázovým commitem.
@@ -48,11 +48,13 @@ Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „pro
 
 ## Priorita dalších commitů
 
-### P0 — dokončit ověření Product Script workflow
+### P0 — dokončit role-only ověření Product Script workflow
 
 Implementace a migration provenance jsou v `baabfc3` a pushnuté na
-`feat/order-detail-edit`. Zbývá create draft → reload → publish → Operator
-Console read v přihlášeném browseru, role smoke a SQL kontrola bez fixture dat.
+`feat/order-detail-edit`. Create draft → reload → publish → Operator Console
+read a SQL cleanup bez fixture dat jsou dokončené. Zbývá pouze samostatný
+Operator/Team Leader browser role smoke; současný workspace nemá Team Leader
+membership.
 
 ### P0 — obnovit opakovatelný ověřovací základ
 

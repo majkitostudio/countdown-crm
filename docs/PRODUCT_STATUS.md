@@ -13,11 +13,11 @@ Jádro CRM je v pilot-ready stavu pro ověřené workflow: auth/workspace/role h
 Product Script verzování, publikování a archivace je implementačně uzavřené v
 `baabfc3`, který je pushnutý na `feat/order-detail-edit`. Remote Supabase i lokální
 migration files evidují `20260822114853`, `20260822115016` a `20260822120928`;
-`archived` je sjednocený v SQL, TypeScriptu, DAL i UI. Zbývá přihlášený browser
-smoke draft → publish → reload a role read-only relace; migrace se nesmí slepě
-znovu aplikovat.
+`archived` je sjednocený v SQL, TypeScriptu, DAL i UI. Přihlášený browser smoke
+draft → publish → reload → Operator Console read prošel v produkčním buildu;
+zbývá pouze oddělená role-only UI relace. Migrace se nesmí slepě znovu aplikovat.
 
-Aktuální checkout obsahuje necommitované docs/dependency změny a generované/recovery složky mimo produktový zdroj; Product Script změny jsou již oddělené v `baabfc3`. Proto je nejbližší práce browser proof a čistý quality gate, teprve poté Operator Console redesign.
+Aktuální checkout obsahuje generované/recovery složky mimo produktový zdroj; Product Script změny jsou již oddělené v `baabfc3`. Proto je nejbližší práce role-only smoke a čistý quality gate, teprve poté Operator Console redesign.
 
 ## Ověřený slice: Operator Calendar (2026-08-19)
 
@@ -901,7 +901,7 @@ etapa; externí telephony/inbound integrace zůstává pozdější samostatný s
 Podrobný návrhový brief a akceptační kritéria jsou v
 `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
 
-## Product Scripts — implementace verzování uzavřena, browser smoke zbývá — 2026-08-22
+## Product Scripts — implementace a hlavní browser smoke uzavřeny — 2026-08-22
 
 Základní slice pro workspace-scoped Product Scripts je dokončený v commitech
 `e4c0947` a `fb68f68`; verzování, publish a archivace jsou v `baabfc3`.
@@ -932,9 +932,11 @@ Základní slice pro workspace-scoped Product Scripts je dokončený v commitech
   policies, workspace/product/updated_by indexy; databáze má nyní 0 skriptů,
   3 produkty, 1 workspace a 3 membership řádky, bez vytvořených fixture dat.
 - [x] Unauthenticated browser smoke `/settings/scripts` skončil na `/login`.
-- [x] Authenticated Administrator browser smoke provedl save markeru na
-  existující produkt, reload ho znovu načetl a po testu byl marker odstraněn;
-  SQL baseline se vrátil na 0 skriptů.
+- [x] Authenticated Administrator browser smoke provedl draft v1 → publish,
+  následně v2 s jedinečným smoke markerem → publish; po reloadu administrace
+  zůstala v2 Published, v1 byla Archived a Operator Console po reloadu zobrazil
+  v2 marker. Po testu byly odstraněny přesně vytvořené řádky a SQL baseline se
+  vrátil na 0 skriptů i 0 verzí.
 - [x] Authenticated Postgres RLS simulation s Operator membership provedla
   read fixture, odmítnutý INSERT (`42501`) a UPDATE s 0 ovlivněnými řádky;
   fixture byl následně odstraněn.
@@ -944,9 +946,9 @@ archive RPC. Remote Supabase i lokální migration files evidují stejné verze
 `20260822114853`, `20260822115016` a `20260822120928`; `archived` je sjednocený
 v SQL, typech, DAL a UI. Remote tabulka je po cleanupu bez fixture řádků.
 
-Implementační slice je uzavřený commitem `baabfc3`. Zbývá pouze přihlášený
-browser proof draft → reload → publish → Operator Console read a role smoke;
-bez něj nelze tvrdit, že je celý runtime workflow ověřený.
+Implementační slice je uzavřený commitem `baabfc3` a hlavní runtime workflow je
+ověřený. Zbývá pouze samostatný browser role smoke; současný workspace má
+Administrator + 2 Operators a nemá Team Leader membership.
 
 Zbývá už jen omezený browser-role důkaz, nikoli implementační nebo databázový
 blocker:
