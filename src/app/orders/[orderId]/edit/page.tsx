@@ -78,6 +78,22 @@ export default async function OrderEditPage({
     );
   }
 
+  if (result.order.items.length === 0) {
+    return (
+      <div className="mx-auto max-w-xl rounded-2xl border border-amber-900/50 bg-amber-950/20 p-12 text-center">
+        <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-amber-300" />
+        <h1 className="text-base font-semibold text-zinc-100">Legacy order is read-only</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-amber-100/70">
+          This historical order has no editable item snapshot. Its product and total remain available on the detail page as read-only history.
+        </p>
+        <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to order
+        </Link>
+      </div>
+    );
+  }
+
   if (!result.canEdit) {
     return (
       <div className="mx-auto max-w-xl rounded-2xl border border-amber-900/50 bg-amber-950/20 p-12 text-center">

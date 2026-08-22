@@ -37,7 +37,7 @@ async function loadOrder(orderId: string): Promise<OrderLoadResult> {
       order,
       canEdit: context.role === "operator" || context.role === "team_leader" || context.role === "administrator",
       canEditDetails: Boolean(
-        order && (
+        order && order.items.length > 0 && (
           context.role === "administrator"
           || (context.role === "team_leader" && ["pending", "in_progress"].includes(order.status))
           || (context.role === "operator" && order.agent_id === context.userId && ["pending", "in_progress"].includes(order.status))
@@ -223,7 +223,15 @@ export default async function OrderDetailPage({
 
         <aside className="h-fit space-y-6 lg:sticky lg:top-0">
           <OrderStatusEditor orderId={order.id} currentStatus={order.status} canEdit={canEdit} isManager={isManager} />
-          {!canEditDetails && order.status !== "pending" && order.status !== "in_progress" && (
+          {!canEditDetails && order.items.length === 0 && (
+            <section className="rounded-2xl border border-amber-900/50 bg-amber-950/20 p-5">
+              <p className="text-xs font-medium text-amber-100">Legacy order details are read-only</p>
+              <p className="mt-2 text-xs leading-relaxed text-amber-100/70">
+                This historical order has no editable item snapshot. Its product and total above are preserved as read-only order history.
+              </p>
+            </section>
+          )}
+          {!canEditDetails && order.items.length > 0 && order.status !== "pending" && order.status !== "in_progress" && (
             <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
               <p className="text-xs font-medium text-zinc-300">Order details are read-only</p>
               <p className="mt-2 text-xs leading-relaxed text-zinc-500">After the order is sent, only an administrator can edit its details. Status changes remain a separate workflow.</p>
