@@ -7,16 +7,37 @@ import { requireWorkspaceContext, requireWorkspaceRole } from "@/lib/dal/workspa
 import { validateScriptHtml } from "@/lib/scriptContent";
 
 type ProductScriptRow = Database["public"]["Tables"]["product_scripts"]["Row"];
+type ProductScriptVersionRow = Database["public"]["Tables"]["product_script_versions"]["Row"];
 
 export type ProductScriptDTO = Pick<
   ProductScriptRow,
   "id" | "workspace_id" | "product_id" | "content_html" | "updated_by" | "created_at" | "updated_at"
 >;
 
+export type ProductScriptVersionDTO = Pick<
+  ProductScriptVersionRow,
+  | "id"
+  | "workspace_id"
+  | "product_id"
+  | "version_number"
+  | "status"
+  | "content_html"
+  | "created_by"
+  | "published_by"
+  | "created_at"
+  | "published_at"
+>;
+
 const SCRIPT_SELECT =
   "id, workspace_id, product_id, content_html, updated_by, created_at, updated_at";
+const VERSION_SELECT =
+  "id, workspace_id, product_id, version_number, status, content_html, created_by, published_by, created_at, published_at";
 
 function mapProductScript(row: ProductScriptRow): ProductScriptDTO {
+  return row;
+}
+
+function mapProductScriptVersion(row: ProductScriptVersionRow): ProductScriptVersionDTO {
   return row;
 }
 
@@ -62,11 +83,29 @@ export async function getProductScriptForWorkspace(
   return data ? mapProductScript(data as ProductScriptRow) : null;
 }
 
-export async function saveProductScriptForWorkspace(
+export async function listProductScriptVersionsForWorkspace(
+  requestedWorkspaceId?: string,
+): Promise<ProductScriptVersionDTO[]> {
+  const { workspaceId } = await requireWorkspaceContext(requestedWorkspaceId);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("product_script_versions")
+    .select(VERSION_SELECT)
+    .eq("workspace_id", workspaceId)
+    .order("version_number", { ascending: false });
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Unable to load product script versions.");
+  }
+
+  return ((data || []) as ProductScriptVersionRow[]).map(mapProductScriptVersion);
+}
+
+export async function createProductScriptDraftForWorkspace(
   productId: string,
   contentHtml: string,
   requestedWorkspaceId?: string,
-): Promise<ProductScriptDTO> {
+): Promise<ProductScriptVersionDTO> {
   const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
   if (!productId.trim()) {
     throw new DataAccessError("VALIDATION", "Product ID is required.");
@@ -83,38 +122,52 @@ export async function saveProductScriptForWorkspace(
   }
 
   const supabase = await createDataClient();
-  const { data: product, error: productError } = await supabase
-    .from("products")
-    .select("id")
-    .eq("id", productId)
-    .eq("workspace_id", context.workspaceId)
-    .maybeSingle();
-
-  if (productError) {
-    throw new DataAccessError("DATABASE", "Unable to verify the selected product.");
-  }
-  if (!product) {
-    throw new DataAccessError("NOT_FOUND", "Product not found in this workspace.");
-  }
-
   const { data, error } = await supabase
-    .from("product_scripts")
-    .upsert(
-      {
-        workspace_id: context.workspaceId,
-        product_id: productId,
-        content_html: sanitizedHtml,
-        updated_by: context.userId,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "workspace_id,product_id" },
-    )
-    .select(SCRIPT_SELECT)
+    .rpc("create_product_script_draft", {
+      p_workspace_id: context.workspaceId,
+      p_product_id: productId,
+      p_content_html: sanitizedHtml,
+    })
     .single();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Unable to save the product script.");
+    throw new DataAccessError("DATABASE", "Unable to save the product script draft.");
   }
 
-  return mapProductScript(data as ProductScriptRow);
+  return mapProductScriptVersion(data as ProductScriptVersionRow);
+}
+
+export async function publishProductScriptVersionForWorkspace(
+  versionId: string,
+  requestedWorkspaceId?: string,
+): Promise<ProductScriptVersionDTO> {
+  const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
+  if (!versionId.trim()) {
+    throw new DataAccessError("VALIDATION", "Version ID is required.");
+  }
+
+  const supabase = await createDataClient();
+  const { data: version, error: versionError } = await supabase
+    .from("product_script_versions")
+    .select("id")
+    .eq("id", versionId)
+    .eq("workspace_id", context.workspaceId)
+    .maybeSingle();
+
+  if (versionError) {
+    throw new DataAccessError("DATABASE", "Unable to verify the product script version.");
+  }
+  if (!version) {
+    throw new DataAccessError("NOT_FOUND", "Product script version not found in this workspace.");
+  }
+
+  const { data, error } = await supabase
+    .rpc("publish_product_script_version", { p_version_id: versionId })
+    .single();
+
+  if (error || !data) {
+    throw new DataAccessError("DATABASE", "Unable to publish the product script version.");
+  }
+
+  return mapProductScriptVersion(data as ProductScriptVersionRow);
 }

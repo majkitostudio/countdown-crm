@@ -2,7 +2,9 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Bold,
   Highlighter,
+  Italic,
   Minus,
   Plus,
   RotateCcw,
@@ -113,7 +115,10 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
     }
   }, [scriptHtml]);
 
-  const runFormattingCommand = (command: "hiliteColor", value?: string) => {
+  const runFormattingCommand = (
+    command: "bold" | "italic" | "hiliteColor",
+    value?: string,
+  ) => {
     if (!personalEditing || !currentProductId) return;
     document.execCommand(command, false, value);
     setPersonalChangesByProduct((current) => ({ ...current, [currentProductId]: true }));
@@ -135,7 +140,7 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
   };
 
   return (
-    <section className="flex h-full flex-col space-y-4 overflow-y-auto rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm backdrop-blur-md">
+    <section className="flex h-full min-h-0 flex-col space-y-4 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm backdrop-blur-md">
       <div className="flex items-start justify-between gap-3 border-b border-zinc-800/80 pb-3">
         <div className="flex items-start gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 bg-zinc-950 text-zinc-300">
@@ -190,8 +195,10 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
           </div>
           <div className="flex flex-wrap items-center gap-2 border-t border-zinc-800/80 pt-3">
             <button type="button" onClick={() => currentProductId && setPersonalEditingByProduct((current) => ({ ...current, [currentProductId]: !personalEditing }))} className={`rounded-md border px-2.5 py-1.5 text-[10px] ${personalEditing ? "border-emerald-800/80 bg-emerald-950/30 text-emerald-300" : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-100"}`}>
-              {personalEditing ? "Highlighter enabled" : "Enable highlighter"}
+              {personalEditing ? "Personal formatting enabled" : "Enable personal formatting"}
             </button>
+            <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => runFormattingCommand("bold")} disabled={!personalEditing} aria-label="Bold selected text" title="Bold selected text" className="rounded-md border border-zinc-800 p-1.5 text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"><Bold className="h-3.5 w-3.5" /></button>
+            <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => runFormattingCommand("italic")} disabled={!personalEditing} aria-label="Italic selected text" title="Italic selected text" className="rounded-md border border-zinc-800 p-1.5 text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"><Italic className="h-3.5 w-3.5" /></button>
             <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => runFormattingCommand("hiliteColor", "#facc15")} disabled={!personalEditing} aria-label="Highlight selected text" title="Highlight selected text" className="rounded-md border border-zinc-800 p-1.5 text-zinc-400 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"><Highlighter className="h-3.5 w-3.5" /></button>
             {hasPersonalChanges && <button type="button" onClick={resetPersonalChanges} className="inline-flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-zinc-200"><RotateCcw className="h-3 w-3" />Reset highlights</button>}
             <button type="button" onClick={resetView} className="ml-auto inline-flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-zinc-200"><RotateCcw className="h-3 w-3" />Reset view</button>
@@ -230,15 +237,17 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
       {isLoadingScript && <p className="text-[10px] text-zinc-600">Checking for the latest approved script…</p>}
 
       {scriptStatus !== "error" && (
-        <div
-          ref={editorRef}
-          contentEditable={personalEditing}
-          suppressContentEditableWarning
-          onInput={() => currentProductId && setPersonalChangesByProduct((current) => ({ ...current, [currentProductId]: true }))}
-          className={`min-h-[360px] rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4 text-zinc-200 outline-none [&_hr]:my-6 [&_hr]:border-zinc-700 [&_mark]:rounded [&_mark]:bg-yellow-300 [&_mark]:px-0.5 [&_p]:mb-4 [&_p:last-child]:mb-0 ${personalEditing ? "cursor-text focus:border-zinc-600" : ""}`}
-          style={{ fontSize: `${fontSizePx}px`, fontFamily: SCRIPT_FONT_OPTIONS[fontFamily].value, letterSpacing: LETTER_SPACING_OPTIONS[letterSpacing].value, lineHeight: lineHeight === "relaxed" ? 1.9 : 1.65 }}
-          dangerouslySetInnerHTML={{ __html: scriptHtml }}
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-zinc-800/80 bg-zinc-950/40 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
+          <div
+            ref={editorRef}
+            contentEditable={personalEditing}
+            suppressContentEditableWarning
+            onInput={() => currentProductId && setPersonalChangesByProduct((current) => ({ ...current, [currentProductId]: true }))}
+            className={`min-h-[360px] p-4 text-zinc-200 outline-none [&_hr]:my-6 [&_hr]:border-zinc-700 [&_mark]:rounded [&_mark]:bg-yellow-300 [&_mark]:px-0.5 [&_p]:mb-4 [&_p:last-child]:mb-0 ${personalEditing ? "cursor-text focus:border-zinc-600" : ""}`}
+            style={{ fontSize: `${fontSizePx}px`, fontFamily: SCRIPT_FONT_OPTIONS[fontFamily].value, letterSpacing: LETTER_SPACING_OPTIONS[letterSpacing].value, lineHeight: lineHeight === "relaxed" ? 1.9 : 1.65 }}
+            dangerouslySetInnerHTML={{ __html: scriptHtml }}
+          />
+        </div>
       )}
 
       <div className="mt-auto flex items-center gap-1.5 border-t border-zinc-800/80 pt-3 text-[10px] text-zinc-500">

@@ -8,21 +8,28 @@ import {
   Eye,
   FileText,
   Highlighter,
+  History,
   Italic,
   LoaderCircle,
   Minus,
   Pencil,
   RotateCcw,
   Save,
+  Send,
 } from "lucide-react";
-import { saveProductScriptAction } from "@/app/actions/productScripts";
-import type { ProductScriptDTO } from "@/lib/dal/productScripts";
+import {
+  createProductScriptDraftAction,
+  getProductScriptAction,
+  publishProductScriptVersionAction,
+} from "@/app/actions/productScripts";
+import type { ProductScriptDTO, ProductScriptVersionDTO } from "@/lib/dal/productScripts";
 import type { Product } from "@/lib/products";
 import { buildDefaultScriptHtml, sanitizeScriptHtml } from "@/lib/scriptContent";
 
 interface ProductScriptManagerProps {
   products: Product[];
   initialScripts: ProductScriptDTO[];
+  initialVersions: ProductScriptVersionDTO[];
 }
 
 const ALLOWED_EDITOR_TAGS = new Set([
@@ -81,17 +88,38 @@ function normalizeEditorMarkup(value: string): string {
   return sanitizeScriptHtml(cleanBody.innerHTML);
 }
 
-function getScriptHtml(product: Product, scripts: ProductScriptDTO[]): string {
-  const savedScript = scripts.find((script) => script.product_id === product.id);
-  return sanitizeScriptHtml(savedScript?.content_html || buildDefaultScriptHtml(product));
+function getLatestVersion(productId: string, versions: ProductScriptVersionDTO[]) {
+  return versions
+    .filter((version) => version.product_id === productId)
+    .sort((left, right) => right.version_number - left.version_number)[0];
 }
 
-export function ProductScriptManager({ products, initialScripts }: ProductScriptManagerProps) {
+function getVersionStatusLabel(status: ProductScriptVersionDTO["status"]): string {
+  return status === "published" ? "Published" : status === "archived" ? "Archived" : "Draft";
+}
+
+function getScriptHtml(
+  product: Product,
+  scripts: ProductScriptDTO[],
+  versions: ProductScriptVersionDTO[],
+): string {
+  const latestVersion = getLatestVersion(product.id, versions);
+  const savedScript = scripts.find((script) => script.product_id === product.id);
+  return sanitizeScriptHtml(
+    latestVersion?.content_html || savedScript?.content_html || buildDefaultScriptHtml(product),
+  );
+}
+
+export function ProductScriptManager({ products, initialScripts, initialVersions }: ProductScriptManagerProps) {
   const firstProduct = products[0];
   const [selectedProductId, setSelectedProductId] = useState(firstProduct?.id || "");
   const [scripts, setScripts] = useState(initialScripts);
+  const [versions, setVersions] = useState(initialVersions);
+  const [activeVersionId, setActiveVersionId] = useState(() =>
+    firstProduct ? getLatestVersion(firstProduct.id, initialVersions)?.id || null : null,
+  );
   const [editorHtml, setEditorHtml] = useState(() =>
-    firstProduct ? getScriptHtml(firstProduct, initialScripts) : "",
+    firstProduct ? getScriptHtml(firstProduct, initialScripts, initialVersions) : "",
   );
   const [isPreview, setIsPreview] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -103,8 +131,20 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
     () => products.find((product) => product.id === selectedProductId) || null,
     [products, selectedProductId],
   );
+  const productVersions = useMemo(
+    () =>
+      selectedProduct
+        ? versions
+            .filter((version) => version.product_id === selectedProduct.id)
+            .sort((left, right) => right.version_number - left.version_number)
+        : [],
+    [selectedProduct, versions],
+  );
+  const activeVersion = productVersions.find((version) => version.id === activeVersionId) || null;
   const hasSavedScript = Boolean(
-    selectedProduct && scripts.some((script) => script.product_id === selectedProduct.id),
+    selectedProduct &&
+      (scripts.some((script) => script.product_id === selectedProduct.id) ||
+        productVersions.some((version) => version.status === "published")),
   );
 
   const selectProduct = (product: Product) => {
@@ -114,12 +154,28 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
       return;
     }
     setSelectedProductId(product.id);
-    const nextHtml = getScriptHtml(product, scripts);
+    const nextVersion = getLatestVersion(product.id, versions);
+    setActiveVersionId(nextVersion?.id || null);
+    const nextHtml = getScriptHtml(product, scripts, versions);
     setEditorHtml(nextHtml);
     if (editorRef.current) editorRef.current.innerHTML = nextHtml;
     setHasChanges(false);
     setFeedback(null);
     setIsPreview(false);
+  };
+
+  const selectVersion = (version: ProductScriptVersionDTO) => {
+    if (isPending) return;
+    if (hasChanges) {
+      setFeedback({ tone: "error", message: "Save or reset the current script before switching versions." });
+      return;
+    }
+    const nextHtml = sanitizeScriptHtml(version.content_html);
+    setActiveVersionId(version.id);
+    setEditorHtml(nextHtml);
+    if (editorRef.current) editorRef.current.innerHTML = nextHtml;
+    setIsPreview(false);
+    setFeedback(null);
   };
 
   const applyFormat = (
@@ -154,18 +210,53 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
     setFeedback(null);
     startTransition(async () => {
       try {
-        const savedScript = await saveProductScriptAction(selectedProduct.id, cleanHtml);
-        setScripts((current) => [
-          ...current.filter((script) => script.product_id !== savedScript.product_id),
-          savedScript,
+        const draft = await createProductScriptDraftAction(selectedProduct.id, cleanHtml);
+        setVersions((current) => [
+          ...current.filter((version) => version.id !== draft.id),
+          draft,
         ]);
-        setEditorHtml(savedScript.content_html);
+        setActiveVersionId(draft.id);
+        setEditorHtml(draft.content_html);
         setHasChanges(false);
-        setFeedback({ tone: "success", message: "Approved script saved for this workspace." });
+        setFeedback({ tone: "success", message: `Draft v${draft.version_number} saved. Publish it when it is ready for operators.` });
       } catch (error) {
         setFeedback({
           tone: "error",
           message: error instanceof Error ? error.message : "Script could not be saved.",
+        });
+      }
+    });
+  };
+
+  const publish = () => {
+    if (!selectedProduct || !activeVersion || activeVersion.status !== "draft" || hasChanges || isPending) return;
+
+    setFeedback(null);
+    startTransition(async () => {
+      try {
+        const published = await publishProductScriptVersionAction(activeVersion.id);
+        const publishedScript = await getProductScriptAction(selectedProduct.id);
+        setVersions((current) =>
+          current.map((version) => {
+            if (version.product_id !== published.product_id) return version;
+            if (version.id === published.id) return published;
+            return version.status === "published" ? { ...version, status: "archived" as const } : version;
+          }),
+        );
+        if (publishedScript) {
+          setScripts((current) => [
+            ...current.filter((script) => script.product_id !== publishedScript.product_id),
+            publishedScript,
+          ]);
+        }
+        setActiveVersionId(published.id);
+        setEditorHtml(published.content_html);
+        setHasChanges(false);
+        setFeedback({ tone: "success", message: `Version v${published.version_number} is now published to the Operator Console.` });
+      } catch (error) {
+        setFeedback({
+          tone: "error",
+          message: error instanceof Error ? error.message : "Script version could not be published.",
         });
       }
     });
@@ -212,7 +303,7 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
               Script Administration
             </h1>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-400">
-              Maintain one continuous, approved script per product. Operators see the saved version in the Operator Console.
+              Edit one continuous script per product, save a draft, then publish the reviewed version to operators.
             </p>
           </div>
         </div>
@@ -233,7 +324,11 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
           <div className="space-y-1.5">
             {products.map((product) => {
               const isSelected = product.id === selectedProduct.id;
-              const isSaved = scripts.some((script) => script.product_id === product.id);
+              const isSaved =
+                scripts.some((script) => script.product_id === product.id) ||
+                versions.some(
+                  (version) => version.product_id === product.id && version.status === "published",
+                );
               return (
                 <button
                   key={product.id}
@@ -248,7 +343,7 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
                   <span className="block truncate text-xs font-medium">{product.title}</span>
                   <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-zinc-500">
                     <span className="capitalize">{product.category}</span>
-                    {isSaved ? <span className="text-emerald-400">Saved</span> : <span>Fallback</span>}
+                    {isSaved ? <span className="text-emerald-400">Published</span> : <span>Fallback</span>}
                   </span>
                 </button>
               );
@@ -260,9 +355,13 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
           <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                <span>Approved Script</span>
+                <span>Product Script</span>
                 <span className="rounded-full border border-zinc-800 px-2 py-0.5 normal-case tracking-normal text-zinc-400">
-                  {hasSavedScript ? "Saved" : "Fallback preview"}
+                  {activeVersion
+                    ? `${getVersionStatusLabel(activeVersion.status)} · v${activeVersion.version_number}`
+                    : hasSavedScript
+                      ? "Published"
+                      : "Fallback preview"}
                 </span>
               </div>
               <h2 className="truncate text-lg font-semibold text-zinc-100">{selectedProduct.title}</h2>
@@ -288,7 +387,46 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
                 <RotateCcw className="h-3.5 w-3.5" />
                 Reset fallback
               </button>
+              <button
+                type="button"
+                onClick={publish}
+                disabled={isPending || isPreview || hasChanges || activeVersion?.status !== "draft"}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-900/70 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200 transition-colors hover:border-emerald-800 hover:bg-emerald-950/40 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Send className="h-3.5 w-3.5" />
+                Publish version
+              </button>
             </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <History className="h-3.5 w-3.5 text-zinc-500" />
+                <span className="text-[11px] font-medium text-zinc-300">Version history</span>
+              </div>
+              <span className="font-mono text-[10px] text-zinc-600">{productVersions.length} versions</span>
+            </div>
+            {productVersions.length ? (
+              <div className="flex flex-wrap gap-2">
+                {productVersions.map((version) => (
+                  <button
+                    key={version.id}
+                    type="button"
+                    onClick={() => selectVersion(version)}
+                    className={`rounded-lg border px-2.5 py-1.5 text-[10px] transition-colors ${
+                      version.id === activeVersionId
+                        ? "border-zinc-500 bg-zinc-800 text-zinc-100"
+                        : "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
+                    }`}
+                  >
+                    v{version.version_number} · {getVersionStatusLabel(version.status)}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] text-zinc-600">No saved versions yet. The editor is showing the built-in fallback.</p>
+            )}
           </div>
 
           {!isPreview && (
@@ -370,7 +508,7 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
 
           <div className="mt-5 flex flex-col gap-3 border-t border-zinc-800/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[11px] leading-relaxed text-zinc-500">
-              {hasChanges ? "Unsaved changes" : "No unsaved changes"}. HTML is reduced to safe text formatting before it is stored.
+              {hasChanges ? "Unsaved changes" : "No unsaved changes"}. Save creates a draft; publishing updates the operator-facing script. HTML is reduced to safe text formatting before it is stored.
             </p>
             <button
               type="button"
@@ -379,7 +517,7 @@ export function ProductScriptManager({ products, initialScripts }: ProductScript
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {isPending ? "Saving…" : "Save approved script"}
+              {isPending ? "Saving…" : "Save draft"}
             </button>
           </div>
         </section>

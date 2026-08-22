@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, FileText, LockKeyhole } from "lucide-react";
 import { ProductScriptManager } from "@/components/settings/ProductScriptManager";
-import { listProductScriptsForWorkspace } from "@/lib/dal/productScripts";
+import {
+  listProductScriptsForWorkspace,
+  listProductScriptVersionsForWorkspace,
+} from "@/lib/dal/productScripts";
 import { DataAccessError } from "@/lib/dal/errors";
 import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
@@ -10,18 +13,20 @@ type ProductScriptsLoadResult =
   | {
       products: Awaited<ReturnType<typeof listProductsForWorkspace>>;
       scripts: Awaited<ReturnType<typeof listProductScriptsForWorkspace>>;
+      versions: Awaited<ReturnType<typeof listProductScriptVersionsForWorkspace>>;
     }
   | { error: unknown };
 
 async function loadProductScripts(): Promise<ProductScriptsLoadResult> {
   try {
     await requireWorkspaceRole(["administrator"]);
-    const [products, scripts] = await Promise.all([
+    const [products, scripts, versions] = await Promise.all([
       listProductsForWorkspace(),
       listProductScriptsForWorkspace(),
+      listProductScriptVersionsForWorkspace(),
     ]);
 
-    return { products, scripts };
+    return { products, scripts, versions };
   } catch (error) {
     return { error };
   }
@@ -45,6 +50,7 @@ export default async function ProductScriptsPage() {
           created_at: product.created_at,
         }))}
         initialScripts={result.scripts}
+        initialVersions={result.versions}
       />
     );
   }
