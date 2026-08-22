@@ -14,10 +14,10 @@ interface KpiItem {
 }
 
 const EMPTY_KPIS: KpiItem[] = [
-  { id: "calls", label: "Total Calls", value: "0", trend: "0%", subtext: "no calls recorded", icon: PhoneCall },
-  { id: "conversion", label: "Conversion Rate", value: "0%", trend: "0%", subtext: "no orders recorded", icon: TrendingUp },
-  { id: "revenue", label: "Total Revenue", value: "$0.00", trend: "0%", subtext: "no orders recorded", icon: DollarSign },
-  { id: "operators", label: "Active Operators", value: "0", trend: "0%", subtext: "presence data unavailable", icon: Users },
+  { id: "calls", label: "Total Calls", value: "0", trend: "—", subtext: "no calls recorded", icon: PhoneCall },
+  { id: "conversion", label: "Conversion Rate", value: "0%", trend: "—", subtext: "no orders recorded", icon: TrendingUp },
+  { id: "revenue", label: "Total Revenue", value: "$0.00", trend: "—", subtext: "no orders recorded", icon: DollarSign },
+  { id: "operators", label: "Active Operators", value: "0", trend: "—", subtext: "presence data unavailable", icon: Users },
 ];
 
 export function KpiCards() {
@@ -34,10 +34,10 @@ export function KpiCards() {
 
         setLoadError(null);
         setKpis([
-          { id: "calls", label: "Total Calls", value: String(analytics.totalCalls), trend: "0%", subtext: "workspace total", icon: PhoneCall },
-          { id: "conversion", label: "Conversion Rate", value: `${analytics.conversionRate.toFixed(1)}%`, trend: "0%", subtext: "orders / calls", icon: TrendingUp },
-          { id: "revenue", label: "Total Revenue", value: `$${analytics.totalRevenue.toFixed(2)}`, trend: "0%", subtext: "completed orders", icon: DollarSign },
-  { id: "operators", label: "Active Operators", value: "—", trend: "—", subtext: "presence data unavailable", icon: Users },
+          { id: "calls", label: "Total Calls", value: String(analytics.totalCalls), trend: "—", subtext: "workspace total", icon: PhoneCall },
+          { id: "conversion", label: "Conversion Rate", value: `${analytics.conversionRate.toFixed(1)}%`, trend: "—", subtext: "orders / calls", icon: TrendingUp },
+          { id: "revenue", label: "Total Revenue", value: `$${analytics.totalRevenue.toFixed(2)}`, trend: "—", subtext: "completed orders", icon: DollarSign },
+          { id: "operators", label: "Active Operators", value: "—", trend: "—", subtext: "presence data unavailable", icon: Users },
         ]);
       } catch (error) {
         if (!cancelled) {

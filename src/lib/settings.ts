@@ -1,15 +1,9 @@
 export interface UserSettings {
-  default_language: "cs-CZ" | "sk-SK" | "en-US";
-  audio_effects_enabled: boolean;
   ringtone_volume: number;
-  gemini_auto_analyze: boolean;
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
-  default_language: "cs-CZ",
-  audio_effects_enabled: true,
   ringtone_volume: 80,
-  gemini_auto_analyze: true,
 };
 
 const SETTINGS_KEY = "countdown_crm_user_settings";

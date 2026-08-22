@@ -22,11 +22,11 @@ export async function requireAuthenticatedUser() {
     error,
   } = await supabase.auth.getUser();
 
-  if (user) {
-    return user;
+  if (error) {
+    throw new Error("Unauthorized");
   }
 
-  if (error || !user) {
+  if (!user) {
     throw new Error("Unauthorized");
   }
 

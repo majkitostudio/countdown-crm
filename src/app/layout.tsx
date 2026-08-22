@@ -11,8 +11,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Countdown CRM — AI Powered Call Center Workspace",
-  description: "Next-gen AI Copilot & CRM for High Velocity Tele-sales",
+  title: "Countdown CRM — Call Center Workspace",
+  description: "Workspace-scoped CRM and operator console for a high-velocity sales pilot",
 };
 
 export default function RootLayout({

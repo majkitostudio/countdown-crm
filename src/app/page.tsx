@@ -1,4 +1,5 @@
 import { PhoneCall, Plus } from "lucide-react";
+import Link from "next/link";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { CallActivityChart } from "@/components/dashboard/CallActivityChart";
 import { TopPerformers } from "@/components/dashboard/TopPerformers";
@@ -17,19 +18,19 @@ export default function Home() {
             </h1>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Shift Active
+              Workspace data
             </span>
           </div>
           <p className="text-xs text-zinc-400">
-            Real-time tele-sales metrics, live call stream, and operator performance tracking
+            Persisted workspace metrics and activity; live telephony and presence remain unavailable in this pilot.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors">
+          <Link href="/leads?create=1" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors">
             <Plus className="w-4 h-4" />
             Add Lead
-          </button>
+          </Link>
           <a
             href="/workspace"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"

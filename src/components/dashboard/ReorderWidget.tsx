@@ -8,14 +8,21 @@ import { getReorderOpportunities, ReorderOpportunity } from "@/lib/reorder";
 export function ReorderWidget() {
   const [opportunities, setOpportunities] = useState<ReorderOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
-      const data = await getReorderOpportunities();
-      setOpportunities(data);
-      setLoading(false);
+      try {
+        setLoadError(null);
+        setOpportunities(await getReorderOpportunities());
+      } catch (error) {
+        setOpportunities([]);
+        setLoadError(error instanceof Error ? error.message : "Re-order data could not be loaded.");
+      } finally {
+        setLoading(false);
+      }
     }
-    load();
+    void load();
   }, []);
 
   return (
@@ -27,14 +34,14 @@ export function ReorderWidget() {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-              Predictive Re-Order Engine
+              Re-Order Opportunities
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                AI Auto-Calculated
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                Based on order history
               </span>
             </h2>
             <p className="text-xs text-zinc-400">
-              Customers approaching supply depletion (30/45-day retention cycle)
+              Estimated replenishment dates using product-category cycles
             </p>
           </div>
         </div>
@@ -50,6 +57,10 @@ export function ReorderWidget() {
       {loading ? (
         <div className="py-8 text-center text-xs text-zinc-400 font-mono">
           Calculating replenishment rates...
+        </div>
+      ) : loadError ? (
+        <div role="status" className="py-6 text-center text-xs text-zinc-500">
+          Re-order opportunities are unavailable for the current workspace role.
         </div>
       ) : opportunities.length === 0 ? (
         <div className="py-6 text-center text-xs text-zinc-500">

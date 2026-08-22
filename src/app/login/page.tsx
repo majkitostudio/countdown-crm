@@ -99,9 +99,6 @@ export default function LoginPage() {
                 <label className="text-xs font-medium text-zinc-300 block">
                   Password
                 </label>
-                <a href="#" className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors">
-                  Forgot?
-                </a>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />

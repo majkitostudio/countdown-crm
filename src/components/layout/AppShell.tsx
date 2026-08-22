@@ -33,10 +33,10 @@ export function AppShell({ children }: AppShellProps) {
         <footer className="h-8 border-t border-zinc-800/80 bg-zinc-950 px-6 flex items-center justify-between text-[11px] text-zinc-400 select-none">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              API Connected
+              <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+              Workspace shell active
             </span>
-            <span>Latency: <strong className="text-zinc-300 font-mono">14ms</strong></span>
+            <span>Live API latency unavailable</span>
           </div>
           <div>
             <span>Countdown CRM v0.1.0 • Built for Performance</span>

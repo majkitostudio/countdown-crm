@@ -53,8 +53,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [status, setStatus] = useState<OperatorStatus>("ready");
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 
   useEffect(() => {
     const collapseForNarrowViewport = () => {
@@ -65,28 +63,6 @@ export function Sidebar() {
     window.addEventListener("resize", collapseForNarrowViewport);
     return () => window.removeEventListener("resize", collapseForNarrowViewport);
   }, []);
-
-  const getStatusColor = (s: OperatorStatus) => {
-    switch (s) {
-      case "ready":
-        return "bg-emerald-500";
-      case "in_call":
-        return "bg-rose-500";
-      case "break":
-        return "bg-amber-500";
-    }
-  };
-
-  const getStatusLabel = (s: OperatorStatus) => {
-    switch (s) {
-      case "ready":
-        return "Ready for Calls";
-      case "in_call":
-        return "In Call";
-      case "break":
-        return "On Break";
-    }
-  };
 
   return (
     <aside
@@ -168,61 +144,28 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Operator Status Badge & Quick Control */}
+      {/* Call status is controlled by the server-backed Operator Console. */}
       <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/50">
-        <div className="relative">
-          <button
-            onClick={() => setStatusMenuOpen(!statusMenuOpen)}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-colors text-left",
-              isCollapsed && "justify-center px-0"
-            )}
-          >
-            <span
-              className={cn(
-                "w-2.5 h-2.5 rounded-full shrink-0 transition-all",
-                getStatusColor(status)
-              )}
-            />
-            {!isCollapsed && (
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
-                  Status
-                </span>
-                <span className="text-xs font-medium text-zinc-200 truncate">
-                  {getStatusLabel(status)}
-                </span>
-              </div>
-            )}
-          </button>
-
-          {/* Status Dropdown Menu */}
-          {statusMenuOpen && (
-            <div className="absolute bottom-full left-0 mb-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl p-1.5 space-y-1 z-50 text-xs">
-              {(["ready", "in_call", "break"] as OperatorStatus[]).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => {
-                    setStatus(s);
-                    setStatusMenuOpen(false);
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition-colors text-left",
-                    status === s ? "text-zinc-100 bg-zinc-800/50" : "text-zinc-400"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "w-2 h-2 rounded-full",
-                      getStatusColor(s)
-                    )}
-                  />
-                  <span>{getStatusLabel(s)}</span>
-                </button>
-              ))}
+        <Link
+          href="/workspace"
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-colors",
+            isCollapsed && "justify-center px-0"
+          )}
+          title="Open Operator Console"
+        >
+          <PhoneCall className="w-4 h-4 shrink-0 text-zinc-400" />
+          {!isCollapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
+                Operator Console
+              </span>
+              <span className="text-xs font-medium text-zinc-200 truncate">
+                Manage call status
+              </span>
             </div>
           )}
-        </div>
+        </Link>
       </div>
     </aside>
   );

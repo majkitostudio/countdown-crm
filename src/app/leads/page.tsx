@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Users, Sparkles, UserCheck, UserPlus, RefreshCw, LockKeyhole } from "lucide-react";
 import { listLeadsAction } from "@/app/actions/crm";
 import { Lead } from "@/lib/leads";
@@ -14,18 +15,28 @@ import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBa
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { canManageLeads } from "@/lib/auth/roles";
 
-export default function LeadsPage() {
+function LeadsPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateModalManuallyOpen, setIsCreateModalManuallyOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const canManageLeadRecords = canManageLeads(identity?.role);
+  const shouldOpenCreateModal = searchParams.get("create") === "1";
+  const isCreateModalOpen = shouldOpenCreateModal || isCreateModalManuallyOpen;
+
+  useEffect(() => {
+    if (!canManageLeadRecords || !shouldOpenCreateModal) return;
+
+    router.replace("/leads", { scroll: false });
+  }, [canManageLeadRecords, router, shouldOpenCreateModal]);
 
   const loadLeads = useCallback(async () => {
     if (!canManageLeadRecords) return;
@@ -78,7 +89,7 @@ export default function LeadsPage() {
   };
 
   const handleStartCall = (lead: Lead) => {
-    alert(`Initiating virtual call with ${lead.full_name} (${lead.phone})... Redirecting to Operator Console.`);
+    router.push(`/workspace?leadId=${encodeURIComponent(lead.id)}`);
   };
 
   const handleImportComplete = () => {
@@ -150,7 +161,7 @@ export default function LeadsPage() {
           </button>
 
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setIsCreateModalManuallyOpen(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
@@ -249,10 +260,26 @@ export default function LeadsPage() {
 
       <CreateLeadModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => setIsCreateModalManuallyOpen(false)}
         onCreated={loadLeads}
       />
 
     </div>
+  );
+}
+
+function LeadsPageFallback() {
+  return (
+    <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-400">
+      Načítám lead management…
+    </div>
+  );
+}
+
+export default function LeadsPage() {
+  return (
+    <Suspense fallback={<LeadsPageFallback />}>
+      <LeadsPageContent />
+    </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Plus, Sparkles, Sliders } from "lucide-react";
+import { X, Plus, Sliders } from "lucide-react";
 import { AttributeDefinition, AttributeType } from "@/lib/schema/types";
 
 interface AddCustomFieldModalProps {
@@ -17,7 +17,6 @@ export function AddCustomFieldModal({
 }: AddCustomFieldModalProps) {
   const [name, setName] = useState("");
   const [type, setType] = useState<AttributeType>("text");
-  const [promptTemplate, setPromptTemplate] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -34,12 +33,6 @@ export function AddCustomFieldModal({
       key,
       name: name.trim(),
       type,
-      ...(type === "ai_generated" ? {
-        aiConfig: {
-          promptTemplate: promptTemplate.trim() || `Compute ${name} using lead context.`,
-          contextSources: ["lead_notes", "transcript"],
-        }
-      } : {})
     };
 
     setIsSaving(true);
@@ -47,7 +40,6 @@ export function AddCustomFieldModal({
     try {
       await onAddField(newAttribute);
       setName("");
-      setPromptTemplate("");
       onClose();
     } catch (cause) {
       setSaveError(cause instanceof Error ? cause.message : "Pole se nepodařilo uložit.");
@@ -101,25 +93,8 @@ export function AddCustomFieldModal({
               <option value="number">Number (Currency / Integer)</option>
               <option value="select">Select (Dropdown Options)</option>
               <option value="boolean">Boolean (Yes / No)</option>
-              <option value="ai_generated">✨ AI Generated (Gemini Computed)</option>
             </select>
           </div>
-
-          {type === "ai_generated" && (
-            <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-2">
-              <label className="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-                Gemini AI Prompt Rule
-              </label>
-              <textarea
-                value={promptTemplate}
-                onChange={(e) => setPromptTemplate(e.target.value)}
-                placeholder="e.g. Calculate lead purchase intent score (0-100)..."
-                rows={3}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700 font-mono"
-              />
-            </div>
-          )}
 
           {saveError && (
             <div className="rounded-lg border border-rose-900/60 bg-rose-950/30 p-3 text-xs text-rose-300" role="alert">

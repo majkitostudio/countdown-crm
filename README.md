@@ -2,11 +2,10 @@
 
 > **Vision**: Vytvořit novou generaci **AI-native CRM platformy** konkurující světovým nástrojům jako **Attio**, s přímým zaměřením na automatizaci tele-sales, reálnou hlasovou asistenci, pokročilý tréninkový simulátor a enterprise bezpečnost.
 
-**Countdown CRM** je moderní, vysoce výkonná webová platforma navržená pro operátory, obchodní týmy a manažery. Systém v reálném čase analyzuje živé hovory pomocí **Google Gemini 2.5 Flash API**, vyhodnocuje náladu zákazníka, detekuje prodejní námitky, doporučuje protiargumenty a automatizuje výstupy z hovorů.
+**Countdown CRM** je pilotní workspace pro operátory, obchodní týmy a manažery. Jádro tvoří workspace-scoped CRM data, serverová autorizace, fronta leadů, objednávkové workflow a explicitně označené pilotní/simulované telephony části.
 
 ![Next.js 16](https://img.shields.io/badge/Next.js-16.2.12-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
-![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?style=flat-square&logo=google)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
 ![Supabase](https://img.shields.io/badge/Supabase-Database_%26_Auth-3ECF8E?style=flat-square&logo=supabase)
 
@@ -23,15 +22,15 @@
   - ❌ **`Fail`** (Odmítnuto)
   - 🛍️ **`Success / Order`** (Vytvořit objednávku)
 
-### 2. 🧠 Google Gemini 2.5 Flash AI Copilot & Battlecards
-- **Live Sentiment & Objection Handling**: Detekce námitek na cenu, konkurenty či kvalitu v reálném čase.
-- **Custom Objection Script Builder**: Správa námitkových skriptů a prodejních battlecard kartiček s 2-sloupcovým živým náhledem.
-- **AI Cross-Sell & Up-Sell**: Automatické generování doplňkových balíčků se slevou.
+### 2. 📖 Product Scripts & Battlecards
+- **Continuous Product Script**: Schválené produktové argumenty a guardrails pro čtení během hovoru.
+- **Objection Battlecards**: Workspace-scoped námitkové karty navázané na produktový katalog.
+- **Cross-Sell Recommendations**: Deterministické doporučení z katalogu, bez tvrzení o live AI detekci.
 
-### 3. 🌐 Omnichannel Timeline & Messaging Hub
-- **360° Časová osa zákazníka**: Zobrazuje hovory, objednávky, SMS Pay-Linky a rychlé poznámky.
-- **AI Follow-up Generator**: 1-klikové odesílání e-mailů a WhatsApp zpráv vytvořených přes Gemini API.
-- **Predictive Re-Order Engine**: Automatické plánování opakovacích volání u spotřebního zboží.
+### 3. 🌐 Workspace Timeline & Re-Order Estimates
+- **Workspace timeline**: Zobrazuje workspace-scoped hovory, objednávky a rychlé poznámky.
+- **External dispatch**: E-mail, WhatsApp a SMS pay-link zůstávají viditelně nedostupné bez schválené integrace.
+- **Re-Order Estimates**: Odhady doplnění jsou deterministický výpočet z historie objednávek a kategorií produktů.
 
 ### 4. 🎓 Live Call Agent Simulator & Gamifikace (`/training`)
 - **Konfigurátor živého agenta**: Vlastní nastavení osobnosti, nálady (vč. Nedůvěřivý / Skeptik), typu produktu a cílů hovoru.
@@ -53,7 +52,7 @@
 ## 🛠️ Technologický Stos
 
 - **Framework**: Next.js 16.2.12 (Turbopack) & React 19
-- **AI LLM Engine**: Google Gemini 2.5 Flash API (`@google/genai`)
+- **Optional training AI**: Google Gemini/OpenAI providers pro explicitně pilotní tréninkový simulátor (`@google/genai`, OpenAI SDK)
 - **Styling**: Tailwind CSS v4 & Lucide React ikony
 - **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr`
 - **Hlasové API**: Native Browser WebSpeech API, Syntetizátor Web Audio API & VAD Engine
@@ -73,7 +72,7 @@ npm install
 # 3. Nastavení Environment proměnných (.env.local)
 NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-GEMINI_API_KEY=your-google-gemini-api-key
+GEMINI_API_KEY=your-google-gemini-api-key # volitelné; training provider
 
 # 4. Spuštění vývojového serveru
 npm run dev

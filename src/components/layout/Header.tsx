@@ -72,10 +72,10 @@ export function Header() {
         {/* Live Multi-Operator Presence */}
         <div className="hidden xl:block"><OperatorPresenceBadge /></div>
 
-        {/* Live Indicator */}
+        {/* Integration status remains explicit until live services are connected. */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span>System Online</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+          <span>Live integrations unavailable</span>
         </div>
 
         {/* Notifications */}

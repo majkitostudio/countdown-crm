@@ -227,7 +227,6 @@ export function ObjectBuilderModal({
                     <option value="number">Číslo ($ / %)</option>
                     <option value="select">Výběr (Select)</option>
                     <option value="boolean">Ano / Ne</option>
-                    <option value="ai_generated">AI Generované ✨</option>
                   </select>
 
                   {attributes.length > 1 && (
