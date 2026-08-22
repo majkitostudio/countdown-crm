@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Bell, ShieldCheck, Layers } from "lucide-react";
 import { blueprintEngine } from "@/lib/blueprints/engine";
@@ -11,13 +11,22 @@ import { getOperatorInitials, getOperatorRoleLabel } from "@/lib/operatorIdentit
 
 import { createClient } from "@/lib/supabase/client";
 
+const DEFAULT_BLUEPRINT_NAME = "Tele-Sales & Call Center";
+const subscribeToBlueprint = () => () => {};
+const getActiveBlueprintName = () => blueprintEngine.getActiveBlueprint().name;
+const getServerBlueprintName = () => DEFAULT_BLUEPRINT_NAME;
+
 export function Header() {
   const router = useRouter();
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
-  const [activeBlueprintName, setActiveBlueprintName] = useState(
-    blueprintEngine.getActiveBlueprint().name
+  const [appliedBlueprintName, setAppliedBlueprintName] = useState<string | null>(null);
+  const persistedBlueprintName = useSyncExternalStore(
+    subscribeToBlueprint,
+    getActiveBlueprintName,
+    getServerBlueprintName,
   );
+  const activeBlueprintName = appliedBlueprintName || persistedBlueprintName;
   const rawOperatorName = identity?.name || (isOperatorLoading ? "Loading operator" : "Unknown operator");
   const nameParts = rawOperatorName.trim().split(" ");
   const firstName = nameParts[0] || "Unknown";
@@ -113,7 +122,7 @@ export function Header() {
       <BlueprintPickerModal
         isOpen={isBlueprintModalOpen}
         onClose={() => setIsBlueprintModalOpen(false)}
-        onBlueprintApplied={(bp) => setActiveBlueprintName(bp.name)}
+        onBlueprintApplied={(bp) => setAppliedBlueprintName(bp.name)}
       />
     </header>
   );
