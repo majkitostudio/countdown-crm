@@ -140,6 +140,8 @@ export async function createOperatorReminderForWorkspace(
       due_at: schedule.due_at,
       remind_at: schedule.remind_at,
       status: "open",
+      push_status: "pending",
+      push_attempts: 0,
     })
     .select(REMINDER_FIELDS)
     .single();
@@ -159,7 +161,7 @@ export async function updateOperatorReminderForWorkspace(
   const supabase = await createDataClient();
   const { data: existing, error: existingError } = await supabase
     .from("operator_reminders")
-    .select("id, title, note, due_at, remind_at, lead_id, status")
+    .select("id, title, note, due_at, remind_at, lead_id, status, push_status")
     .eq("id", reminderId)
     .eq("workspace_id", context.workspaceId)
     .eq("owner_id", context.userId)
@@ -174,6 +176,7 @@ export async function updateOperatorReminderForWorkspace(
   validateSchedule(due_at, remind_at);
   const lead_id = input.lead_id === undefined ? existing.lead_id : input.lead_id || null;
   await assertLeadInWorkspace(supabase, lead_id, context.workspaceId);
+  const scheduleChanged = input.due_at !== undefined || input.remind_at !== undefined;
 
   const { data, error } = await supabase
     .from("operator_reminders")
@@ -183,6 +186,15 @@ export async function updateOperatorReminderForWorkspace(
       due_at,
       remind_at,
       lead_id,
+      ...(scheduleChanged
+        ? {
+            push_status: "pending",
+            push_attempts: 0,
+            push_claimed_at: null,
+            push_sent_at: null,
+            push_last_error: null,
+          }
+        : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", reminderId)

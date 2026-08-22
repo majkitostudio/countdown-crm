@@ -324,6 +324,11 @@ export interface Database {
           remind_at: string;
           status: "open" | "completed" | "cancelled";
           completed_at: string | null;
+          push_status: "pending" | "sending" | "sent" | "skipped" | "failed";
+          push_attempts: number;
+          push_claimed_at: string | null;
+          push_sent_at: string | null;
+          push_last_error: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -338,6 +343,11 @@ export interface Database {
           remind_at: string;
           status?: "open" | "completed" | "cancelled";
           completed_at?: string | null;
+          push_status?: "pending" | "sending" | "sent" | "skipped" | "failed";
+          push_attempts?: number;
+          push_claimed_at?: string | null;
+          push_sent_at?: string | null;
+          push_last_error?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -349,6 +359,11 @@ export interface Database {
           remind_at?: string;
           status?: "open" | "completed" | "cancelled";
           completed_at?: string | null;
+          push_status?: "pending" | "sending" | "sent" | "skipped" | "failed";
+          push_attempts?: number;
+          push_claimed_at?: string | null;
+          push_sent_at?: string | null;
+          push_last_error?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -410,6 +425,62 @@ export interface Database {
           in_stock?: boolean;
         };
         Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent: string | null;
+          disabled_at: string | null;
+          last_success_at: string | null;
+          last_failure_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent?: string | null;
+          disabled_at?: string | null;
+          last_success_at?: string | null;
+          last_failure_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          endpoint?: string;
+          p256dh?: string;
+          auth?: string;
+          user_agent?: string | null;
+          disabled_at?: string | null;
+          last_success_at?: string | null;
+          last_failure_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       calls: {
         Row: {

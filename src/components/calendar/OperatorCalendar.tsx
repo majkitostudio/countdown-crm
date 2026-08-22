@@ -23,6 +23,7 @@ import {
   updateReminderAction,
 } from "@/app/actions/calendar";
 import type { CalendarEntryDTO } from "@/lib/dal/calendar";
+import { PushReminderSettings } from "./PushReminderSettings";
 
 type CalendarFilter = "all" | "callback" | "reminder";
 
@@ -214,6 +215,8 @@ export function OperatorCalendar({ initialEntries }: OperatorCalendarProps) {
 
       {successMessage && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-300" role="status">{successMessage}</div>}
       {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
+
+      <PushReminderSettings />
 
       <div className="flex flex-wrap gap-2">
         {(["all", "callback", "reminder"] as CalendarFilter[]).map((value) => (
