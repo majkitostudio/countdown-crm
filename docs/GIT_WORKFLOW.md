@@ -115,10 +115,12 @@ Toto je snapshot, ne trvalý stav. Před dalším zásahem se musí znovu ověř
 | Větev / pracovní kopie | Stav | Rozhodnutí prozatím |
 |---|---|---|
 | `main` | čistý, `origin/main` | ponechat jako jediný základ |
-| `agent/operator-workflow-product-script` | starší trainerová historie; `main` mezitím pokračoval jinou trainerovou řadou | nemergeovat naslepo; kandidát na archivaci po potvrzení |
-| `fix/order-hydration-legacy` | samostatný worktree; ekvivalent opravy je v `main` | nemergeovat; po finální kontrole kandidát na archivaci |
-| `feat/push-reminder-notifications` | obsahuje push reminders, ale vychází ze starého základu | zachovat jako zdroj; případnou funkci přenést na novou branch z aktuálního `main` |
-| `...product-script-smoke-20260823` | detached dočasný snapshot; má změnu v `AGENTS.md` | ponechat do kontroly diffu; neprovádět odstranění naslepo |
+| `agent/operator-workflow-product-script` | starší trainerová historie; `main` mezitím pokračoval jinou trainerovou řadou | archivováno jako `archive/20260823/agent-operator-workflow-product-script`; PR #1 uzavřen |
+| `fix/order-hydration-legacy` | ekvivalent opravy je v `main`; worktree byl čistý | archivováno jako `archive/20260823/fix-order-hydration-legacy`; PR #4 uzavřen |
+| `feat/push-reminder-notifications` | obsahuje push reminders, ale vychází ze starého základu | archivováno jako `archive/20260823/feat-push-reminder-notifications`; PR #5 uzavřen; případnou funkci přenést na novou branch z aktuálního `main` |
+| `v0/header-alignment-update-2225d494` | vzdálená historická v0 větev bez worktree | archivováno jako `archive/20260823/v0-header-alignment-update-2225d494` |
+| `v0/majkitostudio-886c1873` | vzdálená historická v0 designová větev bez worktree | archivováno jako `archive/20260823/v0-majkitostudio-886c1873` |
+| `...product-script-smoke-20260823` | detached dočasný snapshot; má neuloženou změnu v `AGENTS.md` | ponechat; nejdříve zachovat nebo vědomě zahodit jeho změnu |
 
 ## Pravidlo pro další práci
 
