@@ -1,10 +1,10 @@
 # Countdown CRM — aktuální stav a desatero
 
-**Snapshot:** 23. 8. 2026  
-**Větev:** `main`  
-**HEAD:** `158e650 merge: consolidate operator console redesign`  
-**Pracovní strom:** po konsolidaci jsou obnovené lokální dokumentační změny  
-**GitHub:** lokální `main` je `ahead 16, behind 1` vůči `origin/main`
+**Snapshot:** 24. 8. 2026<br>
+**Větev:** `chore/close-pilot-readiness-gate`<br>
+**HEAD:** `02267fe fix: prevent settings hydration mismatch`<br>
+**Pracovní strom:** čistý po fast-forwardu na aktuální `origin/main` a lokálních quality gates<br>
+**GitHub:** branch je zatím pouze lokální; `HEAD` je shodný s `origin/main`
 
 ## Jedna věta na úvod
 
@@ -18,7 +18,7 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 
 ## Co je dnes skutečný základ
 
-- Next.js 16.2.12, React 19, TypeScript, Tailwind 4 a Supabase Auth/Postgres.
+- Next.js 16.3.2, React 19.2.4, TypeScript, Tailwind 4 a Supabase Auth/Postgres.
 - Přihlášení je chráněné proxy i samostatnou kontrolou uvnitř Server Actions.
 - Workspace se hledá přes membership uživatele; role jsou `operator`,
   `team_leader` a `administrator`.
@@ -55,47 +55,38 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 - `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` je pouze lokální vývojová výjimka. Nesmí
   být zapnutá ve sdíleném stagingu ani v produkci.
 
-## Největší aktuální problém: Git a Supabase nejsou srovnané
+## Aktuální stav Git a Supabase
 
-Lokální repozitář obsahuje 44 migrací. Živé Supabase podle `list_migrations`
-obsahuje mimo jiné i tyto migrace, které v aktuálním checkoutu nemají lokální
-soubor:
+Lokální checkout obsahuje 50 migration souborů, poslední je
+`20260822120928_product_script_versions_archive_previous.sql`. Přímé
+porovnání s live Supabase v tomto průchodu nebylo možné bezpečně provést:
+worktree nemá `supabase/config.toml`, `.env.local`, Supabase proměnné,
+`.mcp.json` ani dostupné Supabase CLI/MCP připojení.
 
-- `product_script_versions_and_publish`
-- `product_script_versions_sanitization_fix`
-- `product_script_versions_archive_previous`
-- `push_reminder_notifications`
-- `push_subscription_user_index`
-- `operator_presence_heartbeat`
-- `profile_backfill_and_auth_trigger`
-
-Na live databázi jsou tyto tabulky skutečně vidět, ale zatím jsou prázdné:
-
-- `product_scripts`: 0 řádků,
-- `product_script_versions`: 0 řádků,
-- `push_subscriptions`: 0 řádků.
-
-To znamená: databáze má novější nebo jinou historii než tento Git checkout.
-Dokud se to nesrovná, nesmíme další změny stavět na domněnce, že lokální
-migrace a živé schéma jsou totéž.
+Starší snapshoty live migration historie proto nejsou považované za čerstvý
+důkaz. V tomto průchodu nebyla spuštěna žádná migrace, `apply_migration` ani
+SQL zápis. Live schema/RLS zůstává neověřené, dokud nebude dostupný schválený
+read-only přístup ke konkrétnímu Supabase projektu.
 
 ## Ověření tohoto průchodu
 
 | Kontrola | Výsledek | Poznámka |
 |---|---|---|
-| `npm test -- --run` | **prošlo** | 2 soubory, 19 testů |
-| `npm run lint` | **prošlo** | bez výstupu chyby |
-| `npm run build` | **prošlo** | Next build a generování rout doběhly |
-| `npm run typecheck` | **prošlo po fresh buildu** | první běh narazil na starý `.next` odkaz na odstraněné `/settings/scripts` |
+| `npm ci --no-audit --no-fund` | **prošlo** | 480 balíčků; NPM oznámil 3 čekající install scripty, které nebyly schválené naslepo |
+| Konzistence Next/React | **prošla** | `next` a `eslint-config-next` 16.3.2, React a `react-dom` 19.2.4 |
+| `npm test` | **prošlo** | 4 soubory, 29 testů |
+| `npm run lint` | **prošlo** | 0 errors, 3 warningy v `src/app/workspace/page.tsx` |
+| `npm run build` | **prošlo** | Next 16.3.2, kompilace a 24 rout doběhly |
+| `npm run typecheck` | **prošlo** | samostatně po čisté instalaci |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
-| `npm audit --omit=dev --audit-level=high` | **neprošlo** | 4 high zranitelnosti v `nanoid`, `postcss` a `sharp`; oprava tlačí Next na novější verzi |
-| Supabase security advisor | **1 warning** | vypnutá ochrana proti uniklým heslům |
-| Supabase performance advisor | **warnings/info** | chybí některé FK indexy, jsou duplicitní permissive policies a několik nepoužitých indexů |
+| `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
+| Live migration/RLS porovnání | **neověřeno** | chybí bezpečný endpoint, projektová konfigurace a Supabase přístup |
+| Přihlášený pilotní browser smoke | **neověřeno** | otevřená relace obsahovala pouze GitHub; bezpečné testovací údaje nebyly dostupné |
 
-Tento snapshot **neprohlašuje nový přihlášený browser smoke za hotový**. Kód,
-testy a SQL metadata jsou důkaz jedné vrstvy. Pro kritický pilotní workflow
-potřebujeme ještě čerstvý browser test s reálným Auth uživatelem, reloadem a
-SQL kontrolou výsledku.
+Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
+lint warningů. Tento snapshot ale **neprohlašuje interní pilot za připravený**:
+chybí čerstvé read-only porovnání live migration historie a přihlášený browser
+test s reálným Auth uživatelem, reloadem, RLS kontrolou a cleanupem.
 
 ## Doporučené pořadí commitů
 
