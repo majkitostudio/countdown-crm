@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
-import { Order, getOrders } from "@/lib/orders";
+import { getProductScript } from "@/lib/productScripts";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
-import { CustomerPanel } from "@/components/workspace/CustomerPanel";
+import { AdditionalQuestionsCard } from "@/components/workspace/AdditionalQuestionsCard";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
+import { LeadNotesCard } from "@/components/workspace/LeadNotesCard";
+import { OperatorLeadHeader } from "@/components/workspace/OperatorLeadHeader";
 import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { ProductOrderPanel, type OrderPlacementResult } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
@@ -22,6 +24,8 @@ import { listWorkflowsAction } from "@/app/actions/workflows";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction } from "@/app/actions/crm";
+import { listLeadNotesAction } from "@/app/actions/leadNotes";
+import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import {
   abortLeadCallStartAction,
   claimNextLeadAction,
@@ -50,10 +54,9 @@ function WorkspaceContent() {
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
-  const [, setOperatorStatus] = useState<OperatorStatus>("ready");
+  const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
   
@@ -62,6 +65,7 @@ function WorkspaceContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [orderFlowMode, setOrderFlowMode] = useState<"call" | null>(null);
+  const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [isCallbackScheduleOpen, setIsCallbackScheduleOpen] = useState(false);
@@ -75,6 +79,7 @@ function WorkspaceContent() {
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
+  const activeLeadId = activeLead?.id;
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
   const isCallActive = softphoneSession.state === "connected" || softphoneSession.state === "on_hold";
@@ -114,6 +119,32 @@ function WorkspaceContent() {
   }, [isCallActive, isDialing]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadLeadNotes() {
+      if (!activeLeadId) {
+        setLeadNotes([]);
+        return;
+      }
+
+      try {
+        const notes = await listLeadNotesAction(activeLeadId);
+        if (!cancelled) setLeadNotes(notes);
+      } catch (error) {
+        if (!cancelled) {
+          setLeadNotes([]);
+          setNotificationToast(error instanceof Error ? error.message : "Lead notes could not be loaded.");
+        }
+      }
+    }
+
+    void loadLeadNotes();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeLeadId, activityRefreshToken]);
+
+  useEffect(() => {
     if (identity?.role !== "operator" || !activeQueueItemId) return;
 
     const sendHeartbeat = () => {
@@ -148,7 +179,6 @@ function WorkspaceContent() {
           }
 
           setProducts(fetchedProducts);
-          setOrders([]);
           setLeads(currentAssignment ? [currentAssignment.lead] : []);
           setActiveLead(currentAssignment?.lead || null);
           setActiveQueueItemId(currentAssignment?.queue_item_id || null);
@@ -157,16 +187,14 @@ function WorkspaceContent() {
           return;
         }
 
-        const [fetchedLeads, fetchedProducts, fetchedOrders, fetchedWorkflows] = await Promise.all([
+        const [fetchedLeads, fetchedProducts, fetchedWorkflows] = await Promise.all([
           getLeads(),
           getProducts(),
-          getOrders(),
           listWorkflowsAction(),
         ]);
 
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
-        setOrders(fetchedOrders);
         setActiveQueueItemId(null);
         workflowEngine.replaceRules(fetchedWorkflows);
 
@@ -264,12 +292,6 @@ function WorkspaceContent() {
       setLeads((currentLeads) =>
         currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
       );
-      try {
-        setOrders(await getOrders());
-      } catch {
-        setNotificationToast("Call saved, but customer order history could not be refreshed.");
-      }
-
       let workflowEntries: ExecutionLogEntry[] = [];
       try {
         workflowEntries = await workflowEngine.emit("on_call_ended", {
@@ -552,6 +574,38 @@ function WorkspaceContent() {
     setAppliedPitch(pitchText);
   };
 
+  const handleOperatorStatusChange = async (newStatus: OperatorStatus) => {
+    if (identity?.role !== "operator") {
+      setOperatorStatus(newStatus);
+      return;
+    }
+
+    if (newStatus === "in_call" && !isCallActive && !isDialing) {
+      setNotificationToast("In-call presence is controlled by the active server assignment.");
+      return;
+    }
+
+    const nextPresence = newStatus === "ready" ? "available" : newStatus === "break" ? "break" : "in_call";
+
+    try {
+      await setOperatorPresenceAction(nextPresence);
+      setOperatorStatus(newStatus);
+
+      if (newStatus === "ready" && !activeQueueItemId && !activeLead) {
+        try {
+          const nextAssignment = await claimNextLeadAction();
+          setActiveQueueItemId(nextAssignment?.queue_item_id || null);
+          setActiveLead(nextAssignment?.lead || null);
+          setLeads(nextAssignment ? [nextAssignment.lead] : []);
+        } catch (error) {
+          setNotificationToast(error instanceof Error ? error.message : "Priority callback could not be claimed.");
+        }
+      }
+    } catch (error) {
+      setNotificationToast(error instanceof Error ? error.message : "Operator presence could not be updated.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
@@ -583,7 +637,7 @@ function WorkspaceContent() {
   }
 
   return (
-    <div className="space-y-8 max-w-screen-2xl mx-auto">
+    <div className="mx-auto max-w-none space-y-4">
       
       {/* Toast Notification Banner */}
       {notificationToast && (
@@ -602,52 +656,60 @@ function WorkspaceContent() {
         />
       )}
 
-      {/* Main Operator Workspace Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 min-h-[720px]">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-9">
-          <CustomerPanel
-            leads={leads}
+      {/* Operator Console layout: lead and script first, supporting context in the right rail. */}
+      <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="flex min-h-0 min-w-0 flex-col gap-4">
+          <OperatorLeadHeader
             activeLead={activeLead}
-            orders={orders}
-            activityRefreshToken={activityRefreshToken}
+            isCallActive={isCallActive}
+            isDialing={isDialing}
+            isMuted={softphoneSession.isMuted}
+            durationSeconds={softphoneSession.durationSeconds}
+            isStarting={isCallStartPending}
+            onToggleCall={handleToggleCall}
+            onToggleMute={() => softphoneController.toggleMute()}
             onCreateOrder={() => {
               if (isCallActive || isDialing) {
                 setNotificationToast("Finish the active call before opening order creation.");
                 return;
               }
-              if (activeLead) router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace`);
+              if (!activeLead) return;
+              setNotificationToast(null);
+              router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace`);
             }}
-            queueControlled={identity?.role === "operator"}
-            canCreateOrder={Boolean(identity)}
-            isCallActive={isCallActive}
-            isDialing={isDialing}
-            durationSeconds={softphoneSession.durationSeconds}
-            isMuted={softphoneSession.isMuted}
-            onToggleCall={handleToggleCall}
-            onToggleMute={() => softphoneController.toggleMute()}
-            onCallOutcome={handleCallOutcome}
-            onScheduleCallback={() => {
-              setCallbackScheduleError(null);
-              setIsCallbackScheduleOpen(true);
-            }}
-            onSimulateIncoming={identity?.role !== "operator" ? handleSimulateIncoming : undefined}
-            isStarting={isCallStartPending}
-            showTimeline={false}
+            onSimulateIncoming={handleSimulateIncoming}
+            showIncomingSimulator={identity?.role !== "operator"}
           />
 
-          <ProductScriptPanel
-            isCallActive={isCallActive}
-            product={products[0]}
-            onApplyPitch={handleApplyPitch}
-          />
+          <div className="min-h-[34rem] min-w-0 flex-1">
+            <ProductScriptPanel
+              isCallActive={isCallActive}
+              product={products[0]}
+              onApplyPitch={handleApplyPitch}
+            />
+          </div>
         </div>
 
-        <aside className="min-w-0 lg:col-span-3">
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm lg:sticky lg:top-0">
-            {activeLead && <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} />}
-          </div>
+        <aside className="min-w-0 space-y-4">
+          <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm">
+            {activeLead ? (
+              <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />
+            ) : (
+              <p className="text-sm text-zinc-400">No active customer selected.</p>
+            )}
+          </section>
+          {activeLead && (
+            <LeadNotesCard
+              leadId={activeLead.id}
+              notes={leadNotes}
+              onNotesChange={(notes) => {
+                setLeadNotes(notes);
+                setActivityRefreshToken((current) => current + 1);
+              }}
+            />
+          )}
+          <AdditionalQuestionsCard questions={getProductScript(products[0]).discoveryQuestions} />
         </aside>
-
       </div>
 
         {orderFlowMode && (
@@ -661,6 +723,7 @@ function WorkspaceContent() {
             <ProductOrderPanel
                 products={products}
                 activeLead={activeLead}
+                leadNotes={leadNotes}
                 appliedPitch={appliedPitch}
                 orderMode={orderFlowMode}
                 onClose={() => setOrderFlowMode(null)}

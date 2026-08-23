@@ -19,9 +19,10 @@ import { getLeadActivities } from "@/lib/domainActivity";
 interface CustomerTimelineCardProps {
   leadId: string;
   refreshToken: number;
+  includeNotes?: boolean;
 }
 
-export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineCardProps) {
+export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true }: CustomerTimelineCardProps) {
   const [entries, setEntries] = useState<WorkspaceActivity[]>([]);
   const [filterType, setFilterType] = useState<WorkspaceActivityType | "all">("all");
   const [newNoteText, setNewNoteText] = useState("");
@@ -74,9 +75,10 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
     }
   };
 
+  const timelineEntries = includeNotes ? entries : entries.filter((entry) => entry.type !== "note");
   const filteredEntries = filterType === "all"
-    ? entries
-    : entries.filter((e) => e.type === filterType);
+    ? timelineEntries
+    : timelineEntries.filter((e) => e.type === filterType);
 
   const getEventIcon = (type: WorkspaceActivityType) => {
     switch (type) {
@@ -118,14 +120,16 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
           </h3>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsAddingNote((current) => !current)}
-          className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer"
-        >
-          <Plus className="w-3 h-3" />
-          <span>Note</span>
-        </button>
+        {includeNotes && (
+          <button
+            type="button"
+            onClick={() => setIsAddingNote((current) => !current)}
+            className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Note</span>
+          </button>
+        )}
       </div>
 
       {loadError && (
@@ -134,7 +138,7 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
         </div>
       )}
 
-      {isAddingNote && (
+      {includeNotes && isAddingNote && (
         <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-200">
           <textarea
             rows={2}
@@ -172,7 +176,7 @@ export function CustomerTimelineCard({ leadId, refreshToken }: CustomerTimelineC
             { key: "call", label: "Calls" },
             { key: "order", label: "Orders" },
             { key: "sms_paylink", label: "SMS" },
-            { key: "note", label: "Notes" },
+            ...(includeNotes ? [{ key: "note", label: "Notes" } as const] : []),
           ] as const
         ).map((f) => (
           <button
