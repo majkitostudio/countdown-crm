@@ -1,5 +1,10 @@
 # Countdown CRM Architecture: Dynamic Schema, AI Attributes & Agentic Workflows
 
+> **Aktuální stav:** Tento soubor popisuje původní architektonickou vizi a
+> historické moduly. Ověřený stav aktuálního checkoutu, odstraněné plochy a
+> závazné pracovní zásady jsou v
+> [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md).
+
 > **Architectural Vision**: Countdown CRM is an **Attio-grade, AI-native CRM platform** built with Next.js 16 (App Router & Turbopack), Tailwind CSS v4, dynamic Entity-Attribute-Value (EAV) data modeling, autonomous Gemini 2.5 Flash AI attributes, and an event-driven Agentic Workflow Engine.
 
 ---

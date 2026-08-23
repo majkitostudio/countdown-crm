@@ -4,6 +4,8 @@
 
 **Countdown CRM** je pilotní workspace pro operátory, obchodní týmy a manažery. Jádro tvoří workspace-scoped CRM data, serverová autorizace, fronta leadů, objednávkové workflow a explicitně označené pilotní/simulované telephony části.
 
+> **Aktuální stav (23. 8. 2026):** Projekt je ve stabilizaci před interním pilotem, ne v obecné produkční připravenosti. Autoritativní snapshot, otevřená rizika a závazné desatero jsou v [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
+
 ![Next.js 16](https://img.shields.io/badge/Next.js-16.3.2-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
@@ -14,8 +16,8 @@
 ## 🚀 Klíčové Pilíře Platformy
 
 ### 1. ⚡ Lineární Operator Console Workflow (`/workspace`)
-- **Přímočará správa hovorů**: Načtení zákazníka s akcí **`Call Client` (Vytočit)** a koučem tempa řeči (WPM).
-- **Voice Activity Detection (VAD)**: Bezdotykové hands-free odesílání hlasu s živou čtečkou skriptu (Teleprompter Reader).
+- **Přímočará práce s kontaktem**: Serverem řízené přiřazení leadu, aktuální customer context a akce pro start, cancel, dokončení a callback.
+- **Pilotní telephony**: Softphone a příchozí hovor jsou simulace v prohlížeči; živá ústředna ani realtime audio stream nejsou součástí aktuálního pilotu.
 - **Rychlé výstupy hovoru na jedno kliknutí**:
   - 📞 **`Call Later`** (Zavolat později / Nezvedá)
   - 📅 **`Schedule Call`** (Naplánovat callback)
@@ -23,7 +25,7 @@
   - 🛍️ **`Success / Order`** (Vytvořit objednávku)
 
 ### 2. 📖 Product Scripts & Battlecards
-- **Continuous Product Script**: Schválené produktové argumenty a guardrails pro čtení během hovoru.
+- **Product Script panel**: Aktuálně statické schválené bloky s guardrails; persistentní draft/publish verze jsou připravené jako samostatný navazující slice.
 - **Objection Battlecards**: Workspace-scoped námitkové karty navázané na produktový katalog.
 - **Cross-Sell Recommendations**: Deterministické doporučení z katalogu, bez tvrzení o live AI detekci.
 
@@ -88,7 +90,6 @@ Aplikace bude dostupná na adrese `http://localhost:3000`.
 - **Aktuální stav a nové desatero pro Codex**: [`docs/AKTUALNI_STAV_A_DESATERO.md`](docs/AKTUALNI_STAV_A_DESATERO.md)
 - **Podrobný produktový status a auditní historie**: [`docs/PRODUCT_STATUS.md`](docs/PRODUCT_STATUS.md)
 - **Roadmapa a historický katalog commitů**: [`docs/roadmap.md`](docs/roadmap.md), [`docs/commits.md`](docs/commits.md)
-
 - [Architektura Systému](docs/architecture.md)
 - [Roadmapa Vývoje](docs/roadmap.md)
 - [Historie Commitů](docs/commits.md)

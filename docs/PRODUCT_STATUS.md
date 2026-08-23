@@ -2,6 +2,14 @@
 
 **Datum aktualizace:** 2026-08-22
 **Status:** stabilizace před bezpečným interním pilotem; Operator Console je další hlavní produktová etapa
+> **Aktualizace 23. 8. 2026:** Tento dokument obsahuje historickou baseline a
+> průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
+> současného checkoutu používej nejdříve
+> [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
+> vychází z `main` na `78781cb` a z čerstvé kontroly živého Supabase.
+
+**Datum baseline:** 2026-08-09  
+**Status:** stabilizační a auditní fáze
 **Produktový cíl:** Attio-grade CRM pro call-centra s AI copilotem, telephony workflow a bezpečným interním provozem
 
 > **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.

@@ -1,121 +1,212 @@
-# Countdown CRM — aktuální stav a nové desatero
+# Countdown CRM — aktuální stav a desatero
 
-**Aktualizováno:** 2026-08-22
-**Větev:** `feat/order-detail-edit`
-**Aktuální HEAD:** `baabfc3 feat: finalize product script versioning and publishing`
-**Účel:** Tento soubor je praktický handoff pro další práci v Codexu. Má přednost před starými dlouhými roadmapami, pokud se jejich tvrzení liší od současného checkoutu a ověření.
+**Snapshot:** 23. 8. 2026  
+**Větev:** `main`  
+**HEAD:** `158e650 merge: consolidate operator console redesign`  
+**Pracovní strom:** po konsolidaci jsou obnovené lokální dokumentační změny  
+**GitHub:** lokální `main` je `ahead 16, behind 1` vůči `origin/main`
 
-## Kde právě jsme
+## Jedna věta na úvod
 
-Jsme ve fázi **stabilizace před bezpečným interním pilotem**. Základní CRM už není jen maketa: přihlášení, workspace hranice, role, leady, produkty, hovory, objednávky, fronta, callbacky, kalendář a část trainingu mají skutečnou serverovou a databázovou cestu.
+Jsme ve fázi **stabilizace před bezpečným interním pilotem**. Základ CRM,
+workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existují.
+Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
+tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Zároveň ještě nejsme připraveni pro širší provoz ani pro tvrzení „produkčně hotovo“. Product Script workflow s verzemi, publikováním a archivací je implementačně commitnuté a pushnuté; hlavní přihlášený browser smoke je nyní ověřený. Zbývá pouze oddělená role-only UI relace, protože aktuální workspace nemá Team Leader membership. Pracovní strom obsahuje generované/recovery artefakty mimo produktový zdroj. Další krok je čistý quality gate, ne přidávání další velké funkce.
+Nejbližší práce je hlavně o srovnání repozitáře se živou databází, uzavření
+security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 
-## Stav po oblastech
+## Co je dnes skutečný základ
 
-| Oblast | Aktuální pravda |
-|---|---|
-| Auth, workspace a role | **Pilot-ready pro ověřené cesty.** Server kontroluje session, membership, workspace a role; RLS je zapnuté na kontrolovaných public tabulkách. |
-| Leads, produkty, hovory a objednávky | **Pilot-ready pro pokryté workflow.** Zápisy jdou přes serverovou DAL/Server Actions, důležité vztahy se kontrolují a ověřené zápisy přežívají reload. |
-| Orders | **Rozpracování je v pokročilé fázi.** Existují full-page create/detail/edit, lifecycle statusy, položky, historie a lokální oprava hydration/legacy driftu. Ověření a handoff order slice ještě zbývá. |
-| Operator Console | **Funkční pilotní pracovní plocha, další hlavní produktová etapa.** Queue, assignment, callback routing a recovery jsou ověřené; vizuální a informační redesign je stále před námi. |
-| Callbacky a kalendář | **Pilot-ready pro schválený model.** Callbacky a osobní reminders jsou oddělené; splatný callback nepřeruší aktivní hovor a při obsazeném preferovaném operátorovi přejde jinam. |
-| Product Scripts — základ | **Uzavřený základ.** Administrator editor, workspace ownership, sanitizace, RLS a read-only Operator Console cesta jsou ověřené. |
-| Product Scripts — verze/publish/archive | **Runtime smoke ověřený, role-only UI relace zbývá.** Draft → publish → reload → Operator Console read proběhl v produkčním buildu a předchozí publikovaná verze se archivovala. Remote i lokální migration soubory používají `20260822114853`, `20260822115016` a `20260822120928`; `archived` je sjednocený v SQL, typech, DAL i UI. Změna je v pushnutém commitu `baabfc3`. |
-| Training | **Session-only pilot.** Uložené review je oddělené od CRM; fyzický mikrofon, SpeechRecognition a skutečné TTS/barge-in nejsou potvrzené. |
-| AI Copilot, enrichment a follow-up | **Preview nebo unavailable.** Gemini a externí dispatch se nesmí tvářit jako produkční integrace. Chyba nemá být nahrazena vymyšlenými daty. |
-| Telephony | **Provider-neutral simulátor s opraveným lifecycle.** Zrušení, audio failure a cleanup jsou ošetřené; skutečný telefonní/inbound provider, webhooky a transkripce nejsou zapojené. |
-| Analytics, Monitor a dashboard activity | **Částečné.** Některé metriky jsou databázové nebo pravdivě unavailable, ale živá presence, leaderboard, aktivita a část KPI ještě nejsou jednotně produkční zdroj pravdy. |
-| Automatické testy | **22/22 Vitest testů prošlo.** Pokrývají sanitizaci Product Scriptů, lifecycle softphonu a training HTTP kontrakty; nepokrývají celé CRM a RLS workflow. |
+- Next.js 16.2.12, React 19, TypeScript, Tailwind 4 a Supabase Auth/Postgres.
+- Přihlášení je chráněné proxy i samostatnou kontrolou uvnitř Server Actions.
+- Workspace se hledá přes membership uživatele; role jsou `operator`,
+  `team_leader` a `administrator`.
+- Kritické zápisy vedou přes serverovou datovou vrstvu a podle potřeby přes
+  databázové RPC: leady, produkty, hovory, fronta, objednávky, reminders,
+  workflow a training sessions.
+- Operator Console má serverem řízenou frontu, claim, start hovoru, heartbeat,
+  cancel/recovery, outcome a callback. Telephony uvnitř prohlížeče je stále
+  simulace, ne napojená ústředna.
+- Objednávky mají lifecycle, historii stavů, řízené opravy detailů a auditní
+  stopu. To je dobrý základ pro pilot, ale musí se znovu ověřit v přihlášeném
+  browseru.
+- `78781cb` odstranil nepoužívané AI copilot, enrichment, follow-up,
+  speech-recognition a některé dynamické UI plochy. To zmenšilo prostor pro
+  nepravdivé sliby, ale starší dokumentace je stále místy popisuje jako hotové.
 
-## Co je teď nejdůležitější
+## Co je důležité nepřikrášlovat
 
-1. Uzavřít oddělený role-only browser smoke Product Scripts, pokud bude k dispozici Operator/Team Leader relace; migrace znovu nespouštět.
-2. Obnovit čistý dependency/quality gate bez recovery složek a oddělit necommitované docs/dependency změny od produktových commitů.
-3. Z pracovní větve udělat čistý, ověřený handoff pro order detail fix (`7a6a0ea`) a následně ho publikovat podle výsledku review.
-4. Přidat pilotní E2E gate pro kritická workflow.
-5. Teprve potom řešit nový Operator Console redesign podle state mapy a briefu.
+- Product Script má workspace-scoped editor pro administrátora, draft/publish/archive
+  verzování, sanitizaci a read-only zobrazení pro operátora. Pokud pro produkt
+  není publikovaná verze, panel používá explicitní fallback; štítek `AI-assisted`
+  není důkaz živé AI.
+- Workflow pravidla a execution log se ukládají, ale některé akce runtime pouze
+  vypíšou do konzole. E-mail, AI summary a manager notification proto nejsou
+  skutečné externí integrace.
+- Training je oddělený simulátor/session workflow. Není to produkční hovor a
+  jeho provider může spadnout na lokální training engine.
+- Dashboard a analytics používají reálná workspace data tam, kde existují.
+  Forecast, live monitoring, sentiment z telephony a část KPI zůstávají
+  `Unavailable`, což je správný stav.
+- Presence existuje pro routing a heartbeat fronty. Monitor ale nemá skutečný
+  live stream operátorů; „presence uložená pro routing“ neznamená „live
+  supervisor monitoring hotový“.
+- `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` je pouze lokální vývojová výjimka. Nesmí
+  být zapnutá ve sdíleném stagingu ani v produkci.
 
-## Co jsem při auditu ověřil
+## Největší aktuální problém: Git a Supabase nejsou srovnané
 
-- Live Supabase má 1 organizaci, 1 workspace, 3 membership řádky a kontrolované tabulky mají zapnuté RLS.
-- Remote migration history obsahuje order lifecycle/edit, Product Scripts i tři Product Script version migrations. Poslední remote verze je `20260822120928` a lokální soubor má stejný název; stavový model i migrace jsou v `baabfc3`, hlavní browser proof je dokončený.
-- `product_script_versions` je na live projektu prázdná; nezůstal v ní testovací fixture.
-- Security advisor hlásí jeden externí warning: vypnutou ochranu proti uniklým heslům. To je nastavení Supabase projektu, ne bezpečná SQL zkratka v repozitáři.
-- Performance advisor hlásí několik chybějících indexů a duplicate permissive policy warnings. Řešit je až samostatným, změřeným databázovým commitem.
-- `npm test -- --run` prošel jako 22/22.
-- `npm run lint` prošel a `npm audit --omit=dev --audit-level=high` hlásí 0 zranitelností. Filtrovaný TypeScript check zdrojů prošel pro 173 souborů; běžný `npm run typecheck` stále načítá rozbité `node_modules-recovery-*` složky z globálního include a proto není platným zeleným gate. Build po čisté instalaci ještě zbývá.
+Lokální repozitář obsahuje 44 migrací. Živé Supabase podle `list_migrations`
+obsahuje mimo jiné i tyto migrace, které v aktuálním checkoutu nemají lokální
+soubor:
 
-## Priorita dalších commitů
+- `product_script_versions_and_publish`
+- `product_script_versions_sanitization_fix`
+- `product_script_versions_archive_previous`
+- `push_reminder_notifications`
+- `push_subscription_user_index`
+- `operator_presence_heartbeat`
+- `profile_backfill_and_auth_trigger`
 
-### P0 — dokončit role-only ověření Product Script workflow
+Na live databázi jsou tyto tabulky skutečně vidět, ale zatím jsou prázdné:
 
-Implementace a migration provenance jsou v `baabfc3` a pushnuté na
-`feat/order-detail-edit`. Create draft → reload → publish → Operator Console
-read a SQL cleanup bez fixture dat jsou dokončené. Zbývá pouze samostatný
-Operator/Team Leader browser role smoke; současný workspace nemá Team Leader
-membership.
+- `product_scripts`: 0 řádků,
+- `product_script_versions`: 0 řádků,
+- `push_subscriptions`: 0 řádků.
 
-### P0 — obnovit opakovatelný ověřovací základ
+To znamená: databáze má novější nebo jinou historii než tento Git checkout.
+Dokud se to nesrovná, nesmíme další změny stavět na domněnce, že lokální
+migrace a živé schéma jsou totéž.
 
-**Gate/commit podle výsledku: `chore: verify clean dependency and quality gates`**
+## Ověření tohoto průchodu
 
-- čistá instalace z lockfile,
-- žádné recovery složky, generované výstupy ani Playwright artefakty ve staged změnách,
-- `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `git diff --check`,
-- dependency audit bez nových zranitelností.
+| Kontrola | Výsledek | Poznámka |
+|---|---|---|
+| `npm test -- --run` | **prošlo** | 2 soubory, 19 testů |
+| `npm run lint` | **prošlo** | bez výstupu chyby |
+| `npm run build` | **prošlo** | Next build a generování rout doběhly |
+| `npm run typecheck` | **prošlo po fresh buildu** | první běh narazil na starý `.next` odkaz na odstraněné `/settings/scripts` |
+| `git diff --check` | **prošlo** | bez whitespace chyb |
+| `npm audit --omit=dev --audit-level=high` | **neprošlo** | 4 high zranitelnosti v `nanoid`, `postcss` a `sharp`; oprava tlačí Next na novější verzi |
+| Supabase security advisor | **1 warning** | vypnutá ochrana proti uniklým heslům |
+| Supabase performance advisor | **warnings/info** | chybí některé FK indexy, jsou duplicitní permissive policies a několik nepoužitých indexů |
 
-Framework dependency hardening už má lokální commit `f200078`; tento bod je nyní release gate pro čistou instalaci a ověřitelný checkout. Nemá opravovat náhodné aplikační chyby. Pokud gate odhalí kódový problém, vznikne samostatný fix.
+Tento snapshot **neprohlašuje nový přihlášený browser smoke za hotový**. Kód,
+testy a SQL metadata jsou důkaz jedné vrstvy. Pro kritický pilotní workflow
+potřebujeme ještě čerstvý browser test s reálným Auth uživatelem, reloadem a
+SQL kontrolou výsledku.
 
-### P1 — uzavřít order lifecycle a publikovat větev
+## Doporučené pořadí commitů
 
-**Commit: `fix: verify order detail lifecycle against persisted data`**
+Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
+nebo novou funkci jen proto, aby byl commit větší.
 
-Nejdříve ověřit, že lokální změna `7a6a0ea` skutečně řeší hydration a legacy edit drift pro nový, odeslaný a historický order. Pak provést create → detail → edit → status → reload → history smoke a teprve podle výsledku případně vytvořit malý follow-up commit. Nesmí se míchat s Product Scripts ani s redesignem Console.
+1. **P0 — srovnat Git a živé migrace**
 
-### P1 — přidat pilotní E2E gate pro kritické workflow
+   `chore: reconcile repository and remote migration history`
 
-**Commit: `test: add authenticated pilot smoke gate`**
+   Zjistit, odkud pochází sedm remote-only migrací, a dostat jejich skutečné
+   SQL do repozitáře nebo výslovně zrušit jejich používání. Doplnit typy a
+   zkontrolovat, že lokální seznam migrací odpovídá databázi. Bez tohoto kroku
+   nevíme, proti jakému schématu vlastně vyvíjíme.
 
-Pokrytí: login/logout, role boundary, workspace isolation, claim leadu, callback fallback, start/cancel/end call, order create/edit, Product Script save/publish, reload persistence, SQL kontrola a cleanup. Test musí pracovat s jasně označenými disposable fixtures a nesmí po sobě nechávat data.
+2. **P0 — uzavřít dependency/security audit**
 
-### P1 — dokončit pravdivé stavy zbývajících obrazovek
+   `chore: upgrade Next.js and close production dependency audit`
 
-**Commit: `fix: isolate remaining non-production surfaces`**
+   Aktualizovat Next.js a související balíčky kontrolovaně, po přečtení
+   aktuálních Next.js pravidel z `node_modules/next/dist/docs/`. Neprovádět
+   slepě `npm audit fix --force`. Znovu ověřit test, lint, typecheck, build a
+   audit. Součástí je i rozhodnutí k ochraně proti uniklým heslům v Supabase.
 
-Projít dashboard activity/KPI, monitor, leaderboard, telephony preview, AI preview, follow-up/paylink a lokální preference. Produkční data nesmí pocházet z `localStorage` ani z fallbacku po chybě; uživatelské preference mohou zůstat lokální, ale musí být takto pojmenované.
+3. **P0 — udělat čerstvý důkaz přihlášeného pilotu**
 
-### P1 — Operator Console redesign
+   `test: verify authenticated pilot workflows against Supabase`
 
-**Commit: `feat: redesign operator console around explicit states`**
+   V reálném Auth účtu projít: login → workspace → claim leadu → start/cancel
+   nebo dokončení hovoru → callback nebo objednávka → reload → ověření v SQL.
+   Otestovat také role a zápis do cizího workspace. Zapsat přesný účet/roli,
+   datum, výsledek a případné fixture cleanup; neuvádět hesla.
 
-Nejdřív state map pro před-call, in-call, post-call, callback, pauzu, chybu a recovery. Zachovat pořadí `call controls → Product Script → customer/timeline/order context`; nevracet do Console prvky, které jen vypadají chytře, ale nemají skutečná data. Redesign neřeší telephony providera ani nové AI funkce.
+4. **HOTOVO — zapojit zdroj Product Scriptu**
 
-### P2 — databázové indexy a policies
+   `feat: persist and publish workspace product scripts`
 
-**Commit: `perf: reconcile Supabase indexes and permissive policies`**
+   Používá se `product_scripts` a `product_script_versions`, draft/publish/archive
+   přes DAL a RLS, bezpečné formátování a read-only runtime pro operátora.
+   Zbývá pouze oddělené role-only ověření, pokud bude k dispozici příslušná
+   přihlášená relace.
 
-Nejdřív zjistit, které indexy se skutečně používají, potom přidat chybějící foreign-key indexy a sloučit pouze policies, které mají stejný účel. Security advisor a performance advisor se musí po migraci znovu přečíst. Leaked Password Protection zůstává mimo repozitář jako externí nastavení/plánový blocker.
+5. **P1 — uzavřít Operator Console lifecycle**
 
-### P2 — skutečná telephony a messaging integrace
+   `test: close operator queue and order lifecycle smoke`
 
-**Commit: `feat: connect approved telephony provider`**
+   Doplnit opakovatelný smoke pro dva operátory, callback affinity, heartbeat,
+   pád/recovery, order creation, status change a detail edit. Zaměřit se na
+   race conditions a na to, že po chybě není lokální stav vydáván za uložený.
 
-Až po stabilním pilotním gate: provider, inbound, webhooky, idempotence, audio/transkripce, error recovery, nákladové limity a audit. Do té doby používáme slova simulace, preview a unavailable.
+6. **P1 — oddělit reálné workflow od simulací**
 
-## Nové desatero pro Codex
+   `refactor: isolate workflow simulations from production actions`
 
-1. **Nejdřív pravda, potom dojem.** Build nebo hezký screenshot není důkaz. U každého důležitého tvrzení uvádíme, zda pochází z kódu, browseru, SQL nebo živého nastavení.
-2. **Jeden commit = jeden problém.** Feature, refactor, dependency upgrade, migrace a úklid artefaktů se nemíchají jen proto, že byly po ruce.
-3. **Před kódem schválíme malý plán.** Cíl, ne-cíle, dotčené vrstvy, rizika, akceptace a ověření musí být jasné dřív, než se začne psát.
-4. **Každý nový chat začíná kontrolou checkoutu.** `git status`, větev, HEAD, remote, diff, migrace a relevantní dokumentace mají přednost před starou konverzací.
-5. **Oprávnění patří na server a do databáze.** UI může něco skrýt, ale nesmí být jedinou ochranou. Každý zápis kontroluje session, workspace, roli a vlastnictví vztahů.
-6. **Supabase je zdroj pravdy pro produkční data.** `localStorage`, in-memory stav a demo fallback jsou jen preference nebo explicitní simulace; nikdy se nesmí vydávat za uložený CRM stav.
-7. **Zápis se počítá až po reloadu.** Kritická změna potřebuje skutečný přihlášený browser, SQL kontrolu, reload a úklid fixture dat.
-8. **Simulace se nepřevléká za integraci.** Pokud nemáme providera, webhook nebo skutečný stream, UI řekne `simulation`, `preview` nebo `unavailable`.
-9. **Migrace musí mít původ a bezpečnou historii.** Před změnou porovnat local/remote history, po změně ověřit RLS, grants, policies, funkce, advisories a typy. Nic znovu nespouštět naslepo.
-10. **Končíme čistým handoffem.** Na konci je přesný seznam změn, ověřovací výsledek, známé mezery, staging jen relevantních souborů a žádné tvrzení silnější než důkaz.
+   U každé akce rozhodnout: skutečně ji implementujeme, nebo ji zobrazíme jako
+   `Unavailable`/`Simulation`. Console log nesmí být vydáván za odeslaný
+   e-mail, AI analýzu nebo notifikaci. Odstranit také demo payloady typu
+   `Demo test transcript...` z cesty, kterou může uživatel považovat za realitu.
 
-## Pravidlo pro další sezení
+7. **P1 — uklidit RLS a výkonové warningy**
 
-Pokud nový úkol nesouvisí s P0/P1 bodem výše, nejdřív vysvětlit, proč má přednost. Bez toho nepřidávat další velkou funkci do projektu, který ještě uzavírá současnou rozpracovanou práci.
+   `fix: close remaining Supabase policy and index warnings`
+
+   Zapnout leaked-password protection, projít duplicitní permissive policies a
+   doplnit jen odůvodněné FK indexy. Každou změnu ověřit security/performance
+   advisorem a negativním přístupovým testem.
+
+8. **P2 — sjednotit dokumentaci se skutečným produktem**
+
+   `docs: align architecture and roadmap with pilot reality`
+
+   Aktualizovat `README.md`, `docs/architecture.md`, `docs/roadmap.md` a
+   `docs/commits.md`, aby nepopisovaly odstraněný Copilot, live AI nebo hotové
+   externí integrace jako současný stav. Vizi zachovat, ale oddělit ji od
+   ověřeného pilotu.
+
+## Nové desatero pro práci na projektu
+
+1. **Nejdřív řekneme, co přesně měníme.** Každý úkol má cíl, co do něj
+   nepatří, riziko a jasný způsob ověření.
+2. **Jeden commit řeší jednu věc.** Funkce, refaktor, migrace a dokumentace se
+   nemíchají jen kvůli pohodlnějšímu pushi.
+3. **Kód není důkaz hotového workflow.** U každého důležitého zápisu chceme
+   přihlášení, správnou roli, reload a kontrolu výsledku v databázi.
+4. **Bezpečnost žije na serveru a v RLS.** UI může něco skrýt, ale nesmí být
+   jedinou ochranou workspace nebo role.
+5. **Lokální migrace a live databáze musí být ve shodě.** Ruční SQL mimo Git
+   je dočasný incident, ne nový zdroj pravdy.
+6. **Nevyrábíme falešné signály.** Žádné smyšlené latency, online stav,
+   AI skóre, e-mail, telephony nebo „success“, když se nic neuložilo.
+7. **Simulace jsou viditelně simulace.** Training, softphone a lokální fallback
+   nesmí vypadat jako produkční call centrum.
+8. **Kontroly spouštíme před handoffem.** Minimálně test, lint, typecheck,
+   build a `git diff --check`; u datové změny navíc browser + SQL smoke.
+9. **Opravujeme příčinu, ne masku.** Nevypínat pravidla, nezakrývat chybu
+   fallbackem a nemažme test jen proto, aby vyšel zeleně.
+10. **Po práci necháme stopu.** Aktualizovat stavový dokument, přesně uvést
+    ověření, stageovat konkrétní soubory a push/merge dělat až po kontrole
+    divergence větví.
+
+## Kdy smíme říct „interní pilot je připravený“
+
+Teprve až platí všechno níže:
+
+- Git a live Supabase mají stejnou migrační historii;
+- bezpečnostní audit nemá otevřený P0 problém;
+- reálný Auth uživatel projde hlavním workflow a zápisy přežijí reload;
+- role a cizí workspace jsou ověřené negativním testem;
+- Product Script má jasný a ověřený zdroj pravdy;
+- simulované části jsou zřetelně oddělené od produkčních záznamů;
+- testy, lint, typecheck, build a dependency audit mají vysvětlený výsledek;
+- dokumentace odpovídá tomu, co skutečně běží.
+
+Do té doby je správný status: **stabilizační práce / interní pilot v přípravě**.
