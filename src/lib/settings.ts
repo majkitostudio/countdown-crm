@@ -17,7 +17,14 @@ export function getUserSettings(): UserSettings {
   try {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (!stored) return DEFAULT_USER_SETTINGS;
-    return { ...DEFAULT_USER_SETTINGS, ...JSON.parse(stored) };
+    const parsed = JSON.parse(stored) as Partial<UserSettings>;
+    const ringtoneVolume = parsed.ringtone_volume;
+
+    if (typeof ringtoneVolume !== "number" || !Number.isFinite(ringtoneVolume) || ringtoneVolume < 0 || ringtoneVolume > 100) {
+      return DEFAULT_USER_SETTINGS;
+    }
+
+    return { ringtone_volume: ringtoneVolume };
   } catch (e) {
     console.warn("Failed to load settings from localStorage:", e);
     return DEFAULT_USER_SETTINGS;

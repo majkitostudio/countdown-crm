@@ -12,7 +12,7 @@ import {
   FileText,
   Plus,
 } from "lucide-react";
-import { getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
+import { DEFAULT_USER_SETTINGS, getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
 import { sounds } from "@/lib/audio";
 import { deleteSchemaAction, listSchemasAction } from "@/app/actions/schema";
 import { ObjectSchema } from "@/lib/schema/types";
@@ -22,7 +22,7 @@ import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
 import { isAdministrator, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<UserSettings>(getUserSettings());
+  const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const [isSavedAlert, setIsSavedAlert] = useState(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
   const [isObjectBuilderOpen, setIsObjectBuilderOpen] = useState(false);
@@ -33,6 +33,14 @@ export default function SettingsPage() {
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
   const canManageWorkspaceSchema = isTeamLeaderOrAdministrator(identity?.role);
   const canManageProductScripts = isAdministrator(identity?.role);
+
+  useEffect(() => {
+    const loadSettingsTimer = window.setTimeout(() => {
+      setSettings(getUserSettings());
+    }, 0);
+
+    return () => window.clearTimeout(loadSettingsTimer);
+  }, []);
 
   const loadSchemas = useCallback(async (showLoading = false) => {
     if (showLoading) {
