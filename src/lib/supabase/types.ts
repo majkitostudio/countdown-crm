@@ -411,6 +411,118 @@ export interface Database {
         };
         Relationships: [];
       };
+      product_scripts: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          product_id: string;
+          content_html: string;
+          updated_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          product_id: string;
+          content_html: string;
+          updated_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          product_id?: string;
+          content_html?: string;
+          updated_by?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_scripts_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_scripts_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_scripts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      product_script_versions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          product_id: string;
+          version_number: number;
+          status: "draft" | "published" | "archived";
+          content_html: string;
+          created_by: string;
+          published_by: string | null;
+          created_at: string;
+          published_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          product_id: string;
+          version_number: number;
+          status?: "draft" | "published" | "archived";
+          content_html: string;
+          created_by: string;
+          published_by?: string | null;
+          created_at?: string;
+          published_at?: string | null;
+        };
+        Update: {
+          version_number?: number;
+          status?: "draft" | "published" | "archived";
+          content_html?: string;
+          published_by?: string | null;
+          published_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_script_versions_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_script_versions_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_script_versions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_script_versions_published_by_fkey";
+            columns: ["published_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       calls: {
         Row: {
           id: string;
@@ -987,6 +1099,22 @@ export interface Database {
           updated_at?: string;
         };
         Relationships: [];
+      };
+    };
+    Functions: {
+      create_product_script_draft: {
+        Args: {
+          p_workspace_id: string;
+          p_product_id: string;
+          p_content_html: string;
+        };
+        Returns: Database["public"]["Tables"]["product_script_versions"]["Row"][];
+      };
+      publish_product_script_version: {
+        Args: {
+          p_version_id: string;
+        };
+        Returns: Database["public"]["Tables"]["product_script_versions"]["Row"][];
       };
     };
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Settings as SettingsIcon,
   User,
@@ -8,6 +9,7 @@ import {
   Save,
   Play,
   Database,
+  FileText,
   Plus,
 } from "lucide-react";
 import { getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
@@ -17,7 +19,7 @@ import { ObjectSchema } from "@/lib/schema/types";
 import { ObjectBuilderModal } from "@/components/schema/ObjectBuilderModal";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
-import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
+import { isAdministrator, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(getUserSettings());
@@ -30,6 +32,7 @@ export default function SettingsPage() {
   const [schemaActionError, setSchemaActionError] = useState<string | null>(null);
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
   const canManageWorkspaceSchema = isTeamLeaderOrAdministrator(identity?.role);
+  const canManageProductScripts = isAdministrator(identity?.role);
 
   const loadSchemas = useCallback(async (showLoading = false) => {
     if (showLoading) {
@@ -113,16 +116,27 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {canManageWorkspaceSchema && (
-          <button
-            type="button"
-            onClick={() => setIsObjectBuilderOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-xl transition-all shadow-sm cursor-pointer shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Vytvořit Custom Object</span>
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {canManageProductScripts && (
+            <Link
+              href="/settings/scripts"
+              className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-500 hover:text-zinc-100"
+            >
+              <FileText className="h-4 w-4" />
+              <span>Product Scripts</span>
+            </Link>
+          )}
+          {canManageWorkspaceSchema && (
+            <button
+              type="button"
+              onClick={() => setIsObjectBuilderOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-all hover:bg-zinc-200"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Vytvořit Custom Object</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Success Notification Alert */}

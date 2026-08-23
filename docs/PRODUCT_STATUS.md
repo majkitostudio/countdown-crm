@@ -1,8 +1,23 @@
 # Countdown CRM — Product Status & Refactoring Baseline
 
-**Datum baseline:** 2026-08-09  
-**Status:** stabilizační a auditní fáze  
+**Datum aktualizace:** 2026-08-22
+**Status:** stabilizace před bezpečným interním pilotem; Operator Console je další hlavní produktová etapa
 **Produktový cíl:** Attio-grade CRM pro call-centra s AI copilotem, telephony workflow a bezpečným interním provozem
+
+> **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
+
+## Aktuální checkpoint — 2026-08-22
+
+Jádro CRM je v pilot-ready stavu pro ověřené workflow: auth/workspace/role hranice, leady, produkty, hovory, objednávky, queue/callback routing, kalendář, training review a Product Script základ mají skutečné serverové a databázové cesty. Projekt ale není obecně production-ready.
+
+Product Script verzování, publikování a archivace je implementačně uzavřené v
+`baabfc3`, který je pushnutý na `feat/order-detail-edit`. Remote Supabase i lokální
+migration files evidují `20260822114853`, `20260822115016` a `20260822120928`;
+`archived` je sjednocený v SQL, TypeScriptu, DAL i UI. Přihlášený browser smoke
+draft → publish → reload → Operator Console read prošel v produkčním buildu;
+zbývá pouze oddělená role-only UI relace. Migrace se nesmí slepě znovu aplikovat.
+
+Aktuální checkout obsahuje generované/recovery složky mimo produktový zdroj; Product Script změny jsou již oddělené v `baabfc3`. Proto je nejbližší práce role-only smoke a čistý quality gate, teprve poté Operator Console redesign.
 
 ## Ověřený slice: Operator Calendar (2026-08-19)
 
@@ -81,7 +96,7 @@ Současný vizuální směr má použitelný základ a nebude plošně zahazová
 
 ### Základní stack
 
-- Next.js 16.2.12, App Router, Turbopack
+- Next.js 16.3.2, App Router, Turbopack
 - React 19.2.4
 - TypeScript 5
 - Tailwind CSS 4
@@ -91,25 +106,37 @@ Současný vizuální směr má použitelný základ a nebude plošně zahazová
 
 ### Aktuální Git baseline
 
-Dokument vychází z commitovaného HEAD:
+Dokument vychází z aktuálního checkoutu, ne ze starého historického baseline:
 
 ```text
-42ed707 docs: record Commit 51 in commits log
-1039ddf refactor: eliminate all any types, fix React hook purity, and achieve strict build compliance
-b6edcac chore: migrate middleware to proxy for Next.js 16 and optimize eslint config
+branch: feat/order-detail-edit
+HEAD: baabfc3 feat: finalize product script versioning and publishing
+origin/feat/order-detail-edit: baabfc3 feat: finalize product script versioning and publishing
 ```
 
-V pracovním stromu existují samostatné necommitované bezpečnostní úpravy z počátečního refactoringového průchodu. Tyto změny nejsou součástí tohoto dokumentačního commitu a budou posouzeny jako samostatný schválený krok.
+Lokální větev je synchronizovaná s remote feature větví. Pracovní strom je navíc
+nečistý: obsahuje necommitované docs/dependency změny a generované/recovery
+artefakty. Product Script implementace a tři migration files jsou v `baabfc3`.
 
 ### Ověřovací baseline
 
 Na aktuálním pracovním stavu platí:
 
-- TypeScript (`npx tsc --noEmit`) prochází,
-- produkční build (`npm run build`) prochází,
-- striktní ESLint aktuálně odhaluje 29 chyb a 116 varování,
-- v repozitáři není dostatečná automatizovaná testovací sada pro kritická CRM workflow,
-- dependency audit dříve odhalil závažné zranitelnosti v produkčních závislostech, které musí být znovu ověřeny v rámci release přípravy.
+- kontraktní a regresní testy (`npm test -- --run`) prošly: 3 soubory, 22 testů,
+- `npm run lint` prošel a `npm audit --omit=dev --audit-level=high` hlásí 0 zranitelností,
+- filtrovaný TypeScript check zdrojů prošel pro 173 souborů; `npm run typecheck` v běžném checkoutu stále načítá rozbité `node_modules-recovery-*` složky z globálního include, proto není platným zeleným gate,
+- `npm run build` ještě nebyl po čisté instalaci zopakován; gate je nutné uzavřít odděleně,
+- historické výsledky z předchozích ověřených slice jsou důležité jako evidence, ale nejsou náhradou za kontrolu aktuálního checkoutu,
+- dependency audit z aktuálního necommitovaného upgrade je potřeba znovu potvrdit spolu s čistým lockfile gate.
+
+### Dependency hardening — 2026-08-22
+
+- [x] Next.js a `eslint-config-next` byly sjednoceny na `16.3.2` bez `--force` upgradu.
+- [x] Lockfile nyní používá PostCSS `8.5.23`, Sharp `0.35.3` a Nanoid `3.3.18`.
+- [x] `npm audit` i produkční varianta `npm audit --omit=dev --audit-level=high` hlásí
+  `0 vulnerabilities`.
+- [ ] Ruční Chrome gate pro mikrofon, Web Speech API a barge-in zůstává odložený do
+  finální polish fáze.
 
 Úspěšný build proto není považován za důkaz produkční připravenosti.
 
@@ -873,3 +900,66 @@ etapa; externí telephony/inbound integrace zůstává pozdější samostatný s
 
 Podrobný návrhový brief a akceptační kritéria jsou v
 `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
+
+## Product Scripts — implementace a hlavní browser smoke uzavřeny — 2026-08-22
+
+Základní slice pro workspace-scoped Product Scripts je dokončený v commitech
+`e4c0947` a `fb68f68`; verzování, publish a archivace jsou v `baabfc3`.
+
+- [x] Administrator-only `/settings/scripts` načítá produkty a uložené skripty
+  přes serverový DAL; Team Leader/Operator nemají editor ani save oprávnění.
+- [x] Server Actions znovu ověřují přihlášení, workspace membership a roli;
+  workspace a product vazba se kontroluje na serveru před upsertem.
+- [x] `public.product_scripts` má unique `(workspace_id, product_id)`, RLS,
+  authenticated grants, workspace member SELECT a Administrator-only
+  INSERT/UPDATE policies s `updated_by = auth.uid()` a stejným workspace
+  produktem.
+- [x] HTML se čistí na clientu i serveru na omezenou allowlist struktury a
+  textových značek; executable tags, event attributes, odkazy, styly a zdroje
+  se neukládají. Operator Console při DB chybě nezobrazuje uložený obsah jako
+  fallback; fallback se zobrazí jen při explicitním `not_found`.
+- [x] Operator Console zobrazuje uložený continuous script, případně zřetelně
+  označený vestavěný pilot fallback. Pilot suggestion je oddělený od schváleného
+  uloženého textu; osobní highlights a view preferences jsou session-only.
+- [x] Přidán index `product_scripts.updated_by`; vzdálený Supabase migration
+  history obsahuje `product_scripts_updated_by_index` ve verzi
+  `20260822023345`. Lokální migration soubor má timestamp
+  `20260822023213`; objekt a SQL byly ověřeny proti vzdálenému projektu.
+- [x] Historické lokální důkazy pro základní Product Script slice: `npm test -- --run`
+  = 22/22, lint, typecheck, production build a `git diff --check` prošly. Tento
+  bod nepředstavuje aktuální gate pro čistou instalaci.
+- [x] Read-only SQL ověření: `product_scripts` má RLS enabled, tři očekávané
+  policies, workspace/product/updated_by indexy; databáze má nyní 0 skriptů,
+  3 produkty, 1 workspace a 3 membership řádky, bez vytvořených fixture dat.
+- [x] Unauthenticated browser smoke `/settings/scripts` skončil na `/login`.
+- [x] Authenticated Administrator browser smoke provedl draft v1 → publish,
+  následně v2 s jedinečným smoke markerem → publish; po reloadu administrace
+  zůstala v2 Published, v1 byla Archived a Operator Console po reloadu zobrazil
+  v2 marker. Po testu byly odstraněny přesně vytvořené řádky a SQL baseline se
+  vrátil na 0 skriptů i 0 verzí.
+- [x] Authenticated Postgres RLS simulation s Operator membership provedla
+  read fixture, odmítnutý INSERT (`42501`) a UPDATE s 0 ovlivněnými řádky;
+  fixture byl následně odstraněn.
+
+Verzovací vrstva používá tabulku `product_script_versions`, draft, publish a
+archive RPC. Remote Supabase i lokální migration files evidují stejné verze
+`20260822114853`, `20260822115016` a `20260822120928`; `archived` je sjednocený
+v SQL, typech, DAL a UI. Remote tabulka je po cleanupu bez fixture řádků.
+
+Implementační slice je uzavřený commitem `baabfc3` a hlavní runtime workflow je
+ověřený. Zbývá pouze samostatný browser role smoke; současný workspace má
+Administrator + 2 Operators a nemá Team Leader membership.
+
+Zbývá už jen omezený browser-role důkaz, nikoli implementační nebo databázový
+blocker:
+
+- [ ] Otevřít Operator/Team Leader UI relaci a ověřit read-only obrazovku.
+  Aktuální workspace má pouze Administrator + 2 Operators, bez Team Leader
+  membership. Po dokončení Administrator smoke byl browser profilovým
+  controlem odhlášen a relace je znovu na `/login`; UI role smoke proto nebyl
+  vydáván za provedený. Cross-workspace hranice je pokryta serverovým
+  workspace membership guardem, product workspace checkem a RLS.
+
+Globální release body zůstávají beze změny: Supabase Auth Leaked Password
+Protection je stále project setting mimo tento slice a skutečný telephony/
+inbound provider není jeho součástí.

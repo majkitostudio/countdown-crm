@@ -4,7 +4,7 @@
 
 **Countdown CRM** je pilotní workspace pro operátory, obchodní týmy a manažery. Jádro tvoří workspace-scoped CRM data, serverová autorizace, fronta leadů, objednávkové workflow a explicitně označené pilotní/simulované telephony části.
 
-![Next.js 16](https://img.shields.io/badge/Next.js-16.2.12-black?style=flat-square&logo=next.js)
+![Next.js 16](https://img.shields.io/badge/Next.js-16.3.2-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
 ![Supabase](https://img.shields.io/badge/Supabase-Database_%26_Auth-3ECF8E?style=flat-square&logo=supabase)
@@ -51,7 +51,8 @@
 
 ## 🛠️ Technologický Stos
 
-- **Framework**: Next.js 16.2.12 (Turbopack) & React 19
+- **Framework**: Next.js 16.3.2 (Turbopack) & React 19
+- **AI LLM Engine**: Google Gemini 2.5 Flash API (`@google/genai`)
 - **Optional training AI**: Google Gemini/OpenAI providers pro explicitně pilotní tréninkový simulátor (`@google/genai`, OpenAI SDK)
 - **Styling**: Tailwind CSS v4 & Lucide React ikony
 - **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr`
@@ -83,6 +84,10 @@ Aplikace bude dostupná na adrese `http://localhost:3000`.
 ---
 
 ## 📜 Architektura & Dokumentace
+
+- **Aktuální stav a nové desatero pro Codex**: [`docs/AKTUALNI_STAV_A_DESATERO.md`](docs/AKTUALNI_STAV_A_DESATERO.md)
+- **Podrobný produktový status a auditní historie**: [`docs/PRODUCT_STATUS.md`](docs/PRODUCT_STATUS.md)
+- **Roadmapa a historický katalog commitů**: [`docs/roadmap.md`](docs/roadmap.md), [`docs/commits.md`](docs/commits.md)
 
 - [Architektura Systému](docs/architecture.md)
 - [Roadmapa Vývoje](docs/roadmap.md)

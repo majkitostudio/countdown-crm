@@ -1,5 +1,7 @@
 # AI-Native Call Center CRM — Roadmapa Vývoje
 
+> **Aktuální pořadí práce:** Pro dnešní stav používej [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tato roadmapa obsahuje historické fáze i detailní záznamy dokončených slice; není sama o sobě autoritou pro pořadí nejbližších commitů.
+
 Roadmapa rozděluje vývoj platformy do logických fází. Ověřený pilotní scope
 rozlišuje lidské role Operator, Team Leader a Administrator; termín Agent je
 rezervovaný pro AI a agentic runtime.
@@ -597,3 +599,39 @@ vizuální váha existujících komponent. Queue/RLS/serverové kontrakty se v t
 designovém slice nemění.
 
 Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
+
+## Product Scripts — 2026-08-22
+
+Implementační část workspace-scoped schválených Product Scripts je hotová na
+feature branchi:
+
+- [x] Administrator-only `/settings/scripts` s kontinuálním editorem,
+  preview, bezpečným textovým formátováním a ochranou před ztrátou
+  neuložených změn při přepnutí produktu.
+- [x] Server Actions a DAL ověřují auth, membership, workspace, Administrator
+  roli a vlastnictví produktu; Operator Console pouze čte uloženou verzi.
+- [x] Supabase `product_scripts` má workspace/product unique constraint, RLS,
+  role-scoped policies, grants a index pro `updated_by`; aplikovaný remote
+  migration history byl znovu ověřen 2026-08-22.
+- [x] Client/server sanitizace HTML odstraňuje executable markup a ukládá jen
+  podporovanou strukturu textu; DB error nepředstírá dostupnost skriptu.
+- [x] Lokální gate: 22 Vitest testů, lint, typecheck, production build a
+  `git diff --check` prošly. Unauthenticated route smoke správně skončil na
+  `/login`.
+- [x] Authenticated Administrator save → reload persistence prošel přes
+  skutečný browser; marker byl po ověření odstraněn a SQL baseline je čistý.
+- [x] Authenticated Postgres RLS simulation s Operator membership potvrdila
+  read access, odmítnutý INSERT (`42501`) a 0 aktualizovaných řádků.
+
+- [x] Verzovací workflow s draft/publish/archive stavem, workspace-scoped RPC
+  a operator-facing published projection je implementovaný a pushnutý v
+  commitu `baabfc3`; lokální migration history odpovídá remote verzím
+  `20260822114853`, `20260822115016` a `20260822120928`.
+- [x] Přihlášený browser smoke draft → reload → publish → Operator Console read
+  a ověření archivace předchozí publikované verze prošel v produkčním buildu;
+  SQL cleanup vrátil obě Product Script tabulky na nulu.
+
+Zbývá pouze oddělená browser role relace pro vizuální read-only smoke.
+Aktuální workspace má Administrator + 2 Operators a nemá Team Leader membership,
+takže samostatný Team Leader browser důkaz není v tomto workspace k dispozici.
+Serverní cross-workspace guard, product workspace check a RLS jsou ověřené.
