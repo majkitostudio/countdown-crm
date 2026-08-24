@@ -13,6 +13,32 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 The user relies on Codex to decide the normal delivery mechanics. Do not wait
 for the user to remember to ask for a commit, push, or pull request.
 
+### Required task and validation loop
+
+- Treat every implementation, code/config/schema change, dependency update, or
+  project maintenance change as a complete task loop: inspect the current
+  checkout, make the bounded change, run the applicable full validation, and
+  finish with an explicit Git state. Do not wait for the user to ask for tests.
+- Every implementation task must have its own Codex task/chat and a clearly
+  named feature/fix/docs branch. If the work is starting on `main` or on an
+  unrelated branch, create or switch to the task branch before editing. Keep
+  one coherent slice per branch and do not mix unrelated work.
+- Before and after work, keep Git current safely: fetch remote refs before
+  deciding the base or delivery target, inspect divergence, and integrate newer
+  base changes only with a clean worktree and an unambiguous target. Never use
+  reset, force-push, or blind pull to hide divergence or discard work.
+- After the final edit, run every relevant repository test and quality gate.
+  For this repository the default complete gate is `npm test`, `npm run check`,
+  and `git diff --check`; `npm run check` covers lint, typecheck, and the
+  production build. If another test script, migration check, browser smoke,
+  persistence check, authorization check, or RLS check is relevant to the
+  changed surface, run it as well. Do not call a slice verified when a required
+  gate failed, was skipped, or could not run; distinguish pre-existing failures
+  from failures introduced by the change.
+- Build/test success is not proof of authenticated browser behavior,
+  persistence after reload, workspace authorization, or Supabase RLS. Report
+  those as separate evidence gates and verify them when the slice touches them.
+
 ### Required delivery behavior
 
 - Before implementation, report the current folder, branch, base commit, scope,
@@ -23,9 +49,12 @@ for the user to remember to ask for a commit, push, or pull request.
 - Push a committed slice when the branch and remote are clear and the change is
   ready to share. Do not push unrelated, unverified, or accidentally staged
   work.
-- Use a feature/fix/docs branch and a draft PR for broad, risky,
-  review-sensitive, or unresolved work. Use a focused push for a small,
-  verified, low-risk change when a PR would add no useful review boundary.
+- Decide the normal delivery action autonomously after verification. Use a
+  focused push for a small, low-risk slice; use a draft pull request for broad,
+  risky, review-sensitive, or unresolved work. Merge only when the target,
+  checks, review boundary, and conflict state are all unambiguous and the
+  repository policy permits it. If a required tool or permission is missing,
+  complete the safe local checkpoint and state the exact remaining action.
 - If the work is incomplete, leave it on a clearly named branch with a commit
   or an explicit handoff describing what remains. Do not leave completed work
   silently uncommitted.
@@ -57,3 +86,10 @@ Every implementation task must end in one of these explicit states:
 2. safely committed on a named branch with the exact next step stated, or
 3. blocked, with the concrete missing authority, evidence, or external change
    identified.
+
+### Required handoff
+
+- End every implementation task with a short plain-language report containing
+  the changed slice, validation results, current branch/commit/push/PR/merge
+  state, and any remaining evidence gap. Never imply that code existence alone
+  proves the live workflow.
