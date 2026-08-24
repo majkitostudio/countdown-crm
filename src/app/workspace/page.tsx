@@ -678,6 +678,11 @@ function WorkspaceContent() {
             }}
             onSimulateIncoming={handleSimulateIncoming}
             showIncomingSimulator={identity?.role !== "operator"}
+            onCallOutcome={handleCallOutcome}
+            onScheduleCallback={() => {
+              setCallbackScheduleError(null);
+              setIsCallbackScheduleOpen(true);
+            }}
           />
 
           <div className="min-h-[34rem] min-w-0 flex-1">

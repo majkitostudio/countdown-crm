@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings, Tag } from "lucide-react";
 import type { Lead } from "@/lib/leads";
+import type { CallOutcome } from "@/components/workspace/CallStatusBar";
+import { OperatorCallControls } from "@/components/workspace/OperatorCallControls";
 
 interface OperatorLeadHeaderProps {
   activeLead: Lead | null;
@@ -17,6 +19,8 @@ interface OperatorLeadHeaderProps {
   onCreateOrder?: () => void;
   onSimulateIncoming?: () => void;
   showIncomingSimulator?: boolean;
+  onCallOutcome?: (outcome: CallOutcome) => void;
+  onScheduleCallback?: () => void;
 }
 
 export function OperatorLeadHeader({
@@ -31,6 +35,8 @@ export function OperatorLeadHeader({
   onCreateOrder,
   onSimulateIncoming,
   showIncomingSimulator = false,
+  onCallOutcome,
+  onScheduleCallback,
 }: OperatorLeadHeaderProps) {
   const formatTimer = (totalSeconds: number) =>
     `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
@@ -143,6 +149,21 @@ export function OperatorLeadHeader({
           )}
         </div>
       </div>
+
+      {onCallOutcome && onScheduleCallback && (
+        <OperatorCallControls
+          isCallActive={isCallActive}
+          isDialing={isDialing}
+          durationSeconds={durationSeconds}
+          isMuted={isMuted}
+          onToggleCall={onToggleCall}
+          onToggleMute={onToggleMute}
+          onCallOutcome={onCallOutcome}
+          onScheduleCallback={onScheduleCallback}
+          isStarting={isStarting}
+          showPrimaryControls={false}
+        />
+      )}
     </section>
   );
 }

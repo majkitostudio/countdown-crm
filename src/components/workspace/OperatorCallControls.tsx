@@ -25,6 +25,7 @@ interface OperatorCallControlsProps {
   onScheduleCallback: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
+  showPrimaryControls?: boolean;
 }
 
 function formatTimer(totalSeconds: number): string {
@@ -42,12 +43,13 @@ export function OperatorCallControls({
   onScheduleCallback,
   onSimulateIncoming,
   isStarting = false,
+  showPrimaryControls = true,
 }: OperatorCallControlsProps) {
   const outcomesUnlocked = isCallActive && durationSeconds >= 30;
 
   return (
     <div className="mt-5 border-t border-zinc-800/80 pt-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {showPrimaryControls && <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           {isCallActive ? (
             <div className="flex items-center gap-2 text-xs text-zinc-300">
@@ -107,7 +109,7 @@ export function OperatorCallControls({
             </button>
           )}
         </div>
-      </div>
+      </div>}
 
       {isCallActive && (
         <div className="mt-4 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3">
