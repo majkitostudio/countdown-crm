@@ -24,6 +24,7 @@ import { listWorkflowsAction } from "@/app/actions/workflows";
 import { ExecutionLogEntry } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction } from "@/app/actions/crm";
+import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import {
@@ -60,7 +61,6 @@ function WorkspaceContent() {
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
   
-  const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
@@ -219,6 +219,7 @@ function WorkspaceContent() {
     orderStatus: PostCallSummary["orderStatus"],
     orderValue = 0,
     orderProductId?: string,
+    orderItems?: CallOrderItemInput[],
     callbackScheduledAt?: string,
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
@@ -239,6 +240,7 @@ function WorkspaceContent() {
           duration_seconds: durationSeconds,
           outcome: queueOutcome,
           ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+          order_items: orderItems || null,
           order_product_id: orderProductId || null,
           order_total_amount: orderProductId ? orderValue : null,
           transcript: null,
@@ -248,7 +250,6 @@ function WorkspaceContent() {
         const nextAssignment = completion.next_lead;
         softphoneController.hangup();
         setOrderFlowMode(null);
-        setAppliedPitch("");
         setNotificationToast(null);
         setOperatorStatus("ready");
         sounds.playCallEndSound();
@@ -275,6 +276,7 @@ function WorkspaceContent() {
         duration_seconds: durationSeconds,
         outcome,
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+        order_items: orderItems || null,
         order_product_id: orderProductId,
         order_total_amount: orderProductId ? orderValue : null,
         transcript: null,
@@ -282,7 +284,6 @@ function WorkspaceContent() {
 
       softphoneController.hangup();
       setOrderFlowMode(null);
-      setAppliedPitch("");
       setNotificationToast(null);
       setOperatorStatus("ready");
       sounds.playCallEndSound();
@@ -526,6 +527,7 @@ function WorkspaceContent() {
       "not_created",
       0,
       undefined,
+      undefined,
       scheduledAt,
     );
     if (completion) {
@@ -537,18 +539,19 @@ function WorkspaceContent() {
   };
 
   const handleOrderPlaced = async (
-    productId: string,
-    totalAmount: number,
+    input: { items: CallOrderItemInput[] },
   ): Promise<OrderPlacementResult | null> => {
     if (!activeLead) return null;
 
     try {
+      const totalAmount = totalCallOrderItems(input.items);
       const completion = await completeCall(
         "order_placed",
         "Order placed",
         "created",
         totalAmount,
-        productId
+        input.items[0]?.product_id,
+        input.items,
       );
       if (!completion?.orderId) return null;
       return { orderId: completion.orderId, callCompleted: true };
@@ -568,10 +571,6 @@ function WorkspaceContent() {
     if (identity?.role !== "operator") {
       advanceToNextLead();
     }
-  };
-
-  const handleApplyPitch = (pitchText: string) => {
-    setAppliedPitch(pitchText);
   };
 
   const handleOperatorStatusChange = async (newStatus: OperatorStatus) => {
@@ -685,7 +684,6 @@ function WorkspaceContent() {
             <ProductScriptPanel
               isCallActive={isCallActive}
               product={products[0]}
-              onApplyPitch={handleApplyPitch}
             />
           </div>
         </div>
@@ -724,7 +722,6 @@ function WorkspaceContent() {
                 products={products}
                 activeLead={activeLead}
                 leadNotes={leadNotes}
-                appliedPitch={appliedPitch}
                 orderMode={orderFlowMode}
                 onClose={() => setOrderFlowMode(null)}
                 onOrderPlaced={handleOrderPlaced}

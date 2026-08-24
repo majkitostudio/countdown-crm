@@ -14,12 +14,11 @@ import { buildDefaultScriptHtml } from "@/lib/scriptContent";
 interface ProductScriptPanelProps {
   product?: Product;
   isCallActive: boolean;
-  onApplyPitch?: (pitchText: string) => void;
 }
 
 type SuggestionType = "default" | "price" | "effectiveness" | "hesitation";
 
-export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: ProductScriptPanelProps) {
+export function ProductScriptPanel({ product, isCallActive }: ProductScriptPanelProps) {
   const script = useMemo(() => getProductScript(product), [product]);
   const [scriptResource, setScriptResource] = useState<{
     productId: string | null;
@@ -110,9 +109,6 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
             <Sparkles className="h-4 w-4 text-zinc-400" />
           </div>
           <p className="text-sm leading-relaxed text-zinc-100">{suggestion}</p>
-          <button type="button" onClick={() => onApplyPitch?.(suggestion)} disabled={!isCallActive} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-950 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40">
-            Use pilot suggestion
-          </button>
           <p className="mt-2 text-[10px] leading-relaxed text-zinc-600">This deterministic preview is separate from the saved approved script below.</p>
         </div>
       )}

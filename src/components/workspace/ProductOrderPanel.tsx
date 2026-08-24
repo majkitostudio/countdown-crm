@@ -14,6 +14,7 @@ import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
+import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -26,14 +27,14 @@ interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
   leadNotes?: LeadNoteDTO[];
-  appliedPitch?: string;
   orderMode?: "call" | "manual";
   onClose: () => void;
   onOrderPlaced: (
-    productId: string,
-    totalAmount: number,
-    orderSource: OrderSource,
-    sourceNote: string | null,
+    input: {
+      items: CallOrderItemInput[];
+      orderSource?: OrderSource;
+      sourceNote?: string | null;
+    },
   ) => Promise<OrderPlacementResult | null>;
 }
 
@@ -41,7 +42,6 @@ export function ProductOrderPanel({
   products,
   activeLead,
   leadNotes = [],
-  appliedPitch,
   orderMode = "call",
   onClose,
   onOrderPlaced,
@@ -51,14 +51,11 @@ export function ProductOrderPanel({
 
   const [quantity, setQuantity] = useState<number>(1);
   const [discountPercent, setDiscountPercent] = useState<number>(0);
-  const [callOutcome, setCallOutcome] = useState<string>("order_placed");
-  const [wrapUpNotes, setWrapUpNotes] = useState<string>("");
   const [orderSource, setOrderSource] = useState<OrderSource>("manual");
   const [sourceNote, setSourceNote] = useState<string>("");
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
-  const lastPitchRef = React.useRef<string | undefined>(undefined);
   const leadNotesInitializedRef = React.useRef(false);
 
   const formattedLeadNotes = leadNotes
@@ -79,13 +76,6 @@ export function ProductOrderPanel({
       setSourceNote(formattedLeadNotes);
     }
   }, [formattedLeadNotes, orderMode]);
-
-  React.useEffect(() => {
-    if (appliedPitch && appliedPitch !== lastPitchRef.current) {
-      lastPitchRef.current = appliedPitch;
-      setWrapUpNotes((prev) => (prev ? `${prev}\n• ${appliedPitch}` : `• ${appliedPitch}`));
-    }
-  }, [appliedPitch]);
 
   const effectiveProductId = selectedProductId || products[0]?.id || "";
   const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];
@@ -109,12 +99,21 @@ export function ProductOrderPanel({
     if (!selectedProduct || !activeLead) return;
 
     setOrderError(null);
-    const result = await onOrderPlaced(
-      selectedProduct.id,
-      grandTotal,
-      orderMode === "call" ? "previous_call" : orderSource,
-      orderMode === "manual" ? sourceNote.trim() || null : null,
-    );
+    const items: CallOrderItemInput[] = buildCallOrderItems({
+      product_id: selectedProduct.id,
+      unit_price: selectedProduct.price,
+      quantity,
+      discount_percent: discountPercent,
+      bundle: bundleProduct
+        ? { product_id: bundleProduct.id, unit_price: bundleSubtotal }
+        : undefined,
+    });
+
+    const result = await onOrderPlaced({
+      items,
+      orderSource: orderMode === "call" ? "previous_call" : orderSource,
+      sourceNote: orderMode === "manual" ? sourceNote.trim() || null : null,
+    });
     if (!result) {
       setOrderError("Order was not created. Check the error above and try again.");
       return;
@@ -402,30 +401,11 @@ export function ProductOrderPanel({
         </div>
       )}
 
-      {orderMode === "call" && <div className="space-y-2 pt-2 border-t border-zinc-800">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-          Post-call outcome & notes
-        </label>
-
-        <select
-          value={callOutcome}
-          onChange={(e) => setCallOutcome(e.target.value)}
-          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
-        >
-          <option value="order_placed">Order Placed — Sale Completed</option>
-          <option value="followup_scheduled">Follow-up Scheduled</option>
-          <option value="objection_handled">Objection Handled / Pending</option>
-          <option value="no_answer">No Answer / Voicemail</option>
-        </select>
-
-        <textarea
-          rows={3}
-          value={wrapUpNotes}
-          onChange={(e) => setWrapUpNotes(e.target.value)}
-          placeholder="Record notes regarding customer reaction, agreed follow-up or objections..."
-          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
-        />
-      </div>}
+      {orderMode === "call" && (
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] text-zinc-400">
+          This checkout saves the call as <strong className="text-zinc-200">Order placed</strong> together with every item shown above.
+        </div>
+      )}
 
     </div>
   );
