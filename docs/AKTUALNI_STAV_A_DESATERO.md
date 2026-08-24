@@ -86,9 +86,8 @@ jinak pojmenované položky stále zahrnují
 `20260821102718_allow_operator_orders_for_current_lead`,
 `20260821104557_order_items_and_atomic_create` a
 `20260821151606_order_item_minimum_pricing`; další rozdíly jsou ve
-verzi/názvu, například `order_status_history_and_updates`. Live schema diff
-po nové baseline ukazuje ještě rozdíly v některých RPC funkcích, oprávněních a
-`audit_logs.workspace_id`; ty zůstávají samostatným reconciliation krokem.
+verzi/názvu, například `order_status_history_and_updates`. Tyto provenance
+rozdíly zůstávají samostatným krokem a nesmí se řešit podle timestampu naslepo.
 
 Docker Desktop byl následně spuštěn a read-only `supabase db diff` byl
 vyzkoušen v obou směrech. Po doplnění baseline a doložených live-only migrací
@@ -106,17 +105,22 @@ jako lokální migrace, ale jiné verze, například `atomic_call_completion`,
 `training_sessions`, `lead_notes` a `order_status_history_and_updates`.
 Live-only názvy `push_reminder_notifications`,
 `push_subscription_user_index`, `operator_presence_heartbeat` a
-`profile_backfill_and_auth_trigger` zatím nemají lokální soubor. Live schéma
+`profile_backfill_and_auth_trigger` už mají lokální soubor pod přesnou live
+verzí. Live schéma
 zároveň obsahuje `order_items`, `create_order_with_items` a kontrolu
 `minimum_unit_price`, tedy funkcionalitu z lokálních order migrací; přesný
 původ těchto změn v live history ale zatím nelze bezpečně určit.
 
 Z toho plyne, že část rozdílu `52 vs. 55` tvoří posunuté verze nebo názvy a
 část tvoří nyní zachycené historické live-only migrace. Základní replay je
-opravený, ale provenance není ještě čistá: zbývá rozhodnout, které lokální
-order/RPC soubory jsou skutečné změny a které historické aliasy. V tomto
-průchodu nebyla spuštěna žádná migrace,
-`migration repair`, `db push`, `apply_migration` ani SQL zápis.
+opravený. Doplňující kontrola ukázala, že dřívější rozdíly v RPC byly pouze
+Windows/Unix konce řádků; do repozitáře proto přibylo pravidlo LF pro SQL a
+lokální replay už je v RPC shodný s live. `audit_logs.workspace_id` se při
+čistém replay nyní také vytváří jako povinný. Zbývá pouze rozdíl platformních
+oprávnění schématu `public`, který se liší mezi Supabase cloudem a lokálním
+kontejnerem a nemá se řešit slepým generated diffem. Nebyla spuštěna žádná
+live migrace, `migration repair`, `db push`, `apply_migration` ani live SQL
+zápis; proběhl pouze lokální reset a read-only porovnání s live.
 
 ## Read-only investigace nových účtů
 
@@ -149,10 +153,10 @@ zachovalo 80 % po reloadu. Všechny tyto trasy doběhly bez console error.
 **Závěr:** problém s novými účty se jeví jako samostatná Auth/profile/
 membership otázka. Migration drift je samostatný problém historie a
 provenance. Přímá příčinná souvislost mezi vytvořením účtu a rozdílem `52 vs.
-55` nebyla prokázána. Nejmenší bezpečný další slice je projít zbývající RPC,
-oprávnění a lokální order aliasy; historii není bezpečné opravovat podle
-samotných timestampů. Role-only a cross-workspace negativní důkaz zůstává
-oddělený.
+55` nebyla prokázána. RPC, povinný workspace u auditních záznamů a aplikační
+granty už mají v čistém lokálním replay doložený stav odpovídající live.
+Zůstává provenance `52 vs. 55`, platformní granty schématu `public` a
+cross-workspace negativní důkaz pro jednotlivé role.
 
 ## Ověření tohoto průchodu
 
@@ -167,7 +171,8 @@ oddělený.
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
 | Live migration history přes CLI | **neprošla jako clean gate** | 52 live vs. 55 lokálních; 28 přesných verzí, zbytek jsou renamed/version-shifted položky a lokální aliasy |
-| Live schema diff přes CLI | **replay prošel, diff zůstává** | Docker běží; obousměrný replay už nepadá na `public.leads`; zbývá rozdíl v RPC funkcích, oprávněních a `audit_logs.workspace_id` |
+| Live schema diff přes CLI | **replay prošel, diff zůstává jen platformní** | Obousměrný replay prošel; RPC, `audit_logs.workspace_id` a aplikační granty se srovnaly, zbývá pouze platformní grant schématu `public` |
+| Oprava lokálního replaye | **prošla** | SQL má v repozitáři LF konce řádků, `audit_logs.workspace_id` je povinné a live aplikační granty se shodují |
 | Nové Auth účty / profile / membership | **prošlo read-only** | 2 nejnovější účty mají profil a `operator` membership v `Main workspace`; jeden je nepotvrzený |
 | Auth trigger / backfill evidence | **prošlo read-only** | live trigger i migration `profile_backfill_and_auth_trigger` existují; account insert nemá důkaz změny migration history |
 | Vlastní přihlášený operator smoke | **prošel read-only** | `mikestudio / Operator`; workspace čeká na přiřazení, lead directory a team operations jsou správně omezené, settings 80 % přežilo reload |
@@ -184,7 +189,8 @@ Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujícíc
 lint warningů. Přihlášené read-only workflow, controlled persistence a jeho
 cleanup jsou ověřené. Tento snapshot ale **neprohlašuje interní pilot za
 připravený**: základní replay je opravený, ale migration provenance stále není
-srovnaná a chybí negativní cross-workspace/RLS důkaz pro jednotlivé role.
+srovnaná, platformní granty `public` nejsou vhodné jako clean gate a chybí
+negativní cross-workspace/RLS důkaz pro jednotlivé role.
 
 ### Controlled fixture evidence
 
