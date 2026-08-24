@@ -112,15 +112,17 @@ zůstává z tohoto průchodu neprokázaný.
 
 Anonymní kontrola aktuálního serveru vrátila `307 /login` pro `/workspace` i
 `/calls` a `401 Unauthorized` pro `/api/training/reviews`. Vlastní přihlášenou
-relaci nového operátora jsme nepoužili, protože pro ni nebyly dodány bezpečné
-přihlašovací údaje; proto zůstává neověřeno, jak přesně tento účet projde
-celým operator workflow.
+relaci potvrzeného nového operátora jsme následně použili read-only. `/workspace`
+ukázal `mikestudio / Operator` a bezpečný stav „čeká na přiřazení“, `/leads`
+správně nepovolil adresář leadů, `/orders` ukázal 0 vlastních objednávek,
+`/team` správně zobrazil omezení pro Team Leader/Administrator a `/settings`
+zachovalo 80 % po reloadu. Všechny tyto trasy doběhly bez console error.
 
 **Závěr:** problém s novými účty se jeví jako samostatná Auth/profile/
 membership otázka. Migration drift je samostatný problém provenance. Přímá
 příčinná souvislost mezi vytvořením účtu a rozdílem `52 vs. 50` nebyla
-prokázána. Nejmenší bezpečný další slice je ověřit potvrzený operator účet v
-jeho vlastní relaci; teprve potom řešit případný login nebo membership detail.
+prokázána. Nejmenší bezpečný další slice je read-only schema diff po spuštění
+Docker Desktopu; role-only a cross-workspace negativní důkaz zůstává oddělený.
 
 ## Ověření tohoto průchodu
 
@@ -138,6 +140,7 @@ jeho vlastní relaci; teprve potom řešit případný login nebo membership det
 | Live schema diff přes CLI | **zablokováno prostředím** | `db diff` potřebuje běžící Docker Desktop; bez něj by bylo nebezpečné opravovat historii jen podle timestampů |
 | Nové Auth účty / profile / membership | **prošlo read-only** | 2 nejnovější účty mají profil a `operator` membership v `Main workspace`; jeden je nepotvrzený |
 | Auth trigger / backfill evidence | **prošlo read-only** | live trigger i migration `profile_backfill_and_auth_trigger` existují; account insert nemá důkaz změny migration history |
+| Vlastní přihlášený operator smoke | **prošel read-only** | `mikestudio / Operator`; workspace čeká na přiřazení, lead directory a team operations jsou správně omezené, settings 80 % přežilo reload |
 | Live RLS inventář cílových tabulek | **prošel** | RLS je enabled a dashboard ukazuje policies; nenahrazuje role-by-role negativní proof |
 | Přihlášení a workspace | **prošlo** | `/login` přesměroval na `/workspace`; Administrator `majkito.studio`, workspace a aktuální lead se načetly bez console error |
 | Read-only pilotní workflow | **prošlo** | Product Script fallback; 4 leady a detail; order create prefill bez uložení; 8 objednávek před i po reloadu; order detail, status history a legacy read-only stav |
@@ -150,9 +153,8 @@ jeho vlastní relaci; teprve potom řešit případný login nebo membership det
 Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
 lint warningů. Přihlášené read-only workflow, controlled persistence a jeho
 cleanup jsou ověřené. Tento snapshot ale **neprohlašuje interní pilot za
-připravený**: migration provenance není srovnaná, nový operator účet nebyl
-ověřen ve vlastní relaci a chybí negativní cross-workspace/RLS důkaz pro
-jednotlivé role.
+připravený**: migration provenance není srovnaná a chybí negativní
+cross-workspace/RLS důkaz pro jednotlivé role.
 
 ### Controlled fixture evidence
 
@@ -202,9 +204,10 @@ nebo novou funkci jen proto, aby byl commit větší.
    `test: verify authenticated pilot workflows against Supabase`
 
    Login, workspace, leady, order prefill, seznam/detail objednávek a settings
-   reload jsou ověřené v Administrator relaci. Controlled note vytvoření,
-   reload, SQL readback a nulový cleanup také prošly. Zbývá negativní test
-   cizího workspace nebo jiné role; neuvádět hesla.
+   reload jsou ověřené v Administrator relaci; nyní prošel i vlastní read-only
+   smoke potvrzeného `Operator` účtu. Controlled note vytvoření, reload, SQL
+   readback a nulový cleanup také prošly. Zbývá negativní test cizího
+   workspace nebo jiné role; neuvádět hesla.
 
 4. **HOTOVO — zapojit zdroj Product Scriptu**
 
