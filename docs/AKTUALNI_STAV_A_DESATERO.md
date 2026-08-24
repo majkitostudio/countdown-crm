@@ -82,13 +82,33 @@ položky zahrnují `20260821102718_allow_operator_orders_for_current_lead`,
 `20260821151606_order_item_minimum_pricing`; další rozdíly jsou ve
 verzi/názvu, například `order_status_history_and_updates`.
 
-Pokus o hlubší read-only porovnání přes
-`supabase db diff --linked --from migrations --to linked --schema public`
-nešel dokončit, protože na počítači neběží Docker Desktop, který CLI potřebuje
-pro lokální stínovou databázi. Provenance každé položky proto zůstává
-samostatný P0 reconciliation slice. V tomto průchodu nebyla spuštěna žádná
-migrace, `migration repair`, `db push`, `apply_migration` ani neplánovaný SQL
-zápis.
+Docker Desktop byl následně spuštěn a read-only `supabase db diff` byl
+vyzkoušen v
+obou směrech. Oba směry skončily na stejném lokálním problému při replayi
+migrací: `20260809_0002_workspace_scope_business_data.sql` očekává
+`public.leads`, ale žádná předchozí lokální migrace tuto tabulku nevytváří.
+Základní definice `leads`, `products`, `calls` a `orders` přitom existují v
+tracked souboru `supabase/schema.sql`, který není součástí běžného replaye
+adresáře `supabase/migrations`. Schema diff tedy není zablokovaný Dockerem, ale
+chybějící nebo nejasně připojenou lokální baseline.
+
+Čerstvý live inventory ukazuje, že `20260810071051|countdown_crm_base_schema`
+je v souladu právě s touto základní vrstvou. Řada dalších live řádků má stejné názvy
+jako lokální migrace, ale jiné verze, například `atomic_call_completion`,
+`training_sessions`, `lead_notes` a `order_status_history_and_updates`.
+Live-only názvy `push_reminder_notifications`,
+`push_subscription_user_index`, `operator_presence_heartbeat` a
+`profile_backfill_and_auth_trigger` zatím nemají lokální soubor. Live schéma
+zároveň obsahuje `order_items`, `create_order_with_items` a kontrolu
+`minimum_unit_price`, tedy funkcionalitu z lokálních order migrací; přesný
+původ těchto změn v live history ale zatím nelze bezpečně určit.
+
+Z toho plyne, že část rozdílu `52 vs. 50` tvoří posunuté verze nebo názvy a
+část může být historická změna mimo aktuální checkout. Provenance proto zůstává
+samostatný P0 reconciliation slice: nejdřív je nutné určit kanonickou baseline
+(`countdown_crm_base_schema` / `supabase/schema.sql`), teprve potom uvažovat o
+jakékoli opravě. V tomto průchodu nebyla spuštěna žádná migrace,
+`migration repair`, `db push`, `apply_migration` ani SQL zápis.
 
 ## Read-only investigace nových účtů
 
@@ -119,10 +139,12 @@ správně nepovolil adresář leadů, `/orders` ukázal 0 vlastních objednávek
 zachovalo 80 % po reloadu. Všechny tyto trasy doběhly bez console error.
 
 **Závěr:** problém s novými účty se jeví jako samostatná Auth/profile/
-membership otázka. Migration drift je samostatný problém provenance. Přímá
-příčinná souvislost mezi vytvořením účtu a rozdílem `52 vs. 50` nebyla
-prokázána. Nejmenší bezpečný další slice je read-only schema diff po spuštění
-Docker Desktopu; role-only a cross-workspace negativní důkaz zůstává oddělený.
+membership otázka. Migration drift je samostatný problém lokální baseline a
+provenance. Přímá příčinná souvislost mezi vytvořením účtu a rozdílem `52 vs.
+50` nebyla prokázána. Nejmenší bezpečný další slice je zdokumentovat a
+read-only rekonstruovat kanonickou baseline; historii není bezpečné opravovat
+podle samotných timestampů. Role-only a cross-workspace negativní důkaz zůstává
+oddělený.
 
 ## Ověření tohoto průchodu
 
@@ -137,7 +159,7 @@ Docker Desktopu; role-only a cross-workspace negativní důkaz zůstává odděl
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
 | Live migration history přes CLI | **neprošla jako clean gate** | 52 live vs. 50 lokálních; 14 přesných shod, 36 local-only a 38 remote-only položek |
-| Live schema diff přes CLI | **zablokováno prostředím** | `db diff` potřebuje běžící Docker Desktop; bez něj by bylo nebezpečné opravovat historii jen podle timestampů |
+| Live schema diff přes CLI | **zablokováno lokální baseline** | Docker běží; obousměrný `db diff` padá při replayi `20260809_0002`, protože `public.leads` chybí v lokálním migration chainu a základ je pouze v `supabase/schema.sql` |
 | Nové Auth účty / profile / membership | **prošlo read-only** | 2 nejnovější účty mají profil a `operator` membership v `Main workspace`; jeden je nepotvrzený |
 | Auth trigger / backfill evidence | **prošlo read-only** | live trigger i migration `profile_backfill_and_auth_trigger` existují; account insert nemá důkaz změny migration history |
 | Vlastní přihlášený operator smoke | **prošel read-only** | `mikestudio / Operator`; workspace čeká na přiřazení, lead directory a team operations jsou správně omezené, settings 80 % přežilo reload |
@@ -153,8 +175,8 @@ Docker Desktopu; role-only a cross-workspace negativní důkaz zůstává odděl
 Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
 lint warningů. Přihlášené read-only workflow, controlled persistence a jeho
 cleanup jsou ověřené. Tento snapshot ale **neprohlašuje interní pilot za
-připravený**: migration provenance není srovnaná a chybí negativní
-cross-workspace/RLS důkaz pro jednotlivé role.
+připravený**: migration provenance není srovnaná kvůli nejasné lokální
+baseline a chybí negativní cross-workspace/RLS důkaz pro jednotlivé role.
 
 ### Controlled fixture evidence
 
@@ -184,11 +206,13 @@ nebo novou funkci jen proto, aby byl commit větší.
    `chore: reconcile repository and remote migration history`
 
    CLI inventory je hotový: 52 live a 50 lokálních položek, pouze 14 přesných
-   timestamp shod. Zbývá spustit Docker Desktop a provést read-only schema diff,
-   potom dohledat skutečnou identitu live-only/renamed migrací. Teprve po tomto
-   důkazu rozhodnout, zda patří SQL do repozitáře, nebo jde o historický rename
-   či incident. Bez slepého přejmenování, `migration repair`, `db push` nebo
-   nové follow-up migrace.
+   timestamp shod. Docker běží, ale obousměrný read-only schema diff odhalil,
+   že lokální replay nemá základní tabulky a očekává je až ve verzovaném
+   `supabase/schema.sql`. Další krok je určit kanonickou baseline a dohledat
+   identitu live-only/renamed migrací. Teprve po tomto důkazu rozhodnout, zda
+   patří SQL do repozitáře, nebo jde o historický rename či incident. Bez
+   slepého přejmenování, `migration repair`, `db push` nebo nové follow-up
+   migrace.
 
 2. **HOTOVO — uzavřít dependency/security audit**
 
