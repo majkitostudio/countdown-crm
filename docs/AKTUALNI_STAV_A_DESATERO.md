@@ -2,7 +2,7 @@
 
 **Snapshot:** 24. 8. 2026
 **Větev:** `feat/lead-call-outcome-order`
-**Referenční HEAD před touto dokumentací:** `1c79c89 fix: harden call order completion migration`
+**Referenční HEAD před touto dokumentací:** `7dfbb94 fix: connect call outcomes to checkout`
 **Pracovní strom:** dokumentační změna v tomto commitu navazuje na ověřený kódový checkpoint
 **GitHub:** větev je pushnutá; draft PR #7 zůstává otevřený k review
 
@@ -18,7 +18,7 @@ a o uzavření zbývajících bezpečnostních a provozních důkazů.
 
 ## Co je dnes skutečný základ
 
-- Next.js 16.2.12, React 19, TypeScript, Tailwind 4 a Supabase Auth/Postgres.
+- Next.js 16.3.2, React 19, TypeScript, Tailwind 4 a Supabase Auth/Postgres.
 - Přihlášení je chráněné proxy i samostatnou kontrolou uvnitř Server Actions.
 - Workspace se hledá přes membership uživatele; role jsou `operator`,
   `team_leader` a `administrator`.
@@ -34,6 +34,9 @@ a o uzavření zbývajících bezpečnostních a provozních důkazů.
 - Checkout po hovoru už posílá všechny položky objednávky najednou — včetně
   množství, skutečné prodejní ceny a případného bundle. Uložení hovoru,
   objednávky a položek probíhá jedním serverovým krokem.
+- Outcome ovládání je nyní skutečně připojené do Operator Console; po aktivním
+  simulovaném hovoru se zobrazí po 30 sekundách a volba `Create Order` otevře
+  stejný atomický checkout.
 - `78781cb` odstranil nepoužívané AI copilot, enrichment, follow-up,
   speech-recognition a některé dynamické UI plochy. To zmenšilo prostor pro
   nepravdivé sliby, ale starší dokumentace je stále místy popisuje jako hotové.
@@ -61,32 +64,32 @@ a o uzavření zbývajících bezpečnostních a provozních důkazů.
 ## Aktuální stav Git a Supabase
 
 Migration provenance je nyní srovnaná pro schválený sandbox projektu
-`lpvypihpxhyjljikfzqo`: lokálně i vzdáleně je 60 migrací a každý version má
+`lpvypihpxhyjljikfzqo`: lokálně i vzdáleně je 61 migrací a každý version má
 přesnou shodu. Suchý běh `db push` po nasazení nehlásí žádnou čekající změnu.
 Vzdálený linked lint je čistý.
 
-To neznamená, že je hotový celý pilot. Stále chybí čerstvý důkaz, že přihlášený
-uživatel dokončí celý tok `hovor → outcome → objednávka → reload → SQL`.
-Migration historie je tedy uzavřený gate; browser/persistence/RLS důkazy jsou
-samostatný gate.
+To neznamená, že je hotový celý pilot. Hlavní tok už je ověřený, ale stále
+zůstává samostatné ověření rolí, cizího workspace a bezpečnostního auditu.
+Migration historie, browser persistence a RLS jsou oddělené gates.
 
 ## Ověření tohoto průchodu
 
 | Kontrola | Výsledek | Poznámka |
 |---|---|---|
 | `npm test` | **prošlo** | 5 souborů, 31 testů |
-| `npm run check` | **prošlo** | lint, typecheck a build; zůstávají 3 starší warningy ve workspace stránce |
+| `npm run check` | **prošlo** | lint, typecheck a build; zůstávají 2 starší warningy ve workspace stránce |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | Supabase local lint | **prošlo** | bez schema errors |
 | Supabase linked lint | **prošlo** | bez errorů na sandboxu |
-| Migration list + dry-run | **prošlo** | 60/60 shod, žádná čekající migrace |
-| Přihlášený browser smoke | **částečně prošel** | workspace, lead, produkt a simulovaný aktivní hovor; celý order checkout s reloadem zatím neprokázán |
+| Migration list + dry-run | **prošlo** | 61/61 shod, žádná čekající migrace |
+| Přihlášený browser smoke | **prošlo** | simulovaný hovor → outcome → 2 položky → order placed → reload |
+| SQL persistence check | **prošlo** | objednávka `completed`, 2 položky, součet `396.23 USD` |
 | Dependency/security audit | **otevřeno** | starší auditní nálezy zůstávají k samostatnému řešení |
 
-Tento snapshot **neprohlašuje celý přihlášený workflow za hotový**. Kód,
-testy a SQL metadata jsou důkaz jedné vrstvy. Přihlášený browser potvrdil
-workspace a simulovaný hovor, ale neuložil v tomto průchodu novou objednávku
-se všemi položkami. To zůstává otevřený důkazní krok, ne důvod k domněnce.
+Tento snapshot nyní potvrzuje hlavní přihlášený tok v testovacím sandboxu.
+Objednávka i obě položky přežily reload a jejich součet se shoduje v UI i SQL.
+Neznamená to ještě obecné produkční readiness: role a negativní RLS scénáře
+zůstávají samostatným důkazem.
 
 ## Aktualizovaný pracovní postup pro databázové změny
 
@@ -126,13 +129,13 @@ nebo novou funkci jen proto, aby byl commit větší.
    slepě `npm audit fix --force`. Znovu ověřit test, lint, typecheck, build a
    audit. Součástí je i rozhodnutí k ochraně proti uniklým heslům v Supabase.
 
-3. **P0 — dokončit důkaz přihlášeného checkoutu**
+3. **HOTOVO — dokončit důkaz přihlášeného checkoutu**
 
    `test: verify authenticated pilot workflows against Supabase`
 
-   V reálném Auth účtu projít: login → workspace → aktivní hovor → outcome
-   `order_placed` → objednávka s více položkami → reload → ověření v SQL.
-   Zapsat roli, datum, výsledek a případné fixture cleanup; neuvádět hesla.
+   V sandboxu prošlo: login → workspace → simulovaný aktivní hovor → outcome
+   `order_placed` → objednávka se dvěma položkami → reload → SQL kontrola.
+   Výsledek: `completed`, 2 položky, `396.23 USD`.
 
 4. **HOTOVO — sjednotit call checkout s uložením položek**
 
