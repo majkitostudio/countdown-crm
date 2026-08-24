@@ -1,10 +1,10 @@
 # Countdown CRM — aktuální stav a desatero
 
-**Snapshot:** 23. 8. 2026  
-**Větev:** `main`  
-**HEAD:** `158e650 merge: consolidate operator console redesign`  
-**Pracovní strom:** po konsolidaci jsou obnovené lokální dokumentační změny  
-**GitHub:** lokální `main` je `ahead 16, behind 1` vůči `origin/main`
+**Snapshot:** 24. 8. 2026  
+**Větev:** `feat/lead-call-outcome-order`  
+**Referenční HEAD před touto dokumentací:** `1c79c89 fix: harden call order completion migration`  
+**Pracovní strom:** dokumentační změna v tomto commitu navazuje na ověřený kódový checkpoint  
+**GitHub:** větev je pushnutá; draft PR #7 zůstává otevřený k review
 
 ## Jedna věta na úvod
 
@@ -13,8 +13,8 @@ workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existu
 Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Nejbližší práce je hlavně o srovnání repozitáře se živou databází, uzavření
-security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
+Nejbližší práce je hlavně o dokončení přihlášeného workflow od hovoru k objednávce
+a o uzavření zbývajících bezpečnostních a provozních důkazů.
 
 ## Co je dnes skutečný základ
 
@@ -31,6 +31,9 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 - Objednávky mají lifecycle, historii stavů, řízené opravy detailů a auditní
   stopu. To je dobrý základ pro pilot, ale musí se znovu ověřit v přihlášeném
   browseru.
+- Checkout po hovoru už posílá všechny položky objednávky najednou — včetně
+  množství, skutečné prodejní ceny a případného bundle. Uložení hovoru,
+  objednávky a položek probíhá jedním serverovým krokem.
 - `78781cb` odstranil nepoužívané AI copilot, enrichment, follow-up,
   speech-recognition a některé dynamické UI plochy. To zmenšilo prostor pro
   nepravdivé sliby, ale starší dokumentace je stále místy popisuje jako hotové.
@@ -55,61 +58,64 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 - `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` je pouze lokální vývojová výjimka. Nesmí
   být zapnutá ve sdíleném stagingu ani v produkci.
 
-## Největší aktuální problém: Git a Supabase nejsou srovnané
+## Aktuální stav Git a Supabase
 
-Lokální repozitář obsahuje 44 migrací. Živé Supabase podle `list_migrations`
-obsahuje mimo jiné i tyto migrace, které v aktuálním checkoutu nemají lokální
-soubor:
+Migration provenance je nyní srovnaná pro schválený sandbox projektu
+`lpvypihpxhyjljikfzqo`: lokálně i vzdáleně je 60 migrací a každý version má
+přesnou shodu. Suchý běh `db push` po nasazení nehlásí žádnou čekající změnu.
+Vzdálený linked lint je čistý.
 
-- `product_script_versions_and_publish`
-- `product_script_versions_sanitization_fix`
-- `product_script_versions_archive_previous`
-- `push_reminder_notifications`
-- `push_subscription_user_index`
-- `operator_presence_heartbeat`
-- `profile_backfill_and_auth_trigger`
-
-Na live databázi jsou tyto tabulky skutečně vidět, ale zatím jsou prázdné:
-
-- `product_scripts`: 0 řádků,
-- `product_script_versions`: 0 řádků,
-- `push_subscriptions`: 0 řádků.
-
-To znamená: databáze má novější nebo jinou historii než tento Git checkout.
-Dokud se to nesrovná, nesmíme další změny stavět na domněnce, že lokální
-migrace a živé schéma jsou totéž.
+To neznamená, že je hotový celý pilot. Stále chybí čerstvý důkaz, že přihlášený
+uživatel dokončí celý tok `hovor → outcome → objednávka → reload → SQL`.
+Migration historie je tedy uzavřený gate; browser/persistence/RLS důkazy jsou
+samostatný gate.
 
 ## Ověření tohoto průchodu
 
 | Kontrola | Výsledek | Poznámka |
 |---|---|---|
-| `npm test -- --run` | **prošlo** | 2 soubory, 19 testů |
-| `npm run lint` | **prošlo** | bez výstupu chyby |
-| `npm run build` | **prošlo** | Next build a generování rout doběhly |
-| `npm run typecheck` | **prošlo po fresh buildu** | první běh narazil na starý `.next` odkaz na odstraněné `/settings/scripts` |
+| `npm test` | **prošlo** | 5 souborů, 31 testů |
+| `npm run check` | **prošlo** | lint, typecheck a build; zůstávají 3 starší warningy ve workspace stránce |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
-| `npm audit --omit=dev --audit-level=high` | **neprošlo** | 4 high zranitelnosti v `nanoid`, `postcss` a `sharp`; oprava tlačí Next na novější verzi |
-| Supabase security advisor | **1 warning** | vypnutá ochrana proti uniklým heslům |
-| Supabase performance advisor | **warnings/info** | chybí některé FK indexy, jsou duplicitní permissive policies a několik nepoužitých indexů |
+| Supabase local lint | **prošlo** | bez schema errors |
+| Supabase linked lint | **prošlo** | bez errorů na sandboxu |
+| Migration list + dry-run | **prošlo** | 60/60 shod, žádná čekající migrace |
+| Přihlášený browser smoke | **částečně prošel** | workspace, lead, produkt a simulovaný aktivní hovor; celý order checkout s reloadem zatím neprokázán |
+| Dependency/security audit | **otevřeno** | starší auditní nálezy zůstávají k samostatnému řešení |
 
-Tento snapshot **neprohlašuje nový přihlášený browser smoke za hotový**. Kód,
-testy a SQL metadata jsou důkaz jedné vrstvy. Pro kritický pilotní workflow
-potřebujeme ještě čerstvý browser test s reálným Auth uživatelem, reloadem a
-SQL kontrolou výsledku.
+Tento snapshot **neprohlašuje celý přihlášený workflow za hotový**. Kód,
+testy a SQL metadata jsou důkaz jedné vrstvy. Přihlášený browser potvrdil
+workspace a simulovaný hovor, ale neuložil v tomto průchodu novou objednávku
+se všemi položkami. To zůstává otevřený důkazní krok, ne důvod k domněnce.
+
+## Aktualizovaný pracovní postup pro databázové změny
+
+Od tohoto slice platí krátký pevný postup:
+
+1. Nejprve zkontrolujeme Git, větev, pracovní strom a aktuální migration list.
+2. Novou změnu vytvoříme přes `supabase migration new`; historii live databáze
+   nepřepisujeme a ruční SQL nepovažujeme za zdroj pravdy.
+3. Před nasazením spustíme lokální lint a dry-run proti schválenému sandboxu.
+4. Po nasazení znovu spustíme linked lint, migration list a dry-run. Dokud
+   lokální a vzdálená historie nesedí, další aplikační ověřování se nepovažuje
+   za platné.
+5. Teprve potom ověřujeme přihlášený browser, reload, SQL výsledek a případně
+   RLS negativní scénář. Testy a build samy o sobě tento důkaz nenahrazují.
+6. Kód/migrace, dokumentace a případné další změny mají oddělené focused
+   commity; před pushnutím se kontroluje přesný seznam souborů.
 
 ## Doporučené pořadí commitů
 
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **P0 — srovnat Git a živé migrace**
+1. **HOTOVO — srovnat Git a živé migrace**
 
    `chore: reconcile repository and remote migration history`
 
-   Zjistit, odkud pochází sedm remote-only migrací, a dostat jejich skutečné
-   SQL do repozitáře nebo výslovně zrušit jejich používání. Doplnit typy a
-   zkontrolovat, že lokální seznam migrací odpovídá databázi. Bez tohoto kroku
-   nevíme, proti jakému schématu vlastně vyvíjíme.
+   Provenance byla obnovena z ověřeného sandboxu, lokální a vzdálený seznam
+   nyní odpovídají a linked lint je čistý. Další schema změny už musí projít
+   novým postupem popsaným výše.
 
 2. **P0 — uzavřít dependency/security audit**
 
@@ -120,16 +126,23 @@ nebo novou funkci jen proto, aby byl commit větší.
    slepě `npm audit fix --force`. Znovu ověřit test, lint, typecheck, build a
    audit. Součástí je i rozhodnutí k ochraně proti uniklým heslům v Supabase.
 
-3. **P0 — udělat čerstvý důkaz přihlášeného pilotu**
+3. **P0 — dokončit důkaz přihlášeného checkoutu**
 
    `test: verify authenticated pilot workflows against Supabase`
 
-   V reálném Auth účtu projít: login → workspace → claim leadu → start/cancel
-   nebo dokončení hovoru → callback nebo objednávka → reload → ověření v SQL.
-   Otestovat také role a zápis do cizího workspace. Zapsat přesný účet/roli,
-   datum, výsledek a případné fixture cleanup; neuvádět hesla.
+   V reálném Auth účtu projít: login → workspace → aktivní hovor → outcome
+   `order_placed` → objednávka s více položkami → reload → ověření v SQL.
+   Zapsat roli, datum, výsledek a případné fixture cleanup; neuvádět hesla.
 
-4. **HOTOVO — zapojit zdroj Product Scriptu**
+4. **HOTOVO — sjednotit call checkout s uložením položek**
+
+   `feat: persist call checkout order items`
+
+   Checkout nyní předává položky objednávky jedním atomickým serverovým
+   voláním pro administrátora i operátora. Ověřeny jsou množství, ceny,
+   workspace produktu, skladová dostupnost a návaznost na vytvořenou objednávku.
+
+5. **HOTOVO — zapojit zdroj Product Scriptu**
 
    `feat: persist and publish workspace product scripts`
 
@@ -138,7 +151,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    Zbývá pouze oddělené role-only ověření, pokud bude k dispozici příslušná
    přihlášená relace.
 
-5. **P1 — uzavřít Operator Console lifecycle**
+6. **P1 — uzavřít Operator Console lifecycle**
 
    `test: close operator queue and order lifecycle smoke`
 
@@ -146,7 +159,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    pád/recovery, order creation, status change a detail edit. Zaměřit se na
    race conditions a na to, že po chybě není lokální stav vydáván za uložený.
 
-6. **P1 — oddělit reálné workflow od simulací**
+7. **P1 — oddělit reálné workflow od simulací**
 
    `refactor: isolate workflow simulations from production actions`
 
@@ -155,7 +168,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    e-mail, AI analýzu nebo notifikaci. Odstranit také demo payloady typu
    `Demo test transcript...` z cesty, kterou může uživatel považovat za realitu.
 
-7. **P1 — uklidit RLS a výkonové warningy**
+8. **P1 — uklidit RLS a výkonové warningy**
 
    `fix: close remaining Supabase policy and index warnings`
 
@@ -163,7 +176,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    doplnit jen odůvodněné FK indexy. Každou změnu ověřit security/performance
    advisorem a negativním přístupovým testem.
 
-8. **P2 — sjednotit dokumentaci se skutečným produktem**
+9. **P2 — sjednotit dokumentaci se skutečným produktem**
 
    `docs: align architecture and roadmap with pilot reality`
 
@@ -182,19 +195,21 @@ nebo novou funkci jen proto, aby byl commit větší.
    přihlášení, správnou roli, reload a kontrolu výsledku v databázi.
 4. **Bezpečnost žije na serveru a v RLS.** UI může něco skrýt, ale nesmí být
    jedinou ochranou workspace nebo role.
-5. **Lokální migrace a live databáze musí být ve shodě.** Ruční SQL mimo Git
-   je dočasný incident, ne nový zdroj pravdy.
+5. **Lokální migrace a live databáze musí být ve shodě.** Každá schema změna
+   má migration, dry-run, linked lint a kontrolu migration listu. Ruční SQL mimo
+   Git je dočasný incident, ne nový zdroj pravdy.
 6. **Nevyrábíme falešné signály.** Žádné smyšlené latency, online stav,
    AI skóre, e-mail, telephony nebo „success“, když se nic neuložilo.
 7. **Simulace jsou viditelně simulace.** Training, softphone a lokální fallback
    nesmí vypadat jako produkční call centrum.
-8. **Kontroly spouštíme před handoffem.** Minimálně test, lint, typecheck,
-   build a `git diff --check`; u datové změny navíc browser + SQL smoke.
+8. **Kontroly spouštíme v pořadí.** Nejprve lokální test/lint/typecheck/build,
+   potom migration lint/provenance, a u datové změny nakonec browser + reload +
+   SQL smoke. Jedna zelená vrstva nenahrazuje druhou.
 9. **Opravujeme příčinu, ne masku.** Nevypínat pravidla, nezakrývat chybu
    fallbackem a nemažme test jen proto, aby vyšel zeleně.
 10. **Po práci necháme stopu.** Aktualizovat stavový dokument, přesně uvést
     ověření, stageovat konkrétní soubory a push/merge dělat až po kontrole
-    divergence větví.
+    divergence větví. Dokumentace musí říct i to, co ještě prokázané není.
 
 ## Kdy smíme říct „interní pilot je připravený“
 
