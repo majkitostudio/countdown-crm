@@ -61,15 +61,23 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 ## Aktuální stav Git a Supabase
 
 Lokální checkout obsahuje 50 migration souborů, poslední je
-`20260822120928_product_script_versions_archive_previous.sql`. Přímé
-porovnání s live Supabase v tomto průchodu nebylo možné bezpečně provést:
-worktree nemá `supabase/config.toml`, `.env.local`, Supabase proměnné,
-`.mcp.json` ani dostupné Supabase CLI/MCP připojení.
+`20260822120928_product_script_versions_archive_previous.sql`. Live Supabase
+history má 52 řádků. Tento drift je skutečný a nesmí se automaticky
+"opravovat" přejmenováním, novou migrací ani opakováním aplikace migrací.
 
-Starší snapshoty live migration historie proto nejsou považované za čerstvý
-důkaz. V tomto průchodu nebyla spuštěna žádná migrace, `apply_migration` ani
-SQL zápis. Live schema/RLS zůstává neověřené, dokud nebude dostupný schválený
-read-only přístup ke konkrétnímu Supabase projektu.
+Mezi live-only nebo přejmenovanými položkami jsou mimo jiné
+`countdown_crm_base_schema`, `profile_backfill_and_auth_trigger`,
+`operator_presence_heartbeat`, `push_subscription_user_index`,
+`push_reminder_notifications`, `order_source_metadata`, `training_sessions`
+a `training_session_owner_cleanup`. Lokální-only nebo jinak pojmenované
+položky zahrnují `20260821102718_allow_operator_orders_for_current_lead`,
+`20260821104557_order_items_and_atomic_create` a
+`20260821151606_order_item_minimum_pricing`; další rozdíly jsou ve
+verzi/názvu, například `order_status_history_and_updates`.
+
+Provenance každé položky je samostatný P0 reconciliation slice. V tomto
+průchodu nebyla spuštěna žádná migrace, `apply_migration` ani neplánovaný SQL
+zápis.
 
 ## Ověření tohoto průchodu
 
@@ -83,20 +91,39 @@ read-only přístup ke konkrétnímu Supabase projektu.
 | `npm run typecheck` | **prošlo** | samostatně po čisté instalaci |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
-| Live migration/RLS porovnání | **neověřeno** | chybí bezpečný endpoint, projektová konfigurace a Supabase přístup |
+| Live migration history | **neprošla jako clean gate** | 52 live položek vs. 50 lokálních; provenance reconciliation je samostatný blocker |
+| Live RLS inventář cílových tabulek | **prošel** | RLS je enabled a dashboard ukazuje policies; nenahrazuje role-by-role negativní proof |
 | Přihlášení a workspace | **prošlo** | `/login` přesměroval na `/workspace`; Administrator `majkito.studio`, workspace a aktuální lead se načetly bez console error |
 | Read-only pilotní workflow | **prošlo** | Product Script fallback; 4 leady a detail; order create prefill bez uložení; 8 objednávek před i po reloadu; order detail, status history a legacy read-only stav |
 | Read-only reload persistence | **prošlo** | `/orders` zůstal na 8 položkách a `/settings` zachovalo uložených 50 % po reloadu |
 | Anonymní serverová hranice | **prošla** | `/workspace`, `/calls`, `/team` a `/training/reviews` vracejí redirect na `/login`; API vrací `401 UNAUTHORIZED` |
 | Administrator read autorizace | **prošla** | `/team` načetl workspace queue a members přes uživatelskou Supabase session; bez zápisu a bez console error |
-| Nový DB zápis → reload → cleanup | **neprovedeno** | nevznikla žádná fixture; dostupné UI nemělo bezpečnou nulově-reziduální cleanup cestu |
+| Controlled DB persistence → reload → cleanup | **prošlo** | syntetická note se po async reloadu objevila, přesný řádek byl ověřen v SQL a po smazání měl SQL i UI nulový zbytek |
 | Cross-workspace / role negativní RLS test | **neověřeno** | k dispozici byla pouze Administrator relace a žádný read-only SQL/MCP přístup |
 
 Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
-lint warningů. Přihlášené read-only workflow a jeho reload stabilita jsou
-ověřené bez nové fixture. Tento snapshot ale **neprohlašuje interní pilot za
-připravený**: chybí čerstvé porovnání live migration historie, negativní
-cross-workspace/RLS důkaz a nový řízený zápis s reloadem a nulovým cleanupem.
+lint warningů. Přihlášené read-only workflow, controlled persistence a jeho
+cleanup jsou ověřené. Tento snapshot ale **neprohlašuje interní pilot za
+připravený**: migration provenance není srovnaná a chybí negativní
+cross-workspace/RLS důkaz pro jednotlivé role.
+
+### Controlled fixture evidence
+
+Syntetická note `Pilot readiness smoke 2026-08-24 — cleanup` byla vytvořena
+pro lead `3b0939d2-ee63-4fba-b612-ca68339c184f`. Po reloadu se objevila v UI,
+jakmile doběhl asynchronní seznam přibližně za pět sekund, a přesný řádek byl
+ověřen v `public.lead_notes`. Následné smazání bylo provedeno s explicitním
+potvrzením; follow-up SQL vrátilo 0 řádků a nový reload `/workspace` ukázal
+`Note history 0`. Fixture nezůstala v databázi.
+
+### Live RLS inventory
+
+RLS je enabled a dashboard ukazuje policies na těchto pilotních tabulkách:
+`audit_logs` 2, `calls` 3, `lead_queue_events` 1, `lead_queue_items` 1,
+`leads` 4, `operator_presence` 1, `order_items` 4, `order_status_history` 1,
+`orders` 3, `product_script_versions` 3, `product_scripts` 3 a `profiles` 2.
+Jde o live schema/policy inventář, ne o náhradu autentizovaného negativního
+testu každé role a cizího workspace.
 
 ## Doporučené pořadí commitů
 
@@ -107,10 +134,10 @@ nebo novou funkci jen proto, aby byl commit větší.
 
    `chore: reconcile repository and remote migration history`
 
-   Zjistit, odkud pochází sedm remote-only migrací, a dostat jejich skutečné
-   SQL do repozitáře nebo výslovně zrušit jejich používání. Doplnit typy a
-   zkontrolovat, že lokální seznam migrací odpovídá databázi. Bez tohoto kroku
-   nevíme, proti jakému schématu vlastně vyvíjíme.
+   Zjistit provenance 52 live a 50 lokálních položek, zejména skutečné
+   live-only/renamed migration identity. Teprve po tomto porovnání rozhodnout,
+   zda patří skutečné SQL do repozitáře, nebo zda jde o historický rename či
+   incident. Bez slepého přejmenování, `db push` nebo nové follow-up migrace.
 
 2. **HOTOVO — uzavřít dependency/security audit**
 
@@ -126,9 +153,9 @@ nebo novou funkci jen proto, aby byl commit větší.
    `test: verify authenticated pilot workflows against Supabase`
 
    Login, workspace, leady, order prefill, seznam/detail objednávek a settings
-   reload jsou read-only ověřené v Administrator relaci. Zbývá řízený zápis
-   přes skutečný workflow, reload, SQL kontrola výsledku, nulový fixture cleanup
-   a negativní test cizího workspace nebo jiné role; neuvádět hesla.
+   reload jsou ověřené v Administrator relaci. Controlled note vytvoření,
+   reload, SQL readback a nulový cleanup také prošly. Zbývá negativní test
+   cizího workspace nebo jiné role; neuvádět hesla.
 
 4. **HOTOVO — zapojit zdroj Product Scriptu**
 
