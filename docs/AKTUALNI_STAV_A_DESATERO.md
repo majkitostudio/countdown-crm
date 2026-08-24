@@ -152,11 +152,16 @@ zachovalo 80 % po reloadu. Všechny tyto trasy doběhly bez console error.
 
 **Závěr:** problém s novými účty se jeví jako samostatná Auth/profile/
 membership otázka. Migration drift je samostatný problém historie a
-provenance. Přímá příčinná souvislost mezi vytvořením účtu a rozdílem `52 vs.
-55` nebyla prokázána. RPC, povinný workspace u auditních záznamů a aplikační
-granty už mají v čistém lokálním replay doložený stav odpovídající live.
-Zůstává provenance `52 vs. 55`, platformní granty schématu `public` a
-cross-workspace negativní důkaz pro jednotlivé role.
+provenance. Přímá příčinná souvislost mezi vytvořením účtu a historickým
+rozdílem `52 vs. 55` nebyla prokázána. Tento starší snapshot není zdrojem
+pravdy pro současný testovací sandbox a před produkčním nasazením se k němu
+vrátíme samostatně.
+
+Cross-workspace negativní test už proběhl v aktuálním sandboxu: administrátor
+hlavního workspace neviděl dočasná data druhého workspace, uživatel bez
+membershipu neviděl žádná data a anonymní role dostala `permission denied`.
+Podrobný výsledek je v
+[`docs/WORKSPACE_ISOLATION_TEST_20260824.md`](WORKSPACE_ISOLATION_TEST_20260824.md).
 
 ## Ověření tohoto průchodu
 
@@ -170,7 +175,7 @@ cross-workspace negativní důkaz pro jednotlivé role.
 | `npm run typecheck` | **prošlo** | samostatně po čisté instalaci |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
-| Live migration history přes CLI | **neprošla jako clean gate** | 52 live vs. 55 lokálních; 28 přesných verzí, zbytek jsou renamed/version-shifted položky a lokální aliasy |
+| Historický migration snapshot přes CLI | **známý technický dluh** | 52 live vs. 55 lokálních v dřívějším průchodu; není zdrojem pravdy pro současný testovací sandbox, před produkcí vyčistit |
 | Live schema diff přes CLI | **replay prošel, diff zůstává jen platformní** | Obousměrný replay prošel; RPC, `audit_logs.workspace_id` a aplikační granty se srovnaly, zbývá pouze platformní grant schématu `public` |
 | Oprava lokálního replaye | **prošla** | SQL má v repozitáři LF konce řádků, `audit_logs.workspace_id` je povinné a live aplikační granty se shodují |
 | Nové Auth účty / profile / membership | **prošlo read-only** | 2 nejnovější účty mají profil a `operator` membership v `Main workspace`; jeden je nepotvrzený |
@@ -183,14 +188,14 @@ cross-workspace negativní důkaz pro jednotlivé role.
 | Anonymní serverová hranice | **prošla** | `/workspace`, `/calls`, `/team` a `/training/reviews` vracejí redirect na `/login`; API vrací `401 UNAUTHORIZED` |
 | Administrator read autorizace | **prošla** | `/team` načetl workspace queue a members přes uživatelskou Supabase session; bez zápisu a bez console error |
 | Controlled DB persistence → reload → cleanup | **prošlo** | syntetická note se po async reloadu objevila, přesný řádek byl ověřen v SQL a po smazání měl SQL i UI nulový zbytek |
-| Cross-workspace / role negativní RLS test | **neověřeno** | k dispozici byla pouze Administrator relace a žádný read-only SQL/MCP přístup |
+| Cross-workspace / role negativní RLS test | **prošlo** | dočasný workspace s leadem, produktem, objednávkou a hovorem; hlavní administrátor ani uživatel bez membershipu neviděli jeho data, fixture byl uklizen |
 
 Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
-lint warningů. Přihlášené read-only workflow, controlled persistence a jeho
-cleanup jsou ověřené. Tento snapshot ale **neprohlašuje interní pilot za
-připravený**: základní replay je opravený, ale migration provenance stále není
-srovnaná, platformní granty `public` nejsou vhodné jako clean gate a chybí
-negativní cross-workspace/RLS důkaz pro jednotlivé role.
+lint warningů. Přihlášené read-only workflow, controlled persistence, cleanup
+a serverová workspace izolace jsou ověřené. **Testovací pilot může
+pokračovat.** Historická migration provenance, platformní granty `public` a
+samostatný operator UI smoke zůstávají úkoly před případným produkčním
+nasazením, ne překážkou další práce na testovacích datech.
 
 ### Controlled fixture evidence
 
@@ -210,6 +215,16 @@ RLS je enabled a dashboard ukazuje policies na těchto pilotních tabulkách:
 Jde o live schema/policy inventář, ne o náhradu autentizovaného negativního
 testu každé role a cizího workspace.
 
+### Cross-workspace isolation evidence
+
+Čerstvý serverový test je zdokumentovaný v
+[`docs/WORKSPACE_ISOLATION_TEST_20260824.md`](WORKSPACE_ISOLATION_TEST_20260824.md).
+Dočasný druhý workspace obsahoval jeden lead, produkt, objednávku a hovor.
+Administrátor z hlavního workspace viděl pouze vlastní data; v testovacím
+workspace dostal nulu u všech čtyř typů záznamů. Uživatel bez membershipu
+viděl nulu všude a anonymní role byla odmítnuta. Všechny fixture řádky byly po
+testu odstraněny.
+
 ## Doporučené pořadí commitů
 
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
@@ -220,10 +235,11 @@ nebo novou funkci jen proto, aby byl commit větší.
    `chore: reconcile repository and remote migration history`
 
    Baseline a čtyři doložené live-only migrace jsou nyní v repozitáři a replay
-   od nuly prochází. Inventory stále ukazuje 52 live vs. 55 lokálních položek a
-   28 přesných verzí. Další krok je rozlišit zbývající renamed/version-shifted
-   položky, order aliasy a RPC/oprávnění rozdíly. Bez slepého přejmenování,
-   `migration repair`, `db push` nebo generování jedné obří follow-up migrace.
+   od nuly prochází. Historický inventory snapshot 52 live vs. 55 lokálních
+   položek není zdrojem pravdy pro současný testovací sandbox. Před produkcí je
+   potřeba provenance znovu ověřit a případně srovnat, ale bez slepého
+   přejmenování, `migration repair`, `db push` nebo generování jedné obří
+   follow-up migrace.
 
 2. **HOTOVO — uzavřít dependency/security audit**
 
@@ -241,8 +257,9 @@ nebo novou funkci jen proto, aby byl commit větší.
    Login, workspace, leady, order prefill, seznam/detail objednávek a settings
    reload jsou ověřené v Administrator relaci; nyní prošel i vlastní read-only
    smoke potvrzeného `Operator` účtu. Controlled note vytvoření, reload, SQL
-   readback a nulový cleanup také prošly. Zbývá negativní test cizího
-   workspace nebo jiné role; neuvádět hesla.
+   readback a nulový cleanup také prošly. Negativní serverový cross-workspace
+   test je uzavřený; odděleně zbývá pouze operator UI smoke. Hesla se
+   neuvádějí.
 
 4. **HOTOVO — zapojit zdroj Product Scriptu**
 
@@ -313,7 +330,8 @@ nebo novou funkci jen proto, aby byl commit větší.
 
 ## Kdy smíme říct „interní pilot je připravený“
 
-Teprve až platí všechno níže:
+Pro testovací sandbox tento seznam není důvodem zastavit další práci. Pro
+staging nebo produkční interní pilot ale musí platit všechno níže:
 
 - Git a live Supabase mají stejnou migrační historii;
 - bezpečnostní audit nemá otevřený P0 problém;
