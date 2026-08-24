@@ -2,9 +2,9 @@
 
 **Snapshot:** 24. 8. 2026<br>
 **Větev:** `chore/close-pilot-readiness-gate`<br>
-**HEAD:** `02267fe fix: prevent settings hydration mismatch`<br>
-**Pracovní strom:** čistý po fast-forwardu na aktuální `origin/main` a lokálních quality gates<br>
-**GitHub:** branch je zatím pouze lokální; `HEAD` je shodný s `origin/main`
+**Base:** `origin/main` na `02267fe fix: prevent settings hydration mismatch`<br>
+**Pracovní strom:** quality gates a read-only browser smoke dokončené<br>
+**GitHub:** otevřený draft PR #6 `chore: document pilot readiness gate`
 
 ## Jedna věta na úvod
 
@@ -52,6 +52,9 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 - Presence existuje pro routing a heartbeat fronty. Monitor ale nemá skutečný
   live stream operátorů; „presence uložená pro routing“ neznamená „live
   supervisor monitoring hotový“.
+- Globální status v sidebaru (`Ready for Calls` / `On Break`) je v aktuálním
+  buildu pouze session-local UI. Změna se po reloadu vrátí na výchozí hodnotu;
+  není to důkaz zápisu do `operator_presence`.
 - `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` je pouze lokální vývojová výjimka. Nesmí
   být zapnutá ve sdíleném stagingu ani v produkci.
 
@@ -81,12 +84,19 @@ read-only přístup ke konkrétnímu Supabase projektu.
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
 | Live migration/RLS porovnání | **neověřeno** | chybí bezpečný endpoint, projektová konfigurace a Supabase přístup |
-| Přihlášený pilotní browser smoke | **neověřeno** | otevřená relace obsahovala pouze GitHub; bezpečné testovací údaje nebyly dostupné |
+| Přihlášení a workspace | **prošlo** | `/login` přesměroval na `/workspace`; Administrator `majkito.studio`, workspace a aktuální lead se načetly bez console error |
+| Read-only pilotní workflow | **prošlo** | Product Script fallback; 4 leady a detail; order create prefill bez uložení; 8 objednávek před i po reloadu; order detail, status history a legacy read-only stav |
+| Read-only reload persistence | **prošlo** | `/orders` zůstal na 8 položkách a `/settings` zachovalo uložených 50 % po reloadu |
+| Anonymní serverová hranice | **prošla** | `/workspace`, `/calls`, `/team` a `/training/reviews` vracejí redirect na `/login`; API vrací `401 UNAUTHORIZED` |
+| Administrator read autorizace | **prošla** | `/team` načetl workspace queue a members přes uživatelskou Supabase session; bez zápisu a bez console error |
+| Nový DB zápis → reload → cleanup | **neprovedeno** | nevznikla žádná fixture; dostupné UI nemělo bezpečnou nulově-reziduální cleanup cestu |
+| Cross-workspace / role negativní RLS test | **neověřeno** | k dispozici byla pouze Administrator relace a žádný read-only SQL/MCP přístup |
 
 Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
-lint warningů. Tento snapshot ale **neprohlašuje interní pilot za připravený**:
-chybí čerstvé read-only porovnání live migration historie a přihlášený browser
-test s reálným Auth uživatelem, reloadem, RLS kontrolou a cleanupem.
+lint warningů. Přihlášené read-only workflow a jeho reload stabilita jsou
+ověřené bez nové fixture. Tento snapshot ale **neprohlašuje interní pilot za
+připravený**: chybí čerstvé porovnání live migration historie, negativní
+cross-workspace/RLS důkaz a nový řízený zápis s reloadem a nulovým cleanupem.
 
 ## Doporučené pořadí commitů
 
@@ -102,23 +112,23 @@ nebo novou funkci jen proto, aby byl commit větší.
    zkontrolovat, že lokální seznam migrací odpovídá databázi. Bez tohoto kroku
    nevíme, proti jakému schématu vlastně vyvíjíme.
 
-2. **P0 — uzavřít dependency/security audit**
+2. **HOTOVO — uzavřít dependency/security audit**
 
    `chore: upgrade Next.js and close production dependency audit`
 
-   Aktualizovat Next.js a související balíčky kontrolovaně, po přečtení
-   aktuálních Next.js pravidel z `node_modules/next/dist/docs/`. Neprovádět
-   slepě `npm audit fix --force`. Znovu ověřit test, lint, typecheck, build a
-   audit. Součástí je i rozhodnutí k ochraně proti uniklým heslům v Supabase.
+   Next.js a související balíčky jsou konzistentní s lockfile. Po čistém
+   `npm ci` prošly testy, lint, typecheck, build i produkční audit s nulou
+   zranitelností. Supabase security nastavení mimo repozitář zůstává součástí
+   budoucího live read-only průchodu.
 
 3. **P0 — udělat čerstvý důkaz přihlášeného pilotu**
 
    `test: verify authenticated pilot workflows against Supabase`
 
-   V reálném Auth účtu projít: login → workspace → claim leadu → start/cancel
-   nebo dokončení hovoru → callback nebo objednávka → reload → ověření v SQL.
-   Otestovat také role a zápis do cizího workspace. Zapsat přesný účet/roli,
-   datum, výsledek a případné fixture cleanup; neuvádět hesla.
+   Login, workspace, leady, order prefill, seznam/detail objednávek a settings
+   reload jsou read-only ověřené v Administrator relaci. Zbývá řízený zápis
+   přes skutečný workflow, reload, SQL kontrola výsledku, nulový fixture cleanup
+   a negativní test cizího workspace nebo jiné role; neuvádět hesla.
 
 4. **HOTOVO — zapojit zdroj Product Scriptu**
 
