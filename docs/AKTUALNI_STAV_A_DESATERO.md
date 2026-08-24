@@ -2,7 +2,7 @@
 
 **Snapshot:** 24. 8. 2026
 **Větev:** `feat/lead-call-outcome-order`
-**Referenční HEAD před touto dokumentací:** `7dfbb94 fix: connect call outcomes to checkout`
+**Referenční HEAD před touto dokumentací:** `b73c602 docs: record verified checkout persistence`
 **Pracovní strom:** dokumentační změna v tomto commitu navazuje na ověřený kódový checkpoint
 **GitHub:** větev je pushnutá; draft PR #7 zůstává otevřený k review
 
@@ -72,6 +72,20 @@ To neznamená, že je hotový celý pilot. Hlavní tok už je ověřený, ale st
 zůstává samostatné ověření rolí, cizího workspace a bezpečnostního auditu.
 Migration historie, browser persistence a RLS jsou oddělené gates.
 
+### Ověření rolí a RLS
+
+- Administrátor vidí vlastní workspace data: 4 leady, 3 produkty, 9 objednávek
+  a 2 položky objednávek.
+- Operátor s membershipem vidí 3 produkty, ale bez aktivního přiřazení nevidí
+  leady ani objednávky. To odpovídá workspace/queue pravidlům.
+- Anonymní role nemá právo číst leady ani spouštět checkout RPC.
+- Přihlášený uživatel bez membershipu vidí 0 leadů, produktů a objednávek;
+  `is_workspace_member` vrací `false`.
+- RLS je zapnuté na `leads`, `products`, `orders`, `order_items`, `calls` i
+  `workspace_members`.
+- Sandbox má pouze jeden workspace, takže skutečný cross-workspace negativní
+  test zůstává neprovedený. Nebyl vytvořen nový workspace jen kvůli testu.
+
 ## Ověření tohoto průchodu
 
 | Kontrola | Výsledek | Poznámka |
@@ -84,12 +98,15 @@ Migration historie, browser persistence a RLS jsou oddělené gates.
 | Migration list + dry-run | **prošlo** | 61/61 shod, žádná čekající migrace |
 | Přihlášený browser smoke | **prošlo** | simulovaný hovor → outcome → 2 položky → order placed → reload |
 | SQL persistence check | **prošlo** | objednávka `completed`, 2 položky, součet `396.23 USD` |
+| Role/RLS smoke | **prošlo s hranicí** | anon a uživatel bez membershipu odmítnuti; druhý workspace v sandboxu není |
+| Supabase security advisor | **1 warning** | vypnutá ochrana proti uniklým heslům |
+| Supabase performance advisor | **otevřeno** | info/warning k indexům a duplicitním permissive policies |
 | Dependency/security audit | **otevřeno** | starší auditní nálezy zůstávají k samostatnému řešení |
 
 Tento snapshot nyní potvrzuje hlavní přihlášený tok v testovacím sandboxu.
 Objednávka i obě položky přežily reload a jejich součet se shoduje v UI i SQL.
-Neznamená to ještě obecné produkční readiness: role a negativní RLS scénáře
-zůstávají samostatným důkazem.
+Neznamená to ještě obecné produkční readiness: cross-workspace negativní test,
+ochrana proti uniklým heslům a dependency audit zůstávají otevřené.
 
 ## Aktualizovaný pracovní postup pro databázové změny
 
