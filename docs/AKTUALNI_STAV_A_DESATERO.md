@@ -1,9 +1,9 @@
 # Countdown CRM — aktuální stav a desatero
 
-**Snapshot:** 24. 8. 2026  
-**Větev:** `feat/lead-call-outcome-order`  
-**Referenční HEAD před touto dokumentací:** `1c79c89 fix: harden call order completion migration`  
-**Pracovní strom:** dokumentační změna v tomto commitu navazuje na ověřený kódový checkpoint  
+**Snapshot:** 24. 8. 2026
+**Větev:** `feat/lead-call-outcome-order`
+**Referenční HEAD před touto dokumentací:** `1c79c89 fix: harden call order completion migration`
+**Pracovní strom:** dokumentační změna v tomto commitu navazuje na ověřený kódový checkpoint
 **GitHub:** větev je pushnutá; draft PR #7 zůstává otevřený k review
 
 ## Jedna věta na úvod
