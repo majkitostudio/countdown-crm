@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Calendar, ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneMissed, PhoneOff, Play, Radio, Settings, ShoppingBag, XCircle } from "lucide-react";
+import { ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneOff, Play, Radio, Settings } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 
 export type CallOutcome = "call_later" | "schedule" | "fail" | "order";
@@ -25,9 +25,10 @@ interface CallStatusBarProps {
   onScheduleCallback?: () => void;
   showIncomingSimulator?: boolean;
   isStarting?: boolean;
+  isAwaitingOutcome?: boolean;
 }
 
-export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, onCallOutcome, onScheduleCallback, showIncomingSimulator = true, isStarting = false }: CallStatusBarProps) {
+export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, showIncomingSimulator = true, isStarting = false, isAwaitingOutcome = false }: CallStatusBarProps) {
   const formatTimer = (totalSeconds: number) => `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
   const statusLabel = status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break";
   const statusColor = status === "ready" ? "bg-emerald-500" : status === "in_call" ? "bg-rose-500" : "bg-amber-500";
@@ -70,11 +71,8 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
           <button type="button" onClick={onToggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} title={isMuted ? "Unmute microphone" : "Mute microphone"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</button>
           <button type="button" onClick={onToggleHold} aria-label={isOnHold ? "Resume call" : "Put call on hold"} title={isOnHold ? "Resume call" : "Put call on hold"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</button>
           <Link href="/settings" aria-label="Open settings" title="Open settings" className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"><Settings className="w-4 h-4" /></Link>
-          <button onClick={() => onCallOutcome("call_later")} title="Customer did not answer" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><PhoneMissed className="w-3.5 h-3.5" />No Answer</button>
-          <button onClick={() => onScheduleCallback ? onScheduleCallback() : onCallOutcome("schedule")} title="Schedule a follow-up call" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />Schedule Callback</button>
-          <button onClick={() => onCallOutcome("fail")} title="Customer is not interested" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" />Not Interested</button>
-          <button onClick={() => onCallOutcome("order")} title="Open the order flow" className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-100 flex items-center gap-1.5"><ShoppingBag className="w-3.5 h-3.5" />Order</button>
         </>}
+        {isAwaitingOutcome && <div className="text-xs text-amber-200">Post-call outcome required.</div>}
         {!isCallActive && !isDialing && showIncomingSimulator && <button onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call" className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"><PhoneIncoming className="w-4 h-4" /></button>}
       </div>
     </section>

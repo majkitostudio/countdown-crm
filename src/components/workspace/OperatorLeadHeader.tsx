@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings, Tag } from "lucide-react";
 import type { Lead } from "@/lib/leads";
+import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
+import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 
 interface OperatorLeadHeaderProps {
   activeLead: Lead | null;
@@ -17,6 +19,11 @@ interface OperatorLeadHeaderProps {
   onCreateOrder?: () => void;
   onSimulateIncoming?: () => void;
   showIncomingSimulator?: boolean;
+  isAwaitingOutcome?: boolean;
+  recoveryRequired?: boolean;
+  isCompletionPending?: boolean;
+  onCallOutcome?: (outcome: CallOutcome) => void;
+  onScheduleCallback?: () => void;
 }
 
 export function OperatorLeadHeader({
@@ -31,6 +38,11 @@ export function OperatorLeadHeader({
   onCreateOrder,
   onSimulateIncoming,
   showIncomingSimulator = false,
+  isAwaitingOutcome = false,
+  recoveryRequired = false,
+  isCompletionPending = false,
+  onCallOutcome,
+  onScheduleCallback,
 }: OperatorLeadHeaderProps) {
   const formatTimer = (totalSeconds: number) =>
     `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
@@ -107,6 +119,11 @@ export function OperatorLeadHeader({
                 <PhoneOff className="h-4 w-4" />
               </button>
             </>
+          ) : isAwaitingOutcome ? (
+            <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-amber-200">Outcome required</p>
+              <p className="mt-0.5 text-[10px] text-amber-300/80">Lead remains assigned</p>
+            </div>
           ) : (
             <>
               <button
@@ -143,6 +160,15 @@ export function OperatorLeadHeader({
           )}
         </div>
       </div>
+      {onCallOutcome && onScheduleCallback && (
+        <CallOutcomePanel
+          isAwaitingOutcome={isAwaitingOutcome}
+          recoveryRequired={recoveryRequired}
+          isCompletionPending={isCompletionPending}
+          onCallOutcome={onCallOutcome}
+          onScheduleCallback={onScheduleCallback}
+        />
+      )}
     </section>
   );
 }

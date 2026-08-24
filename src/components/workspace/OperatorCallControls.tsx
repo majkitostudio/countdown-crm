@@ -25,6 +25,58 @@ interface OperatorCallControlsProps {
   onScheduleCallback: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
+  isAwaitingOutcome?: boolean;
+  isCompletionPending?: boolean;
+}
+
+interface CallOutcomePanelProps {
+  isAwaitingOutcome: boolean;
+  isCompletionPending?: boolean;
+  recoveryRequired?: boolean;
+  onCallOutcome: (outcome: CallOutcome) => void;
+  onScheduleCallback: () => void;
+}
+
+export function CallOutcomePanel({
+  isAwaitingOutcome,
+  isCompletionPending = false,
+  recoveryRequired = false,
+  onCallOutcome,
+  onScheduleCallback,
+}: CallOutcomePanelProps) {
+  if (!isAwaitingOutcome) return null;
+
+  return (
+    <div className="mt-4 rounded-xl border border-amber-900/60 bg-amber-950/20 p-3" data-testid="call-outcome-panel">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Post-call outcome required</p>
+          <p className="mt-1 text-[11px] text-amber-300/80">
+            {recoveryRequired ? "The call was interrupted. This lead remains assigned to you for recovery." : "Choose one explicit outcome to finish this call."}
+          </p>
+        </div>
+        {isCompletionPending && <span className="text-[10px] text-amber-200">Saving…</span>}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <button type="button" disabled={isCompletionPending} onClick={() => onCallOutcome("call_later")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50">
+          <PhoneMissed className="h-3.5 w-3.5" />
+          Call Later
+        </button>
+        <button type="button" disabled={isCompletionPending} onClick={onScheduleCallback} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50">
+          <CalendarClock className="h-3.5 w-3.5" />
+          Schedule Callback
+        </button>
+        <button type="button" disabled={isCompletionPending} onClick={() => onCallOutcome("fail")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50">
+          <XCircle className="h-3.5 w-3.5" />
+          Not interested
+        </button>
+        <button type="button" disabled={isCompletionPending} onClick={() => onCallOutcome("order")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-[11px] font-semibold text-zinc-100 transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-50">
+          <ShoppingBag className="h-3.5 w-3.5" />
+          Create Order
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function formatTimer(totalSeconds: number): string {
@@ -42,9 +94,9 @@ export function OperatorCallControls({
   onScheduleCallback,
   onSimulateIncoming,
   isStarting = false,
+  isAwaitingOutcome = false,
+  isCompletionPending = false,
 }: OperatorCallControlsProps) {
-  const outcomesUnlocked = isCallActive && durationSeconds >= 30;
-
   return (
     <div className="mt-5 border-t border-zinc-800/80 pt-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -109,34 +161,12 @@ export function OperatorCallControls({
         </div>
       </div>
 
-      {isCallActive && (
-        <div className="mt-4 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Call outcome</p>
-            {!outcomesUnlocked && <p className="text-[10px] text-zinc-600">Available after 00:30</p>}
-          </div>
-          {outcomesUnlocked && (
-            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <button type="button" onClick={() => onCallOutcome("call_later")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
-                <PhoneMissed className="h-3.5 w-3.5" />
-                Call Later
-              </button>
-              <button type="button" onClick={onScheduleCallback} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
-                <CalendarClock className="h-3.5 w-3.5" />
-                Schedule Callback
-              </button>
-              <button type="button" onClick={() => onCallOutcome("fail")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-2 py-2 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
-                <XCircle className="h-3.5 w-3.5" />
-                Fail
-              </button>
-              <button type="button" onClick={() => onCallOutcome("order")} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-[11px] font-semibold text-zinc-100 transition-colors hover:border-zinc-500">
-                <ShoppingBag className="h-3.5 w-3.5" />
-                Create Order
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      <CallOutcomePanel
+        isAwaitingOutcome={isAwaitingOutcome}
+        isCompletionPending={isCompletionPending}
+        onCallOutcome={onCallOutcome}
+        onScheduleCallback={onScheduleCallback}
+      />
     </div>
   );
 }

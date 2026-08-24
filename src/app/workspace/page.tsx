@@ -18,6 +18,7 @@ import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
 import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
+import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { sounds } from "@/lib/audio";
 import { workflowEngine } from "@/lib/workflows/engine";
 import { listWorkflowsAction } from "@/app/actions/workflows";
@@ -30,6 +31,7 @@ import {
   abortLeadCallStartAction,
   claimNextLeadAction,
   completeLeadCallAction,
+  endLeadCallAction,
   getCurrentLeadAction,
   heartbeatLeadAssignmentAction,
   setOperatorPresenceAction,
@@ -56,6 +58,9 @@ function WorkspaceContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
+  const [assignmentState, setAssignmentState] = useState<LeadQueueSnapshot["assignment_state"] | null>(null);
+  const [recoveryRequired, setRecoveryRequired] = useState(false);
+  const [callDurationSeconds, setCallDurationSeconds] = useState(0);
   const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
@@ -72,6 +77,8 @@ function WorkspaceContent() {
   const [isCallbackSchedulePending, setIsCallbackSchedulePending] = useState(false);
   const [callbackScheduleError, setCallbackScheduleError] = useState<string | null>(null);
   const [isCallStartPending, setIsCallStartPending] = useState(false);
+  const [isEndCallPending, setIsEndCallPending] = useState(false);
+  const [isCompletionPending, setIsCompletionPending] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
@@ -83,6 +90,7 @@ function WorkspaceContent() {
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
   const isCallActive = softphoneSession.state === "connected" || softphoneSession.state === "on_hold";
+  const isAwaitingOutcome = assignmentState === "awaiting_outcome";
   const callStartedAt = isCallActive && softphoneSession.startTime
     ? softphoneSession.startTime.toISOString()
     : null;
@@ -182,6 +190,13 @@ function WorkspaceContent() {
           setLeads(currentAssignment ? [currentAssignment.lead] : []);
           setActiveLead(currentAssignment?.lead || null);
           setActiveQueueItemId(currentAssignment?.queue_item_id || null);
+          setAssignmentState(currentAssignment?.assignment_state || null);
+          setRecoveryRequired(currentAssignment?.recovery_required || false);
+          setCallDurationSeconds(
+            currentAssignment?.call_started_at
+              ? Math.max(0, Math.round((Date.parse(currentAssignment.call_ended_at || new Date().toISOString()) - Date.parse(currentAssignment.call_started_at)) / 1000))
+              : 0,
+          );
           setOperatorStatus(currentAssignment?.assignment_state === "in_progress" ? "in_call" : "ready");
           setIsLoading(false);
           return;
@@ -224,9 +239,10 @@ function WorkspaceContent() {
     if (!activeLead || completionInFlightRef.current) return null;
 
     completionInFlightRef.current = true;
-    const durationSeconds = callStartedAt
+    setIsCompletionPending(true);
+    const durationSeconds = callDurationSeconds || (callStartedAt
       ? Math.max(0, Math.round((Date.parse(new Date().toISOString()) - Date.parse(callStartedAt)) / 1000))
-      : 0;
+      : softphoneSession.durationSeconds);
     try {
       if (identity?.role === "operator") {
         if (!activeQueueItemId) {
@@ -253,6 +269,9 @@ function WorkspaceContent() {
         setOperatorStatus("ready");
         sounds.playCallEndSound();
         setActiveQueueItemId(nextAssignment?.queue_item_id || null);
+        setAssignmentState(nextAssignment?.assignment_state || null);
+        setRecoveryRequired(nextAssignment?.recovery_required || false);
+        setCallDurationSeconds(0);
         setActiveLead(nextAssignment?.lead || null);
         setLeads(nextAssignment ? [nextAssignment.lead] : []);
 
@@ -260,7 +279,7 @@ function WorkspaceContent() {
         setPostCallSummary({
           leadName: activeLead.full_name,
           outcomeLabel,
-          durationSeconds,
+          durationSeconds: completion.duration_seconds,
           orderStatus,
           transcriptStatus: "unavailable",
           orderId: completion.order_id || undefined,
@@ -333,6 +352,7 @@ function WorkspaceContent() {
       return null;
     } finally {
       completionInFlightRef.current = false;
+      setIsCompletionPending(false);
     }
   };
 
@@ -347,14 +367,43 @@ function WorkspaceContent() {
       softphoneController.cancelDial();
       setOperatorStatus("ready");
       if (identity?.role === "operator" && activeQueueItemId) {
-        void abortLeadCallStartAction(activeQueueItemId, "Operator cancelled call start").catch((error) => {
-          setNotificationToast(error instanceof Error ? error.message : "Call start recovery failed.");
-        });
+        void abortLeadCallStartAction(activeQueueItemId, "Operator cancelled call start")
+          .then((assignment) => setAssignmentState(assignment.assignment_state))
+          .catch((error) => setNotificationToast(error instanceof Error ? error.message : "Call start recovery failed."));
       }
       return;
     }
 
+    if (isAwaitingOutcome) {
+      setNotificationToast("Choose the post-call outcome before starting another call.");
+      return;
+    }
+
     if (isCallActive) {
+      if (identity?.role === "operator") {
+        if (!activeQueueItemId || isEndCallPending) return;
+        const localDurationSeconds = softphoneSession.durationSeconds;
+        setIsEndCallPending(true);
+        void endLeadCallAction(activeQueueItemId)
+          .then((endedAssignment) => {
+            softphoneController.hangup();
+            setAssignmentState(endedAssignment.assignment_state);
+            setRecoveryRequired(endedAssignment.recovery_required);
+            setCallDurationSeconds(
+              localDurationSeconds || (endedAssignment.call_started_at
+                ? Math.max(0, Math.round((Date.parse(endedAssignment.call_ended_at || new Date().toISOString()) - Date.parse(endedAssignment.call_started_at)) / 1000))
+                : 0),
+            );
+            setOperatorStatus("ready");
+            setNotificationToast(null);
+          })
+          .catch((error) => {
+            setNotificationToast(error instanceof Error ? `Call could not be ended safely: ${error.message}` : "Call could not be ended safely.");
+          })
+          .finally(() => setIsEndCallPending(false));
+        return;
+      }
+
       setCallbackScheduleError(null);
       setIsCallbackScheduleOpen(true);
     } else {
@@ -380,6 +429,9 @@ function WorkspaceContent() {
             queueCallStarted = true;
             setActiveLead(startedAssignment.lead);
             setLeads([startedAssignment.lead]);
+            setAssignmentState(startedAssignment.assignment_state);
+            setRecoveryRequired(false);
+            setCallDurationSeconds(0);
             setOperatorStatus("in_call");
             const stopTone = sounds.playDialTone();
             stopAudioRef.current = stopTone;
@@ -402,6 +454,7 @@ function WorkspaceContent() {
               stopAudioRef.current = null;
             }
             softphoneController.cancelDial();
+            if (queueCallStarted) setAssignmentState("assigned");
             setOperatorStatus("ready");
             setNotificationToast(
               error instanceof Error
@@ -496,6 +549,8 @@ function WorkspaceContent() {
   };
 
   const handleCallOutcome = (outcome: CallOutcome) => {
+    if (!isAwaitingOutcome || completionInFlightRef.current) return;
+
     if (outcome === "order") {
       setOrderFlowMode("call");
       setNotificationToast("Order flow unlocked. Review the product and place the order when ready.");
@@ -518,6 +573,7 @@ function WorkspaceContent() {
   };
 
   const handleScheduleCallback = async (scheduledAt: string) => {
+    if (!isAwaitingOutcome) return;
     setIsCallbackSchedulePending(true);
     setCallbackScheduleError(null);
     const completion = await completeCall(
@@ -665,10 +721,18 @@ function WorkspaceContent() {
             isDialing={isDialing}
             isMuted={softphoneSession.isMuted}
             durationSeconds={softphoneSession.durationSeconds}
-            isStarting={isCallStartPending}
+            isStarting={isCallStartPending || isEndCallPending}
+            isAwaitingOutcome={isAwaitingOutcome}
+            recoveryRequired={recoveryRequired}
+            isCompletionPending={isCompletionPending}
             onToggleCall={handleToggleCall}
             onToggleMute={() => softphoneController.toggleMute()}
-            onCreateOrder={() => {
+            onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
+            onScheduleCallback={identity?.role === "operator" ? () => {
+              setCallbackScheduleError(null);
+              setIsCallbackScheduleOpen(true);
+            } : undefined}
+            onCreateOrder={identity?.role === "operator" ? undefined : () => {
               if (isCallActive || isDialing) {
                 setNotificationToast("Finish the active call before opening order creation.");
                 return;

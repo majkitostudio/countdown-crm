@@ -21,6 +21,7 @@ const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
   available: "Available pool",
   assigned: "Assigned",
   in_progress: "In progress",
+  awaiting_outcome: "Outcome / recovery",
   waiting_callback: "Waiting callback",
   closed: "Closed",
   paused: "Paused",
@@ -110,7 +111,7 @@ export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelP
             <tbody className="divide-y divide-zinc-800/70">
               {queueItems.map((item) => {
                 const isBusy = busyItemId === item.id;
-                const canRelease = item.state === "assigned" || item.state === "paused";
+                const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";
                 const canReopen = item.state === "closed";
                 return (
@@ -158,6 +159,7 @@ export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelP
                           {canRelease && <button type="button" disabled={isBusy} onClick={() => void runAction(item.id, () => releaseLeadAssignmentAction(item.id, "Team Leader release"), "Assignment byl uvolněn do available pool.")} className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"><Unlock className="h-3.5 w-3.5" /> Release</button>}
                           {canReopen && <button type="button" disabled={isBusy} onClick={() => void runAction(item.id, () => reopenLeadAssignmentAction(item.id, "Team Leader reopen"), "Closed lead byl znovu otevřen ve frontě.")} className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"><RotateCcw className="h-3.5 w-3.5" /> Reopen</button>}
                           {item.state === "in_progress" && <span className="inline-flex items-center gap-1 rounded-lg border border-rose-900/50 px-2.5 py-2 text-[11px] text-rose-300"><XCircle className="h-3.5 w-3.5" /> Active call locked</span>}
+                          {item.state === "awaiting_outcome" && <span className="inline-flex items-center gap-1 rounded-lg border border-amber-900/50 px-2.5 py-2 text-[11px] text-amber-300"><XCircle className="h-3.5 w-3.5" /> Recovery / outcome pending</span>}
                         </div>
                       </div>
                     </td>

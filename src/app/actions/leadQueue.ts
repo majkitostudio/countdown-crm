@@ -4,6 +4,7 @@ import {
   claimNextLeadForWorkspace,
   abortLeadCallStartForWorkspace,
   completeLeadCallForWorkspace,
+  endLeadCallForWorkspace,
   getCurrentLeadForWorkspace,
   getScopedLeadForWorkspace,
   heartbeatLeadAssignmentForWorkspace,
@@ -44,7 +45,7 @@ export async function startLeadCallAction(queueItemId: string): Promise<LeadQueu
 
 export async function heartbeatLeadAssignmentAction(
   queueItemId: string,
-): Promise<{ queue_item_id: string; lease_expires_at: string }> {
+): Promise<{ queue_item_id: string; lease_expires_at: string | null }> {
   return heartbeatLeadAssignmentForWorkspace(queueItemId);
 }
 
@@ -57,6 +58,10 @@ export async function abortLeadCallStartAction(
 
 export async function completeLeadCallAction(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
   return completeLeadCallForWorkspace(input);
+}
+
+export async function endLeadCallAction(queueItemId: string): Promise<LeadQueueSnapshot> {
+  return endLeadCallForWorkspace(queueItemId);
 }
 
 export async function listQueueItemsAction(workspaceId?: string): Promise<QueueItemDTO[]> {
