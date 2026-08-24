@@ -61,9 +61,16 @@ security dluhu a novém důkazu přihlášeného workflow od začátku do konce.
 ## Aktuální stav Git a Supabase
 
 Lokální checkout obsahuje 50 migration souborů, poslední je
-`20260822120928_product_script_versions_archive_previous.sql`. Live Supabase
-history má 52 řádků. Tento drift je skutečný a nesmí se automaticky
-"opravovat" přejmenováním, novou migrací ani opakováním aplikace migrací.
+`20260822120928_product_script_versions_archive_previous.sql`. Supabase CLI
+`2.115.0` v read-only příkazu
+`npx supabase migration list --project-ref qlzrsookyobtvyekhrqi --linked`
+potvrdilo 52 live záznamů proti 50 lokálním. Pouze 14 časových značek se shoduje
+přesně; 36 lokálních a 38 live položek zůstává bez přímé shody. Devět prvních
+lokálních souborů používá starší formát `YYYYMMDD_000N`, který CLI zobrazuje
+jen jako zkrácené opakované značky.
+
+Tento drift je skutečný a nesmí se automaticky "opravovat" přejmenováním,
+novou migrací ani opakováním aplikace migrací.
 
 Mezi live-only nebo přejmenovanými položkami jsou mimo jiné
 `countdown_crm_base_schema`, `profile_backfill_and_auth_trigger`,
@@ -75,8 +82,12 @@ položky zahrnují `20260821102718_allow_operator_orders_for_current_lead`,
 `20260821151606_order_item_minimum_pricing`; další rozdíly jsou ve
 verzi/názvu, například `order_status_history_and_updates`.
 
-Provenance každé položky je samostatný P0 reconciliation slice. V tomto
-průchodu nebyla spuštěna žádná migrace, `apply_migration` ani neplánovaný SQL
+Pokus o hlubší read-only porovnání přes
+`supabase db diff --linked --from migrations --to linked --schema public`
+nešel dokončit, protože na počítači neběží Docker Desktop, který CLI potřebuje
+pro lokální stínovou databázi. Provenance každé položky proto zůstává
+samostatný P0 reconciliation slice. V tomto průchodu nebyla spuštěna žádná
+migrace, `migration repair`, `db push`, `apply_migration` ani neplánovaný SQL
 zápis.
 
 ## Ověření tohoto průchodu
@@ -91,7 +102,8 @@ zápis.
 | `npm run typecheck` | **prošlo** | samostatně po čisté instalaci |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
-| Live migration history | **neprošla jako clean gate** | 52 live položek vs. 50 lokálních; provenance reconciliation je samostatný blocker |
+| Live migration history přes CLI | **neprošla jako clean gate** | 52 live vs. 50 lokálních; 14 přesných shod, 36 local-only a 38 remote-only položek |
+| Live schema diff přes CLI | **zablokováno prostředím** | `db diff` potřebuje běžící Docker Desktop; bez něj by bylo nebezpečné opravovat historii jen podle timestampů |
 | Live RLS inventář cílových tabulek | **prošel** | RLS je enabled a dashboard ukazuje policies; nenahrazuje role-by-role negativní proof |
 | Přihlášení a workspace | **prošlo** | `/login` přesměroval na `/workspace`; Administrator `majkito.studio`, workspace a aktuální lead se načetly bez console error |
 | Read-only pilotní workflow | **prošlo** | Product Script fallback; 4 leady a detail; order create prefill bez uložení; 8 objednávek před i po reloadu; order detail, status history a legacy read-only stav |
@@ -134,10 +146,12 @@ nebo novou funkci jen proto, aby byl commit větší.
 
    `chore: reconcile repository and remote migration history`
 
-   Zjistit provenance 52 live a 50 lokálních položek, zejména skutečné
-   live-only/renamed migration identity. Teprve po tomto porovnání rozhodnout,
-   zda patří skutečné SQL do repozitáře, nebo zda jde o historický rename či
-   incident. Bez slepého přejmenování, `db push` nebo nové follow-up migrace.
+   CLI inventory je hotový: 52 live a 50 lokálních položek, pouze 14 přesných
+   timestamp shod. Zbývá spustit Docker Desktop a provést read-only schema diff,
+   potom dohledat skutečnou identitu live-only/renamed migrací. Teprve po tomto
+   důkazu rozhodnout, zda patří SQL do repozitáře, nebo jde o historický rename
+   či incident. Bez slepého přejmenování, `migration repair`, `db push` nebo
+   nové follow-up migrace.
 
 2. **HOTOVO — uzavřít dependency/security audit**
 
