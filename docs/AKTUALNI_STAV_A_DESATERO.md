@@ -90,6 +90,38 @@ samostatný P0 reconciliation slice. V tomto průchodu nebyla spuštěna žádn�
 migrace, `migration repair`, `db push`, `apply_migration` ani neplánovaný SQL
 zápis.
 
+## Read-only investigace nových účtů
+
+Read-only důkazy zatím neukazují, že by nejnovější Auth účty byly příčinou
+rozdílu v migration history. Jeden nový
+operátor je potvrzený a má poslední přihlášení, druhý je zatím nepotvrzený a
+nemá žádné přihlášení. U obou existuje odpovídající profil s rolí `operator` a
+membership v `Main workspace` se stejnou rolí. Administrátorská stránka
+`/team` zobrazila oba členy bez console error.
+
+U obou profilů je `profiles.created_at` přesně
+`2026-08-23 04:18:02.053751+00`. Live migration `20260823041802` se jmenuje
+`profile_backfill_and_auth_trigger` a databáze má trigger
+`on_auth_user_created_profile` na `auth.users`, který volá
+`private.handle_new_auth_user_profile()`. Funkce vkládá profil, pokud ještě
+neexistuje. To silně ukazuje na backfill/trigger událost v live databázi, která
+doplnila profily po vytvoření účtů; není to důkaz, že vytvoření účtu změnilo
+tabulku `supabase_migrations.schema_migrations`. Na `profiles` ani
+`workspace_members` nebyl nalezen vlastní trigger, takže původ membershipu
+zůstává z tohoto průchodu neprokázaný.
+
+Anonymní kontrola aktuálního serveru vrátila `307 /login` pro `/workspace` i
+`/calls` a `401 Unauthorized` pro `/api/training/reviews`. Vlastní přihlášenou
+relaci nového operátora jsme nepoužili, protože pro ni nebyly dodány bezpečné
+přihlašovací údaje; proto zůstává neověřeno, jak přesně tento účet projde
+celým operator workflow.
+
+**Závěr:** problém s novými účty se jeví jako samostatná Auth/profile/
+membership otázka. Migration drift je samostatný problém provenance. Přímá
+příčinná souvislost mezi vytvořením účtu a rozdílem `52 vs. 50` nebyla
+prokázána. Nejmenší bezpečný další slice je ověřit potvrzený operator účet v
+jeho vlastní relaci; teprve potom řešit případný login nebo membership detail.
+
 ## Ověření tohoto průchodu
 
 | Kontrola | Výsledek | Poznámka |
@@ -104,6 +136,8 @@ zápis.
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 zranitelností |
 | Live migration history přes CLI | **neprošla jako clean gate** | 52 live vs. 50 lokálních; 14 přesných shod, 36 local-only a 38 remote-only položek |
 | Live schema diff přes CLI | **zablokováno prostředím** | `db diff` potřebuje běžící Docker Desktop; bez něj by bylo nebezpečné opravovat historii jen podle timestampů |
+| Nové Auth účty / profile / membership | **prošlo read-only** | 2 nejnovější účty mají profil a `operator` membership v `Main workspace`; jeden je nepotvrzený |
+| Auth trigger / backfill evidence | **prošlo read-only** | live trigger i migration `profile_backfill_and_auth_trigger` existují; account insert nemá důkaz změny migration history |
 | Live RLS inventář cílových tabulek | **prošel** | RLS je enabled a dashboard ukazuje policies; nenahrazuje role-by-role negativní proof |
 | Přihlášení a workspace | **prošlo** | `/login` přesměroval na `/workspace`; Administrator `majkito.studio`, workspace a aktuální lead se načetly bez console error |
 | Read-only pilotní workflow | **prošlo** | Product Script fallback; 4 leady a detail; order create prefill bez uložení; 8 objednávek před i po reloadu; order detail, status history a legacy read-only stav |
@@ -116,8 +150,9 @@ zápis.
 Quality gates jsou po čisté instalaci zelené s výjimkou tří neblokujících
 lint warningů. Přihlášené read-only workflow, controlled persistence a jeho
 cleanup jsou ověřené. Tento snapshot ale **neprohlašuje interní pilot za
-připravený**: migration provenance není srovnaná a chybí negativní
-cross-workspace/RLS důkaz pro jednotlivé role.
+připravený**: migration provenance není srovnaná, nový operator účet nebyl
+ověřen ve vlastní relaci a chybí negativní cross-workspace/RLS důkaz pro
+jednotlivé role.
 
 ### Controlled fixture evidence
 
