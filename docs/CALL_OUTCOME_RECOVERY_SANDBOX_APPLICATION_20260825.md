@@ -108,6 +108,11 @@ Smoke proběhl na PR9 buildu na localhost:3000 v existující přihlášené mik
 - Operator role smoke po čistém buildu potvrdil, že /team zobrazuje Team operations unavailable a /settings/scripts zobrazuje Script administration unavailable; obě stránky měly srozumitelné role omezení a žádné nové console errors.
 - Finální recovery tab neměl v browser console errors ani warnings.
 - Během jednoho časného dialing-only pokusu End call bezpečně vrátil item do assigned bez outcome. To odpovídá hranici před potvrzeným serverovým call startem.
+- Přihlášený Administrator měl dostupný `/team`. Dočasný `awaiting_outcome`
+  řádek zobrazil stav `Outcome / recovery`; kliknutí na `Release` zobrazilo
+  úspěch `Assignment byl uvolněn do available pool.` a řádek přešel na
+  `Available pool` bez nových console errors. Dočasný řádek byl následně
+  odstraněn.
 
 ## 9. Přímý authorization/RLS smoke
 
@@ -152,15 +157,11 @@ Tento audit potvrzuje, že:
 - apply nepřidal další migrace ani doložená aplikační data;
 - advisors neukázaly nový blocker pro queue migration.
 
-Stále nebylo ověřeno:
-
-- pozitivní browser průchod Administrátora přes /team; pro tento běh nebyla
-  dostupná přihlášená Administrator session;
-- Team Leader runtime varianta, protože v live sandboxu není žádný aktivní
-  Team Leader membership.
+Stále nebyla ověřena pouze Team Leader runtime varianta, protože v live
+sandboxu není žádný aktivní Team Leader membership.
 
 Operator UI omezení pro /team a /settings/scripts jsou ověřená jako browser evidence, ale nenahrazují přímý serverový/RLS negativní test.
 
 Existující login page confusion nebyla řešena jako unrelated fix: session už byla autentizovaná jako mikestudio Operator a navigace na /workspace se načetla nebo přesměrovala správně.
 
-Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Serverová authorization/RLS cesta a Administrator release jsou ověřené; zbývá už jen pozitivní browser průchod managera a Team Leader varianta.
+Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Serverová authorization/RLS cesta i Administrator release jsou ověřené; zbývá už jen Team Leader varianta, pro kterou v sandboxu není účet.
