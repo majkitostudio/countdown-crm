@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings, Tag } from "lucide-react";
 import type { Lead } from "@/lib/leads";
+import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
+import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 
 interface OperatorLeadHeaderProps {
   activeLead: Lead | null;
@@ -17,6 +19,11 @@ interface OperatorLeadHeaderProps {
   onCreateOrder?: () => void;
   onSimulateIncoming?: () => void;
   showIncomingSimulator?: boolean;
+  isAwaitingOutcome?: boolean;
+  recoveryRequired?: boolean;
+  isCompletionPending?: boolean;
+  onCallOutcome?: (outcome: CallOutcome) => void;
+  onScheduleCallback?: () => void;
 }
 
 export function OperatorLeadHeader({
@@ -31,6 +38,11 @@ export function OperatorLeadHeader({
   onCreateOrder,
   onSimulateIncoming,
   showIncomingSimulator = false,
+  isAwaitingOutcome = false,
+  recoveryRequired = false,
+  isCompletionPending = false,
+  onCallOutcome,
+  onScheduleCallback,
 }: OperatorLeadHeaderProps) {
   const formatTimer = (totalSeconds: number) =>
     `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
@@ -143,6 +155,16 @@ export function OperatorLeadHeader({
           )}
         </div>
       </div>
+      {!isCallActive && !isDialing && onCallOutcome && onScheduleCallback && (
+        <CallOutcomePanel
+          key={isAwaitingOutcome ? "awaiting-outcome" : "idle"}
+          isAwaitingOutcome={isAwaitingOutcome}
+          recoveryRequired={recoveryRequired}
+          isCompletionPending={isCompletionPending}
+          onCallOutcome={onCallOutcome}
+          onScheduleCallback={onScheduleCallback}
+        />
+      )}
     </section>
   );
 }
