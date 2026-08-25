@@ -166,20 +166,32 @@ Nová lokální migrace je:
 - Která konkrétní hash varianta odpovídá skutečnému SQL obsahu v live DB.
 - Že 41 shodných version IDs znamená shodu SQL obsahu.
 - Bezpečná ekvivalence base schema a šesti call-order migrací s jiným checkoutem.
-- Jednotná kanonická migration provenance, ze které by šlo bezpečně odvodit aplikaci nové migrace.
+- Že tento Git baseline obsahuje skutečný live SQL obsah, schema/RLS stav nebo obsah mimo migration soubory.
 - Že by aktuální live schema odpovídalo některé z nalezených Git variant.
 
-## 7. Rozhodnutí o sandbox strategii
+## 7. Rozhodnutí o kanonickém zdroji a controlled application
 
-Tato fáze významně zúžila hledání zdrojů, ale provenance zůstává neprokázaná. Není bezpečné připravit konkrétní aplikační strategii pro sandbox, protože:
+Na základě nového read-only scratch důkazu je schválen tento omezený provenance source:
 
-1. live poskytuje jen version IDs bez SQL obsahu;
-2. dostupné recovery checkouty mají u části stejných version IDs rozdílné hash varianty;
-3. některé remote-only soubory mají pouze jediný dohledaný source;
-4. není schválený kanonický zdroj, který by určoval, co přesně je historická live chain a co lze aplikovat dál.
+- kanonický migration baseline source pro sandbox je origin/feat/lead-call-outcome-order na HEAD d37b53e;
+- tento source je použit pouze pro migration baseline, nikoli jako povolení k merge, převzetí nebo nasazení unrelated feature kódu z této větve;
+- origin/chore/close-pilot-readiness-gate není úplný baseline, protože neobsahuje šest live call-order migrací;
+- feature větev obsahuje 61 migration souborů odpovídajících live sandbox baseline a navíc šest call-order souborů 20260824100836, 20260824104323, 20260824104408, 20260824104450, 20260824104747 a 20260824112120, které live migration list uvádí a gate větev nemá;
+- v izolovaném scratch prostoru byla použita pouze složka supabase/migrations z kanonického source a přidána nová lokální migrace 20260824210525_persist_call_outcome_recovery.sql;
+- npx supabase db push --dry-run --project-ref lpvypihpxhyjljikfzqo v tomto scratch prostoru oznámil přesně jedinou pending migraci: 20260824210525_persist_call_outcome_recovery.sql;
+- tento dry-run nic nezapsal do live DB.
 
-Lze bezpečně připravit pouze neprováděcí rozhodovací podklad. Nelze schválit repair, db pull, běžný db push ani ruční nebo blind apply. PR #9 zůstává draft.
+Tím je možné připravit samostatný controlled application checkpoint. Dry-run ale není apply, neprokazuje změnu live schema/RLS ani nenahrazuje authenticated persistence/recovery smoke. Kanonický source je migration baseline rozhodnutí; není to schválení merge unrelated kódu ani důkaz produkční připravenosti.
+
+Před samotným apply jsou povinné tyto podmínky:
+
+1. znovu ověřit target project ref lpvypihpxhyjljikfzqo a host;
+2. znovu spustit přesný dry-run proti stejnému scratch prostoru a potvrdit, že uvádí právě jednu migraci 20260824210525_persist_call_outcome_recovery.sql;
+3. uložit before snapshot relevantní migration history/schema metadat a předem známý rozsah dotčených objektů;
+4. mít explicitní stop/rollback/cleanup postup.
+
+Při jakémkoli nesouladu targetu, seznamu migrací, before snapshotu nebo rozsahu objektů se apply okamžitě zastaví. Nesmí se použít migration repair, ruční změna migration history, db pull do produktového checkoutu, blind apply ani fallback na jiný source. Live DB se v takovém případě ponechá beze změny a PR #9 zůstává draft.
 
 ## 8. Jediný další krok
 
-Jediný další krok je získat a schválit kanonickou provenance pro divergentní version IDs v izolovaném scratch prostoru, včetně rozhodnutí, která hash varianta reprezentuje live historii a jak bude doložena její úplnost. Tento checkpoint nesmí měnit migration history ani databázi. Dokud není schválený kanonický zdroj a samostatná aplikační strategie, live DB zůstává beze změny a sandbox se nesmí aplikovat.
+Jediný další krok je controlled sandbox application přesně jediné migrace 20260824210525_persist_call_outcome_recovery.sql z připraveného scratch prostoru. Tento krok bude samostatný checkpoint s vlastním recheckem targetu, exact dry-run výstupem, before snapshotem, stop podmínkou a následným read-only ověřením. V tomto dokumentačním checkpointu nebyl apply proveden a live databáze zůstává beze změny.
