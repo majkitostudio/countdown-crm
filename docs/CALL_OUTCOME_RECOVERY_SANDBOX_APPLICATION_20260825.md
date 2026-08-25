@@ -103,6 +103,9 @@ Smoke proběhl na PR9 buildu na localhost:3000 v existující přihlášené mik
 - Not interested dokončil průchod se summary Not interested.
 - Create Order vyžadoval Place Order a summary zobrazilo Order placed / Created.
 - Při zavření tabu během potvrzeného in_progress byly před zavřením read-only ověřeny state=in_progress, stejný assigned_operator_id a recovery_required=false. Nová tab/session načetla stejný lead se stavem Outcome required, textem The call was interrupted, ownership zůstala operátorovi a byly dostupné všechny čtyři outcomes. Dokončení recovery vrátilo stav do waiting for assignment.
+- End call → logout → login stejného Operatora zachoval stejný lead ve stavu Outcome required se všemi čtyřmi outcomes.
+- Dvojité souběžné odeslání Call Later skončilo jedním dokončením: SQL kontrola po průchodu ukázala přesně jeden fixture call a pět očekávaných queue events. Nebyla vytvořena duplicita.
+- Operator role smoke po čistém buildu potvrdil, že /team zobrazuje Team operations unavailable a /settings/scripts zobrazuje Script administration unavailable; obě stránky měly srozumitelné role omezení a žádné nové console errors.
 - Finální recovery tab neměl v browser console errors ani warnings.
 - Během jednoho časného dialing-only pokusu End call bezpečně vrátil item do assigned bez outcome. To odpovídá hranici před potvrzeným serverovým call startem.
 
@@ -132,11 +135,11 @@ Tento audit potvrzuje, že:
 
 Stále nebyly ověřeny:
 
-- persistence po logout/login;
-- idempotency při dvojitém odeslání nebo opakovaném callback/completion;
-- negativní cross-workspace a role behavior;
+- negativní cross-workspace a serverové role behavior přes přímou autorizovanou/RLS kontrolu;
 - autorizovaný Team Leader/Administrator recovery nebo release workflow v runtime.
+
+Operator UI omezení pro /team a /settings/scripts jsou ověřená jako browser evidence, ale nenahrazují přímý serverový/RLS negativní test.
 
 Existující login page confusion nebyla řešena jako unrelated fix: session už byla autentizovaná jako mikestudio Operator a navigace na /workspace se načetla nebo přesměrovala správně.
 
-Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Zbývá záměrný logout/login persistence, negative authorization, Team Leader/Administrator workflow a kontrolovaná idempotency smoke.
+Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Zbývá přímý negativní cross-workspace/role test a runtime ověření autorizovaného Team Leader/Administrator recovery nebo release workflow.
