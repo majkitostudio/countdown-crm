@@ -88,7 +88,40 @@ Read-only audit nepotvrdil žádný fixture ani aplikační INSERT, UPDATE nebo 
 
 Postflight counts queue_items=1 a queue_events=15 odpovídají preflightu. Nebyl doložen nový aplikační lead, callback, order nebo testovací fixture jako vedlejší efekt controlled application.
 
-## 8. Přesná hranice důkazu
+## 8. Authenticated Operator browser a persistence smoke
+
+Smoke proběhl na PR9 buildu na localhost:3000 v existující přihlášené mikestudio Operator session v sandbox workspace 9015a0bf...; žádné secrets nebyly zaznamenány.
+
+### Ověřené průchody
+
+- /workspace původně neměl assignment. Bylo vytvořeno přesně pět dočasných sandbox fixture leadů s markerem TEMPORARY CODEX FIXTURE - REMOVE AFTER CALL OUTCOME TEST 20260825. Všechny byly po testu odstraněny.
+- Během aktivního hovoru UI zobrazilo Active call a pouze End call; outcome actions nebyly dostupné.
+- End call zobrazil Outcome required, Lead remains assigned a přesně čtyři inline outcome actions.
+- End call → reload zachoval outcome state i všechny čtyři akce.
+- Schedule Callback otevřel inline dialog s povinným datem/časem; save proběhl až po explicitním kliknutí na Schedule callback a summary zobrazilo Follow-up scheduled.
+- Call Later dokončil průchod se summary No answer.
+- Not interested dokončil průchod se summary Not interested.
+- Create Order vyžadoval Place Order a summary zobrazilo Order placed / Created.
+- Při zavření tabu během potvrzeného in_progress byly před zavřením read-only ověřeny state=in_progress, stejný assigned_operator_id a recovery_required=false. Nová tab/session načetla stejný lead se stavem Outcome required, textem The call was interrupted, ownership zůstala operátorovi a byly dostupné všechny čtyři outcomes. Dokončení recovery vrátilo stav do waiting for assignment.
+- Finální recovery tab neměl v browser console errors ani warnings.
+- Během jednoho časného dialing-only pokusu End call bezpečně vrátil item do assigned bez outcome. To odpovídá hranici před potvrzeným serverovým call startem.
+
+### Cleanup a persistence evidence
+
+Read-only cleanup ověření potvrdilo odstranění všech pěti fixture leadů a návrat na baseline counts:
+
+| Kontrola | Výsledek |
+| --- | ---: |
+| remaining fixture leads | 0 |
+| queue_items_total | 1 |
+| queue_events_total | 15 |
+| calls_total | 17 |
+| orders_total | 9 |
+| leads_total | 4 |
+
+Tyto browser/persistence důkazy doplňují migration/schema/RLS postflight výše. Samy o sobě nenahrazují negativní authorization testy.
+
+## 9. Přesná hranice důkazu
 
 Tento audit potvrzuje, že:
 
@@ -99,13 +132,11 @@ Tento audit potvrzuje, že:
 
 Stále nebyly ověřeny:
 
-- authenticated Operator persistence přes skutečný claim → start → End call → outcome workflow;
-- persistence po reloadu;
 - persistence po logout/login;
-- browser recovery po zavření tabu během skutečně aktivního hovoru;
-- všechny four outcomes a callback confirmation;
 - idempotency při dvojitém odeslání nebo opakovaném callback/completion;
 - negativní cross-workspace a role behavior;
 - autorizovaný Team Leader/Administrator recovery nebo release workflow v runtime.
 
-Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema postflightu. Zbývá oddělený authenticated Operator, persistence, authorization/RLS negative a idempotency smoke.
+Existující login page confusion nebyla řešena jako unrelated fix: session už byla autentizovaná jako mikestudio Operator a navigace na /workspace se načetla nebo přesměrovala správně.
+
+Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Zbývá záměrný logout/login persistence, negative authorization, Team Leader/Administrator workflow a kontrolovaná idempotency smoke.
