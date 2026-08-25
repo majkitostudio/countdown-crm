@@ -55,12 +55,19 @@ Po fetchi byly dostupné tyto relevantní zdroje:
 Relevantní Git provenance commity:
 
 - e23e80c7a563dbfcd217842dd87b4c82564b1808, větev chore/close-pilot-readiness-gate: restore migration provenance baseline;
+- f5391ca1a4d2041a88e5ee42280e4b09981ec054, stejná větev: align local Supabase replay with live;
 - 171ee81395aae00dde7bf7813c32ceba7214f632, větev feat/lead-call-outcome-order: restore remote migration provenance;
 - e897edbb05316683df8c5d06febf76130a15fb0b, archivní tag archive/20260823/feat-push-reminder-notifications;
 - 3eb2ac1402b44e2cf49002921c23e22f93e2547b, archivní worktree snapshot archive-cleanup;
 - 5b4e2c8deaa0968755fc3e5990996323961b9767, 1c79c897cf6aa153f4d7357ee217ab4c887baefd a 7dfbb944d0f7ea0a6e3c79ad623866aea17b1df8, historie call-order migration chain.
 
 PR #6, #7 a #8 nebyly měněny.
+
+Dodatečná kontrola tree a Git blob IDs potvrdila, že těchto 14 remote-only IDs je dohledatelných v commitu 171ee813 i ve f5391ca/e23e80c na větvi chore/close-pilot-readiness-gate: 20260810071051, 20260810071052, 20260810071112, 20260810071115, 20260810071138, 20260810071243, 20260810071327, 20260810071346, 20260810104508, 20260818162302, 20260822134103, 20260822134130, 20260823010004 a 20260823041802. To je Git evidence přítomnosti path; není to samo o sobě důkaz live SQL obsahu.
+
+Porovnání blob IDs mezi 171ee813 a f5391ca je u 12 z těchto 14 IDs shodné: 20260810071051, 20260810071052, 20260810071112, 20260810071115, 20260810071138, 20260810071243, 20260810071327, 20260818162302, 20260822134103, 20260822134130, 20260823010004 a 20260823041802. U 20260810071346 a 20260810104508 se blob IDs liší, takže jejich obsah není mezi těmito dvěma source commity ekvivalentní.
+
+U 20260824100836 byla ověřena přítomnost v 171ee813 a v commitu 5b4e2c8 na větvi feat/lead-call-outcome-order. V aktuálně fetchnutém tree f5391ca/e23e80c ani v origin/chore/close-pilot-readiness-gate tento path přítomný není. Proto jej nelze uvádět jako potvrzený source z chore větve bez dalšího ref důkazu.
 
 ## 4. Vstupní live/local stav
 
@@ -112,7 +119,7 @@ Tyto řádky jsou pravděpodobné Git provenance, ne prokázaná live nebo obsah
 | Remote version / filename | Git evidence | SHA-256 | Stav |
 | --- | --- | --- | --- |
 | 20260810071051 / 20260810071051_countdown_crm_base_schema.sql | c8e0 a lead-call-order; v e23e80 a 171ee81 | c8e0 CAC9294186FAEADF40928EF18C7EF0187FB468ED8C06327614B6904A27D17B17; lead 3DABC7AF19FA1430C261233F635F17BFA0C876BE85C2E325375502F95766AC0D | dva různé obsahy, žádný bezpečný lokální protějšek |
-| 20260824100836 / atomic_call_order_items.sql | lead-call-order, commit 5b4e2c8 | 54F415286E9F866B5907C71CC9F33462D88533BD47740ACEE55BBB09C60C6E9D | pouze jeden dohledaný source variant |
+| 20260824100836 / atomic_call_order_items.sql | lead-call-order, commit 5b4e2c8; tree 171ee813 | 54F415286E9F866B5907C71CC9F33462D88533BD47740ACEE55BBB09C60C6E9D; Git blob 0d60e3cf488470fbb16039932c92699024b96eb9 | source je dohledaný ve dvou Git commitech; v ověřeném f5391ca/e23e80c tree chybí, live ekvivalence není prokázaná |
 | 20260824104323 / fix_atomic_call_order_items_product_row.sql | lead-call-order, commit 1c79c89 | 4C51E273A4AE16ABB4C29BED8B152C298A8EF4A7C13D3A1858FDD65240947F56 | pouze jeden dohledaný source variant |
 | 20260824104408 / fix_atomic_call_order_items_product_alias.sql | lead-call-order, commit 1c79c89 | 9F3E0B13ED6C5D2E834B902D1F59F98842EFA4E7C0378F266D063CFFEA30C8F1 | pouze jeden dohledaný source variant |
 | 20260824104450 / fix_atomic_call_order_items_workspace_alias.sql | lead-call-order, commit 1c79c89 | 96E55B7064FB858C22F1638CA16A7CFDF167EBE19358943545515430149AFBCD | pouze jeden dohledaný source variant |
