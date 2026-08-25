@@ -109,6 +109,25 @@ Smoke proběhl na PR9 buildu na localhost:3000 v existující přihlášené mik
 - Finální recovery tab neměl v browser console errors ani warnings.
 - Během jednoho časného dialing-only pokusu End call bezpečně vrátil item do assigned bez outcome. To odpovídá hranici před potvrzeným serverovým call startem.
 
+## 9. Přímý authorization/RLS smoke
+
+V live sandboxu proběhl rollback-only SQL test přes skutečné databázové role
+`authenticated` a JWT claims existujícího Administratora a Operatora. Test
+nepoužil service-role výsledek jako důkaz oprávnění.
+
+- Administrátor u dočasného `awaiting_outcome` itemu úspěšně provedl
+  `release_lead_assignment`; item přešel na `available`, ztratil ownership a
+  `recovery_required` se vrátilo na `false`.
+- Vznikl očekávaný auditní event `released` s actorem Administrátora.
+- Operator stejný release nedokázal; server vrátil přesně
+  `Queue item is not available for release`.
+- V dočasném druhém workspace byl vytvořen queue řádek bez membershipu
+  testovaného Operatora. RLS mu nevrátila žádný řádek a `get_current_lead`
+  vrátil `Only an Operator member can view current queue work`.
+- Celý test skončil rollbackem. Po testu zůstaly baseline counts
+  `queue_items=1`, `queue_events=15`, `calls=17`, `orders=9`; dočasné leady i
+  workspace měly počet `0`.
+
 ### Cleanup a persistence evidence
 
 Read-only cleanup ověření potvrdilo odstranění všech pěti fixture leadů a návrat na baseline counts:
@@ -122,9 +141,9 @@ Read-only cleanup ověření potvrdilo odstranění všech pěti fixture leadů 
 | orders_total | 9 |
 | leads_total | 4 |
 
-Tyto browser/persistence důkazy doplňují migration/schema/RLS postflight výše. Samy o sobě nenahrazují negativní authorization testy.
+Tyto browser/persistence důkazy doplňují migration/schema/RLS postflight a přímý authorization smoke níže. Browser evidence sama o sobě nenahrazuje serverový/RLS důkaz.
 
-## 9. Přesná hranice důkazu
+## 10. Přesná hranice důkazu
 
 Tento audit potvrzuje, že:
 
@@ -133,13 +152,15 @@ Tento audit potvrzuje, že:
 - apply nepřidal další migrace ani doložená aplikační data;
 - advisors neukázaly nový blocker pro queue migration.
 
-Stále nebyly ověřeny:
+Stále nebylo ověřeno:
 
-- negativní cross-workspace a serverové role behavior přes přímou autorizovanou/RLS kontrolu;
-- autorizovaný Team Leader/Administrator recovery nebo release workflow v runtime.
+- pozitivní browser průchod Administrátora přes /team; pro tento běh nebyla
+  dostupná přihlášená Administrator session;
+- Team Leader runtime varianta, protože v live sandboxu není žádný aktivní
+  Team Leader membership.
 
 Operator UI omezení pro /team a /settings/scripts jsou ověřená jako browser evidence, ale nenahrazují přímý serverový/RLS negativní test.
 
 Existující login page confusion nebyla řešena jako unrelated fix: session už byla autentizovaná jako mikestudio Operator a navigace na /workspace se načetla nebo přesměrovala správně.
 
-Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Zbývá přímý negativní cross-workspace/role test a runtime ověření autorizovaného Team Leader/Administrator recovery nebo release workflow.
+Feature proto nesmí být označena jako kompletně live ověřená pouze na základě tohoto migration/schema/browser postflightu. Serverová authorization/RLS cesta a Administrator release jsou ověřené; zbývá už jen pozitivní browser průchod managera a Team Leader varianta.
