@@ -52,7 +52,9 @@ Scratch prostor musí oddělit:
 - rozdíl mezi historickou strukturou live DB a novou migrací `20260824210525_persist_call_outcome_recovery.sql`;
 - důkaz, že žádná historická verze nebude přepsána, přeskočena nebo vydávána za novou.
 
-Dokud tato provenance není vysvětlená, normální `db push` nelze bezpečně použít. Teprve po schválení výsledku scratch reconciliation se smí zvolit konkrétní aplikační strategie do sandboxu. Tato strategie musí být auditovatelná, jednorázová a nesmí opravovat historii skrytým způsobem.
+Dokud tato provenance není vysvětlená, normální `db push` nelze bezpečně použít. Reconciliation provenance a samotné sandboxové nasazení jsou dvě oddělené fáze s vlastním checkpointem a vlastním focused commitem. Uzavření první fáze samo o sobě nepovoluje druhou fázi ani zápis do sandboxu. Teprve po samostatném schválení výsledku scratch reconciliation se smí zvolit konkrétní aplikační strategie do sandboxu. Tato strategie musí být auditovatelná, jednorázová a nesmí opravovat historii skrytým způsobem.
+
+Pokud se drift nebo schema nepodaří bezpečně vysvětlit, je to stop a rollback bod: nic se neaplikuje, migration history se neopravuje ani nepřepisuje a PR #9 zůstává draft. Před případným sandboxovým zápisem musí být známý přesný rozsah dotčených objektů a ověřený plán návratu nebo uklizení. Bez těchto dvou podmínek se aplikační fáze nespouští.
 
 ## 5. Fázovaný runbook
 
@@ -62,23 +64,29 @@ Dokud tato provenance není vysvětlená, normální `db push` nelze bezpečně 
 
 **Důkaz:** Export nebo uložený read-only výstup obsahuje target project ref, remote/local seznam, remote-only položky, lokální novou migraci a potvrzení `new_migration_applied=0`.
 
-**Stop podmínka:** Target není jednoznačně `lpvypihpxhyjljikfzqo`, seznamy nejdou získat konzistentně, nebo není možné přiřadit provenance remote-only verzím.
+**Checkpoint:** Výsledek se uloží jako samostatný read-only provenance checkpoint. Jeho schválení neautorizuje aplikaci migrace a uzavírá pouze tuto fázi.
+
+**Stop podmínka:** Target není jednoznačně `lpvypihpxhyjljikfzqo`, seznamy nejdou získat konzistentně, nebo není možné přiřadit provenance remote-only verzím. V takovém případě se nic neaplikuje, migration history se neopravuje a PR #9 zůstává draft.
 
 ### Fáze 2 — Bezpečná volba migration strategie
 
 **Cíl:** Na základě provenance určit schválený způsob, jak dostat novou migraci do sandboxu bez změny historie naslepo.
 
-**Důkaz:** Krátké rozhodnutí s uvedením vstupů, rizik, přesného targetu, očekávaného výsledku a rollback/stop postupu. Normální `db push` je do té doby označený jako blokovaný.
+**Důkaz:** Krátké samostatné rozhodnutí s uvedením vstupů, rizik, přesného targetu, očekávaného výsledku, rozsahu dotčených objektů a ověřeného rollback/stop a cleanup postupu. Normální `db push` je do té doby označený jako blokovaný.
 
-**Stop podmínka:** Návrh vyžaduje migration repair, `db pull` do produktového checkoutu, přímý zápis do migration tabulek, nebo nelze určit, co se má aplikovat.
+**Checkpoint:** Schválená strategie je vlastní rozhodovací checkpoint a případně vlastní focused commit. Neznamená automatické povolení sandboxového zápisu; ten vyžaduje samostatné schválení fáze 3.
+
+**Stop podmínka:** Návrh vyžaduje migration repair, `db pull` do produktového checkoutu, přímý zápis do migration tabulek, nelze určit, co se má aplikovat, není znám rozsah objektů nebo není ověřený návrat/cleanup plán. Nic se neaplikuje a PR #9 zůstává draft.
 
 ### Fáze 3 — Controlled sandbox application
 
-**Cíl:** Aplikovat pouze schválenou novou migraci do `lpvypihpxhyjljikfzqo`, s explicitním logem příkazu, targetu a výsledku.
+**Cíl:** Aplikovat pouze samostatně schválenou novou migraci do `lpvypihpxhyjljikfzqo`, s explicitním logem příkazu, targetu a výsledku. Tato fáze nesmí předpokládat, že dokončení provenance reconciliation samo povolilo zápis.
 
-**Důkaz:** Aplikační log, nová migration history položka podle schváleného postupu a read-only potvrzení, že změna proběhla právě v target sandboxu.
+**Důkaz:** Před zápisem je doložen přesný rozsah dotčených objektů a ověřený plán návratu nebo uklizení. Po zápisu následuje aplikační log, nová migration history položka podle schváleného postupu a read-only potvrzení, že změna proběhla právě v target sandboxu.
 
-**Stop podmínka:** Jakýkoli nečekaný SQL error, nesoulad targetu, změna jiné migrace, nebo výsledek mimo očekávaný schema diff. Při stopu se nic neopravuje ad hoc.
+**Checkpoint:** Sandboxové nasazení má vlastní controlled-application checkpoint a vlastní focused commit nebo jiný schválený auditní artefakt, oddělený od provenance checkpointu. Při neúspěchu se provede pouze předem schválený návrat/cleanup postup.
+
+**Stop podmínka:** Jakýkoli nečekaný SQL error, nesoulad targetu, změna jiné migrace, výsledek mimo očekávaný schema diff nebo nemožnost bezpečně provést návrat/cleanup. Při stopu se nic neopravuje ad hoc, migration history se nemění a PR #9 zůstává draft.
 
 ### Fáze 4 — Read-only schema, RLS a advisors
 
@@ -114,11 +122,16 @@ Dokud tato provenance není vysvětlená, normální `db push` nelze bezpečně 
 
 ### Fáze 8 — Final gates and delivery
 
-**Cíl:** Uzavřít důkazy, aktualizovat PR #9 a rozhodnout, zda je možné opustit draft.
+**Cíl:** Uzavřít důkazy, aktualizovat PR #9 a rozhodnout, zda je možné opustit draft. Finální akceptace má dvě samostatné brány, které se nesmí sloučit do jediného „build prošel“ závěru.
 
-**Důkaz:** Oddělený report static/browser/persistence/authorization-RLS/provenance, čistý Git stav, přesný commit, migration evidence a potvrzení, že PR #6–#8 zůstaly nedotčené.
+**Důkaz:** Musí být splněny obě brány:
 
-**Stop podmínka:** Chybí jediný důkaz z acceptance matice, migration provenance zůstává nejasná, nebo live stav neodpovídá kódu. PR #9 zůstává draft.
+1. **Live schema/RLS/advisor brána:** read-only schema, RPC, granty, RLS, role/workspace izolace a advisors potvrzují nový workflow proti správnému sandboxu.
+2. **Authenticated Operator brána:** přihlášený Operator doloží reload, logout/login, recovery po zavření tabu během aktivního hovoru, všech čtyři outcomes, callback confirmation a idempotenci bez duplicit.
+
+Součástí důkazu je oddělený report static/browser/persistence/authorization-RLS/provenance, čistý Git stav, přesný commit, migration evidence a potvrzení, že PR #6–#8 zůstaly nedotčené. První brána sama nepotvrzuje funkční Operator workflow a druhá sama nepotvrzuje schema/RLS bezpečnost.
+
+**Stop podmínka:** Chybí kterákoli z těchto dvou bran nebo jediný důkaz z acceptance matice, migration provenance zůstává nejasná, live stav neodpovídá kódu, nebo není známý bezpečný návrat/cleanup postup. Feature se nesmí označit jako hotová či live ověřená a PR #9 zůstává draft.
 
 ## 6. Validační matice
 
