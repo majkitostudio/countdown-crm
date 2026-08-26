@@ -20,9 +20,7 @@ import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleMo
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { sounds } from "@/lib/audio";
-import { workflowEngine } from "@/lib/workflows/engine";
-import { listWorkflowsAction } from "@/app/actions/workflows";
-import { ExecutionLogEntry } from "@/lib/workflows/types";
+import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { completeCallAction } from "@/app/actions/crm";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
@@ -48,6 +46,7 @@ interface PostCallSummary {
   transcriptStatus: "unavailable";
   orderId?: string;
   workflowEntries: ExecutionLogEntry[];
+  workflowDispatches: WorkflowDispatchResult[];
 }
 
 function WorkspaceContent() {
@@ -203,17 +202,14 @@ function WorkspaceContent() {
           return;
         }
 
-        const [fetchedLeads, fetchedProducts, fetchedWorkflows] = await Promise.all([
+        const [fetchedLeads, fetchedProducts] = await Promise.all([
           getLeads(),
           getProducts(),
-          listWorkflowsAction(),
         ]);
 
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
         setActiveQueueItemId(null);
-        workflowEngine.replaceRules(fetchedWorkflows);
-
         if (leadIdParam) {
           const found = fetchedLeads.find((l) => l.id === leadIdParam);
           if (found) setActiveLead(found);
@@ -276,7 +272,7 @@ function WorkspaceContent() {
         setActiveLead(nextAssignment?.lead || null);
         setLeads(nextAssignment ? [nextAssignment.lead] : []);
 
-        const workflowEntries: ExecutionLogEntry[] = [];
+        const workflowEntries = completion.workflowDispatches.flatMap((dispatch) => dispatch.entries);
         setPostCallSummary({
           leadName: activeLead.full_name,
           outcomeLabel,
@@ -285,6 +281,7 @@ function WorkspaceContent() {
           transcriptStatus: "unavailable",
           orderId: completion.order_id || undefined,
           workflowEntries,
+          workflowDispatches: completion.workflowDispatches,
         });
         setActivityRefreshToken((current) => current + 1);
         return { callId: completion.call_id, orderId: completion.order_id || undefined };
@@ -312,25 +309,7 @@ function WorkspaceContent() {
       setLeads((currentLeads) =>
         currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
       );
-      let workflowEntries: ExecutionLogEntry[] = [];
-      try {
-        workflowEntries = await workflowEngine.emit("on_call_ended", {
-        callId: completion.call_id,
-        leadId: activeLead.id,
-        leadName: activeLead.full_name,
-        agentName: completion.operator_name,
-        outcome,
-        sentiment: orderStatus === "created" ? "Positive" : "Neutral",
-        orderValue,
-          transcript: "Call ended by operator",
-        });
-      } catch (workflowError) {
-        setNotificationToast(
-          workflowError instanceof Error
-            ? `Call and order saved, but automation failed: ${workflowError.message}`
-            : "Call and order saved, but automation failed."
-        );
-      }
+      const workflowEntries = completion.workflowDispatches.flatMap((dispatch) => dispatch.entries);
 
       setPostCallSummary({
         leadName: activeLead.full_name,
@@ -340,6 +319,7 @@ function WorkspaceContent() {
         transcriptStatus: "unavailable",
         orderId: completion.order_id || undefined,
         workflowEntries,
+        workflowDispatches: completion.workflowDispatches,
       });
       setActivityRefreshToken((current) => current + 1);
       return { callId: completion.call_id, orderId: completion.order_id || undefined };

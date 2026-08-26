@@ -8,6 +8,7 @@ import type {
   ActionType,
   ExecutionLogEntry,
   ExecutionStatus,
+  WorkflowActionResult,
   TriggerCondition,
   TriggerType,
   WorkflowAction,
@@ -42,7 +43,7 @@ const CONDITION_OPERATORS = [
   "greater_than",
   "less_than",
 ] as const;
-const EXECUTION_STATUSES: ExecutionStatus[] = ["success", "failure", "skipped"];
+const EXECUTION_STATUSES: ExecutionStatus[] = ["success", "failure", "simulation", "unavailable", "skipped"];
 
 function isTriggerType(value: unknown): value is TriggerType {
   return typeof value === "string" && TRIGGERS.includes(value as TriggerType);
@@ -234,10 +235,40 @@ function mapExecution(
     trigger: row.trigger_event as TriggerType,
     status: row.status as ExecutionStatus,
     executedActions: (Array.isArray(logs.actions) ? logs.actions : []) as ActionType[],
+    actionResults: (Array.isArray(logs.action_results) ? logs.action_results : []) as unknown as WorkflowActionResult[],
     eventPayload: isRecord(logs.payload) ? logs.payload : {},
+    eventId: typeof logs.event_id === "string" ? logs.event_id : undefined,
+    durableEffect: logs.durable_effect === true,
+    persistenceStatus: "persisted",
     errorMessage: typeof logs.error === "string" ? logs.error : undefined,
     executedAt: row.created_at,
   };
+}
+
+export async function findWorkflowExecutionForEvent(
+  rule: WorkflowRule,
+  eventId: string,
+): Promise<ExecutionLogEntry | null> {
+  const { workspaceId } = await requireWorkspaceContext();
+  if (!eventId.trim() || !rule.id || rule.id.startsWith("rule-")) return null;
+
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("workflow_executions")
+    .select(`${EXECUTION_SELECT}, workflows(name)`)
+    .eq("workspace_id", workspaceId)
+    .eq("rule_id", rule.id)
+    .filter("logs->>event_id", "eq", eventId)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Unable to verify duplicate workflow execution.");
+  }
+
+  return data
+    ? mapExecution(data as unknown as ExecutionRow & { workflows?: { name: string } | null })
+    : null;
 }
 
 export async function listWorkflowExecutionsForWorkspace(): Promise<ExecutionLogEntry[]> {
@@ -283,6 +314,9 @@ export async function createWorkflowExecutionForWorkspace(entry: ExecutionLogEnt
   }
 
   const { error } = await supabase.from("workflow_executions").insert({
+    ...(entry.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(entry.id)
+      ? { id: entry.id }
+      : {}),
     workspace_id: workspaceId,
     rule_id: ruleId,
     trigger_event: entry.trigger,
@@ -290,7 +324,10 @@ export async function createWorkflowExecutionForWorkspace(entry: ExecutionLogEnt
     execution_time_ms: 50,
     logs: {
       actions: entry.executedActions,
+      action_results: entry.actionResults,
       payload: entry.eventPayload,
+      event_id: entry.eventId || null,
+      durable_effect: entry.durableEffect,
       error: entry.errorMessage || null,
     },
   });
