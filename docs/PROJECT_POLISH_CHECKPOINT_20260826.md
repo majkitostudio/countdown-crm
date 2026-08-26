@@ -1,13 +1,13 @@
 # Countdown CRM — Project Polish Checkpoint
 
 **Datum auditu:** 26. 8. 2026
-**Auditní větev:** `docs/polish-progress-slices-1-10`
-**Ověřený baseline:** `origin/main` = `665c4f465e63c9f634d17e4e06e7a0a457874a49` (`fix: escape analytics CSV fields (#16)`)
+**Auditní větev:** `docs/polish-progress-slice-9`
+**Ověřený baseline:** `origin/main` = `ccb641aa6000d789f03b4060765e3a108e635174` (`chore: remove legacy training response path (#19)`)
 **Rozsah:** read-only audit aplikačního shellu, 23 rout, API rout, Server Actions, DAL/RPC, auth/workspace hranic, Workflow/Blueprint/Operator Console/Orders/Product Scripts/Training, testů, konfigurace a dokumentace.
 
 ## Výsledek v jedné větě
 
-Repozitář je po merge Slice 1 a Slice 10 čistý a analytics role boundary i CSV escaping jsou uzavřené podle doložených gate; projekt stále nelze označit za pilot-ready, protože Workflow/Blueprint runtime a navazující authenticated workflow, persistence, negativní role/workspace a RLS důkazy zůstávají otevřené.
+Repozitář je po merge Slice 1, Slice 9 a Slice 10 čistý; analytics role boundary, CSV escaping i legacy training path jsou uzavřené podle doložených gate. Slice 2 zůstává partial/in progress a projekt stále nelze označit za pilot-ready, protože chybí pozitivní Team Leader/Admin browser důkaz, strict cross-instance exactly-once/webhook idempotency a další authenticated workflow, persistence a RLS důkazy.
 
 Tento dokument je checkpoint a prioritizovaný backlog. Runtime ani databáze se v tomto auditu neměnily.
 
@@ -15,9 +15,9 @@ Tento dokument je checkpoint a prioritizovaný backlog. Runtime ani databáze se
 
 | Vrstva | Výsledek tohoto auditu | Co z toho nelze tvrdit |
 |---|---|---|
-| Git/repozitář | `origin/main` po fetchi = `665c4f4`; Slice 1 a Slice 10 jsou merged jako PR #15/#16; docs změna běží na pojmenované větvi | že live deploy nebo live DB odpovídá checkoutu |
+| Git/repozitář | `origin/main` po fetchi = `ccb641a`; Slice 1, Slice 9 a Slice 10 jsou merged jako PR #15/#19/#16; docs změna běží na pojmenované větvi | že live deploy nebo live DB odpovídá checkoutu |
 | Statická analýza | zdokumentované nálezy v TS/TSX, SQL a docs; 23 page rout, 4 training API routy, 7 testovacích souborů | že každá větev funguje v přihlášeném browseru |
-| Unit/API testy | Slice 1 role tests `48/48`; Slice 10 targeted `6/6`, full suite `54/54`; starší auditní inventář zůstává historický | že jsou ověřené WorkflowEngine, Blueprints, leadQueue, call/order lifecycle nebo RLS |
+| Unit/API testy | Slice 1 role tests `48/48`; Slice 9 training API `16/16`, full suite `54/54`; Slice 10 targeted `6/6`; `npm run check` a `git diff --check` green | že jsou ověřené všechny WorkflowEngine/Blueprint/queue/call-order/RLS kontrakty |
 | Browser | Slice 1: autentizovaný Administrator allowed + reload a Operator explicit forbidden + reload; čistá konzole, bez exportu/dat | browser smoke není RLS proof; nejde z něj tvrdit persistence ani cross-workspace RLS |
 | Persistence | statické čtení ukazuje Server Actions/DAL/RPC hranice | že zápis přežije reload nebo že partial failure nezanechá nekonzistentní stav |
 | Authorization/RLS | kód a migrace obsahují workspace membership, role guardy, invoker RPC a hardened queue recovery | že negativní role/workspace a RLS test skutečně proběhl proti live Supabase |
@@ -133,9 +133,8 @@ Všechny routy níže byly nalezeny jako současné `page.tsx` soubory. Přístu
 - **Soubor/symbol:** `src/lib/training.ts:113-117`, `generateAICustomerResponse`.
 - **Ověřený symptom:** TypeScript no-unused kontrola označuje parametr `chatHistory` jako nepoužitý; tělo funkce používá jen scenario a userMessage. Aktuální UI/API používá `generateTrainingResponseAction` v `src/app/actions/training.ts`, nikoli tuto funkci.
 - **Dopad:** dvojí training response path zvyšuje riziko opravy nesprávné implementace a zamlžuje, která simulace je kanonická.
-- **Typ:** potvrzený nepoužitý parametr; funkce/export je potvrzeně bez consumeru v nalezeném `src/tests` graphu, ale odstranění samo není součástí tohoto docs tasku.
-- **Nejmenší slice:** ověřit veřejné importy mimo repo, pak legacy funkci odstranit nebo sjednotit s kanonickou action cestou v samostatném training tasku.
-- **Acceptance evidence:** `noUnusedParameters` bez tohoto nálezu, grep/import graph, training API/UI testy a zachované explicitní `Simulation` označení.
+- **Stav po Slice 9:** PR #19 (`chore: remove legacy training response path`), merge commit `ccb641aa6000d789f03b4060765e3a108e635174`; `generateAICustomerResponse` a nepoužitý `chatHistory` byly odstraněny. Kanonická path je `submitTrainingTurnAction → generateTrainingResponseAction`.
+- **Důkazní hranice:** training API `16/16`, full suite `54/54`, `npm run check` a `git diff --check` green. Browser, persistence, authorization a RLS jsou N/A; původní nález je historical/resolved.
 
 ### P2 — Největší a nejvíce propojené soubory zvyšují riziko změn
 
@@ -183,7 +182,9 @@ Všechny routy níže byly nalezeny jako současné `page.tsx` soubory. Přístu
 
 Nejdřív opravit P0 false-success kontrakt a současně připojit Operator Console completion na jeden server-owned event dispatcher. Slice musí pokrýt simulation/unavailable/failure/success status, awaitovanou log persistence, webhook error semantics, operator path a unit/integration regresní testy. Teprve tento výsledek může být základem pro další browser/persistence smoke.
 
-Slice 2 je aktuálně pouze koordinačně `in progress`; tento checkpoint tím netvrdí dokončení, aktuální PR ani novou merge evidence.
+Slice 2 je aktuálně `partial / in progress`; draft PR #17 zůstává otevřený a tento checkpoint ho neoznačuje jako merged ani done. Statická evidence je `67/67` a check/diff jsou green. Controlled Operator sandbox doložil one-call/one-execution, truthful unavailable/no durable effect, SQL read-back a nulový fixture cleanup; fresh Operator `/workflows` je forbidden i po reloadu, bez controls/data a s čistou konzolí. RLS policy evidence ukazuje workspace-member SELECT/INSERT potřebný pro dispatcher a manager/admin mutation policy.
+
+Stále chybí pozitivní Team Leader/Admin browser důkaz. Strict cross-instance exactly-once/webhook idempotency zůstává schema gap. Softphone UI zůstalo stuck na `Starting call`, takže nejde o workflow proof. Žádný pilot-ready claim.
 
 ### Nejvýše dvě alternativy
 
