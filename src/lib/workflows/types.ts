@@ -19,6 +19,8 @@ export interface TriggerDefinition {
   label: string;
   description: string;
   icon: string; // Lucide icon name
+  serverDispatch: "supported" | "unavailable";
+  unavailableReason?: string;
 }
 
 /** Registry of all available triggers with human-readable metadata */
@@ -28,24 +30,31 @@ export const TRIGGER_REGISTRY: TriggerDefinition[] = [
     label: "Call Ended",
     description: "Fires when an operator finishes a call in the Operator Console",
     icon: "PhoneOff",
+    serverDispatch: "supported",
   },
   {
     type: "on_lead_status_changed",
     label: "Lead Status Changed",
     description: "Fires when a lead moves to a different pipeline stage",
     icon: "ArrowRightLeft",
+    serverDispatch: "unavailable",
+    unavailableReason: "No server event source is wired for lead status mutations yet.",
   },
   {
     type: "on_order_placed",
     label: "Order Placed",
     description: "Fires when a new order is successfully created",
     icon: "ShoppingCart",
+    serverDispatch: "unavailable",
+    unavailableReason: "No server event source is wired for order creation yet.",
   },
   {
     type: "on_lead_created",
     label: "Lead Created",
     description: "Fires when a new lead is imported or manually created",
     icon: "UserPlus",
+    serverDispatch: "unavailable",
+    unavailableReason: "No server event source is wired for lead creation yet.",
   },
 ];
 
@@ -88,13 +97,13 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
   {
     type: "compute_ai_summary",
     label: "Generate AI Summary",
-    description: "Uses Gemini 2.5 Flash to generate a summary of the call transcript or lead context",
+    description: "Unavailable until a verified AI provider is configured; never claims a generated summary",
     icon: "Sparkles",
   },
   {
     type: "send_email_followup",
     label: "Send Follow-up Email",
-    description: "Sends an automated follow-up email to the lead",
+    description: "Unavailable until a verified email provider is configured; never claims delivery",
     icon: "Mail",
     configFields: [
       { key: "template", label: "Email Template", type: "select", options: [
@@ -107,7 +116,7 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
   {
     type: "update_lead_status",
     label: "Update Lead Status",
-    description: "Automatically moves the lead to a specified pipeline stage",
+    description: "Unavailable in the workflow server runtime until a safe mutation provider is enabled",
     icon: "RefreshCw",
     configFields: [
       { key: "target_status", label: "Target Status", type: "select", options: [
@@ -121,7 +130,7 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
   {
     type: "notify_manager",
     label: "Notify Team Leader",
-    description: "Sends a notification to the Team Leader about this event",
+    description: "Unavailable until a verified manager-notification provider is configured",
     icon: "Bell",
     configFields: [
       { key: "message", label: "Notification Message", type: "text", placeholder: "E.g. High-value order placed by {{lead_name}}" },
@@ -163,7 +172,17 @@ export interface WorkflowRule {
 
 // ─── Execution Log ──────────────────────────────────────────────────────────
 
-export type ExecutionStatus = "success" | "failure" | "skipped";
+export type ActionExecutionStatus = "success" | "failure" | "simulation" | "unavailable";
+
+export type ExecutionStatus = ActionExecutionStatus | "skipped";
+
+export interface WorkflowActionResult {
+  action: ActionType;
+  status: ActionExecutionStatus;
+  reason: string;
+  /** True only when the action caused a durable external or database effect. */
+  durableEffect: boolean;
+}
 
 export interface ExecutionLogEntry {
   id: string;
@@ -171,10 +190,18 @@ export interface ExecutionLogEntry {
   ruleName: string;
   trigger: TriggerType;
   status: ExecutionStatus;
-  /** The actions that were executed */
+  /** The actions that completed with a real durable effect. */
   executedActions: ActionType[];
+  /** Truthful outcome for every configured action, including simulation/unavailable. */
+  actionResults: WorkflowActionResult[];
   /** Context data that was passed to the engine */
   eventPayload: Record<string, unknown>;
+  /** Stable source-business identifier used to suppress duplicate event delivery. */
+  eventId?: string;
+  /** Whether at least one action produced a durable effect. */
+  durableEffect: boolean;
+  /** Whether this execution log was durably written. */
+  persistenceStatus: "persisted" | "failed";
   /** Any error messages if status is "failure" */
   errorMessage?: string;
   /** Timestamp of execution */
@@ -220,3 +247,12 @@ export type WorkflowEventPayload =
   | LeadStatusChangedPayload
   | OrderPlacedPayload
   | LeadCreatedPayload;
+
+export interface WorkflowDispatchResult {
+  trigger: TriggerType;
+  eventId: string;
+  status: ExecutionStatus;
+  reason: string;
+  durableEffect: boolean;
+  entries: ExecutionLogEntry[];
+}

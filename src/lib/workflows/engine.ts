@@ -4,8 +4,8 @@
  * Singleton engine that:
  * 1. Manages workflow rules (CRUD)
  * 2. Evaluates trigger conditions
- * 3. Executes actions (AI summary, status update, notifications)
- * 4. Maintains an audit log (ExecutionLog) synced with Storage
+ * 3. Evaluates explicit test-only simulations of workflow actions
+ * 4. Maintains a local view of simulation results; production dispatch is server-owned
  *
  * Designed to be imported across the app and called via:
  *   workflowEngine.emit("on_call_ended", payload)
@@ -14,16 +14,14 @@
 import {
   WorkflowRule,
   TriggerType,
-  TriggerCondition,
-  WorkflowAction,
   ExecutionLogEntry,
-  ExecutionStatus,
 } from "./types";
 import {
   createWorkflowExecutionAction,
   deleteWorkflowAction,
   saveWorkflowAction,
 } from "@/app/actions/workflows";
+import { evaluateWorkflowEvent } from "./evaluator";
 
 // ─── Engine Class ───────────────────────────────────────────────────────────
 
@@ -109,138 +107,26 @@ class WorkflowEngine {
   // ── Event Emission & Evaluation ────────────────────────────────────────
 
   /**
-   * Emit a trigger event. All matching & enabled rules are evaluated and their actions executed.
+   * Emit a test-only simulation. Production events must use the server-owned
+   * dispatcher so the browser cannot claim that a call was completed or that
+   * an automation was durable.
    */
   public async emit(
     trigger: TriggerType,
     payload: Record<string, unknown>
   ): Promise<ExecutionLogEntry[]> {
-    const matchingRules = this.rules.filter(
-      (r) => r.enabled && r.trigger === trigger
+    const result = await evaluateWorkflowEvent(
+      this.rules,
+      trigger,
+      payload,
+      {
+        mode: "simulation",
+        eventId: typeof payload.eventId === "string" ? payload.eventId : `simulation-${Date.now()}`,
+        persist: (entry) => createWorkflowExecutionAction(entry),
+      },
     );
-
-    const results: ExecutionLogEntry[] = [];
-
-    for (const rule of matchingRules) {
-      const conditionsMet = this.evaluateConditions(rule.conditions, payload);
-
-      if (!conditionsMet) {
-        const skippedEntry = this.createLogEntry(rule, trigger, "skipped", [], payload);
-        results.push(skippedEntry);
-        continue;
-      }
-
-      try {
-        const executedActions = await this.executeActions(rule.actions, payload);
-        const successEntry = this.createLogEntry(rule, trigger, "success", executedActions, payload);
-        results.push(successEntry);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown execution error";
-        const failEntry = this.createLogEntry(rule, trigger, "failure", [], payload, errorMessage);
-        results.push(failEntry);
-      }
-    }
-
-    return results;
-  }
-
-  // ── Condition Evaluation ───────────────────────────────────────────────
-
-  private evaluateConditions(
-    conditions: TriggerCondition[],
-    payload: Record<string, unknown>
-  ): boolean {
-    if (conditions.length === 0) return true;
-
-    return conditions.every((cond) => {
-      const fieldValue = String(payload[cond.field] ?? "");
-      const condValue = cond.value;
-
-      switch (cond.operator) {
-        case "equals":
-          return fieldValue === condValue;
-        case "not_equals":
-          return fieldValue !== condValue;
-        case "contains":
-          return fieldValue.toLowerCase().includes(condValue.toLowerCase());
-        case "greater_than":
-          return parseFloat(fieldValue) > parseFloat(condValue);
-        case "less_than":
-          return parseFloat(fieldValue) < parseFloat(condValue);
-        default:
-          return false;
-      }
-    });
-  }
-
-  // ── Action Execution ───────────────────────────────────────────────────
-
-  private async executeActions(
-    actions: WorkflowAction[],
-    payload: Record<string, unknown>
-  ): Promise<string[]> {
-    const executed: string[] = [];
-
-    for (const action of actions) {
-      switch (action.type) {
-        case "compute_ai_summary":
-          console.log(
-            `[WorkflowEngine] 🤖 AI Summary requested for lead: ${payload.leadName || payload.leadId}`
-          );
-          executed.push("compute_ai_summary");
-          break;
-
-        case "send_email_followup":
-          console.log(
-            `[WorkflowEngine] 📧 Email follow-up (template: ${action.config.template}) for: ${payload.leadName || payload.leadId}`
-          );
-          executed.push("send_email_followup");
-          break;
-
-        case "update_lead_status":
-          console.log(
-            `[WorkflowEngine] 🏷️ Lead status → ${action.config.target_status} for: ${payload.leadName || payload.leadId}`
-          );
-          executed.push("update_lead_status");
-          break;
-
-        case "notify_manager":
-          const message = this.interpolateTemplate(
-            action.config.message || "Workflow notification",
-            payload
-          );
-          console.log(`[WorkflowEngine] 🔔 Manager notification: ${message}`);
-          executed.push("notify_manager");
-          break;
-
-        case "send_webhook":
-          const targetUrl = action.config.webhook_url;
-          const method = action.config.method || "POST";
-          if (targetUrl) {
-            console.log(`[WorkflowEngine] 🌐 HTTP Webhook (${method}) → ${targetUrl}`);
-            try {
-              if (typeof fetch !== "undefined") {
-                await fetch(targetUrl, {
-                  method,
-                  headers: { "Content-Type": "application/json" },
-                  body: method === "POST" ? JSON.stringify(payload) : undefined,
-                }).catch((err) =>
-                  console.warn("[WorkflowEngine] Webhook fetch error (handled):", err)
-                );
-              }
-            } catch (err) {
-              console.warn("[WorkflowEngine] Webhook error:", err);
-            }
-          }
-          executed.push("send_webhook");
-          break;
-
-        default:
-          console.warn(`[WorkflowEngine] Unknown action type: ${action.type}`);
-      }
-    }
-
-    return executed;
+    this.executionLog.push(...result.entries);
+    return result.entries;
   }
 
   // ── Audit Log ──────────────────────────────────────────────────────────
@@ -255,43 +141,6 @@ class WorkflowEngine {
     this.executionLog = [];
   }
 
-  private createLogEntry(
-    rule: WorkflowRule,
-    trigger: TriggerType,
-    status: ExecutionStatus,
-    executedActions: string[],
-    payload: Record<string, unknown>,
-    errorMessage?: string
-  ): ExecutionLogEntry {
-    const entry: ExecutionLogEntry = {
-      id: `exec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ruleId: rule.id,
-      ruleName: rule.name,
-      trigger,
-      status,
-      executedActions: executedActions as ExecutionLogEntry["executedActions"],
-      eventPayload: payload,
-      errorMessage,
-      executedAt: new Date().toISOString(),
-    };
-
-    this.executionLog.push(entry);
-    createWorkflowExecutionAction(entry).catch((err) =>
-      console.warn("[WorkflowEngine] Failed to save execution log to Supabase:", err)
-    );
-    return entry;
-  }
-
-  // ── Helpers ────────────────────────────────────────────────────────────
-
-  private interpolateTemplate(
-    template: string,
-    payload: Record<string, unknown>
-  ): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
-      return String(payload[key] ?? key);
-    });
-  }
 }
 
 // ─── Singleton Export ────────────────────────────────────────────────────────

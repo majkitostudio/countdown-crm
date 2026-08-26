@@ -16,12 +16,12 @@ import {
   ArrowRightLeft,
   ShoppingCart,
   UserPlus,
+  Globe,
   Activity,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { workflowEngine } from "@/lib/workflows/engine";
 import {
   WorkflowRule,
   ExecutionLogEntry,
@@ -36,8 +36,8 @@ import {
   listWorkflowExecutionsAction,
   listWorkflowsAction,
   saveWorkflowAction,
+  simulateWorkflowEventAction,
 } from "@/app/actions/workflows";
-import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 // ─── Icon Maps ──────────────────────────────────────────────────────────────
@@ -54,6 +54,7 @@ const ACTION_ICON_MAP: Record<string, React.ElementType> = {
   Mail,
   RefreshCw,
   Bell,
+  Globe,
 };
 
 function getTriggerIcon(type: TriggerType) {
@@ -82,6 +83,14 @@ function StatusBadge({ status }: { status: ExecutionLogEntry["status"] }) {
       dot: "bg-zinc-500",
       label: "Přeskočeno",
     },
+    simulation: {
+      dot: "bg-sky-500",
+      label: "Simulace",
+    },
+    unavailable: {
+      dot: "bg-amber-500",
+      label: "Nedostupné",
+    },
   }[status];
 
   return (
@@ -95,20 +104,19 @@ function StatusBadge({ status }: { status: ExecutionLogEntry["status"] }) {
 // ─── Page Component ─────────────────────────────────────────────────────────
 
 export default function WorkflowsPage() {
-  const { identity } = useOperatorIdentity();
   const [rules, setRules] = useState<WorkflowRule[]>([]);
   const [executionLog, setExecutionLog] = useState<ExecutionLogEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<WorkflowRule | null>(null);
   const [activeTab, setActiveTab] = useState<"rules" | "log">("rules");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
+  const [testMessage, setTestMessage] = useState<string | null>(null);
 
   const refreshState = useCallback(async () => {
     const [nextRules, nextLog] = await Promise.all([
       listWorkflowsAction(),
       listWorkflowExecutionsAction(),
     ]);
-    workflowEngine.replaceRules(nextRules);
     setRules(nextRules);
     setExecutionLog(nextLog);
   }, []);
@@ -159,17 +167,27 @@ export default function WorkflowsPage() {
   };
 
   const handleTestEmit = async () => {
-    await workflowEngine.emit("on_call_ended", {
-      callId: "call-test-001",
-      leadId: "lead-1",
-      leadName: "Eleanor Vance",
-      agentName: identity?.name || "Unknown operator",
-      outcome: "order_placed",
-      sentiment: "Positive",
-      orderValue: 1250,
-      transcript: "Demo test transcript...",
-    });
-    refreshState();
+    setTestMessage(null);
+    try {
+      const result = await simulateWorkflowEventAction({
+        trigger: "on_call_ended",
+        eventId: `manual-test-${Date.now()}`,
+        payload: {
+          callId: "TEST_ONLY_CALL",
+          leadId: "TEST_ONLY_LEAD",
+          leadName: "Test-only simulation lead",
+          agentName: "TEST_ONLY",
+          outcome: "order_placed",
+          sentiment: "Positive",
+          orderValue: 0,
+          transcript: "",
+        },
+      });
+      setTestMessage(`Simulation: ${result.reason}`);
+      await refreshState();
+    } catch (error) {
+      setTestMessage(error instanceof Error ? `Simulation failed: ${error.message}` : "Simulation failed.");
+    }
   };
 
   // ── Computed Stats ─────────────────────────────────────────────────────
@@ -193,7 +211,7 @@ export default function WorkflowsPage() {
             className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-100 transition-colors cursor-pointer"
           >
             <Activity className="w-3.5 h-3.5 text-zinc-400" />
-            Test: Emit Call Ended
+            Test-only simulation: Call Ended
           </button>
 
           {/* Add Rule Button */}
@@ -210,6 +228,12 @@ export default function WorkflowsPage() {
           </>
         }
       />
+
+      {testMessage && (
+        <div className="rounded-xl border border-sky-900/60 bg-sky-950/20 px-4 py-3 text-xs text-sky-200" role="status">
+          {testMessage} No production webhook, provider, or business mutation was invoked.
+        </div>
+      )}
 
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-4">
@@ -327,6 +351,11 @@ export default function WorkflowsPage() {
                           <span className="px-2 py-0.5 bg-zinc-950 border border-zinc-800 text-zinc-400 text-[10px] font-mono rounded">
                             {triggerDef?.label}
                           </span>
+                          {triggerDef?.serverDispatch === "unavailable" && (
+                            <span className="px-2 py-0.5 bg-amber-950/30 border border-amber-900/60 text-amber-300 text-[10px] font-mono rounded">
+                              Server nedostupný
+                            </span>
+                          )}
                         </div>
                         {rule.description && (
                           <p className="text-xs text-zinc-400 mt-0.5 truncate">
@@ -403,7 +432,7 @@ export default function WorkflowsPage() {
               <Clock className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">Zatím žádné záznamy o spuštění.</p>
               <p className="text-xs mt-1">
-                Použijte tlačítko &quot;Test: Emit Call Ended&quot; pro vyzkoušení enginu.
+                Použijte tlačítko &quot;Test-only simulation: Call Ended&quot; bez produkčního side effectu.
               </p>
             </div>
           ) : (
@@ -463,8 +492,23 @@ export default function WorkflowsPage() {
                         </div>
                       </div>
                       {entry.errorMessage && (
-                        <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded text-xs text-rose-300">
+                        <div className={cn(
+                          "p-2 rounded text-xs",
+                          entry.status === "failure"
+                            ? "bg-rose-500/10 border border-rose-500/20 text-rose-300"
+                            : "bg-amber-500/10 border border-amber-500/20 text-amber-300",
+                        )}>
                           {entry.errorMessage}
+                        </div>
+                      )}
+                      {entry.actionResults.length > 0 && (
+                        <div className="space-y-1 text-[11px]">
+                          {entry.actionResults.map((result) => (
+                            <div key={result.action} className="text-zinc-400">
+                              <span className="font-mono text-zinc-300">{result.action}</span>: {result.reason}
+                              <span className="ml-1 text-zinc-600">({result.durableEffect ? "durable" : "no durable effect"})</span>
+                            </div>
+                          ))}
                         </div>
                       )}
                       <details className="text-[11px]">
