@@ -192,8 +192,9 @@ nebo novou funkci jen proto, aby byl commit větší.
    přihlášení, správnou roli, reload a kontrolu výsledku v databázi.
 4. **Bezpečnost žije na serveru a v RLS.** UI může něco skrýt, ale nesmí být
    jedinou ochranou workspace nebo role.
-5. **Lokální migrace a live databáze musí být ve shodě.** Ruční SQL mimo Git
-   je dočasný incident, ne nový zdroj pravdy.
+5. **Migrace měníme pouze po explicitním source-of-truth rozhodnutí.** Rozdíl
+   mezi repozitářem a live databází evidujeme jako samostatný incident; tento
+   handoff ani polish plán z něj automaticky nedělají gate pro další práci.
 6. **Nevyrábíme falešné signály.** Žádné smyšlené latency, online stav,
    AI skóre, e-mail, telephony nebo „success“, když se nic neuložilo.
 7. **Simulace jsou viditelně simulace.** Training, softphone a lokální fallback
@@ -210,7 +211,8 @@ nebo novou funkci jen proto, aby byl commit větší.
 
 Teprve až platí všechno níže:
 
-- Git a live Supabase mají stejnou migrační historii;
+- schema provisioning contract a fresh-schema/policy proof jsou schválené;
+  migration-history rozdíl má explicitní rozhodnutí a není automatickou gate;
 - bezpečnostní audit nemá otevřený P0 problém;
 - reálný Auth uživatel projde hlavním workflow a zápisy přežijí reload;
 - role a cizí workspace jsou ověřené negativním testem;
