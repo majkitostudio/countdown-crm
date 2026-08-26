@@ -2,7 +2,7 @@
 
 **Plán vytvořen:** 26. 8. 2026
 **Vychází z:** [Project Polish Checkpoint 2026-08-26](PROJECT_POLISH_CHECKPOINT_20260826.md)
-**Baseline:** `origin/main` / `0b46874b7fa4121de2f2ae35f8c372b8b4333531`
+**Baseline:** `origin/main` / `665c4f465e63c9f634d17e4e06e7a0a457874a49`
 **Typ:** rozhodovací balíček; tento dokument nemění runtime, testy, migrace, databázi ani artefakty.
 
 ## Roadmapa
@@ -10,8 +10,8 @@
 | Pořadí | Slice | Priorita | Závisí na | Paralelní? | Velikost | Riziko | Gate k dokončení |
 |---:|---|---|---|---|---|---|---|
 | 0 | Land audit/docs decision package | P2 | žádná | sekvenční | S | nízké | oba docs commity jsou reviewnuté a PR #14 merge-ready |
-| 1 | Server-side analytics role boundary | P0 | 0 | ano s 2–6 | S | nízké | operator dostane 403, leader/admin data ano, CSV sdílí guard |
-| 2 | Workflow truth contract + Operator dispatch | P0 | 0 | částečně; merge před 7 | L | vysoké | žádný console-only success, operator completion generuje durable event |
+| 1 | Server-side analytics role boundary — **done** (PR #15) | P0 | 0 | ano s 2–6 | S | nízké | operator dostane 403, leader/admin data ano, CSV sdílí guard |
+| 2 | Workflow truth contract + Operator dispatch — **in progress (coordination only)** | P0 | 0 | částečně; merge před 7 | L | vysoké | žádný console-only success, operator completion generuje durable event |
 | 3 | Atomic business mutation + audit | P1 | 0; pattern může běžet s 2 | ano s 2, 5, 6 | M | vysoké | business data a audit mají atomický/idempotentní kontrakt |
 | 4 | Server-authoritative idempotent Blueprint apply | P0 | 3 pro transakční pattern | po 3 | L | vysoké | workspace/reload/login stav je durable a retry-safe |
 | 5 | Unified server-owned Operator presence | P1 | 0 | ano s 1–4 | S | střední | Sidebar, CallStatusBar a routing zobrazují stejný stav |
@@ -19,15 +19,20 @@
 | 7 | Critical unit/integration + static test matrix | P1 | 1–4 | po dotčených fixech | M | střední | Workflow, Blueprint, queue/order, roles a failure kontrakty automaticky pokryté |
 | 8 | Authenticated Operator/Product Script evidence run | P1 | 2–7, 6 pouze pokud je proof target jasný | sekvenční | M | vysoké | reálný Auth browser, reload/login, negative role/workspace, Product Script role smoke |
 | 9 | Legacy training/dead-code cleanup | P2 | 7 | ano s 10–12 | S | nízké | no-unused/import graph čistý, kanonická training path zachovaná |
-| 10 | CSV escaping | P3 | 1 | ano s 9, 11–12 | S | nízké | standardní CSV parser zachová čárky, uvozovky i nové řádky |
+| 10 | CSV escaping — **done** (PR #16) | P3 | 1 | ano s 9, 11–12 | S | nízké | standardní CSV parser zachová čárky, uvozovky i nové řádky |
 | 11 | Hotspot decomposition | P2 | 2–8 | po stabilizaci kontraktů | M/L | střední | menší odpovědnosti bez změny auth/datových kontraktů |
 | 12 | Documentation alignment | P2 | 2, 4, 6, 8–11 | poslední docs slice | M | střední | README/architecture/roadmap/commits odpovídají runtime a důkazům |
 | 13 | Generated/recovery artifact governance | P2 | 0; rozhodování může běžet průběžně | ano | S | nízké | pravidlo provenance/retence, žádné automatické mazání bez účelu |
 
 ### Paralelní běhy a sekvence
 
-Slice 1 je záměrně první implementační PR: je malý, bezpečnostně významný a
-nezávislý na Workflow runtime. Po něm mohou paralelně běžet 2, 3, 5 a 6,
+Slice 1 je dokončený první implementační PR: PR #15, merge commit
+`73ac1775a8a740ad4a655612dfa68b6b9ca3a543`, targeted role tests `48/48`,
+check/build/diff green a autentizovaný browser důkaz pro Administrator/Operator.
+Slice 10 je dokončený pure-formatting PR: PR #16, merge commit
+`665c4f465e63c9f634d17e4e06e7a0a457874a49`, targeted `6/6`, full `54/54`,
+`npm run check` a `git diff --check` green; browser/auth/persistence/RLS N/A.
+Po nich může paralelně běžet Slice 2, 3, 5 a 6,
 pokud každý task zůstane ve vlastním worktree a nezasahuje do stejných souborů.
 Slice 4 musí počkat na transakční/idempotentní rozhodnutí ze slice 3. Slice 7
 se přidává k opravným PR tam, kde je to nejpřesnější, ale jako konsolidovaný
@@ -92,7 +97,7 @@ persistence/authorization/RLS se zde neprovádí.
 **Rollback/delivery:** revert focused docs commit nebo zavřít PR bez zásahu do
 runtime; commit/push/draft PR #14 podle `AGENTS.md`.
 
-## Slice 1 — Server-side analytics role boundary
+## Slice 1 — Server-side analytics role boundary — **done**
 
 **Task/branch:** `fix: enforce analytics role boundary` /
 `fix/analytics-role-boundary`
@@ -133,7 +138,14 @@ cross-workspace; RLS read-only potvrzení, že query nepoužívá jiný workspac
 **Rollback/delivery:** revert jediného server/action commitu; žádná migrace.
 Focused PR po zeleném lint/typecheck/test gate.
 
-## Slice 2 — Workflow truth contract + Operator Console dispatch
+**Delivery evidence:** PR #15 merged; merge commit
+`73ac1775a8a740ad4a655612dfa68b6b9ca3a543`; targeted tests `48/48`,
+`npm run check`/build a `git diff --check` green. Authenticated browser:
+Administrator allowed + reload, Operator explicit forbidden + reload, no
+export/data, clean console. Browser není RLS proof; persistence N/A;
+schema/RLS beze změny. Původní analytics guard nález je historical/resolved.
+
+## Slice 2 — Workflow truth contract + Operator Console dispatch — **in progress (coordination only)**
 
 **Task/branch:** `fix: make workflow execution truthful and dispatch operator calls` /
 `fix/workflow-truth-dispatch`
@@ -183,6 +195,10 @@ authorization workspace/role; RLS execution row scope a function privileges.
 **Rollback/delivery:** feature flag nebo revert commitu vrátí pouze dispatcher/
 truth contract; nejprve zachovat stará data, ne mazat execution history. PR je
 review-sensitive draft do dokončení cross-layer evidence.
+
+**Current coordination status:** Slice 2 může být označen jako `in progress`
+pro koordinaci navazující práce; tento plán netvrdí dokončení, aktuální PR ani
+provedenou novou implementaci.
 
 ## Slice 3 — Atomic business mutation + audit trail
 
@@ -485,7 +501,7 @@ simulator; persistence session smoke beze změny; authorization/RLS bez dopadu.
 
 **Rollback/delivery:** revert jediného dead-code commitu; žádná data/schema změna.
 
-## Slice 10 — CSV escaping
+## Slice 10 — CSV escaping — **done**
 
 **Task/branch:** `fix: escape analytics CSV fields` /
 `fix/analytics-csv-escaping`
@@ -513,6 +529,11 @@ field standardním parserem; numeric/unavailable values zůstanou beze změny.
 authorization a RLS nerelevantní, analytics guard ze slice 1 zůstává.
 
 **Rollback/delivery:** revert malého helper/test commitu.
+
+**Delivery evidence:** PR #16 merged; merge commit
+`665c4f465e63c9f634d17e4e06e7a0a457874a49`; targeted tests `6/6`, full suite
+`54/54`, `npm run check` a `git diff --check` green. Pure formatting; browser,
+auth, persistence a RLS jsou N/A. Původní CSV bug je resolved/historical.
 
 ## Slice 11 — Progressive hotspot decomposition
 
@@ -624,50 +645,47 @@ vytváří; persistence/authorization/RLS nerelevantní.
 **Rollback/delivery:** preferovat recoverable move a samostatný docs decision;
 bez schválení žádné delete. PR může být samostatný nízkorizikový docs PR.
 
-## Jediný doporučený první implementační slice
+## Doporučený next slice
 
-Po merge auditního balíčku je první implementační slice:
+Analytics role boundary už není neprovedená doporučená práce. Aktivní další
+položkou je Slice 2: `fix: make workflow execution truthful and dispatch
+operator calls` na větvi `fix/workflow-truth-dispatch`.
 
-`fix: enforce analytics role boundary` na větvi `fix/analytics-role-boundary`.
+Je to aktivní P0 slice; analytics role boundary a CSV escaping jsou již
+uzavřené. Jeho minimální acceptance je:
 
-Je malý, nezávislý na Workflow/Blueprint změnách a řeší potvrzenou server-side
-authorization mezeru bez schema změny. Jeho minimální acceptance je:
+1. action execution vrací pravdivé `success`/`failure`/`simulation`/`unavailable`;
+2. Operator completion používá jeden server-owned dispatcher právě jednou;
+3. log persistence a webhook failure jsou explicitně řešené;
+4. unit/integration, browser, persistence, authorization a RLS evidence jsou
+   vedené odděleně a nic se nepředstírá.
 
-1. `getAnalyticsDataAction`, recent activity a export mají stejnou
-   `team_leader`/`administrator` hranici;
-2. operator i cizí workspace dostanou 403 a ne data/fallback success;
-3. pozitivní leader/admin scénář vrátí pouze aktivní workspace;
-4. unit/integration, static a negative authorization testy jsou zelené;
-5. browser/persistence/RLS stav je explicitně označen podle skutečně provedeného
-   důkazu, ne podle buildu.
-
-## Prompt-ready handoff pro první slice
+## Prompt-ready handoff pro aktivní next slice
 
 ```text
-Countdown CRM — implementuj pouze server-side analytics role boundary.
+Countdown CRM — implementuj pouze Slice 2: Workflow truth contract + Operator Console dispatch.
 
 Baseline: začni z aktuálního origin/main a čistého worktree. Založ vlastní task,
-větev fix/analytics-role-boundary a worktree podle AGENTS.md.
+větev fix/workflow-truth-dispatch a worktree podle AGENTS.md.
 
-Cíl: getAnalyticsDataAction/getAnalyticsData, getRecentActivity a workspace CSV
-export musí být dostupné pouze rolím team_leader/administrator v aktivním
-workspace. Současný symptom je, že getAnalyticsData používá jen
-requireWorkspaceContext() a UI hiding není serverová ochrana.
+Cíl: action execution musí pravdivě rozlišit success/failure/simulation/unavailable
+a úspěšné operator call completion musí použít jeden server-owned dispatcher právě
+jednou. Současný symptom je false-success u console-only actions a chybějící
+operator dispatch.
 
-Scope: server-side role guard, jednotný workspace context, konzistentní 401/403,
-žádný datový fallback pro forbidden, a cílené unit/integration testy pro
-operator, team_leader, administrator a cizí workspace. Ověř export boundary.
+Scope: explicitní result model, webhook HTTP/fetch failure semantics, awaitovaná
+execution-log persistence, operator completion event path a test-only označení
+manual emit. Přidej cílené unit/integration testy včetně duplicate event a log failure.
 
-Non-goals: žádná změna schema/migrací/RLS, žádný analytics redesign/forecast/AI,
-žádný CSV escaping (samostatný slice), žádné demo auth/mock, žádné úpravy PR
-#6/#7/#8, žádné dependency změny.
+Non-goals: live telephony, live AI, e-mail/notification provider, nový workflow
+DSL, schema/migrace bez explicitního návrhu, demo auth/mock a úpravy PR #6/#7/#8.
 
-Acceptance: operator/cizí workspace dostane 403 bez analytics dat; leader/admin
-vidí jen svůj workspace; export sdílí guard; unavailable/error je pravdivý.
+Acceptance: žádný falešný success, failed webhook není executed, persistence
+failure je viditelné a operator completion vytvoří event právě jednou.
 
-Evidence: static call-graph/role review; npm test, npm run check, git diff --check;
-unit/integration role matrix; pokud je dostupná skutečná Auth relace, browser
-positive/negative smoke; persistence/RLS označ odděleně a nic nepředstírej.
+Evidence: static call graph; npm test, npm run check, git diff --check;
+unit/integration action matrix; skutečný authenticated browser; persistence po
+reload/login; authorization workspace/role a RLS odděleně.
 
 Delivery: explicitně stageuj jen dotčené soubory, recheck status/diff/divergence,
 focused commit, push a draft PR podle AGENTS.md. Merge až po review všech
