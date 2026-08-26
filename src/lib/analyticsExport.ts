@@ -1,20 +1,40 @@
 import type { AnalyticsOverview } from "./analytics";
 
+export function escapeCsvField(value: string): string {
+  const escapedValue = value.replace(/"/g, '""');
+
+  return /[",\r\n]/.test(value) ? `"${escapedValue}"` : escapedValue;
+}
+
+function csvRow(fields: string[]): string {
+  return fields.map(escapeCsvField).join(",");
+}
+
 export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
   if (typeof window === "undefined") return;
 
-  let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += "Metric,Value\n";
-  csvContent += `Total Revenue,$${data.totalRevenue}\n`;
-  csvContent += `AI Forecast Revenue (Next 30d),${data.forecastAvailable ? `$${data.projectedRevenue}` : "Unavailable"}\n`;
-  csvContent += `Average Order Value (AOV),$${data.avgOrderValue}\n`;
-  csvContent += `Conversion Rate,${data.conversionRate}%\n`;
-  csvContent += `Objection Resolution Rate,${data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`}\n\n`;
+  const rows = [
+    ["Metric", "Value"],
+    ["Total Revenue", `$${data.totalRevenue}`],
+    ["AI Forecast Revenue (Next 30d)", data.forecastAvailable ? `$${data.projectedRevenue}` : "Unavailable"],
+    ["Average Order Value (AOV)", `$${data.avgOrderValue}`],
+    ["Conversion Rate", `${data.conversionRate}%`],
+    [
+      "Objection Resolution Rate",
+      data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`,
+    ],
+    [],
+    ["Operator", "Calls", "Orders", "Revenue", "Conversion Rate%"],
+    ...data.teamLeaderboard.map((agent) => [
+      agent.agentName,
+      String(agent.callsCount),
+      String(agent.ordersCount),
+      `$${agent.revenueGenerated}`,
+      `${agent.conversionRate}%`,
+    ]),
+  ];
 
-  csvContent += "Operator,Calls,Orders,Revenue,Conversion Rate%\n";
-  data.teamLeaderboard.forEach((agent) => {
-    csvContent += `"${agent.agentName}",${agent.callsCount},${agent.ordersCount},$${agent.revenueGenerated},${agent.conversionRate}%\n`;
-  });
+  const csvContent = `data:text/csv;charset=utf-8,${rows.map(csvRow).join("\n")}\n`;
 
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
