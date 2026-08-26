@@ -1,13 +1,13 @@
 # Countdown CRM — Project Polish Checkpoint
 
 **Datum auditu:** 26. 8. 2026
-**Auditní větev:** `audit/project-polish-checkpoint-20260826`
-**Ověřený baseline:** `origin/main` = `0b46874b7fa4121de2f2ae35f8c372b8b4333531`
+**Auditní větev:** `docs/polish-progress-slices-1-10`
+**Ověřený baseline:** `origin/main` = `665c4f465e63c9f634d17e4e06e7a0a457874a49` (`fix: escape analytics CSV fields (#16)`)
 **Rozsah:** read-only audit aplikačního shellu, 23 rout, API rout, Server Actions, DAL/RPC, auth/workspace hranic, Workflow/Blueprint/Operator Console/Orders/Product Scripts/Training, testů, konfigurace a dokumentace.
 
 ## Výsledek v jedné větě
 
-Repozitář je po PR #13 čistý a workspace/role hranice jsou v kódu a SQL výrazně pevnější, ale projekt nelze označit za pilot-ready: Workflow a Blueprint runtime mohou vykazovat úspěch bez odpovídajícího durable efektu a chybí čerstvý důkaz přihlášeného workflow, persistence po reloadu, negativních rolí/workspace a RLS.
+Repozitář je po merge Slice 1 a Slice 10 čistý a analytics role boundary i CSV escaping jsou uzavřené podle doložených gate; projekt stále nelze označit za pilot-ready, protože Workflow/Blueprint runtime a navazující authenticated workflow, persistence, negativní role/workspace a RLS důkazy zůstávají otevřené.
 
 Tento dokument je checkpoint a prioritizovaný backlog. Runtime ani databáze se v tomto auditu neměnily.
 
@@ -15,10 +15,10 @@ Tento dokument je checkpoint a prioritizovaný backlog. Runtime ani databáze se
 
 | Vrstva | Výsledek tohoto auditu | Co z toho nelze tvrdit |
 |---|---|---|
-| Git/repozitář | `HEAD` i `origin/main` byly před auditem `0b46874`; po fetchi divergence `0/0`; audit běží na pojmenované větvi | že live deploy nebo live DB odpovídá checkoutu |
+| Git/repozitář | `origin/main` po fetchi = `665c4f4`; Slice 1 a Slice 10 jsou merged jako PR #15/#16; docs změna běží na pojmenované větvi | že live deploy nebo live DB odpovídá checkoutu |
 | Statická analýza | zdokumentované nálezy v TS/TSX, SQL a docs; 23 page rout, 4 training API routy, 7 testovacích souborů | že každá větev funguje v přihlášeném browseru |
-| Unit/API testy | v repu je přibližně 37 test cases v 7 souborech; pokryté jsou hlavně headers, settings, script sanitizace, softphone lifecycle, outcome UI a training API | že jsou ověřené WorkflowEngine, Blueprints, leadQueue, call/order lifecycle nebo RLS |
-| Browser | v tomto read-only průchodu nebyla použita přihlášená relace | žádný authenticated smoke, logout/login, reload ani cross-workspace důkaz |
+| Unit/API testy | Slice 1 role tests `48/48`; Slice 10 targeted `6/6`, full suite `54/54`; starší auditní inventář zůstává historický | že jsou ověřené WorkflowEngine, Blueprints, leadQueue, call/order lifecycle nebo RLS |
+| Browser | Slice 1: autentizovaný Administrator allowed + reload a Operator explicit forbidden + reload; čistá konzole, bez exportu/dat | browser smoke není RLS proof; nejde z něj tvrdit persistence ani cross-workspace RLS |
 | Persistence | statické čtení ukazuje Server Actions/DAL/RPC hranice | že zápis přežije reload nebo že partial failure nezanechá nekonzistentní stav |
 | Authorization/RLS | kód a migrace obsahují workspace membership, role guardy, invoker RPC a hardened queue recovery | že negativní role/workspace a RLS test skutečně proběhl proti live Supabase |
 
@@ -29,7 +29,7 @@ Všechny routy níže byly nalezeny jako současné `page.tsx` soubory. Přístu
 | Routa | Hlavní odpovědnost | Důkazní stav |
 |---|---|---|
 | `/` | dashboard/AppShell, workspace-scoped přehled | statická hranice; browser neověřen |
-| `/analytics` | workspace revenue/call analytics, CSV export | Server Action čte workspace; role guard chybí, viz P1 |
+| `/analytics` | workspace revenue/call analytics, CSV export | Slice 1 role boundary a Slice 10 escaping jsou merged; browser evidence je uvedena níže |
 | `/audit` | audit log pro vedoucí/adminy | DAL vyžaduje `team_leader`/`administrator` |
 | `/calendar` | callback/operator kalendář | DAL a queue hranice staticky přítomné |
 | `/calls` | workspace call log | statická hranice; persistence neověřena |
@@ -90,14 +90,16 @@ Všechny routy níže byly nalezeny jako současné `page.tsx` soubory. Přístu
 - **Nejmenší slice:** zavést jeden server-owned dispatcher po úspěšném operator call completion a napojit podporované trigger events; manual test jasně označit jako test-only.
 - **Acceptance evidence:** unit/integration test operator completion → event → execution record; test `on_order_placed`, `on_lead_status_changed`, `on_lead_created`; žádný demo payload v cestě vnímané jako produkční; výsledky přežijí reload.
 
-### P1 — Analytics Server Action postrádá deklarovaný role guard
+### P1 — Analytics Server Action postrádal deklarovaný role guard *(historical / resolved v Slice 1)*
 
 - **Soubor/symbol:** `src/lib/analytics.ts:178-226` (`getAnalyticsData`), `src/app/actions/analytics.ts:6-8`, `src/app/analytics/page.tsx:53-64`.
-- **Ověřený symptom:** funkce dokumentovaná jako „Team Leader analytics“ volá pouze `requireWorkspaceContext()`, načte všechny workspace orders/calls/profiles a nemá `requireWorkspaceRole(["team_leader", "administrator"])`. UI stránka také nemá vlastní role gate.
+- **Historický nález:** funkce dokumentovaná jako „Team Leader analytics“ volala pouze `requireWorkspaceContext()` a neměla deklarovaný server-side role guard; UI stránka také neměla vlastní role gate.
+- **Stav po Slice 1:** PR #15 (`fix: enforce analytics role boundary`), merge commit `73ac1775a8a740ad4a655612dfa68b6b9ca3a543`; targeted role tests `48/48`, `npm run check`/build a `git diff --check` green. Autentizovaný browser důkaz: Administrator allowed + reload, Operator explicit forbidden + reload, bez exportu/dat a s čistou konzolí.
+- **Důkazní hranice:** browser smoke není RLS proof; persistence je N/A; schema/RLS se nezměnily.
 - **Dopad:** pokud route/Server Action zavolá autentizovaný operator, může dostat týmové revenue, call a operator leaderboard metriky určené pro vedoucí. Skrytí položky v navigaci by nebyla dostatečná ochrana.
 - **Typ:** potvrzený statický authorization gap vůči deklarovanému účelu; přesná live exploitace nebyla provedena.
 - **Nejmenší slice:** přidat server-side role guard a regresní test 401/403/allowed role; současně projít export action, aby sdílela stejnou hranici.
-- **Acceptance evidence:** negativní operator test, cross-workspace test, pozitivní Team Leader/Admin test, žádné analytics/CSV data v odpovědi pro nepovolenou roli.
+- **Původní acceptance evidence:** zachována jako historický kontext; současný stav je doložen výše a neimplikuje RLS proof.
 
 ### P1 — Business mutace může být úspěšná, ale klient dostane chybu kvůli auditu
 
@@ -153,12 +155,14 @@ Všechny routy níže byly nalezeny jako současné `page.tsx` soubory. Přístu
 - **Nejmenší slice:** samostatný docs cleanup po stabilizaci, se source-of-truth mapou a datem ověření.
 - **Acceptance evidence:** každý současný claim má odkaz na kód/test/browser/SQL vrstvu a historical sections jsou viditelně označené.
 
-### P3 — CSV export neescapuje vnitřní uvozovky
+### P3 — CSV export neescapoval vnitřní uvozovky *(historical / resolved v Slice 10)*
 
 - **Soubor/symbol:** `src/lib/analyticsExport.ts:14-17`.
-- **Ověřený symptom:** `agentName` se vloží do uvozovek, ale vnitřní `"` se nenahradí `""`; jméno s uvozovkou může rozbít CSV řádek.
+- **Historický nález:** `agentName` se vkládal do uvozovek, ale vnitřní `"` se nenahrazovalo `""`; jméno s uvozovkou mohlo rozbít CSV řádek.
+- **Stav po Slice 10:** PR #16 (`fix: escape analytics CSV fields`), merge commit `665c4f465e63c9f634d17e4e06e7a0a457874a49`; targeted tests `6/6`, full suite `54/54`, `npm run check` a `git diff --check` green.
+- **Důkazní hranice:** pure formatting; browser, auth, persistence a RLS jsou N/A.
 - **Dopad:** nízkorizikový exportní polish; analytická data v aplikaci tím nemění.
-- **Typ:** potvrzený statický bug.
+- **Typ:** potvrzený statický bug, nyní resolved/historical.
 - **Nejmenší slice:** malý CSV escape helper a test pro čárku, uvozovku a nový řádek.
 - **Acceptance evidence:** export lze načíst standardním CSV parserem a zachovává přesný název.
 
@@ -175,14 +179,16 @@ Všechny routy níže byly nalezeny jako současné `page.tsx` soubory. Přístu
 
 ### Primární slice
 
-`fix/workflow-execution-truth-and-operator-dispatch`
+`fix/workflow-truth-dispatch` — Slice 2, Workflow truth contract + Operator Console dispatch
 
 Nejdřív opravit P0 false-success kontrakt a současně připojit Operator Console completion na jeden server-owned event dispatcher. Slice musí pokrýt simulation/unavailable/failure/success status, awaitovanou log persistence, webhook error semantics, operator path a unit/integration regresní testy. Teprve tento výsledek může být základem pro další browser/persistence smoke.
 
+Slice 2 je aktuálně pouze koordinačně `in progress`; tento checkpoint tím netvrdí dokončení, aktuální PR ani novou merge evidence.
+
 ### Nejvýše dvě alternativy
 
-1. `fix/server-side-analytics-role-boundary` — malý samostatný authorization slice s negativními role/workspace testy.
-2. `fix/atomic-business-mutation-audit` — transakční/idempotentní lead/order mutace s audit failure testem.
+1. `fix/atomic-business-mutation-audit` — transakční/idempotentní lead/order mutace s audit failure testem.
+2. `fix/server-authoritative-blueprint-apply` — až po vyjasnění transakčního/idempotentního kontraktu.
 
 Blueprint apply, stale `schema.sql` a široký docs cleanup mají následovat jako oddělené slices; neřešit je skrytě v primárním workflow fixu.
 
@@ -192,8 +198,8 @@ Před dokumentačním commitem byly ověřeny cwd, worktree, branch/base, remote
 
 | Kontrola | Výsledek | Přesný stav |
 |---|---|---|
-| `npm test` | **neprovedeno** | script skončil před Vitestem: lokální `vitest` binárka není dostupná |
-| `npm run check` | **neprovedeno** | script skončil v lint kroku: lokální `eslint` binárka není dostupná |
+| `npm test` | **N/A pro tento docs-only slice** | runtime se neměnil; relevantní merge evidence Slice 1: `48/48`, Slice 10: `54/54` |
+| `npm run check` | **N/A pro tento docs-only slice** | runtime se neměnil; oba merged slices mají ověřený green check/build podle evidence výše |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 vulnerabilities |
 | no-unused/static TypeScript scan | **neprovedeno** | dostupný compiler bez repo dependencies generoval module-resolution/typové chyby; kandidát `chatHistory` je staticky doložen, bez automatické opravy |
