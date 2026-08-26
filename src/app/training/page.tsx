@@ -31,6 +31,7 @@ import {
   Gauge,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
@@ -566,26 +567,12 @@ export default function TrainingPage() {
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
-      {/* Header Banner */}
-      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 backdrop-blur-md shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <GraduationCap className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              AI Call Roleplay Simulator
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono">
-                Training Mode
-              </span>
-            </h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Practice simulated calls with AI customer personas without risking a real customer or order.
-            </p>
-          </div>
-        </div>
-
-      </div>
+      <PageHeader
+        icon={GraduationCap}
+        title="AI Call Roleplay Simulator"
+        badge={{ label: "Training Mode", tone: "neutral" }}
+        description="Practice simulated calls with AI customer personas without risking a real customer or order."
+      />
 
       {!selectedScenario || (!isSimulating && !scorecard) ? (
         /* Scenario Selection */

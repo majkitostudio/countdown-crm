@@ -61,7 +61,7 @@ export function OperatorLeadHeader({
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Current Lead</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100">{activeLead.full_name}</h1>
+            <h2 className="text-xl font-semibold tracking-tight text-zinc-100">{activeLead.full_name}</h2>
             <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
               {activeLead.status || "New lead"}
             </span>

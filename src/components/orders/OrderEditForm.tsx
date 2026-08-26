@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState, useTransition } from "react";
-import { ArrowLeft, CheckCircle2, ChevronRight, LoaderCircle, Package, Plus, Save, Trash2 } from "lucide-react";
+import { CheckCircle2, LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updateOrderDetailsAction } from "@/app/actions/crm";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
@@ -161,38 +161,6 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
 
   return (
     <form onSubmit={submit} className="mx-auto max-w-screen-xl space-y-6">
-      <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={() => router.push(backHref)}
-            className="mt-0.5 rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-              <span>Orders</span>
-              <ChevronRight className="h-3 w-3" />
-              <span>#{order.id}</span>
-              <ChevronRight className="h-3 w-3" />
-              <span>Edit</span>
-            </div>
-            <h1 className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-zinc-100">
-              <Package className="h-5 w-5 text-zinc-400" />
-              Edit order details
-            </h1>
-            <p className="mt-1 text-xs text-zinc-400">
-              Status is currently {statusLabel(order.status)}. Customer, assigned operator and status stay read-only here.
-            </p>
-          </div>
-        </div>
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[10px] uppercase tracking-wider text-zinc-400">
-          Revision {order.revision}
-        </span>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">

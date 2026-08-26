@@ -266,7 +266,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
     return (
       <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
         <FileText className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">No products available</h1>
+        <h2 className="text-base font-semibold text-zinc-100">No products available</h2>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
           Add a product to the catalog before creating an approved operator script.
         </p>
@@ -283,35 +283,6 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-6">
-      <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3">
-          <a
-            href="/settings"
-            className="mt-0.5 rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100"
-            aria-label="Back to settings"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </a>
-          <div>
-            <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-              <span>Settings</span>
-              <span>/</span>
-              <span>Product Scripts</span>
-            </div>
-            <h1 className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-zinc-100">
-              <FileText className="h-5 w-5 text-zinc-400" />
-              Script Administration
-            </h1>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-400">
-              Edit one continuous script per product, save a draft, then publish the reviewed version to operators.
-            </p>
-          </div>
-        </div>
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-          Administrator only
-        </span>
-      </div>
-
       <div className="grid min-h-[620px] gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="h-fit rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm xl:sticky xl:top-0">
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">

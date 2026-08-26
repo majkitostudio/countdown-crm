@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { listRecordsAction, listSchemasAction, createRecordAction } from "@/app/actions/schema";
 import { ObjectSchema, RecordEntity } from "@/lib/schema/types";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function CustomObjectPage() {
   const params = useParams();
@@ -117,42 +118,36 @@ export default function CustomObjectPage() {
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
-      {/* Hero Header */}
-      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              <Database className="w-5 h-5 text-zinc-300" />
-              {schema.name}
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-              {filteredRecords.length} záznamů
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400">{schema.description}</p>
-        </div>
+      <PageHeader
+        icon={Database}
+        title={schema.name}
+        badge={{ label: `${filteredRecords.length} záznamů`, tone: "neutral" }}
+        description={schema.description}
+        backLink={{ href: "/settings", label: "Zpět do nastavení" }}
+        actions={
+          <>
+            <div className="relative min-w-0">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" aria-hidden="true" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Hledat v ${schema.name}...`}
+                aria-label={`Hledat v ${schema.name}`}
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-3 text-xs text-zinc-200 placeholder-zinc-500 focus:border-zinc-700 focus:outline-none sm:w-56"
+              />
+            </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Hledat v ${schema.name}...`}
-              className="bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-700"
-            />
-          </div>
-
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 text-xs font-semibold rounded-xl transition-all shadow-sm cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nový záznam</span>
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-3.5 py-2 text-xs font-semibold text-zinc-950 shadow-sm transition-all hover:bg-zinc-200"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              <span>Nový záznam</span>
+            </button>
+          </>
+        }
+      />
 
       {/* Schema Attributes Header Ribbon */}
       <div className="flex flex-wrap items-center gap-2 p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl text-xs">

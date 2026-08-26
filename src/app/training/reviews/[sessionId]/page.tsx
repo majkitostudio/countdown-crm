@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, ClipboardList, LockKeyhole, MessageSquare, ShieldCheck } from "lucide-react";
 import { getTrainingSessionReview } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -61,25 +62,19 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
 
   return (
       <div className="mx-auto max-w-5xl space-y-6">
-        <Link href="/training/reviews" className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Teamleader Review
-        </Link>
-
-        <div className="flex flex-col justify-between gap-5 rounded-2xl border border-zinc-800/80 border-t border-white/5 bg-zinc-900/60 p-8 shadow-sm md:flex-row md:items-start">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <ClipboardList className="h-5 w-5 text-zinc-400" />
-              <h1 className="text-xl font-semibold tracking-tight text-zinc-100">Training Review</h1>
-              <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[10px] font-mono text-zinc-300">Read-only</span>
+        <PageHeader
+          icon={ClipboardList}
+          title="Training Review"
+          badge={{ label: "Read-only", tone: "neutral" }}
+          backLink={{ href: "/training/reviews", label: "Back to Teamleader Review" }}
+          description={<>{session.scenario_title} · {session.target_product}</>}
+          actions={
+            <div className="text-left text-xs md:text-right">
+              <div className="font-medium text-zinc-200">{session.operator_name}</div>
+              <div className="mt-1 text-[11px] text-zinc-500">{formatDate(session.created_at)}</div>
             </div>
-            <p className="mt-2 text-xs text-zinc-400">{session.scenario_title} · {session.target_product}</p>
-          </div>
-          <div className="text-left text-xs md:text-right">
-            <div className="font-medium text-zinc-200">{session.operator_name}</div>
-            <div className="mt-1 text-[11px] text-zinc-500">{formatDate(session.created_at)}</div>
-          </div>
-        </div>
+          }
+        />
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           {[

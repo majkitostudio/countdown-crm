@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, CircleAlert, LockKeyhole } from "lucide-react";
+import { ArrowLeft, CircleAlert, LockKeyhole, Package } from "lucide-react";
 import { OrderEditForm } from "@/components/orders/OrderEditForm";
 import { getWorkspaceOrder } from "@/lib/dal/activity";
 import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type SearchParams = Promise<{ origin?: string | string[] }>;
 
@@ -111,18 +112,27 @@ export default async function OrderEditPage({
   }
 
   return (
-    <OrderEditForm
-      order={result.order}
-      products={result.products.map((product) => ({
-        id: product.id,
-        title: product.title,
-        category: product.category,
-        price: Number(product.price),
-        currency: product.currency || "USD",
-        in_stock: product.in_stock ?? true,
-      }))}
-      initialOrigin={result.origin}
-      requiresReason={result.order.status !== "pending" && result.order.status !== "in_progress"}
-    />
+    <div className="mx-auto max-w-screen-xl space-y-6">
+      <PageHeader
+        icon={Package}
+        title="Edit order details"
+        badge={{ label: `Revision ${result.order.revision}`, tone: "neutral" }}
+        backLink={{ href: backHref, label: result.origin === "workspace" ? "Back to Operator Console" : "Back to order" }}
+        description={`Status is currently ${result.order.status === "in_progress" ? "In-Progress" : result.order.status.charAt(0).toUpperCase() + result.order.status.slice(1)}. Customer, assigned operator and status stay read-only here.`}
+      />
+      <OrderEditForm
+        order={result.order}
+        products={result.products.map((product) => ({
+          id: product.id,
+          title: product.title,
+          category: product.category,
+          price: Number(product.price),
+          currency: product.currency || "USD",
+          in_stock: product.in_stock ?? true,
+        }))}
+        initialOrigin={result.origin}
+        requiresReason={result.order.status !== "pending" && result.order.status !== "in_progress"}
+      />
+    </div>
   );
 }
