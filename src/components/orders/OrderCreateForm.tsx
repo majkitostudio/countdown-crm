@@ -3,9 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState, useTransition } from "react";
 import {
-  ArrowLeft,
   CheckCircle2,
-  ChevronRight,
   Clock3,
   LoaderCircle,
   Plus,
@@ -188,36 +186,6 @@ export function OrderCreateForm({
 
   return (
     <form onSubmit={submit} className="space-y-6">
-      <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={() => router.push(backHref)}
-            className="mt-0.5 rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div>
-            <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-              <span>{initialOrigin === "workspace" ? "Operator Console" : "Orders"}</span>
-              <ChevronRight className="h-3 w-3" />
-              <span>New order</span>
-            </div>
-            <h1 className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-zinc-100">
-              <ShoppingCart className="h-5 w-5 text-zinc-400" />
-              Create Order
-            </h1>
-            <p className="mt-1 text-xs text-zinc-400">
-              Start the order in In-Progress and continue its delivery lifecycle from Orders.
-            </p>
-          </div>
-        </div>
-        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-          Not saved
-        </span>
-      </div>
-
       {errorMessage && (
         <div
           className="rounded-xl border border-rose-800/60 bg-rose-950/30 p-4 text-xs text-rose-200"

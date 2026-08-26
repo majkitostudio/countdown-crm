@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, LockKeyhole } from "lucide-react";
+import { ArrowLeft, LockKeyhole, ShoppingCart } from "lucide-react";
 import { OrderCreateForm } from "@/components/orders/OrderCreateForm";
 import { listLeadsForWorkspace } from "@/lib/dal/leads";
 import { listProductsForWorkspace } from "@/lib/dal/products";
 import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { DataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type SearchParams = Promise<{ leadId?: string | string[]; origin?: string | string[] }>;
 
@@ -62,18 +63,27 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
 
   const { leads, products, requestedLeadId, origin } = result;
   return (
-    <OrderCreateForm
-      leads={leads}
-      products={products.map((product) => ({
-        id: product.id,
-        title: product.title,
-        category: product.category,
-        price: Number(product.price),
-        currency: product.currency || "USD",
-        in_stock: product.in_stock ?? true,
-      }))}
-      initialLeadId={requestedLeadId && leads.some((lead) => lead.id === requestedLeadId) ? requestedLeadId : ""}
-      initialOrigin={origin}
-    />
+    <div className="mx-auto max-w-screen-xl space-y-6">
+      <PageHeader
+        icon={ShoppingCart}
+        title="Create Order"
+        badge={{ label: "Not saved", tone: "neutral" }}
+        backLink={{ href: origin === "workspace" ? "/workspace" : "/orders", label: origin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
+        description="Start the order in In-Progress and continue its delivery lifecycle from Orders."
+      />
+      <OrderCreateForm
+        leads={leads}
+        products={products.map((product) => ({
+          id: product.id,
+          title: product.title,
+          category: product.category,
+          price: Number(product.price),
+          currency: product.currency || "USD",
+          in_stock: product.in_stock ?? true,
+        }))}
+        initialLeadId={requestedLeadId && leads.some((lead) => lead.id === requestedLeadId) ? requestedLeadId : ""}
+        initialOrigin={origin}
+      />
+    </div>
   );
 }

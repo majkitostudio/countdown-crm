@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AuditLogEntry, getAuditLogs, exportAuditLogsToCSV } from "@/lib/audit";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function AuditPage() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
@@ -66,44 +67,32 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
-      {/* Header Banner */}
-      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 backdrop-blur-md shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <ShieldAlert className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              Security Audit Log & Activity Tracker
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono">
-                System Audit
-              </span>
-            </h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Kompletní protokol bezpečnostních událostí, exportů dat, změn v CRM a aktivních relací operátorů.
-            </p>
-          </div>
-        </div>
+      <PageHeader
+        icon={ShieldAlert}
+        title="Security Audit Log & Activity Tracker"
+        badge={{ label: loadError ? "Unavailable" : "System Audit", tone: loadError ? "unavailable" : "neutral" }}
+        description="Kompletní protokol bezpečnostních událostí, exportů dat, změn v CRM a aktivních relací operátorů."
+        actions={
+          <>
+            <button
+              onClick={handleRefresh}
+              aria-label="Obnovit auditní log"
+              className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 transition-colors hover:text-zinc-200"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            </button>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRefresh}
-            className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-            title="Obnovit auditní log"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-semibold text-xs hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
-          >
-            <Download className="w-4 h-4 text-zinc-950" />
-            <span>{isExporting ? "Exportuji CSV..." : "Exportovat Audit Log (CSV)"}</span>
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200"
+            >
+              <Download className="h-4 w-4 text-zinc-950" aria-hidden="true" />
+              <span>{isExporting ? "Exportuji CSV..." : "Exportovat Audit Log (CSV)"}</span>
+            </button>
+          </>
+        }
+      />
 
       {loadError ? (
         <p role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/40 px-4 py-3 text-xs text-rose-300">

@@ -3,19 +3,10 @@ import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, Package, Pencil, S
 import { getWorkspaceOrder } from "@/lib/dal/activity";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { OrderStatusEditor } from "@/components/orders/OrderStatusEditor";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-
-function statusClass(status: string): string {
-  if (status === "completed") return "border-emerald-900/60 bg-emerald-950/30 text-emerald-300";
-  if (status === "delivered") return "border-emerald-900/60 bg-emerald-950/30 text-emerald-300";
-  if (status === "sent") return "border-sky-900/60 bg-sky-950/30 text-sky-300";
-  if (status === "in_progress") return "border-blue-900/60 bg-blue-950/30 text-blue-300";
-  if (status === "pending") return "border-amber-900/60 bg-amber-950/30 text-amber-300";
-  if (status === "returned" || status === "cancelled") return "border-rose-900/60 bg-rose-950/30 text-rose-300";
-  return "border-zinc-700 bg-zinc-900 text-zinc-400";
 }
 
 function statusLabel(status: string): string {
@@ -100,37 +91,22 @@ export default async function OrderDetailPage({
 
   return (
     <div className="mx-auto max-w-screen-xl space-y-6">
-      <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3">
-          <Link href={backHref} className="mt-0.5 rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100" aria-label="Back">
-            <ArrowLeft className="h-4 w-4" />
+      <PageHeader
+        icon={ShoppingCart}
+        title="Order detail"
+        badge={{ label: statusLabel(order.status), tone: order.status === "completed" || order.status === "delivered" ? "success" : order.status === "pending" || order.status === "in_progress" ? "warning" : order.status === "returned" || order.status === "cancelled" ? "unavailable" : "neutral" }}
+        backLink={{ href: backHref, label: requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
+        description={`Order #${order.id} · Created ${formatDate(order.created_at)}`}
+        actions={canEditDetails ? (
+          <Link
+            href={`/orders/${order.id}/edit${requestedOrigin === "workspace" ? "?origin=workspace" : ""}`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white"
+          >
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+            Edit details
           </Link>
-          <div>
-            <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-              <Link href="/orders" className="hover:text-zinc-300">Orders</Link>
-              <span>/</span>
-              <span>#{order.id}</span>
-            </div>
-            <h1 className="flex items-center gap-2.5 text-xl font-semibold tracking-tight text-zinc-100">
-              <ShoppingCart className="h-5 w-5 text-zinc-400" />
-              Order detail
-            </h1>
-            <p className="mt-1 text-xs text-zinc-400">Created {formatDate(order.created_at)}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {canEditDetails && (
-            <Link
-              href={`/orders/${order.id}/edit${requestedOrigin === "workspace" ? "?origin=workspace" : ""}`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              Edit details
-            </Link>
-          )}
-          <span className={`w-fit rounded-md border px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider ${statusClass(order.status)}`}>{statusLabel(order.status)}</span>
-        </div>
-      </div>
+        ) : undefined}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">

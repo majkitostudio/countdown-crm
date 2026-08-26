@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, Building2, LockKeyhole, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Building2, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, UserRound } from "lucide-react";
 import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -39,22 +40,19 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <Link href="/workspace" className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to workspace
-      </Link>
-
-      <div className="flex flex-col justify-between gap-5 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-8 shadow-sm md:flex-row md:items-start">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100">{lead.full_name}</h1>
-            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-0.5 text-[10px] font-mono text-zinc-400">Read-only contact view</span>
+      <PageHeader
+        icon={UserRound}
+        title={lead.full_name}
+        badge={{ label: "Read-only contact view", tone: "neutral" }}
+        backLink={{ href: "/workspace", label: "Back to workspace" }}
+        description={`Updated ${formatDate(lead.updated_at)}`}
+        actions={
+          <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-400">
+            <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+            Opening this URL does not authorize a call.
           </div>
-          <p className="mt-2 text-xs text-zinc-500">Updated {formatDate(lead.updated_at)}</p>
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-400">
-          <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" /> Opening this URL does not authorize a call.
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6">

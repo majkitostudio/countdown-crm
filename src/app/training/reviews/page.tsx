@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ClipboardList, LockKeyhole, RefreshCw } from "lucide-react";
 import { getTrainingSessionReviews } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -46,23 +47,13 @@ export default async function TrainingReviewsPage() {
 
   return (
       <div className="mx-auto max-w-screen-2xl space-y-8">
-        <div className="flex flex-col justify-between gap-5 rounded-2xl border border-zinc-800/80 border-t border-white/5 bg-zinc-900/60 p-8 shadow-sm md:flex-row md:items-center">
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-300">
-              <ClipboardList className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-semibold tracking-tight text-zinc-100">Teamleader Review</h1>
-                <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-[10px] font-mono text-zinc-300">
-                  Training only
-                </span>
-              </div>
-              <p className="mt-1 text-xs text-zinc-400">Review completed AI training sessions without opening production call records.</p>
-            </div>
-          </div>
-          <span className="text-xs font-mono text-zinc-500">{sessions.length} session{sessions.length === 1 ? "" : "s"}</span>
-        </div>
+        <PageHeader
+          icon={ClipboardList}
+          title="Teamleader Review"
+          badge={{ label: "Training only", tone: "neutral" }}
+          description="Review completed AI training sessions without opening production call records."
+          actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} session{sessions.length === 1 ? "" : "s"}</span>}
+        />
 
         {sessions.length === 0 ? (
           <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-16 text-center">

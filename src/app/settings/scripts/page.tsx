@@ -8,6 +8,7 @@ import {
 import { DataAccessError } from "@/lib/dal/errors";
 import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 type ProductScriptsLoadResult =
   | {
@@ -37,21 +38,30 @@ export default async function ProductScriptsPage() {
 
   if (!("error" in result)) {
     return (
-      <ProductScriptManager
-        products={result.products.map((product) => ({
-          id: product.id,
-          title: product.title,
-          category: product.category,
-          price: Number(product.price),
-          currency: product.currency || "USD",
-          description: product.description || "",
-          image_url: product.image_url || "",
-          in_stock: product.in_stock ?? true,
-          created_at: product.created_at,
-        }))}
-        initialScripts={result.scripts}
-        initialVersions={result.versions}
-      />
+      <div className="mx-auto max-w-screen-2xl space-y-6">
+        <PageHeader
+          icon={FileText}
+          title="Script Administration"
+          badge={{ label: "Administrator only", tone: "neutral" }}
+          backLink={{ href: "/settings", label: "Back to Settings" }}
+          description="Edit one continuous script per product, save a draft, then publish the reviewed version to operators."
+        />
+        <ProductScriptManager
+          products={result.products.map((product) => ({
+            id: product.id,
+            title: product.title,
+            category: product.category,
+            price: Number(product.price),
+            currency: product.currency || "USD",
+            description: product.description || "",
+            image_url: product.image_url || "",
+            in_stock: product.in_stock ?? true,
+            created_at: product.created_at,
+          }))}
+          initialScripts={result.scripts}
+          initialVersions={result.versions}
+        />
+      </div>
     );
   }
 

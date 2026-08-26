@@ -38,6 +38,7 @@ import {
   saveWorkflowAction,
 } from "@/app/actions/workflows";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 // ─── Icon Maps ──────────────────────────────────────────────────────────────
 
@@ -180,25 +181,13 @@ export default function WorkflowsPage() {
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-zinc-300" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-zinc-100 tracking-tight">
-              Workflows & Automations
-            </h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Automatizujte opakující se procesy pomocí událostních pravidlových sekvencí
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Test Emit Button */}
+    <div className="min-h-screen space-y-6">
+      <PageHeader
+        icon={Zap}
+        title="Workflows & Automations"
+        description="Automatizujte opakující se procesy pomocí událostních pravidlových sekvencí"
+        actions={
+          <>
           <button
             onClick={handleTestEmit}
             className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-100 transition-colors cursor-pointer"
@@ -218,8 +207,9 @@ export default function WorkflowsPage() {
             <Plus className="w-4 h-4" />
             Nové pravidlo
           </button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-4">
