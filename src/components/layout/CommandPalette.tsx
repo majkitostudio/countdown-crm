@@ -6,22 +6,16 @@ import {
   Search,
   Users,
   Package,
-  ShoppingCart,
-  PhoneCall,
-  LayoutDashboard,
-  BarChart3,
-  Settings,
-  GraduationCap,
-  Activity,
   ArrowRight,
   Sparkles,
-  ClipboardList,
-  CalendarDays
 } from "lucide-react";
 import { getLeads, Lead } from "@/lib/leads";
 import { getProducts, Product } from "@/lib/products";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
-import { canManageLeads, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
+import { canManageLeads } from "@/lib/auth/roles";
+import { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "./headerNavigation";
+
+export { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "./headerNavigation";
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,7 +46,7 @@ export function CommandPalette() {
       if (canManageLeads(identity?.role)) {
         getLeads().then(setLeads).catch(() => setLeads([]));
       }
-      getProducts().then(setProducts);
+      getProducts().then(setProducts).catch(() => setProducts([]));
     }
   }, [identity?.role, isOpen]);
 
@@ -77,26 +71,25 @@ export function CommandPalette() {
     .slice(0, 3);
 
   // Navigation Items
-  const navItems = [
-    { label: "Dashboard Overview", path: "/", icon: LayoutDashboard },
-    { label: "Operator Console (Workspace)", path: "/workspace", icon: PhoneCall },
-    { label: "My Calendar", path: "/calendar", icon: CalendarDays },
-    { label: "Leads & Contacts", path: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
-    { label: "Orders", path: "/orders", icon: ShoppingCart },
-    { label: "Product Catalog", path: "/products", icon: Package },
-    { label: "Analytics BI", path: "/analytics", icon: BarChart3 },
-    { label: "Live Team Monitor", path: "/monitor", icon: Activity },
-    { label: "AI Roleplay Training", path: "/training", icon: GraduationCap },
-    { label: "Team Leader Review", path: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
-    { label: "Settings", path: "/settings", icon: Settings },
-  ].filter((item) =>
-    (!item.roles || (identity?.role && isTeamLeaderOrAdministrator(identity.role))) &&
-    (!q || item.label.toLowerCase().includes(q))
+  const navItems = getAllowedNavigationCommands(identity?.role).filter((item) =>
+    !q || item.label.toLowerCase().includes(q)
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="w-full max-w-2xl bg-zinc-950/95 border border-zinc-800/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col space-y-0">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 pb-8 pt-24 backdrop-blur-md animate-in fade-in duration-150"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) setIsOpen(false);
+      }}
+    >
+      <div
+        className="flex w-full max-w-2xl flex-col space-y-0 overflow-hidden rounded-2xl border border-zinc-800/90 bg-zinc-950/95 shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="command-palette-title"
+      >
+        <h2 id="command-palette-title" className="sr-only">Command palette</h2>
         
         {/* Search Input Bar */}
         <div className="p-4 border-b border-zinc-800/80 flex items-center gap-3">
@@ -106,7 +99,8 @@ export function CommandPalette() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command, lead name, product or page..."
+            placeholder={getCommandPalettePlaceholder(identity?.role)}
+            aria-label="Search commands and available records"
             className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
           />
           <kbd className="px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-[10px] font-mono text-zinc-400">
@@ -205,10 +199,8 @@ export function CommandPalette() {
         {/* Footer Shortcut Bar */}
         <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/60 flex items-center justify-between text-[11px] text-zinc-500">
           <div className="flex items-center gap-2">
-            <kbd className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-[10px]">↑↓</kbd>
-            <span>Navigate</span>
-            <kbd className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded font-mono text-[10px] ml-2">↵</kbd>
-            <span>Select</span>
+            <kbd className="rounded border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd>
+            <span>Close</span>
           </div>
           <span className="flex items-center gap-1 text-zinc-400">
             <Sparkles className="w-3 h-3 text-amber-400" />

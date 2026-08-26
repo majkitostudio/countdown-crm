@@ -30,10 +30,6 @@ import type { WorkspaceRole } from "@/lib/auth/roles";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
 
-interface SidebarProps {
-  compact?: boolean;
-}
-
 const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboard; roles?: WorkspaceRole[] }> = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
@@ -53,13 +49,13 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Workspace Members", href: "/team", icon: UserCog, roles: ["administrator"] },
 ];
 
-export function Sidebar({ compact = false }: SidebarProps) {
+export function Sidebar() {
   const pathname = usePathname();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [status, setStatus] = useState<OperatorStatus>("ready");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-  const isCompact = compact || isCollapsed;
+  const isCompact = isCollapsed;
 
   useEffect(() => {
     const collapseForNarrowViewport = () => {
@@ -117,7 +113,7 @@ export function Sidebar({ compact = false }: SidebarProps) {
             </div>
           )}
         </Link>
-        {!compact && (
+        {!isCollapsed && (
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"

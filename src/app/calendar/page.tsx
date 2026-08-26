@@ -2,6 +2,7 @@ import { CalendarDays, LockKeyhole } from "lucide-react";
 import { listOperatorCalendarEntriesForWorkspace, type CalendarEntryDTO } from "@/lib/dal/calendar";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { OperatorCalendar } from "@/components/calendar/OperatorCalendar";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default async function CalendarPage() {
   let entries: CalendarEntryDTO[] = [];
@@ -29,15 +30,11 @@ export default async function CalendarPage() {
 
   return (
     <div className="mx-auto max-w-screen-xl space-y-6">
-      <div className="flex items-start gap-3">
-        <CalendarDays className="mt-0.5 h-5 w-5 text-zinc-300" />
-        <div>
-          <h1 className="text-lg font-semibold text-zinc-100">My Calendar</h1>
-          <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-            Callbacky a osobní reminders na jednom pracovním přehledu. Reminders nemění stav call queue.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={CalendarDays}
+        title="My Calendar"
+        description="Callbacky a osobní reminders na jednom pracovním přehledu. Reminders nemění stav call queue."
+      />
       <OperatorCalendar initialEntries={entries} />
     </div>
   );

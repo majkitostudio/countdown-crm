@@ -14,6 +14,7 @@ import { KanbanBoard } from "@/components/views/KanbanBoard";
 import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBar";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { canManageLeads } from "@/lib/auth/roles";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 function LeadsPageContent() {
   const router = useRouter();
@@ -130,24 +131,13 @@ function LeadsPageContent() {
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       
-      {/* Page Title & Main Header Hero Banner */}
-      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              <Users className="w-5 h-5 text-zinc-400" />
-              Leads & Contacts
-            </h1>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
-              {totalLeads} Total Leads
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400">
-            Manage prospective customers, view AI propensity scoring, and import campaign leads.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
+      <PageHeader
+        icon={Users}
+        title="Leads & Contacts"
+        badge={{ label: `${totalLeads} Total Leads`, tone: "neutral" }}
+        description="Manage prospective customers, view AI propensity scoring, and import campaign leads."
+        actions={
+          <>
           {/* View Switcher (Table / Kanban) */}
           <ViewSwitcher mode={viewMode} onModeChange={setViewMode} />
 
@@ -175,8 +165,9 @@ function LeadsPageContent() {
             <UserPlus className="w-4 h-4" />
             <span>Import CSV Database</span>
           </button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {loadError && (
         <div className="rounded-xl border border-rose-800/60 bg-rose-950/40 p-4 text-xs text-rose-300">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   PhoneCall,
   Clock,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function CallLogsPage() {
   const [calls, setCalls] = useState<CallRecord[]>([]);
@@ -54,33 +56,18 @@ export default function CallLogsPage() {
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       
-      {/* Page Title & Actions Hero Banner */}
-      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              <PhoneCall className="w-5 h-5 text-zinc-400" />
-              Call Logs & Speech Transcripts
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-              {totalCallsCount} Logged Calls
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400">
-            Real-time call history logs, AHT benchmarks, and full speech transcript protocols
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <a
-            href="/workspace"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-semibold text-xs hover:bg-zinc-200 transition-colors shadow-sm"
-          >
-            <PhoneCall className="w-4 h-4" />
+      <PageHeader
+        icon={PhoneCall}
+        title="Call Logs & Speech Transcripts"
+        badge={{ label: `${totalCallsCount} Logged Calls`, tone: "neutral" }}
+        description="Real-time call history logs, AHT benchmarks, and full speech transcript protocols"
+        actions={
+          <Link href="/workspace" className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200">
+            <PhoneCall className="h-4 w-4" aria-hidden="true" />
             <span>Launch Operator Console</span>
-          </a>
-        </div>
-      </div>
+          </Link>
+        }
+      />
 
       {/* KPI Cards Header */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
+import { AppHeader } from "./AppHeader";
 import { CommandPalette } from "./CommandPalette";
 import { OperatorIdentityProvider } from "./OperatorIdentityProvider";
 
@@ -14,6 +14,10 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const isOperatorConsole = pathname === "/workspace";
 
+  if (pathname === "/login") {
+    return <>{children}</>;
+  }
+
   return (
     <OperatorIdentityProvider>
       <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
@@ -21,11 +25,11 @@ export function AppShell({ children }: AppShellProps) {
       <CommandPalette />
 
       {/* Postranní navigace */}
-      <Sidebar compact={isOperatorConsole} />
+      <Sidebar />
 
       {/* Hlavní obsahová část */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        <Header compact={isOperatorConsole} />
+        <AppHeader />
         
         <main className={`flex-1 overflow-y-auto bg-zinc-950 ${isOperatorConsole ? "p-4 sm:p-5" : "p-6"}`}>
           <div className={isOperatorConsole ? "max-w-none h-full" : "max-w-7xl mx-auto space-y-6"}>
