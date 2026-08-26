@@ -5,7 +5,7 @@ import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { getScopedLeadForWorkspace } from "./leadQueue";
-import { requireWorkspaceContext } from "./workspace";
+import { requireWorkspaceContext, type WorkspaceContext } from "./workspace";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -202,6 +202,17 @@ export async function listWorkspaceCalls(
   limit?: number
 ): Promise<WorkspaceCallDTO[]> {
   const context = await requireWorkspaceContext(requestedWorkspaceId);
+  return listWorkspaceCallsInContext(context, limit);
+}
+
+/**
+ * Reads calls for a context that was already authorized by the caller.
+ * Server-only privileged readers use this to avoid resolving membership twice.
+ */
+export async function listWorkspaceCallsInContext(
+  context: WorkspaceContext,
+  limit?: number
+): Promise<WorkspaceCallDTO[]> {
   const rows = await loadActivityRows(context.workspaceId, undefined, true, false, limit);
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
@@ -250,6 +261,17 @@ export async function listWorkspaceOrders(
   limit?: number
 ): Promise<WorkspaceOrderDTO[]> {
   const context = await requireWorkspaceContext(requestedWorkspaceId);
+  return listWorkspaceOrdersInContext(context, limit);
+}
+
+/**
+ * Reads orders for a context that was already authorized by the caller.
+ * Server-only privileged readers use this to avoid resolving membership twice.
+ */
+export async function listWorkspaceOrdersInContext(
+  context: WorkspaceContext,
+  limit?: number
+): Promise<WorkspaceOrderDTO[]> {
   const rows = await loadActivityRows(context.workspaceId, undefined, false, true, limit);
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 

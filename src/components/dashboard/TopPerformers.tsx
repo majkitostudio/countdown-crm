@@ -3,27 +3,34 @@
 import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
-import type { AgentLeaderboardPoint } from "@/lib/analytics";
+import type { AgentLeaderboardPoint, AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 
 export function TopPerformers() {
   const [leaderboard, setLeaderboard] = useState<AgentLeaderboardPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadLeaderboard() {
       setIsLoading(true);
-      setLoadError(null);
 
       try {
-        const analytics = await getAnalyticsDataAction();
-        if (!cancelled) setLeaderboard(analytics.teamLeaderboard);
+        const analyticsResult = await getAnalyticsDataAction();
+        if (!cancelled) {
+          setResult(analyticsResult);
+          if (analyticsResult.ok) setLeaderboard(analyticsResult.data.teamLeaderboard);
+        }
       } catch (error) {
         if (!cancelled) {
           setLeaderboard([]);
-          setLoadError(error instanceof Error ? error.message : "Leaderboard query failed");
+          setResult({
+            ok: false,
+            code: "UNAVAILABLE",
+            status: 503,
+            message: error instanceof Error ? error.message : "Leaderboard query failed",
+          });
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -55,10 +62,12 @@ export function TopPerformers() {
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
           Loading workspace leaderboard...
         </div>
-      ) : loadError ? (
+      ) : result && !result.ok ? (
         <div role="alert" className="rounded-lg bg-rose-950/20 border border-rose-900/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-rose-200">Leaderboard unavailable</p>
-          <p className="text-[11px] leading-relaxed text-rose-300">{loadError}</p>
+          <p className="text-xs font-medium text-rose-200">
+            {result.code === "FORBIDDEN" ? "Leaderboard forbidden" : "Leaderboard unavailable"}
+          </p>
+          <p className="text-[11px] leading-relaxed text-rose-300">{result.message}</p>
         </div>
       ) : leaderboard.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">

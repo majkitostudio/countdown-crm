@@ -2,9 +2,27 @@ import "server-only";
 
 import type { Database } from "./supabase/types";
 import { createDataClient } from "./dal/db";
-import { requireWorkspaceContext } from "./dal/workspace";
-import { listWorkspaceCalls, listWorkspaceOrders } from "./dal/activity";
+import { requireWorkspaceRole } from "./dal/workspace";
+import { listWorkspaceCallsInContext, listWorkspaceOrdersInContext } from "./dal/activity";
 import { getWorkspaceRoleLabel } from "./auth/roles";
+
+export const ANALYTICS_ALLOWED_ROLES = ["team_leader", "administrator"] as const;
+
+export type AnalyticsActionErrorCode = "UNAUTHORIZED" | "FORBIDDEN" | "VALIDATION" | "UNAVAILABLE";
+
+export interface AnalyticsActionFailure {
+  ok: false;
+  code: AnalyticsActionErrorCode;
+  status: 400 | 401 | 403 | 503;
+  message: string;
+}
+
+export interface AnalyticsActionSuccess<T> {
+  ok: true;
+  data: T;
+}
+
+export type AnalyticsActionResult<T> = AnalyticsActionSuccess<T> | AnalyticsActionFailure;
 
 export interface WeeklySalesPoint {
   day: string;
@@ -140,11 +158,12 @@ function getTeamLeaderboard(
 }
 
 /** Retrieves recent workspace activity with real customer and operator attribution. */
-export async function getRecentActivity(limit = 8): Promise<RecentActivityEntry[]> {
+export async function getRecentActivity(limit = 8, requestedWorkspaceId?: string): Promise<RecentActivityEntry[]> {
+  const context = await requireWorkspaceRole(ANALYTICS_ALLOWED_ROLES, requestedWorkspaceId);
   const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
   const [calls, orders] = await Promise.all([
-    listWorkspaceCalls(undefined, safeLimit),
-    listWorkspaceOrders(undefined, safeLimit),
+    listWorkspaceCallsInContext(context, safeLimit),
+    listWorkspaceOrdersInContext(context, safeLimit),
   ]);
 
   const activity: RecentActivityEntry[] = [
@@ -176,8 +195,8 @@ export async function getRecentActivity(limit = 8): Promise<RecentActivityEntry[
 }
 
 /** Retrieves Team Leader analytics computed from workspace-scoped Supabase data. */
-export async function getAnalyticsData(): Promise<AnalyticsOverview> {
-  const context = await requireWorkspaceContext();
+export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<AnalyticsOverview> {
+  const context = await requireWorkspaceRole(ANALYTICS_ALLOWED_ROLES, requestedWorkspaceId);
   const supabase = await createDataClient();
 
   const [ordersRes, callsRes] = await Promise.all([
