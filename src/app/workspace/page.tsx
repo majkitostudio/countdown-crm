@@ -663,45 +663,69 @@ function WorkspaceContent() {
     }
   };
 
+  const pageHeaderBadge = isLoading
+    ? { label: "Loading", tone: "neutral" as const }
+    : loadError
+      ? { label: "Unavailable", tone: "unavailable" as const }
+      : identity?.role === "operator" && !activeLead
+        ? { label: "Waiting for assignment", tone: "neutral" as const }
+        : {
+            label: isAwaitingOutcome ? "Awaiting outcome" : isCallActive ? "In call" : "Ready for assignment",
+            tone: isAwaitingOutcome ? "warning" as const : "neutral" as const,
+          };
+
+  const pageHeader = (
+    <PageHeader
+      icon={PhoneCall}
+      title="Operator Console"
+      description="Server-routed customer calls and approved workspace guidance. Operators never browse or choose from the lead directory."
+      badge={pageHeaderBadge}
+      className="p-4 sm:p-5"
+    />
+  );
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2 text-zinc-300" />
-        <span>Loading Operator Workspace Environment...</span>
+      <div className="mx-auto max-w-none space-y-4">
+        {pageHeader}
+        <div className="flex min-h-[400px] items-center justify-center text-xs text-zinc-400">
+          <RefreshCw className="mr-2 h-5 w-5 animate-spin text-zinc-300" />
+          <span>Loading Operator Workspace Environment...</span>
+        </div>
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="mx-auto max-w-xl rounded-xl border border-rose-900/60 bg-rose-950/30 p-6 text-sm text-rose-200">
-        <h1 className="font-semibold">Workspace data could not be loaded</h1>
-        <p className="mt-2 text-xs text-rose-300">{loadError}</p>
+      <div className="mx-auto max-w-none space-y-4">
+        {pageHeader}
+        <div className="mx-auto max-w-xl rounded-xl border border-rose-900/60 bg-rose-950/30 p-6 text-sm text-rose-200">
+          <h2 className="font-semibold">Workspace data could not be loaded</h2>
+          <p className="mt-2 text-xs text-rose-300">{loadError}</p>
+        </div>
       </div>
     );
   }
 
   if (identity?.role === "operator" && !activeLead) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
-        <RefreshCw className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Operator Console waiting for assignment</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-          No callable contact is currently assigned. The routing service will place one here when an available lead is ready; Operators never browse or choose from the lead directory.
-        </p>
+      <div className="mx-auto max-w-none space-y-4">
+        {pageHeader}
+        <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+          <RefreshCw className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
+          <h2 className="text-base font-semibold text-zinc-100">Operator Console waiting for assignment</h2>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
+            No callable contact is currently assigned. The routing service will place one here when an available lead is ready; Operators never browse or choose from the lead directory.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-none space-y-4">
-      <PageHeader
-        icon={PhoneCall}
-        title="Operator Console"
-        description="Server-routed customer calls and approved workspace guidance. Operators never browse or choose from the lead directory."
-        badge={{ label: isAwaitingOutcome ? "Awaiting outcome" : isCallActive ? "In call" : "Ready for assignment", tone: isAwaitingOutcome ? "warning" : "neutral" }}
-        className="p-4 sm:p-5"
-      />
+      {pageHeader}
       
       {/* Toast Notification Banner */}
       {notificationToast && (
