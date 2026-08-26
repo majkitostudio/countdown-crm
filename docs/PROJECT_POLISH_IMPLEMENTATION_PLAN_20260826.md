@@ -2,7 +2,7 @@
 
 **Plán vytvořen:** 26. 8. 2026
 **Vychází z:** [Project Polish Checkpoint 2026-08-26](PROJECT_POLISH_CHECKPOINT_20260826.md)
-**Baseline:** `origin/main` / `665c4f465e63c9f634d17e4e06e7a0a457874a49`
+**Baseline:** `origin/main` / `ccb641aa6000d789f03b4060765e3a108e635174`
 **Typ:** rozhodovací balíček; tento dokument nemění runtime, testy, migrace, databázi ani artefakty.
 
 ## Roadmapa
@@ -11,7 +11,7 @@
 |---:|---|---|---|---|---|---|---|
 | 0 | Land audit/docs decision package | P2 | žádná | sekvenční | S | nízké | oba docs commity jsou reviewnuté a PR #14 merge-ready |
 | 1 | Server-side analytics role boundary — **done** (PR #15) | P0 | 0 | ano s 2–6 | S | nízké | operator dostane 403, leader/admin data ano, CSV sdílí guard |
-| 2 | Workflow truth contract + Operator dispatch — **in progress (coordination only)** | P0 | 0 | částečně; merge před 7 | L | vysoké | žádný console-only success, operator completion generuje durable event |
+| 2 | Workflow truth contract + Operator dispatch — **partial / in progress** (draft PR #17) | P0 | 0 | částečně; merge před 7 | L | vysoké | žádný console-only success, operator completion generuje durable event |
 | 3 | Atomic business mutation + audit | P1 | 0; pattern může běžet s 2 | ano s 2, 5, 6 | M | vysoké | business data a audit mají atomický/idempotentní kontrakt |
 | 4 | Server-authoritative idempotent Blueprint apply | P0 | 3 pro transakční pattern | po 3 | L | vysoké | workspace/reload/login stav je durable a retry-safe |
 | 5 | Unified server-owned Operator presence | P1 | 0 | ano s 1–4 | S | střední | Sidebar, CallStatusBar a routing zobrazují stejný stav |
@@ -23,6 +23,9 @@
 | 11 | Hotspot decomposition | P2 | 2–8 | po stabilizaci kontraktů | M/L | střední | menší odpovědnosti bez změny auth/datových kontraktů |
 | 12 | Documentation alignment | P2 | 2, 4, 6, 8–11 | poslední docs slice | M | střední | README/architecture/roadmap/commits odpovídají runtime a důkazům |
 | 13 | Generated/recovery artifact governance | P2 | 0; rozhodování může běžet průběžně | ano | S | nízké | pravidlo provenance/retence, žádné automatické mazání bez účelu |
+
+Roadmap status: Slice 9 je `done` (PR #19, merged do `origin/main`); Slice 2
+je `partial / in progress` (draft PR #17).
 
 ### Paralelní běhy a sekvence
 
@@ -145,7 +148,7 @@ Administrator allowed + reload, Operator explicit forbidden + reload, no
 export/data, clean console. Browser není RLS proof; persistence N/A;
 schema/RLS beze změny. Původní analytics guard nález je historical/resolved.
 
-## Slice 2 — Workflow truth contract + Operator Console dispatch — **in progress (coordination only)**
+## Slice 2 — Workflow truth contract + Operator Console dispatch — **partial / in progress**
 
 **Task/branch:** `fix: make workflow execution truthful and dispatch operator calls` /
 `fix/workflow-truth-dispatch`
@@ -196,9 +199,16 @@ authorization workspace/role; RLS execution row scope a function privileges.
 truth contract; nejprve zachovat stará data, ne mazat execution history. PR je
 review-sensitive draft do dokončení cross-layer evidence.
 
-**Current coordination status:** Slice 2 může být označen jako `in progress`
-pro koordinaci navazující práce; tento plán netvrdí dokončení, aktuální PR ani
-provedenou novou implementaci.
+**Current evidence status:** draft PR #17 zůstává otevřený; Slice 2 není merged
+ani done. Staticky `67/67` a check/diff jsou green. Controlled Operator sandbox
+doložil one-call/one-execution, truthful unavailable/no durable effect, SQL
+read-back a nulový fixture cleanup. Fresh Operator `/workflows` byl forbidden i
+po reloadu, bez controls/data a s čistou konzolí. RLS policy evidence ukazuje
+workspace-member SELECT/INSERT potřebný pro dispatcher a manager/admin mutation
+policy. Pozitivní Team Leader/Admin browser důkaz stále chybí; strict
+cross-instance exactly-once/webhook idempotency zůstává schema gap. Softphone UI
+zůstalo stuck na `Starting call`, takže nejde o workflow proof. Žádný pilot-ready
+claim.
 
 ## Slice 3 — Atomic business mutation + audit trail
 
@@ -465,7 +475,7 @@ role/workspace; RLS direct read-only checks. Browser smoke není RLS proof.
 po failure zastavit a zdokumentovat stav, ne retryovat blind. Evidence report
 se revertuje jako docs-only artefakt; data se nemažou bez ověřeného targetu.
 
-## Slice 9 — Legacy training path, unused declarations and no-unused cleanup
+## Slice 9 — Legacy training path, unused declarations and no-unused cleanup — **done**
 
 **Task/branch:** `chore: remove confirmed legacy training path` /
 `chore/legacy-training-cleanup`
@@ -500,6 +510,14 @@ kanonickou training response path, simulator/unavailable labels zůstávají.
 simulator; persistence session smoke beze změny; authorization/RLS bez dopadu.
 
 **Rollback/delivery:** revert jediného dead-code commitu; žádná data/schema změna.
+
+**Delivery evidence:** PR #19 merged; merge commit
+`ccb641aa6000d789f03b4060765e3a108e635174`; odstraněný
+`generateAICustomerResponse` a nepoužitý `chatHistory`; kanonická path
+`submitTrainingTurnAction → generateTrainingResponseAction`; training API
+`16/16`, full suite `54/54`, `npm run check` a `git diff --check` green.
+Browser, persistence, authorization a RLS jsou N/A. Původní nález je
+historical/resolved.
 
 ## Slice 10 — CSV escaping — **done**
 
@@ -647,18 +665,15 @@ bez schválení žádné delete. PR může být samostatný nízkorizikový docs
 
 ## Doporučený next slice
 
-Analytics role boundary už není neprovedená doporučená práce. Aktivní další
-položkou je Slice 2: `fix: make workflow execution truthful and dispatch
-operator calls` na větvi `fix/workflow-truth-dispatch`.
+Analytics role boundary, CSV escaping i Slice 9 už nejsou neprovedené práce.
+Slice 2 zůstává partial/in progress. Doporučený next slice může paralelně běžet
+Slice 3: `fix: make business mutations and audit atomic` na větvi
+`fix/atomic-business-audit`; tento plán netvrdí jeho dokončení ani PR.
 
-Je to aktivní P0 slice; analytics role boundary a CSV escaping jsou již
-uzavřené. Jeho minimální acceptance je:
-
-1. action execution vrací pravdivé `success`/`failure`/`simulation`/`unavailable`;
-2. Operator completion používá jeden server-owned dispatcher právě jednou;
-3. log persistence a webhook failure jsou explicitně řešené;
-4. unit/integration, browser, persistence, authorization a RLS evidence jsou
-   vedené odděleně a nic se nepředstírá.
+Slice 3 je pouze doporučený next slice; jeho minimální acceptance je atomický
+nebo explicitně idempotentní kontrakt business mutace a auditu, včetně testu
+selhání auditu, retry/idempotency a SQL read-back. Tento dokument netvrdí jeho
+dokončení ani existenci PR.
 
 ## Prompt-ready handoff pro aktivní next slice
 
