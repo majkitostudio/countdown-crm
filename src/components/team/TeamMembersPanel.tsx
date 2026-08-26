@@ -65,7 +65,7 @@ export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersP
                 <UserCog className="h-4 w-4" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold tracking-tight text-zinc-100">Workspace Members</h1>
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-100">Workspace Members</h2>
                 <p className="mt-1 text-xs text-zinc-400">Správa rolí Operator, Team Leader a Administrator.</p>
               </div>
             </div>
