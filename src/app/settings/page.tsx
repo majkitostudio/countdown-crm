@@ -20,6 +20,7 @@ import { ObjectBuilderModal } from "@/components/schema/ObjectBuilderModal";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
 import { isAdministrator, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
@@ -107,24 +108,13 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
-      {/* Page Title Hero Banner */}
-      <div className="p-8 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight text-zinc-100 flex items-center gap-2.5">
-              <SettingsIcon className="w-5 h-5 text-zinc-400" />
-              Operator Settings & Schema Engine
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
-              Config Active
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400">
-            Configure operator audio feedback and workspace custom objects
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHeader
+        icon={SettingsIcon}
+        title="Operator Settings & Schema Engine"
+        badge={{ label: "Config Active", tone: "neutral" }}
+        description="Configure operator audio feedback and workspace custom objects"
+        actions={
+          <>
           {canManageProductScripts && (
             <Link
               href="/settings/scripts"
@@ -144,8 +134,9 @@ export default function SettingsPage() {
               <span>Vytvořit Custom Object</span>
             </button>
           )}
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Success Notification Alert */}
       {isSavedAlert && (

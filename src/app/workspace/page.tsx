@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { RefreshCw } from "lucide-react";
+import { PhoneCall, RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { getProductScript } from "@/lib/productScripts";
@@ -38,6 +38,7 @@ import {
   startLeadCallAction,
 } from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 interface PostCallSummary {
   leadName: string;
@@ -694,6 +695,13 @@ function WorkspaceContent() {
 
   return (
     <div className="mx-auto max-w-none space-y-4">
+      <PageHeader
+        icon={PhoneCall}
+        title="Operator Console"
+        description="Server-routed customer calls and approved workspace guidance. Operators never browse or choose from the lead directory."
+        badge={{ label: isAwaitingOutcome ? "Awaiting outcome" : isCallActive ? "In call" : "Ready for assignment", tone: isAwaitingOutcome ? "warning" : "neutral" }}
+        className="p-4 sm:p-5"
+      />
       
       {/* Toast Notification Banner */}
       {notificationToast && (
