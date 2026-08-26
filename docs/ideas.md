@@ -46,3 +46,28 @@ Tento dokument obsahuje seznam inovativních nápadů, rozšiřujících funkcí
 1. **Integrace reálné VoIP ústředny**: Napojení na Zadarma, Twilio nebo Asterisk (SIP WebRTC).
 2. **WhatsApp & SMS Channel**: Možnost odeslat zákazníkovi odkaz na produkt přes WhatsApp přímo během hovoru.
 3. **Platební brána přes SMS (Pay-by-Link)**: Odeslání platebního odkazu přes Stripe/GOPAY přímo během hovoru pro okamžitou úhradu karty.
+
+---
+
+## 🧭 Operator Console — návrhy z review 25. 8. 2026
+
+Tyto body jsou zatím pouze To‑Do návrhy z průchodu Operator Console. Nejsou
+schválením implementace ani změnou aktuálního call/outcome workflow.
+
+- [ ] **Vymyslet užitečnější blok „Pilot suggestion“** — místo obecné věty
+  nabídnout kontextovou další akci podle fáze hovoru, produktu a posledního
+  výsledku. Pokud není uložený skript, zobrazit to otevřeně jako fallback.
+- [ ] **Nahradit ikonku Product Scriptu** — vybrat ikonu, která lépe říká
+  „schválený prodejní skript“ nebo „scénář hovoru“.
+- [ ] **Zobrazit poslední úpravu skriptu** — u skriptu uvést datum poslední
+  uložené změny a případně autora; údaj musí pocházet z uložené verze.
+- [ ] **Ujasnit stav skriptu** — ověřit, zda má být při chybě nebo chybějícím
+  skriptu stav `Failed`, `Unavailable`, nebo jiný pravdivý stav. Neměnit
+  `Ready` jen vizuálně bez změny významu.
+- [ ] **Doplnit zdroj leada** — místo obecného „Source unavailable“ zobrazit,
+  odkud lead přišel, například kampaň, reklamu nebo formulář, pokud je tento
+  údaj skutečně uložený.
+- [ ] **Zvětšit prostor pro Lead Timeline** — upravit výšku nebo rozložení
+  pravého panelu tak, aby timeline lépe navazovala na výšku Current Lead.
+- [ ] **Zvětšit prostor pro Lead Notes** — dát poznámkám přibližně o třetinu
+  více vertikálního prostoru bez zhoršení použitelnosti na menších displejích.
