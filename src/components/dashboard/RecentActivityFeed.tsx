@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Activity, ArrowUpRight, Clock, PhoneCall, ShoppingBag, User } from "lucide-react";
 import { getRecentActivityAction } from "@/app/actions/analytics";
-import type { RecentActivityEntry } from "@/lib/analytics";
+import type { AnalyticsActionResult, RecentActivityEntry } from "@/lib/analytics";
 
 function formatDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -44,21 +44,28 @@ function getOrderOutcomeLabel(outcome: string): string {
 export function RecentActivityFeed() {
   const [activity, setActivity] = useState<RecentActivityEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [result, setResult] = useState<AnalyticsActionResult<RecentActivityEntry[]> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadActivity() {
       setIsLoading(true);
-      setLoadError(null);
       try {
-        const entries = await getRecentActivityAction();
-        if (!cancelled) setActivity(entries);
+        const activityResult = await getRecentActivityAction();
+        if (!cancelled) {
+          setResult(activityResult);
+          if (activityResult.ok) setActivity(activityResult.data);
+        }
       } catch (error) {
         if (!cancelled) {
           setActivity([]);
-          setLoadError(error instanceof Error ? error.message : "Recent activity query failed");
+          setResult({
+            ok: false,
+            code: "UNAVAILABLE",
+            status: 503,
+            message: error instanceof Error ? error.message : "Recent activity query failed",
+          });
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -100,10 +107,12 @@ export function RecentActivityFeed() {
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
           Loading recent workspace activity...
         </div>
-      ) : loadError ? (
+      ) : result && !result.ok ? (
         <div role="alert" className="rounded-lg bg-rose-950/20 border border-rose-900/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-rose-200">Recent activity unavailable</p>
-          <p className="text-[11px] leading-relaxed text-rose-300">{loadError}</p>
+          <p className="text-xs font-medium text-rose-200">
+            {result.code === "FORBIDDEN" ? "Recent activity forbidden" : "Recent activity unavailable"}
+          </p>
+          <p className="text-[11px] leading-relaxed text-rose-300">{result.message}</p>
         </div>
       ) : activity.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">

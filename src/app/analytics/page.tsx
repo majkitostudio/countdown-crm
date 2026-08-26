@@ -24,15 +24,15 @@ import {
   Pie,
   Cell
 } from "recharts";
-import type { AnalyticsOverview } from "@/lib/analytics";
-import { getAnalyticsDataAction } from "@/app/actions/analytics";
+import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
+import { exportAnalyticsDataAction, getAnalyticsDataAction } from "@/app/actions/analytics";
 import { exportAnalyticsToCSV } from "@/lib/analyticsExport";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
-  const [data, setData] = useState<AnalyticsOverview>({
+  const emptyData: AnalyticsOverview = {
     totalRevenue: 0,
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
@@ -46,27 +46,56 @@ export default function AnalyticsPage() {
     objectionBreakdown: [],
     teamLeaderboard: [],
     teamMetricsAvailable: false,
-  });
+  };
+  const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const data = result?.ok ? result.data : emptyData;
+  const isEmptySuccess = result?.ok
+    && result.data.totalCalls === 0
+    && result.data.totalRevenue === 0
+    && result.data.teamLeaderboard.length === 0;
+  const status = result === null
+    ? "loading"
+    : result.ok
+      ? isEmptySuccess ? "empty" : "success"
+      : result.code === "FORBIDDEN" ? "forbidden" : "unavailable";
 
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await getAnalyticsDataAction();
-        setData(res);
-        setLoadError(null);
+        setResult(await getAnalyticsDataAction());
       } catch (error: unknown) {
-        setLoadError(error instanceof Error ? error.message : "Analytics query failed");
+        setResult({
+          ok: false,
+          code: "UNAVAILABLE",
+          status: 503,
+          message: error instanceof Error ? error.message : "Analytics query failed",
+        });
       }
     }
     loadData();
   }, []);
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    if (!result?.ok) return;
+
     setIsExporting(true);
-    exportAnalyticsToCSV(data);
-    setTimeout(() => setIsExporting(false), 1500);
+    setExportError(null);
+    try {
+      const exportResult = await exportAnalyticsDataAction();
+      if (!exportResult.ok) {
+        setResult(exportResult);
+        setExportError(exportResult.message);
+        return;
+      }
+      exportAnalyticsToCSV(exportResult.data);
+    } catch (error: unknown) {
+      setExportError(error instanceof Error ? error.message : "Analytics export failed");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -75,26 +104,56 @@ export default function AnalyticsPage() {
       <PageHeader
         icon={BarChart3}
         title="Team Leader BI & Revenue Analytics"
-        badge={{ label: loadError ? "Unavailable" : "Workspace DB", tone: loadError ? "unavailable" : "neutral" }}
+        badge={{
+          label: status === "loading"
+            ? "Loading"
+            : status === "forbidden"
+              ? "Forbidden"
+              : status === "unavailable"
+                ? "Unavailable"
+                : status === "empty" ? "No activity" : "Workspace DB",
+          tone: status === "success" ? "neutral" : "unavailable",
+        }}
         description="Workspace-scoped revenue and call metrics. Forecasts and attribution require additional persisted sources."
         actions={
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 shadow-sm transition-colors hover:border-zinc-700 hover:text-zinc-100"
-          >
-            <Download className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-            <span>{isExporting ? "Exporting CSV..." : "Export workspace CSV"}</span>
-          </button>
+          result?.ok ? (
+            <button
+              onClick={() => void handleExport()}
+              disabled={isExporting}
+              className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 shadow-sm transition-colors hover:border-zinc-700 hover:text-zinc-100"
+            >
+              <Download className="h-4 w-4 text-zinc-400" aria-hidden="true" />
+              <span>{isExporting ? "Exporting CSV..." : "Export workspace CSV"}</span>
+            </button>
+          ) : undefined
         }
       />
 
-      {loadError && (
-        <div role="alert" className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-sm text-rose-300">
-          Analytics unavailable: {loadError}
+      {result === null && (
+        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 text-sm text-zinc-400">
+          Loading workspace analytics...
         </div>
       )}
 
+      {result && !result.ok && (
+        <div role="alert" className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-sm text-rose-300">
+          {result.code === "FORBIDDEN" ? "Analytics forbidden: " : "Analytics unavailable: "}{result.message}
+        </div>
+      )}
+
+      {exportError && (
+        <div role="alert" className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-sm text-rose-300">
+          Analytics export unavailable: {exportError}
+        </div>
+      )}
+
+      {result?.ok && isEmptySuccess && (
+        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 text-sm text-zinc-300">
+          No persisted calls or completed-order activity is available for this workspace yet.
+        </div>
+      )}
+
+      {result?.ok && <>
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
@@ -332,6 +391,7 @@ export default function AnalyticsPage() {
         <p className="text-xs text-zinc-500 mt-2">Coaching benchmarks unavailable until operator-attributed call outcomes are persisted.</p>
       </div>
 
+      </>}
     </div>
   );
 }

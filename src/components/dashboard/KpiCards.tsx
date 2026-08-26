@@ -3,45 +3,28 @@
 import { useEffect, useState } from "react";
 import { DollarSign, PhoneCall, TrendingUp, Users } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
-
-interface KpiItem {
-  id: string;
-  label: string;
-  value: string;
-  trend: string;
-  subtext: string;
-  icon: typeof PhoneCall;
-}
-
-const EMPTY_KPIS: KpiItem[] = [
-  { id: "calls", label: "Total Calls", value: "0", trend: "—", subtext: "no calls recorded", icon: PhoneCall },
-  { id: "conversion", label: "Conversion Rate", value: "0%", trend: "—", subtext: "no orders recorded", icon: TrendingUp },
-  { id: "revenue", label: "Total Revenue", value: "$0.00", trend: "—", subtext: "no orders recorded", icon: DollarSign },
-  { id: "operators", label: "Active Operators", value: "0", trend: "—", subtext: "presence data unavailable", icon: Users },
-];
+import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 
 export function KpiCards() {
-  const [kpis, setKpis] = useState<KpiItem[]>(EMPTY_KPIS);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadKpis() {
       try {
-        const analytics = await getAnalyticsDataAction();
+        const analyticsResult = await getAnalyticsDataAction();
         if (cancelled) return;
 
-        setLoadError(null);
-        setKpis([
-          { id: "calls", label: "Total Calls", value: String(analytics.totalCalls), trend: "—", subtext: "workspace total", icon: PhoneCall },
-          { id: "conversion", label: "Conversion Rate", value: `${analytics.conversionRate.toFixed(1)}%`, trend: "—", subtext: "orders / calls", icon: TrendingUp },
-          { id: "revenue", label: "Total Revenue", value: `$${analytics.totalRevenue.toFixed(2)}`, trend: "—", subtext: "completed orders", icon: DollarSign },
-          { id: "operators", label: "Active Operators", value: "—", trend: "—", subtext: "presence data unavailable", icon: Users },
-        ]);
+        setResult(analyticsResult);
       } catch (error) {
         if (!cancelled) {
-          setLoadError(error instanceof Error ? error.message : "Analytics data could not be loaded.");
+          setResult({
+            ok: false,
+            code: "UNAVAILABLE",
+            status: 503,
+            message: error instanceof Error ? error.message : "Analytics data could not be loaded.",
+          });
         }
       }
     }
@@ -54,13 +37,23 @@ export function KpiCards() {
 
   return (
     <div className="space-y-3">
-      {loadError && (
+      {result && !result.ok && (
         <div role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/30 px-4 py-3 text-xs text-rose-200">
-          Analytics unavailable: {loadError}
+          {result.code === "FORBIDDEN" ? "Analytics forbidden: " : "Analytics unavailable: "}{result.message}
         </div>
       )}
+      {result === null ? (
+        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 px-4 py-3 text-xs text-zinc-400">
+          Loading workspace analytics...
+        </div>
+      ) : result.ok ? (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => {
+        {[
+          { id: "calls", label: "Total Calls", value: String(result.data.totalCalls), trend: "—", subtext: "workspace total", icon: PhoneCall },
+          { id: "conversion", label: "Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, trend: "—", subtext: "orders / calls", icon: TrendingUp },
+          { id: "revenue", label: "Total Revenue", value: `$${result.data.totalRevenue.toFixed(2)}`, trend: "—", subtext: "completed orders", icon: DollarSign },
+          { id: "operators", label: "Active Operators", value: "—", trend: "—", subtext: "presence data unavailable", icon: Users },
+        ].map((kpi) => {
           const Icon = kpi.icon;
           return (
             <div key={kpi.id} className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 hover:border-zinc-700/80 transition-all space-y-4 shadow-sm">
@@ -84,6 +77,7 @@ export function KpiCards() {
           );
         })}
       </div>
+      ) : null}
     </div>
   );
 }
