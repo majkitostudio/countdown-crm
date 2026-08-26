@@ -1,8 +1,10 @@
 import "server-only";
 
 import {
+  createWorkflowExecutionForDispatchForWorkspace,
   createWorkflowExecutionForWorkspace,
   findWorkflowExecutionForEvent,
+  listWorkflowRulesForDispatchForWorkspace,
   listWorkflowsForWorkspace,
 } from "@/lib/dal/workflows";
 import type {
@@ -55,12 +57,12 @@ async function dispatchServerEvent(input: WorkflowDispatchInput): Promise<Workfl
   }
 
   try {
-    const rules = await listWorkflowsForWorkspace();
+    const rules = await listWorkflowRulesForDispatchForWorkspace();
     return evaluateWorkflowEvent(rules, input.trigger, input.payload, {
       mode: "server",
       eventId: input.eventId,
       findExisting: (rule, eventId) => findWorkflowExecutionForEvent(rule, eventId),
-      persist: (entry) => createWorkflowExecutionForWorkspace(entry),
+      persist: (entry) => createWorkflowExecutionForDispatchForWorkspace(entry),
     });
   } catch (error) {
     return failureResult(

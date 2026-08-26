@@ -12,10 +12,18 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("labels the manual workflow action as test-only simulation", () => {
+    const workflowsClient = readFileSync(path.join(projectRoot, "src", "app", "workflows", "WorkflowsManagementClient.tsx"), "utf8");
+    expect(workflowsClient).toContain("Test-only simulation: Call Ended");
+    expect(workflowsClient).toContain("TEST_ONLY_CALL");
+    expect(workflowsClient).not.toContain("Demo test transcript");
+  });
+
+  it("guards the management route before rendering its client controls", () => {
     const workflowsPage = readFileSync(path.join(projectRoot, "src", "app", "workflows", "page.tsx"), "utf8");
-    expect(workflowsPage).toContain("Test-only simulation: Call Ended");
-    expect(workflowsPage).toContain("TEST_ONLY_CALL");
-    expect(workflowsPage).not.toContain("Demo test transcript");
+    expect(workflowsPage).not.toContain('"use client"');
+    expect(workflowsPage).toContain('requireWorkspaceRole(["team_leader", "administrator"])');
+    expect(workflowsPage).toContain("Workflow rules and execution data are available to Team Leaders and Administrators only.");
+    expect(workflowsPage).toContain("return <WorkflowsManagementClient />");
   });
 
   it("awaits execution persistence instead of swallowing a rejected write", () => {

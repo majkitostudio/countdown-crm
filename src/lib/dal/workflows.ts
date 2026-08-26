@@ -155,8 +155,7 @@ function mapWorkflow(row: WorkflowRow): WorkflowRule {
   };
 }
 
-export async function listWorkflowsForWorkspace(): Promise<WorkflowRule[]> {
-  const { workspaceId } = await requireWorkspaceContext();
+async function listWorkflowRulesByWorkspace(workspaceId: string): Promise<WorkflowRule[]> {
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("workflows")
@@ -169,6 +168,18 @@ export async function listWorkflowsForWorkspace(): Promise<WorkflowRule[]> {
   }
 
   return ((data || []) as WorkflowRow[]).map(mapWorkflow);
+}
+
+/** Management-facing workflow list. Operators must not read the management surface. */
+export async function listWorkflowsForWorkspace(): Promise<WorkflowRule[]> {
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
+  return listWorkflowRulesByWorkspace(workspaceId);
+}
+
+/** Internal dispatch read: workspace members may be evaluated after a business event. */
+export async function listWorkflowRulesForDispatchForWorkspace(): Promise<WorkflowRule[]> {
+  const { workspaceId } = await requireWorkspaceContext();
+  return listWorkflowRulesByWorkspace(workspaceId);
 }
 
 export async function saveWorkflowForWorkspace(rule: WorkflowRule): Promise<WorkflowRule> {
@@ -271,8 +282,7 @@ export async function findWorkflowExecutionForEvent(
     : null;
 }
 
-export async function listWorkflowExecutionsForWorkspace(): Promise<ExecutionLogEntry[]> {
-  const { workspaceId } = await requireWorkspaceContext();
+async function listWorkflowExecutionsByWorkspace(workspaceId: string): Promise<ExecutionLogEntry[]> {
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("workflow_executions")
@@ -288,8 +298,13 @@ export async function listWorkflowExecutionsForWorkspace(): Promise<ExecutionLog
   return ((data || []) as unknown as (ExecutionRow & { workflows?: { name: string } | null })[]).map(mapExecution);
 }
 
-export async function createWorkflowExecutionForWorkspace(entry: ExecutionLogEntry): Promise<void> {
-  const { workspaceId } = await requireWorkspaceContext();
+/** Management-facing execution list. Operators must not read workflow execution data. */
+export async function listWorkflowExecutionsForWorkspace(): Promise<ExecutionLogEntry[]> {
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
+  return listWorkflowExecutionsByWorkspace(workspaceId);
+}
+
+async function insertWorkflowExecutionForWorkspace(entry: ExecutionLogEntry, workspaceId: string): Promise<void> {
   if (!isTriggerType(entry.trigger) || !EXECUTION_STATUSES.includes(entry.status)) {
     throw new DataAccessError("VALIDATION", "Workflow execution status is invalid.");
   }
@@ -335,4 +350,16 @@ export async function createWorkflowExecutionForWorkspace(entry: ExecutionLogEnt
   if (error) {
     throw new DataAccessError("DATABASE", "Unable to save the workflow execution log.");
   }
+}
+
+/** Management-facing simulation log insert. */
+export async function createWorkflowExecutionForWorkspace(entry: ExecutionLogEntry): Promise<void> {
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
+  return insertWorkflowExecutionForWorkspace(entry, workspaceId);
+}
+
+/** Internal dispatch insert: workspace membership is sufficient for the event log. */
+export async function createWorkflowExecutionForDispatchForWorkspace(entry: ExecutionLogEntry): Promise<void> {
+  const { workspaceId } = await requireWorkspaceContext();
+  return insertWorkflowExecutionForWorkspace(entry, workspaceId);
 }
