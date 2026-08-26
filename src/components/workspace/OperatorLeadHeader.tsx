@@ -160,8 +160,9 @@ export function OperatorLeadHeader({
           )}
         </div>
       </div>
-      {onCallOutcome && onScheduleCallback && (
+      {!isCallActive && !isDialing && onCallOutcome && onScheduleCallback && (
         <CallOutcomePanel
+          key={isAwaitingOutcome ? "awaiting-outcome" : "idle"}
           isAwaitingOutcome={isAwaitingOutcome}
           recoveryRequired={recoveryRequired}
           isCompletionPending={isCompletionPending}
