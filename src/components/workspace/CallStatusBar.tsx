@@ -25,9 +25,10 @@ interface CallStatusBarProps {
   onScheduleCallback?: () => void;
   showIncomingSimulator?: boolean;
   isStarting?: boolean;
+  isAwaitingOutcome?: boolean;
 }
 
-export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, showIncomingSimulator = true, isStarting = false }: CallStatusBarProps) {
+export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, showIncomingSimulator = true, isStarting = false, isAwaitingOutcome = false }: CallStatusBarProps) {
   const formatTimer = (totalSeconds: number) => `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
   const statusLabel = status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break";
   const statusColor = status === "ready" ? "bg-emerald-500" : status === "in_call" ? "bg-rose-500" : "bg-amber-500";
@@ -71,6 +72,7 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
           <button type="button" onClick={onToggleHold} aria-label={isOnHold ? "Resume call" : "Put call on hold"} title={isOnHold ? "Resume call" : "Put call on hold"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</button>
           <Link href="/settings" aria-label="Open settings" title="Open settings" className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"><Settings className="w-4 h-4" /></Link>
         </>}
+        {isAwaitingOutcome && <div className="text-xs text-amber-200">Post-call outcome required.</div>}
         {!isCallActive && !isDialing && showIncomingSimulator && <button onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call" className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"><PhoneIncoming className="w-4 h-4" /></button>}
       </div>
     </section>

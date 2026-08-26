@@ -63,7 +63,6 @@ export function selectCallOutcome(
 ): CallOutcome | null {
   return isCompletionPending ? current : next;
 }
-
 export function CallOutcomePanel({
   isAwaitingOutcome,
   isCompletionPending = false,

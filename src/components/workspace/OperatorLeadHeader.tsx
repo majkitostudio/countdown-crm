@@ -119,6 +119,11 @@ export function OperatorLeadHeader({
                 <PhoneOff className="h-4 w-4" />
               </button>
             </>
+          ) : isAwaitingOutcome ? (
+            <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-amber-200">Outcome required</p>
+              <p className="mt-0.5 text-[10px] text-amber-300/80">Lead remains assigned</p>
+            </div>
           ) : (
             <>
               <button

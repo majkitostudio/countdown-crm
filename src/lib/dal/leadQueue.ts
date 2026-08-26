@@ -14,7 +14,7 @@ export interface LeadQueueSnapshot {
   queue_item_id: string;
   workspace_id: string;
   lead_id: string;
-  assignment_state: Extract<QueueState, "assigned" | "in_progress">;
+  assignment_state: Extract<QueueState, "assigned" | "in_progress" | "awaiting_outcome">;
   assigned_operator_id: string;
   preferred_operator_id: string | null;
   available_at: string;
@@ -23,6 +23,9 @@ export interface LeadQueueSnapshot {
   claimed_at: string | null;
   last_heartbeat_at: string | null;
   lease_expires_at: string | null;
+  call_started_at: string | null;
+  call_ended_at: string | null;
+  recovery_required: boolean;
   lead: LeadDTO;
 }
 
@@ -31,6 +34,7 @@ export interface QueueCompletionDTO {
   order_id: string | null;
   lead_status: LeadDTO["status"];
   queue_state: QueueState;
+  duration_seconds: number;
   next_lead: LeadQueueSnapshot | null;
 }
 
@@ -51,6 +55,9 @@ export interface QueueItemDTO {
   last_outcome: string | null;
   released_at: string | null;
   completed_at: string | null;
+  call_started_at: string | null;
+  call_ended_at: string | null;
+  recovery_required: boolean;
   created_at: string;
   updated_at: string;
   lead: Pick<LeadDTO, "id" | "full_name" | "phone" | "email" | "status" | "ai_score">;
@@ -167,7 +174,7 @@ export async function startLeadCallForWorkspace(queueItemId: string): Promise<Le
   return snapshot;
 }
 
-export async function heartbeatLeadAssignmentForWorkspace(queueItemId: string): Promise<{ queue_item_id: string; lease_expires_at: string }> {
+export async function heartbeatLeadAssignmentForWorkspace(queueItemId: string): Promise<{ queue_item_id: string; lease_expires_at: string | null }> {
   if (!queueItemId) {
     throw new DataAccessError("VALIDATION", "Heartbeat requires an active queue assignment");
   }
@@ -178,6 +185,21 @@ export async function heartbeatLeadAssignmentForWorkspace(queueItemId: string): 
     target_queue_item_id: queueItemId,
   });
   return requireRpcData(data, error, "Lead assignment heartbeat failed");
+}
+
+export async function endLeadCallForWorkspace(queueItemId: string): Promise<LeadQueueSnapshot> {
+  if (!queueItemId) {
+    throw new DataAccessError("VALIDATION", "Ending a call requires an active queue assignment");
+  }
+
+  await requireWorkspaceRole(["operator"]);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("end_lead_call", {
+    target_queue_item_id: queueItemId,
+  });
+  const snapshot = requireRpcData<LeadQueueSnapshot | null>(data, error, "Call could not be ended safely");
+  if (!snapshot) throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
+  return snapshot;
 }
 
 export async function abortLeadCallStartForWorkspace(
@@ -225,6 +247,7 @@ export async function listQueueItemsForWorkspace(workspaceId?: string): Promise<
       id, workspace_id, lead_id, assigned_operator_id, preferred_operator_id,
       state, priority, available_at, scheduled_at, attempt_count, claimed_at,
       last_heartbeat_at, lease_expires_at, last_outcome, released_at,
+      call_started_at, call_ended_at, recovery_required,
       completed_at, created_at, updated_at,
       lead:leads(id, full_name, phone, email, status, ai_score),
       assigned_operator:profiles!lead_queue_items_assigned_operator_id_fkey(id, full_name, email),
