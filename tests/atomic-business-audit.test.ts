@@ -110,6 +110,21 @@ describe("atomic business mutation DAL wiring", () => {
     });
   });
 
+  it("maps an atomic order RPC/audit failure without claiming moved orders", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "audit insert failed" },
+    });
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    await expect(reassignOrdersProductForWorkspace("source-1", "target-1", "workspace-1"))
+      .rejects.toMatchObject({
+        code: "DATABASE",
+        message: "Unable to reassign the selected orders.",
+      });
+    expect(rpc).toHaveBeenCalledOnce();
+  });
+
   it("accepts a duplicate desired-state retry with no moved rows", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: [{
