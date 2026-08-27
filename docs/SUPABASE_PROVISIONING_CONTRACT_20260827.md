@@ -1,8 +1,8 @@
 # Countdown CRM — bezpečný provisioning Supabase
 
-**Ověřeno:** 27. 8. 2026  
-**Repozitář:** `origin/main` na commitu `f79acf3`  
-**Kontrolovaný cíl:** testovací sandbox Supabase, ref `lpvypihpxhyjljikfzqo`  
+**Ověřeno:** 27. 8. 2026
+**Repozitář:** `origin/main` na commitu `f79acf3`
+**Kontrolovaný cíl:** testovací sandbox Supabase, ref `lpvypihpxhyjljikfzqo`
 **Typ dokumentu:** provozní hranice a důkaz migrací; žádná změna databáze
 
 ## Krátký závěr
