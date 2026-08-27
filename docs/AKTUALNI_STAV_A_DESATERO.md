@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `b2dd83f4ef0283f3f7435dd687146814dfc9fa82`
-**Aktuální stav:** po sloučení PR #29, další opravy jsou v oddělených draft PR
+**Ověřený baseline:** `origin/main` = `2edfe54b29fb38ca68ab596f8739eb74c2ec474b`
+**Aktuální stav:** po sloučení PR #31, další opravy jsou v oddělených draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -112,6 +112,10 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 - PR #28 připravuje odstranění překrývajících se permissive RLS policies na
   šesti tabulkách. Zůstává draft; živé advisories se nezmění, dokud nebude
   migrace nasazena schválenou provisioning cestou.
+- Přihlášený Administrator prošel read-only smoke na `/workspace`, `/leads`,
+  `/orders`, `/settings` a `/team`; výsledek je v
+  [ADMIN_UI_SMOKE_TEST_20260827.md](ADMIN_UI_SMOKE_TEST_20260827.md). Negativní
+  Operator/cross-workspace scénáře tím nejsou nahrazené.
 - Aktuální repozitářový gate prošel: testy, lint, typecheck, build a diff
   kontrola. Linked Supabase lint je čistý; linked migration dry-run byl
   bezpečně zastaven bez změny databáze.
