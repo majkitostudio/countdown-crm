@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `4a1b29f971358cedee53dd8201c3ab4087dc1c1f`
-**Aktuální stav:** po sloučení PR #24, další opravy jsou v oddělených draft PR
+**Ověřený baseline:** `origin/main` = `0556b6fa9e640adbb931c799e722ab75baf62fa2`
+**Aktuální stav:** po sloučení PR #37, další opravy jsou v oddělených draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -41,8 +41,9 @@ začátku do konce. Migration history nebyla měněna ani aplikována naslepo.
   verzování, sanitizaci a read-only zobrazení pro operátora. Pokud pro produkt
   není publikovaná verze, panel používá explicitní fallback; štítek `AI-assisted`
   není důkaz živé AI.
-- Workflow pravdivost a dispatch jsou připravené v draft PR #17, ale čekají na
-  pozitivní manager browser důkaz a vyřešení přesné idempotence napříč instancemi.
+- Workflow pravdivost a dispatch jsou připravené v draft PR #17; databázová
+  idempotence přes `event_id` je doplněná, ale čeká na bezpečné live nasazení a
+  pozitivní manager browser důkaz.
 - Blueprint apply je připravený v draft PR #23: serverová transakce ukládá
   stav, atributy i workflow společně; live nasazení čeká na reconciliation migrací.
 - Training je oddělený simulátor/session workflow. Není to produkční hovor a
@@ -108,6 +109,16 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 - PR #23 převádí Blueprint apply na serverovou transakci s workspace/RLS
   ochranou a načtením stavu po reloadu. Zůstává draft do vyřešení provisioning
   hranice a následného přihlášeného browser ověření.
+- PR #28 připravuje odstranění překrývajících se permissive RLS policies na
+  šesti tabulkách. Zůstává draft; živé advisories se nezmění, dokud nebude
+  migrace nasazena schválenou provisioning cestou.
+- Přihlášený Administrator prošel read-only smoke na `/workspace`, `/leads`,
+  `/orders`, `/settings` a `/team`; výsledek je v
+  [ADMIN_UI_SMOKE_TEST_20260827.md](ADMIN_UI_SMOKE_TEST_20260827.md). Negativní
+  Operator/cross-workspace scénáře tím nejsou nahrazené.
+- Přihlášený Operator prošel stejné routy; `/leads` a `/team` vrátily pravdivý
+  unavailable stav a admin-only navigace nebyla dostupná. Důkaz je v
+  [OPERATOR_UI_SMOKE_TEST_20260827.md](OPERATOR_UI_SMOKE_TEST_20260827.md).
 - Aktuální repozitářový gate prošel: testy, lint, typecheck, build a diff
   kontrola. Linked Supabase lint je čistý; linked migration dry-run byl
   bezpečně zastaven bez změny databáze.
@@ -186,8 +197,10 @@ nebo novou funkci jen proto, aby byl commit větší.
 7. **ČÁSTEČNĚ HOTOVO — stale snapshoty, dead paths a export polish**
 
    Legacy training path a CSV escaping jsou uzavřené. Zbývá rozhodnout
-   source-of-truth pro `supabase/schema.sql` a teprve potom rozdělit největší
-   UI soubory podle konkrétního workflow.
+   jak bezpečně provést fresh-schema ověření; `supabase/schema.sql` je už
+   označený jako historický snapshot a nemá být použit jako provisioning
+   source-of-truth. Teprve potom rozdělit největší UI soubory podle konkrétního
+   workflow.
 
 8. **P2 — sjednotit dokumentaci se skutečným produktem**
 
