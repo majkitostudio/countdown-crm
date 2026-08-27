@@ -1,7 +1,7 @@
 # AI-Native Call Center CRM — Roadmapa Vývoje
 
 > **Aktuální pořadí práce:** Pro dnešní stav používej [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tato roadmapa obsahuje historické fáze i detailní záznamy dokončených slice; není sama o sobě autoritou pro pořadí nejbližších commitů.
-> **Aktuální pořadí práce (23. 8. 2026):** Než se začne další velká feature,
+> **Aktuální pořadí práce (27. 8. 2026):** Než se začne další velká feature,
 > postupuj podle [aktuálního snapshotu a desatera](AKTUALNI_STAV_A_DESATERO.md).
 > Tato roadmapa obsahuje historické etapy i budoucí vizi; sama o sobě není
 > důkazem, že jsou všechny uvedené moduly v aktuálním runtime zapojené.

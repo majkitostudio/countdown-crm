@@ -1,6 +1,6 @@
 # Countdown CRM Architecture: Dynamic Schema, AI Attributes & Agentic Workflows
 
-> **Aktuální stav:** Tento soubor popisuje původní architektonickou vizi a
+> **Aktuální stav (ověřeno 27. 8. 2026):** Tento soubor popisuje původní architektonickou vizi a
 > historické moduly. Ověřený stav aktuálního checkoutu, odstraněné plochy a
 > závazné pracovní zásady jsou v
 > [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md).
