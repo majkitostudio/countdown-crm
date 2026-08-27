@@ -17,7 +17,7 @@ Nejdůležitější aplikační opravy z posledního auditu jsou připravené v 
 ## Co stále není potvrzené
 
 - Negativní cross-workspace a unauthorized-role testy v live prostředí.
-- Persistence po reloadu/logoutu a idempotence v reálném prostředí.
+- Persistence po reloadu/logoutu v live prostředí.
 - Bezpečné nasazení migrací do live databáze.
 
 ## Browser smoke — 27. 8. 2026
@@ -35,6 +35,22 @@ Na obou rolích byly opakovaně načteny `/workspace`, `/leads`, `/orders`,
 
 Tento výsledek potvrzuje pouze UI chování přihlášených rolí. Nepotvrzuje RLS,
 cross-workspace izolaci ani live persistence.
+
+## Disposable database verification — 27. 8. 2026
+
+Po resetu scratch databáze přes všech 62 migrací proběhl izolovaný scénář
+queue completion a workspace hranice. Testovací data byla vytvořena pouze ve
+scratch databázi a prostředí bylo po ověření vypnuto.
+
+- První completion vytvořil jeden call a převedl assignment do `available`.
+- Opakované completion stejného assignmentu bylo odmítnuto; počet callů zůstal
+  jeden.
+- Operator bez adresářového oprávnění neviděl leady.
+- Team Leader viděl lead ze svého workspace, ale ne lead z jiného workspace.
+- Anonymous role neměla SELECT oprávnění na `public.leads`.
+
+Tento výsledek potvrzuje databázový scénář v čistém scratch prostředí. Nenahrazuje
+live persistence test ani nasazení nových migrací do live databáze.
 
 ## Mezera v automatickém pokrytí
 
