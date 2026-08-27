@@ -16,14 +16,35 @@ Nejdůležitější aplikační opravy z posledního auditu jsou připravené v 
 
 ## Co stále není potvrzené
 
-- Přihlášený browser smoke pro všechny dotčené role a workspace.
 - Negativní cross-workspace a unauthorized-role testy v live prostředí.
 - Persistence po reloadu/logoutu a idempotence v reálném prostředí.
 - Bezpečné nasazení migrací do live databáze.
 
+## Browser smoke — 27. 8. 2026
+
+Read-only smoke proběhl s reálnou přihlášenou relací Administrátora i Operatora.
+Na obou rolích byly opakovaně načteny `/workspace`, `/leads`, `/orders`,
+`/settings` a `/team`. Stránky se po načtení ustálily bez nekonečného spinneru.
+
+- Administrátor viděl očekávaný širší workspace kontext.
+- Operator viděl Operator Console; `/leads` a `/team` zobrazily pravdivý
+  unavailable stav a `/settings` zůstalo pouze pro čtení.
+- `/orders` zobrazilo prázdný stav bez záznamů; nebyl proveden žádný zápis.
+- Po opakovaném načtení zůstaly role i stavy stejné.
+- Konzole prohlížeče neobsahovala chyby ani varování.
+
+Tento výsledek potvrzuje pouze UI chování přihlášených rolí. Nepotvrzuje RLS,
+cross-workspace izolaci ani live persistence.
+
 ## Migration provenance blocker
 
-Read-only `supabase db push --dry-run --linked` se stále zastaví na 21 remote-only verzích. Tento rozdíl se nesmí řešit `migration repair`, přepsáním historie, slepým `db pull` do checkoutu ani hromadným `--include-all` bez schválené mapy původu.
+Ve starém checkoutu se read-only `supabase db push --dry-run --linked` stále
+zastaví na 21 remote-only verzích. Na reconcile větvi
+`chore/reconcile-migration-provenance-20260827` už stejný dry-run vrací
+`Remote database is up to date`; disposable reset zároveň aplikoval všech 62
+migrací od nuly. Tento rozdíl se nesmí řešit `migration repair`, přepsáním
+historie, slepým `db pull` do checkoutu ani hromadným `--include-all` bez
+schválené mapy původu.
 
 ### Předběžná mapa remote-only verzí
 
