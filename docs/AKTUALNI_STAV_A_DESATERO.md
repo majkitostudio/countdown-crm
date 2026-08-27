@@ -81,12 +81,13 @@ polish checkpointu a nemá být tiše použit jako nový source of truth.
 
 ### Provedené v kódu, ale nedostatečně ověřené pro pilot
 
-- Workflow/Blueprint success a execution persistence mají výše uvedené P0
-  chyby; skutečný business side effect není pro všechny action types doložen.
+- Workflow/Blueprint změny mají připravené serverové a idempotentní persistence
+  cesty, ale skutečný business side effect není pro všechny action types doložen.
 - Hlavní Operator Console completion nebyl doložen jako workflow event.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
 - Chybí čerstvý browser test s reálným Auth uživatelem, reloadem, logout/login,
-  negativní rolí, cizím workspace, duplicate submit/idempotency a live RLS.
+  negativní rolí, cizím workspace, opakovaným submit a live RLS. Idempotence
+  je nyní chráněná v kódu databázovým `event_id` klíčem.
 
 Podrobný nálezový inventář a oddělení static/browser/persistence/authorization/
 RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_20260826.md).
@@ -95,9 +96,9 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 
 - PR #24 odstranil nepoužívaný stav Operator Console a byl sloučen do `main`
   jako `4a1b29f`.
-- PR #17 obsahuje pravdivější Workflow execution a serverový dispatch po
-  dokončení hovoru. Zůstává draft, protože chybí pozitivní manager browser
-  důkaz a přesná idempotence napříč více běžícími instancemi.
+- PR #17 obsahuje pravdivější Workflow execution, serverový dispatch po
+  dokončení hovoru a databázově vynucenou idempotenci. Zůstává draft, protože
+  chybí pozitivní manager browser důkaz a bezpečné live nasazení migrace.
 - PR #21 obsahuje atomické business mutace s auditní stopou. Zůstává draft;
   živé RPC nebylo nasazeno, protože dry-run narazil na rozdílnou historii
   migrací.
@@ -138,8 +139,8 @@ nebo novou funkci jen proto, aby byl commit větší.
 
    Oddělit `simulation`/`unavailable`/`failure`/`success`, awaitovat log
    persistence, správně vyhodnotit webhook a napojit operator completion na
-   server-owned event dispatcher. Přidat unit/integration testy; bez tohoto
-   kroku nemá browser smoke spolehlivý workflow kontrakt.
+   server-owned event dispatcher. Přidat unit/integration testy a event-id
+   idempotenci; bez tohoto kroku nemá browser smoke spolehlivý workflow kontrakt.
 
 2. **HOTOVO — uzavřít analytics authorization boundary**
 
