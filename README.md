@@ -4,7 +4,7 @@
 
 **Countdown CRM** je pilotní workspace pro operátory, obchodní týmy a manažery. Jádro tvoří workspace-scoped CRM data, serverová autorizace, fronta leadů, objednávkové workflow a explicitně označené pilotní/simulované telephony části.
 
-> **Aktuální stav (23. 8. 2026):** Projekt je ve stabilizaci před interním pilotem, ne v obecné produkční připravenosti. Autoritativní snapshot, otevřená rizika a závazné desatero jsou v [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
+> **Aktuální stav (27. 8. 2026):** Projekt je ve stabilizaci před interním pilotem, ne v obecné produkční připravenosti. Autoritativní snapshot, otevřená rizika a závazné desatero jsou v [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md). Starší roadmapa a commitový katalog zachycují také historickou vizi, ne vždy dnešní ověřený runtime.
 
 ![Next.js 16](https://img.shields.io/badge/Next.js-16.3.2-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
