@@ -36,7 +36,7 @@ Na obou rolích byly opakovaně načteny `/workspace`, `/leads`, `/orders`,
 Tento výsledek potvrzuje pouze UI chování přihlášených rolí. Nepotvrzuje RLS,
 cross-workspace izolaci ani live persistence.
 
-## Migration provenance blocker
+## Migration provenance — připravené k review
 
 Ve starém checkoutu se read-only `supabase db push --dry-run --linked` stále
 zastaví na 21 remote-only verzích. Na reconcile větvi
@@ -45,6 +45,10 @@ zastaví na 21 remote-only verzích. Na reconcile větvi
 migrací od nuly. Tento rozdíl se nesmí řešit `migration repair`, přepsáním
 historie, slepým `db pull` do checkoutu ani hromadným `--include-all` bez
 schválené mapy původu.
+
+Čerstvé read-only ověření s project ref potvrdilo shodu všech 62 lokálních a
+vzdálených verzí na reconcile větvi. Zbývající překážkou není drift, ale review
+změny a samostatné rozhodnutí, zda a kdy se má tato historie nasadit do live.
 
 ### Předběžná mapa remote-only verzí
 
