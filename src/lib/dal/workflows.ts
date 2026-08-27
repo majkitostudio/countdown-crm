@@ -21,7 +21,7 @@ type ExecutionRow = Database["public"]["Tables"]["workflow_executions"]["Row"];
 const WORKFLOW_SELECT =
   "id, workspace_id, name, description, trigger_event, conditions, actions, is_active, created_at, updated_at";
 const EXECUTION_SELECT =
-  "id, workspace_id, rule_id, trigger_event, status, logs, created_at";
+  "id, workspace_id, rule_id, event_id, trigger_event, status, logs, created_at";
 
 const TRIGGERS: TriggerType[] = [
   "on_call_ended",
@@ -269,7 +269,7 @@ export async function findWorkflowExecutionForEvent(
     .select(`${EXECUTION_SELECT}, workflows(name)`)
     .eq("workspace_id", workspaceId)
     .eq("rule_id", rule.id)
-    .filter("logs->>event_id", "eq", eventId)
+    .eq("event_id" as never, eventId)
     .limit(1)
     .maybeSingle();
 
@@ -334,6 +334,7 @@ async function insertWorkflowExecutionForWorkspace(entry: ExecutionLogEntry, wor
       : {}),
     workspace_id: workspaceId,
     rule_id: ruleId,
+    event_id: entry.eventId || null,
     trigger_event: entry.trigger,
     status: entry.status,
     execution_time_ms: 50,
@@ -346,6 +347,19 @@ async function insertWorkflowExecutionForWorkspace(entry: ExecutionLogEntry, wor
       error: entry.errorMessage || null,
     },
   });
+
+  if (error && error.code === "23505" && entry.eventId) {
+    let duplicateQuery = supabase
+      .from("workflow_executions")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .eq("event_id" as never, entry.eventId);
+    duplicateQuery = ruleId
+      ? duplicateQuery.eq("rule_id", ruleId)
+      : duplicateQuery.is("rule_id", null);
+    const { data: duplicate, error: duplicateError } = await duplicateQuery.maybeSingle();
+    if (!duplicateError && duplicate) return;
+  }
 
   if (error) {
     throw new DataAccessError("DATABASE", "Unable to save the workflow execution log.");

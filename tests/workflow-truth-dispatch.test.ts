@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { evaluateWorkflowEvent } from "@/lib/workflows/evaluator";
 import { TRIGGER_REGISTRY, type ExecutionLogEntry, type WorkflowRule } from "@/lib/workflows/types";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 
 const baseRule: WorkflowRule = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -175,5 +177,19 @@ describe("workflow trigger availability", () => {
     for (const trigger of ["on_order_placed", "on_lead_status_changed", "on_lead_created"] as const) {
       expect(TRIGGER_REGISTRY.find((item) => item.type === trigger)).toMatchObject({ serverDispatch: "unavailable" });
     }
+  });
+});
+
+describe("workflow event idempotency contract", () => {
+  it("uses a durable event key rather than only a process-local cache", () => {
+    const migration = readFileSync(
+      path.join(process.cwd(), "supabase", "migrations", "20260827012414_workflow_execution_event_id.sql"),
+      "utf8",
+    );
+    const dal = readFileSync(path.join(process.cwd(), "src", "lib", "dal", "workflows.ts"), "utf8");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS event_id TEXT");
+    expect(migration).toContain("CREATE UNIQUE INDEX IF NOT EXISTS workflow_executions_event_id_uidx");
+    expect(dal).toContain('.eq("event_id" as never, eventId)');
+    expect(dal).toContain("error.code === \"23505\"");
   });
 });
