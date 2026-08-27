@@ -19,8 +19,8 @@ describe("RLS policy performance hardening", () => {
   });
 
   it("keeps workspace and ownership predicates in place", () => {
-    expect(migration).toContain("public.is_workspace_manager_or_admin(workspace_id)");
-    expect(migration).toContain("public.is_workspace_member(workspace_id)");
+    expect(migration).toContain("private.is_workspace_manager_or_admin(workspace_id)");
+    expect(migration).toContain("private.is_workspace_member(workspace_id)");
     expect(migration).toContain("(SELECT auth.uid()) = user_id");
     expect(migration).toContain("p.workspace_id = objections.workspace_id");
     expect(migration).toContain("e.workspace_id = record_values.workspace_id");
