@@ -40,7 +40,7 @@ Tato mapa je pracovní evidence, nikoli povolení k opravě historie. Před depl
 
 ## Doporučený další krok
 
-Nechat doběhnout kontroly PR #28, připravit explicitní mapu 21 remote-only verzí na jejich lokální ekvivalenty a teprve potom provést samostatný, kontrolovaný deployment migration slice. Pilotní gate zůstává otevřený, dokud nebude doložena live persistence, autorizace a provenance migrací.
+Reconcile větev `chore/reconcile-migration-provenance-20260827` je připravená v draft PR #40. Její linked dry-run vrací `Remote database is up to date` a disposable reset aplikoval všech 62 migrací od nuly. Po review této větve lze řešit další deploymentní kroky; pilotní gate zůstává otevřený, dokud nebude doložena live persistence a autentizované autorizace.
 
 ## Bezpečnostní hranice
 
