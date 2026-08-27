@@ -36,6 +36,14 @@ Na obou rolích byly opakovaně načteny `/workspace`, `/leads`, `/orders`,
 Tento výsledek potvrzuje pouze UI chování přihlášených rolí. Nepotvrzuje RLS,
 cross-workspace izolaci ani live persistence.
 
+## Mezera v automatickém pokrytí
+
+Lokální test suite aktuálně pokrývá settings, Product Script, softphone
+lifecycle a training API. Samostatné automatické testy pro queue/recovery,
+idempotenci call outcome, business-mutation audit a cross-workspace RLS zde
+nejsou. Tyto oblasti proto zůstávají otevřeným důkazním gapem, i když ostatní
+testy a build procházejí.
+
 ## Migration provenance — připravené k review
 
 Ve starém checkoutu se read-only `supabase db push --dry-run --linked` stále
