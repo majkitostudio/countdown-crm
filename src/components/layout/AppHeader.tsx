@@ -39,6 +39,19 @@ export function AppHeader() {
   const canManageBlueprints = isTeamLeaderOrAdministrator(identity?.role);
 
   useEffect(() => {
+    if (isIdentityLoading || !identity) return;
+    let cancelled = false;
+    void blueprintEngine.hydrateFromServer().then((blueprint) => {
+      if (!cancelled && blueprint) setActiveBlueprintName(blueprint.name);
+    }).catch((error) => {
+      console.warn("[AppHeader] Active blueprint is unavailable:", error);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [identity, isIdentityLoading]);
+
+  useEffect(() => {
     if (!isUserMenuOpen) return;
 
     const handlePointerDown = (event: MouseEvent) => {
