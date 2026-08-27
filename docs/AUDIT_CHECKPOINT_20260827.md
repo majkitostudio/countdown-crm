@@ -25,6 +25,19 @@ Nejdůležitější aplikační opravy z posledního auditu jsou připravené v 
 
 Read-only `supabase db push --dry-run --linked` se stále zastaví na 21 remote-only verzích. Tento rozdíl se nesmí řešit `migration repair`, přepsáním historie, slepým `db pull` do checkoutu ani hromadným `--include-all` bez schválené mapy původu.
 
+### Předběžná mapa remote-only verzí
+
+| Remote verze | Předběžné zařazení |
+| --- | --- |
+| `20260810071051` | chybějící historický základ `countdown_crm_base_schema` |
+| `20260810071052`, `20260810071112`, `20260810071115`, `20260810071138`, `20260810071243`, `20260810071327`, `20260818162302` | lokální ekvivalent existuje; obsah byl porovnán jako shodný nebo logicky odpovídající |
+| `20260810071346`, `20260810104508` | lokální ekvivalent existuje, ale remote obsahuje dodatečné změny; vyžaduje ruční rozhodnutí |
+| `20260822134103`, `20260822134130`, `20260823010004`, `20260823041802` | skutečně chybějící pozdější push/presence/profile migrace |
+| `20260824100836`, `20260824104323`, `20260824104408`, `20260824104450`, `20260824104747`, `20260824112120` | skutečně chybějící atomic call/order opravy |
+| `20260824210525` | skutečně chybějící call-outcome recovery migrace |
+
+Tato mapa je pracovní evidence, nikoli povolení k opravě historie. Před deploymentem je nutné dohledat přesný obsah každé historické verze a rozhodnout, zda bude zachována jako kompatibilní baseline, přenesena do nové migrace, nebo ponechána jako explicitně zdokumentovaný historický artefakt.
+
 ## Doporučený další krok
 
 Nechat doběhnout kontroly PR #28, připravit explicitní mapu 21 remote-only verzí na jejich lokální ekvivalenty a teprve potom provést samostatný, kontrolovaný deployment migration slice. Pilotní gate zůstává otevřený, dokud nebude doložena live persistence, autorizace a provenance migrací.
