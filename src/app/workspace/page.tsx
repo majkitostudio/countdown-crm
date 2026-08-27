@@ -6,7 +6,6 @@ import { PhoneCall, RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { getProductScript } from "@/lib/productScripts";
-import { OperatorStatus } from "@/components/layout/Sidebar";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import { AdditionalQuestionsCard } from "@/components/workspace/AdditionalQuestionsCard";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
@@ -62,7 +61,6 @@ function WorkspaceContent() {
   const [assignmentState, setAssignmentState] = useState<LeadQueueSnapshot["assignment_state"] | null>(null);
   const [recoveryRequired, setRecoveryRequired] = useState(false);
   const [callDurationSeconds, setCallDurationSeconds] = useState(0);
-  const [operatorStatus, setOperatorStatus] = useState<OperatorStatus>("ready");
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
   
@@ -198,7 +196,6 @@ function WorkspaceContent() {
               ? Math.max(0, Math.round((Date.parse(currentAssignment.call_ended_at || new Date().toISOString()) - Date.parse(currentAssignment.call_started_at)) / 1000))
               : 0,
           );
-          setOperatorStatus(currentAssignment?.assignment_state === "in_progress" ? "in_call" : "ready");
           setIsLoading(false);
           return;
         }
@@ -267,7 +264,6 @@ function WorkspaceContent() {
         setOrderFlowMode(null);
         setAppliedPitch("");
         setNotificationToast(null);
-        setOperatorStatus("ready");
         sounds.playCallEndSound();
         setActiveQueueItemId(nextAssignment?.queue_item_id || null);
         setAssignmentState(nextAssignment?.assignment_state || null);
@@ -304,7 +300,6 @@ function WorkspaceContent() {
       setOrderFlowMode(null);
       setAppliedPitch("");
       setNotificationToast(null);
-      setOperatorStatus("ready");
       sounds.playCallEndSound();
 
       const savedLead = { ...activeLead, status: completion.lead_status, updated_at: new Date().toISOString() };
@@ -366,7 +361,6 @@ function WorkspaceContent() {
 
     if (isDialing) {
       softphoneController.cancelDial();
-      setOperatorStatus("ready");
       if (identity?.role === "operator" && activeQueueItemId) {
         void abortLeadCallStartAction(activeQueueItemId, "Operator cancelled call start")
           .then((assignment) => setAssignmentState(assignment.assignment_state))
@@ -395,7 +389,6 @@ function WorkspaceContent() {
                 ? Math.max(0, Math.round((Date.parse(endedAssignment.call_ended_at || new Date().toISOString()) - Date.parse(endedAssignment.call_started_at)) / 1000))
                 : 0),
             );
-            setOperatorStatus("ready");
             setNotificationToast(null);
           })
           .catch((error) => {
@@ -433,7 +426,6 @@ function WorkspaceContent() {
             setAssignmentState(startedAssignment.assignment_state);
             setRecoveryRequired(false);
             setCallDurationSeconds(0);
-            setOperatorStatus("in_call");
             const stopTone = sounds.playDialTone();
             stopAudioRef.current = stopTone;
             const audioReady = await softphoneController.dial(
@@ -456,7 +448,6 @@ function WorkspaceContent() {
             }
             softphoneController.cancelDial();
             if (queueCallStarted) setAssignmentState("assigned");
-            setOperatorStatus("ready");
             setNotificationToast(
               error instanceof Error
                 ? `Call could not be started: ${error.message}`
@@ -473,7 +464,6 @@ function WorkspaceContent() {
       if (callStartPendingRef.current) return;
       callStartPendingRef.current = true;
       setIsCallStartPending(true);
-      setOperatorStatus("in_call");
       const stopTone = sounds.playDialTone();
       stopAudioRef.current = stopTone;
 
@@ -487,7 +477,6 @@ function WorkspaceContent() {
             stopAudioRef.current = null;
           }
           softphoneController.cancelDial();
-          setOperatorStatus("ready");
           setNotificationToast(
             error instanceof Error
               ? `Call could not be started: ${error.message}`
@@ -518,13 +507,11 @@ function WorkspaceContent() {
       stopAudioRef.current = null;
     }
     setIsIncomingCallOpen(false);
-    setOperatorStatus("in_call");
     void softphoneController.answer()
       .then((audioReady) => {
         if (!audioReady) throw new Error("Audio session could not be initialized");
       })
       .catch((error) => {
-        setOperatorStatus("ready");
         setNotificationToast(
           error instanceof Error
             ? `Incoming call could not be answered: ${error.message}`
@@ -629,38 +616,6 @@ function WorkspaceContent() {
 
   const handleApplyPitch = (pitchText: string) => {
     setAppliedPitch(pitchText);
-  };
-
-  const handleOperatorStatusChange = async (newStatus: OperatorStatus) => {
-    if (identity?.role !== "operator") {
-      setOperatorStatus(newStatus);
-      return;
-    }
-
-    if (newStatus === "in_call" && !isCallActive && !isDialing) {
-      setNotificationToast("In-call presence is controlled by the active server assignment.");
-      return;
-    }
-
-    const nextPresence = newStatus === "ready" ? "available" : newStatus === "break" ? "break" : "in_call";
-
-    try {
-      await setOperatorPresenceAction(nextPresence);
-      setOperatorStatus(newStatus);
-
-      if (newStatus === "ready" && !activeQueueItemId && !activeLead) {
-        try {
-          const nextAssignment = await claimNextLeadAction();
-          setActiveQueueItemId(nextAssignment?.queue_item_id || null);
-          setActiveLead(nextAssignment?.lead || null);
-          setLeads(nextAssignment ? [nextAssignment.lead] : []);
-        } catch (error) {
-          setNotificationToast(error instanceof Error ? error.message : "Priority callback could not be claimed.");
-        }
-      }
-    } catch (error) {
-      setNotificationToast(error instanceof Error ? error.message : "Operator presence could not be updated.");
-    }
   };
 
   const pageHeaderBadge = isLoading
