@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `aa63a89a30850686d3f0193ecf1dad5fbad78394`
-**Aktuální stav:** po sloučení PR #34, další opravy jsou v oddělených draft PR
+**Ověřený baseline:** `origin/main` = `0556b6fa9e640adbb931c799e722ab75baf62fa2`
+**Aktuální stav:** po sloučení PR #37, další opravy jsou v oddělených draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -197,8 +197,10 @@ nebo novou funkci jen proto, aby byl commit větší.
 7. **ČÁSTEČNĚ HOTOVO — stale snapshoty, dead paths a export polish**
 
    Legacy training path a CSV escaping jsou uzavřené. Zbývá rozhodnout
-   source-of-truth pro `supabase/schema.sql` a teprve potom rozdělit největší
-   UI soubory podle konkrétního workflow.
+   jak bezpečně provést fresh-schema ověření; `supabase/schema.sql` je už
+   označený jako historický snapshot a nemá být použit jako provisioning
+   source-of-truth. Teprve potom rozdělit největší UI soubory podle konkrétního
+   workflow.
 
 8. **P2 — sjednotit dokumentaci se skutečným produktem**
 
