@@ -102,7 +102,8 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
   živé RPC nebylo nasazeno, protože dry-run narazil na rozdílnou historii
   migrací.
 - PR #22 popisuje bezpečný provisioning kontrakt pro sandbox a přesný seznam
-  20 live-only migračních verzí. Neprovádí žádný databázový zápis.
+  20 live-only migračních verzí. Byl sloučen do `main` jako dokumentace a
+  neprovedl žádný databázový zápis.
 - PR #23 převádí Blueprint apply na serverovou transakci s workspace/RLS
   ochranou a načtením stavu po reloadu. Zůstává draft do vyřešení provisioning
   hranice a následného přihlášeného browser ověření.
