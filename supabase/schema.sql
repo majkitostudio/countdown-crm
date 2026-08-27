@@ -1,7 +1,11 @@
 -- ========================================================
--- Countdown CRM — Supabase Database Migration & Schema
--- Bootstrap schema. Incremental migrations in supabase/migrations/ are
--- authoritative for deployed environments and must be applied in filename order.
+-- Countdown CRM — historical Supabase schema snapshot
+--
+-- This file is retained for reference and inspection only. It is not a
+-- provisioning script and must not be used as a fresh-database source of
+-- truth. The ordered files in supabase/migrations/ are authoritative for
+-- deployed environments. Before any deployment, verify their provenance and
+-- apply only through the approved Supabase migration workflow.
 -- ========================================================
 
 -- Enable UUID extension

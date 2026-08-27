@@ -5,7 +5,7 @@
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Označení
 > `HOTOVO` v historickém katalogu samo o sobě neznamená, že je daná plocha dnes
 > produkčně ověřená.
-> **Aktuální pracovní pravidla (23. 8. 2026):** Tento soubor zachovává starší
+> **Aktuální pracovní pravidla (27. 8. 2026):** Tento soubor zachovává starší
 > historii commitů. Pro nové změny platí prioritní pořadí a desatero v
 > [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md). Staré pravidlo
 > „po každém commitu okamžitý push a deploy“ není automatické: nejdříve musí
