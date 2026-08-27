@@ -57,6 +57,14 @@ npx supabase migration list --linked --project-ref lpvypihpxhyjljikfzqo
 vrátil pro všech **62** lokálních souborů odpovídající remote verzi. Nebyla
 nalezena žádná lokální ani remote-only migrace.
 
+Přejmenování počátečních migration souborů zachovávají SQL obsah beze změny,
+s jednou výslovně zdokumentovanou historickou odchylkou: soubor
+`20260810071346_20260810_0007_harden_workspace_contract.sql` obsahuje oproti
+původnímu lokálnímu názvu také remote doložené `audit_logs.workspace_id SET
+NOT NULL`. Tato změna je proto posuzována jako obnova historického obsahu,
+nikoli jako pouhé přejmenování. Stejně tak novější grant a pozdější remote-only
+migrace jsou přidané jako chybějící historické verze, ne jako aplikační změny.
+
 Read-only dry-run:
 
 ```text
