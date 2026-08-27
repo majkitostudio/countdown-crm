@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `2edfe54b29fb38ca68ab596f8739eb74c2ec474b`
-**Aktuální stav:** po sloučení PR #31, další opravy jsou v oddělených draft PR
+**Ověřený baseline:** `origin/main` = `c5232716a35588b78c1408d41eb6f953a37e9a34`
+**Aktuální stav:** po sloučení PR #33, další opravy jsou v oddělených draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -116,6 +116,9 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
   `/orders`, `/settings` a `/team`; výsledek je v
   [ADMIN_UI_SMOKE_TEST_20260827.md](ADMIN_UI_SMOKE_TEST_20260827.md). Negativní
   Operator/cross-workspace scénáře tím nejsou nahrazené.
+- Přihlášený Operator prošel stejné routy; `/leads` a `/team` vrátily pravdivý
+  unavailable stav a admin-only navigace nebyla dostupná. Důkaz je v
+  [OPERATOR_UI_SMOKE_TEST_20260827.md](OPERATOR_UI_SMOKE_TEST_20260827.md).
 - Aktuální repozitářový gate prošel: testy, lint, typecheck, build a diff
   kontrola. Linked Supabase lint je čistý; linked migration dry-run byl
   bezpečně zastaven bez změny databáze.
