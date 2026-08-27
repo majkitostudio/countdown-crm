@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `c5232716a35588b78c1408d41eb6f953a37e9a34`
-**Aktuální stav:** po sloučení PR #33, další opravy jsou v oddělených draft PR
+**Ověřený baseline:** `origin/main` = `aa63a89a30850686d3f0193ecf1dad5fbad78394`
+**Aktuální stav:** po sloučení PR #34, další opravy jsou v oddělených draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
