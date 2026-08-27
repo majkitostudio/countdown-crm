@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `4a1b29f971358cedee53dd8201c3ab4087dc1c1f`
-**Aktuální stav:** po sloučení PR #24, další opravy jsou v oddělených draft PR
+**Ověřený baseline:** `origin/main` = `c5232716a35588b78c1408d41eb6f953a37e9a34`
+**Aktuální stav:** po sloučení PR #33, další opravy jsou v oddělených draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -41,8 +41,9 @@ začátku do konce. Migration history nebyla měněna ani aplikována naslepo.
   verzování, sanitizaci a read-only zobrazení pro operátora. Pokud pro produkt
   není publikovaná verze, panel používá explicitní fallback; štítek `AI-assisted`
   není důkaz živé AI.
-- Workflow pravdivost a dispatch jsou připravené v draft PR #17, ale čekají na
-  pozitivní manager browser důkaz a vyřešení přesné idempotence napříč instancemi.
+- Workflow pravdivost a dispatch jsou připravené v draft PR #17; databázová
+  idempotence přes `event_id` je doplněná, ale čeká na bezpečné live nasazení a
+  pozitivní manager browser důkaz.
 - Blueprint apply je připravený v draft PR #23: serverová transakce ukládá
   stav, atributy i workflow společně; live nasazení čeká na reconciliation migrací.
 - Training je oddělený simulátor/session workflow. Není to produkční hovor a
@@ -81,12 +82,13 @@ polish checkpointu a nemá být tiše použit jako nový source of truth.
 
 ### Provedené v kódu, ale nedostatečně ověřené pro pilot
 
-- Workflow/Blueprint success a execution persistence mají výše uvedené P0
-  chyby; skutečný business side effect není pro všechny action types doložen.
+- Workflow/Blueprint změny mají připravené serverové a idempotentní persistence
+  cesty, ale skutečný business side effect není pro všechny action types doložen.
 - Hlavní Operator Console completion nebyl doložen jako workflow event.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
 - Chybí čerstvý browser test s reálným Auth uživatelem, reloadem, logout/login,
-  negativní rolí, cizím workspace, duplicate submit/idempotency a live RLS.
+  negativní rolí, cizím workspace, opakovaným submit a live RLS. Idempotence
+  je nyní chráněná v kódu databázovým `event_id` klíčem.
 
 Podrobný nálezový inventář a oddělení static/browser/persistence/authorization/
 RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_20260826.md).
@@ -95,9 +97,9 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 
 - PR #24 odstranil nepoužívaný stav Operator Console a byl sloučen do `main`
   jako `4a1b29f`.
-- PR #17 obsahuje pravdivější Workflow execution a serverový dispatch po
-  dokončení hovoru. Zůstává draft, protože chybí pozitivní manager browser
-  důkaz a přesná idempotence napříč více běžícími instancemi.
+- PR #17 obsahuje pravdivější Workflow execution, serverový dispatch po
+  dokončení hovoru a databázově vynucenou idempotenci. Zůstává draft, protože
+  chybí pozitivní manager browser důkaz a bezpečné live nasazení migrace.
 - PR #21 obsahuje atomické business mutace s auditní stopou. Zůstává draft;
   živé RPC nebylo nasazeno, protože dry-run narazil na rozdílnou historii
   migrací.
@@ -107,6 +109,16 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 - PR #23 převádí Blueprint apply na serverovou transakci s workspace/RLS
   ochranou a načtením stavu po reloadu. Zůstává draft do vyřešení provisioning
   hranice a následného přihlášeného browser ověření.
+- PR #28 připravuje odstranění překrývajících se permissive RLS policies na
+  šesti tabulkách. Zůstává draft; živé advisories se nezmění, dokud nebude
+  migrace nasazena schválenou provisioning cestou.
+- Přihlášený Administrator prošel read-only smoke na `/workspace`, `/leads`,
+  `/orders`, `/settings` a `/team`; výsledek je v
+  [ADMIN_UI_SMOKE_TEST_20260827.md](ADMIN_UI_SMOKE_TEST_20260827.md). Negativní
+  Operator/cross-workspace scénáře tím nejsou nahrazené.
+- Přihlášený Operator prošel stejné routy; `/leads` a `/team` vrátily pravdivý
+  unavailable stav a admin-only navigace nebyla dostupná. Důkaz je v
+  [OPERATOR_UI_SMOKE_TEST_20260827.md](OPERATOR_UI_SMOKE_TEST_20260827.md).
 - Aktuální repozitářový gate prošel: testy, lint, typecheck, build a diff
   kontrola. Linked Supabase lint je čistý; linked migration dry-run byl
   bezpečně zastaven bez změny databáze.
@@ -138,8 +150,8 @@ nebo novou funkci jen proto, aby byl commit větší.
 
    Oddělit `simulation`/`unavailable`/`failure`/`success`, awaitovat log
    persistence, správně vyhodnotit webhook a napojit operator completion na
-   server-owned event dispatcher. Přidat unit/integration testy; bez tohoto
-   kroku nemá browser smoke spolehlivý workflow kontrakt.
+   server-owned event dispatcher. Přidat unit/integration testy a event-id
+   idempotenci; bez tohoto kroku nemá browser smoke spolehlivý workflow kontrakt.
 
 2. **HOTOVO — uzavřít analytics authorization boundary**
 
