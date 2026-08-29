@@ -4,6 +4,9 @@ import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceContext } from "./workspace";
 import { createDataClient } from "./db";
+import { getScopedLeadForWorkspace } from "./leadQueue";
+import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
+import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 
 type CallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
@@ -24,6 +27,7 @@ export interface CompleteCallDTO {
   order_id: string | null;
   lead_status: Database["public"]["Tables"]["leads"]["Row"]["status"];
   operator_name: string;
+  workflowDispatches: WorkflowDispatchResult[];
 }
 
 const outcomeMap: Record<CompletionOutcome, CallOutcome> = {
@@ -56,6 +60,7 @@ export async function completeCallForWorkspace(
   }
 
   const context = await requireWorkspaceContext(workspaceId);
+  const lead = await getScopedLeadForWorkspace(input.lead_id, context.workspaceId);
   const supabase = await createDataClient();
   const { data: operatorProfile, error: operatorProfileError } = await supabase
     .from("profiles")
@@ -87,5 +92,20 @@ export async function completeCallForWorkspace(
     throw new DataAccessError("DATABASE", "Call completion returned an invalid result");
   }
 
-  return { ...row, operator_name: operatorName };
+  const workflowDispatch = await dispatchWorkflowEventForWorkspace({
+    trigger: "on_call_ended",
+    eventId: row.call_id,
+    payload: {
+      callId: row.call_id,
+      leadId: lead.id,
+      leadName: lead.full_name,
+      agentName: operatorName,
+      outcome: input.outcome,
+      sentiment: input.ai_sentiment || "Neutral",
+      orderValue: input.order_total_amount ?? 0,
+      transcript: input.transcript || "",
+    },
+  });
+
+  return { ...row, operator_name: operatorName, workflowDispatches: [workflowDispatch] };
 }
