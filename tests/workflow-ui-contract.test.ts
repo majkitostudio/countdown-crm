@@ -31,4 +31,12 @@ describe("workflow server-boundary UI contract", () => {
     expect(engine).toContain("persist: (entry) => createWorkflowExecutionAction(entry)");
     expect(engine).not.toContain("createWorkflowExecutionAction(entry).catch");
   });
+
+  it("bounds Operator call start and keeps late server recovery explicit", () => {
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    expect(workspacePage).toContain("withTimeout(\n              startRequest");
+    expect(workspacePage).toContain("withTimeout(\n              softphoneController.dial");
+    expect(workspacePage).toContain("abortLeadCallStartAction(activeQueueItemId, \"Server call start timed out\")");
+    expect(workspacePage).toContain("Call start recovery is still in progress");
+  });
 });
