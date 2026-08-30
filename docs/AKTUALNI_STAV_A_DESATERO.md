@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `e80bc71dfa51530b166633a9cc16e398139b77dc`
-**Aktuální stav:** po sloučení PR #49; otevřené implementační kandidáty zůstávají v draft PR
+**Ověřený baseline:** `origin/main` = `fbd041b240910577a7d001da315b7b0563a06ba7`
+**Aktuální stav:** po sloučení PR #50; otevřené implementační kandidáty zůstávají v draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -12,16 +12,19 @@ workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existu
 Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Nejbližší práce je hlavně o atomickém business zápisu s auditem, následném
-server-authoritative Blueprint apply a odděleném autentizovaném důkazu hlavního
-workflow. Migration provenance je v repozitáři sjednocená, ale žádná live
-migrace se tímto checkpointem nepovažuje za schválenou ani aplikovanou.
+Nejbližší práce je hlavně o server-authoritative Blueprint apply, order checkout
+důkazu a odděleném autentizovaném ověření hlavního workflow. Atomic business
+mutace s auditem už jsou sloučené v PR #45. Migration provenance je v repozitáři
+sjednocená, ale žádná live migrace se tímto checkpointem nepovažuje za
+schválenou ani aplikovanou.
 
 ## Čerstvý delivery checkpoint — 30. 8. 2026
 
 - PR #17 (workflow truth + Operator dispatch) je sloučený do `main` jako
   `f1d86e1`. Jeho scope je přijatý pro single-workspace interní MVP; provider
   exactly-once, multi-tenant hardening a další live důkazy zůstávají oddělené.
+- PR #45 (atomic business mutations + audit) je sloučený do `main` jako
+  `006b776`. PR #21 je jeho starší duplicitní draft a nemá se znovu mergovat.
 - PR #39 (audit evidence), PR #40 (migration provenance) a PR #41 (queue
   recovery testy) jsou sloučené. PR #40 sjednotilo lokální/remote provenance a
   linked dry-run byl `Remote database is up to date`; neprovedlo žádný live
@@ -106,6 +109,9 @@ polish checkpointu a nemá být tiše použit jako nový source of truth.
 - Workflow truth a Operator dispatch jsou po sloučení PR #17 v `main`; skutečný
   business side effect není doložen pro všechny action types a provider
   exactly-once zůstává mimo single-workspace MVP.
+- Atomic business mutation + audit kontrakt je po PR #45 v `main`; chybí však
+  live Postgres rollback, authenticated persistence a skutečný RLS/concurrency
+  důkaz. PR #21 je proto pouze duplicitní historický draft.
 - Hlavní Operator Console completion má server-owned dispatch cestu, ale chybí
   nový end-to-end browser/persistence důkaz po aktuálním merge.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
@@ -118,8 +124,6 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 
 ## Stav otevřených důkazů — 30. 8. 2026
 
-- PR #21 — atomická business mutace a audit: **OPEN/DRAFT**. Kód a statické
-  testy existují, ale live RPC, rollback/idempotence a RLS důkaz nejsou doloženy.
 - PR #23 — server-authoritative Blueprint apply: **OPEN/DRAFT**. PR #40 už
   sjednotilo migration provenance, ale tato větev je před dalším rozhodnutím
   stale vůči `main` a vyžaduje rebase, nové gates a autentizovaný reload důkaz.
@@ -136,7 +140,7 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 | #6 | starý pilot-readiness gate | historický dokumentační draft; nenahrazuje tento checkpoint |
 | #7 | starší order-checkout větev | překrývá se s #44; před jakýmkoli merge nejdříve porovnat unique commits |
 | #8 | starý Operator UI smoke záznam | evidence-only draft; aktuální smoke dokumenty jsou v `main` |
-| #21 | atomické business mutace + audit | nejbližší implementační kandidát |
+| #21 | starší duplicitní atomic business/audit draft | superseded PR #45; nemergovat |
 | #23 | server-authoritative Blueprint apply | navazuje po rebase na aktuální `main` |
 | #28 | explicitní RLS policies | samostatný security slice; bez implicitního live apply |
 | #44 | order items v call checkoutu | čeká na authenticated/persistence/authorization důkaz |
@@ -178,33 +182,27 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **DRAFT PR #21 — atomická business mutace a audit**
-
-   Nejbližší implementační kandidát. Nejprve rebase na aktuální `main`, potom
-   review SQL/RPC kontraktu, statické gates a teprve samostatně live/persistence
-   ověření. Live migrace není součástí automatického merge.
-
-2. **DRAFT PR #23 — server-authoritative Blueprint apply**
+1. **DRAFT PR #23 — server-authoritative Blueprint apply**
 
    Navazuje až po vyjasnění transakčního kontraktu. Vyžaduje rebase, test partial
    failure, authenticated manager apply, reload a workspace/RLS kontrolu.
 
-3. **DRAFT PR #44 — order checkout items**
+2. **DRAFT PR #44 — order checkout items**
 
    Funkční kandidát pro MVP, ale před merge musí doložit skutečné order items,
    duplicate-submit chování, reload persistence a oprávnění v reálném workspace.
 
-4. **DRAFT PR #28 — RLS policy cleanup**
+3. **DRAFT PR #28 — RLS policy cleanup**
 
    Samostatný bezpečnostní slice. Nejdříve přesný diff policies a provisioning
    plán, následně případné sandbox/live ověření; žádný implicitní `db push`.
 
-5. **P1 — čerstvý autentizovaný pilotní důkaz**
+4. **P1 — čerstvý autentizovaný pilotní důkaz**
 
    Po relevantních mergech projít login → workspace → claim/call/outcome nebo
    order → reload → SQL read-back, včetně negativní role a cizího workspace.
 
-6. **P2 — sjednotit historickou dokumentaci**
+5. **P2 — sjednotit historickou dokumentaci**
 
    Samostatně projít `README.md`, `docs/architecture.md`, `docs/roadmap.md` a
    `docs/commits.md`, aby vize nebyla zaměněná za současný live scope. Tento

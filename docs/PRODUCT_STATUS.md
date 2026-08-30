@@ -7,7 +7,7 @@
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `origin/main` na `e80bc71` a z odděleného read-only ověření
+> vychází z `origin/main` na `fbd041b` a z odděleného read-only ověření
 > produkčního deploymentu. Historické počty a checkpointy níže nejsou nový
 > důkaz aktuálního runtime.
 
