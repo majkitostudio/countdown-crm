@@ -4,6 +4,10 @@ import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceContext } from "./workspace";
 import { createDataClient } from "./db";
+import { getScopedLeadForWorkspace } from "./leadQueue";
+import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
+import type { WorkflowDispatchResult } from "@/lib/workflows/types";
+import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 
 type CallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
@@ -15,6 +19,7 @@ export interface CompleteCallInput {
   outcome: CompletionOutcome;
   transcript?: string | null;
   ai_sentiment?: string | null;
+  order_items?: CallOrderItemInput[] | null;
   order_product_id?: string | null;
   order_total_amount?: number | null;
 }
@@ -24,6 +29,7 @@ export interface CompleteCallDTO {
   order_id: string | null;
   lead_status: Database["public"]["Tables"]["leads"]["Row"]["status"];
   operator_name: string;
+  workflowDispatches: WorkflowDispatchResult[];
 }
 
 const outcomeMap: Record<CompletionOutcome, CallOutcome> = {
@@ -55,7 +61,39 @@ export async function completeCallForWorkspace(
     throw new DataAccessError("VALIDATION", "Order amount must be a non-negative number");
   }
 
+  const orderItems = input.order_items ?? (
+    input.order_product_id
+      ? [{
+          product_id: input.order_product_id,
+          quantity: 1,
+          unit_price: input.order_total_amount ?? 0,
+        }]
+      : []
+  );
+  const hasOrder = orderItems.length > 0;
+  if (input.outcome === "order_placed" && !hasOrder) {
+    throw new DataAccessError("VALIDATION", "An order call requires at least one order item");
+  }
+  if (input.outcome !== "order_placed" && hasOrder) {
+    throw new DataAccessError("VALIDATION", "Order items require an order call outcome");
+  }
+  if (orderItems.length > 50) {
+    throw new DataAccessError("VALIDATION", "An order may contain at most 50 items");
+  }
+  if (new Set(orderItems.map((item) => item.product_id)).size !== orderItems.length) {
+    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+  }
+  for (const item of orderItems) {
+    if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+    }
+    if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1_000_000_000) {
+      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+    }
+  }
+
   const context = await requireWorkspaceContext(workspaceId);
+  const lead = await getScopedLeadForWorkspace(input.lead_id, context.workspaceId);
   const supabase = await createDataClient();
   const { data: operatorProfile, error: operatorProfileError } = await supabase
     .from("profiles")
@@ -68,14 +106,13 @@ export async function completeCallForWorkspace(
   }
 
   const operatorName = operatorProfile?.full_name?.trim() || "Unknown operator";
-  const { data, error } = await supabase.rpc("complete_call_with_order", {
+  const { data, error } = await supabase.rpc("complete_call_with_order_items", {
     p_lead_id: input.lead_id,
     p_duration_seconds: input.duration_seconds,
     p_outcome: outcomeMap[input.outcome],
     p_transcript: input.transcript || null,
     p_ai_sentiment: input.ai_sentiment || "Neutral",
-    p_order_product_id: input.order_product_id || null,
-    p_order_total_amount: input.order_total_amount ?? null,
+    p_order_items: hasOrder ? orderItems : null,
   });
 
   if (error || !data || !Array.isArray(data) || data.length !== 1) {
@@ -87,5 +124,20 @@ export async function completeCallForWorkspace(
     throw new DataAccessError("DATABASE", "Call completion returned an invalid result");
   }
 
-  return { ...row, operator_name: operatorName };
+  const workflowDispatch = await dispatchWorkflowEventForWorkspace({
+    trigger: "on_call_ended",
+    eventId: row.call_id,
+    payload: {
+      callId: row.call_id,
+      leadId: lead.id,
+      leadName: lead.full_name,
+      agentName: operatorName,
+      outcome: input.outcome,
+      sentiment: input.ai_sentiment || "Neutral",
+      orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
+      transcript: input.transcript || "",
+    },
+  });
+
+  return { ...row, operator_name: operatorName, workflowDispatches: [workflowDispatch] };
 }

@@ -6,7 +6,6 @@ import { getScopedLeadForWorkspace } from "./leadQueue";
 import { requireWorkspaceContext } from "./workspace";
 import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
-import { createAuditLogForWorkspace } from "./audit";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
@@ -247,54 +246,31 @@ export async function reassignOrdersProductForWorkspace(
   }
 
   const supabase = await createDataClient();
-  const { data: products, error: productError } = await supabase
-    .from("products")
-    .select("id, title")
-    .eq("workspace_id", workspaceId)
-    .in("id", [sourceProductId, targetProductId]);
+  const { data, error } = await supabase.rpc("reassign_orders_product_with_audit", {
+    p_workspace_id: workspaceId,
+    p_source_product_id: sourceProductId,
+    p_target_product_id: targetProductId,
+  } as never);
 
-  if (productError) {
-    throw new DataAccessError("DATABASE", "Unable to verify the selected products.");
-  }
-
-  const sourceProduct = products?.find((product) => product.id === sourceProductId);
-  const targetProduct = products?.find((product) => product.id === targetProductId);
-  if (!sourceProduct || !targetProduct) {
-    throw new DataAccessError("VALIDATION", "Both products must belong to the active workspace.");
-  }
-
-  const { data: orders, error: orderLookupError } = await supabase
-    .from("orders")
-    .select("id")
-    .eq("workspace_id", workspaceId)
-    .eq("product_id", sourceProductId);
-
-  if (orderLookupError) {
-    throw new DataAccessError("DATABASE", "Unable to load orders for product reassignment.");
-  }
-
-  const orderIds = (orders || []).map((order) => order.id);
-  if (orderIds.length === 0) {
-    return { sourceProductId, targetProductId, movedOrderIds: [] };
-  }
-
-  const { data: updatedOrders, error: updateError } = await supabase
-    .from("orders")
-    .update({ product_id: targetProductId })
-    .eq("workspace_id", workspaceId)
-    .eq("product_id", sourceProductId)
-    .select("id");
-
-  if (updateError || !updatedOrders) {
+  const row = (Array.isArray(data) ? data[0] : data) as {
+    source_product_id: string;
+    target_product_id: string;
+    moved_order_ids: string[] | null;
+  } | null;
+  if (error) {
+    if (error.message?.includes("must belong to the active workspace")) {
+      throw new DataAccessError("VALIDATION", "Both products must belong to the active workspace.");
+    }
     throw new DataAccessError("DATABASE", "Unable to reassign the selected orders.");
   }
 
-  const movedOrderIds = updatedOrders.map((order) => order.id);
-  await createAuditLogForWorkspace({
-    action: "ORDER_PRODUCT_REASSIGNED",
-    severity: "medium",
-    details: `Reassigned ${movedOrderIds.length} order(s) from ${sourceProduct.title} to ${targetProduct.title}. Historical order totals were preserved.`,
-  });
+  if (!row) {
+    throw new DataAccessError("DATABASE", "Unable to reassign the selected orders.");
+  }
 
-  return { sourceProductId, targetProductId, movedOrderIds };
+  return {
+    sourceProductId: row.source_product_id,
+    targetProductId: row.target_product_id,
+    movedOrderIds: row.moved_order_ids || [],
+  } as ReassignOrdersResult;
 }

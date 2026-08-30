@@ -202,46 +202,23 @@ export async function updateLeadStatusForWorkspace(
 ): Promise<LeadDTO> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
-  const { data, error } = await supabase
-    .from("leads")
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", leadId)
-    .eq("workspace_id", context.workspaceId)
-    .select(LEAD_FIELDS)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("update_lead_status_with_audit", {
+    p_workspace_id: context.workspaceId,
+    p_lead_id: leadId,
+    p_status: status,
+  } as never);
 
+  const row = (Array.isArray(data) ? data[0] : data) as LeadDTO | null;
   if (error) {
+    if (error.message?.includes("not found in the active workspace")) {
+      throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
+    }
     throw new DataAccessError("DATABASE", "Lead update failed");
   }
 
-  if (!data) {
+  if (!row) {
     throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", context.userId)
-    .maybeSingle();
-
-  if (profileError) {
-    throw new DataAccessError("DATABASE", "Lead audit operator lookup failed");
-  }
-
-  const { error: auditError } = await supabase.from("audit_logs").insert({
-    workspace_id: context.workspaceId,
-    actor_id: context.userId,
-    actor_name: profile?.full_name?.trim() || "Unknown operator",
-    action: "LEAD_UPDATE",
-    target_resource: "System",
-    details: `Lead ${leadId} status changed to ${status}`,
-    severity: "low",
-    ip_address: "server",
-  });
-
-  if (auditError) {
-    throw new DataAccessError("DATABASE", "Lead status changed but audit event was not saved");
-  }
-
-  return data as LeadDTO;
+  return row as LeadDTO;
 }

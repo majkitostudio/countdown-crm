@@ -19,11 +19,11 @@ import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleMo
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { sounds } from "@/lib/audio";
-import { workflowEngine } from "@/lib/workflows/engine";
-import { listWorkflowsAction } from "@/app/actions/workflows";
-import { ExecutionLogEntry } from "@/lib/workflows/types";
+import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
+import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
+import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import {
@@ -47,7 +47,10 @@ interface PostCallSummary {
   transcriptStatus: "unavailable";
   orderId?: string;
   workflowEntries: ExecutionLogEntry[];
+  workflowDispatches: WorkflowDispatchResult[];
 }
+
+const CALL_START_SERVER_TIMEOUT_MS = 10_000;
 
 function WorkspaceContent() {
   const router = useRouter();
@@ -81,6 +84,7 @@ function WorkspaceContent() {
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
+  const callStartRecoveryRef = React.useRef(false);
   const completionInFlightRef = React.useRef(false);
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
@@ -200,17 +204,14 @@ function WorkspaceContent() {
           return;
         }
 
-        const [fetchedLeads, fetchedProducts, fetchedWorkflows] = await Promise.all([
+        const [fetchedLeads, fetchedProducts] = await Promise.all([
           getLeads(),
           getProducts(),
-          listWorkflowsAction(),
         ]);
 
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
         setActiveQueueItemId(null);
-        workflowEngine.replaceRules(fetchedWorkflows);
-
         if (leadIdParam) {
           const found = fetchedLeads.find((l) => l.id === leadIdParam);
           if (found) setActiveLead(found);
@@ -233,6 +234,7 @@ function WorkspaceContent() {
     orderValue = 0,
     orderProductId?: string,
     callbackScheduledAt?: string,
+    orderItems?: CallOrderItemInput[],
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
@@ -253,6 +255,7 @@ function WorkspaceContent() {
           duration_seconds: durationSeconds,
           outcome: queueOutcome,
           ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+          order_items: orderItems || null,
           order_product_id: orderProductId || null,
           order_total_amount: orderProductId ? orderValue : null,
           transcript: null,
@@ -272,7 +275,7 @@ function WorkspaceContent() {
         setActiveLead(nextAssignment?.lead || null);
         setLeads(nextAssignment ? [nextAssignment.lead] : []);
 
-        const workflowEntries: ExecutionLogEntry[] = [];
+        const workflowEntries = completion.workflowDispatches.flatMap((dispatch) => dispatch.entries);
         setPostCallSummary({
           leadName: activeLead.full_name,
           outcomeLabel,
@@ -281,6 +284,7 @@ function WorkspaceContent() {
           transcriptStatus: "unavailable",
           orderId: completion.order_id || undefined,
           workflowEntries,
+          workflowDispatches: completion.workflowDispatches,
         });
         setActivityRefreshToken((current) => current + 1);
         return { callId: completion.call_id, orderId: completion.order_id || undefined };
@@ -291,6 +295,7 @@ function WorkspaceContent() {
         duration_seconds: durationSeconds,
         outcome,
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+        order_items: orderItems || null,
         order_product_id: orderProductId,
         order_total_amount: orderProductId ? orderValue : null,
         transcript: null,
@@ -307,25 +312,7 @@ function WorkspaceContent() {
       setLeads((currentLeads) =>
         currentLeads.map((lead) => (lead.id === savedLead.id ? savedLead : lead))
       );
-      let workflowEntries: ExecutionLogEntry[] = [];
-      try {
-        workflowEntries = await workflowEngine.emit("on_call_ended", {
-        callId: completion.call_id,
-        leadId: activeLead.id,
-        leadName: activeLead.full_name,
-        agentName: completion.operator_name,
-        outcome,
-        sentiment: orderStatus === "created" ? "Positive" : "Neutral",
-        orderValue,
-          transcript: "Call ended by operator",
-        });
-      } catch (workflowError) {
-        setNotificationToast(
-          workflowError instanceof Error
-            ? `Call and order saved, but automation failed: ${workflowError.message}`
-            : "Call and order saved, but automation failed."
-        );
-      }
+      const workflowEntries = completion.workflowDispatches.flatMap((dispatch) => dispatch.entries);
 
       setPostCallSummary({
         leadName: activeLead.full_name,
@@ -335,6 +322,7 @@ function WorkspaceContent() {
         transcriptStatus: "unavailable",
         orderId: completion.order_id || undefined,
         workflowEntries,
+        workflowDispatches: completion.workflowDispatches,
       });
       setActivityRefreshToken((current) => current + 1);
       return { callId: completion.call_id, orderId: completion.order_id || undefined };
@@ -412,15 +400,32 @@ function WorkspaceContent() {
           setNotificationToast("No active server assignment is available for this call.");
           return;
         }
+        if (assignmentState !== "assigned") {
+          setNotificationToast("The server assignment requires recovery before another call can start.");
+          return;
+        }
 
         if (callStartPendingRef.current) return;
+        if (callStartRecoveryRef.current) {
+          setNotificationToast("Call start recovery is still in progress. Wait for it to finish or reload the workspace.");
+          return;
+        }
         callStartPendingRef.current = true;
         setIsCallStartPending(true);
         void (async () => {
           let queueCallStarted = false;
+          let startRequest: Promise<LeadQueueSnapshot> | null = null;
           try {
-            const startedAssignment = await startLeadCallAction(activeQueueItemId);
+            startRequest = startLeadCallAction(activeQueueItemId);
+            const startedAssignment = await withTimeout(
+              startRequest,
+              CALL_START_SERVER_TIMEOUT_MS,
+              "Server call start timed out; assignment recovery has been started",
+            );
             queueCallStarted = true;
+            if (startedAssignment.assignment_state !== "in_progress") {
+              throw new Error("Server did not activate the lead assignment");
+            }
             setActiveLead(startedAssignment.lead);
             setLeads([startedAssignment.lead]);
             setAssignmentState(startedAssignment.assignment_state);
@@ -428,30 +433,61 @@ function WorkspaceContent() {
             setCallDurationSeconds(0);
             const stopTone = sounds.playDialTone();
             stopAudioRef.current = stopTone;
-            const audioReady = await softphoneController.dial(
-              startedAssignment.lead.id,
-              startedAssignment.lead.phone,
-              startedAssignment.lead.full_name,
+            const audioReady = await withTimeout(
+              softphoneController.dial(
+                startedAssignment.lead.id,
+                startedAssignment.lead.phone,
+                startedAssignment.lead.full_name,
+              ),
+              CALL_START_SERVER_TIMEOUT_MS,
+              "Audio initialization timed out",
             );
             if (!audioReady) throw new Error("Audio session could not be initialized");
           } catch (error) {
+            let recoveryError: unknown = null;
+            let recoveredAssignment: LeadQueueSnapshot | null = null;
             if (queueCallStarted) {
               try {
-                await abortLeadCallStartAction(activeQueueItemId, "Softphone start failed");
-              } catch (recoveryError) {
-                setNotificationToast(recoveryError instanceof Error ? recoveryError.message : "Call start recovery failed.");
+                recoveredAssignment = await abortLeadCallStartAction(activeQueueItemId, "Softphone start failed");
+              } catch (errorDuringRecovery) {
+                recoveryError = errorDuringRecovery;
               }
+            } else if (startRequest && error instanceof OperationTimeoutError && error.message.includes("Server call start timed out")) {
+              callStartRecoveryRef.current = true;
+              void startRequest
+                .then(
+                  () => abortLeadCallStartAction(activeQueueItemId, "Server call start timed out"),
+                  () => abortLeadCallStartAction(activeQueueItemId, "Server call start request failed after timeout"),
+                )
+                .then((recoveredAssignment) => {
+                  setAssignmentState(recoveredAssignment.assignment_state);
+                  setRecoveryRequired(recoveredAssignment.recovery_required);
+                  setNotificationToast("Call start timed out, but the server assignment was recovered. You can try again.");
+                })
+                .catch(() => {
+                  setNotificationToast("Call start timed out. Reload the workspace to recover the server assignment before retrying.");
+                })
+                .finally(() => {
+                  callStartRecoveryRef.current = false;
+                });
             }
             if (stopAudioRef.current) {
               stopAudioRef.current();
               stopAudioRef.current = null;
             }
             softphoneController.cancelDial();
-            if (queueCallStarted) setAssignmentState("assigned");
+            if (recoveredAssignment) {
+              setAssignmentState(recoveredAssignment.assignment_state);
+              setRecoveryRequired(recoveredAssignment.recovery_required);
+            } else if (queueCallStarted) {
+              setRecoveryRequired(true);
+            }
             setNotificationToast(
-              error instanceof Error
-                ? `Call could not be started: ${error.message}`
-                : "Call could not be started. No CRM activity was recorded."
+              recoveryError instanceof Error
+                ? `Call start recovery failed: ${recoveryError.message}. Reload the workspace before retrying.`
+                : error instanceof Error
+                  ? `Call could not be started: ${error.message}`
+                  : "Call could not be started. No CRM activity was recorded."
             );
           } finally {
             callStartPendingRef.current = false;
@@ -580,19 +616,22 @@ function WorkspaceContent() {
     setIsCallbackSchedulePending(false);
   };
 
-  const handleOrderPlaced = async (
-    productId: string,
-    totalAmount: number,
-  ): Promise<OrderPlacementResult | null> => {
+  const handleOrderPlaced = async (input: {
+    items: CallOrderItemInput[];
+  }): Promise<OrderPlacementResult | null> => {
     if (!activeLead) return null;
 
     try {
+      const firstItem = input.items[0];
+      const totalAmount = totalCallOrderItems(input.items);
       const completion = await completeCall(
         "order_placed",
         "Order placed",
         "created",
         totalAmount,
-        productId
+        firstItem?.product_id,
+        undefined,
+        input.items,
       );
       if (!completion?.orderId) return null;
       return { orderId: completion.orderId, callCompleted: true };

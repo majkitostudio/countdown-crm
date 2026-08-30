@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { audioEngine } from "@/lib/telephony/audioEngine";
-import { WebRtcSoftphoneController } from "@/lib/telephony/softphone";
+import { SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, WebRtcSoftphoneController } from "@/lib/telephony/softphone";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -19,6 +19,18 @@ describe("WebRtcSoftphoneController lifecycle", () => {
 
     await vi.advanceTimersByTimeAsync(4_000);
 
+    expect(controller.getSession().state).toBe("idle");
+  });
+
+  it("returns to idle when audio initialization never settles", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(audioEngine, "initialize").mockImplementation(() => new Promise<boolean>(() => {}));
+    const controller = new WebRtcSoftphoneController();
+
+    const dialPromise = controller.dial("lead-1", "+420700000001", "Test Lead");
+    await vi.advanceTimersByTimeAsync(SOFTPHONE_AUDIO_INIT_TIMEOUT_MS);
+
+    await expect(dialPromise).resolves.toBe(false);
     expect(controller.getSession().state).toBe("idle");
   });
 

@@ -1,4 +1,7 @@
 import { audioEngine } from "./audioEngine";
+import { withTimeout } from "@/lib/withTimeout";
+
+export const SOFTPHONE_AUDIO_INIT_TIMEOUT_MS = 10_000;
 
 export type CallState = "idle" | "dialing" | "ringing" | "connected" | "on_hold" | "ended";
 
@@ -105,20 +108,26 @@ export class WebRtcSoftphoneController {
     };
     this.notify();
 
-    const audioOk = await audioEngine.initialize();
     const sessionId = this.currentSession.id;
+    let audioOk = false;
+    try {
+      audioOk = await withTimeout(
+        audioEngine.initialize(),
+        SOFTPHONE_AUDIO_INIT_TIMEOUT_MS,
+        "Audio initialization timed out",
+      );
+    } catch {
+      audioOk = false;
+    }
 
     if (!audioOk) {
       if (this.isCurrentSession(sessionId, "dialing")) {
         this.cancelDial();
-      } else {
-        audioEngine.release();
       }
       return false;
     }
 
     if (!this.isCurrentSession(sessionId, "dialing")) {
-      audioEngine.release();
       return false;
     }
 
@@ -147,7 +156,16 @@ export class WebRtcSoftphoneController {
    * Answer incoming call session
    */
   public async answer(): Promise<boolean> {
-    const audioOk = await audioEngine.initialize();
+    let audioOk = false;
+    try {
+      audioOk = await withTimeout(
+        audioEngine.initialize(),
+        SOFTPHONE_AUDIO_INIT_TIMEOUT_MS,
+        "Audio initialization timed out",
+      );
+    } catch {
+      audioOk = false;
+    }
     if (!audioOk) {
       this.resetToIdle();
       return false;

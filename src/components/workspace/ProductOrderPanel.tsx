@@ -14,6 +14,7 @@ import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
+import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -30,10 +31,11 @@ interface ProductOrderPanelProps {
   orderMode?: "call" | "manual";
   onClose: () => void;
   onOrderPlaced: (
-    productId: string,
-    totalAmount: number,
-    orderSource: OrderSource,
-    sourceNote: string | null,
+    input: {
+      items: CallOrderItemInput[];
+      orderSource?: OrderSource;
+      sourceNote?: string | null;
+    },
   ) => Promise<OrderPlacementResult | null>;
 }
 
@@ -109,12 +111,21 @@ export function ProductOrderPanel({
     if (!selectedProduct || !activeLead) return;
 
     setOrderError(null);
-    const result = await onOrderPlaced(
-      selectedProduct.id,
-      grandTotal,
-      orderMode === "call" ? "previous_call" : orderSource,
-      orderMode === "manual" ? sourceNote.trim() || null : null,
-    );
+    const items: CallOrderItemInput[] = buildCallOrderItems({
+      product_id: selectedProduct.id,
+      unit_price: selectedProduct.price,
+      quantity,
+      discount_percent: discountPercent,
+      bundle: bundleProduct
+        ? { product_id: bundleProduct.id, unit_price: bundleSubtotal }
+        : undefined,
+    });
+
+    const result = await onOrderPlaced({
+      items,
+      orderSource: orderMode === "call" ? "previous_call" : orderSource,
+      sourceNote: orderMode === "manual" ? sourceNote.trim() || null : null,
+    });
     if (!result) {
       setOrderError("Order was not created. Check the error above and try again.");
       return;

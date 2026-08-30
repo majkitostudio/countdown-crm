@@ -12,6 +12,7 @@ ALTER TABLE public.record_entities ALTER COLUMN workspace_id SET NOT NULL;
 ALTER TABLE public.record_values ALTER COLUMN workspace_id SET NOT NULL;
 ALTER TABLE public.workflow_executions ALTER COLUMN workspace_id SET NOT NULL;
 ALTER TABLE public.workflows ALTER COLUMN workspace_id SET NOT NULL;
+ALTER TABLE public.audit_logs ALTER COLUMN workspace_id SET NOT NULL;
 
 CREATE INDEX IF NOT EXISTS calls_agent_id_idx ON public.calls(agent_id);
 CREATE INDEX IF NOT EXISTS calls_lead_id_idx ON public.calls(lead_id);

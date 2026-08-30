@@ -14,7 +14,6 @@ import {
   Radio,
   ChevronLeft,
   ChevronRight,
-  Zap,
   GraduationCap,
   Workflow,
   Briefcase,
@@ -27,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import type { WorkspaceRole } from "@/lib/auth/roles";
+import { CountdownMark } from "@/components/brand/CountdownMark";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
 
@@ -100,7 +100,7 @@ export function Sidebar() {
       <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/80">
         <Link href="/" className="flex items-center gap-3 overflow-hidden">
           <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 shrink-0">
-            <Zap className="w-4 h-4 text-zinc-100 fill-zinc-100/20" />
+            <CountdownMark className="h-4 w-4" />
           </div>
           {!isCompact && (
             <div className="flex flex-col">
