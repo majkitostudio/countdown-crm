@@ -5,6 +5,8 @@ import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import type { LeadDTO } from "./leads";
+import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
+import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 
 export type QueueState = Database["public"]["Tables"]["lead_queue_items"]["Row"]["state"];
 export type OperatorPresenceState = Database["public"]["Tables"]["operator_presence"]["Row"]["state"];
@@ -36,6 +38,7 @@ export interface QueueCompletionDTO {
   queue_state: QueueState;
   duration_seconds: number;
   next_lead: LeadQueueSnapshot | null;
+  workflowDispatches: WorkflowDispatchResult[];
 }
 
 export interface QueueItemDTO {
@@ -223,7 +226,11 @@ export async function abortLeadCallStartForWorkspace(
 
 export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
   assertQueueInput(input);
-  await requireWorkspaceRole(["operator"]);
+  const context = await requireWorkspaceRole(["operator"]);
+  const currentLead = await getCurrentLeadForWorkspace(context.workspaceId);
+  if (!currentLead || currentLead.queue_item_id !== input.queue_item_id) {
+    throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
+  }
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call", {
     target_queue_item_id: input.queue_item_id,
@@ -235,7 +242,23 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     order_total_amount: input.order_total_amount ?? null,
     callback_scheduled_at: input.callback_scheduled_at || null,
   });
-  return requireRpcData(data, error, "Call completion failed");
+  const completion = requireRpcData<QueueCompletionDTO>(data, error, "Call completion failed");
+  const workflowDispatch = await dispatchWorkflowEventForWorkspace({
+    trigger: "on_call_ended",
+    eventId: completion.call_id,
+    payload: {
+      callId: completion.call_id,
+      leadId: currentLead.lead_id,
+      leadName: currentLead.lead.full_name,
+      agentName: "Authenticated operator",
+      outcome: input.outcome,
+      sentiment: input.ai_sentiment || "Neutral",
+      orderValue: input.order_total_amount ?? 0,
+      transcript: input.transcript || "",
+    },
+  });
+
+  return { ...completion, workflowDispatches: [workflowDispatch] };
 }
 
 export async function listQueueItemsForWorkspace(workspaceId?: string): Promise<QueueItemDTO[]> {

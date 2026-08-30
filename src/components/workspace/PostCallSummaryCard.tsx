@@ -12,10 +12,13 @@ import {
   Bell,
   X,
   Activity,
+  AlertTriangle,
+  Globe,
 } from "lucide-react";
 import {
   ExecutionLogEntry,
   ACTION_REGISTRY,
+  WorkflowDispatchResult,
 } from "@/lib/workflows/types";
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -29,6 +32,7 @@ interface PostCallSummaryCardProps {
     transcriptStatus: "unavailable";
     orderId?: string;
     workflowEntries: ExecutionLogEntry[];
+    workflowDispatches: WorkflowDispatchResult[];
   };
   onDismiss: () => void;
   onNextLead: () => void;
@@ -41,6 +45,7 @@ const ACTION_ICON_MAP: Record<string, React.ElementType> = {
   Mail,
   RefreshCw,
   Bell,
+  Globe,
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -49,9 +54,20 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
   const { workflowEntries: entries } = summary;
   const successCount = entries.filter((e) => e.status === "success").length;
   const failureCount = entries.filter((e) => e.status === "failure").length;
+  const unavailableCount = entries.filter((e) => e.status === "unavailable").length;
+  const simulationCount = entries.filter((e) => e.status === "simulation").length;
   const skippedCount = entries.filter((e) => e.status === "skipped").length;
+  const dispatchFailure = summary.workflowDispatches.some((dispatch) => dispatch.status === "failure");
+  const dispatchUnavailable = summary.workflowDispatches.some((dispatch) => dispatch.status === "unavailable");
+  const dispatchSimulation = summary.workflowDispatches.some((dispatch) => dispatch.status === "simulation");
   const automationSummary = failureCount > 0
     ? `Automation failed — ${failureCount} action${failureCount === 1 ? "" : "s"}`
+    : dispatchFailure
+    ? "Automation dispatch failed"
+    : unavailableCount > 0 || dispatchUnavailable
+    ? `Automation unavailable — ${unavailableCount} rule${unavailableCount === 1 ? "" : "s"}`
+    : simulationCount > 0 || dispatchSimulation
+    ? `Automation simulation — no durable effect`
     : successCount > 0
     ? `Automation completed — ${successCount} action${successCount === 1 ? "" : "s"}`
     : skippedCount > 0
@@ -73,6 +89,8 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
             <p className="text-[10px] text-zinc-500 font-mono">
               {summary.leadName} • {summary.outcomeLabel} • {Math.round(summary.durationSeconds / 60)}m
               {failureCount > 0 && ` • ${failureCount} failed`}
+              {unavailableCount > 0 && ` • ${unavailableCount} unavailable`}
+              {simulationCount > 0 && ` • ${simulationCount} simulated`}
               {skippedCount > 0 && ` • ${skippedCount} skipped`}
             </p>
           </div>
@@ -115,12 +133,23 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
 
       {/* Executed Rules */}
       <div className="space-y-2">
+        {summary.workflowDispatches
+          .filter((dispatch) => dispatch.entries.length === 0 && dispatch.status !== "success")
+          .map((dispatch) => (
+            <div key={`${dispatch.trigger}-${dispatch.eventId}`} className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
+              {dispatch.status === "failure" ? "Automation dispatch failed" : dispatch.status === "simulation" ? "Automation simulation" : "Automation unavailable"}: {dispatch.reason}
+            </div>
+          ))}
         {entries.map((entry) => {
           const StatusIcon =
             entry.status === "success"
               ? CheckCircle2
-              : entry.status === "failure"
+            : entry.status === "failure"
               ? XCircle
+              : entry.status === "unavailable"
+              ? AlertTriangle
+              : entry.status === "simulation"
+              ? Activity
               : SkipForward;
 
           return (
@@ -142,6 +171,10 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
                           ? "w-1.5 h-1.5 rounded-full bg-emerald-500"
                           : entry.status === "failure"
                           ? "w-1.5 h-1.5 rounded-full bg-rose-500"
+                          : entry.status === "unavailable"
+                          ? "w-1.5 h-1.5 rounded-full bg-amber-500"
+                          : entry.status === "simulation"
+                          ? "w-1.5 h-1.5 rounded-full bg-sky-500"
                           : "w-1.5 h-1.5 rounded-full bg-zinc-500"
                       }
                     />
@@ -149,6 +182,10 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
                       ? "Spuštěno"
                       : entry.status === "failure"
                       ? "Selhalo"
+                      : entry.status === "unavailable"
+                      ? "Nedostupné"
+                      : entry.status === "simulation"
+                      ? "Simulace"
                       : "Přeskočeno"}
                   </span>
                 </div>
@@ -170,6 +207,16 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
                         </span>
                       );
                     })}
+                  </div>
+                )}
+
+                {entry.actionResults.length > 0 && (
+                  <div className="mt-1.5 space-y-0.5">
+                    {entry.actionResults.map((result) => (
+                      <p key={result.action} className="text-[10px] text-zinc-500 font-mono">
+                        {result.action}: {result.reason}
+                      </p>
+                    ))}
                   </div>
                 )}
 
