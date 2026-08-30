@@ -7,7 +7,7 @@
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `origin/main` na `9a8cbc0` a z odděleného read-only ověření
+> vychází z `origin/main` na `853e784` a z odděleného read-only ověření
 > Preview/Sandbox i produkčního deploymentu. Historické počty a checkpointy
 > níže nejsou nový důkaz aktuálního runtime.
 
@@ -32,6 +32,10 @@ dokumentu pro Blueprint stav:
   Blueprint migrace `20260827005441` a `20260830100000`. Administratorův
   `/workspace` se načetl bez Blueprint chyby; produkční stav zůstal defaultní
   bez aktivovaného blueprintu.
+- PR #44 je sloučené do `main` jako `853e784`. Checkout nyní posílá quantity a
+  bundle order items přes serverovou completion RPC; prošly lokální gates
+  (96 testů, lint, typecheck, build, diff check) a Vercel Preview. Pokročilé
+  live persistence/RLS/concurrency testy jsou odložené.
 - Produkční negativní browser smoke se skutečným účtem `mikestudio` potvrdil
   roli `Operator`: `/workspace` bez Blueprint administrace, skryté
   administrátorské nav položky a přímé `/workflows` jako `Unavailable`. Přímé
