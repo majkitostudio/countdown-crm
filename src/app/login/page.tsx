@@ -46,8 +46,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand Logo */}
         <div className="flex flex-col items-center space-y-2 text-center">
-          <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 shadow-md">
-            <CountdownMark />
+          <div className="flex items-center justify-center">
+            <CountdownMark className="h-12 w-12" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">
             COUNTDOWN CRM
