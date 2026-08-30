@@ -75,7 +75,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
     : "No automation triggered";
 
   return (
-    <div className="bg-zinc-900/80 border border-zinc-700/80 rounded-xl p-4 shadow-xl backdrop-blur-sm space-y-3 animate-in fade-in slide-in-from-top-3 duration-400">
+    <section className="space-y-3 rounded-xl border border-zinc-600/90 bg-zinc-900/90 p-4 shadow-xl ring-1 ring-emerald-300/10 backdrop-blur-sm animate-in fade-in slide-in-from-top-3 duration-400" data-testid="post-call-summary" role="region" aria-labelledby="post-call-summary-title">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -83,9 +83,9 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
             <Zap className="w-4 h-4 text-zinc-300" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-zinc-100">
+            <h2 id="post-call-summary-title" className="text-sm font-semibold text-zinc-100">
               Post-call summary
-            </h3>
+            </h2>
             <p className="text-[10px] text-zinc-500 font-mono">
               {summary.leadName} • {summary.outcomeLabel} • {Math.round(summary.durationSeconds / 60)}m
               {failureCount > 0 && ` • ${failureCount} failed`}
@@ -97,8 +97,10 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
         </div>
 
         <button
+          type="button"
           onClick={onDismiss}
-          className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+          aria-label="Dismiss post-call summary"
+          className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         >
           <X className="w-4 h-4" />
         </button>
@@ -246,6 +248,6 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

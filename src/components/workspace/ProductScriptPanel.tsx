@@ -77,7 +77,7 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
   }, [product?.id]);
 
   return (
-    <section className="flex h-full min-h-0 flex-col space-y-4 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm backdrop-blur-md">
+    <section className="flex h-full min-h-0 flex-col space-y-4 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-5 shadow-sm backdrop-blur-md" data-testid="operator-script-context" aria-labelledby="product-script-title">
       <div className="flex items-start justify-between gap-3 border-b border-zinc-800/80 pb-3">
         <div className="flex items-start gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 bg-zinc-950 text-zinc-300">
@@ -85,7 +85,7 @@ export function ProductScriptPanel({ product, isCallActive, onApplyPitch }: Prod
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-semibold text-zinc-100">Product Script</h2>
+              <h2 id="product-script-title" className="text-sm font-semibold text-zinc-100">Product Script</h2>
               <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
                 Continuous script
               </span>
