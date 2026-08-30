@@ -1,44 +1,60 @@
 # Audit checkpoint — 27. 8. 2026
 
+> Aktualizováno 30. 8. 2026 podle aktuálního `origin/main` a posledního
+> autentizovaného Operator smoke. Tento dokument zachovává původní datum
+> snapshotu; nové skutečnosti jsou označené datem aktualizace.
+
 ## Stručný stav
 
-Nejdůležitější aplikační opravy z posledního auditu jsou připravené v draft PR #17, #21, #23 a #28. Statické kontroly a Vercel preview jsou zelené. Žádná z těchto změn zatím nebyla aplikována do live databáze.
+Aktuální `origin/main` je `cea0886`. Do hlavní verze byly od původního
+snapshotu sloučeny PR #17 (workflow truth), #40 (migration provenance), #41
+(queue/recovery kontrakty) a #42 (recovery zaseknutého startu hovoru).
+
+Countdown CRM je nyní veden jako single-workspace MVP. Multi-workspace SaaS
+izolace, rozšířená RLS hardening a další živé deploymentní kroky nejsou tímto
+sloučením prohlášeny za dokončené.
 
 ## Nově ověřené skutečnosti
 
 - Docker Desktop a Docker engine jsou funkční.
 - Read-only export live schématu `public,private` proběhl bez zápisu do projektu.
 - Live databáze obsahuje authorization helpery v `private` namespace; `public.create_order_with_items` a `public.update_order_with_items` jsou `SECURITY INVOKER`.
-- Live databáze má aktivní RLS na 30 veřejných tabulkách a 75 veřejných politikách.
-- Live schéma zatím neobsahuje objekty z nových PR: `workspace_blueprint_state`, `atomic_business_mutations_audit` ani `workflow_executions.event_id`.
-- V disposable scratch databázi se migrace z PR #17, #21 a #23 aplikovaly na exportu live schématu.
-- Migrace PR #28 původně odkazovala na `public.is_workspace_manager_or_admin` a `public.is_workspace_member`, které v live schématu neexistují. Oprava na `private.*` je v commitnutém a pushnutém commitu `7ad71b4`; následné scratch ověření proběhlo.
+- Live databáze má aktivní RLS na veřejných tabulkách; přesný cross-workspace negativní scénář není tímto dokumentem znovu potvrzen.
+- Aktuální checkout obsahuje 63 migračních souborů. Read-only `supabase db push --dry-run --linked --project-ref lpvypihpxhyjljikfzqo --skip-vault` v checkoutu odpovídajícímu aktuálnímu `main` vrátil `Remote database is up to date`.
+- PR #40 sjednotil lokální migration provenance s remote historií. Dry-run není deployment a nebyl proveden žádný nový live migration push.
 
 ## Co stále není potvrzené
 
-- Negativní cross-workspace a unauthorized-role testy v live prostředí.
-- Persistence po reloadu/logoutu v live prostředí.
-- Bezpečné nasazení migrací do live databáze.
+- Kompletní negativní cross-workspace a unauthorized-role RLS testy v live prostředí.
+- Obecná SaaS/multi-tenant připravenost mimo současný single-workspace MVP.
+- Skutečné telephony/provider chování a browser scénář, ve kterém se audio
+  inicializace skutečně zasekne nebo odmítne.
+- Deployment budoucích databázových změn bez samostatného rozsahu, review a
+  ověření.
 
-## Browser smoke — 27. 8. 2026
+## Browser smoke — 27. 8. a 30. 8. 2026
 
-Read-only smoke proběhl s reálnou přihlášenou relací Administrátora i Operatora.
-Na obou rolích byly opakovaně načteny `/workspace`, `/leads`, `/orders`,
-`/settings` a `/team`. Stránky se po načtení ustálily bez nekonečného spinneru.
+Read-only smoke 27. 8. proběhl s reálnou přihlášenou relací Administrátora i
+Operatora. Na obou rolích byly načteny `/workspace`, `/leads`, `/orders`,
+`/settings` a `/team`; role a unavailable/read-only stavy se po reloadu
+zachovaly.
 
-- Administrátor viděl očekávaný širší workspace kontext.
-- Operator viděl Operator Console; `/leads` a `/team` zobrazily pravdivý
-  unavailable stav a `/settings` zůstalo pouze pro čtení.
-- `/orders` zobrazilo prázdný stav bez záznamů; nebyl proveden žádný zápis.
-- Po opakovaném načtení zůstaly role i stavy stejné.
-- Konzole prohlížeče neobsahovala chyby ani varování.
+Dne 30. 8. proběhl na branchi PR #42 autentizovaný pozitivní Operator scénář:
 
-Tento výsledek potvrzuje pouze UI chování přihlášených rolí. Nepotvrzuje RLS,
-cross-workspace izolaci ani live persistence.
+- Operator `mikestudio` otevřel přiřazeného testovacího leadu.
+- `Call Client` přešel přes `Dialing` do `In call`.
+- `End call` přešel do `Awaiting outcome`.
+- Výsledek `Not interested` se uložil a assignment se uvolnil.
+- Po reloadu workspace skončil na `Waiting for assignment`.
+- Call Logs zobrazily uložené call záznamy.
 
-## Disposable database verification — 27. 8. 2026
+Tento výsledek potvrzuje konkrétní autentizovaný Operator flow a persistence
+tohoto výsledku. Nepotvrzuje RLS izolaci, provider telephony ani forced
+timeout/error scénář.
 
-Po resetu scratch databáze přes všech 62 migrací proběhl izolovaný scénář
+## Disposable database verification — historická evidence
+
+Po resetu scratch databáze přes tehdejších 62 migrací proběhl izolovaný scénář
 queue completion a workspace hranice. Testovací data byla vytvořena pouze ve
 scratch databázi a prostředí bylo po ověření vypnuto.
 
@@ -49,48 +65,42 @@ scratch databázi a prostředí bylo po ověření vypnuto.
 - Team Leader viděl lead ze svého workspace, ale ne lead z jiného workspace.
 - Anonymous role neměla SELECT oprávnění na `public.leads`.
 
-Tento výsledek potvrzuje databázový scénář v čistém scratch prostředí. Nenahrazuje
-live persistence test ani nasazení nových migrací do live databáze.
+Tato evidence zůstává scratch důkazem z 27. 8. a nenahrazuje nové live
+persistence, authorization ani RLS ověření.
 
-## Mezera v automatickém pokrytí
+## Automatické pokrytí
 
-Lokální test suite aktuálně pokrývá settings, Product Script, softphone
-lifecycle a training API. Samostatné automatické testy pro queue/recovery,
-idempotenci call outcome, business-mutation audit a cross-workspace RLS zde
-nejsou. Tyto oblasti proto zůstávají otevřeným důkazním gapem, i když ostatní
-testy a build procházejí.
+PR #41 přidal kontraktní testy queue/recovery a PR #42 přidal testy timeoutu
+startu hovoru a lifecycle audio session. Lokální ověření dokončených slice:
 
-## Migration provenance — připravené k review
+- PR #41: `npm test` 60/60; `npm run check`; `git diff --check` — prošlo.
+- PR #42: `npm test` 72/72; `npm run check`; `git diff --check` — prošlo.
 
-Ve starém checkoutu se read-only `supabase db push --dry-run --linked` stále
-zastaví na 21 remote-only verzích. Na reconcile větvi
-`chore/reconcile-migration-provenance-20260827` už stejný dry-run vrací
-`Remote database is up to date`; disposable reset zároveň aplikoval všech 62
-migrací od nuly. Tento rozdíl se nesmí řešit `migration repair`, přepsáním
-historie, slepým `db pull` do checkoutu ani hromadným `--include-all` bez
-schválené mapy původu.
+Unit/contract testy nenahrazují browser, persistence, authorization, RLS ani
+live deployment důkaz.
 
-Čerstvé read-only ověření s project ref potvrdilo shodu všech 62 lokálních a
-vzdálených verzí na reconcile větvi. Zbývající překážkou není drift, ale review
-změny a samostatné rozhodnutí, zda a kdy se má tato historie nasadit do live.
+## Migration provenance
 
-### Předběžná mapa remote-only verzí
+PR #40 je sloučený do `main` jako `d04e05e`. Aktuální main-compatible checkout
+obsahuje 63 migrací a linked dry-run je čistý. Tento stav potvrzuje shodu
+provenance a absenci pending migrací podle použitého checkoutu; není to
+povolení k novému live pushi ani důkaz, že libovolná budoucí větev je live.
 
-| Remote verze | Předběžné zařazení |
-| --- | --- |
-| `20260810071051` | chybějící historický základ `countdown_crm_base_schema` |
-| `20260810071052`, `20260810071112`, `20260810071115`, `20260810071138`, `20260810071243`, `20260810071327`, `20260818162302` | lokální ekvivalent existuje; obsah byl porovnán jako shodný nebo logicky odpovídající |
-| `20260810071346`, `20260810104508` | lokální ekvivalent existuje, ale remote obsahuje dodatečné změny; vyžaduje ruční rozhodnutí |
-| `20260822134103`, `20260822134130`, `20260823010004`, `20260823041802` | skutečně chybějící pozdější push/presence/profile migrace |
-| `20260824100836`, `20260824104323`, `20260824104408`, `20260824104450`, `20260824104747`, `20260824112120` | skutečně chybějící atomic call/order opravy |
-| `20260824210525` | skutečně chybějící call-outcome recovery migrace |
-
-Tato mapa je pracovní evidence, nikoli povolení k opravě historie. Před deploymentem je nutné dohledat přesný obsah každé historické verze a rozhodnout, zda bude zachována jako kompatibilní baseline, přenesena do nové migrace, nebo ponechána jako explicitně zdokumentovaný historický artefakt.
+Historická mapa remote-only verzí z původního snapshotu je archivní evidence,
+nikoli aktuální instrukce k opravě historie. Nesmí se řešit `migration repair`,
+přepsáním historie, slepým `db pull` do product checkoutu ani hromadným
+`--include-all` bez nového rozhodnutí.
 
 ## Doporučený další krok
 
-Reconcile větev `chore/reconcile-migration-provenance-20260827` je připravená v draft PR #40. Její linked dry-run vrací `Remote database is up to date` a disposable reset aplikoval všech 62 migrací od nuly. Po review této větve lze řešit další deploymentní kroky; pilotní gate zůstává otevřený, dokud nebude doložena live persistence a autentizované autorizace.
+Provést samostatný review PR #21, #23 a #28. Každý z nich se musí posuzovat
+odděleně podle dopadu na business mutace, blueprint persistence, RLS a live
+migration provenance. Do té doby je ponechat jako draft a nic z nich
+neaplikovat do live databáze.
 
 ## Bezpečnostní hranice
 
-V tomto checkpointu nebyla změněna live databáze, migration history, role, membership ani produktová data. Scratch prostředí bylo po ověření vypnuto.
+V rámci této aktualizace nebyla změněna live databáze, migration history,
+role, membership ani produktová data. Scratch prostředí nebylo použito k novému
+testu. Merge PR #17, #40, #41 a #42 je Git změna; není to totéž jako live
+deployment.
