@@ -40,4 +40,19 @@ describe("workflow server-boundary UI contract", () => {
     expect(workspacePage).toContain("abortLeadCallStartAction(activeQueueItemId, \"Server call start timed out\")");
     expect(workspacePage).toContain("Call start recovery is still in progress");
   });
+
+  it("keeps the Operator Console primary hierarchy explicit", () => {
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const leadHeader = readFileSync(path.join(projectRoot, "src", "components", "workspace", "OperatorLeadHeader.tsx"), "utf8");
+    const summary = readFileSync(path.join(projectRoot, "src", "components", "workspace", "PostCallSummaryCard.tsx"), "utf8");
+
+    expect(workspacePage).toContain('data-testid="operator-console"');
+    expect(workspacePage).toContain('data-testid="operator-primary-work-area"');
+    expect(workspacePage).toContain('data-testid="supporting-context-rail"');
+    expect(workspacePage).toContain("P0/P1 lead action first, P2 script second, P3 support");
+    expect(leadHeader).toContain('data-testid="operator-lead-primary"');
+    expect(leadHeader).toContain('data-state={leadState}');
+    expect(summary).toContain('data-testid="post-call-summary"');
+    expect(summary).toContain('aria-label="Dismiss post-call summary"');
+  });
 });

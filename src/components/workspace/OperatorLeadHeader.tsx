@@ -49,19 +49,39 @@ export function OperatorLeadHeader({
 
   if (!activeLead) {
     return (
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 text-sm text-zinc-400">
+      <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 text-sm text-zinc-400" data-testid="operator-lead-primary" data-state="waiting_assignment">
         No active customer selected.
       </section>
     );
   }
 
+  const leadState = isAwaitingOutcome
+    ? "awaiting_outcome"
+    : isDialing
+      ? "dialing"
+      : isCallActive
+        ? "in_call"
+        : "ready";
+  const leadStateClassName = isAwaitingOutcome
+    ? "border-amber-800/70 bg-amber-950/10 ring-1 ring-amber-300/10"
+    : isDialing
+      ? "border-sky-800/70 bg-sky-950/10 ring-1 ring-sky-300/10"
+      : isCallActive
+        ? "border-rose-800/70 bg-zinc-900/70 ring-1 ring-rose-300/10"
+        : "border-zinc-700/80 bg-zinc-900/70 ring-1 ring-white/5";
+
   return (
-    <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm">
+    <section
+      className={`rounded-xl p-5 shadow-lg ${leadStateClassName}`}
+      data-testid="operator-lead-primary"
+      data-state={leadState}
+      aria-labelledby="operator-lead-title"
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Current Lead</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h2 className="text-xl font-semibold tracking-tight text-zinc-100">{activeLead.full_name}</h2>
+            <h2 id="operator-lead-title" className="text-xl font-semibold tracking-tight text-zinc-100">{activeLead.full_name}</h2>
             <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
               {activeLead.status || "New lead"}
             </span>
@@ -97,7 +117,7 @@ export function OperatorLeadHeader({
                 onClick={onToggleMute}
                 aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                 title={isMuted ? "Unmute microphone" : "Mute microphone"}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200"
+                className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </button>
@@ -105,7 +125,7 @@ export function OperatorLeadHeader({
                 href="/settings"
                 aria-label="Open settings"
                 title="Open settings"
-                className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200"
+                className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 <Settings className="h-4 w-4" />
               </Link>
@@ -114,7 +134,7 @@ export function OperatorLeadHeader({
                 onClick={onToggleCall}
                 aria-label="End call"
                 title="End call"
-                className="rounded-xl border border-rose-800 bg-rose-900/80 p-2.5 text-rose-100 hover:bg-rose-900"
+                className="rounded-xl border border-rose-800 bg-rose-900/80 p-2.5 text-rose-100 hover:bg-rose-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 <PhoneOff className="h-4 w-4" />
               </button>
@@ -131,7 +151,7 @@ export function OperatorLeadHeader({
                 onClick={onToggleCall}
                 disabled={isStarting}
                 aria-busy={isStarting}
-                className="flex items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <PhoneCall className="h-4 w-4" />
                 {isStarting ? "Starting call..." : "Call Client"}
@@ -140,7 +160,7 @@ export function OperatorLeadHeader({
                 <button
                   type="button"
                   onClick={onCreateOrder}
-                  className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
+                  className="flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
                 >
                   Create Order
                 </button>
@@ -151,7 +171,7 @@ export function OperatorLeadHeader({
                   onClick={onSimulateIncoming}
                   title="Simulate an incoming call"
                   aria-label="Simulate an incoming call"
-                  className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200"
+                  className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
                 >
                   <PhoneIncoming className="h-4 w-4" />
                 </button>

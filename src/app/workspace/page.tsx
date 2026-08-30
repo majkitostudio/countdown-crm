@@ -52,6 +52,19 @@ interface PostCallSummary {
 
 const CALL_START_SERVER_TIMEOUT_MS = 10_000;
 
+type OperatorConsoleState =
+  | "loading"
+  | "load_error"
+  | "waiting_assignment"
+  | "ready"
+  | "dialing"
+  | "in_call"
+  | "awaiting_outcome"
+  | "callback_modal"
+  | "completion_pending"
+  | "recovery_required"
+  | "post_call_summary";
+
 function WorkspaceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -657,16 +670,41 @@ function WorkspaceContent() {
     setAppliedPitch(pitchText);
   };
 
-  const pageHeaderBadge = isLoading
-    ? { label: "Loading", tone: "neutral" as const }
+  const operatorConsoleState: OperatorConsoleState = isLoading
+    ? "loading"
     : loadError
-      ? { label: "Unavailable", tone: "unavailable" as const }
+      ? "load_error"
       : identity?.role === "operator" && !activeLead
-        ? { label: "Waiting for assignment", tone: "neutral" as const }
-        : {
-            label: isAwaitingOutcome ? "Awaiting outcome" : isCallActive ? "In call" : "Ready for assignment",
-            tone: isAwaitingOutcome ? "warning" as const : "neutral" as const,
-          };
+        ? "waiting_assignment"
+        : postCallSummary
+          ? "post_call_summary"
+          : isCallbackScheduleOpen
+            ? "callback_modal"
+            : isCompletionPending
+              ? "completion_pending"
+              : recoveryRequired
+                ? "recovery_required"
+                : isAwaitingOutcome
+                  ? "awaiting_outcome"
+                  : isDialing
+                    ? "dialing"
+                    : isCallActive
+                      ? "in_call"
+                      : "ready";
+
+  const pageHeaderBadge = {
+    loading: { label: "Loading", tone: "neutral" as const },
+    load_error: { label: "Unavailable", tone: "unavailable" as const },
+    waiting_assignment: { label: "Waiting for assignment", tone: "neutral" as const },
+    ready: { label: "Ready for assignment", tone: "neutral" as const },
+    dialing: { label: "Dialing", tone: "neutral" as const },
+    in_call: { label: "In call", tone: "neutral" as const },
+    awaiting_outcome: { label: "Awaiting outcome", tone: "warning" as const },
+    callback_modal: { label: "Callback", tone: "warning" as const },
+    completion_pending: { label: "Saving outcome", tone: "warning" as const },
+    recovery_required: { label: "Recovery required", tone: "warning" as const },
+    post_call_summary: { label: "Call completed", tone: "neutral" as const },
+  }[operatorConsoleState];
 
   const pageHeader = (
     <PageHeader
@@ -718,7 +756,7 @@ function WorkspaceContent() {
   }
 
   return (
-    <div className="mx-auto max-w-none space-y-4">
+    <div className="mx-auto max-w-none space-y-4" data-testid="operator-console" data-state={operatorConsoleState}>
       {pageHeader}
       
       {/* Toast Notification Banner */}
@@ -738,9 +776,9 @@ function WorkspaceContent() {
         />
       )}
 
-      {/* Operator Console layout: lead and script first, supporting context in the right rail. */}
-      <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex min-h-0 min-w-0 flex-col gap-4">
+      {/* Operator Console hierarchy: P0/P1 lead action first, P2 script second, P3 support in the right rail. */}
+      <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
           <OperatorLeadHeader
             activeLead={activeLead}
             isCallActive={isCallActive}
@@ -778,10 +816,17 @@ function WorkspaceContent() {
               onApplyPitch={handleApplyPitch}
             />
           </div>
-        </div>
+        </section>
 
-        <aside className="min-w-0 space-y-4">
-          <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm">
+        <aside className="min-w-0 space-y-4 border-zinc-800/70 xl:border-l xl:pl-4" aria-label="Supporting customer context" data-testid="supporting-context-rail">
+          <div className="flex items-start justify-between gap-3 px-1">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
+              <p className="mt-1 text-[11px] text-zinc-600">History, notes and discovery prompts</p>
+            </div>
+            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[9px] font-mono text-zinc-600">P2 / P3</span>
+          </div>
+          <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3 shadow-sm">
             {activeLead ? (
               <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />
             ) : (
