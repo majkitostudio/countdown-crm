@@ -1,7 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `853e78427dc5e198e826373dc44d52567eba348e`
+**Ověřený baseline:** `origin/main` = `20c9a705550d43440525cfc057dc7ffc06726890`
+**Aktualizace baseline:** PR #55 (state map) a PR #56 (Operator Console layout) jsou rovněž sloučené; nejbližší implementační slice je Dashboard hierarchy pass.
 **Aktuální stav:** PR #23 a PR #44 jsou sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáty zůstávají v draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
@@ -12,9 +13,11 @@ workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existu
 Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Nejbližší práce je redesign Operator Console. Order checkout items jsou
-implementované v PR #44 a lokálně ověřené; pokročilé live persistence/RLS/
-concurrency testy zůstávají vědomě odložené. Server-authoritative Blueprint
+První UI pass redesignu Operator Console je dokončený: state map je v PR #55
+a layout hierarchy v PR #56. Nejbližší práce je Dashboard hierarchy pass.
+Order checkout items jsou implementované v PR #44 a lokálně ověřené; pokročilé
+live persistence/RLS/concurrency testy zůstávají vědomě odložené.
+Server-authoritative Blueprint
 apply je sloučený v PR #23 a jeho potřebné migrace jsou ověřeně aplikované v
 obou aktuálních Supabase cílech.
 
@@ -55,6 +58,14 @@ obou aktuálních Supabase cílech.
   Prošly `npm test` (19 souborů / 96 testů), `npm run check`,
   `git diff --check` a Vercel Preview check. Pokročilé live persistence,
   authorization, RLS a concurrency testy byly odloženy.
+- PR #55 (Operator Console state map) je sloučené do `main` jako `67e3003`.
+  Jde o dokumentační podklad s P0–P3 hierarchií; nemění runtime ani databázi.
+- PR #56 (Operator Console layout hierarchy) je sloučené do `main` jako
+  `20c9a70`. Změna zvýrazňuje aktuální lead, nejbližší call/outcome akci a
+  summary, zatímco timeline, notes a discovery otázky odsouvá do podpůrného
+  railu. Prošly `npm test` (19 souborů / 97 testů), `npm run check`,
+  `git diff --check` a Vercel Preview check. Browser persistence, authorization,
+  RLS a concurrency důkazy se tímto UI slice neprokazují.
 
 ## Co je dnes skutečný základ
 
@@ -157,6 +168,10 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 - PR #44 — persistované order items v checkoutu: **MERGED** jako `853e784`.
   Lokální gates a Preview check prošly; pokročilé live persistence/RLS/
   concurrency důkazy jsou odložené.
+- PR #55 — Operator Console state map: **MERGED** jako `67e3003`.
+- PR #56 — Operator Console layout hierarchy: **MERGED** jako `20c9a70`.
+  Lokální gates a Vercel Preview check prošly; autentizovaný browser smoke a
+  live persistence/RLS/concurrency evidence zůstávají samostatné.
 
 ### Inventura otevřených draft PR
 
@@ -210,10 +225,11 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **P1 — Operator Console redesign**
+1. **P1 — Dashboard hierarchy pass**
 
-   Navázat na existující brief a zlepšit informační hierarchii hlavní pracovní
-   plochy operátora. Neřešit přitom telephony integraci ani širší release gate.
+   Navázat na stejnou P0–P3 informační hierarchii a podřídit Dashboard skutečným
+   manažerským a provozním prioritám. Neřešit přitom nové KPI, telephony ani
+   širší release gate.
 
 2. **DRAFT PR #28 — RLS policy cleanup**
 
