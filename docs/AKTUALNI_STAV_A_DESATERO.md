@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `fbd041b240910577a7d001da315b7b0563a06ba7`
-**Aktuální stav:** po sloučení PR #50; otevřené implementační kandidáty zůstávají v draft PR
+**Ověřený baseline:** `origin/main` = `9a8cbc07fbd82cdb8a973a1ea8a7120a5a021fe`
+**Aktuální stav:** PR #23 je sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, otevřené implementační kandidáty zůstávají v draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -12,11 +12,10 @@ workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existu
 Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Nejbližší práce je hlavně o server-authoritative Blueprint apply, order checkout
-důkazu a odděleném autentizovaném ověření hlavního workflow. Atomic business
-mutace s auditem už jsou sloučené v PR #45. Migration provenance je v repozitáři
-sjednocená, ale žádná live migrace se tímto checkpointem nepovažuje za
-schválenou ani aplikovanou.
+Nejbližší práce je hlavně o order checkout důkazu a odděleném autentizovaném
+ověření hlavního workflow. Atomic business mutace s auditem už jsou sloučené
+v PR #45. Server-authoritative Blueprint apply je sloučený v PR #23 a jeho
+potřebné migrace jsou ověřeně aplikované v obou aktuálních Supabase cílech.
 
 ## Čerstvý delivery checkpoint — 30. 8. 2026
 
@@ -37,6 +36,18 @@ schválenou ani aplikovanou.
   RLS.
 - Aktuální repo gate doložený na PR #49: `npm test` 90/90, `npm run check`
   (lint, typecheck, build) a `git diff --check` prošly.
+- PR #23 (server-authoritative Blueprint apply) je sloučené do `main` jako
+  `9a8cbc0`. Lokální gates po opravě prošly: `npm test` 94/94, `npm run check`
+  (lint, typecheck, build) a `git diff --check`.
+- Preview/Sandbox Supabase ref `lpvypihpxhyjljikfzqo` má aplikované migrace
+  `20260827005441`, `20260830072304` a `20260830100000`. Přihlášený
+  Administrator úspěšně aktivoval B2B blueprint; reload zachoval stav a SQL
+  read-back potvrdil stav, čtyři atributy, workflow a objekt `leads`.
+- Produkční Supabase ref `qlzrsookyobtvyekhrqi` je oddělený od Preview/Sandbox.
+  V produkci jsou aplikované Blueprint migrace `20260827005441` a
+  `20260830100000`; přihlášený Administrator načetl `/workspace` bez 500.
+  Produkce je nyní v defaultním stavu bez aktivovaného blueprintu, nikoli
+  v B2B demo stavu.
 
 ## Co je dnes skutečný základ
 
@@ -66,10 +77,11 @@ schválenou ani aplikovanou.
 - Workflow pravdivost a dispatch jsou sloučené v PR #17; databázová idempotence
   přes `event_id` je doplněná. Zbývá oddělený live/persistence důkaz podpory
   workflow a provider exactly-once hardening není součástí MVP.
-- Blueprint apply zůstává v draft PR #23: serverová transakce ukládá stav,
-  atributy i workflow společně. PR #40 už sjednotilo migration provenance, ale
-  PR #23 musí být před dalším rozhodnutím rebasováno na aktuální `main` a znovu
-  ověřeno; žádné live nasazení se tímto checkpointem nepovoluje.
+- Blueprint apply je sloučený v PR #23: serverová transakce ukládá stav,
+  atributy i workflow společně. Preview/Sandbox i produkční databázová
+  infrastruktura jsou aplikované; Preview má pozitivní Admin apply + reload
+  + SQL důkaz, produkce má zatím pouze čisté načtení infrastruktury bez
+  aktivace blueprintu.
 - Training je oddělený simulátor/session workflow. Není to produkční hovor a
   jeho provider může spadnout na lokální training engine.
 - Dashboard a analytics používají reálná workspace data tam, kde existují.
@@ -83,12 +95,12 @@ schválenou ani aplikovanou.
 
 ## Aktuální stav důkazů
 
-Současný repo baseline obsahuje 62 migration souborů, včetně order history,
-Product Script versions a call-outcome recovery. Tento dokument migration
-history nepovažuje za autoritativní live snapshot: nebyl proveden žádný live
-SQL zápis, `db push`, `db pull`, repair ani schema reconciliation. Trackovaný
+Současný repo baseline obsahuje migration soubory, včetně order history,
+Product Script versions, call-outcome recovery a Blueprint apply. Trackovaný
 `supabase/schema.sql` je samostatně evidován jako neúplný/stale snapshot v
-polish checkpointu a nemá být tiše použit jako nový source of truth.
+polish checkpointu a nemá být tiše použit jako nový source of truth. Live
+Blueprint migrace byly aplikované řízeně do dvou odlišných Supabase projektů;
+nejde o důkaz, že všechny lokální migrace jsou nasazené do produkce.
 
 ### Provedené a ověřené na úrovni repozitáře
 
@@ -103,6 +115,8 @@ polish checkpointu a nemá být tiše použit jako nový source of truth.
   unavailable stavy.
 - Tracked Playwright screenshots byly zachovány; nebyly mazány generated ani
   recovery artefakty.
+- Blueprint live infrastruktura byla ověřena read-only SQL kontrolou: tabulka,
+  RPC, `leads` metadata, RLS a policies jsou v obou cílech přítomné.
 
 ### Provedené v kódu, ale nedostatečně ověřené pro pilot
 
@@ -115,18 +129,21 @@ polish checkpointu a nemá být tiše použit jako nový source of truth.
 - Hlavní Operator Console completion má server-owned dispatch cestu, ale chybí
   nový end-to-end browser/persistence důkaz po aktuálním merge.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
-- Chybí čerstvý browser test s reálným Auth uživatelem, reloadem, logout/login,
-  negativní rolí, cizím workspace, opakovaným submit a live RLS. Idempotence
-  je nyní chráněná v kódu databázovým `event_id` klíčem.
+- Chybí čerstvý negativní browser test s reálným Operator účtem proti Blueprint
+  administrátorské cestě; pozitivní Administrator apply byl doložen pouze v
+  Preview/Sandbox. Chybí také cizí workspace, opakovaný submit a plný live
+  RLS/concurrency důkaz. Idempotence je nyní chráněná v kódu databázovým
+  `event_id` klíčem.
 
 Podrobný nálezový inventář a oddělení static/browser/persistence/authorization/
 RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_20260826.md).
 
 ## Stav otevřených důkazů — 30. 8. 2026
 
-- PR #23 — server-authoritative Blueprint apply: **OPEN/DRAFT**. PR #40 už
-  sjednotilo migration provenance, ale tato větev je před dalším rozhodnutím
-  stale vůči `main` a vyžaduje rebase, nové gates a autentizovaný reload důkaz.
+- PR #23 — server-authoritative Blueprint apply: **MERGED** jako `9a8cbc0`.
+  Preview/Sandbox má pozitivní Admin apply, reload a SQL read-back; produkce má
+  aplikovanou infrastrukturu a čisté `/workspace`, ale Blueprint v ní zatím
+  nebyl aktivován.
 - PR #28 — explicitní RLS policies: **OPEN/DRAFT**. Live databáze nebyla
   změněna; případné nasazení vyžaduje samostatný provisioning plán a souhlas.
 - PR #44 — persistované order items v checkoutu: **OPEN/DRAFT**. Zbývá
@@ -141,7 +158,7 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 | #7 | starší order-checkout větev | překrývá se s #44; před jakýmkoli merge nejdříve porovnat unique commits |
 | #8 | starý Operator UI smoke záznam | evidence-only draft; aktuální smoke dokumenty jsou v `main` |
 | #21 | starší duplicitní atomic business/audit draft | superseded PR #45; nemergovat |
-| #23 | server-authoritative Blueprint apply | navazuje po rebase na aktuální `main` |
+| #23 | server-authoritative Blueprint apply | sloučeno; další důkaz je role-negative a produkční rozhodnutí o aktivaci |
 | #28 | explicitní RLS policies | samostatný security slice; bez implicitního live apply |
 | #44 | order items v call checkoutu | čeká na authenticated/persistence/authorization důkaz |
 | #46 | status dokumentace po starším auditu | zastaralý docs draft; tento checkpoint ho nahrazuje |
@@ -170,7 +187,9 @@ unikátní commity a teprve potom se případně archivují nebo vědomě uzavř
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 vulnerabilities po čisté instalaci |
 | no-unused/static scan | **prošlo** | mrtvý operator status state odstraněn a PR #24 sloučen |
-| browser/persistence/authorization/RLS | **neprovedeno v tomto docs auditu** | chybí přihlášená relace a live SQL evidence |
+| Blueprint browser smoke | **prošlo v Preview/Sandbox** | Administrator apply + reload; produkce pouze čisté načtení bez aktivace |
+| Blueprint persistence | **prošlo v Preview/Sandbox** | SQL read-back potvrdil stav, 4 atributy, workflow a `leads` objekt |
+| authorization/RLS | **částečně doloženo** | RPC/RLS metadata jsou v obou cílech; chybí negativní runtime test Operatora |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
 jsou důkazy jednotlivých vrstev. Pro kritický workflow stále potřebujeme
@@ -182,27 +201,22 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **DRAFT PR #23 — server-authoritative Blueprint apply**
-
-   Navazuje až po vyjasnění transakčního kontraktu. Vyžaduje rebase, test partial
-   failure, authenticated manager apply, reload a workspace/RLS kontrolu.
-
-2. **DRAFT PR #44 — order checkout items**
+1. **DRAFT PR #44 — order checkout items**
 
    Funkční kandidát pro MVP, ale před merge musí doložit skutečné order items,
    duplicate-submit chování, reload persistence a oprávnění v reálném workspace.
 
-3. **DRAFT PR #28 — RLS policy cleanup**
+2. **DRAFT PR #28 — RLS policy cleanup**
 
    Samostatný bezpečnostní slice. Nejdříve přesný diff policies a provisioning
    plán, následně případné sandbox/live ověření; žádný implicitní `db push`.
 
-4. **P1 — čerstvý autentizovaný pilotní důkaz**
+3. **P1 — čerstvý autentizovaný pilotní důkaz**
 
    Po relevantních mergech projít login → workspace → claim/call/outcome nebo
    order → reload → SQL read-back, včetně negativní role a cizího workspace.
 
-5. **P2 — sjednotit historickou dokumentaci**
+4. **P2 — sjednotit historickou dokumentaci**
 
    Samostatně projít `README.md`, `docs/architecture.md`, `docs/roadmap.md` a
    `docs/commits.md`, aby vize nebyla zaměněná za současný live scope. Tento
