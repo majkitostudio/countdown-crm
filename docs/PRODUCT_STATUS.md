@@ -32,9 +32,11 @@ dokumentu pro Blueprint stav:
   Blueprint migrace `20260827005441` a `20260830100000`. Administratorův
   `/workspace` se načetl bez Blueprint chyby; produkční stav zůstal defaultní
   bez aktivovaného blueprintu.
-- Otevřená mezera je negativní runtime ověření skutečného Operator účtu proti
-  administrátorské Blueprint cestě. SQL/RLS metadata nejsou náhradou tohoto
-  role-level browser důkazu. Projekt proto není označen jako pilot-ready.
+- Produkční negativní browser smoke se skutečným účtem `mikestudio` potvrdil
+  roli `Operator`: `/workspace` bez Blueprint administrace, skryté
+  administrátorské nav položky a přímé `/workflows` jako `Unavailable`. Přímé
+  odmítnutí RPC/serverové mutace ani plný live RLS/concurrency průchod nebyly
+  spuštěny. Projekt proto stále není označen jako pilot-ready.
 
 ## Aktuální checkpoint — 2026-08-22
 

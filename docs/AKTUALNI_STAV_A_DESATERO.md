@@ -129,11 +129,12 @@ nejde o důkaz, že všechny lokální migrace jsou nasazené do produkce.
 - Hlavní Operator Console completion má server-owned dispatch cestu, ale chybí
   nový end-to-end browser/persistence důkaz po aktuálním merge.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
-- Chybí čerstvý negativní browser test s reálným Operator účtem proti Blueprint
-  administrátorské cestě; pozitivní Administrator apply byl doložen pouze v
-  Preview/Sandbox. Chybí také cizí workspace, opakovaný submit a plný live
-  RLS/concurrency důkaz. Idempotence je nyní chráněná v kódu databázovým
-  `event_id` klíčem.
+- Produkční negativní browser smoke s reálným účtem `mikestudio` ověřil roli
+  `Operator`: `/workspace` nezobrazuje Blueprint administraci, administrátorské
+  nav položky jsou skryté a přímé `/workflows` vrací `Unavailable`. Přímé
+  odmítnutí RPC/serverové mutace Operatora nebylo v tomto průchodu spuštěno;
+  chybí také cizí workspace, opakovaný submit a plný live RLS/concurrency
+  důkaz. Idempotence je nyní chráněná v kódu databázovým `event_id` klíčem.
 
 Podrobný nálezový inventář a oddělení static/browser/persistence/authorization/
 RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_20260826.md).
@@ -189,7 +190,7 @@ unikátní commity a teprve potom se případně archivují nebo vědomě uzavř
 | no-unused/static scan | **prošlo** | mrtvý operator status state odstraněn a PR #24 sloučen |
 | Blueprint browser smoke | **prošlo v Preview/Sandbox** | Administrator apply + reload; produkce pouze čisté načtení bez aktivace |
 | Blueprint persistence | **prošlo v Preview/Sandbox** | SQL read-back potvrdil stav, 4 atributy, workflow a `leads` objekt |
-| authorization/RLS | **částečně doloženo** | RPC/RLS metadata jsou v obou cílech; chybí negativní runtime test Operatora |
+| authorization/RLS | **částečně doloženo** | Operator UI negative smoke prošel; RPC/RLS metadata jsou v obou cílech, přímé denial/RLS provedení chybí |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
 jsou důkazy jednotlivých vrstev. Pro kritický workflow stále potřebujeme
