@@ -616,9 +616,9 @@ function WorkspaceContent() {
     setIsCallbackSchedulePending(false);
   };
 
-  const handleOrderPlaced = async (input: {
-    items: CallOrderItemInput[];
-  }): Promise<OrderPlacementResult | null> => {
+  const handleOrderPlaced = async (
+    input: { items: CallOrderItemInput[] },
+  ): Promise<OrderPlacementResult | null> => {
     if (!activeLead) return null;
 
     try {

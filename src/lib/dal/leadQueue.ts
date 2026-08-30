@@ -120,13 +120,12 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
     throw new DataAccessError("VALIDATION", "Unsupported queue call outcome");
   }
 
-  const hasProduct = Boolean(input.order_product_id);
-  const hasAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
-  if (hasProduct !== hasAmount) {
+  const hasLegacyProduct = Boolean(input.order_product_id);
+  const hasLegacyAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
+  if (input.order_items == null && hasLegacyProduct !== hasLegacyAmount) {
     throw new DataAccessError("VALIDATION", "Order product and amount must be provided together");
   }
-
-  if (hasAmount && (!Number.isFinite(input.order_total_amount) || (input.order_total_amount as number) < 0)) {
+  if (input.order_items == null && hasLegacyAmount && (!Number.isFinite(input.order_total_amount) || (input.order_total_amount as number) < 0)) {
     throw new DataAccessError("VALIDATION", "Order amount must be non-negative");
   }
 

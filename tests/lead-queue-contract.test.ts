@@ -75,13 +75,12 @@ describe("lead queue server contract", () => {
     expect(mocks.createDataClient).not.toHaveBeenCalled();
   });
 
-  it("requires order product and amount to be supplied together", async () => {
+  it("requires at least one order item for an order outcome", async () => {
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
         duration_seconds: 30,
         outcome: "order_placed",
-        order_product_id: "product-1",
       }),
     ).rejects.toMatchObject({ code: "VALIDATION" });
 
@@ -114,9 +113,7 @@ describe("lead queue server contract", () => {
 
   it("passes completion fields to one server-authoritative RPC", async () => {
     const completion = { call_id: "call-1", order_id: null, queue_state: "completed" };
-    const rpc = vi.fn().mockResolvedValue({ data: completion, error: null });
-    rpc.mockReset();
-    rpc
+    const rpc = vi.fn()
       .mockResolvedValueOnce({ data: queueSnapshot, error: null })
       .mockResolvedValueOnce({ data: completion, error: null });
     mocks.createDataClient.mockResolvedValue({ rpc });
@@ -151,7 +148,6 @@ describe("lead queue server contract", () => {
       .mockResolvedValueOnce({ data: queueSnapshot, error: null })
       .mockResolvedValueOnce({ data: completion, error: null });
     mocks.createDataClient.mockResolvedValue({ rpc });
-
     const orderItems = [
       { product_id: "product-1", quantity: 2, unit_price: 18.5 },
       { product_id: "product-2", quantity: 1, unit_price: 9.99 },
@@ -178,10 +174,12 @@ describe("lead queue server contract", () => {
   });
 
   it("preserves the RPC error as a database access error", async () => {
-    const rpc = vi.fn().mockResolvedValue({
-      data: null,
-      error: { message: "assignment is no longer owned by this operator" },
-    });
+    const rpc = vi.fn()
+      .mockResolvedValueOnce({ data: queueSnapshot, error: null })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "assignment is no longer owned by this operator" },
+      });
     mocks.createDataClient.mockResolvedValue({ rpc });
 
     await expect(
