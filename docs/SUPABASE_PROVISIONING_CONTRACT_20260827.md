@@ -1,7 +1,7 @@
 # Countdown CRM — bezpečný provisioning Supabase
 
 **Ověřeno:** 27. 8. 2026
-**Repozitář:** `origin/main` na commitu `0521cdd`
+**Repozitář:** `chore/reconcile-migration-provenance-20260827` na commitu `d771756`
 **Kontrolovaný cíl:** testovací sandbox Supabase, ref `lpvypihpxhyjljikfzqo`
 **Typ dokumentu:** provozní hranice a důkaz migrací; žádná změna databáze
 
@@ -9,15 +9,15 @@
 
 Lokální migration soubory jsou zdroj plánovaného schématu aplikace. Live
 databáze a její tabulka historie nejsou zdroj návrhu, ale jsou závaznou
-kontrolou toho, co už bylo na konkrétním cíli provedeno. Tyto dvě věci nyní
-nejdou bezpečně posouvat běžným `db push`, protože v repozitáři chybí část
-historie, kterou sandbox uvádí jako již aplikovanou.
+kontrolou toho, co už bylo na konkrétním cíli provedeno. V této reconcile
+větvi je lokální historie sjednocená s historií sandboxu; nebyl přitom proveden
+žádný zápis do databáze.
 
 Nová migrace pro atomické business mutace proto zatím není nasazená. Nebyla
 provedena žádná oprava historie, žádný `db pull`, žádný `migration repair` a
 žádný zápis do databáze.
 
-## Aktuální důkaz driftu
+## Historický důkaz driftu před PR #40
 
 V checkoutu z `origin/main` je **51** lokálních SQL migrací. Read-only příkaz:
 
@@ -46,6 +46,35 @@ Remote migration versions not found in local migrations directory.
 Dry-run skončil před aplikací. To je důležitý výsledek, ne neúspěšně provedená
 migrace.
 
+## Ověření po reconcile PR #40
+
+Na této větvi read-only příkaz:
+
+```text
+npx supabase migration list --linked --project-ref lpvypihpxhyjljikfzqo
+```
+
+vrátil pro všech **62** lokálních souborů odpovídající remote verzi. Nebyla
+nalezena žádná lokální ani remote-only migrace.
+
+Přejmenování počátečních migration souborů zachovávají SQL obsah beze změny,
+s jednou výslovně zdokumentovanou historickou odchylkou: soubor
+`20260810071346_20260810_0007_harden_workspace_contract.sql` obsahuje oproti
+původnímu lokálnímu názvu také remote doložené `audit_logs.workspace_id SET
+NOT NULL`. Tato změna je proto posuzována jako obnova historického obsahu,
+nikoli jako pouhé přejmenování. Stejně tak novější grant a pozdější remote-only
+migrace jsou přidané jako chybějící historické verze, ne jako aplikační změny.
+
+Read-only dry-run:
+
+```text
+npx supabase db push --dry-run --linked --project-ref lpvypihpxhyjljikfzqo
+```
+
+vrátil `Remote database is up to date`, `migrations: []`, `seeds: []` a
+`roles: []`. Tento výsledek potvrzuje pouze shodu migration provenance a
+absence čekajících změn; není to povolení k live deploymentu.
+
 ## Co je a není zdroj pravdy
 
 - **Zdroj návrhu pro další práci:** verzované migration soubory v repozitáři,
@@ -68,24 +97,23 @@ zelené. Live sandbox ale podle read-only kontroly tyto dvě RPC zatím nemá.
 PR proto nesmí být označen jako live ověřený ani jako připravený k použití na
 tomto cíli jen na základě úspěšného buildu.
 
-## Jediný doporučený další krok
+## Další krok po PR #40
 
-Založit samostatný schema-reconciliation task, který nejprve pouze načte a
-uloží porovnání skutečného remote schématu s verzovanými migracemi. Tento task
-musí pro každou remote-only verzi určit, zda jde o přejmenování, historický
-artefakt nebo chybějící změnu. Teprve potom lze po review rozhodnout o přesném
-způsobu provisioning úpravy a jejím rollbacku.
+Po review PR #40 lze tuto větev použít jako jednoznačný lokální základ pro
+další vývoj. Jakýkoli live deployment migrací zůstává samostatným schváleným
+úkolem s vlastním rollback plánem a není součástí tohoto PR.
 
-Do té doby zůstávají schema apply, migration repair a merge PR #21 oddělené od
-tohoto dokumentu. Není bezpečné vyřešit drift rychlým označením historie jako
-`applied` nebo přímým SQL zápisem mimo standardní migraci.
+Schema apply, migration repair a merge PR #21 zůstávají oddělené od tohoto
+dokumentu. Není bezpečné řešit budoucí deployment rychlým označením historie
+jako `applied` nebo přímým SQL zápisem mimo standardní migraci.
 
 ## Stav ověření
 
-- Git/worktree: čistý nový worktree z `origin/main`; změna je pouze tento
-  dokument.
+- Git/worktree: reconcile worktree na branchi PR #40; změny jsou omezené na
+  migration provenance a související dokumentaci.
 - Supabase CLI: dostupné; cílový projekt byl zadán explicitním refem.
-- Read-only migration list: provedeno.
-- Read-only `db push --dry-run`: provedeno; zastaveno na známém driftu.
+- Read-only migration list: provedeno; 62/62 lokálních a remote verzí se
+  shoduje.
+- Read-only `db push --dry-run`: provedeno; `Remote database is up to date`.
 - Live schema write, migration apply, repair a pull: **neprovedeno**.
 - Tajné hodnoty, session cookies a testovací data: do dokumentu nevloženy.

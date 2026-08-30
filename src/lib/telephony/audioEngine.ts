@@ -24,6 +24,7 @@ export class TelephonyAudioEngine {
   private isMuted: boolean = false;
   private isRecording: boolean = false;
   private onAudioChunkCallbacks: Set<AudioChunkCallback> = new Set();
+  private initializationGeneration = 0;
 
   constructor(private config: AudioEngineConfig = {}) {
     this.config = {
@@ -41,20 +42,29 @@ export class TelephonyAudioEngine {
   public async initialize(): Promise<boolean> {
     if (typeof window === "undefined") return false;
 
+    const generation = ++this.initializationGeneration;
     try {
-      this.release();
+      this.releaseResources();
 
       if (!navigator.mediaDevices?.getUserMedia) {
         return false;
       }
 
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+      const mediaStreamPromise = navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: this.config.echoCancellation,
           noiseSuppression: this.config.noiseSuppression,
           autoGainControl: this.config.autoGainControl,
         },
       });
+      const mediaStream = await mediaStreamPromise;
+
+      if (generation !== this.initializationGeneration) {
+        mediaStream.getTracks().forEach((track) => track.stop());
+        return false;
+      }
+
+      this.mediaStream = mediaStream;
 
       const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioCtxClass) {
@@ -62,7 +72,7 @@ export class TelephonyAudioEngine {
       }
       this.audioCtx = new AudioCtxClass({ sampleRate: this.config.sampleRate || 16000 });
 
-      this.sourceNode = this.audioCtx.createMediaStreamSource(this.mediaStream);
+      this.sourceNode = this.audioCtx.createMediaStreamSource(mediaStream);
       this.gainNode = this.audioCtx.createGain();
       this.analyserNode = this.audioCtx.createAnalyser();
       this.analyserNode.fftSize = 256;
@@ -149,6 +159,11 @@ export class TelephonyAudioEngine {
    * Callbacks remain registered so a later call can reuse the engine.
    */
   public release() {
+    this.initializationGeneration += 1;
+    this.releaseResources();
+  }
+
+  private releaseResources() {
     this.stopRecording();
 
     try {

@@ -1,6 +1,6 @@
--- Countdown CRM: keep business mutations and their audit trail in one
--- transaction. Both RPCs are SECURITY INVOKER so RLS remains the database
--- authorization boundary; the function bodies add an explicit role check.
+-- Keep each business mutation and its audit trail in one database transaction.
+-- SECURITY INVOKER preserves the caller's RLS context; the explicit role check
+-- keeps this contract aligned with the server-side DAL authorization boundary.
 
 CREATE OR REPLACE FUNCTION public.update_lead_status_with_audit(
   p_workspace_id UUID,
@@ -45,8 +45,8 @@ BEGIN
     RAISE EXCEPTION 'Lead not found in the active workspace';
   END IF;
 
-  -- Desired-state semantics make retries safe. The first committed change
-  -- owns the audit event; a concurrent/repeated request becomes a no-op.
+  -- Desired-state retries are no-ops after the first committed change, so a
+  -- retried request cannot create a duplicate audit event.
   IF lead_row.status IS NOT DISTINCT FROM p_status THEN
     RETURN lead_row;
   END IF;
@@ -63,6 +63,8 @@ BEGIN
     AND workspace_id = p_workspace_id
   RETURNING * INTO lead_row;
 
+  -- Any audit insert error aborts this function's transaction, rolling back
+  -- the lead update instead of exposing a business/audit partial result.
   INSERT INTO public.audit_logs (
     workspace_id,
     actor_id,
@@ -150,14 +152,12 @@ BEGIN
     RAISE EXCEPTION 'Both products must belong to the active workspace';
   END IF;
 
-  -- Serialize all desired-state retries and competing moves for one source
-  -- product. The lock is transaction-scoped and needs no elevated privilege.
+  -- Serialize retries and competing moves for a source product.
   PERFORM pg_advisory_xact_lock(
     hashtextextended(p_workspace_id::TEXT || ':' || p_source_product_id::TEXT, 0)
   );
 
-  -- Lock both product rows in deterministic order to avoid source/target
-  -- inversion deadlocks when two managers submit opposite moves.
+  -- Lock both product rows in deterministic order before changing orders.
   PERFORM 1
   FROM public.products AS product
   WHERE product.workspace_id = p_workspace_id
@@ -170,9 +170,8 @@ BEGIN
   FROM public.profiles AS profile
   WHERE profile.id = current_user_id;
 
-  -- The existing order trigger reserves this transaction-local flag for
-  -- already-authorized server mutations. This RPC changes only product_id,
-  -- after validating both products and the manager/admin role above.
+  -- The existing order trigger uses this transaction-local flag for
+  -- authorized server mutations. Authorization was checked above.
   PERFORM set_config('countdown.order_edit_rpc', 'on', true);
 
   WITH moved AS (
@@ -186,8 +185,8 @@ BEGIN
   INTO moved_ids
   FROM moved;
 
-  -- A second desired-state submission has no business delta and therefore no
-  -- duplicate audit event. Any failure below aborts the whole RPC transaction.
+  -- A retry that finds no source rows is a desired-state no-op. If the audit
+  -- insert fails, the transaction aborts and rolls back the order update.
   IF COALESCE(cardinality(moved_ids), 0) > 0 THEN
     INSERT INTO public.audit_logs (
       workspace_id,

@@ -31,7 +31,7 @@ const workspaceContext = {
 
 const migrationPath = path.resolve(
   process.cwd(),
-  "supabase/migrations/20260826190619_atomic_business_mutations_audit.sql",
+  "supabase/migrations/20260830072304_atomic_business_mutations_audit_current_main.sql",
 );
 
 beforeEach(() => {
@@ -60,7 +60,7 @@ describe("atomic business mutation DAL wiring", () => {
     });
   });
 
-  it("maps an atomic RPC/audit failure without claiming a changed lead", async () => {
+  it("maps an atomic lead/audit failure without claiming a changed lead", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: null,
       error: { message: "audit insert failed" },
@@ -70,6 +70,17 @@ describe("atomic business mutation DAL wiring", () => {
     await expect(updateLeadStatusForWorkspace("lead-1", "contacted", "workspace-1"))
       .rejects.toMatchObject({ code: "DATABASE", message: "Lead update failed" });
     expect(rpc).toHaveBeenCalledOnce();
+  });
+
+  it("maps a lead not-found RPC result without treating it as a database failure", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Lead not found in the active workspace" },
+    });
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    await expect(updateLeadStatusForWorkspace("lead-1", "contacted", "workspace-1"))
+      .rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("rejects an unauthorized role before invoking either mutation RPC", async () => {
@@ -110,7 +121,7 @@ describe("atomic business mutation DAL wiring", () => {
     });
   });
 
-  it("maps an atomic order RPC/audit failure without claiming moved orders", async () => {
+  it("maps an atomic order/audit failure without claiming moved orders", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: null,
       error: { message: "audit insert failed" },
@@ -158,7 +169,24 @@ describe("atomic business mutation SQL contract", () => {
     expect(migration).toContain("product.workspace_id = p_workspace_id");
   });
 
-  it("keeps the audit insert inside each mutation and makes retries no-ops", () => {
+  it("keeps each audit insert after its business update inside the same RPC", () => {
+    const leadFunction = migration.slice(
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.update_lead_status_with_audit"),
+      migration.indexOf("REVOKE ALL ON FUNCTION public.update_lead_status_with_audit"),
+    );
+    const orderFunction = migration.slice(
+      migration.indexOf("CREATE OR REPLACE FUNCTION public.reassign_orders_product_with_audit"),
+      migration.indexOf("REVOKE ALL ON FUNCTION public.reassign_orders_product_with_audit"),
+    );
+
+    expect(leadFunction.indexOf("UPDATE public.leads")).toBeLessThan(leadFunction.indexOf("INSERT INTO public.audit_logs"));
+    expect(orderFunction.indexOf("UPDATE public.orders")).toBeLessThan(orderFunction.indexOf("INSERT INTO public.audit_logs"));
+    expect(leadFunction).not.toContain("EXCEPTION WHEN");
+    expect(orderFunction).not.toContain("EXCEPTION WHEN");
+    expect(migration).not.toContain("status changed but audit event was not saved");
+  });
+
+  it("serializes retries and makes already-applied desired states no-ops", () => {
     expect(migration).toContain("IF lead_row.status IS NOT DISTINCT FROM p_status THEN");
     expect(migration).toContain("FOR UPDATE;");
     expect(migration).toContain("pg_advisory_xact_lock");
