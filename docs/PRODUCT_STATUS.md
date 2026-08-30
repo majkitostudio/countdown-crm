@@ -1,12 +1,13 @@
 # Countdown CRM — Product Status & Refactoring Baseline
 
-**Datum aktualizace:** 2026-08-22
+**Datum aktualizace:** 2026-08-30
 **Status:** stabilizace před bezpečným interním pilotem; Operator Console je další hlavní produktová etapa
-> **Aktualizace 23. 8. 2026:** Tento dokument obsahuje historickou baseline a
+> **Aktualizace 30. 8. 2026:** Tento dokument obsahuje historickou baseline a
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `main` na `78781cb` a z čerstvé kontroly živého Supabase.
+> aktuální handoff vychází z `origin/main` na `15a82fa`; live Supabase stav se
+> tímto docs-only průchodem nemění ani nepotvrzuje.
 
 **Datum baseline:** 2026-08-09  
 **Status:** stabilizační a auditní fáze
@@ -14,9 +15,45 @@
 
 > **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
 
-## Aktuální checkpoint — 2026-08-22
+## Aktuální checkpoint — 2026-08-30
 
-Jádro CRM je v pilot-ready stavu pro ověřené workflow: auth/workspace/role hranice, leady, produkty, hovory, objednávky, queue/callback routing, kalendář, training review a Product Script základ mají skutečné serverové a databázové cesty. Projekt ale není obecně production-ready.
+`origin/main=15a82fa` obsahuje multi-item checkout z MERGED PR #43. PR #17 je
+rovněž MERGED (`f1d86e1`). PR #45 je OPEN/DRAFT mimo `main` na branchi
+`fix/atomic-business-audit-current-main`, s implementačním commitem `bb3d900`.
+
+PR #45 zavádí atomické serverové hranice pro změnu statusu leadu a přesun orderů:
+DAL volá jedno `SECURITY INVOKER` RPC, které ověřuje autentizaci, workspace a
+manager/admin roli a zapisuje business mutaci i audit ve stejné transakci.
+Retry no-op/idempotency a advisory lock pro order přesun jsou součástí kódu a
+testů. Nejde o důkaz live migrace, live persistence, cross-workspace autorizace
+ani RLS; tyto evidence zůstávají samostatným následujícím krokem.
+
+Lokální Supabase projekt `lpvypihpxhyjljikfzqo` a produkční projekt
+`qlzrsookyobtvyekhrqi` jsou oddělené konfigurace. Lokální testovací order nebo
+lokální SQL výsledek není důkazem persistence v produkčním projektu. Dokumentace
+neobsahuje žádné secret values.
+
+### Důkazní hranice tohoto handoffu
+
+- **Code/static:** `bb3d900`, test `tests/atomic-business-audit.test.ts` a repo
+  quality gates popisují implementaci a její statické/unit ověření.
+- **Browser/persistence:** přihlášený browser, reload a kontrola uložených řádků
+  pro PR #45 zatím nejsou doložené.
+- **Authorization/RLS:** source-level guardy jsou implementované, ale live
+  role/cross-workspace a RLS ověření nejsou tímto slice prokázané.
+- **Live migration/provisioning:** PR #45 nebylo touto změnou nasazeno do live
+  DB; migration provenance a schválený provisioning zůstávají otevřené.
+
+Nejbližší konkrétní krok po PR #45 je samostatný autentizovaný test lead/order
+RPC: rollback při chybě auditu, retry/idempotency a negativní cizí workspace,
+nejdříve proti bezpečně určenému testovacímu prostředí. Širší migration/RLS
+testování a live provisioning je až navazující etapa.
+
+Jádro CRM má implementační základ pro ověřované workflow: auth/workspace/role
+hranice, leady, produkty, hovory, objednávky, queue/callback routing, kalendář,
+training review a Product Script základ mají skutečné serverové a databázové
+cesty. Projekt ale není obecně production-ready ani tímto docs-only handoffem
+nepotvrzujeme pilotní připravenost nového PR #45.
 
 Product Script verzování, publikování a archivace je implementačně uzavřené v
 `baabfc3`, který je pushnutý na `feat/order-detail-edit`. Remote Supabase i lokální

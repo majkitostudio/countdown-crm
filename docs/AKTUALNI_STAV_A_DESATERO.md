@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
-**Snapshot:** 27. 8. 2026
-**Ověřený baseline:** `origin/main` = `0556b6fa9e640adbb931c799e722ab75baf62fa2`
-**Aktuální stav:** po sloučení PR #37, další opravy jsou v oddělených draft PR
+**Snapshot:** 30. 8. 2026
+**Ověřený baseline:** `origin/main` = `15a82faea289969fcd661ba6f306f71df9498b3b`
+**Aktuální stav:** PR #17 a PR #43 jsou sloučené; PR #45 je OPEN/DRAFT mimo `main`
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -12,9 +12,9 @@ workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existu
 Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Nejbližší práce je hlavně o bezpečném dokončení Workflow/Blueprint změn,
-sjednocení migration provenance a novém důkazu přihlášeného workflow od
-začátku do konce. Migration history nebyla měněna ani aplikována naslepo.
+Nejbližší práce po PR #45 je ověření tohoto atomického slice v oddělené
+autentizované browser/persistence/authorization/RLS etapě a bezpečné vyřešení
+migration provenance. Migration history nebyla měněna ani aplikována naslepo.
 
 ## Co je dnes skutečný základ
 
@@ -41,9 +41,15 @@ začátku do konce. Migration history nebyla měněna ani aplikována naslepo.
   verzování, sanitizaci a read-only zobrazení pro operátora. Pokud pro produkt
   není publikovaná verze, panel používá explicitní fallback; štítek `AI-assisted`
   není důkaz živé AI.
-- Workflow pravdivost a dispatch jsou připravené v draft PR #17; databázová
-  idempotence přes `event_id` je doplněná, ale čeká na bezpečné live nasazení a
-  pozitivní manager browser důkaz.
+- Workflow pravdivost a dispatch jsou implementované a PR #17 je MERGED do
+  `main` (`f1d86e1`). Live migrace, pozitivní manager browser důkaz a live RLS
+  ověření z tohoto zápisu automaticky nevyplývají.
+- PR #45 (`bb3d900`) je implementovaný draft slice mimo `main`: serverová DAL
+  volá jediné `SECURITY INVOKER` RPC pro změnu statusu leadu nebo přesun orderů,
+  které spojuje business mutaci s auditem v jedné transakci. Obsahuje kontrolu
+  autentizace, workspace a manager/admin role, retry no-op/idempotency a u
+  přesunu orderů transakční advisory lock. Live migrace, live persistence,
+  cross-workspace autorizace a RLS tím nejsou prokázané.
 - Blueprint apply je připravený v draft PR #23: serverová transakce ukládá
   stav, atributy i workflow společně; live nasazení čeká na reconciliation migrací.
 - Training je oddělený simulátor/session workflow. Není to produkční hovor a
@@ -93,16 +99,18 @@ polish checkpointu a nemá být tiše použit jako nový source of truth.
 Podrobný nálezový inventář a oddělení static/browser/persistence/authorization/
 RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_20260826.md).
 
-## Čerstvý delivery checkpoint — 27. 8. 2026
+## Čerstvý delivery checkpoint — 30. 8. 2026
 
+- Ověřený `origin/main` je `15a82fa`; PR #43 je MERGED a multi-item checkout
+  je součástí `main` (`15a82fa`).
 - PR #24 odstranil nepoužívaný stav Operator Console a byl sloučen do `main`
   jako `4a1b29f`.
-- PR #17 obsahuje pravdivější Workflow execution, serverový dispatch po
-  dokončení hovoru a databázově vynucenou idempotenci. Zůstává draft, protože
-  chybí pozitivní manager browser důkaz a bezpečné live nasazení migrace.
-- PR #21 obsahuje atomické business mutace s auditní stopou. Zůstává draft;
-  živé RPC nebylo nasazeno, protože dry-run narazil na rozdílnou historii
-  migrací.
+- PR #17 je MERGED do `main` (`f1d86e1`).
+- PR #45 je OPEN/DRAFT na `fix/atomic-business-audit-current-main`;
+  implementační commit je `bb3d900`. Není součástí `main`.
+  Předchozí implementační gate na této větvi byl 90/90 testů plus lint,
+  typecheck a production build; jde o code/static evidence, nikoli o live DB,
+  persistence, authorization nebo RLS důkaz.
 - PR #22 popisuje bezpečný provisioning kontrakt pro sandbox a přesný seznam
   20 live-only migračních verzí. Byl sloučen do `main` jako dokumentace a
   neprovedl žádný databázový zápis.
@@ -127,12 +135,13 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 
 | Kontrola | Výsledek | Poznámka |
 |---|---|---|
-| `npm test` | **prošlo** | 54/54 na aktuálním `origin/main`; 57/57 na Blueprint větvi |
+| `npm test` | **prošlo** | 54/54 na aktuálním `origin/main`; předchozí PR #45 gate 90/90 |
 | `npm run check` | **prošlo** | lint, typecheck a production build prošly; na Blueprint větvi zůstaly 2 starší warningy |
 | `git diff --check` | **prošlo** | bez whitespace chyb |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 vulnerabilities po čisté instalaci |
 | no-unused/static scan | **prošlo** | mrtvý operator status state odstraněn a PR #24 sloučen |
 | browser/persistence/authorization/RLS | **neprovedeno v tomto docs auditu** | chybí přihlášená relace a live SQL evidence |
+| live migration/provisioning | **neprovedeno** | PR #45 nebylo nasazeno do live DB; migration provenance zůstává otevřená |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
 jsou důkazy jednotlivých vrstev. Pro kritický workflow stále potřebujeme
@@ -144,14 +153,14 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **DRAFT PR #17 — opravit pravdivost workflow a dispatch Operator Console**
+1. **DRAFT PR #45 — dokončit a důkazně uzavřít atomické business mutace a audit**
 
-   `fix/workflow-execution-truth-and-operator-dispatch`
+   `fix/atomic-business-audit-current-main`
 
-   Oddělit `simulation`/`unavailable`/`failure`/`success`, awaitovat log
-   persistence, správně vyhodnotit webhook a napojit operator completion na
-   server-owned event dispatcher. Přidat unit/integration testy a event-id
-   idempotenci; bez tohoto kroku nemá browser smoke spolehlivý workflow kontrakt.
+   Slice je implementovaný v `bb3d900`, ale zůstává mimo `main`. Nejprve ověřit
+   rollback při chybě auditu, retry/idempotency a obě RPC v přihlášeném runtime;
+   teprve potom řešit migration provenance a případné live nasazení schválenou
+   cestou. Do tohoto kroku nepatří nový business workflow ani obecný redesign.
 
 2. **HOTOVO — uzavřít analytics authorization boundary**
 
@@ -169,15 +178,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    Otestovat také role a zápis do cizího workspace. Zapsat přesný účet/roli,
    datum, výsledek a případné fixture cleanup; neuvádět hesla.
 
-4. **DRAFT PR #21 — atomická business mutace a audit**
-
-   `fix/atomic-business-mutation-audit`
-
-   Opravit lead status/order reassignment tak, aby audit failure nevytvářel
-   rozpor mezi chybou pro klienta a již změněnými business daty. Přidat
-   rollback/idempotency evidence.
-
-5. **HOTOVO, ale role-only smoke stále chybí — Product Script**
+4. **HOTOVO, ale role-only smoke stále chybí — Product Script**
 
    `feat: persist and publish workspace product scripts`
 
@@ -186,7 +187,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    Zbývá pouze oddělené role-only ověření, pokud bude k dispozici příslušná
    přihlášená relace.
 
-6. **P1 — uzavřít Operator Console lifecycle**
+5. **P1 — uzavřít Operator Console lifecycle**
 
    `test: close operator queue and order lifecycle smoke`
 
@@ -194,7 +195,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    pád/recovery, order creation, status change a detail edit. Zaměřit se na
    race conditions a na to, že po chybě není lokální stav vydáván za uložený.
 
-7. **ČÁSTEČNĚ HOTOVO — stale snapshoty, dead paths a export polish**
+6. **ČÁSTEČNĚ HOTOVO — stale snapshoty, dead paths a export polish**
 
    Legacy training path a CSV escaping jsou uzavřené. Zbývá rozhodnout
    jak bezpečně provést fresh-schema ověření; `supabase/schema.sql` je už
@@ -202,7 +203,7 @@ nebo novou funkci jen proto, aby byl commit větší.
    source-of-truth. Teprve potom rozdělit největší UI soubory podle konkrétního
    workflow.
 
-8. **P2 — sjednotit dokumentaci se skutečným produktem**
+7. **P2 — sjednotit dokumentaci se skutečným produktem**
 
    `docs: align architecture and roadmap with pilot reality`
 
