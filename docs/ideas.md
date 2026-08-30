@@ -59,6 +59,14 @@ schválením implementace ani změnou aktuálního call/outcome workflow.
   výsledku. Pokud není uložený skript, zobrazit to otevřeně jako fallback.
 - [ ] **Nahradit ikonku Product Scriptu** — vybrat ikonu, která lépe říká
   „schválený prodejní skript“ nebo „scénář hovoru“.
+- [ ] **Připravit novou hlavní identitu aplikace** — nahradit současný blesk na
+  loginu jednodušší značkou a stejný mark použít v loginu, v levém horním rohu
+  aplikace i jako favicon. Nejprve připravit několik variant návrhu; po
+  schválení vizuálního směru dodat jednoduchý vektorově použitelný asset.
+  Design gate: mark musí fungovat v tmavé zinc paletě i v malém favicon měřítku
+  a nesmí se měnit bez schváleného vizuálního směru. Non-goals této položky:
+  zatím bez implementace, bez změny UI a bez tvrzení, že generovaný koncept je
+  finální asset.
 - [ ] **Zobrazit poslední úpravu skriptu** — u skriptu uvést datum poslední
   uložené změny a případně autora; údaj musí pocházet z uložené verze.
 - [ ] **Ujasnit stav skriptu** — ověřit, zda má být při chybě nebo chybějícím
