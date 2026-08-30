@@ -1,54 +1,52 @@
-# Operator Console layout QA
+# Dashboard hierarchy design QA
 
-## Comparison target
+## Scope
 
-- Source visual truth: user-provided browser annotation screenshots for Comments 1–7 in the current task; the source screenshots are attached evidence and are not available as a local file path.
-- Intended implementation: `http://localhost:3000/workspace`
-- Implementation screenshot path: `C:\Users\mikes\.projects\countdown-crm\output\operator-console-layout-2026-08-20\implementation.png`
-- Viewport: 1619 × 761 CSS px; implementation screenshot is 1619 × 761 px; device scale was not overridden.
-- State: authenticated local Operator Console with the current assigned lead loaded; outbound console idle state.
+This check compares the selected dashboard direction with the implemented
+Countdown CRM dashboard while preserving the existing product shell. The
+requested visual system remains authoritative: existing sidebar, header,
+colors, typography, background, spacing language, and branded components are
+kept in place. The implementation adds the information hierarchy only.
 
-## Full-view comparison evidence
+## Evidence
 
-The current render was captured after applying the seven browser annotations. The top `Ready for Calls` section is removed, call initiation is in `CURRENT LEAD`, lead selection is removed, location is replaced by a truthful `Source unavailable` state, the script badge is `Outgoing`, the old `Ready` badge is removed, and the right rail heading is `Lead Timeline`.
+- Source direction: `C:\Users\mikes\.codex\generated_images\01a043b3-f6a2-7d62-95be-ffd665559dfd\exec-7f4f74bd-cdd4-4f95-9857-090397603b75.png`
+- Implementation capture: `output/design-qa/dashboard-implementation-1440x1024-revised.png`
+- Comparison viewport: `1440x1024` CSS pixels.
+- The implementation capture is `1309x931` image pixels because the browser
+  screenshot was captured at device scale factor `0.91`; layout comparison was
+  normalized to the same CSS viewport rather than comparing raw image pixels.
+- Full-view comparison was performed after the attention-first rearrangement.
+- Focused regions checked: Dashboard header, Team attention, Team activity,
+  Supporting context, and Recent workspace activity.
 
-## Focused region comparison evidence
+## State mismatch
 
-- Lead header: `CURRENT LEAD` now contains the call initiation control and no lead selector.
-- Product Script header/body: the `Approved` and `Ready` badges are gone; the script is presented as numbered exact lines.
-- Right rail: `Lead Timeline` replaces `Omnichannel Timeline`.
+The source image shows populated live team metrics and operator rows. The
+implementation capture uses a local process-only Supabase configuration with
+no authenticated workspace data, so the UI truthfully renders loading,
+unavailable, and no-synthetic-data states. This mismatch is expected for a
+visual layout check and is not evidence of authenticated browser behavior,
+persistence, workspace authorization, or RLS behavior.
 
 ## Findings
 
-- [P1] Lead source value is not available in the current data model.
-  Location: `src/components/workspace/OperatorLeadHeader.tsx`.
-  Evidence: the UI now reserves the requested source field but renders `Source unavailable`; the current `Lead` type and Supabase `leads` row contain no source property.
-  Impact: the layout is correct, but a real `External`, `Sample`, or similar value cannot be shown without a data-model change.
-  Fix: add a workspace-scoped lead source field through the approved data path before claiming source display is complete. This was intentionally not added in the layout-only slice.
-
-- [P1] Several existing `approvedBenefits` values are operator instructions rather than word-for-word customer-facing script lines.
-  Location: `src/lib/productScripts.ts` and the numbered script list in `ProductScriptPanel.tsx`.
-  Evidence: the render currently includes lines such as `Use only benefits and product details maintained in the product record.`
-  Impact: the visual structure now supports strict reading, but the underlying script content is not yet a complete approved call transcript.
-  Fix: replace the instruction-like values with approved customer-facing sentences and add explicit branch text for objections; this requires product/script-content approval, not a layout-only change.
-
-## Checks completed
-
-- `npm run typecheck` passed.
-- `npm run build` passed.
-- Targeted ESLint passed with three existing unused-flow warnings in `src/app/workspace/page.tsx` after the top call-status section was removed; no errors.
-- `git diff --check` reported no whitespace errors; only normal Git LF/CRLF conversion warnings.
-
-## Scope notes
-
-This slice applies the browser annotations to the Operator Console layout and presentation. Existing project colors and accents were retained. No source data field, Supabase schema, authentication, persistence behavior, telephony integration, or unrelated route was changed.
+- The existing Countdown CRM visual system is preserved; no replacement shell
+  or new color/font system was introduced.
+- Team attention is now the primary left-hand section, with workspace-derived
+  reorder opportunities and an explicit `No synthetic priorities` boundary.
+- Team activity is a compact right-hand section with explicit workspace/team
+  scope labels and no personal-stat wording.
+- Supporting leaderboard and call-activity context remains below the primary
+  team sections and retains each component's truthful unavailable behavior.
+- No P0, P1, or P2 visual findings remain for this bounded slice.
 
 ## Comparison history
 
-- Earlier state: a separate top `Ready for Calls` / lead selector / `Call Client` section, a lead selector in `CURRENT LEAD`, `Prague, CZ`, `Approved`, `Ready`, continuous unnumbered script text, and `Omnichannel Timeline`.
-- Fixes applied: removed the separate top section; moved call controls into `CURRENT LEAD`; removed lead selector; replaced location with source placeholder; changed script direction badge to `Outgoing`; removed the script readiness badge; numbered the exact script lines; renamed the timeline.
-- Post-fix evidence: implementation screenshot saved at `C:\Users\mikes\.projects\countdown-crm\output\operator-console-layout-2026-08-20\implementation.png`.
+The first implementation placed the KPI rail before team attention. That was
+corrected before this capture so the hierarchy follows the selected direction:
+attention first, team activity alongside it, supporting context below.
 
 ## Final result
 
-blocked
+passed

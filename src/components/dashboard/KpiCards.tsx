@@ -5,7 +5,7 @@ import { DollarSign, PhoneCall, TrendingUp, Users } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 
-export function KpiCards() {
+export function KpiCards({ compact = false }: { compact?: boolean }) {
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
 
   useEffect(() => {
@@ -47,27 +47,27 @@ export function KpiCards() {
           Loading workspace analytics...
         </div>
       ) : result.ok ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-2 gap-3 ${compact ? "" : "sm:grid-cols-2 lg:grid-cols-4 sm:gap-6"}`}>
         {[
-          { id: "calls", label: "Total Calls", value: String(result.data.totalCalls), trend: "—", subtext: "workspace total", icon: PhoneCall },
-          { id: "conversion", label: "Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, trend: "—", subtext: "orders / calls", icon: TrendingUp },
-          { id: "revenue", label: "Total Revenue", value: `$${result.data.totalRevenue.toFixed(2)}`, trend: "—", subtext: "completed orders", icon: DollarSign },
-          { id: "operators", label: "Active Operators", value: "—", trend: "—", subtext: "presence data unavailable", icon: Users },
+          { id: "calls", label: "Team Calls", value: String(result.data.totalCalls), trend: "—", subtext: "all workspace calls", icon: PhoneCall },
+          { id: "conversion", label: "Team Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, trend: "—", subtext: "team orders / calls", icon: TrendingUp },
+          { id: "revenue", label: "Team Revenue", value: `$${result.data.totalRevenue.toFixed(2)}`, trend: "—", subtext: "team completed orders", icon: DollarSign },
+          { id: "operators", label: "Operators in Workspace", value: "—", trend: "—", subtext: "team presence unavailable", icon: Users },
         ].map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <div key={kpi.id} className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 hover:border-zinc-700/80 transition-all space-y-4 shadow-sm">
+            <div key={kpi.id} className={`${compact ? "space-y-2 rounded-xl p-4" : "space-y-4 rounded-2xl p-6"} border border-zinc-800/80 border-t border-white/5 bg-zinc-900/40 shadow-sm transition-all hover:border-zinc-700/80`}>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-zinc-400">{kpi.label}</span>
-                <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-                  <Icon className="w-4 h-4" />
+                <span className={`${compact ? "text-[10px]" : "text-xs"} font-medium text-zinc-400`}>{kpi.label}</span>
+                <div className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-300 sm:flex">
+                  <Icon className="h-4 w-4" />
                 </div>
               </div>
-              <div className="space-y-1.5">
+              <div className={compact ? "space-y-1" : "space-y-1.5"}>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{kpi.value}</span>
+                  <span className={`${compact ? "text-xl" : "text-2xl"} font-mono font-semibold tracking-tight text-zinc-100`}>{kpi.value}</span>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+                <div className={`${compact ? "text-[10px]" : "text-[11px]"} flex items-center gap-2 text-zinc-400`}>
                   <span className="text-zinc-300 font-mono font-medium">{kpi.trend}</span>
                   <span>•</span>
                   <span>{kpi.subtext}</span>
