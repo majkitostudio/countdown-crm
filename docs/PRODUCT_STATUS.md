@@ -7,7 +7,7 @@
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `origin/main` na `20c9a70` a z odděleného read-only ověření
+> vychází z `origin/main` na `8f9601c` a z odděleného read-only ověření
 > Preview/Sandbox i produkčního deploymentu. Historické počty a checkpointy
 > níže nejsou nový důkaz aktuálního runtime.
 
@@ -45,9 +45,15 @@ dokumentu pro rozhodování o současném delivery stavu:
   hierarchii; merge commit je `67e3003`.
 - PR #56 přidal první implementační layout pass Operator Console a je sloučený
   jako `20c9a70`. `npm test` prošel v rozsahu 19 souborů / 97 testů, stejně jako
-  lint, typecheck, build, diff check a Vercel Preview. Další krok je Dashboard
-  hierarchy pass; live persistence, authorization, RLS a concurrency jsou stále
-  samostatné důkazní vrstvy.
+  lint, typecheck, build, diff check a Vercel Preview. Live persistence,
+  authorization, RLS a concurrency zůstávají samostatné důkazní vrstvy.
+- PR #58 přidal Dashboard team hierarchy a je sloučený jako `8f9601c`.
+  Zachovává současný Countdown CRM vizuální systém, staví Team attention před
+  podpůrné části Dashboardu a KPI označuje jako workspace/team scoped. Prošly
+  `npm test` (20 souborů / 98 testů), lint, typecheck, production build,
+  `git diff --check`, Vercel Preview a lokální Product Design QA. Jde o UI-only
+  změnu: autentizace, persistence, authorization, RLS a live team presence tím
+  nejsou znovu prokázané. Nejbližší samostatný slice zůstává review PR #28.
 
 ## Aktuální checkpoint — 2026-08-22
 

@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `20c9a705550d43440525cfc057dc7ffc06726890`
-**Aktualizace baseline:** PR #55 (state map) a PR #56 (Operator Console layout) jsou rovněž sloučené; nejbližší implementační slice je Dashboard hierarchy pass.
+**Ověřený baseline:** `origin/main` = `8f9601c6d4e391e3342514ef7992f23e2b13bd03`
+**Aktualizace baseline:** PR #55, PR #56 a PR #58 (Dashboard hierarchy) jsou sloučené; nejbližší bezpečnostní slice je samostatné review PR #28.
 **Aktuální stav:** PR #23 a PR #44 jsou sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáty zůstávají v draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
@@ -14,7 +14,10 @@ Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce neb
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
 První UI pass redesignu Operator Console je dokončený: state map je v PR #55
-a layout hierarchy v PR #56. Nejbližší práce je Dashboard hierarchy pass.
+a layout hierarchy v PR #56. Dashboard hierarchy pass byl dokončen v PR #58;
+Dashboard nyní staví týmovou pozornost před podpůrná data a KPI výslovně
+označuje jako workspace/team scoped. Nezavádí syntetické metriky ani nový
+telephony zdroj.
 Order checkout items jsou implementované v PR #44 a lokálně ověřené; pokročilé
 live persistence/RLS/concurrency testy zůstávají vědomě odložené.
 Server-authoritative Blueprint
@@ -66,6 +69,15 @@ obou aktuálních Supabase cílech.
   railu. Prošly `npm test` (19 souborů / 97 testů), `npm run check`,
   `git diff --check` a Vercel Preview check. Browser persistence, authorization,
   RLS a concurrency důkazy se tímto UI slice neprokazují.
+- PR #58 (Dashboard team hierarchy) je sloučené do `main` jako
+  `8f9601c`. Zachovává současný vizuální systém a mění pouze informační
+  hierarchii: Team attention je primární sekce, Team activity je compact
+  workspace-scoped rail a supporting analytics zůstávají níže. KPI užívají
+  explicitní team/workspace názvy; live presence a hourly time-series dál
+  zůstávají pravdivě nedostupné bez odpovídajícího zdroje. Prošly `npm test`
+  (20 souborů / 98 testů), `npm run check`, `git diff --check`, Vercel Preview
+  a lokální Product Design QA (`passed`). Authenticated browser, persistence,
+  authorization a RLS tímto UI slice nejsou prokázané.
 
 ## Co je dnes skutečný základ
 
@@ -184,6 +196,7 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 | #23 | server-authoritative Blueprint apply | sloučeno; další důkaz je role-negative a produkční rozhodnutí o aktivaci |
 | #28 | explicitní RLS policies | samostatný security slice; bez implicitního live apply |
 | #44 | order items v call checkoutu | sloučeno; pokročilé live důkazy jsou odložené |
+| #58 | Dashboard team hierarchy | sloučeno; UI-only změna, live týmová data a role-specific důkaz zůstávají oddělené |
 | #46 | status dokumentace po starším auditu | zastaralý docs draft; tento checkpoint ho nahrazuje |
 | #47 | custom logo branding TODO | mimo schválený MVP scope ikon; nemergovat |
 
@@ -225,13 +238,13 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **P1 — Dashboard hierarchy pass**
+1. **P1 — Dashboard hierarchy pass — dokončeno v PR #58**
 
-   Navázat na stejnou P0–P3 informační hierarchii a podřídit Dashboard skutečným
-   manažerským a provozním prioritám. Neřešit přitom nové KPI, telephony ani
-   širší release gate.
+   Dashboard nyní zachovává současný vizuální systém, staví týmovou pozornost
+   před podpůrná data a prezentuje KPI jako workspace/team scoped. Změna
+   nepřidává nové KPI, telephony ani širší release gate.
 
-2. **DRAFT PR #28 — RLS policy cleanup**
+2. **DRAFT PR #28 — RLS policy cleanup — nejbližší doporučený slice**
 
    Samostatný bezpečnostní slice. Nejdříve přesný diff policies a provisioning
    plán, následně případné sandbox/live ověření; žádný implicitní `db push`.
