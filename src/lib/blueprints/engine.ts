@@ -2,14 +2,12 @@
  * Industry Blueprint Engine — Application Logic & Persistence
  *
  * Handles preset switching, persisting custom EAV attributes through the
- * authenticated schema action,
- * loading preset workflow rules into WorkflowEngine, and persisting active choices.
+ * authenticated workspace action and persisting active choices.
  */
 
 import { IndustryCategory, IndustryBlueprint } from "./types";
 import { INDUSTRY_BLUEPRINTS } from "./registry";
-import { workflowEngine } from "../workflows/engine";
-import { saveAttributeAction } from "@/app/actions/schema";
+import { applyBlueprintAction, getActiveBlueprintAction } from "@/app/actions/blueprints";
 
 const STORAGE_KEY = "countdown_active_blueprint";
 
@@ -58,9 +56,8 @@ class BlueprintEngine {
 
   /**
    * Applies an industry blueprint to the CRM workspace:
-   * 1. Updates active blueprint state & persists
-   * 2. Registers custom EAV attributes through the server schema DAL
-   * 3. Registers preset workflow rules into WorkflowEngine
+   * The server owns the transaction. Local state is updated only after it
+   * confirms that the workspace metadata and active selection were persisted.
    */
   public async applyBlueprint(blueprintId: IndustryCategory): Promise<{
     success: boolean;
@@ -73,37 +70,28 @@ class BlueprintEngine {
       throw new Error(`Blueprint with ID '${blueprintId}' not found.`);
     }
 
+    const result = await applyBlueprintAction(blueprintId);
     this.activeBlueprintId = blueprintId;
     this.persistActiveBlueprint(blueprintId);
 
-    // 1. Persist custom attributes through the authenticated workspace DAL.
-    const savedAttributes = await Promise.all(
-      blueprint.customAttributes.map((attr) => saveAttributeAction("leads", attr))
-    );
-    const addedAttributesCount = savedAttributes.length;
-
-    // 2. Inject default workflow rules into WorkflowEngine
-    let addedRulesCount = 0;
-    blueprint.defaultWorkflowRules.forEach((rule) => {
-      // Check if a rule with same name exists to avoid duplicate clutter
-      const existingRules = workflowEngine.getRules();
-      const exists = existingRules.some((r) => r.name === rule.name);
-      if (!exists) {
-        workflowEngine.addRule(rule);
-        addedRulesCount++;
-      }
-    });
-
     console.log(
-      `[BlueprintEngine] Applied blueprint '${blueprint.name}': +${addedAttributesCount} attributes, +${addedRulesCount} workflow rules.`
+      `[BlueprintEngine] Applied blueprint '${blueprint.name}': ${result.attributesApplied} attributes, ${result.rulesApplied} workflow rules.`
     );
 
     return {
       success: true,
-      addedAttributesCount,
-      addedRulesCount,
+      addedAttributesCount: result.attributesApplied,
+      addedRulesCount: result.rulesApplied,
       blueprint,
     };
+  }
+
+  public async hydrateFromServer(): Promise<IndustryBlueprint | null> {
+    const serverBlueprintId = await getActiveBlueprintAction();
+    if (!serverBlueprintId) return null;
+    this.activeBlueprintId = serverBlueprintId;
+    this.persistActiveBlueprint(serverBlueprintId);
+    return this.getActiveBlueprint();
   }
 }
 

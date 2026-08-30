@@ -5,9 +5,9 @@ import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import type { LeadDTO } from "./leads";
-import type { CallOrderItemInput } from "@/lib/callOrder";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
+import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 
 export type QueueState = Database["public"]["Tables"]["lead_queue_items"]["Row"]["state"];
 export type OperatorPresenceState = Database["public"]["Tables"]["operator_presence"]["Row"]["state"];
@@ -148,6 +148,9 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
   if (orderItems.length > 50) {
     throw new DataAccessError("VALIDATION", "An order may contain at most 50 items");
   }
+  if (new Set(orderItems.map((item) => item.product_id)).size !== orderItems.length) {
+    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+  }
   for (const item of orderItems) {
     if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
       throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
@@ -255,11 +258,6 @@ export async function abortLeadCallStartForWorkspace(
 
 export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
   assertQueueInput(input);
-  const context = await requireWorkspaceRole(["operator"]);
-  const currentLead = await getCurrentLeadForWorkspace(context.workspaceId);
-  if (!currentLead || currentLead.queue_item_id !== input.queue_item_id) {
-    throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
-  }
   const orderItems = input.order_items ?? (
     input.order_product_id
       ? [{
@@ -270,6 +268,11 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       : []
   );
   const hasOrder = orderItems.length > 0;
+  const context = await requireWorkspaceRole(["operator"]);
+  const currentLead = await getCurrentLeadForWorkspace(context.workspaceId);
+  if (!currentLead || currentLead.queue_item_id !== input.queue_item_id) {
+    throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
+  }
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call_with_order_items", {
     target_queue_item_id: input.queue_item_id,
@@ -291,7 +294,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       agentName: "Authenticated operator",
       outcome: input.outcome,
       sentiment: input.ai_sentiment || "Neutral",
-      orderValue: input.order_total_amount ?? 0,
+      orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
     },
   });

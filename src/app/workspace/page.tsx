@@ -622,13 +622,14 @@ function WorkspaceContent() {
     if (!activeLead) return null;
 
     try {
+      const firstItem = input.items[0];
       const totalAmount = totalCallOrderItems(input.items);
       const completion = await completeCall(
         "order_placed",
         "Order placed",
         "created",
         totalAmount,
-        input.items[0]?.product_id,
+        firstItem?.product_id,
         undefined,
         input.items,
       );

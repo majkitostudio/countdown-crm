@@ -59,14 +59,7 @@ describe("lead queue server contract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.requireWorkspaceRole.mockResolvedValue(workspaceContext);
-    mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({
-      trigger: "on_call_ended",
-      eventId: "call-1",
-      status: "simulation",
-      durableEffect: false,
-      entries: [],
-      reason: "test",
-    });
+    mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({ entries: [] });
   });
 
   it("rejects invalid completion input before touching authorization or RPC", async () => {
@@ -138,7 +131,7 @@ describe("lead queue server contract", () => {
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator"]);
     expect(rpc).toHaveBeenCalledTimes(2);
-    expect(rpc).toHaveBeenLastCalledWith("complete_lead_call_with_order_items", {
+    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items", {
       target_queue_item_id: "queue-1",
       call_duration_seconds: 42,
       call_outcome: "followup_scheduled",
@@ -149,15 +142,15 @@ describe("lead queue server contract", () => {
     });
   });
 
-  it("passes every checkout item to the atomic order-items RPC", async () => {
-    const completion = { call_id: "call-1", order_id: "order-1", queue_state: "closed" };
+  it("forwards every checkout item to the atomic completion RPC", async () => {
+    const completion = { call_id: "call-2", order_id: "order-2", queue_state: "completed" };
     const rpc = vi.fn()
       .mockResolvedValueOnce({ data: queueSnapshot, error: null })
       .mockResolvedValueOnce({ data: completion, error: null });
     mocks.createDataClient.mockResolvedValue({ rpc });
     const orderItems = [
-      { product_id: "product-1", quantity: 2, unit_price: 12.5 },
-      { product_id: "product-2", quantity: 1, unit_price: 8.75 },
+      { product_id: "product-1", quantity: 2, unit_price: 18.5 },
+      { product_id: "product-2", quantity: 1, unit_price: 9.99 },
     ];
 
     await expect(
@@ -169,7 +162,7 @@ describe("lead queue server contract", () => {
       }),
     ).resolves.toMatchObject(completion);
 
-    expect(rpc).toHaveBeenLastCalledWith("complete_lead_call_with_order_items", {
+    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items", {
       target_queue_item_id: "queue-1",
       call_duration_seconds: 42,
       call_outcome: "order_placed",

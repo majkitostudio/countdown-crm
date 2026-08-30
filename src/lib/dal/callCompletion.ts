@@ -7,7 +7,7 @@ import { createDataClient } from "./db";
 import { getScopedLeadForWorkspace } from "./leadQueue";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
-import type { CallOrderItemInput } from "@/lib/callOrder";
+import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 
 type CallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
@@ -79,6 +79,9 @@ export async function completeCallForWorkspace(
   if (orderItems.length > 50) {
     throw new DataAccessError("VALIDATION", "An order may contain at most 50 items");
   }
+  if (new Set(orderItems.map((item) => item.product_id)).size !== orderItems.length) {
+    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+  }
   for (const item of orderItems) {
     if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
       throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
@@ -130,7 +133,7 @@ export async function completeCallForWorkspace(
       agentName: operatorName,
       outcome: input.outcome,
       sentiment: input.ai_sentiment || "Neutral",
-      orderValue: input.order_total_amount ?? 0,
+      orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
     },
   });

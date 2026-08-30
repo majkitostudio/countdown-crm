@@ -1,18 +1,42 @@
 # Countdown CRM — Product Status & Refactoring Baseline
 
-**Datum aktualizace:** 2026-08-22
-**Status:** stabilizace před bezpečným interním pilotem; Operator Console je další hlavní produktová etapa
-> **Aktualizace 23. 8. 2026:** Tento dokument obsahuje historickou baseline a
+**Datum aktualizace:** 2026-08-30
+**Status dokumentu:** historická baseline a auditní historie; aktuální stav je v
+[`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md)
+> **Aktualizace 30. 8. 2026:** Tento dokument obsahuje historickou baseline a
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `main` na `78781cb` a z čerstvé kontroly živého Supabase.
+> vychází z `origin/main` na `9a8cbc0` a z odděleného read-only ověření
+> Preview/Sandbox i produkčního deploymentu. Historické počty a checkpointy
+> níže nejsou nový důkaz aktuálního runtime.
 
 **Datum baseline:** 2026-08-09  
 **Status:** stabilizační a auditní fáze
 **Produktový cíl:** Attio-grade CRM pro call-centra s AI copilotem, telephony workflow a bezpečným interním provozem
 
 > **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
+
+## Aktuální delivery overlay — 2026-08-30
+
+Tento overlay doplňuje historické sekce níže a je jedinou aktuální částí tohoto
+dokumentu pro Blueprint stav:
+
+- PR #23 je sloučené do `main` jako `9a8cbc0`. Po opravě prošly `npm test`
+  (94/94), `npm run check` a `git diff --check`.
+- Preview/Sandbox používá Supabase ref `lpvypihpxhyjljikfzqo`; migrace
+  `20260827005441`, `20260830072304` a `20260830100000` jsou aplikované.
+  Administrator provedl B2B apply, reload a SQL read-back potvrdil stav,
+  čtyři atributy, workflow a `leads` objekt.
+- Produkce používá odlišný Supabase ref `qlzrsookyobtvyekhrqi`; aplikované jsou
+  Blueprint migrace `20260827005441` a `20260830100000`. Administratorův
+  `/workspace` se načetl bez Blueprint chyby; produkční stav zůstal defaultní
+  bez aktivovaného blueprintu.
+- Produkční negativní browser smoke se skutečným účtem `mikestudio` potvrdil
+  roli `Operator`: `/workspace` bez Blueprint administrace, skryté
+  administrátorské nav položky a přímé `/workflows` jako `Unavailable`. Přímé
+  odmítnutí RPC/serverové mutace ani plný live RLS/concurrency průchod nebyly
+  spuštěny. Projekt proto stále není označen jako pilot-ready.
 
 ## Aktuální checkpoint — 2026-08-22
 
