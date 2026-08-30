@@ -1,7 +1,7 @@
 # Operator Console — state map a informační architektura
 
-**Datum:** 2026-08-30  
-**Status:** návrhový podklad pro první UI slice  
+**Datum:** 2026-08-30
+**Status:** návrhový podklad pro první UI slice
 **Rozsah:** pouze hierarchie informací a pracovních stavů; bez změny komponent,
 serverových kontraktů, queue modelu, autorizace nebo databáze
 
