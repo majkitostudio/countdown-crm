@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `9a8cbc07fbd82cdb8a973a1ea8a7120a5a021fe`
-**Aktuální stav:** PR #23 je sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, otevřené implementační kandidáty zůstávají v draft PR
+**Ověřený baseline:** `origin/main` = `853e78427dc5e198e826373dc44d52567eba348e`
+**Aktuální stav:** PR #23 a PR #44 jsou sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáty zůstávají v draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -12,10 +12,11 @@ workspace oprávnění, fronta leadů, objednávky a lifecycle hovoru už existu
 Nejsme ale ve fázi, kdy bychom měli bez dalšího přidávat velké funkce nebo
 tvrdit, že je produkt připravený pro běžný produkční provoz.
 
-Nejbližší práce je hlavně o order checkout důkazu a odděleném autentizovaném
-ověření hlavního workflow. Atomic business mutace s auditem už jsou sloučené
-v PR #45. Server-authoritative Blueprint apply je sloučený v PR #23 a jeho
-potřebné migrace jsou ověřeně aplikované v obou aktuálních Supabase cílech.
+Nejbližší práce je redesign Operator Console. Order checkout items jsou
+implementované v PR #44 a lokálně ověřené; pokročilé live persistence/RLS/
+concurrency testy zůstávají vědomě odložené. Server-authoritative Blueprint
+apply je sloučený v PR #23 a jeho potřebné migrace jsou ověřeně aplikované v
+obou aktuálních Supabase cílech.
 
 ## Čerstvý delivery checkpoint — 30. 8. 2026
 
@@ -48,6 +49,12 @@ potřebné migrace jsou ověřeně aplikované v obou aktuálních Supabase cíl
   `20260830100000`; přihlášený Administrator načetl `/workspace` bez 500.
   Produkce je nyní v defaultním stavu bez aktivovaného blueprintu, nikoli
   v B2B demo stavu.
+- PR #44 (persistované order items v call checkoutu) je sloučené do `main` jako
+  `853e784`. Změna posílá explicitní quantity a bundle položky přes existující
+  server-authoritative completion RPC a chrání checkout proti dvojkliku.
+  Prošly `npm test` (19 souborů / 96 testů), `npm run check`,
+  `git diff --check` a Vercel Preview check. Pokročilé live persistence,
+  authorization, RLS a concurrency testy byly odloženy.
 
 ## Co je dnes skutečný základ
 
@@ -61,9 +68,9 @@ potřebné migrace jsou ověřeně aplikované v obou aktuálních Supabase cíl
 - Operator Console má serverem řízenou frontu, claim, start hovoru, heartbeat,
   cancel/recovery, outcome a callback. Telephony uvnitř prohlížeče je stále
   simulace, ne napojená ústředna.
-- Objednávky mají lifecycle, historii stavů, řízené opravy detailů a auditní
-  stopu. To je dobrý základ pro pilot, ale musí se znovu ověřit v přihlášeném
-  browseru.
+- Objednávky mají lifecycle, historii stavů, řízené opravy detailů, auditní
+  stopu a call checkout nyní posílá explicitní order items. Pokročilé live
+  persistence/RLS/concurrency ověření zůstává odložené.
 - Starší odstranění AI copilot/enrichment/follow-up/speech-recognition zmenšilo
   prostor pro nepravdivé sliby, ale starší dokumentace je stále místy popisuje
   jako hotové; nový polish checkpoint uvádí konkrétní stale claims.
@@ -147,9 +154,9 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
   nebyl aktivován.
 - PR #28 — explicitní RLS policies: **OPEN/DRAFT**. Live databáze nebyla
   změněna; případné nasazení vyžaduje samostatný provisioning plán a souhlas.
-- PR #44 — persistované order items v checkoutu: **OPEN/DRAFT**. Zbývá
-  autentizovaný browser smoke, persistence po reloadu, authorization a live
-  RLS evidence.
+- PR #44 — persistované order items v checkoutu: **MERGED** jako `853e784`.
+  Lokální gates a Preview check prošly; pokročilé live persistence/RLS/
+  concurrency důkazy jsou odložené.
 
 ### Inventura otevřených draft PR
 
@@ -161,7 +168,7 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 | #21 | starší duplicitní atomic business/audit draft | superseded PR #45; nemergovat |
 | #23 | server-authoritative Blueprint apply | sloučeno; další důkaz je role-negative a produkční rozhodnutí o aktivaci |
 | #28 | explicitní RLS policies | samostatný security slice; bez implicitního live apply |
-| #44 | order items v call checkoutu | čeká na authenticated/persistence/authorization důkaz |
+| #44 | order items v call checkoutu | sloučeno; pokročilé live důkazy jsou odložené |
 | #46 | status dokumentace po starším auditu | zastaralý docs draft; tento checkpoint ho nahrazuje |
 | #47 | custom logo branding TODO | mimo schválený MVP scope ikon; nemergovat |
 
@@ -190,6 +197,7 @@ unikátní commity a teprve potom se případně archivují nebo vědomě uzavř
 | no-unused/static scan | **prošlo** | mrtvý operator status state odstraněn a PR #24 sloučen |
 | Blueprint browser smoke | **prošlo v Preview/Sandbox** | Administrator apply + reload; produkce pouze čisté načtení bez aktivace |
 | Blueprint persistence | **prošlo v Preview/Sandbox** | SQL read-back potvrdil stav, 4 atributy, workflow a `leads` objekt |
+| Call checkout order items | **prošlo staticky** | 96 testů + lint/typecheck/build; live persistence je odložená |
 | authorization/RLS | **částečně doloženo** | Operator UI negative smoke prošel; RPC/RLS metadata jsou v obou cílech, přímé denial/RLS provedení chybí |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
@@ -202,10 +210,10 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 Každý bod níže je jeden tematický commit. Nepřidávat do něj nesouvisející UI
 nebo novou funkci jen proto, aby byl commit větší.
 
-1. **DRAFT PR #44 — order checkout items**
+1. **P1 — Operator Console redesign**
 
-   Funkční kandidát pro MVP, ale před merge musí doložit skutečné order items,
-   duplicate-submit chování, reload persistence a oprávnění v reálném workspace.
+   Navázat na existující brief a zlepšit informační hierarchii hlavní pracovní
+   plochy operátora. Neřešit přitom telephony integraci ani širší release gate.
 
 2. **DRAFT PR #28 — RLS policy cleanup**
 
