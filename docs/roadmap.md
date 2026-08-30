@@ -599,8 +599,15 @@ manažerská vrstva. Redesign musí nejdříve opravit informační hierarchii:
 
 State map a information architecture vznikly v PR #55 a první layout pass byl
 dokončen v PR #56 (`20c9a70`). Layout upravil pouze hierarchii a vizuální váhu
-existujících komponent; Queue/RLS/serverové kontrakty se nezměnily. Dalším
-navazujícím UI slice je Dashboard hierarchy pass.
+existujících komponent; Queue/RLS/serverové kontrakty se nezměnily. Dashboard
+hierarchy pass byl dokončen v PR #58 (`8f9601c`). Také tento slice zachoval
+existující Countdown CRM design a upravil pouze informační pořadí: Team
+attention je první, Team activity je workspace-scoped a supporting analytics
+jsou sekundární. Live team presence, persistence, authorization a RLS se tímto
+UI průchodem znovu neprokazují.
+
+Další doporučený slice je samostatné review draft PR #28 (RLS policy cleanup),
+bez implicitního `db push` nebo změny živé databáze.
 
 Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
 
