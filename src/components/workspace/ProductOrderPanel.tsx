@@ -14,6 +14,7 @@ import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
+import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -30,10 +31,11 @@ interface ProductOrderPanelProps {
   orderMode?: "call" | "manual";
   onClose: () => void;
   onOrderPlaced: (
-    productId: string,
-    totalAmount: number,
-    orderSource: OrderSource,
-    sourceNote: string | null,
+    input: {
+      items: CallOrderItemInput[];
+      orderSource?: OrderSource;
+      sourceNote?: string | null;
+    },
   ) => Promise<OrderPlacementResult | null>;
 }
 
@@ -58,6 +60,7 @@ export function ProductOrderPanel({
   const [isSuccessAlert, setIsSuccessAlert] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const lastPitchRef = React.useRef<string | undefined>(undefined);
   const leadNotesInitializedRef = React.useRef(false);
 
@@ -106,29 +109,43 @@ export function ProductOrderPanel({
   };
 
   const handlePlaceOrder = async () => {
-    if (!selectedProduct || !activeLead) return;
+    if (!selectedProduct || !activeLead || isSubmitting) return;
 
     setOrderError(null);
-    const result = await onOrderPlaced(
-      selectedProduct.id,
-      grandTotal,
-      orderMode === "call" ? "previous_call" : orderSource,
-      orderMode === "manual" ? sourceNote.trim() || null : null,
-    );
-    if (!result) {
-      setOrderError("Order was not created. Check the error above and try again.");
-      return;
+    setIsSubmitting(true);
+    try {
+      const items: CallOrderItemInput[] = buildCallOrderItems({
+        product_id: selectedProduct.id,
+        unit_price: selectedProduct.price,
+        quantity,
+        discount_percent: discountPercent,
+        bundle: bundleProduct
+          ? { product_id: bundleProduct.id, unit_price: bundleSubtotal }
+          : undefined,
+      });
+
+      const result = await onOrderPlaced({
+        items,
+        orderSource: orderMode === "call" ? "previous_call" : orderSource,
+        sourceNote: orderMode === "manual" ? sourceNote.trim() || null : null,
+      });
+      if (!result) {
+        setOrderError("Order was not created. Check the error above and try again.");
+        return;
+      }
+
+      setLastOrderId(result.orderId);
+      if (!result.callCompleted) {
+        setOrderError(`Order #${result.orderId} was created, but call completion failed. The order was not reported as fully completed.`);
+        return;
+      }
+
+      setIsSuccessAlert(true);
+
+      setTimeout(() => setIsSuccessAlert(false), 5000);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setLastOrderId(result.orderId);
-    if (!result.callCompleted) {
-      setOrderError(`Order #${result.orderId} was created, but call completion failed. The order was not reported as fully completed.`);
-      return;
-    }
-
-    setIsSuccessAlert(true);
-
-    setTimeout(() => setIsSuccessAlert(false), 5000);
   };
 
   return (
@@ -337,11 +354,12 @@ export function ProductOrderPanel({
           <button
             type="button"
             onClick={handlePlaceOrder}
-            disabled={!selectedProduct || !activeLead}
+            disabled={!selectedProduct || !activeLead || isSubmitting}
+            aria-busy={isSubmitting}
             className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            <span>Place Order</span>
+            <span>{isSubmitting ? "Saving Order…" : "Place Order"}</span>
           </button>
 
           <div

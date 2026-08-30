@@ -5,6 +5,7 @@ import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import type { LeadDTO } from "./leads";
+import type { CallOrderItemInput } from "@/lib/callOrder";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 
@@ -84,6 +85,7 @@ export interface CompleteLeadCallInput {
   outcome: QueueCallOutcome;
   transcript?: string | null;
   ai_sentiment?: string | null;
+  order_items?: CallOrderItemInput[] | null;
   order_product_id?: string | null;
   order_total_amount?: number | null;
   callback_scheduled_at?: string | null;
@@ -118,14 +120,41 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
     throw new DataAccessError("VALIDATION", "Unsupported queue call outcome");
   }
 
-  const hasProduct = Boolean(input.order_product_id);
-  const hasAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
-  if (hasProduct !== hasAmount) {
+  const hasLegacyProduct = Boolean(input.order_product_id);
+  const hasLegacyAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
+  if (input.order_items == null && hasLegacyProduct !== hasLegacyAmount) {
     throw new DataAccessError("VALIDATION", "Order product and amount must be provided together");
   }
-
-  if (hasAmount && (!Number.isFinite(input.order_total_amount) || (input.order_total_amount as number) < 0)) {
+  if (input.order_items == null && hasLegacyAmount && (!Number.isFinite(input.order_total_amount) || (input.order_total_amount as number) < 0)) {
     throw new DataAccessError("VALIDATION", "Order amount must be non-negative");
+  }
+
+  const orderItems = input.order_items ?? (
+    input.order_product_id
+      ? [{
+          product_id: input.order_product_id,
+          quantity: 1,
+          unit_price: input.order_total_amount ?? 0,
+        }]
+      : []
+  );
+  const hasOrder = orderItems.length > 0;
+  if (input.outcome === "order_placed" && !hasOrder) {
+    throw new DataAccessError("VALIDATION", "An order call requires at least one order item");
+  }
+  if (input.outcome !== "order_placed" && hasOrder) {
+    throw new DataAccessError("VALIDATION", "Order items require an order call outcome");
+  }
+  if (orderItems.length > 50) {
+    throw new DataAccessError("VALIDATION", "An order may contain at most 50 items");
+  }
+  for (const item of orderItems) {
+    if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+    }
+    if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1_000_000_000) {
+      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+    }
   }
 }
 
@@ -231,15 +260,24 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
   if (!currentLead || currentLead.queue_item_id !== input.queue_item_id) {
     throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
   }
+  const orderItems = input.order_items ?? (
+    input.order_product_id
+      ? [{
+          product_id: input.order_product_id,
+          quantity: 1,
+          unit_price: input.order_total_amount ?? 0,
+        }]
+      : []
+  );
+  const hasOrder = orderItems.length > 0;
   const supabase = await createDataClient();
-  const { data, error } = await supabase.rpc("complete_lead_call", {
+  const { data, error } = await supabase.rpc("complete_lead_call_with_order_items", {
     target_queue_item_id: input.queue_item_id,
     call_duration_seconds: input.duration_seconds,
     call_outcome: input.outcome,
     call_transcript: input.transcript || null,
     call_ai_sentiment: input.ai_sentiment || "Neutral",
-    order_product_id: input.order_product_id || null,
-    order_total_amount: input.order_total_amount ?? null,
+    order_items: hasOrder ? orderItems : null,
     callback_scheduled_at: input.callback_scheduled_at || null,
   });
   const completion = requireRpcData<QueueCompletionDTO>(data, error, "Call completion failed");

@@ -23,6 +23,7 @@ import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
+import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import {
@@ -233,6 +234,7 @@ function WorkspaceContent() {
     orderValue = 0,
     orderProductId?: string,
     callbackScheduledAt?: string,
+    orderItems?: CallOrderItemInput[],
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
@@ -253,6 +255,7 @@ function WorkspaceContent() {
           duration_seconds: durationSeconds,
           outcome: queueOutcome,
           ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+          order_items: orderItems || null,
           order_product_id: orderProductId || null,
           order_total_amount: orderProductId ? orderValue : null,
           transcript: null,
@@ -292,6 +295,7 @@ function WorkspaceContent() {
         duration_seconds: durationSeconds,
         outcome,
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
+        order_items: orderItems || null,
         order_product_id: orderProductId,
         order_total_amount: orderProductId ? orderValue : null,
         transcript: null,
@@ -613,18 +617,20 @@ function WorkspaceContent() {
   };
 
   const handleOrderPlaced = async (
-    productId: string,
-    totalAmount: number,
+    input: { items: CallOrderItemInput[] },
   ): Promise<OrderPlacementResult | null> => {
     if (!activeLead) return null;
 
     try {
+      const totalAmount = totalCallOrderItems(input.items);
       const completion = await completeCall(
         "order_placed",
         "Order placed",
         "created",
         totalAmount,
-        productId
+        input.items[0]?.product_id,
+        undefined,
+        input.items,
       );
       if (!completion?.orderId) return null;
       return { orderId: completion.orderId, callCompleted: true };
