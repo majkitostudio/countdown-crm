@@ -1,7 +1,7 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `8f9601c6d4e391e3342514ef7992f23e2b13bd03`
+**Ověřený baseline:** `origin/main` = `51686f66b96471d9a144654552e3c1b35bdcbdc1`
 **Aktualizace baseline:** PR #55, PR #56 a PR #58 (Dashboard hierarchy) jsou sloučené; nejbližší bezpečnostní slice je samostatné review PR #28.
 **Aktuální stav:** PR #23 a PR #44 jsou sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáty zůstávají v draft PR
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
