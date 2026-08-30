@@ -4,6 +4,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 const mocks = vi.hoisted(() => ({
   createDataClient: vi.fn(),
   requireWorkspaceRole: vi.fn(),
+  dispatchWorkflowEventForWorkspace: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -14,6 +15,10 @@ vi.mock("@/lib/dal/db", () => ({
 
 vi.mock("@/lib/dal/workspace", () => ({
   requireWorkspaceRole: mocks.requireWorkspaceRole,
+}));
+
+vi.mock("@/lib/workflows/dispatcher", () => ({
+  dispatchWorkflowEventForWorkspace: mocks.dispatchWorkflowEventForWorkspace,
 }));
 
 import {
@@ -54,6 +59,7 @@ describe("lead queue server contract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.requireWorkspaceRole.mockResolvedValue(workspaceContext);
+    mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({ entries: [] });
   });
 
   it("rejects invalid completion input before touching authorization or RPC", async () => {
@@ -109,6 +115,10 @@ describe("lead queue server contract", () => {
   it("passes completion fields to one server-authoritative RPC", async () => {
     const completion = { call_id: "call-1", order_id: null, queue_state: "completed" };
     const rpc = vi.fn().mockResolvedValue({ data: completion, error: null });
+    rpc.mockReset();
+    rpc
+      .mockResolvedValueOnce({ data: queueSnapshot, error: null })
+      .mockResolvedValueOnce({ data: completion, error: null });
     mocks.createDataClient.mockResolvedValue({ rpc });
 
     await expect(
@@ -120,19 +130,50 @@ describe("lead queue server contract", () => {
         ai_sentiment: "Positive",
         callback_scheduled_at: "2026-09-01T09:00:00.000Z",
       }),
-    ).resolves.toEqual(completion);
+    ).resolves.toMatchObject(completion);
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator"]);
-    expect(rpc).toHaveBeenCalledTimes(1);
-    expect(rpc).toHaveBeenCalledWith("complete_lead_call", {
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items", {
       target_queue_item_id: "queue-1",
       call_duration_seconds: 42,
       call_outcome: "followup_scheduled",
       call_transcript: "Follow up next week",
       call_ai_sentiment: "Positive",
-      order_product_id: null,
-      order_total_amount: null,
+      order_items: null,
       callback_scheduled_at: "2026-09-01T09:00:00.000Z",
+    });
+  });
+
+  it("forwards every checkout item to the atomic completion RPC", async () => {
+    const completion = { call_id: "call-2", order_id: "order-2", queue_state: "completed" };
+    const rpc = vi.fn()
+      .mockResolvedValueOnce({ data: queueSnapshot, error: null })
+      .mockResolvedValueOnce({ data: completion, error: null });
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    const orderItems = [
+      { product_id: "product-1", quantity: 2, unit_price: 18.5 },
+      { product_id: "product-2", quantity: 1, unit_price: 9.99 },
+    ];
+
+    await expect(
+      completeLeadCallForWorkspace({
+        queue_item_id: "queue-1",
+        duration_seconds: 42,
+        outcome: "order_placed",
+        order_items: orderItems,
+      }),
+    ).resolves.toMatchObject(completion);
+
+    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items", {
+      target_queue_item_id: "queue-1",
+      call_duration_seconds: 42,
+      call_outcome: "order_placed",
+      call_transcript: null,
+      call_ai_sentiment: "Neutral",
+      order_items: orderItems,
+      callback_scheduled_at: null,
     });
   });
 
