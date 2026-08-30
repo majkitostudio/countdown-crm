@@ -597,10 +597,10 @@ manažerská vrstva. Redesign musí nejdříve opravit informační hierarchii:
 - P2: lead a rozhodovací kontext,
 - P3: historie, sekundární AI podpora a doplňkové metriky.
 
-Nejdříve vznikne state map a information architecture pro před-call, in-call,
-post-call, callback, pause a recovery stavy. Teprve potom se upraví layout a
-vizuální váha existujících komponent. Queue/RLS/serverové kontrakty se v tomto
-designovém slice nemění.
+State map a information architecture vznikly v PR #55 a první layout pass byl
+dokončen v PR #56 (`20c9a70`). Layout upravil pouze hierarchii a vizuální váhu
+existujících komponent; Queue/RLS/serverové kontrakty se nezměnily. Dalším
+navazujícím UI slice je Dashboard hierarchy pass.
 
 Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
 

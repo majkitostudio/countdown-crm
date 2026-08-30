@@ -7,7 +7,7 @@
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `origin/main` na `853e784` a z odděleného read-only ověření
+> vychází z `origin/main` na `20c9a70` a z odděleného read-only ověření
 > Preview/Sandbox i produkčního deploymentu. Historické počty a checkpointy
 > níže nejsou nový důkaz aktuálního runtime.
 
@@ -20,7 +20,7 @@
 ## Aktuální delivery overlay — 2026-08-30
 
 Tento overlay doplňuje historické sekce níže a je jedinou aktuální částí tohoto
-dokumentu pro Blueprint stav:
+dokumentu pro rozhodování o současném delivery stavu:
 
 - PR #23 je sloučené do `main` jako `9a8cbc0`. Po opravě prošly `npm test`
   (94/94), `npm run check` a `git diff --check`.
@@ -41,6 +41,13 @@ dokumentu pro Blueprint stav:
   administrátorské nav položky a přímé `/workflows` jako `Unavailable`. Přímé
   odmítnutí RPC/serverové mutace ani plný live RLS/concurrency průchod nebyly
   spuštěny. Projekt proto stále není označen jako pilot-ready.
+- PR #55 přidal state map Operator Console jako dokumentační základ pro P0–P3
+  hierarchii; merge commit je `67e3003`.
+- PR #56 přidal první implementační layout pass Operator Console a je sloučený
+  jako `20c9a70`. `npm test` prošel v rozsahu 19 souborů / 97 testů, stejně jako
+  lint, typecheck, build, diff check a Vercel Preview. Další krok je Dashboard
+  hierarchy pass; live persistence, authorization, RLS a concurrency jsou stále
+  samostatné důkazní vrstvy.
 
 ## Aktuální checkpoint — 2026-08-22
 
