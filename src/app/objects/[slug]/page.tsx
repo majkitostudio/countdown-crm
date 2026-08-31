@@ -4,14 +4,23 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Database,
+  LockKeyhole,
   Plus,
   Search,
   Layers,
   ChevronLeft,
   X,
 } from "lucide-react";
-import { listRecordsAction, listSchemasAction, createRecordAction } from "@/app/actions/schema";
-import { ObjectSchema, RecordEntity } from "@/lib/schema/types";
+import {
+  createCustomObjectRecordAction,
+  loadCustomObjectPageAction,
+} from "@/app/actions/schema";
+import type {
+  CustomObjectActionFailure,
+  CustomObjectPageData,
+  ObjectSchema,
+  RecordEntity,
+} from "@/lib/schema/types";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function CustomObjectPage() {
@@ -22,7 +31,9 @@ export default function CustomObjectPage() {
   const [schema, setSchema] = useState<ObjectSchema | null>(null);
   const [records, setRecords] = useState<RecordEntity[]>([]);
   const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadResult, setLoadResult] = useState<
+    { ok: true; data: CustomObjectPageData } | CustomObjectActionFailure | null
+  >(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -31,17 +42,26 @@ export default function CustomObjectPage() {
   useEffect(() => {
     let isCurrent = true;
 
-    void Promise.all([listSchemasAction(), listRecordsAction(slug)])
-      .then(([schemas, nextRecords]) => {
+    void loadCustomObjectPageAction(slug)
+      .then((result) => {
         if (!isCurrent) return;
-        setLoadError(null);
-        setSchema(schemas.find((item) => item.slug === slug) || null);
-        setRecords(nextRecords);
+        setLoadResult(result);
+        if (!result.ok) {
+          setLoadedSlug(slug);
+          return;
+        }
+        setSchema(result.data.schemas.find((item) => item.slug === slug) || null);
+        setRecords(result.data.records);
         setLoadedSlug(slug);
       })
-      .catch((error) => {
+      .catch(() => {
         if (!isCurrent) return;
-        setLoadError(error instanceof Error ? error.message : "Objekt se nepodařilo načíst.");
+        setLoadResult({
+          ok: false,
+          code: "UNAVAILABLE",
+          status: 503,
+          message: "Custom objects are temporarily unavailable. No object data was shown.",
+        });
         setSchema(null);
         setRecords([]);
         setLoadedSlug(slug);
@@ -56,7 +76,7 @@ export default function CustomObjectPage() {
     return <div className="p-8 text-xs text-zinc-500">Načítám objekt z workspace...</div>;
   }
 
-  if (loadError) {
+  if (loadResult && !loadResult.ok) {
     return (
       <div className="p-8 space-y-4 max-w-screen-2xl mx-auto">
         <button
@@ -65,10 +85,14 @@ export default function CustomObjectPage() {
         >
           <ChevronLeft className="w-4 h-4" /> Zpět do nastavení
         </button>
-        <div className="p-12 text-center bg-rose-950/20 border border-rose-900/60 rounded-2xl" role="alert">
-          <Database className="w-10 h-10 text-rose-500 mx-auto mb-3" />
-          <h2 className="text-base font-bold text-zinc-200">Objekt se nepodařilo načíst</h2>
-          <p className="text-xs text-rose-300 mt-1">{loadError}</p>
+        <div
+          className="p-12 text-center bg-zinc-900/40 border border-zinc-800 rounded-2xl"
+          role="alert"
+          aria-live="polite"
+        >
+          <LockKeyhole className="w-10 h-10 text-zinc-500 mx-auto mb-3" aria-hidden="true" />
+          <h1 className="text-base font-bold text-zinc-200">Custom objects unavailable</h1>
+          <p className="text-xs text-zinc-400 mt-1">{loadResult.message}</p>
         </div>
       </div>
     );
@@ -99,12 +123,16 @@ export default function CustomObjectPage() {
   const handleAddRecord = async () => {
     setSaveError(null);
     try {
-      const newRecord = await createRecordAction(slug, newRecordValues);
-      setRecords((current) => [newRecord, ...current]);
+      const result = await createCustomObjectRecordAction(slug, newRecordValues);
+      if (!result.ok) {
+        setSaveError(result.message);
+        return;
+      }
+      setRecords((current) => [result.data, ...current]);
       setNewRecordValues({});
       setIsAddModalOpen(false);
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Záznam se nepodařilo uložit.");
+    } catch {
+      setSaveError("Custom objects are temporarily unavailable. No object data was changed.");
     }
   };
 
