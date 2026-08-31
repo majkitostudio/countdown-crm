@@ -5,6 +5,10 @@ const migration = readFileSync(
   new URL("../supabase/migrations/20260830205207_rls_policy_performance_hardening.sql", import.meta.url),
   "utf8",
 );
+const gamificationGrantMigration = readFileSync(
+  new URL("../supabase/migrations/20260831060401_grant_user_gamification_authenticated.sql", import.meta.url),
+  "utf8",
+);
 const compactMigration = migration.replace(/\s+/g, " ");
 
 const policyGroups = [
@@ -94,5 +98,11 @@ describe("RLS policy performance hardening", () => {
     expect(compactMigration).toContain("WITH CHECK (private.is_workspace_manager_or_admin(workspace_id)");
     expect(compactMigration).toContain("WITH CHECK (private.is_workspace_member(workspace_id)");
     expect(compactMigration).toContain("WITH CHECK ((SELECT auth.uid()) = user_id)");
+  });
+
+  it("keeps the user gamification policies reachable through the API grant", () => {
+    expect(gamificationGrantMigration.replace(/\s+/g, " ")).toContain(
+      "GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.user_gamification TO authenticated",
+    );
   });
 });
