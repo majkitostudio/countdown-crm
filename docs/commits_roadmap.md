@@ -1,4 +1,7 @@
-# Countdown CRM — Roadmap Inkrementálních Commitů (Attio-Grade Platform)
+# [Historické] Countdown CRM — Roadmap Inkrementálních Commitů (Attio-Grade Platform)
+
+> Tento dokument je historická feature roadmapa. Dnešní stav a další práce jsou
+> v [`PROJECT_STATUS.md`](PROJECT_STATUS.md) a [`roadmap.md`](roadmap.md).
 
 > **Current status addendum — 2026-08-10:** This historical feature roadmap is
 > preserved for context. The authoritative pilot-readiness sequence is in
@@ -105,6 +108,5 @@
 ## 🤖 FÁZE 17: Live Call Agent Simulator & Custom Configurator
 - [x] `feat(simulator): add Anytime Accessible Live Call Agent Simulator with Custom Configurator (17.1)`
 - [x] `feat(simulator): implement VAD Hands-Free Dispatch & Teleprompter Script Reader (17.2)`
-
 
 

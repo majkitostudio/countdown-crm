@@ -1,4 +1,8 @@
-# AI-Native Call Center CRM — Vize a Architektura Projektu
+# [Historická vize] AI-Native Call Center CRM — Vize a Architektura Projektu
+
+> Tato vize je inspirační podklad z dřívější fáze. Popisuje plánovaný live AI,
+> telephony a realtime provoz; není to popis aktuálního runtime. Pro dnešní
+> architekturu použij [`architecture.md`](architecture.md).
 
 ## 1. Souhrn Vize (Executive Summary)
 
