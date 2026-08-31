@@ -48,3 +48,26 @@ export interface RecordEntity {
   createdAt: string;
   updatedAt: string;
 }
+
+export type CustomObjectActionCode =
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "VALIDATION"
+  | "UNAVAILABLE";
+
+export interface CustomObjectActionFailure {
+  ok: false;
+  code: CustomObjectActionCode;
+  status: 401 | 403 | 404 | 422 | 503;
+  message: string;
+}
+
+export interface CustomObjectPageData {
+  schemas: ObjectSchema[];
+  records: RecordEntity[];
+}
+
+export type CustomObjectActionResult<T> =
+  | { ok: true; data: T }
+  | CustomObjectActionFailure;
