@@ -1,9 +1,9 @@
 # Countdown CRM — aktuální stav a desatero
 
-**Snapshot:** 30. 8. 2026
-**Ověřený baseline:** `origin/main` = `51686f66b96471d9a144654552e3c1b35bdcbdc1`
-**Aktualizace baseline:** PR #55, PR #56 a PR #58 (Dashboard hierarchy) jsou sloučené; nejbližší bezpečnostní slice je samostatné review PR #28.
-**Aktuální stav:** PR #23 a PR #44 jsou sloučené; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáty zůstávají v draft PR
+**Snapshot:** 31. 8. 2026
+**Ověřený baseline:** `origin/main` = `3571d222d61b0de6a4c8a7e00398bf713cdec740`
+**Aktualizace baseline:** PR #62 (custom-object role boundary) a PR #63 (pravdivý forbidden/unavailable stav) jsou sloučené; nejbližší bezpečnostní kandidát je aktuální-main RLS draft PR #61.
+**Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáti zůstávají v draft PR.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -24,7 +24,7 @@ Server-authoritative Blueprint
 apply je sloučený v PR #23 a jeho potřebné migrace jsou ověřeně aplikované v
 obou aktuálních Supabase cílech.
 
-## Čerstvý delivery checkpoint — 30. 8. 2026
+## Čerstvý delivery checkpoint — 31. 8. 2026
 
 - PR #17 (workflow truth + Operator dispatch) je sloučený do `main` jako
   `f1d86e1`. Jeho scope je přijatý pro single-workspace interní MVP; provider
@@ -41,8 +41,9 @@ obou aktuálních Supabase cílech.
   kontrola produkce vrátila `/login` a `/icon.svg` jako HTTP 200 a potvrdila
   nový loginový mark. To není důkaz autentizace, persistence, authorization ani
   RLS.
-- Aktuální repo gate doložený na PR #49: `npm test` 90/90, `npm run check`
-  (lint, typecheck, build) a `git diff --check` prošly.
+- Historický repo gate doložený na PR #49: `npm test` 90/90, `npm run check`
+  (lint, typecheck, build) a `git diff --check` prošly; aktuální gate po PR #63
+  je uveden níže jako 104/104.
 - PR #23 (server-authoritative Blueprint apply) je sloučené do `main` jako
   `9a8cbc0`. Lokální gates po opravě prošly: `npm test` 94/94, `npm run check`
   (lint, typecheck, build) a `git diff --check`.
@@ -78,6 +79,17 @@ obou aktuálních Supabase cílech.
   (20 souborů / 98 testů), `npm run check`, `git diff --check`, Vercel Preview
   a lokální Product Design QA (`passed`). Authenticated browser, persistence,
   authorization a RLS tímto UI slice nejsou prokázané.
+- PR #62 (custom-object role boundary) je sloučené do `main` jako
+  `5b9088a`. `listSchemas`, `listRecords` a `createRecord` vyžadují roli
+  Team Leader/Administrator; Operator je odmítnut před databázovým dotazem.
+- PR #63 (custom-object forbidden/unavailable UI) je sloučené do `main` jako
+  `3571d22`. Authenticated Operator preview na `/objects/deals` zobrazil
+  `Custom objects unavailable` a zprávu o workspace roli; nebyly přítomné
+  záznamy, tabulka ani `Nový záznam`. Po reloadu zůstal stav stejný a console
+  errors byly `0`. Toto je důkaz browser/server authorization boundary, nikoli
+  důkaz persistence nebo přímého RLS denial scénáře.
+- Na PR #63 prošel aktuální repo gate: `npm test` 22 souborů / 104 testů,
+  `npm run check` (lint, typecheck, production build) a `git diff --check`.
 
 ## Co je dnes skutečný základ
 
@@ -158,6 +170,9 @@ nejde o důkaz, že všechny lokální migrace jsou nasazené do produkce.
   důkaz. PR #21 je proto pouze duplicitní historický draft.
 - Hlavní Operator Console completion má server-owned dispatch cestu, ale chybí
   nový end-to-end browser/persistence důkaz po aktuálním merge.
+- Custom-object Operator denial je po PR #62/#63 ověřený v preview; pozitivní
+  Team Leader/Administrator browser smoke a live RLS denial pro custom objects
+  stále nejsou novým průchodem doložené.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
 - Produkční negativní browser smoke s reálným účtem `mikestudio` ověřil roli
   `Operator`: `/workspace` nezobrazuje Blueprint administraci, administrátorské
@@ -169,7 +184,7 @@ nejde o důkaz, že všechny lokální migrace jsou nasazené do produkce.
 Podrobný nálezový inventář a oddělení static/browser/persistence/authorization/
 RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_20260826.md).
 
-## Stav otevřených důkazů — 30. 8. 2026
+## Stav otevřených důkazů — 31. 8. 2026
 
 - PR #23 — server-authoritative Blueprint apply: **MERGED** jako `9a8cbc0`.
   Preview/Sandbox má pozitivní Admin apply, reload a SQL read-back; produkce má
@@ -184,6 +199,12 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 - PR #56 — Operator Console layout hierarchy: **MERGED** jako `20c9a70`.
   Lokální gates a Vercel Preview check prošly; autentizovaný browser smoke a
   live persistence/RLS/concurrency evidence zůstávají samostatné.
+- PR #62 — custom-object role boundary: **MERGED** jako `5b9088a`.
+  Serverový role guard a focused testy prošly; live RLS/persistence důkaz tím
+  není nahrazen.
+- PR #63 — custom-object forbidden/unavailable UI: **MERGED** jako `3571d22`.
+  Authenticated Operator preview + reload prošly; Team Leader/Administrator
+  pozitivní browser smoke zůstává otevřený.
 
 ### Inventura otevřených draft PR
 
@@ -193,10 +214,8 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 | #7 | starší order-checkout větev | překrývá se s #44; před jakýmkoli merge nejdříve porovnat unique commits |
 | #8 | starý Operator UI smoke záznam | evidence-only draft; aktuální smoke dokumenty jsou v `main` |
 | #21 | starší duplicitní atomic business/audit draft | superseded PR #45; nemergovat |
-| #23 | server-authoritative Blueprint apply | sloučeno; další důkaz je role-negative a produkční rozhodnutí o aktivaci |
-| #28 | explicitní RLS policies | samostatný security slice; bez implicitního live apply |
-| #44 | order items v call checkoutu | sloučeno; pokročilé live důkazy jsou odložené |
-| #58 | Dashboard team hierarchy | sloučeno; UI-only změna, live týmová data a role-specific důkaz zůstávají oddělené |
+| #28 | starší explicitní RLS policies | historický predecessor; před jakýmkoli zásahem porovnat s aktuálním-main kandidátem #61 |
+| #61 | RLS policy hardening na aktuálním main | aktuální implementační kandidát; před merge synchronizovat s `origin/main`, provést role/cross-workspace pgTAP nebo jiný schválený live důkaz a samostatné provisioning rozhodnutí |
 | #46 | status dokumentace po starším auditu | zastaralý docs draft; tento checkpoint ho nahrazuje |
 | #47 | custom logo branding TODO | mimo schválený MVP scope ikon; nemergovat |
 
@@ -214,24 +233,54 @@ unikátní commity a teprve potom se případně archivují nebo vědomě uzavř
   kontrola. Linked Supabase lint je čistý; linked migration dry-run byl
   bezpečně zastaven bez změny databáze.
 
-## Ověření tohoto průchodu
+## Ověření aktuálního baseline
 
 | Kontrola | Výsledek | Poznámka |
 |---|---|---|
-| `npm test` | **prošlo** | 90/90 na aktuálním `origin/main` podle PR #49 |
-| `npm run check` | **prošlo** | lint, typecheck a production build prošly podle PR #49 |
-| `git diff --check` | **prošlo** | bez whitespace chyb |
+| `npm test` | **prošlo** | 104/104 na tree PR #63, nyní sloučeném v `origin/main` |
+| `npm run check` | **prošlo** | lint, typecheck a production build prošly na tree PR #63 |
+| `git diff --check` | **prošlo** | bez whitespace chyb na tree PR #63 |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 vulnerabilities po čisté instalaci |
 | no-unused/static scan | **prošlo** | mrtvý operator status state odstraněn a PR #24 sloučen |
 | Blueprint browser smoke | **prošlo v Preview/Sandbox** | Administrator apply + reload; produkce pouze čisté načtení bez aktivace |
 | Blueprint persistence | **prošlo v Preview/Sandbox** | SQL read-back potvrdil stav, 4 atributy, workflow a `leads` objekt |
 | Call checkout order items | **prošlo staticky** | 96 testů + lint/typecheck/build; live persistence je odložená |
 | authorization/RLS | **částečně doloženo** | Operator UI negative smoke prošel; RPC/RLS metadata jsou v obou cílech, přímé denial/RLS provedení chybí |
+| Custom-object Operator denial | **prošlo v Preview** | `/objects/deals` + reload; forbidden zpráva, 0 záznamů, 0 create controls, 0 console errors |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
 jsou důkazy jednotlivých vrstev. Pro kritický workflow stále potřebujeme
 čerstvý browser test s reálným Auth uživatelem, reloadem, SQL kontrolou,
 negativními role/workspace scénáři a idempotency/recovery důkazem.
+
+## Aktuální To Dos — 31. 8. 2026
+
+1. **P1 — dokončit bezpečnostní review aktuálního RLS kandidáta (#61)**
+
+   Synchronizovat draft s `origin/main`, porovnat migration provenance a policy
+   diff, doplnit schválený role/cross-workspace CRUD důkaz a teprve potom
+   rozhodnout o sandbox/live provisioning. Žádný implicitní `db push`.
+
+2. **P1 — čerstvý pozitivní pilotní browser/persistence důkaz**
+
+   Ověřit Team Leader/Administrator allowed path a hlavní workflow login →
+   claim/call/outcome nebo order → reload → SQL read-back. Operator custom-object
+   denial je již samostatně doložený v PR #63; nenahrazuje cizí workspace ani
+   přímý RLS denial scénář.
+
+3. **P1 — uzavřít pravdivost kritických mock/unavailable ploch**
+
+   Zvlášť evidovat dashboard activity/KPI, workflow provider side effects,
+   mock-only monitor/training/objection surface a skutečnou telephony/inbound
+   integraci. Nesmí se z nich stát pilot-ready claim bez odpovídajícího zdroje
+   a persistence důkazu.
+
+4. **P2 — uklidit historickou dokumentaci a staré drafty**
+
+   Po porovnání unique commits vědomě archivovat nebo uzavřít #6, #7, #8, #21,
+   #28, #46 a #47; současně postupně sjednotit `README.md`, `architecture.md`,
+   `roadmap.md` a `commits.md` s tímto checkpointem. `docs/ideas.md` zůstává
+   neschválenou bankou nápadů, nikoli aktuálním delivery plánem.
 
 ## Doporučené pořadí navazujících slices
 
@@ -244,10 +293,11 @@ nebo novou funkci jen proto, aby byl commit větší.
    před podpůrná data a prezentuje KPI jako workspace/team scoped. Změna
    nepřidává nové KPI, telephony ani širší release gate.
 
-2. **DRAFT PR #28 — RLS policy cleanup — nejbližší doporučený slice**
+2. **DRAFT PR #61 — RLS policy cleanup na aktuálním main — nejbližší doporučený slice**
 
-   Samostatný bezpečnostní slice. Nejdříve přesný diff policies a provisioning
-   plán, následně případné sandbox/live ověření; žádný implicitní `db push`.
+   PR #28 je historický predecessor. U #61 nejdříve ověřit přesný diff policies,
+   migration provenance a provisioning plán, následně případné sandbox/live
+   ověření; žádný implicitní `db push`.
 
 3. **P1 — čerstvý autentizovaný pilotní důkaz**
 
