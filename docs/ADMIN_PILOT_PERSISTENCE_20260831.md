@@ -20,16 +20,20 @@
    the same note with author `majkito.studio`. This is the positive browser +
    UI reload-persistence result.
 5. Browser diagnostic logs were empty for this run.
+6. A separate read-only SQL query against Preview/Sandbox ref
+   `lpvypihpxhyjljikfzqo` returned one matching `public.lead_notes` row with
+   the same lead, workspace, author and marker body. The returned row id was
+   `31b68ac0-ca3c-4bc5-bfec-f8acca14375f`.
 
 ## Evidence boundary
 
 **Passed:** authenticated Administrator identity, allowed `/workspace` path,
-lead-note save, and note visibility after reload.
+lead-note save, note visibility after reload, and matching read-only SQL
+read-back.
 
 **Not passed or not exercised:** call/audio provider initialization, call or
-order completion, direct SQL read-back, negative role/cross-workspace CRUD,
-live RLS denial, and concurrency/idempotency. The result is not a pilot-ready
-or RLS-ready claim.
+order completion, negative role/cross-workspace CRUD, live RLS denial, and
+concurrency/idempotency. The result is not a pilot-ready or RLS-ready claim.
 
 No credentials, fixture, account, membership, workspace, migration, or live
 database provisioning changes were made by this run.

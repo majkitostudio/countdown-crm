@@ -2,7 +2,7 @@
 
 **Snapshot:** 31. 8. 2026
 **Ověřený aplikační baseline před tímto docs slice:** `origin/main` = `e8b66eb5fb630e991f75f0cf8584b4e0a46410b8`
-**Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; čerstvý Administrator browser + reload persistence průchod je částečně doložený, plný call/order a SQL/RLS důkaz zůstává otevřený.
+**Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; Administrator browser + reload + SQL persistence je doložená pro lead note, plný call/order a RLS důkaz zůstává otevřený.
 **Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
@@ -91,8 +91,9 @@ obou aktuálních Supabase cílech.
 - Čerstvý Administrator smoke v Preview ověřil `majkito.studio, Administrator`,
   načtení `/workspace` s leadem a návrat jedinečně označené lead note po reloadu
   (`Note history 1`). Console log zůstal prázdný. Call start skončil pravdivým
-  stavem `Audio session could not be initialized`; SQL read-back, call/outcome a
-  RLS denial proto zůstávají neověřené. Podrobný záznam je v
+  stavem `Audio session could not be initialized`; read-only SQL dotaz v
+  Preview/Sandbox vrátil odpovídající řádek `lead_notes`. Call/outcome a RLS
+  denial proto zůstávají neověřené. Podrobný záznam je v
   [ADMIN_PILOT_PERSISTENCE_20260831.md](ADMIN_PILOT_PERSISTENCE_20260831.md).
 - Na PR #63 prošel aktuální repo gate: `npm test` 22 souborů / 104 testů,
   `npm run check` (lint, typecheck, production build) a `git diff --check`.
@@ -275,7 +276,7 @@ historie. Uzavření draftu není merge ani důkaz implementace.
 | Call checkout order items | **prošlo staticky** | 96 testů + lint/typecheck/build; live persistence je odložená |
 | authorization/RLS | **částečně doloženo** | Operator UI negative smoke prošel; RPC/RLS metadata jsou v obou cílech, přímé denial/RLS provedení chybí |
 | Custom-object Operator denial | **prošlo v Preview** | `/objects/deals` + reload; forbidden zpráva, 0 záznamů, 0 create controls, 0 console errors |
-| Administrator browser + reload persistence | **částečně prošlo v Preview** | `/workspace` allowed path a lead note po reloadu; call audio unavailable, SQL read-back a RLS denial chybí |
+| Administrator browser + reload + SQL persistence | **prošlo pro lead note v Preview/Sandbox** | `/workspace` allowed path, lead note po reloadu a matching read-only SQL row; call audio unavailable a RLS denial chybí |
 | RLS policy catalog pgTAP | **prošlo rollback testem** | 12/12 kontrol po dočasném vložení PR #61 migrace; bez trvalého lokálního/live zápisu |
 | Re-Order truthfulness | **prošlo** | fulfilled-only, 14denní filtr, bez hardcoded slevy; 107/107 testů |
 
@@ -292,13 +293,13 @@ idempotency/recovery důkaz.
    role/cross-workspace CRUD test proti sandboxu a samostatné rozhodnutí, zda
    migraci aplikovat. Žádný implicitní `db push`.
 
-2. **P1 — pozitivní pilotní browser/persistence důkaz — částečně doloženo**
+2. **P1 — pozitivní pilotní browser/persistence důkaz — lead-note cesta doložena**
 
-   Administrator allowed path, načtení `/workspace` a návrat lead note po reloadu
-   jsou ověřené v Preview. Call start skončil stavem `Audio session could not be
-   initialized`, takže nevznikl call/outcome důkaz. Zbývá SQL read-back a
-   negativní role/cross-workspace/RLS scénář; Operator custom-object denial je
-   samostatně doložený v PR #63.
+   Administrator allowed path, načtení `/workspace`, návrat lead note po reloadu
+   a matching read-only SQL row jsou ověřené v Preview/Sandbox. Call start
+   skončil stavem `Audio session could not be initialized`, takže nevznikl
+   call/outcome důkaz. Zbývá negativní role/cross-workspace/RLS scénář; Operator
+   custom-object denial je samostatně doložený v PR #63.
 
 3. **P1 — pravdivost kritických mock/unavailable ploch je zkontrolovaná**
 
