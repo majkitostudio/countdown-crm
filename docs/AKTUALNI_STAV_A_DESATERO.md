@@ -1,8 +1,8 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 31. 8. 2026
-**Ověřený aplikační baseline před tímto docs slice:** `origin/main` = `aa7f138788f54e9fc1e29b461e3abab14a1c32a0`
-**Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; pozitivní Team Leader/Administrator browser důkaz zůstává nejbližší release gate.
+**Ověřený aplikační baseline před tímto docs slice:** `origin/main` = `e8b66eb5fb630e991f75f0cf8584b4e0a46410b8`
+**Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; čerstvý Administrator browser + reload persistence průchod je částečně doložený, plný call/order a SQL/RLS důkaz zůstává otevřený.
 **Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
@@ -88,6 +88,12 @@ obou aktuálních Supabase cílech.
   záznamy, tabulka ani `Nový záznam`. Po reloadu zůstal stav stejný a console
   errors byly `0`. Toto je důkaz browser/server authorization boundary, nikoli
   důkaz persistence nebo přímého RLS denial scénáře.
+- Čerstvý Administrator smoke v Preview ověřil `majkito.studio, Administrator`,
+  načtení `/workspace` s leadem a návrat jedinečně označené lead note po reloadu
+  (`Note history 1`). Console log zůstal prázdný. Call start skončil pravdivým
+  stavem `Audio session could not be initialized`; SQL read-back, call/outcome a
+  RLS denial proto zůstávají neověřené. Podrobný záznam je v
+  [ADMIN_PILOT_PERSISTENCE_20260831.md](ADMIN_PILOT_PERSISTENCE_20260831.md).
 - Na PR #63 prošel aktuální repo gate: `npm test` 22 souborů / 104 testů,
   `npm run check` (lint, typecheck, production build) a `git diff --check`.
 - PR #61 (RLS policy hardening) je sloučené do `main` jako `cd1d444`. Migrace
@@ -217,7 +223,8 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
   není nahrazen.
 - PR #63 — custom-object forbidden/unavailable UI: **MERGED** jako `3571d22`.
   Authenticated Operator preview + reload prošly; Team Leader/Administrator
-  pozitivní browser smoke zůstává otevřený.
+  pozitivní browser + reload persistence smoke je nyní částečně doložený; plný
+  call/order, SQL read-back a RLS scénář zůstávají otevřené.
 - PR #65 — Re-Order truthfulness: **MERGED** jako `8dea506`. Heuristický
   odhad je omezen na fulfilled historii a 14denní okno; pricing nabídka se
   z UI odstranila.
@@ -241,6 +248,12 @@ historie. Uzavření draftu není merge ani důkaz implementace.
   `/orders`, `/settings` a `/team`; výsledek je v
   [ADMIN_UI_SMOKE_TEST_20260827.md](ADMIN_UI_SMOKE_TEST_20260827.md). Negativní
   Operator/cross-workspace scénáře tím nejsou nahrazené.
+- Čerstvý Administrator průchod v Preview ověřil banner `majkito.studio,
+  Administrator`, načtení `/workspace` s leadem a návrat jedinečně označené
+  lead note po reloadu (`Note history 1`). Console log zůstal prázdný. Jde o
+  browser + UI persistence důkaz; call start skončil pravdivým stavem
+  `Audio session could not be initialized` a SQL read-back ani RLS denial tím
+  nejsou doložené.
 - Přihlášený Operator prošel stejné routy; `/leads` a `/team` vrátily pravdivý
   unavailable stav a admin-only navigace nebyla dostupná. Důkaz je v
   [OPERATOR_UI_SMOKE_TEST_20260827.md](OPERATOR_UI_SMOKE_TEST_20260827.md).
@@ -262,13 +275,14 @@ historie. Uzavření draftu není merge ani důkaz implementace.
 | Call checkout order items | **prošlo staticky** | 96 testů + lint/typecheck/build; live persistence je odložená |
 | authorization/RLS | **částečně doloženo** | Operator UI negative smoke prošel; RPC/RLS metadata jsou v obou cílech, přímé denial/RLS provedení chybí |
 | Custom-object Operator denial | **prošlo v Preview** | `/objects/deals` + reload; forbidden zpráva, 0 záznamů, 0 create controls, 0 console errors |
+| Administrator browser + reload persistence | **částečně prošlo v Preview** | `/workspace` allowed path a lead note po reloadu; call audio unavailable, SQL read-back a RLS denial chybí |
 | RLS policy catalog pgTAP | **prošlo rollback testem** | 12/12 kontrol po dočasném vložení PR #61 migrace; bez trvalého lokálního/live zápisu |
 | Re-Order truthfulness | **prošlo** | fulfilled-only, 14denní filtr, bez hardcoded slevy; 107/107 testů |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
 jsou důkazy jednotlivých vrstev. Pro kritický workflow stále potřebujeme
-čerstvý browser test s reálným Auth uživatelem, reloadem, SQL kontrolou,
-negativními role/workspace scénáři a idempotency/recovery důkazem.
+dokončit call/order cestu, SQL kontrolu, negativní role/workspace scénáře a
+idempotency/recovery důkaz.
 
 ## Aktuální To Dos — 31. 8. 2026
 
@@ -278,12 +292,13 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
    role/cross-workspace CRUD test proti sandboxu a samostatné rozhodnutí, zda
    migraci aplikovat. Žádný implicitní `db push`.
 
-2. **P1 — čerstvý pozitivní pilotní browser/persistence důkaz**
+2. **P1 — pozitivní pilotní browser/persistence důkaz — částečně doloženo**
 
-   Ověřit Team Leader/Administrator allowed path a hlavní workflow login →
-   claim/call/outcome nebo order → reload → SQL read-back. Operator custom-object
-   denial je již samostatně doložený v PR #63; nenahrazuje cizí workspace ani
-   přímý RLS denial scénář.
+   Administrator allowed path, načtení `/workspace` a návrat lead note po reloadu
+   jsou ověřené v Preview. Call start skončil stavem `Audio session could not be
+   initialized`, takže nevznikl call/outcome důkaz. Zbývá SQL read-back a
+   negativní role/cross-workspace/RLS scénář; Operator custom-object denial je
+   samostatně doložený v PR #63.
 
 3. **P1 — pravdivost kritických mock/unavailable ploch je zkontrolovaná**
 
@@ -295,7 +310,7 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 
 4. **P2 — uklidit historickou dokumentaci a staré drafty — dokončeno**
 
-   Aktuální checkpoint byl aktualizován a PR #64/#66 jsou sloučené; po
+   Aktuální checkpoint byl aktualizován a PR #64/#66/#67 jsou sloučené; po
    porovnání unique commits byly #6, #7, #8, #21, #28, #46 a #47 vědomě
    uzavřeny bez merge. `docs/ideas.md` zůstává neschválenou bankou nápadů,
    nikoli aktuálním delivery plánem. Širší sjednocení historických katalogů je
