@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Sparkles,
   Users,
+  WalletCards,
 } from "lucide-react";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 
@@ -28,6 +29,7 @@ const NAV_ITEMS: NavigationCommand[] = [
   { label: "My Calendar", path: "/calendar", icon: CalendarDays },
   { label: "Leads & Contacts", path: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
   { label: "Orders", path: "/orders", icon: ShoppingCart },
+  { label: "Wallet", path: "/wallet", icon: WalletCards },
   { label: "Product Catalog", path: "/products", icon: Package },
   { label: "Analytics BI", path: "/analytics", icon: BarChart3, roles: ["team_leader", "administrator"] },
   { label: "Live Team Monitor", path: "/monitor", icon: Activity, roles: ["team_leader", "administrator"] },

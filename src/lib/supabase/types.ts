@@ -578,6 +578,9 @@ export interface Database {
           order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note: string | null;
           revision: number;
+          delivered_at: string | null;
+          returned_at: string | null;
+          fulfillment_event_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -592,6 +595,9 @@ export interface Database {
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
           revision?: number;
+          delivered_at?: string | null;
+          returned_at?: string | null;
+          fulfillment_event_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -604,6 +610,9 @@ export interface Database {
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
           revision?: number;
+          delivered_at?: string | null;
+          returned_at?: string | null;
+          fulfillment_event_id?: string | null;
         };
         Relationships: [];
       };
@@ -1109,6 +1118,101 @@ export interface Database {
         };
         Relationships: [];
       };
+      wallet_settings: {
+        Row: {
+          workspace_id: string;
+          currency: "CZK" | "EUR" | "PLN";
+          monthly_commission_rate: number;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          workspace_id: string;
+          currency?: "CZK" | "EUR" | "PLN";
+          monthly_commission_rate?: number;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          currency?: "CZK" | "EUR" | "PLN";
+          monthly_commission_rate?: number;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      wallet_bonus_rules: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          currency: "CZK" | "EUR" | "PLN";
+          minimum_order_amount: number;
+          bonus_amount: number;
+          effective_from: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          currency: "CZK" | "EUR" | "PLN";
+          minimum_order_amount: number;
+          bonus_amount: number;
+          effective_from?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          currency?: "CZK" | "EUR" | "PLN";
+          minimum_order_amount?: number;
+          bonus_amount?: number;
+          effective_from?: string;
+        };
+        Relationships: [];
+      };
+      wallet_transactions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          user_id: string;
+          amount: number;
+          currency: "CZK" | "EUR" | "PLN";
+          transaction_type: "order_bonus" | "monthly_commission" | "manual_adjustment" | "reversal";
+          source_type: "order" | "commission_period" | "manual";
+          source_event_id: string;
+          source_order_id: string | null;
+          source_period_start: string | null;
+          reason: string;
+          author_id: string | null;
+          audit_log_id: string | null;
+          rule_snapshot: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          user_id: string;
+          amount: number;
+          currency: "CZK" | "EUR" | "PLN";
+          transaction_type: "order_bonus" | "monthly_commission" | "manual_adjustment" | "reversal";
+          source_type: "order" | "commission_period" | "manual";
+          source_event_id: string;
+          source_order_id?: string | null;
+          source_period_start?: string | null;
+          reason: string;
+          author_id?: string | null;
+          audit_log_id?: string | null;
+          rule_snapshot?: Json;
+          created_at?: string;
+        };
+        Update: {
+          reason?: string;
+          rule_snapshot?: Json;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       create_product_script_draft: {
@@ -1124,6 +1228,60 @@ export interface Database {
           p_version_id: string;
         };
         Returns: Database["public"]["Tables"]["product_script_versions"]["Row"][];
+      };
+      update_wallet_settings: {
+        Args: {
+          p_workspace_id: string;
+          p_currency: "CZK" | "EUR" | "PLN";
+          p_monthly_commission_rate: number;
+        };
+        Returns: Database["public"]["Tables"]["wallet_settings"]["Row"];
+      };
+      add_wallet_bonus_rule: {
+        Args: {
+          p_workspace_id: string;
+          p_currency: "CZK" | "EUR" | "PLN";
+          p_minimum_order_amount: number;
+          p_bonus_amount: number;
+          p_effective_from?: string;
+        };
+        Returns: Database["public"]["Tables"]["wallet_bonus_rules"]["Row"];
+      };
+      add_wallet_manual_adjustment: {
+        Args: {
+          p_workspace_id: string;
+          p_user_id: string;
+          p_amount: number;
+          p_reason: string;
+        };
+        Returns: Database["public"]["Tables"]["wallet_transactions"]["Row"];
+      };
+      get_wallet_balances: {
+        Args: { p_workspace_id: string };
+        Returns: Array<{
+          user_id: string;
+          transaction_count: number;
+          balance: number;
+          total_credits: number;
+          total_debits: number;
+        }>;
+      };
+      record_order_fulfillment_event: {
+        Args: {
+          p_order_id: string;
+          p_status: "delivered" | "returned";
+          p_event_id: string;
+          p_occurred_at?: string;
+        };
+        Returns: Database["public"]["Tables"]["orders"]["Row"];
+      };
+      finalize_wallet_monthly_commission: {
+        Args: {
+          p_workspace_id: string;
+          p_user_id: string;
+          p_period_start: string;
+        };
+        Returns: Database["public"]["Tables"]["wallet_transactions"]["Row"];
       };
     };
   };
