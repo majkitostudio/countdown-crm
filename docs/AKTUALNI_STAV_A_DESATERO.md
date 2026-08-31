@@ -1,9 +1,9 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 31. 8. 2026
-**Ověřený baseline:** `origin/main` = `3571d222d61b0de6a4c8a7e00398bf713cdec740`
-**Aktualizace baseline:** PR #62 (custom-object role boundary) a PR #63 (pravdivý forbidden/unavailable stav) jsou sloučené; nejbližší bezpečnostní kandidát je aktuální-main RLS draft PR #61.
-**Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci, další implementační kandidáti zůstávají v draft PR.
+**Ověřený baseline:** `origin/main` = `8dea5065f4fb865f02720477eb1df60a4b1e4f80`
+**Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; pozitivní Team Leader/Administrator browser důkaz zůstává nejbližší release gate.
+**Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
 
 ## Jedna věta na úvod
@@ -90,6 +90,15 @@ obou aktuálních Supabase cílech.
   důkaz persistence nebo přímého RLS denial scénáře.
 - Na PR #63 prošel aktuální repo gate: `npm test` 22 souborů / 104 testů,
   `npm run check` (lint, typecheck, production build) a `git diff --check`.
+- PR #61 (RLS policy hardening) je sloučené do `main` jako `cd1d444`. Migrace
+  rozděluje mutation policies na explicitní INSERT/UPDATE/DELETE, ponechává
+  workspace predikáty a `WITH CHECK`; přidaný pgTAP katalogový test měl při
+  rollback ověření 12/12. Linked databáze migraci zatím nemá aplikovanou;
+  `db push` nebyl proveden.
+- PR #65 (Re-Order truthfulness) je sloučené do `main` jako `8dea506`. Odhad
+  zobrazuje jen completed/delivered objednávky do 14 dní, je označený jako
+  heuristika a neprezentuje hardcoded slevu. Gate byl 24 souborů / 107 testů,
+  `npm run check`, `git diff --check` a Vercel Preview.
 
 ## Co je dnes skutečný základ
 
@@ -173,6 +182,9 @@ nejde o důkaz, že všechny lokální migrace jsou nasazené do produkce.
 - Custom-object Operator denial je po PR #62/#63 ověřený v preview; pozitivní
   Team Leader/Administrator browser smoke a live RLS denial pro custom objects
   stále nejsou novým průchodem doložené.
+- Pozitivní Team Leader/Administrator browser/persistence průchod nebyl
+  proveden: dostupná Chrome relace je `mikestudio, Operator`. Nebyl použit
+  demo auth, cizí účet ani fixture.
 - Analytics role boundary a CSV escaping jsou již sloučené do `main`.
 - Produkční negativní browser smoke s reálným účtem `mikestudio` ověřil roli
   `Operator`: `/workspace` nezobrazuje Blueprint administraci, administrátorské
@@ -190,8 +202,9 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
   Preview/Sandbox má pozitivní Admin apply, reload a SQL read-back; produkce má
   aplikovanou infrastrukturu a čisté `/workspace`, ale Blueprint v ní zatím
   nebyl aktivován.
-- PR #28 — explicitní RLS policies: **OPEN/DRAFT**. Live databáze nebyla
-  změněna; případné nasazení vyžaduje samostatný provisioning plán a souhlas.
+- PR #61 — explicitní RLS policies: **MERGED** jako `cd1d444`. Přidaný pgTAP
+  katalogový test byl ověřen v rollback transakci; role/cross-workspace CRUD
+  a live provisioning zůstávají samostatnou bránou.
 - PR #44 — persistované order items v checkoutu: **MERGED** jako `853e784`.
   Lokální gates a Preview check prošly; pokročilé live persistence/RLS/
   concurrency důkazy jsou odložené.
@@ -205,17 +218,19 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
 - PR #63 — custom-object forbidden/unavailable UI: **MERGED** jako `3571d22`.
   Authenticated Operator preview + reload prošly; Team Leader/Administrator
   pozitivní browser smoke zůstává otevřený.
+- PR #65 — Re-Order truthfulness: **MERGED** jako `8dea506`. Heuristický
+  odhad je omezen na fulfilled historii a 14denní okno; pricing nabídka se
+  z UI odstranila.
 
 ### Inventura otevřených draft PR
 
 | PR | Obsah | Aktuální rozhodnutí |
 |---|---|---|
 | #6 | starý pilot-readiness gate | historický dokumentační draft; nenahrazuje tento checkpoint |
-| #7 | starší order-checkout větev | překrývá se s #44; před jakýmkoli merge nejdříve porovnat unique commits |
-| #8 | starý Operator UI smoke záznam | evidence-only draft; aktuální smoke dokumenty jsou v `main` |
+| #7 | starší order-checkout větev | superseded PR #44; zachovat jen jako historii |
+| #8 | starý Operator UI smoke záznam | evidence-only; aktuální smoke dokumenty jsou v `main` |
 | #21 | starší duplicitní atomic business/audit draft | superseded PR #45; nemergovat |
-| #28 | starší explicitní RLS policies | historický predecessor; před jakýmkoli zásahem porovnat s aktuálním-main kandidátem #61 |
-| #61 | RLS policy hardening na aktuálním main | aktuální implementační kandidát; před merge synchronizovat s `origin/main`, provést role/cross-workspace pgTAP nebo jiný schválený live důkaz a samostatné provisioning rozhodnutí |
+| #28 | starší explicitní RLS policies | superseded PR #61; nemergovat |
 | #46 | status dokumentace po starším auditu | zastaralý docs draft; tento checkpoint ho nahrazuje |
 | #47 | custom logo branding TODO | mimo schválený MVP scope ikon; nemergovat |
 
@@ -237,9 +252,9 @@ unikátní commity a teprve potom se případně archivují nebo vědomě uzavř
 
 | Kontrola | Výsledek | Poznámka |
 |---|---|---|
-| `npm test` | **prošlo** | 104/104 na tree PR #63, nyní sloučeném v `origin/main` |
-| `npm run check` | **prošlo** | lint, typecheck a production build prošly na tree PR #63 |
-| `git diff --check` | **prošlo** | bez whitespace chyb na tree PR #63 |
+| `npm test` | **prošlo** | 107/107 na tree PR #65, nyní sloučeném v `origin/main` |
+| `npm run check` | **prošlo** | lint, typecheck a production build prošly na tree PR #65 |
+| `git diff --check` | **prošlo** | bez whitespace chyb na tree PR #65 |
 | `npm audit --omit=dev --audit-level=high` | **prošlo** | 0 vulnerabilities po čisté instalaci |
 | no-unused/static scan | **prošlo** | mrtvý operator status state odstraněn a PR #24 sloučen |
 | Blueprint browser smoke | **prošlo v Preview/Sandbox** | Administrator apply + reload; produkce pouze čisté načtení bez aktivace |
@@ -247,6 +262,8 @@ unikátní commity a teprve potom se případně archivují nebo vědomě uzavř
 | Call checkout order items | **prošlo staticky** | 96 testů + lint/typecheck/build; live persistence je odložená |
 | authorization/RLS | **částečně doloženo** | Operator UI negative smoke prošel; RPC/RLS metadata jsou v obou cílech, přímé denial/RLS provedení chybí |
 | Custom-object Operator denial | **prošlo v Preview** | `/objects/deals` + reload; forbidden zpráva, 0 záznamů, 0 create controls, 0 console errors |
+| RLS policy catalog pgTAP | **prošlo rollback testem** | 12/12 kontrol po dočasném vložení PR #61 migrace; bez trvalého lokálního/live zápisu |
+| Re-Order truthfulness | **prošlo** | fulfilled-only, 14denní filtr, bez hardcoded slevy; 107/107 testů |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
 jsou důkazy jednotlivých vrstev. Pro kritický workflow stále potřebujeme
@@ -255,11 +272,11 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
 
 ## Aktuální To Dos — 31. 8. 2026
 
-1. **P1 — dokončit bezpečnostní review aktuálního RLS kandidáta (#61)**
+1. **P1 — schválit provisioning a negativní RLS důkaz po PR #61**
 
-   Synchronizovat draft s `origin/main`, porovnat migration provenance a policy
-   diff, doplnit schválený role/cross-workspace CRUD důkaz a teprve potom
-   rozhodnout o sandbox/live provisioning. Žádný implicitní `db push`.
+   Migration/policy diff a katalogový pgTAP test jsou hotové. Zbývá schválený
+   role/cross-workspace CRUD test proti sandboxu a samostatné rozhodnutí, zda
+   migraci aplikovat. Žádný implicitní `db push`.
 
 2. **P1 — čerstvý pozitivní pilotní browser/persistence důkaz**
 
@@ -268,12 +285,13 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
    denial je již samostatně doložený v PR #63; nenahrazuje cizí workspace ani
    přímý RLS denial scénář.
 
-3. **P1 — uzavřít pravdivost kritických mock/unavailable ploch**
+3. **P1 — dokončit audit kritických mock/unavailable ploch**
 
-   Zvlášť evidovat dashboard activity/KPI, workflow provider side effects,
-   mock-only monitor/training/objection surface a skutečnou telephony/inbound
-   integraci. Nesmí se z nich stát pilot-ready claim bez odpovídajícího zdroje
-   a persistence důkazu.
+   Re-Order heuristika je opravena a zdokumentována. Zbývá zvlášť evidovat
+   dashboard activity/KPI, workflow provider side effects, mock-only
+   monitor/training/objection surface a skutečnou telephony/inbound integraci.
+   Nesmí se z nich stát pilot-ready claim bez odpovídajícího zdroje a
+   persistence důkazu.
 
 4. **P2 — uklidit historickou dokumentaci a staré drafty**
 
