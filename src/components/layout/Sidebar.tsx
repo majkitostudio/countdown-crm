@@ -22,6 +22,7 @@ import {
   UserCog,
   CalendarDays,
   ShoppingBag,
+  WalletCards,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
@@ -34,6 +35,7 @@ const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboa
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
   { label: "Orders", href: "/orders", icon: ShoppingBag },
+  { label: "Wallet", href: "/wallet", icon: WalletCards },
   { label: "My Calendar", href: "/calendar", icon: CalendarDays },
   { label: "AI Training", href: "/training", icon: GraduationCap },
   { label: "Team Leader Review", href: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
