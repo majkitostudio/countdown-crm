@@ -1,7 +1,7 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 31. 8. 2026
-**Ověřený aplikační baseline před tímto docs slice:** `origin/main` = `e8b66eb5fb630e991f75f0cf8584b4e0a46410b8`
+**Ověřený aplikační baseline před tímto slice:** `origin/main` = `bb8b36a3e9bc84b60643058d95bbc78237c60e6b`
 **Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; Administrator browser + reload + SQL persistence je doložená pro lead note, plný call/order a RLS důkaz zůstává otevřený.
 **Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
@@ -278,6 +278,7 @@ historie. Uzavření draftu není merge ani důkaz implementace.
 | Custom-object Operator denial | **prošlo v Preview** | `/objects/deals` + reload; forbidden zpráva, 0 záznamů, 0 create controls, 0 console errors |
 | Administrator browser + reload + SQL persistence | **prošlo pro lead note v Preview/Sandbox** | `/workspace` allowed path, lead note po reloadu a matching read-only SQL row; call audio unavailable a RLS denial chybí |
 | RLS policy catalog pgTAP | **prošlo rollback testem** | 12/12 kontrol po dočasném vložení PR #61 migrace; bez trvalého lokálního/live zápisu |
+| RLS role/workspace runtime pgTAP | **prošlo lokálně** | 46/46 assertions po PR #61 policies; dvě workspace a tři transaction-local identity fixtures; live sandbox migration/cross-workspace denial zůstává neověřený |
 | Re-Order truthfulness | **prošlo** | fulfilled-only, 14denní filtr, bez hardcoded slevy; 107/107 testů |
 
 Tento snapshot **neprohlašuje pilot za připravený**. Build/test a SQL metadata
@@ -289,9 +290,11 @@ idempotency/recovery důkaz.
 
 1. **P1 — schválit provisioning a negativní RLS důkaz po PR #61**
 
-   Migration/policy diff a katalogový pgTAP test jsou hotové. Zbývá schválený
-   role/cross-workspace CRUD test proti sandboxu a samostatné rozhodnutí, zda
-   migraci aplikovat. Žádný implicitní `db push`.
+   Migration/policy diff, katalogový pgTAP test a rollback-scoped runtime test
+   jsou hotové (`46/46`; detail v
+   [RLS_ROLE_WORKSPACE_EVIDENCE_20260831.md](RLS_ROLE_WORKSPACE_EVIDENCE_20260831.md)).
+   Zbývá schválený role/cross-workspace CRUD test proti sandboxu a samostatné
+   rozhodnutí, zda migraci aplikovat. Žádný implicitní `db push`.
 
 2. **P1 — pozitivní pilotní browser/persistence důkaz — lead-note cesta doložena**
 
