@@ -217,7 +217,7 @@ DECLARE
   order_row public.orders;
   existing_event_id TEXT;
 BEGIN
-  IF coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' THEN
+  IF coalesce(auth.jwt() ->> 'role', current_setting('request.jwt.claim.role', true), '') <> 'service_role' THEN
     RAISE EXCEPTION 'Fulfillment events require the service role';
   END IF;
 
@@ -244,7 +244,10 @@ BEGIN
   IF order_row.status = p_status AND existing_event_id = p_event_id THEN
     RETURN order_row;
   END IF;
-  IF order_row.status IN ('delivered', 'returned') THEN
+  IF order_row.status = 'returned' THEN
+    RAISE EXCEPTION 'Order already has a terminal fulfillment status';
+  END IF;
+  IF order_row.status = 'delivered' AND p_status <> 'returned' THEN
     RAISE EXCEPTION 'Order already has a terminal fulfillment status';
   END IF;
   IF p_status = 'returned' AND order_row.status <> 'delivered' THEN
@@ -487,7 +490,7 @@ DECLARE
   audit_id UUID;
   period_end DATE;
 BEGIN
-  IF coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' THEN
+  IF coalesce(auth.jwt() ->> 'role', current_setting('request.jwt.claim.role', true), '') <> 'service_role' THEN
     RAISE EXCEPTION 'Monthly commission finalization requires the service role';
   END IF;
   IF p_workspace_id IS NULL OR p_user_id IS NULL OR p_period_start IS NULL
