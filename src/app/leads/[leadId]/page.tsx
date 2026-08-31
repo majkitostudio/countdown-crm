@@ -3,6 +3,8 @@ import { ArrowLeft, Building2, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, Us
 import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Customer360RetentionCard } from "@/components/leads/Customer360RetentionCard";
+import { listWorkspaceLeadActivity } from "@/lib/dal/activity";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -36,6 +38,14 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
         </Link>
       </div>
     );
+  }
+
+  let activity: Awaited<ReturnType<typeof listWorkspaceLeadActivity>> = { calls: [], orders: [] };
+  let activityUnavailable = false;
+  try {
+    activity = await listWorkspaceLeadActivity(lead.id);
+  } catch {
+    activityUnavailable = true;
   }
 
   return (
@@ -75,6 +85,8 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
           {lead.notes && <div className="mt-6 border-t border-zinc-800 pt-5"><h3 className="text-[10px] uppercase tracking-wider text-zinc-500">Notes</h3><p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">{lead.notes}</p></div>}
         </div>
       </div>
+
+      <Customer360RetentionCard lead={lead} activity={activity} activityUnavailable={activityUnavailable} />
     </div>
   );
 }
