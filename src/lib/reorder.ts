@@ -14,7 +14,6 @@ export interface ReorderOpportunity {
   estimated_depletion_date: string;
   days_remaining: number;
   urgency: "urgent" | "due_soon" | "upcoming";
-  suggested_discount: number; // e.g. 15%
 }
 
 /**
@@ -29,6 +28,8 @@ export async function getReorderOpportunities(): Promise<ReorderOpportunity[]> {
   const now = new Date();
 
   orders.forEach((order) => {
+    if (order.status !== "completed" && order.status !== "delivered") return;
+
     const lead = leads.find((l) => l.id === order.lead_id);
     const product = products.find((p) => p.id === order.product_id);
 
@@ -59,10 +60,11 @@ export async function getReorderOpportunities(): Promise<ReorderOpportunity[]> {
       estimated_depletion_date: depletionDate.toISOString(),
       days_remaining: daysRemaining,
       urgency,
-      suggested_discount: daysRemaining <= 3 ? 20 : 15,
     });
   });
 
-  // Sort by urgency / lowest days_remaining first
-  return opportunities.sort((a, b) => a.days_remaining - b.days_remaining);
+  // Only surface estimates that are due within the window promised by the UI.
+  return opportunities
+    .filter((opportunity) => opportunity.days_remaining <= 14)
+    .sort((a, b) => a.days_remaining - b.days_remaining);
 }
