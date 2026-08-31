@@ -9,7 +9,7 @@ import type {
 } from "@/lib/schema/types";
 import { createDataClient } from "@/lib/dal/db";
 import { DataAccessError } from "@/lib/dal/errors";
-import { requireWorkspaceContext, requireWorkspaceRole } from "@/lib/dal/workspace";
+import { requireWorkspaceRole } from "@/lib/dal/workspace";
 
 type CustomObjectRow = Database["public"]["Tables"]["custom_objects"]["Row"];
 type AttributeDefinitionRow = Database["public"]["Tables"]["attribute_definitions"]["Row"];
@@ -133,7 +133,7 @@ async function assertSchemaInWorkspace(objectSlug: string, workspaceId: string) 
 }
 
 export async function listSchemasForWorkspace(requestedWorkspaceId?: string): Promise<ObjectSchema[]> {
-  const { workspaceId } = await requireWorkspaceContext(requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const [{ data: objects, error: objectError }, { data: attributes, error: attributeError }] =
     await Promise.all([
@@ -326,7 +326,7 @@ export async function listRecordsForWorkspace(
   objectSlug: string,
   requestedWorkspaceId?: string
 ): Promise<RecordEntity[]> {
-  const { workspaceId } = await requireWorkspaceContext(requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const slug = await assertSchemaInWorkspace(objectSlug, workspaceId);
   const supabase = await createDataClient();
   const { data: entities, error: entityError } = await supabase
@@ -362,7 +362,7 @@ export async function createRecordForWorkspace(
   values: Record<string, unknown>,
   requestedWorkspaceId?: string
 ): Promise<RecordEntity> {
-  const { workspaceId } = await requireWorkspaceContext(requestedWorkspaceId);
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const slug = await assertSchemaInWorkspace(objectSlug, workspaceId);
   const supabase = await createDataClient();
   const { data: entity, error: entityError } = await supabase
