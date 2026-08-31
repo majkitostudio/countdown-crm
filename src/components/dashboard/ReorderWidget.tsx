@@ -37,11 +37,11 @@ export function ReorderWidget() {
               Re-Order Opportunities
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-                Based on order history
+                Heuristic estimate
               </span>
             </h2>
             <p className="text-xs text-zinc-400">
-              Estimated replenishment dates using product-category cycles
+              Estimated replenishment dates from fulfilled order history and product-category cycles
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@ export function ReorderWidget() {
         </div>
       ) : loadError ? (
         <div role="status" className="py-6 text-center text-xs text-zinc-500">
-          Re-order opportunities are unavailable for the current workspace role.
+          Re-order opportunities are unavailable because fulfilled order history could not be loaded.
         </div>
       ) : opportunities.length === 0 ? (
         <div className="py-6 text-center text-xs text-zinc-500">
@@ -92,7 +92,6 @@ export function ReorderWidget() {
                 <div className="text-[11px] text-zinc-400 truncate flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-zinc-400 shrink-0" />
                   <span className="truncate">{op.product_title}</span>
-                  <span className="text-zinc-300 font-mono text-[10px]">(-{op.suggested_discount}%)</span>
                 </div>
               </div>
 
