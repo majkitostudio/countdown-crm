@@ -1,7 +1,7 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 31. 8. 2026
-**Ověřený baseline:** `origin/main` = `8dea5065f4fb865f02720477eb1df60a4b1e4f80`
+**Ověřený baseline:** `origin/main` = `419d7ce8bf5ac53b747d1aada81ebf2bf51dcead`
 **Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; pozitivní Team Leader/Administrator browser důkaz zůstává nejbližší release gate.
 **Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
