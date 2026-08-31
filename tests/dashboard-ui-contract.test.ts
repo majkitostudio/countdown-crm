@@ -8,6 +8,7 @@ describe("Dashboard team hierarchy UI contract", () => {
   it("keeps workspace-level team context explicit", () => {
     const dashboard = readFileSync(path.join(projectRoot, "src", "app", "page.tsx"), "utf8");
     const kpis = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "KpiCards.tsx"), "utf8");
+    const nextBestAction = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "NextBestActionCard.tsx"), "utf8");
 
     expect(dashboard).toContain('data-testid="dashboard-team-overview"');
     expect(dashboard).toContain('data-testid="dashboard-team-attention"');
@@ -16,6 +17,8 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(dashboard).toContain("dashboard-team-attention");
     expect(dashboard).toContain("Workspace-scoped");
     expect(dashboard).toContain("No synthetic priorities");
+    expect(dashboard).toContain("<NextBestActionCard />");
+    expect(nextBestAction).toContain('data-testid="next-best-action"');
     expect(kpis).toContain('label: "Team Calls"');
     expect(kpis).toContain('label: "Team Conversion Rate"');
     expect(kpis).toContain('label: "Team Revenue"');

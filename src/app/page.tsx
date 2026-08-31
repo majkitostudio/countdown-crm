@@ -6,6 +6,7 @@ import { CallActivityChart } from "@/components/dashboard/CallActivityChart";
 import { TopPerformers } from "@/components/dashboard/TopPerformers";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import { ReorderWidget } from "@/components/dashboard/ReorderWidget";
+import { NextBestActionCard } from "@/components/dashboard/NextBestActionCard";
 
 export default function Home() {
   return (
@@ -39,6 +40,7 @@ export default function Home() {
             <span className="text-[10px] text-zinc-600">No synthetic priorities</span>
           </div>
           <ReorderWidget />
+          <NextBestActionCard />
         </section>
 
         <section className="space-y-3" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
