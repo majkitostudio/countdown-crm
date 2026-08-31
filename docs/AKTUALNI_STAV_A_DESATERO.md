@@ -1,7 +1,7 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 31. 8. 2026
-**Ověřený baseline:** `origin/main` = `419d7ce8bf5ac53b747d1aada81ebf2bf51dcead`
+**Ověřený aplikační baseline před tímto docs slice:** `origin/main` = `aa7f138788f54e9fc1e29b461e3abab14a1c32a0`
 **Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; pozitivní Team Leader/Administrator browser důkaz zůstává nejbližší release gate.
 **Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
@@ -222,20 +222,20 @@ RLS evidence je v [Project Polish Checkpointu](PROJECT_POLISH_CHECKPOINT_2026082
   odhad je omezen na fulfilled historii a 14denní okno; pricing nabídka se
   z UI odstranila.
 
-### Inventura otevřených draft PR
+### Historické draft PR a jejich stav
 
 | PR | Obsah | Aktuální rozhodnutí |
 |---|---|---|
-| #6 | starý pilot-readiness gate | historický dokumentační draft; nenahrazuje tento checkpoint |
-| #7 | starší order-checkout větev | superseded PR #44; zachovat jen jako historii |
-| #8 | starý Operator UI smoke záznam | evidence-only; aktuální smoke dokumenty jsou v `main` |
-| #21 | starší duplicitní atomic business/audit draft | superseded PR #45; nemergovat |
-| #28 | starší explicitní RLS policies | superseded PR #61; nemergovat |
-| #46 | status dokumentace po starším auditu | zastaralý docs draft; tento checkpoint ho nahrazuje |
-| #47 | custom logo branding TODO | mimo schválený MVP scope ikon; nemergovat |
+| #6 | starý pilot-readiness gate | **CLOSED** 31. 8. 2026; historický dokumentační draft |
+| #7 | starší order-checkout větev | **CLOSED** 31. 8. 2026; superseded PR #44 |
+| #8 | starý Operator UI smoke záznam | **CLOSED** 31. 8. 2026; evidence-only historie |
+| #21 | starší duplicitní atomic business/audit draft | **CLOSED** 31. 8. 2026; superseded PR #45 |
+| #28 | starší explicitní RLS policies | **CLOSED** 31. 8. 2026; superseded PR #61 |
+| #46 | status dokumentace po starším auditu | **CLOSED** 31. 8. 2026; zastaralý docs draft |
+| #47 | custom logo branding TODO | **CLOSED** 31. 8. 2026; mimo schválený MVP scope ikon |
 
-Staré drafty se nemažou ani nezavírají automaticky. Nejprve se porovnají jejich
-unikátní commity a teprve potom se případně archivují nebo vědomě uzavřou.
+Unique commity byly před uzavřením porovnány; větve zůstávají zachované jako
+historie. Uzavření draftu není merge ani důkaz implementace.
 
 - Přihlášený Administrator prošel read-only smoke na `/workspace`, `/leads`,
   `/orders`, `/settings` a `/team`; výsledek je v
@@ -285,20 +285,21 @@ negativními role/workspace scénáři a idempotency/recovery důkazem.
    denial je již samostatně doložený v PR #63; nenahrazuje cizí workspace ani
    přímý RLS denial scénář.
 
-3. **P1 — dokončit audit kritických mock/unavailable ploch**
+3. **P1 — pravdivost kritických mock/unavailable ploch je zkontrolovaná**
 
-   Re-Order heuristika je opravena a zdokumentována. Zbývá zvlášť evidovat
-   dashboard activity/KPI, workflow provider side effects, mock-only
-   monitor/training/objection surface a skutečnou telephony/inbound integraci.
-   Nesmí se z nich stát pilot-ready claim bez odpovídajícího zdroje a
-   persistence důkazu.
+   Re-Order heuristika je opravena a zdokumentována. Monitor, training,
+   objection surface a telephony/inbound zůstávají explicitně označené jako
+   unavailable nebo simulation; dashboard activity/KPI a workflow provider
+   side effects nemají být vydávány za live zdroj bez odpovídající persistence.
+   Tento audit neuzavírá pozitivní pilotní ani integrační důkaz.
 
-4. **P2 — uklidit historickou dokumentaci a staré drafty**
+4. **P2 — uklidit historickou dokumentaci a staré drafty — dokončeno**
 
-   Po porovnání unique commits vědomě archivovat nebo uzavřít #6, #7, #8, #21,
-   #28, #46 a #47; současně postupně sjednotit `README.md`, `architecture.md`,
-   `roadmap.md` a `commits.md` s tímto checkpointem. `docs/ideas.md` zůstává
-   neschválenou bankou nápadů, nikoli aktuálním delivery plánem.
+   Aktuální checkpoint byl aktualizován a PR #64/#66 jsou sloučené; po
+   porovnání unique commits byly #6, #7, #8, #21, #28, #46 a #47 vědomě
+   uzavřeny bez merge. `docs/ideas.md` zůstává neschválenou bankou nápadů,
+   nikoli aktuálním delivery plánem. Širší sjednocení historických katalogů je
+   samostatný P2 follow-up.
 
 ## Doporučené pořadí navazujících slices
 
@@ -311,11 +312,11 @@ nebo novou funkci jen proto, aby byl commit větší.
    před podpůrná data a prezentuje KPI jako workspace/team scoped. Změna
    nepřidává nové KPI, telephony ani širší release gate.
 
-2. **DRAFT PR #61 — RLS policy cleanup na aktuálním main — nejbližší doporučený slice**
+2. **PR #61 — RLS policy cleanup na aktuálním main — dokončeno**
 
-   PR #28 je historický predecessor. U #61 nejdříve ověřit přesný diff policies,
-   migration provenance a provisioning plán, následně případné sandbox/live
-   ověření; žádný implicitní `db push`.
+   PR #28 je historický predecessor. PR #61 je sloučené; katalogový test
+   prošel rollbackem. Role/cross-workspace CRUD a live provisioning jsou
+   samostatná ověření; žádný implicitní `db push`.
 
 3. **P1 — čerstvý autentizovaný pilotní důkaz**
 
