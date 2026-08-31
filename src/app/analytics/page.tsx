@@ -46,6 +46,13 @@ export default function AnalyticsPage() {
     objectionBreakdown: [],
     teamLeaderboard: [],
     teamMetricsAvailable: false,
+    daily: {
+      date: new Date().toISOString().slice(0, 10),
+      calls: 0,
+      completedOrders: 0,
+      revenue: 0,
+      conversionRate: 0,
+    },
   };
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
   const [isExporting, setIsExporting] = useState(false);

@@ -7,6 +7,7 @@ import { TopPerformers } from "@/components/dashboard/TopPerformers";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import { ReorderWidget } from "@/components/dashboard/ReorderWidget";
 import { NextBestActionCard } from "@/components/dashboard/NextBestActionCard";
+import { TeamLeaderDailyBriefCard } from "@/components/dashboard/TeamLeaderDailyBriefCard";
 
 export default function Home() {
   return (
@@ -29,6 +30,8 @@ export default function Home() {
           </>
         }
       />
+
+      <TeamLeaderDailyBriefCard />
 
       <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,.85fr)]">
         <section className="space-y-3" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">

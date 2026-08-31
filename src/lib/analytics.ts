@@ -5,6 +5,7 @@ import { createDataClient } from "./dal/db";
 import { requireWorkspaceRole } from "./dal/workspace";
 import { listWorkspaceCallsInContext, listWorkspaceOrdersInContext } from "./dal/activity";
 import { getWorkspaceRoleLabel } from "./auth/roles";
+import { getDailyTeamSummary, type DailyTeamSummary } from "./dailyTeamSummary";
 
 export const ANALYTICS_ALLOWED_ROLES = ["team_leader", "administrator"] as const;
 
@@ -59,6 +60,7 @@ export interface AnalyticsOverview {
   objectionBreakdown: ObjectionCategoryPoint[];
   teamLeaderboard: AgentLeaderboardPoint[];
   teamMetricsAvailable: boolean;
+  daily: DailyTeamSummary;
 }
 
 export interface RecentActivityEntry {
@@ -241,5 +243,6 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
     objectionBreakdown: [],
     teamLeaderboard: getTeamLeaderboard(calls, orders, profiles),
     teamMetricsAvailable: agentIds.length > 0,
+    daily: getDailyTeamSummary(calls, orders),
   };
 }
