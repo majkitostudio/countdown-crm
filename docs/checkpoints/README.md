@@ -15,6 +15,7 @@ se zpětně a nepřepisuje dnešní status.
 | Dokument | Účel |
 |---|---|
 | [`2026-09-01-documentation-consolidation.md`](2026-09-01-documentation-consolidation.md) | konsolidace autorit a workflow |
+| [`2026-09-01-sandbox-call-order-rls-evidence.md`](2026-09-01-sandbox-call-order-rls-evidence.md) | autentizovaný Sandbox order, reload, SQL a negativní RLS důkaz |
 | [`../ADMIN_PILOT_PERSISTENCE_20260831.md`](../ADMIN_PILOT_PERSISTENCE_20260831.md) | Administrator browser + reload + SQL read-back |
 | [`../RLS_ROLE_WORKSPACE_EVIDENCE_20260831.md`](../RLS_ROLE_WORKSPACE_EVIDENCE_20260831.md) | lokální rollback-scoped RLS testy |
 | [`../PROJECT_POLISH_CHECKPOINT_20260826.md`](../PROJECT_POLISH_CHECKPOINT_20260826.md) | širší audit polish slices a otevřených nálezů |
