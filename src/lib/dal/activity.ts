@@ -6,12 +6,19 @@ import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { getScopedLeadForWorkspace } from "./leadQueue";
 import { requireWorkspaceContext, type WorkspaceContext } from "./workspace";
+import {
+  pageCustomerActivityEvents,
+  type CustomerActivityEvent,
+  type CustomerActivityPage,
+  type CustomerActivityPageOptions,
+} from "@/lib/customerActivity";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"];
 type OrderStatusHistoryRow = Database["public"]["Tables"]["order_status_history"]["Row"];
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+type LeadNoteRow = Database["public"]["Tables"]["lead_notes"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type OrderWithProduct = OrderRow & { products?: { title: string } | null; order_items?: OrderItemRow[] | null };
 
@@ -81,6 +88,14 @@ type ActivityQueryOptions = {
 
 function nameOrUnknown(value: string | null | undefined, fallback: string): string {
   return value?.trim() || fallback;
+}
+
+function previewText(value: string | null | undefined, maxLength = 240): string | null {
+  const normalized = value?.trim();
+  if (!normalized) return null;
+  return normalized.length > maxLength
+    ? `${normalized.slice(0, maxLength - 1).trimEnd()}…`
+    : normalized;
 }
 
 async function loadActivityRows(
@@ -396,4 +411,148 @@ export async function listWorkspaceLeadActivity(
     })),
     orders: rows.orders.map((order) => toWorkspaceOrderDTO(order, customerNameFor(order.lead_id) || leadId, operatorNameFor(order.agent_id))),
   };
+}
+
+async function loadCustomerActivityEvents(
+  workspaceId: string,
+  leadId: string,
+): Promise<CustomerActivityEvent[]> {
+  const supabase = await createDataClient();
+  const [callsResult, ordersResult, notesResult] = await Promise.all([
+    supabase
+      .from("calls")
+      .select("id, workspace_id, lead_id, agent_id, duration_seconds, outcome, ai_sentiment, created_at")
+      .eq("workspace_id", workspaceId)
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("orders")
+      .select("id, workspace_id, lead_id, agent_id, total_amount, currency, order_source, source_note, created_at, products(title), order_items(product_title_snapshot)")
+      .eq("workspace_id", workspaceId)
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("lead_notes")
+      .select("id, workspace_id, lead_id, author_id, body, created_at")
+      .eq("workspace_id", workspaceId)
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  if (callsResult.error || ordersResult.error || notesResult.error) {
+    throw new DataAccessError("DATABASE", "Customer activity query failed");
+  }
+
+  const calls = (callsResult.data || []) as CallRow[];
+  const orders = (ordersResult.data || []) as unknown as OrderWithProduct[];
+  const notes = (notesResult.data || []) as LeadNoteRow[];
+  const actorIds = Array.from(new Set([
+    ...calls.map((call) => call.agent_id),
+    ...orders.map((order) => order.agent_id),
+    ...notes.map((note) => note.author_id),
+  ].filter((id): id is string => Boolean(id))));
+
+  const profilesResult = actorIds.length
+    ? await supabase.from("profiles").select("id, full_name").in("id", actorIds)
+    : { data: [], error: null };
+
+  if (profilesResult.error) {
+    throw new DataAccessError("DATABASE", "Customer activity attribution lookup failed");
+  }
+
+  const actorNames = new Map(
+    ((profilesResult.data || []) as Pick<ProfileRow, "id" | "full_name">[])
+      .map((profile) => [profile.id, nameOrUnknown(profile.full_name, "Unknown operator")]),
+  );
+  const actorNameFor = (actorId: string | null): string =>
+    (actorId && actorNames.get(actorId)) || "Unknown operator";
+
+  const callEvents: CustomerActivityEvent[] = calls.map((call) => {
+    const duration = call.duration_seconds || 0;
+    const sentiment = call.ai_sentiment || "Neutral";
+    return {
+      id: `call:${call.id}`,
+      source_entity_id: call.id,
+      workspace_id: workspaceId,
+      lead_id: call.lead_id || leadId,
+      occurred_at: call.created_at,
+      source: "call",
+      channel: "voice",
+      actor: { id: call.agent_id, display_name: actorNameFor(call.agent_id) },
+      preview: {
+        title: "Call logged in workspace",
+        text: `Duration: ${Math.floor(duration / 60)}m ${duration % 60}s • Outcome: ${call.outcome} • Sentiment: ${sentiment}`,
+      },
+      metadata: {
+        duration_seconds: duration,
+        call_outcome: call.outcome,
+        sentiment,
+      },
+    };
+  });
+
+  const orderEvents: CustomerActivityEvent[] = orders.map((order) => {
+    const productTitle = order.order_items?.[0]?.product_title_snapshot || order.products?.title || "Unknown product";
+    const amount = Number(order.total_amount || 0);
+    return {
+      id: `order:${order.id}`,
+      source_entity_id: order.id,
+      workspace_id: workspaceId,
+      lead_id: order.lead_id || leadId,
+      occurred_at: order.created_at,
+      source: "order",
+      channel: "commerce",
+      actor: { id: order.agent_id, display_name: actorNameFor(order.agent_id) },
+      preview: {
+        title: `Order completed (${amount.toFixed(2)} ${order.currency || "USD"})`,
+        text: previewText(`${productTitle}${order.source_note ? ` • ${order.source_note}` : ""}`),
+      },
+      metadata: {
+        amount,
+        currency: order.currency || "USD",
+        order_source: order.order_source,
+      },
+    };
+  });
+
+  const noteEvents: CustomerActivityEvent[] = notes.map((note) => ({
+    id: `lead_note:${note.id}`,
+    source_entity_id: note.id,
+    workspace_id: workspaceId,
+    lead_id: note.lead_id,
+    occurred_at: note.created_at,
+    source: "lead_note",
+    channel: "internal_note",
+    actor: { id: note.author_id, display_name: actorNameFor(note.author_id) },
+    preview: {
+      title: "Operator note",
+      text: previewText(note.body),
+    },
+    metadata: {},
+  }));
+
+  return [...callEvents, ...orderEvents, ...noteEvents];
+}
+
+export async function listWorkspaceLeadActivityPage(
+  leadId: string,
+  options: CustomerActivityPageOptions = {},
+  requestedWorkspaceId?: string,
+): Promise<CustomerActivityPage> {
+  if (!leadId?.trim()) {
+    throw new DataAccessError("VALIDATION", "Lead id is required");
+  }
+
+  const context = await requireWorkspaceContext(requestedWorkspaceId);
+  await getScopedLeadForWorkspace(leadId, context.workspaceId);
+  const events = await loadCustomerActivityEvents(context.workspaceId, leadId);
+
+  try {
+    return pageCustomerActivityEvents(events, options);
+  } catch (error) {
+    if (error instanceof Error && error.message === "Invalid activity cursor") {
+      throw new DataAccessError("VALIDATION", error.message);
+    }
+    throw error;
+  }
 }

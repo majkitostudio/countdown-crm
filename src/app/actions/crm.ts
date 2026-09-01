@@ -26,8 +26,10 @@ import {
   listWorkspaceOrders,
   listWorkspaceOrdersForLead,
   listWorkspaceLeadActivity,
+  listWorkspaceLeadActivityPage,
 } from "@/lib/dal/activity";
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
+import type { CustomerActivityPage, CustomerActivityPageOptions } from "@/lib/customerActivity";
 import type { Database } from "@/lib/supabase/types";
 
 type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
@@ -130,4 +132,12 @@ export async function listLeadActivityAction(
   workspaceId?: string
 ): Promise<{ calls: WorkspaceCallDTO[]; orders: WorkspaceOrderDTO[] }> {
   return listWorkspaceLeadActivity(leadId, workspaceId);
+}
+
+export async function listLeadActivityPageAction(
+  leadId: string,
+  options?: CustomerActivityPageOptions,
+  workspaceId?: string,
+): Promise<CustomerActivityPage> {
+  return listWorkspaceLeadActivityPage(leadId, options, workspaceId);
 }
