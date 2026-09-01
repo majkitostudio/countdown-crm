@@ -1,4 +1,7 @@
-# AI-Native Call Center CRM — Banka Nápadů a Inovací (Ideas & Backlog)
+# [Historická banka nápadů] AI-Native Call Center CRM — Banka Nápadů a Inovací
+
+> Nápady v tomto souboru nejsou schválený backlog ani aktuální roadmapa. Nové
+> priority zapisuj do [`roadmap.md`](roadmap.md) až po samostatném schválení.
 
 Tento dokument obsahuje seznam inovativních nápadů, rozšiřujících funkcí a technologických gadgetů, které posunou CRM systém výrazně před konkurenty na trhu.
 

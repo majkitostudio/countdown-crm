@@ -1,12 +1,12 @@
-# Countdown CRM — Product Status & Refactoring Baseline
+# [Historické] Countdown CRM — Product Status & Refactoring Baseline
 
 **Datum aktualizace:** 2026-08-30
 **Status dokumentu:** historická baseline a auditní historie; aktuální stav je v
-[`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md)
+[`docs/PROJECT_STATUS.md`](PROJECT_STATUS.md)
 > **Aktualizace 30. 8. 2026:** Tento dokument obsahuje historickou baseline a
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného checkoutu používej nejdříve
-> [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
+> [`docs/PROJECT_STATUS.md`](PROJECT_STATUS.md), který
 > vychází z `origin/main` na `51686f6` a z odděleného read-only ověření
 > Preview/Sandbox i produkčního deploymentu. Historické počty a checkpointy
 > níže nejsou nový důkaz aktuálního runtime.
@@ -15,12 +15,12 @@
 **Status:** stabilizační a auditní fáze
 **Produktový cíl:** Attio-grade CRM pro call-centra s AI copilotem, telephony workflow a bezpečným interním provozem
 
-> **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
+> **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/PROJECT_STATUS.md`](./PROJECT_STATUS.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
 
-## Aktuální delivery overlay — 2026-08-30
+## Historický delivery overlay — 2026-08-30
 
-Tento overlay doplňuje historické sekce níže a je jedinou aktuální částí tohoto
-dokumentu pro rozhodování o současném delivery stavu:
+Tento overlay doplňuje historické sekce níže. Není zdrojem dnešního delivery
+stavu; ten je veden v `PROJECT_STATUS.md`.
 
 - PR #23 je sloučené do `main` jako `9a8cbc0`. Po opravě prošly `npm test`
   (94/94), `npm run check` a `git diff --check`.

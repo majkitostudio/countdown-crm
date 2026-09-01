@@ -1,4 +1,8 @@
-# Countdown CRM — aktuální stav a desatero
+# [Historické] Countdown CRM — aktuální stav a desatero
+
+> Tento soubor je zmrazený snapshot z 31. 8. 2026. Dnešní zdroj pravdy je
+> [`PROJECT_STATUS.md`](PROJECT_STATUS.md); tento dokument se zpětně
+> neaktualizuje a jeho staré počty, baseline a doporučení nejsou nový důkaz.
 
 **Snapshot:** 31. 8. 2026
 **Ověřený aplikační baseline před tímto slice:** `origin/main` = `bb8b36a3e9bc84b60643058d95bbc78237c60e6b`

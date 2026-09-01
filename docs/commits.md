@@ -1,13 +1,18 @@
-# Countdown CRM — Plán commitů a Vývoje
+# [Historické] Countdown CRM — Plán commitů a Vývoje
+
+> Tento katalog zachovává původní produktové sliby a historii. Není dnešní
+> plán a označení `HOTOVO` není důkazem aktuálního runtime. Používej
+> [`PROJECT_STATUS.md`](PROJECT_STATUS.md), [`roadmap.md`](roadmap.md) a
+> [`WORKFLOW.md`](WORKFLOW.md).
 
 > **Pozor:** Tento soubor je historický katalog původních commitů a plánů. Pro
 > aktuální stav a závazné pořadí dalších commitů používej
-> [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Označení
+> [`docs/PROJECT_STATUS.md`](./PROJECT_STATUS.md). Označení
 > `HOTOVO` v historickém katalogu samo o sobě neznamená, že je daná plocha dnes
 > produkčně ověřená.
 > **Aktuální pracovní pravidla (27. 8. 2026):** Tento soubor zachovává starší
 > historii commitů. Pro nové změny platí prioritní pořadí a desatero v
-> [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md). Staré pravidlo
+> [`PROJECT_STATUS.md`](PROJECT_STATUS.md). Staré pravidlo
 > „po každém commitu okamžitý push a deploy“ není automatické: nejdříve musí
 > projít ověření a kontrola divergence větví.
 
@@ -17,8 +22,9 @@
 > verified pilot scope by `3a41273`; `85134de` and `e547349` are cleanup-only
 > commits and are not additional product stages.
 
-Tento dokument slouží jako živý průvodce vývojem. Každý commit reprezentuje ucelenou, otestovatelnou část funkcionalit.
-Před každou implementací se shodujeme na plánu. Po dokončení je commit označen jako hotový.
+Následující obsah je zachovaný historický katalog původního vývoje. Každý
+záznam popisuje tehdejší záměr; neříká, že daná plocha dnes existuje, je živá
+nebo je ověřená pro pilot.
 
 ---
 

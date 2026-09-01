@@ -1,4 +1,7 @@
-# Countdown CRM — jednoduchý Git workflow
+# [Historická] Countdown CRM — jednoduchý Git workflow
+
+> Aktuální pravidla jsou v [`WORKFLOW.md`](WORKFLOW.md). Tento starší text
+> zůstává kvůli historii a nesmí přepisovat dnešní proces.
 
 Tento dokument je praktická dohoda pro práci člověka, Codexu a případných
 paralelních úkolů. Cílem není používat všechny možnosti Gitu, ale vždy vědět:
