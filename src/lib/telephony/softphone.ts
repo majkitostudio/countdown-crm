@@ -35,7 +35,6 @@ export class WebRtcSoftphoneController {
   private listeners: Set<CallStateListener> = new Set();
   private timerInterval: NodeJS.Timeout | null = null;
   private dialTimers: ReturnType<typeof setTimeout>[] = [];
-  private endedResetTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {}
 
@@ -57,13 +56,6 @@ export class WebRtcSoftphoneController {
   private clearDialTimers() {
     this.dialTimers.forEach((timer) => clearTimeout(timer));
     this.dialTimers = [];
-  }
-
-  private clearEndedResetTimer() {
-    if (this.endedResetTimer) {
-      clearTimeout(this.endedResetTimer);
-      this.endedResetTimer = null;
-    }
   }
 
   private isCurrentSession(sessionId: string, ...states: CallState[]) {
@@ -94,7 +86,6 @@ export class WebRtcSoftphoneController {
     }
 
     this.clearDialTimers();
-    this.clearEndedResetTimer();
     this.currentSession = {
       id: `call-wrtc-${Date.now()}`,
       leadId,
@@ -190,18 +181,11 @@ export class WebRtcSoftphoneController {
       return;
     }
 
-    const sessionId = this.currentSession.id;
     this.clearDialTimers();
-    this.clearEndedResetTimer();
     this.stopTimer();
     audioEngine.release();
     this.currentSession.state = "ended";
     this.notify();
-
-    this.endedResetTimer = setTimeout(() => {
-      if (this.currentSession.id !== sessionId || this.currentSession.state !== "ended") return;
-      this.resetToIdle();
-    }, 2000);
   }
 
   /**
@@ -211,7 +195,6 @@ export class WebRtcSoftphoneController {
     if (this.currentSession.state !== "dialing" && this.currentSession.state !== "ringing") return false;
 
     this.clearDialTimers();
-    this.clearEndedResetTimer();
     this.resetToIdle();
     return true;
   }
@@ -243,7 +226,7 @@ export class WebRtcSoftphoneController {
   private startTimer() {
     this.stopTimer();
     this.timerInterval = setInterval(() => {
-      if (this.currentSession.state === "connected") {
+      if (this.currentSession.state === "connected" || this.currentSession.state === "on_hold") {
         this.currentSession.durationSeconds += 1;
         this.notify();
       }

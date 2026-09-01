@@ -16,11 +16,12 @@ import { ProductOrderPanel, type OrderPlacementResult } from "@/components/works
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
 import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
+import { useCallSession } from "@/components/layout/CallSessionProvider";
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
-import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
+import { softphoneController } from "@/lib/telephony/softphone";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
@@ -30,9 +31,7 @@ import {
   abortLeadCallStartAction,
   claimNextLeadAction,
   completeLeadCallAction,
-  endLeadCallAction,
   getCurrentLeadAction,
-  heartbeatLeadAssignmentAction,
   setOperatorPresenceAction,
   startLeadCallAction,
 } from "@/app/actions/leadQueue";
@@ -74,8 +73,6 @@ function WorkspaceContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
-  const [assignmentState, setAssignmentState] = useState<LeadQueueSnapshot["assignment_state"] | null>(null);
-  const [recoveryRequired, setRecoveryRequired] = useState(false);
   const [callDurationSeconds, setCallDurationSeconds] = useState(0);
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
@@ -94,43 +91,36 @@ function WorkspaceContent() {
   const [isCallStartPending, setIsCallStartPending] = useState(false);
   const [isEndCallPending, setIsEndCallPending] = useState(false);
   const [isCompletionPending, setIsCompletionPending] = useState(false);
-  const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
   const callStartRecoveryRef = React.useRef(false);
   const completionInFlightRef = React.useRef(false);
-  const activeQueueItemIdRef = React.useRef<string | null>(null);
-  const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
+  const {
+    session: softphoneSession,
+    serverContext,
+    assignmentState,
+    recoveryRequired,
+    error: callSessionError,
+    setServerContext,
+    clearError: clearCallSessionError,
+    cancelDial,
+    endCall,
+  } = useCallSession();
   const activeLeadId = activeLead?.id;
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
   const isCallActive = softphoneSession.state === "connected" || softphoneSession.state === "on_hold";
-  const isAwaitingOutcome = assignmentState === "awaiting_outcome";
+  const isAwaitingOutcome = Boolean(serverContext.outcomePending) || assignmentState === "awaiting_outcome";
   const callStartedAt = isCallActive && softphoneSession.startTime
     ? softphoneSession.startTime.toISOString()
     : null;
 
   useEffect(() => {
-    activeQueueItemIdRef.current = activeQueueItemId;
-    identityRoleRef.current = identity?.role || null;
-  }, [activeQueueItemId, identity?.role]);
-
-  useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
-
-  useEffect(() => {
     return () => {
-      const currentSession = softphoneController.getSession();
-      if (currentSession.state === "dialing" || currentSession.state === "ringing") {
-        softphoneController.cancelDial();
-        const queueItemId = activeQueueItemIdRef.current;
-        if (identityRoleRef.current === "operator" && queueItemId) {
-          void abortLeadCallStartAction(queueItemId, "Operator workspace unmounted during call start").catch(() => {
-            // The lease recovery path remains the server-side fallback if the page is already gone.
-          });
-        }
-      } else if (currentSession.state !== "idle" && currentSession.state !== "ended") {
-        softphoneController.hangup();
+      if (stopAudioRef.current) {
+        stopAudioRef.current();
+        stopAudioRef.current = null;
       }
     };
   }, []);
@@ -169,20 +159,6 @@ function WorkspaceContent() {
   }, [activeLeadId, activityRefreshToken]);
 
   useEffect(() => {
-    if (identity?.role !== "operator" || !activeQueueItemId) return;
-
-    const sendHeartbeat = () => {
-      void heartbeatLeadAssignmentAction(activeQueueItemId).catch((error) => {
-        setNotificationToast(error instanceof Error ? error.message : "Lead assignment heartbeat failed.");
-      });
-    };
-
-    sendHeartbeat();
-    const interval = window.setInterval(sendHeartbeat, 30_000);
-    return () => window.clearInterval(interval);
-  }, [activeQueueItemId, identity?.role]);
-
-  useEffect(() => {
     if (isIdentityLoading) return;
 
     async function loadData() {
@@ -206,8 +182,11 @@ function WorkspaceContent() {
           setLeads(currentAssignment ? [currentAssignment.lead] : []);
           setActiveLead(currentAssignment?.lead || null);
           setActiveQueueItemId(currentAssignment?.queue_item_id || null);
-          setAssignmentState(currentAssignment?.assignment_state || null);
-          setRecoveryRequired(currentAssignment?.recovery_required || false);
+          setServerContext({
+            queueItemId: currentAssignment?.queue_item_id || null,
+            assignmentState: currentAssignment?.assignment_state || null,
+            recoveryRequired: currentAssignment?.recovery_required || false,
+          });
           setCallDurationSeconds(
             currentAssignment?.call_started_at
               ? Math.max(0, Math.round((Date.parse(currentAssignment.call_ended_at || new Date().toISOString()) - Date.parse(currentAssignment.call_started_at)) / 1000))
@@ -225,6 +204,7 @@ function WorkspaceContent() {
         setLeads(fetchedLeads);
         setProducts(fetchedProducts);
         setActiveQueueItemId(null);
+        setServerContext({ queueItemId: null, assignmentState: null, recoveryRequired: false });
         if (leadIdParam) {
           const found = fetchedLeads.find((l) => l.id === leadIdParam);
           if (found) setActiveLead(found);
@@ -238,7 +218,7 @@ function WorkspaceContent() {
       setIsLoading(false);
     }
     loadData();
-  }, [identity, isIdentityLoading, leadIdParam]);
+  }, [identity, isIdentityLoading, leadIdParam, setServerContext]);
 
   const completeCall = async (
     outcome: CompletionOutcome,
@@ -282,8 +262,11 @@ function WorkspaceContent() {
         setNotificationToast(null);
         sounds.playCallEndSound();
         setActiveQueueItemId(nextAssignment?.queue_item_id || null);
-        setAssignmentState(nextAssignment?.assignment_state || null);
-        setRecoveryRequired(nextAssignment?.recovery_required || false);
+        setServerContext({
+          queueItemId: nextAssignment?.queue_item_id || null,
+          assignmentState: nextAssignment?.assignment_state || null,
+          recoveryRequired: nextAssignment?.recovery_required || false,
+        });
         setCallDurationSeconds(0);
         setActiveLead(nextAssignment?.lead || null);
         setLeads(nextAssignment ? [nextAssignment.lead] : []);
@@ -315,6 +298,7 @@ function WorkspaceContent() {
       });
 
       softphoneController.hangup();
+      setServerContext({ queueItemId: null, assignmentState: null, recoveryRequired: false });
       setOrderFlowMode(null);
       setAppliedPitch("");
       setNotificationToast(null);
@@ -361,12 +345,17 @@ function WorkspaceContent() {
     }
 
     if (isDialing) {
-      softphoneController.cancelDial();
-      if (identity?.role === "operator" && activeQueueItemId) {
-        void abortLeadCallStartAction(activeQueueItemId, "Operator cancelled call start")
-          .then((assignment) => setAssignmentState(assignment.assignment_state))
-          .catch((error) => setNotificationToast(error instanceof Error ? error.message : "Call start recovery failed."));
-      }
+      void cancelDial()
+        .then((assignment) => {
+          if (!assignment) return;
+          setActiveQueueItemId(assignment.queue_item_id);
+          setServerContext({
+            queueItemId: assignment.queue_item_id,
+            assignmentState: assignment.assignment_state,
+            recoveryRequired: assignment.recovery_required,
+          });
+        })
+        .catch((error) => setNotificationToast(error instanceof Error ? error.message : "Call start recovery failed."));
       return;
     }
 
@@ -380,16 +369,9 @@ function WorkspaceContent() {
         if (!activeQueueItemId || isEndCallPending) return;
         const localDurationSeconds = softphoneSession.durationSeconds;
         setIsEndCallPending(true);
-        void endLeadCallAction(activeQueueItemId)
-          .then((endedAssignment) => {
-            softphoneController.hangup();
-            setAssignmentState(endedAssignment.assignment_state);
-            setRecoveryRequired(endedAssignment.recovery_required);
-            setCallDurationSeconds(
-              localDurationSeconds || (endedAssignment.call_started_at
-                ? Math.max(0, Math.round((Date.parse(endedAssignment.call_ended_at || new Date().toISOString()) - Date.parse(endedAssignment.call_started_at)) / 1000))
-                : 0),
-            );
+        void endCall()
+          .then(() => {
+            setCallDurationSeconds(localDurationSeconds);
             setNotificationToast(null);
           })
           .catch((error) => {
@@ -441,8 +423,11 @@ function WorkspaceContent() {
             }
             setActiveLead(startedAssignment.lead);
             setLeads([startedAssignment.lead]);
-            setAssignmentState(startedAssignment.assignment_state);
-            setRecoveryRequired(false);
+            setServerContext({
+              queueItemId: startedAssignment.queue_item_id,
+              assignmentState: startedAssignment.assignment_state,
+              recoveryRequired: false,
+            });
             setCallDurationSeconds(0);
             const stopTone = sounds.playDialTone();
             stopAudioRef.current = stopTone;
@@ -473,8 +458,11 @@ function WorkspaceContent() {
                   () => abortLeadCallStartAction(activeQueueItemId, "Server call start request failed after timeout"),
                 )
                 .then((recoveredAssignment) => {
-                  setAssignmentState(recoveredAssignment.assignment_state);
-                  setRecoveryRequired(recoveredAssignment.recovery_required);
+                  setServerContext({
+                    queueItemId: recoveredAssignment.queue_item_id,
+                    assignmentState: recoveredAssignment.assignment_state,
+                    recoveryRequired: recoveredAssignment.recovery_required,
+                  });
                   setNotificationToast("Call start timed out, but the server assignment was recovered. You can try again.");
                 })
                 .catch(() => {
@@ -490,10 +478,17 @@ function WorkspaceContent() {
             }
             softphoneController.cancelDial();
             if (recoveredAssignment) {
-              setAssignmentState(recoveredAssignment.assignment_state);
-              setRecoveryRequired(recoveredAssignment.recovery_required);
+              setServerContext({
+                queueItemId: recoveredAssignment.queue_item_id,
+                assignmentState: recoveredAssignment.assignment_state,
+                recoveryRequired: recoveredAssignment.recovery_required,
+              });
             } else if (queueCallStarted) {
-              setRecoveryRequired(true);
+              setServerContext({
+                queueItemId: activeQueueItemId,
+                assignmentState: "in_progress",
+                recoveryRequired: true,
+              });
             }
             setNotificationToast(
               recoveryError instanceof Error
@@ -760,10 +755,10 @@ function WorkspaceContent() {
       {pageHeader}
       
       {/* Toast Notification Banner */}
-      {notificationToast && (
+      {(notificationToast || callSessionError) && (
         <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2 duration-300" role="status" aria-live="polite">
-          <span>{notificationToast}</span>
-          <button onClick={() => setNotificationToast(null)} aria-label="Dismiss notification" className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
+          <span>{notificationToast || callSessionError}</span>
+          <button onClick={() => { setNotificationToast(null); clearCallSessionError(); }} aria-label="Dismiss notification" className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
         </div>
       )}
 
@@ -783,14 +778,12 @@ function WorkspaceContent() {
             activeLead={activeLead}
             isCallActive={isCallActive}
             isDialing={isDialing}
-            isMuted={softphoneSession.isMuted}
             durationSeconds={softphoneSession.durationSeconds}
             isStarting={isCallStartPending || isEndCallPending}
             isAwaitingOutcome={isAwaitingOutcome}
             recoveryRequired={recoveryRequired}
             isCompletionPending={isCompletionPending}
             onToggleCall={handleToggleCall}
-            onToggleMute={() => softphoneController.toggleMute()}
             onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
             onScheduleCallback={identity?.role === "operator" ? () => {
               setCallbackScheduleError(null);

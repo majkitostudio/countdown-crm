@@ -69,4 +69,21 @@ describe("WebRtcSoftphoneController lifecycle", () => {
       state: "connected",
     });
   });
+
+  it("keeps elapsed time moving while a connected call is on hold", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(audioEngine, "initialize").mockResolvedValue(true);
+    const controller = new WebRtcSoftphoneController();
+
+    await expect(controller.dial("lead-1", "+420700000001", "Test Lead")).resolves.toBe(true);
+    await vi.advanceTimersByTimeAsync(3_200);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(controller.getSession()).toMatchObject({ state: "connected", durationSeconds: 2 });
+
+    expect(controller.toggleHold()).toBe(true);
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(controller.getSession()).toMatchObject({ state: "on_hold", durationSeconds: 4 });
+
+    controller.hangup();
+  });
 });
