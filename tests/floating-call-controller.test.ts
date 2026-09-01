@@ -11,7 +11,7 @@ describe("floating call controller wiring", () => {
     const shell = readProjectFile("src", "components", "layout", "AppShell.tsx");
 
     expect(provider).toContain("softphoneController.subscribeState");
-    expect(provider).toContain("endLeadCallAction");
+    expect(provider).toContain("outcomePending: true");
     expect(provider).toContain("heartbeatLeadAssignmentAction");
     expect(shell).toContain("<CallSessionProvider>");
     expect(shell).toContain("<FloatingCallController />");

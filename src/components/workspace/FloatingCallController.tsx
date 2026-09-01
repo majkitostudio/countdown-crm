@@ -17,10 +17,11 @@ function formatTimer(totalSeconds: number): string {
 function getStatusLabel(
   state: ReturnType<typeof useCallSession>["session"]["state"],
   assignmentState: ReturnType<typeof useCallSession>["assignmentState"],
+  outcomePending: boolean,
   recoveryRequired: boolean,
 ): string {
   if (recoveryRequired) return "Recovery required";
-  if (assignmentState === "awaiting_outcome") return "Outcome required";
+  if (outcomePending || assignmentState === "awaiting_outcome") return "Outcome required";
   if (state === "dialing") return "Dialing";
   if (state === "ringing") return "Ringing";
   if (state === "on_hold") return "On hold";
@@ -37,6 +38,7 @@ export function FloatingCallController() {
   const {
     session,
     assignmentState,
+    serverContext,
     recoveryRequired,
     isActionPending,
     error,
@@ -49,11 +51,11 @@ export function FloatingCallController() {
 
   const isDialing = session.state === "dialing" || session.state === "ringing";
   const isCallActive = session.state === "connected" || session.state === "on_hold";
-  const isAwaitingOutcome = assignmentState === "awaiting_outcome";
+  const isAwaitingOutcome = Boolean(serverContext.outcomePending) || assignmentState === "awaiting_outcome";
   const isVisible = mounted && (isDialing || isCallActive || isAwaitingOutcome || recoveryRequired);
   if (!isVisible) return null;
 
-  const statusLabel = getStatusLabel(session.state, assignmentState, recoveryRequired);
+  const statusLabel = getStatusLabel(session.state, assignmentState, Boolean(serverContext.outcomePending), recoveryRequired);
   const isOutcomeState = isAwaitingOutcome || recoveryRequired;
 
   const controller = (

@@ -98,6 +98,7 @@ function WorkspaceContent() {
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const {
     session: softphoneSession,
+    serverContext,
     assignmentState,
     recoveryRequired,
     error: callSessionError,
@@ -110,7 +111,7 @@ function WorkspaceContent() {
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
   const isCallActive = softphoneSession.state === "connected" || softphoneSession.state === "on_hold";
-  const isAwaitingOutcome = assignmentState === "awaiting_outcome";
+  const isAwaitingOutcome = Boolean(serverContext.outcomePending) || assignmentState === "awaiting_outcome";
   const callStartedAt = isCallActive && softphoneSession.startTime
     ? softphoneSession.startTime.toISOString()
     : null;
@@ -369,19 +370,8 @@ function WorkspaceContent() {
         const localDurationSeconds = softphoneSession.durationSeconds;
         setIsEndCallPending(true);
         void endCall()
-          .then((endedAssignment) => {
-            if (!endedAssignment) return;
-            setActiveQueueItemId(endedAssignment.queue_item_id);
-            setServerContext({
-              queueItemId: endedAssignment.queue_item_id,
-              assignmentState: endedAssignment.assignment_state,
-              recoveryRequired: endedAssignment.recovery_required,
-            });
-            setCallDurationSeconds(
-              localDurationSeconds || (endedAssignment.call_started_at
-                ? Math.max(0, Math.round((Date.parse(endedAssignment.call_ended_at || new Date().toISOString()) - Date.parse(endedAssignment.call_started_at)) / 1000))
-                : 0),
-            );
+          .then(() => {
+            setCallDurationSeconds(localDurationSeconds);
             setNotificationToast(null);
           })
           .catch((error) => {

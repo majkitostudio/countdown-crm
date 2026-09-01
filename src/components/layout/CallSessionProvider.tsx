@@ -11,7 +11,6 @@ import {
 } from "react";
 import {
   abortLeadCallStartAction,
-  endLeadCallAction,
   heartbeatLeadAssignmentAction,
 } from "@/app/actions/leadQueue";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
@@ -22,6 +21,7 @@ export interface ServerCallContext {
   queueItemId: string | null;
   assignmentState: ServerCallAssignmentState;
   recoveryRequired: boolean;
+  outcomePending?: boolean;
 }
 
 interface CallSessionContextValue {
@@ -34,7 +34,7 @@ interface CallSessionContextValue {
   setServerContext: (context: ServerCallContext) => void;
   clearError: () => void;
   cancelDial: () => Promise<Awaited<ReturnType<typeof abortLeadCallStartAction>> | null>;
-  endCall: () => Promise<Awaited<ReturnType<typeof endLeadCallAction>> | null>;
+  endCall: () => Promise<void>;
   toggleMute: () => boolean;
   toggleHold: () => boolean;
 }
@@ -43,6 +43,7 @@ const EMPTY_SERVER_CONTEXT: ServerCallContext = {
   queueItemId: null,
   assignmentState: null,
   recoveryRequired: false,
+  outcomePending: false,
 };
 
 const CallSessionContext = createContext<CallSessionContextValue | null>(null);
@@ -110,27 +111,24 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
 
   const endCall = useCallback(async () => {
     const currentSession = sessionRef.current;
-    if (currentSession.state !== "connected" && currentSession.state !== "on_hold") return null;
-    if (isActionPending) return null;
+    if (currentSession.state !== "connected" && currentSession.state !== "on_hold") return;
+    if (isActionPending) return;
 
     const currentServerContext = serverContextRef.current;
     setIsActionPending(true);
     setError(null);
 
     try {
-      const endedAssignment = currentServerContext.queueItemId
-        ? await endLeadCallAction(currentServerContext.queueItemId)
-        : null;
-
+      // The completion RPC atomically closes the server assignment and accepts
+      // the current `in_progress` state. Keep that state alive while the
+      // operator chooses the post-call outcome, and end only local media here.
       softphoneController.hangup();
-      if (endedAssignment) {
+      if (currentServerContext.queueItemId) {
         setServerContext({
-          queueItemId: endedAssignment.queue_item_id,
-          assignmentState: endedAssignment.assignment_state,
-          recoveryRequired: endedAssignment.recovery_required,
+          ...currentServerContext,
+          outcomePending: true,
         });
       }
-      return endedAssignment;
     } catch (endError) {
       const message = endError instanceof Error ? endError.message : "Call could not be ended safely.";
       setError(message);
