@@ -5,16 +5,13 @@ import {
   History,
   PhoneCall,
   ShoppingBag,
-  Zap,
   FileText,
-  RefreshCw,
-  ExternalLink,
   Plus,
   Send,
 } from "lucide-react";
 import { createLeadNoteAction } from "@/app/actions/leadNotes";
-import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
-import { getLeadActivities } from "@/lib/domainActivity";
+import type { CustomerActivityEvent, CustomerActivitySource } from "@/lib/customerActivity";
+import { getLeadActivityPage } from "@/lib/timeline";
 
 interface CustomerTimelineCardProps {
   leadId: string;
@@ -23,11 +20,14 @@ interface CustomerTimelineCardProps {
 }
 
 export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true }: CustomerTimelineCardProps) {
-  const [entries, setEntries] = useState<WorkspaceActivity[]>([]);
-  const [filterType, setFilterType] = useState<WorkspaceActivityType | "all">("all");
+  const [entries, setEntries] = useState<CustomerActivityEvent[]>([]);
+  const [filterType, setFilterType] = useState<CustomerActivitySource | "all">("all");
   const [newNoteText, setNewNoteText] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isSavingNote, setIsSavingNote] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -38,8 +38,12 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
       setIsLoading(true);
       setLoadError(null);
       try {
-        const res = await getLeadActivities(leadId);
-        if (!cancelled) setEntries(res);
+        const res = await getLeadActivityPage(leadId, { limit: 50 });
+        if (!cancelled) {
+          setEntries(res.items);
+          setNextCursor(res.next_cursor);
+          setHasMore(res.has_more);
+        }
       } catch (error) {
         if (!cancelled) {
           setEntries([]);
@@ -56,6 +60,26 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
     };
   }, [leadId, refreshToken]);
 
+  const handleLoadMore = async () => {
+    if (!nextCursor || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    setLoadError(null);
+    try {
+      const res = await getLeadActivityPage(leadId, { cursor: nextCursor, limit: 50 });
+      setEntries((current) => {
+        const seen = new Set(current.map((entry) => entry.id));
+        return [...current, ...res.items.filter((entry) => !seen.has(entry.id))];
+      });
+      setNextCursor(res.next_cursor);
+      setHasMore(res.has_more);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "More timeline entries could not be loaded");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   const handleAddNote = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const body = newNoteText.trim();
@@ -65,7 +89,10 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
     setLoadError(null);
     try {
       await createLeadNoteAction(leadId, body);
-      setEntries(await getLeadActivities(leadId));
+      const res = await getLeadActivityPage(leadId, { limit: 50 });
+      setEntries(res.items);
+      setNextCursor(res.next_cursor);
+      setHasMore(res.has_more);
       setNewNoteText("");
       setIsAddingNote(false);
     } catch (error) {
@@ -75,23 +102,19 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
     }
   };
 
-  const timelineEntries = includeNotes ? entries : entries.filter((entry) => entry.type !== "note");
+  const timelineEntries = includeNotes ? entries : entries.filter((entry) => entry.source !== "lead_note");
   const filteredEntries = filterType === "all"
     ? timelineEntries
-    : timelineEntries.filter((e) => e.type === filterType);
+    : timelineEntries.filter((e) => e.source === filterType);
 
-  const getEventIcon = (type: WorkspaceActivityType) => {
-    switch (type) {
+  const getEventIcon = (source: CustomerActivitySource) => {
+    switch (source) {
       case "call":
         return PhoneCall;
       case "order":
         return ShoppingBag;
-      case "sms_paylink":
-        return Zap;
-      case "note":
+      case "lead_note":
         return FileText;
-      case "status_change":
-        return RefreshCw;
     }
   };
 
@@ -106,6 +129,14 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
       });
     } catch {
       return isoString;
+    }
+  };
+
+  const formatAmount = (amount: number, currency: string) => {
+    try {
+      return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(amount);
+    } catch {
+      return `${amount.toFixed(2)} ${currency}`;
     }
   };
 
@@ -175,13 +206,14 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
             { key: "all", label: "All" },
             { key: "call", label: "Calls" },
             { key: "order", label: "Orders" },
-            { key: "sms_paylink", label: "SMS" },
-            ...(includeNotes ? [{ key: "note", label: "Notes" } as const] : []),
+            ...(includeNotes ? [{ key: "lead_note", label: "Notes" } as const] : []),
           ] as const
         ).map((f) => (
           <button
             key={f.key}
+            type="button"
             onClick={() => setFilterType(f.key)}
+            aria-pressed={filterType === f.key}
             className={`px-2 py-0.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
               filterType === f.key
                 ? "bg-zinc-800 border-zinc-700 text-zinc-100"
@@ -205,7 +237,7 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
           </div>
         ) : (
           filteredEntries.map((item) => {
-            const Icon = getEventIcon(item.type);
+            const Icon = getEventIcon(item.source);
 
             return (
               <div key={item.id} className="relative flex items-start gap-3 group">
@@ -218,51 +250,45 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
                 <div className="flex-1 bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-2.5 text-xs space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-zinc-200 text-xs line-clamp-1">
-                      {item.title}
+                      {item.preview.title}
                     </span>
                     <span className="text-[9px] font-mono text-zinc-500 shrink-0 ml-2">
-                      {formatTimestamp(item.timestamp)}
+                      {formatTimestamp(item.occurred_at)}
                     </span>
                   </div>
 
-                  {item.description && (
+                  {item.preview.text && (
                     <p className="text-[11px] text-zinc-400 leading-normal">
-                      {item.description}
+                      {item.preview.text}
                     </p>
                   )}
 
                   {/* Metadata Chips */}
                   {item.metadata && (
                     <div className="pt-1.5 flex flex-wrap items-center gap-1.5 text-[9px] font-mono text-zinc-400">
-                      {item.metadata.order_value !== undefined && (
+                      {item.metadata.amount !== undefined && (
                         <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-zinc-200 font-semibold">
-                          ${item.metadata.order_value.toFixed(2)}
+                          {formatAmount(item.metadata.amount, item.metadata.currency || "USD")}
                         </span>
                       )}
 
-                      {item.metadata.call_duration_seconds !== undefined && (
+                      {item.metadata.duration_seconds !== undefined && (
                         <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded">
-                          Duration: {Math.floor(item.metadata.call_duration_seconds / 60)}m {item.metadata.call_duration_seconds % 60}s
+                          Duration: {Math.floor(item.metadata.duration_seconds / 60)}m {item.metadata.duration_seconds % 60}s
                         </span>
                       )}
-
-                      {item.metadata.paylink_url && (
-                        <a
-                          href={item.metadata.paylink_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-zinc-300 hover:text-zinc-100 flex items-center gap-0.5"
-                        >
-                          <span>Pay-Link</span>
-                          <ExternalLink className="w-2.5 h-2.5" />
-                        </a>
+                      {item.metadata.order_source && (
+                        <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded">
+                          Source: {item.metadata.order_source}
+                        </span>
                       )}
                     </div>
                   )}
 
                   {/* Footer Operator Tag */}
                   <div className="pt-1 text-[9px] text-zinc-500 font-mono flex items-center justify-between">
-                    <span>by {item.actor}</span>
+                    <span>by {item.actor.display_name}</span>
+                    <span>{item.channel}</span>
                   </div>
                 </div>
               </div>
@@ -270,6 +296,17 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
           })
         )}
       </div>
+
+      {!isLoading && !loadError && hasMore && (
+        <button
+          type="button"
+          onClick={() => void handleLoadMore()}
+          disabled={isLoadingMore}
+          className="w-full rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px] font-medium text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200 disabled:cursor-wait disabled:opacity-60"
+        >
+          {isLoadingMore ? "Loading more..." : "Load more activity"}
+        </button>
+      )}
     </div>
   );
 }

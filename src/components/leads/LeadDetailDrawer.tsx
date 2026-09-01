@@ -9,14 +9,13 @@ import {
   Building,
   Sparkles,
   Plus,
-  UserCheck,
   PhoneCall,
   FileText
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import { updateLeadStatusAction } from "@/app/actions/crm";
-import { WorkspaceActivity } from "@/lib/domain";
+import type { CustomerActivityEvent } from "@/lib/customerActivity";
 import { getLeadActivities } from "@/lib/domainActivity";
 
 interface LeadDetailDrawerProps {
@@ -35,7 +34,7 @@ export function LeadDetailDrawer({
   onStartCall,
 }: LeadDetailDrawerProps) {
   const [currentLead, setCurrentLead] = useState<Lead | null>(lead);
-  const [activities, setActivities] = useState<WorkspaceActivity[]>([]);
+  const [activities, setActivities] = useState<CustomerActivityEvent[]>([]);
   const [newNote, setNewNote] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
@@ -305,10 +304,8 @@ export function LeadDetailDrawer({
                   <div key={act.id} className="relative group">
                     {/* Timeline Node Icon */}
                     <div className="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
-                      {act.type === "call" ? (
+                      {act.source === "call" ? (
                         <Phone className="w-2.5 h-2.5 text-zinc-400" />
-                      ) : act.type === "status_change" ? (
-                        <UserCheck className="w-2.5 h-2.5 text-zinc-400" />
                       ) : (
                         <FileText className="w-2.5 h-2.5 text-zinc-400" />
                       )}
@@ -316,17 +313,17 @@ export function LeadDetailDrawer({
                     
                     <div className="bg-zinc-950/40 border border-zinc-800/80 rounded-lg p-3">
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="font-semibold text-zinc-200">{act.title}</span>
+                        <span className="font-semibold text-zinc-200">{act.preview.title}</span>
                         <span className="text-zinc-500 font-mono">
-                          {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(act.occurred_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <p className="text-xs text-zinc-400 leading-normal">
-                        {act.description}
-                      </p>
-                      {act.actor && (
+                      {act.preview.text && <p className="text-xs text-zinc-400 leading-normal">
+                        {act.preview.text}
+                      </p>}
+                      {act.actor.display_name && (
                         <div className="mt-2 text-[10px] text-zinc-500 font-medium font-mono">
-                          Logged by: {act.actor}
+                          Logged by: {act.actor.display_name} · {act.channel}
                         </div>
                       )}
                     </div>
