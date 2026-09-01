@@ -5,6 +5,8 @@ import { Sidebar } from "./Sidebar";
 import { AppHeader } from "./AppHeader";
 import { CommandPalette } from "./CommandPalette";
 import { OperatorIdentityProvider } from "./OperatorIdentityProvider";
+import { CallSessionProvider } from "./CallSessionProvider";
+import { FloatingCallController } from "@/components/workspace/FloatingCallController";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -19,7 +21,8 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <OperatorIdentityProvider>
+    <CallSessionProvider>
+      <OperatorIdentityProvider>
       <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
       {/* Global Command K Palette */}
       <CommandPalette />
@@ -30,7 +33,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Hlavní obsahová část */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <AppHeader />
-        
+
         <main className={`flex-1 overflow-y-auto bg-zinc-950 ${isOperatorConsole ? "p-4 sm:p-5" : "p-6"}`}>
           <div className={isOperatorConsole ? "max-w-none h-full" : "max-w-7xl mx-auto space-y-6"}>
             {children}
@@ -52,6 +55,8 @@ export function AppShell({ children }: AppShellProps) {
         </footer>
       </div>
       </div>
-    </OperatorIdentityProvider>
+      <FloatingCallController />
+      </OperatorIdentityProvider>
+    </CallSessionProvider>
   );
 }
