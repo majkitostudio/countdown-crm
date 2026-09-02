@@ -24,6 +24,7 @@ vi.mock("@/lib/workflows/dispatcher", () => ({
 import {
   abortLeadCallStartForWorkspace,
   completeLeadCallForWorkspace,
+  queueLeadForOperatorForWorkspace,
 } from "@/lib/dal/leadQueue";
 
 const workspaceContext = {
@@ -99,6 +100,26 @@ describe("lead queue server contract", () => {
     expect(rpc).toHaveBeenCalledWith("abort_lead_call_start", {
       target_queue_item_id: "queue-1",
       abort_reason: "workspace unmounted during dialing",
+    });
+  });
+
+  it("queues an available lead as a preferred next lead without assigning a second active lead", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: queueSnapshot, error: null });
+    mocks.createDataClient.mockResolvedValue({ rpc });
+    mocks.requireWorkspaceRole.mockResolvedValue({
+      ...workspaceContext,
+      role: "administrator",
+    });
+
+    await expect(
+      queueLeadForOperatorForWorkspace("queue-1", "operator-2", "Prepare next queue"),
+    ).resolves.toEqual(queueSnapshot);
+
+    expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["team_leader", "administrator"]);
+    expect(rpc).toHaveBeenCalledWith("queue_lead_for_operator", {
+      target_queue_item_id: "queue-1",
+      target_operator_id: "operator-2",
+      queue_reason: "Prepare next queue",
     });
   });
 

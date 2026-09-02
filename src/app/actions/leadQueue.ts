@@ -9,6 +9,7 @@ import {
   getScopedLeadForWorkspace,
   heartbeatLeadAssignmentForWorkspace,
   listQueueItemsForWorkspace,
+  queueLeadForOperatorForWorkspace,
   reopenLeadAssignmentForWorkspace,
   reassignLeadAssignmentForWorkspace,
   releaseLeadAssignmentForWorkspace,
@@ -73,6 +74,14 @@ export async function releaseLeadAssignmentAction(
   reason?: string | null,
 ): Promise<LeadQueueSnapshot> {
   return releaseLeadAssignmentForWorkspace(queueItemId, reason);
+}
+
+export async function queueLeadForOperatorAction(
+  queueItemId: string,
+  operatorId: string,
+  reason?: string | null,
+): Promise<LeadQueueSnapshot> {
+  return queueLeadForOperatorForWorkspace(queueItemId, operatorId, reason);
 }
 
 export async function reassignLeadAssignmentAction(

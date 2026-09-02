@@ -372,6 +372,23 @@ export async function releaseLeadAssignmentForWorkspace(
   return snapshot;
 }
 
+export async function queueLeadForOperatorForWorkspace(
+  queueItemId: string,
+  operatorId: string,
+  reason?: string | null,
+): Promise<LeadQueueSnapshot> {
+  await requireWorkspaceRole(["team_leader", "administrator"]);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("queue_lead_for_operator", {
+    target_queue_item_id: queueItemId,
+    target_operator_id: operatorId,
+    queue_reason: reason || null,
+  });
+  const snapshot = requireRpcData<LeadQueueSnapshot | null>(data, error, "Lead could not be queued for the Operator");
+  if (!snapshot) throw new DataAccessError("NOT_FOUND", "Queue item was not found");
+  return snapshot;
+}
+
 export async function reassignLeadAssignmentForWorkspace(
   queueItemId: string,
   operatorId: string,

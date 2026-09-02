@@ -268,7 +268,7 @@ export interface Database {
           workspace_id: string;
           queue_item_id: string;
           lead_id: string;
-          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused";
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "queued" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused";
           from_state: string | null;
           to_state: string;
           from_operator_id: string | null;
@@ -283,7 +283,7 @@ export interface Database {
           workspace_id: string;
           queue_item_id: string;
           lead_id: string;
-          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused";
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "queued" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused";
           from_state?: string | null;
           to_state: string;
           from_operator_id?: string | null;
