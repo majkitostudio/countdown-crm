@@ -15,7 +15,10 @@ function toWorkspaceActivity(entry: TimelineActivityEntry): WorkspaceActivity {
   };
 }
 
-export async function getLeadActivities(leadId: string): Promise<WorkspaceActivity[]> {
-  const entries = await getLeadTimeline(leadId);
+export async function getLeadActivities(
+  leadId: string,
+  options?: { includeAudit?: boolean },
+): Promise<WorkspaceActivity[]> {
+  const entries = await getLeadTimeline(leadId, options);
   return entries.map(toWorkspaceActivity);
 }

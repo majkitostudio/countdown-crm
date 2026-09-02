@@ -1,3 +1,7 @@
+import { listLeadAuditLogsAction } from "@/app/actions/audit";
+import { listLeadActivityAction } from "@/app/actions/crm";
+import { listLeadNotesAction } from "@/app/actions/leadNotes";
+
 export type TimelineActivityType =
   | "call"
   | "order"
@@ -23,16 +27,19 @@ export interface TimelineActivityEntry {
     paylink_url?: string;
     status_from?: string;
     status_to?: string;
+    audit_action?: string;
+    target_resource?: string;
   };
 }
 
-import { listLeadActivityAction } from "@/app/actions/crm";
-import { listLeadNotesAction } from "@/app/actions/leadNotes";
-
-export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
-  const [activity, notes] = await Promise.all([
+export async function getLeadTimeline(
+  leadId: string,
+  options: { includeAudit?: boolean } = {},
+): Promise<TimelineActivityEntry[]> {
+  const [activity, notes, auditLogs] = await Promise.all([
     listLeadActivityAction(leadId),
     listLeadNotesAction(leadId),
+    options.includeAudit ? listLeadAuditLogsAction(leadId) : Promise.resolve([]),
   ]);
   const dbEntries: TimelineActivityEntry[] = [
     ...activity.calls.map((call) => ({
@@ -70,6 +77,19 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
       description: note.body,
       operator_name: note.author_name,
       timestamp: note.created_at,
+    })),
+    ...auditLogs.map((auditLog) => ({
+      id: `tl-audit-${auditLog.id}`,
+      lead_id: leadId,
+      type: "status_change" as const,
+      title: "Lead change committed",
+      description: auditLog.details,
+      operator_name: auditLog.actor_name,
+      timestamp: auditLog.timestamp,
+      metadata: {
+        audit_action: auditLog.action,
+        target_resource: auditLog.target_resource,
+      },
     })),
   ];
 

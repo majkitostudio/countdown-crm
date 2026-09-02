@@ -53,7 +53,7 @@ export function LeadDetailDrawer({
     });
     if (!lead) return () => { cancelled = true; };
 
-    void getLeadActivities(lead.id)
+    void getLeadActivities(lead.id, { includeAudit: true })
       .then((entries) => {
         if (!cancelled) setActivities(entries);
       })
@@ -90,7 +90,7 @@ export function LeadDetailDrawer({
 
       setActivitiesError(null);
       try {
-        setActivities(await getLeadActivities(currentLead.id));
+        setActivities(await getLeadActivities(currentLead.id, { includeAudit: true }));
       } catch (error: unknown) {
         setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
       }
@@ -106,7 +106,7 @@ export function LeadDetailDrawer({
     setActivitiesError(null);
     try {
       await createLeadNoteAction(currentLead.id, newNote);
-      setActivities(await getLeadActivities(currentLead.id));
+      setActivities(await getLeadActivities(currentLead.id, { includeAudit: true }));
       setNewNote("");
     } catch (error) {
       setActivitiesError(error instanceof Error ? error.message : "Note could not be saved");
@@ -286,10 +286,15 @@ export function LeadDetailDrawer({
             </div>
 
             {/* Activity & Interaction Timeline */}
-            <div className="space-y-3">
+            <div className="space-y-3" data-testid="lead-git-audit-trail">
+              <div className="flex items-center justify-between gap-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Activity Timeline
+                Customer Activity & Change History
               </h3>
+                <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-mono text-zinc-600">
+                  Git-style log
+                </span>
+              </div>
               
               {isLoadingActivities && <p className="text-xs text-zinc-500">Loading activity timeline...</p>}
               {activitiesError && (
@@ -302,7 +307,7 @@ export function LeadDetailDrawer({
               )}
               {!activitiesError && activities.length > 0 && <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-800">
                 {activities.map((act) => (
-                  <div key={act.id} className="relative group">
+                  <div key={act.id} className="relative group" data-testid="lead-audit-event">
                     {/* Timeline Node Icon */}
                     <div className="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center">
                       {act.type === "call" ? (
@@ -317,17 +322,23 @@ export function LeadDetailDrawer({
                     <div className="bg-zinc-950/40 border border-zinc-800/80 rounded-lg p-3">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="font-semibold text-zinc-200">{act.title}</span>
-                        <span className="text-zinc-500 font-mono">
-                          {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <span className="text-zinc-500 font-mono" title={act.timestamp}>
+                          {new Date(act.timestamp).toLocaleString("cs-CZ", { dateStyle: "short", timeStyle: "short" })}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-400 leading-normal">
                         {act.description}
                       </p>
                       {act.actor && (
-                        <div className="mt-2 text-[10px] text-zinc-500 font-medium font-mono">
-                          Logged by: {act.actor}
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-zinc-500 font-medium font-mono">
+                          <span>Committed by: {act.actor}</span>
+                          <span title={act.id}>ref:{act.id.slice(-8)}</span>
                         </div>
+                      )}
+                      {act.metadata?.audit_action && (
+                        <span className="mt-2 inline-flex rounded border border-sky-900/60 bg-sky-950/30 px-1.5 py-0.5 text-[9px] font-mono text-sky-300">
+                          {act.metadata.audit_action}
+                        </span>
                       )}
                     </div>
                   </div>

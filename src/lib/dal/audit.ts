@@ -34,6 +34,7 @@ export type AuditLogDTO = Pick<
   | "severity"
   | "details"
   | "ip_address"
+  | "target_resource"
 >;
 
 export interface CreateAuditLogInput {
@@ -44,7 +45,7 @@ export interface CreateAuditLogInput {
 }
 
 const AUDIT_SELECT =
-  "id, workspace_id, timestamp, actor_id, actor_name, action, severity, details, ip_address";
+  "id, workspace_id, timestamp, actor_id, actor_name, action, target_resource, severity, details, ip_address";
 
 function validateInput(input: CreateAuditLogInput): CreateAuditLogInput {
   if (!input || typeof input !== "object") {
@@ -86,7 +87,14 @@ function mapAuditLog(row: AuditLogRow): AuditLogDTO {
     severity: row.severity,
     details: row.details,
     ip_address: row.ip_address,
+    target_resource: row.target_resource,
   };
+}
+
+function assertLeadId(leadId: string): void {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(leadId)) {
+    throw new DataAccessError("VALIDATION", "Lead id is invalid.");
+  }
 }
 
 export async function listAuditLogsForWorkspace(): Promise<AuditLogDTO[]> {
@@ -101,6 +109,27 @@ export async function listAuditLogsForWorkspace(): Promise<AuditLogDTO[]> {
 
   if (error) {
     throw new DataAccessError("DATABASE", "Unable to load audit logs.");
+  }
+
+  return ((data || []) as AuditLogRow[]).map(mapAuditLog);
+}
+
+export async function listAuditLogsForLead(leadId: string): Promise<AuditLogDTO[]> {
+  const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"]);
+  assertLeadId(leadId);
+
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select(AUDIT_SELECT)
+    .eq("workspace_id", workspaceId)
+    .eq("target_resource", "Lead")
+    .ilike("details", `%${leadId}%`)
+    .order("timestamp", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Unable to load lead audit history.");
   }
 
   return ((data || []) as AuditLogRow[]).map(mapAuditLog);

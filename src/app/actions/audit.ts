@@ -2,6 +2,7 @@
 
 import {
   createAuditLogForWorkspace,
+  listAuditLogsForLead,
   listAuditLogsForWorkspace,
 } from "@/lib/dal/audit";
 import type {
@@ -11,6 +12,10 @@ import type {
 
 export async function listAuditLogsAction(): Promise<AuditLogDTO[]> {
   return listAuditLogsForWorkspace();
+}
+
+export async function listLeadAuditLogsAction(leadId: string): Promise<AuditLogDTO[]> {
+  return listAuditLogsForLead(leadId);
 }
 
 export async function createAuditLogAction(

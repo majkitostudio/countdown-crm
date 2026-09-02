@@ -25,6 +25,8 @@ export interface WorkspaceActivityMetadata {
   paylink_url?: string;
   status_from?: string;
   status_to?: string;
+  audit_action?: string;
+  target_resource?: string;
 }
 
 export interface WorkspaceActivity {
