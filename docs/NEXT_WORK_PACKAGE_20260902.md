@@ -45,10 +45,10 @@ Preview migration provenance je zapsaná jako `20260902130804`
 Lokální regresní suite pokrývá re-order deduplikaci poslední fulfilled
 objednávkou, Wallet Settings boundary a oddělení analytics částek podle měny.
 Živá relace byla Operator; pozitivní Team Leader/Administrator browser průchod
-a plný RLS/concurrency důkaz proto zůstávají otevřené. V databázi existuje jeden
-starší mismatch `orders.currency = USD` versus položka `CZK`, který nebyl tiše
-přepsán; migrace brání vzniku nových mismatchů a starý záznam je samostatná
-data-remediation položka.
+a plný RLS/concurrency důkaz proto zůstávají otevřené. Starší mismatch
+`orders.currency = USD` versus položka `CZK` byl opraven na `CZK` a změna byla
+zapsána jako `ORDER_CURRENCY_REMEDIATED`; následná kontrola vrátila
+`currency_mismatches = 0`.
 
 ## Navržené pořadí
 
@@ -148,5 +148,5 @@ potřebují měnové rozlišení. Současný denní summary i hlavní analytics 
 
 Implementace slices 1–4 je hotová a ověřená lokálním gate i Preview smoke.
 Další krok je získat Team Leader/Administrator relaci pro pozitivní browser,
-RLS a wallet persistence důkaz; historický mismatch se řeší jako samostatná
-data-remediation operace, nikoli tichým přepočtem.
+RLS a wallet persistence důkaz. Měnový mismatch je nyní opravený a chráněný
+databázovými triggery, bez skrytého přepočtu.

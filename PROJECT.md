@@ -153,9 +153,10 @@ Níže uvedené výsledky jsou převzaté z dokumentace s posledním snapshotem 
   mimo rollback/disposable testy.
 - Fulfillment provider a service-role webhook pro wallet.
 - Skutečná telephony/inbound integrace.
-- Jeden starší historický order/item mismatch v Preview/Sandbox zůstává
-  explicitně evidovaný k data remediation; nové zápisy už mismatch odmítají a
-  analytics částky nezapočítávají přes různé měny.
+- Historický order/item mismatch v Preview/Sandbox byl opraven na měnu produktu
+  a itemu (`CZK`) s auditní událostí `ORDER_CURRENCY_REMEDIATED`; kontrola nyní
+  vrací nula mismatchů. Nové zápisy už mismatch odmítají a analytics částky
+  nezapočítávají přes různé měny.
 - Rozlišení aktuálního produktu od historických AI, omnichannel a workflow
   slibů.
 
