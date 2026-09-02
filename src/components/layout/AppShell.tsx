@@ -5,6 +5,8 @@ import { Sidebar } from "./Sidebar";
 import { AppHeader } from "./AppHeader";
 import { CommandPalette } from "./CommandPalette";
 import { OperatorIdentityProvider } from "./OperatorIdentityProvider";
+import { CallControllerProvider } from "./CallControllerProvider";
+import { FloatingCallController } from "./FloatingCallController";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -20,6 +22,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <OperatorIdentityProvider>
+      <CallControllerProvider>
       <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
       {/* Global Command K Palette */}
       <CommandPalette />
@@ -52,6 +55,8 @@ export function AppShell({ children }: AppShellProps) {
         </footer>
       </div>
       </div>
+      <FloatingCallController />
+      </CallControllerProvider>
     </OperatorIdentityProvider>
   );
 }

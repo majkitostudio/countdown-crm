@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings, Tag } from "lucide-react";
+import { Mail, Phone, PhoneCall, PhoneIncoming, Tag } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
@@ -11,11 +10,8 @@ interface OperatorLeadHeaderProps {
   activeLead: Lead | null;
   isCallActive: boolean;
   isDialing: boolean;
-  isMuted: boolean;
-  durationSeconds: number;
   isStarting?: boolean;
   onToggleCall: () => void;
-  onToggleMute: () => void;
   onCreateOrder?: () => void;
   onSimulateIncoming?: () => void;
   showIncomingSimulator?: boolean;
@@ -30,11 +26,8 @@ export function OperatorLeadHeader({
   activeLead,
   isCallActive,
   isDialing,
-  isMuted,
-  durationSeconds,
   isStarting = false,
   onToggleCall,
-  onToggleMute,
   onCreateOrder,
   onSimulateIncoming,
   showIncomingSimulator = false,
@@ -44,9 +37,6 @@ export function OperatorLeadHeader({
   onCallOutcome,
   onScheduleCallback,
 }: OperatorLeadHeaderProps) {
-  const formatTimer = (totalSeconds: number) =>
-    `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
-
   if (!activeLead) {
     return (
       <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-5 text-sm text-zinc-400" data-testid="operator-lead-primary" data-state="waiting_assignment">
@@ -107,38 +97,10 @@ export function OperatorLeadHeader({
 
         <div className="flex shrink-0 items-center gap-2">
           {isCallActive || isDialing ? (
-            <>
-              <div className="mr-1 text-right">
-                <p className="text-[10px] uppercase tracking-wider text-zinc-500">{isDialing ? "Dialing" : "Active call"}</p>
-                <p className="font-mono text-xs text-zinc-200">{formatTimer(durationSeconds)}</p>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleMute}
-                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-                title={isMuted ? "Unmute microphone" : "Mute microphone"}
-                className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-              >
-                {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-              </button>
-              <Link
-                href="/settings"
-                aria-label="Open settings"
-                title="Open settings"
-                className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-              >
-                <Settings className="h-4 w-4" />
-              </Link>
-              <button
-                type="button"
-                onClick={onToggleCall}
-                aria-label="End call"
-                title="End call"
-                className="rounded-xl border border-rose-800 bg-rose-900/80 p-2.5 text-rose-100 hover:bg-rose-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-              >
-                <PhoneOff className="h-4 w-4" />
-              </button>
-            </>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-zinc-500">{isDialing ? "Dialing" : "Active call"}</p>
+              <p className="mt-0.5 text-[10px] text-zinc-500">Controls are floating above the workspace</p>
+            </div>
           ) : isAwaitingOutcome ? (
             <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-right">
               <p className="text-[10px] uppercase tracking-wider text-amber-200">Outcome required</p>

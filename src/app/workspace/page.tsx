@@ -38,6 +38,7 @@ import {
 } from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { useCallController } from "@/components/layout/CallControllerProvider";
 
 interface PostCallSummary {
   leadName: string;
@@ -99,9 +100,9 @@ function WorkspaceContent() {
   const callStartPendingRef = React.useRef(false);
   const callStartRecoveryRef = React.useRef(false);
   const completionInFlightRef = React.useRef(false);
-  const activeQueueItemIdRef = React.useRef<string | null>(null);
-  const identityRoleRef = React.useRef<string | null>(null);
+  const handleToggleCallRef = React.useRef<() => void>(() => undefined);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
+  const { registerCallContext } = useCallController();
   const activeLeadId = activeLead?.id;
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
@@ -111,26 +112,13 @@ function WorkspaceContent() {
     ? softphoneSession.startTime.toISOString()
     : null;
 
-  useEffect(() => {
-    activeQueueItemIdRef.current = activeQueueItemId;
-    identityRoleRef.current = identity?.role || null;
-  }, [activeQueueItemId, identity?.role]);
-
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
 
   useEffect(() => {
     return () => {
-      const currentSession = softphoneController.getSession();
-      if (currentSession.state === "dialing" || currentSession.state === "ringing") {
-        softphoneController.cancelDial();
-        const queueItemId = activeQueueItemIdRef.current;
-        if (identityRoleRef.current === "operator" && queueItemId) {
-          void abortLeadCallStartAction(queueItemId, "Operator workspace unmounted during call start").catch(() => {
-            // The lease recovery path remains the server-side fallback if the page is already gone.
-          });
-        }
-      } else if (currentSession.state !== "idle" && currentSession.state !== "ended") {
-        softphoneController.hangup();
+      if (stopAudioRef.current) {
+        stopAudioRef.current();
+        stopAudioRef.current = null;
       }
     };
   }, []);
@@ -539,6 +527,19 @@ function WorkspaceContent() {
     }
   };
 
+  useEffect(() => {
+    handleToggleCallRef.current = handleToggleCall;
+  });
+
+  useEffect(() => {
+    registerCallContext({
+      leadName: activeLead?.full_name || "",
+      leadPhone: activeLead?.phone || "",
+      isAwaitingOutcome,
+      onToggleCall: () => handleToggleCallRef.current(),
+    });
+  }, [activeLead?.full_name, activeLead?.phone, isAwaitingOutcome, registerCallContext]);
+
   // Simulate Incoming Call Trigger
   const handleSimulateIncoming = () => {
     if (leads.length > 1) {
@@ -783,14 +784,11 @@ function WorkspaceContent() {
             activeLead={activeLead}
             isCallActive={isCallActive}
             isDialing={isDialing}
-            isMuted={softphoneSession.isMuted}
-            durationSeconds={softphoneSession.durationSeconds}
             isStarting={isCallStartPending || isEndCallPending}
             isAwaitingOutcome={isAwaitingOutcome}
             recoveryRequired={recoveryRequired}
             isCompletionPending={isCompletionPending}
             onToggleCall={handleToggleCall}
-            onToggleMute={() => softphoneController.toggleMute()}
             onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
             onScheduleCallback={identity?.role === "operator" ? () => {
               setCallbackScheduleError(null);
