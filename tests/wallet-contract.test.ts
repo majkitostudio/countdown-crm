@@ -5,6 +5,10 @@ const migration = readFileSync(
   new URL("../supabase/migrations/20260831072645_user_wallet_mvp.sql", import.meta.url),
   "utf8",
 ).replace(/\s+/g, " ");
+const rlsMigration = readFileSync(
+  new URL("../supabase/migrations/20260902160000_wallet_settings_manager_rls.sql", import.meta.url),
+  "utf8",
+).replace(/\s+/g, " ");
 
 const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.url), "utf8");
 const walletPage = readFileSync(new URL("../src/app/wallet/page.tsx", import.meta.url), "utf8");
@@ -54,5 +58,8 @@ describe("user wallet MVP contract", () => {
     expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
     expect(settingsPage).toContain('WalletManagerPanel mode="settings"');
     expect(settingsPage).toContain('data-testid="wallet-settings-boundary"');
+    expect(rlsMigration).toContain("Workspace managers can view wallet settings");
+    expect(rlsMigration).toContain("Workspace managers can view wallet bonus rules");
+    expect(rlsMigration).toContain("private.is_workspace_manager_or_admin(workspace_id)");
   });
 });

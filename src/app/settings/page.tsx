@@ -179,7 +179,7 @@ export default function SettingsPage() {
             <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 text-xs text-zinc-400">Loading workspace wallet settings...</div>
           ) : walletError ? (
             <div role="alert" className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-5 text-xs text-rose-300">Wallet settings unavailable: {walletError}</div>
-          ) : walletOverview ? (
+          ) : walletOverview?.settings ? (
             <WalletManagerPanel mode="settings" settings={walletOverview.settings} rules={walletOverview.rules} members={[]} />
           ) : null}
         </section>

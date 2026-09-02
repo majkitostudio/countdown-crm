@@ -73,7 +73,7 @@ export function TeamLeaderDailyBriefCard() {
           .map((entry) => ({ starts_at: entry.starts_at, status: entry.status }));
         const wallet = walletResult.status === "fulfilled"
           ? {
-              currency: walletResult.value.settings.currency,
+              currency: walletResult.value.settings?.currency || "CZK",
               balances: walletResult.value.balances,
             }
           : null;

@@ -25,7 +25,7 @@ export interface WalletBalanceDTO {
 }
 
 export interface WalletOverviewDTO {
-  settings: WalletSettingsRow;
+  settings: WalletSettingsRow | null;
   rules: WalletBonusRuleRow[];
   transactions: WalletTransactionDTO[];
   balances: WalletBalanceDTO[];
@@ -61,14 +61,14 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
   const canManage = context.role === "team_leader" || context.role === "administrator";
 
   const [settings, rulesResult, transactionsResult, balancesResult, members] = await Promise.all([
-    loadWalletSettings(context.workspaceId, supabase),
-    supabase
+    canManage ? loadWalletSettings(context.workspaceId, supabase) : Promise.resolve(null),
+    canManage ? supabase
       .from("wallet_bonus_rules")
       .select("id, workspace_id, currency, minimum_order_amount, bonus_amount, effective_from, created_by, created_at")
       .eq("workspace_id", context.workspaceId)
       .order("currency", { ascending: true })
       .order("effective_from", { ascending: false })
-      .order("minimum_order_amount", { ascending: false }),
+      .order("minimum_order_amount", { ascending: false }) : Promise.resolve({ data: [], error: null }),
     (() => {
       let query = supabase
         .from("wallet_transactions")
