@@ -41,18 +41,37 @@ unavailable until a real event source exists.
 
 ## Browser evidence
 
-The fresh Playwright session had no authenticated cookies. Opening
-`/workspace` therefore redirected to `/login`:
+The initial fresh Playwright session had no authenticated cookies. Opening
+`/workspace` therefore redirected to `/login`. No credentials were entered in
+that first checkpoint because demo authentication and new test identities are
+out of scope.
 
-- URL: `http://localhost:3000/login`
-- Login snapshot: `output/playwright/.playwright-cli/page-2026-09-02T03-39-32-089Z.yml`
-- Login screenshot: `output/playwright/.playwright-cli/page-2026-09-02T03-40-02-975Z.png`
-- Console: 0 errors, 1 accessibility warning about the password
-  `autocomplete` attribute, and normal React/Next development messages.
+After the user authenticated an existing Operator session, `/workspace`
+loaded successfully:
 
-The login page itself rendered the expected Supabase Auth boundary. No
-credentials were entered because the task forbids demo auth and no existing
-authorized browser state was available in this Playwright session.
+- URL: `http://localhost:3000/workspace`
+- Identity shown: `mikestudio`, role `Operator`.
+- Operator status shown: `Ready for Calls`.
+- After reload and settling, the page remained authenticated and showed
+  `Operator Console waiting for assignment`.
+- Snapshot: `output/playwright/task0-authenticated-waiting-20260902-final.yml`
+- Screenshot: `output/playwright/task0-authenticated-waiting-20260902-final.png`
+- Console errors after the settled reload: 0.
+
+The authenticated UI did not expose a lead or call controls. It explicitly
+reported that no callable contact is currently assigned; Operators cannot
+browse or choose from the lead directory.
+
+## Read-only persistence boundary
+
+Read-only SQL inspection of the linked Supabase project found:
+
+- `public.lead_queue_items`: 1 row, state `closed`; no `available` queue item;
+- `public.leads`: 4 rows;
+- `public.calls`: 21 rows.
+
+No database write, queue mutation, fixture insertion or migration was
+performed during this run.
 
 ## Verification status
 
@@ -63,10 +82,14 @@ Passed locally on the current code baseline:
 - ESLint;
 - TypeScript check;
 - production build.
+- authenticated Operator `/workspace` load;
+- authenticated session survival across a reload;
+- truthful waiting-for-assignment state;
+- read-only queue state confirmation.
 
 Not verified in this run:
 
-- authenticated `/workspace` load and server-provided assignment;
+- server-provided assignment;
 - call start with the real authorized session;
 - active call, timer, mute/hold and hangup browser behavior;
 - outcome, callback or order completion in the browser;
@@ -77,10 +100,13 @@ Not verified in this run:
 ## Result and blocker
 
 The code-level contract has a truthful audio/provider failure path and a
-server-authoritative completion path. The required authenticated workflow
-evidence cannot be completed without an authorized browser session. This
-document is therefore an interim evidence checkpoint, not a pilot-ready claim
-and not approval to begin the Floating Call Controller.
+server-authoritative completion path. The authenticated browser boundary is
+available, but the linked environment currently has no callable assignment,
+so the call/order workflow cannot proceed without fabricating or mutating
+data. This document remains an interim evidence checkpoint, not a pilot-ready
+claim and not approval to begin the Floating Call Controller.
 
-Next safe step: rerun the same browser matrix in an existing authorized
-Operator session, without demo auth or new test identities.
+Next safe step: make an existing queue item callable through the supported
+workspace/routing workflow, then rerun the same browser matrix in this
+authorized Operator session. Do not seed a fixture or bypass RLS for this
+evidence run.
