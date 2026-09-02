@@ -196,6 +196,15 @@ přípravě**, nikoli obecné `production-ready`.
    nové funkce vybírat až z aktuálního checkpointu a po stabilizaci hlavního
    Operator Console workflow.
 
+### To-Do
+
+- [ ] Přidat bezpečný provisioning testovacího Team Leadera: vytvoření nebo
+  pozvání Auth identity, přiřazení do aktuálního workspace jako
+  `team_leader`, ověřený login a následný cleanup/revokaci testovacího účtu.
+  Současné UI umí pouze změnit roli již existujícímu Auth uživateli; nový
+  invite/create flow zatím není součástí pilotu a nemá se nahrazovat přímým
+  zápisem do `auth.users`.
+
 ## 6. Jak číst starší dokumentaci
 
 Když se dokumenty rozcházejí, použij toto pořadí:
