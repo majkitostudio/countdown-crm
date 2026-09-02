@@ -203,7 +203,9 @@ přípravě**, nikoli obecné `production-ready`.
   `team_leader`, ověřený login a následný cleanup/revokaci testovacího účtu.
   Současné UI umí pouze změnit roli již existujícímu Auth uživateli; nový
   invite/create flow zatím není součástí pilotu a nemá se nahrazovat přímým
-  zápisem do `auth.users`.
+  zápisem do `auth.users`. Trusted helper je připravený v
+  `scripts/provision-test-team-leader.mjs`; live vytvoření, login a cleanup
+  testovacího účtu zůstávají samostatným důkazním krokem.
 
 ## 6. Jak číst starší dokumentaci
 
@@ -278,6 +280,7 @@ live cíle. Žádný z nich sám o sobě nepovoluje produkční `db push`.
 - `docs/IMPLEMENTATION_PLAN_HARDENING_CHECKPOINT.md`
 - `docs/IMPLEMENTATION_PLAN_ROADMAP_RECONCILIATION.md`
 - `docs/USER_WALLET_MVP_HANDOFF_20260831.md`
+- `docs/TEST_TEAM_LEADER_PROVISIONING.md`
 
 Tyto soubory popisují dílčí scope a přijetí konkrétního slice. Nejsou
 globálním pracovním řádem.
