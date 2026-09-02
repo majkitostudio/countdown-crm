@@ -76,7 +76,7 @@ export default async function WalletPage() {
         </section>
       )}
 
-      {data.canManage && <WalletManagerPanel settings={data.settings} rules={data.rules} members={data.members} />}
+      {data.canManage && <WalletManagerPanel mode="adjustment" settings={data.settings} rules={data.rules} members={data.members} />}
 
       <section className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 shadow-sm">
         <div className="flex flex-col gap-2 border-b border-zinc-800/80 p-5 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Transaction ledger</h2><p className="mt-1 text-xs text-zinc-500">Every entry is immutable and linked to its source or audit record.</p></div><span className="text-[10px] font-mono text-zinc-600">{data.transactions.length} entries</span></div>

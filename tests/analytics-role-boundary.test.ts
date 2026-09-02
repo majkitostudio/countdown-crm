@@ -39,6 +39,7 @@ function createAnalyticsClient() {
       agent_id: "agent-1",
       status: "completed",
       total_amount: 125,
+      currency: "USD",
       created_at: "2026-08-26T10:00:00.000Z",
     },
   ];

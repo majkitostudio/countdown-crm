@@ -8,6 +8,7 @@ import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import { getWalletOverviewAction } from "@/app/actions/wallet";
 import { getReorderOpportunities } from "@/lib/reorder";
 import { buildTeamLeaderDailyBrief, type TeamLeaderDailyBrief } from "@/lib/teamLeaderDailyBrief";
+import { formatCurrencyAmounts } from "@/lib/currency";
 
 type BriefState =
   | { status: "loading" }
@@ -126,7 +127,7 @@ export function TeamLeaderDailyBriefCard() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <BriefMetric label="Calls today" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
             <BriefMetric label="Orders today" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
-            <BriefMetric label="Revenue today" value={`$${readyState.brief.daily.revenue.toFixed(2)}`} icon={Coins} />
+            <BriefMetric label="Revenue today" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
             <BriefMetric label="Callback attention" value={String(readyState.brief.callbacksToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueCallbacks} po termínu`} />
           </div>
 

@@ -15,6 +15,7 @@ import {
 import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
 import { getLeadActivities } from "@/lib/domainActivity";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface CustomerTimelineCardProps {
   leadId: string;
@@ -236,7 +237,7 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
                     <div className="pt-1.5 flex flex-wrap items-center gap-1.5 text-[9px] font-mono text-zinc-400">
                       {item.metadata.order_value !== undefined && (
                         <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-zinc-200 font-semibold">
-                          ${item.metadata.order_value.toFixed(2)}
+                          {formatCurrencyAmount(item.metadata.order_value, item.metadata.order_currency ?? "USD")}
                         </span>
                       )}
 

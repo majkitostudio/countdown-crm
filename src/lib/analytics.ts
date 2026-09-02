@@ -6,6 +6,7 @@ import { requireWorkspaceRole } from "./dal/workspace";
 import { listWorkspaceCallsInContext, listWorkspaceOrdersInContext } from "./dal/activity";
 import { getWorkspaceRoleLabel } from "./auth/roles";
 import { getDailyTeamSummary, type DailyTeamSummary } from "./dailyTeamSummary";
+import { aggregateCurrencyAmounts, singleCurrency, type CurrencyAmount } from "./currency";
 
 export const ANALYTICS_ALLOWED_ROLES = ["team_leader", "administrator"] as const;
 
@@ -28,6 +29,8 @@ export type AnalyticsActionResult<T> = AnalyticsActionSuccess<T> | AnalyticsActi
 export interface WeeklySalesPoint {
   day: string;
   revenue: number;
+  revenueByCurrency: CurrencyAmount[];
+  currency: string | null;
   forecast: number;
 }
 
@@ -43,15 +46,20 @@ export interface AgentLeaderboardPoint {
   callsCount: number;
   ordersCount: number;
   revenueGenerated: number;
+  revenueByCurrency: CurrencyAmount[];
+  revenueCurrency: string | null;
   conversionRate: number;
 }
 
 export interface AnalyticsOverview {
   totalRevenue: number;
+  revenueByCurrency: CurrencyAmount[];
   projectedRevenue: number;
   forecastGrowthPercent: number;
   forecastAvailable: boolean;
   avgOrderValue: number;
+  avgOrderValueByCurrency: CurrencyAmount[];
+  currencies: string[];
   totalCalls: number;
   conversionRate: number;
   objectionResolutionRate: number | null;
@@ -74,6 +82,7 @@ export interface RecentActivityEntry {
   sentiment?: string | null;
   productName?: string;
   amount?: number;
+  currency?: string;
 }
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -89,13 +98,19 @@ function getWeeklySales(orders: OrderRow[]): WeeklySalesPoint[] {
     date.setHours(0, 0, 0, 0);
     date.setDate(today.getDate() - offset);
     const dateKey = date.toISOString().slice(0, 10);
-    const revenue = orders
-      .filter((order) => order.created_at.slice(0, 10) === dateKey && order.status === "completed")
-      .reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+    const dayOrders = orders.filter((order) => order.created_at.slice(0, 10) === dateKey && order.status === "completed");
+    const revenueByCurrency = aggregateCurrencyAmounts(
+      dayOrders,
+      (order) => Number(order.total_amount || 0),
+      (order) => order.currency,
+    );
+    const currency = singleCurrency(revenueByCurrency);
 
     points.push({
       day: date.toLocaleDateString("en-US", { weekday: "short" }),
-      revenue: Math.round(revenue * 100) / 100,
+      revenue: currency ? revenueByCurrency[0]?.amount || 0 : 0,
+      revenueByCurrency,
+      currency,
       forecast: 0,
     });
   }
@@ -109,12 +124,12 @@ function getTeamLeaderboard(
   profiles: ProfileRow[]
 ): AgentLeaderboardPoint[] {
   const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
-  const statsByAgent = new Map<string, { callsCount: number; ordersCount: number; revenueGenerated: number }>();
+  const statsByAgent = new Map<string, { callsCount: number; ordersCount: number; revenueByCurrency: Map<string, number> }>();
 
   const ensureAgent = (agentId: string) => {
     const current = statsByAgent.get(agentId);
     if (current) return current;
-    const empty = { callsCount: 0, ordersCount: 0, revenueGenerated: 0 };
+    const empty = { callsCount: 0, ordersCount: 0, revenueByCurrency: new Map<string, number>() };
     statsByAgent.set(agentId, empty);
     return empty;
   };
@@ -128,7 +143,8 @@ function getTeamLeaderboard(
     if (!order.agent_id || order.status !== "completed") return;
     const stats = ensureAgent(order.agent_id);
     stats.ordersCount += 1;
-    stats.revenueGenerated += Number(order.total_amount || 0);
+    const currency = order.currency?.trim().toUpperCase() || "USD";
+    stats.revenueByCurrency.set(currency, (stats.revenueByCurrency.get(currency) || 0) + Number(order.total_amount || 0));
   });
 
   return Array.from(statsByAgent.entries())
@@ -136,26 +152,30 @@ function getTeamLeaderboard(
       const profile = profileById.get(agentId);
       const agentName = profile?.full_name?.trim() || "Unknown operator";
       const role = profile?.role ? getWorkspaceRoleLabel(profile.role) : "Role unavailable";
+      const revenueByCurrency = Array.from(stats.revenueByCurrency.entries())
+        .map(([currency, amount]) => ({ currency, amount: Math.round(amount * 100) / 100 }))
+        .sort((left, right) => left.currency.localeCompare(right.currency));
+      const revenueCurrency = singleCurrency(revenueByCurrency);
 
       return {
         agentName,
         role,
         callsCount: stats.callsCount,
         ordersCount: stats.ordersCount,
-        revenueGenerated: Math.round(stats.revenueGenerated * 100) / 100,
+        revenueGenerated: revenueCurrency ? revenueByCurrency[0]?.amount || 0 : 0,
+        revenueByCurrency,
+        revenueCurrency,
         conversionRate: stats.callsCount > 0
           ? Math.round((stats.ordersCount / stats.callsCount) * 1000) / 10
           : 0,
       };
     })
     .sort((a, b) => {
-      if (b.revenueGenerated !== a.revenueGenerated) {
-        return b.revenueGenerated - a.revenueGenerated;
-      }
       if (b.ordersCount !== a.ordersCount) {
         return b.ordersCount - a.ordersCount;
       }
-      return b.callsCount - a.callsCount;
+      if (b.callsCount !== a.callsCount) return b.callsCount - a.callsCount;
+      return a.agentName.localeCompare(b.agentName);
     });
 }
 
@@ -188,6 +208,7 @@ export async function getRecentActivity(limit = 8, requestedWorkspaceId?: string
       outcome: order.status,
       productName: order.product_title,
       amount: order.total_amount,
+      currency: order.currency,
     })),
   ];
 
@@ -225,16 +246,29 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
 
   const profiles = profileRows as ProfileRow[];
   const completedOrders = orders.filter((order) => order.status === "completed");
-  const totalRevenue = completedOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
-  const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  const revenueByCurrency = aggregateCurrencyAmounts(
+    completedOrders,
+    (order) => Number(order.total_amount || 0),
+    (order) => order.currency,
+  );
+  const currency = singleCurrency(revenueByCurrency);
+  const totalRevenue = currency ? revenueByCurrency[0]?.amount || 0 : 0;
+  const avgOrderValueByCurrency = revenueByCurrency.map((entry) => ({
+    currency: entry.currency,
+    amount: Math.round((entry.amount / completedOrders.filter((order) => (order.currency || "").toUpperCase() === entry.currency).length) * 100) / 100,
+  }));
+  const avgOrderValue = currency ? avgOrderValueByCurrency[0]?.amount || 0 : 0;
   const conversionRate = calls.length > 0 ? (completedOrders.length / calls.length) * 100 : 0;
 
   return {
     totalRevenue: Math.round(totalRevenue * 100) / 100,
+    revenueByCurrency,
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
     forecastAvailable: false,
     avgOrderValue: Math.round(avgOrderValue * 100) / 100,
+    avgOrderValueByCurrency,
+    currencies: revenueByCurrency.map((entry) => entry.currency),
     totalCalls: calls.length,
     conversionRate: Math.round(conversionRate * 10) / 10,
     objectionResolutionRate: null,

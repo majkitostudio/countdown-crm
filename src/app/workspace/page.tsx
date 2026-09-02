@@ -674,10 +674,10 @@ function WorkspaceContent() {
     ? "loading"
     : loadError
       ? "load_error"
-      : identity?.role === "operator" && !activeLead
-        ? "waiting_assignment"
-        : postCallSummary
-          ? "post_call_summary"
+      : postCallSummary
+        ? "post_call_summary"
+        : identity?.role === "operator" && !activeLead
+          ? "waiting_assignment"
           : isCallbackScheduleOpen
             ? "callback_modal"
             : isCompletionPending
@@ -740,7 +740,7 @@ function WorkspaceContent() {
     );
   }
 
-  if (identity?.role === "operator" && !activeLead) {
+  if (identity?.role === "operator" && !activeLead && !postCallSummary) {
     return (
       <div className="mx-auto max-w-none space-y-4">
         {pageHeader}

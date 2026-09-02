@@ -18,6 +18,7 @@ export async function updateWalletSettingsAction(input: {
 }) {
   const result = await updateWalletSettings(input);
   revalidatePath("/wallet");
+  revalidatePath("/settings");
   return result;
 }
 
@@ -29,6 +30,7 @@ export async function addWalletBonusRuleAction(input: {
 }) {
   const result = await addWalletBonusRule(input);
   revalidatePath("/wallet");
+  revalidatePath("/settings");
   return result;
 }
 

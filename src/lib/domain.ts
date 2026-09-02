@@ -20,6 +20,7 @@ export type WorkspaceActivityType = "call" | "order" | "sms_paylink" | "note" | 
 export interface WorkspaceActivityMetadata {
   order_id?: string;
   order_value?: number;
+  order_currency?: string;
   call_duration_seconds?: number;
   call_outcome?: string;
   paylink_url?: string;

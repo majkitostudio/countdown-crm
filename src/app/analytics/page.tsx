@@ -28,16 +28,20 @@ import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 import { exportAnalyticsDataAction, getAnalyticsDataAction } from "@/app/actions/analytics";
 import { exportAnalyticsToCSV } from "@/lib/analyticsExport";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const emptyData: AnalyticsOverview = {
     totalRevenue: 0,
+    revenueByCurrency: [],
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
     forecastAvailable: false,
     avgOrderValue: 0,
+    avgOrderValueByCurrency: [],
+    currencies: [],
     totalCalls: 0,
     conversionRate: 0,
     objectionResolutionRate: 0,
@@ -51,6 +55,8 @@ export default function AnalyticsPage() {
       calls: 0,
       completedOrders: 0,
       revenue: 0,
+      revenueByCurrency: [],
+      currency: null,
       conversionRate: 0,
     },
   };
@@ -61,7 +67,7 @@ export default function AnalyticsPage() {
   const data = result?.ok ? result.data : emptyData;
   const isEmptySuccess = result?.ok
     && result.data.totalCalls === 0
-    && result.data.totalRevenue === 0
+    && result.data.revenueByCurrency.length === 0
     && result.data.teamLeaderboard.length === 0;
   const status = result === null
     ? "loading"
@@ -173,12 +179,12 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">${data.totalRevenue.toLocaleString()}</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{formatCurrencyAmounts(data.revenueByCurrency)}</span>
             <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono mt-1">
               <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
               <span>
                 {data.forecastAvailable
-                  ? `+${data.forecastGrowthPercent}% AI Forecast ($${data.projectedRevenue.toLocaleString()})`
+                  ? `+${data.forecastGrowthPercent}% AI Forecast (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
                   : "AI Forecast unavailable"}
               </span>
             </div>
@@ -194,7 +200,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">${data.avgOrderValue.toFixed(2)}</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{formatCurrencyAmounts(data.avgOrderValueByCurrency)}</span>
             <p className="text-[11px] text-zinc-400 mt-1">Calculated from completed orders in the workspace</p>
           </div>
         </div>
@@ -263,7 +269,11 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="h-64 w-full">
+          {data.currencies.length > 1 ? (
+            <div role="status" className="flex h-64 items-center justify-center rounded-xl border border-amber-900/50 bg-amber-950/20 p-6 text-center text-xs text-amber-200">
+              Weekly revenue chart is unavailable for mixed currencies. Amounts remain separated in the revenue breakdown.
+            </div>
+          ) : <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data.weeklySales}>
                 <defs>
@@ -277,7 +287,7 @@ export default function AnalyticsPage() {
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="day" stroke="#52525b" fontSize={11} tickLine={false} />
-                <YAxis stroke="#52525b" fontSize={11} tickLine={false} tickFormatter={(val: number | string) => `$${val}`} />
+                <YAxis stroke="#52525b" fontSize={11} tickLine={false} tickFormatter={(val: number | string) => formatCurrencyAmount(Number(val), data.currencies[0] || "USD")} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#09090b", borderColor: "#27272a", borderRadius: "12px", fontSize: "12px" }}
                 />
@@ -285,7 +295,7 @@ export default function AnalyticsPage() {
                 {data.forecastAvailable && <Area type="monotone" dataKey="forecast" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />}
               </AreaChart>
             </ResponsiveContainer>
-          </div>
+          </div>}
         </div>
 
         {/* Customer Objection Distribution Pie Chart */}
@@ -381,7 +391,7 @@ export default function AnalyticsPage() {
                   <td className="px-4 py-3.5 font-mono">{ag.callsCount}</td>
                   <td className="px-4 py-3.5 font-mono text-zinc-200">{ag.ordersCount}</td>
                   <td className="px-4 py-3.5 font-mono font-semibold text-zinc-200">
-                    ${ag.revenueGenerated.toLocaleString()}
+                    {formatCurrencyAmounts(ag.revenueByCurrency)}
                   </td>
                   <td className="px-4 py-3.5 text-right font-semibold text-zinc-300 font-mono">
                     {ag.conversionRate}%

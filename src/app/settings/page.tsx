@@ -21,6 +21,9 @@ import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvide
 import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
 import { isAdministrator, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { getWalletOverviewAction } from "@/app/actions/wallet";
+import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
+import type { WalletOverviewDTO } from "@/lib/dal/wallet";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
@@ -31,6 +34,8 @@ export default function SettingsPage() {
   const [isSchemasLoading, setIsSchemasLoading] = useState(true);
   const [schemaError, setSchemaError] = useState<string | null>(null);
   const [schemaActionError, setSchemaActionError] = useState<string | null>(null);
+  const [walletOverview, setWalletOverview] = useState<WalletOverviewDTO | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
   const canManageWorkspaceSchema = isTeamLeaderOrAdministrator(identity?.role);
   const canManageProductScripts = isAdministrator(identity?.role);
@@ -42,6 +47,25 @@ export default function SettingsPage() {
 
     return () => window.clearTimeout(loadSettingsTimer);
   }, []);
+
+  useEffect(() => {
+    if (!canManageWorkspaceSchema) {
+      return;
+    }
+
+    let isCurrent = true;
+    void getWalletOverviewAction()
+      .then((overview) => {
+        if (isCurrent) setWalletOverview(overview);
+      })
+      .catch((error) => {
+        if (isCurrent) setWalletError(error instanceof Error ? error.message : "Wallet settings could not be loaded.");
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [canManageWorkspaceSchema]);
 
   const loadSchemas = useCallback(async (showLoading = false) => {
     if (showLoading) {
@@ -147,6 +171,18 @@ export default function SettingsPage() {
             <p className="text-[11px] text-zinc-400">Your operator preferences have been saved locally.</p>
           </div>
         </div>
+      )}
+
+      {canManageWorkspaceSchema && (
+        <section data-testid="wallet-settings-boundary" className="space-y-4">
+          {walletOverview === null && !walletError ? (
+            <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 text-xs text-zinc-400">Loading workspace wallet settings...</div>
+          ) : walletError ? (
+            <div role="alert" className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-5 text-xs text-rose-300">Wallet settings unavailable: {walletError}</div>
+          ) : walletOverview ? (
+            <WalletManagerPanel mode="settings" settings={walletOverview.settings} rules={walletOverview.rules} members={[]} />
+          ) : null}
+        </section>
       )}
 
       {/* Section: Custom Schema & Objects (Attio Engine) */}

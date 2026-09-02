@@ -3,6 +3,7 @@
 import React from "react";
 import { ShieldAlert, Edit3, Layers, ArrowRightLeft, Trash2 } from "lucide-react";
 import { Product } from "@/lib/products";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface ProductCardProps {
   product: Product;
@@ -62,7 +63,7 @@ export function ProductCard({
         {/* Price Tag Bottom Right */}
         <div className="absolute bottom-3 right-3 bg-zinc-950/90 border border-zinc-800 rounded-xl px-3 py-1.5 backdrop-blur-md shadow-md">
           <span className="text-lg font-bold text-zinc-100 font-mono">
-            ${product.price.toFixed(2)}
+            {formatCurrencyAmount(product.price, product.currency)}
           </span>
         </div>
       </div>

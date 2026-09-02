@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DollarSign, PhoneCall, TrendingUp, Users } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
+import { formatCurrencyAmounts } from "@/lib/currency";
 
 export function KpiCards({ compact = false }: { compact?: boolean }) {
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
@@ -51,7 +52,7 @@ export function KpiCards({ compact = false }: { compact?: boolean }) {
         {[
           { id: "calls", label: "Team Calls", value: String(result.data.totalCalls), trend: "—", subtext: "all workspace calls", icon: PhoneCall },
           { id: "conversion", label: "Team Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, trend: "—", subtext: "team orders / calls", icon: TrendingUp },
-          { id: "revenue", label: "Team Revenue", value: `$${result.data.totalRevenue.toFixed(2)}`, trend: "—", subtext: "team completed orders", icon: DollarSign },
+          { id: "revenue", label: "Team Revenue", value: formatCurrencyAmounts(result.data.revenueByCurrency), trend: "—", subtext: "team completed orders; currencies separate", icon: DollarSign },
           { id: "operators", label: "Operators in Workspace", value: "—", trend: "—", subtext: "team presence unavailable", icon: Users },
         ].map((kpi) => {
           const Icon = kpi.icon;

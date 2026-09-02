@@ -26,9 +26,19 @@ export async function getReorderOpportunities(): Promise<ReorderOpportunity[]> {
 
   const opportunities: ReorderOpportunity[] = [];
   const now = new Date();
+  const latestFulfilledOrderByLeadAndProduct = new Map<string, typeof orders[number]>();
 
   orders.forEach((order) => {
     if (order.status !== "completed" && order.status !== "delivered") return;
+
+    const key = `${order.lead_id}:${order.product_id}`;
+    const current = latestFulfilledOrderByLeadAndProduct.get(key);
+    if (!current || Date.parse(order.created_at) > Date.parse(current.created_at)) {
+      latestFulfilledOrderByLeadAndProduct.set(key, order);
+    }
+  });
+
+  latestFulfilledOrderByLeadAndProduct.forEach((order) => {
 
     const lead = leads.find((l) => l.id === order.lead_id);
     const product = products.find((p) => p.id === order.product_id);

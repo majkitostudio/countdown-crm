@@ -12,8 +12,8 @@ describe("Team Leader Daily Brief", () => {
         { created_at: "2026-08-30T08:00:00.000Z" },
       ],
       [
-        { created_at: "2026-08-31T09:00:00.000Z", status: "completed", total_amount: 125 },
-        { created_at: "2026-08-31T09:30:00.000Z", status: "pending", total_amount: 80 },
+        { created_at: "2026-08-31T09:00:00.000Z", status: "completed", total_amount: 125, currency: "CZK" },
+        { created_at: "2026-08-31T09:30:00.000Z", status: "pending", total_amount: 80, currency: "CZK" },
       ],
       now,
     );
@@ -23,6 +23,8 @@ describe("Team Leader Daily Brief", () => {
       calls: 1,
       completedOrders: 1,
       revenue: 125,
+      revenueByCurrency: [{ currency: "CZK", amount: 125 }],
+      currency: "CZK",
       conversionRate: 100,
     });
   });
@@ -30,7 +32,7 @@ describe("Team Leader Daily Brief", () => {
   it("summarizes callback attention and team wallet without inventing missing wallet data", () => {
     const brief = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       callbacks: [{
         id: "callback-1",
         lead_id: "lead-1",

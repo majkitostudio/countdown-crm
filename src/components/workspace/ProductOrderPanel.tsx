@@ -15,6 +15,7 @@ import { Lead } from "@/lib/leads";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -185,7 +186,7 @@ export function ProductOrderPanel({
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
             <p className="font-bold">Order #{lastOrderId} successfully placed!</p>
-            <p className="text-[11px] text-emerald-200/80">${grandTotal.toFixed(2)} recorded for {activeLead?.full_name}.</p>
+            <p className="text-[11px] text-emerald-200/80">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "USD")} recorded for {activeLead?.full_name}.</p>
           </div>
         </div>
       )}
@@ -227,7 +228,7 @@ export function ProductOrderPanel({
                     <p className="text-[11px] text-zinc-500 uppercase">{prod.category}</p>
                   </div>
                 </div>
-                <span className="font-mono font-semibold text-zinc-200 shrink-0">${prod.price.toFixed(2)}</span>
+                <span className="font-mono font-semibold text-zinc-200 shrink-0">{formatCurrencyAmount(prod.price, prod.currency || "USD")}</span>
               </div>
             );
           })}
@@ -258,8 +259,8 @@ export function ProductOrderPanel({
               <div>
                 <p className="font-semibold text-xs text-zinc-100 line-clamp-1">{topRec.recommendedProduct.title}</p>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono">
-                  <span className="line-through text-zinc-500">${topRec.originalPrice.toFixed(2)}</span>
-                  <span className="text-zinc-100 font-semibold">${topRec.bundlePrice.toFixed(2)}</span>
+                  <span className="line-through text-zinc-500">{formatCurrencyAmount(topRec.originalPrice, topRec.recommendedProduct.currency || "USD")}</span>
+                  <span className="text-zinc-100 font-semibold">{formatCurrencyAmount(topRec.bundlePrice, topRec.recommendedProduct.currency || "USD")}</span>
                 </div>
               </div>
             </div>
@@ -326,26 +327,26 @@ export function ProductOrderPanel({
         <div className="pt-2 border-t border-zinc-800 space-y-1 text-xs">
           <div className="flex justify-between text-zinc-400">
             <span>Primary Item:</span>
-            <span className="font-mono">${primarySubtotal.toFixed(2)}</span>
+            <span className="font-mono">{formatCurrencyAmount(primarySubtotal, selectedProduct?.currency || "USD")}</span>
           </div>
 
           {bundleProduct && (
             <div className="flex justify-between text-zinc-300 font-medium">
               <span>Bundle (+{bundleProduct.title.substring(0, 15)}...):</span>
-              <span className="font-mono">${bundleSubtotal.toFixed(2)}</span>
+              <span className="font-mono">{formatCurrencyAmount(bundleSubtotal, bundleProduct.currency || selectedProduct?.currency || "USD")}</span>
             </div>
           )}
 
           {discountPercent > 0 && (
             <div className="flex justify-between text-zinc-300">
               <span>Discount ({discountPercent}%):</span>
-              <span className="font-mono">-${discountAmount.toFixed(2)}</span>
+              <span className="font-mono">-{formatCurrencyAmount(discountAmount, selectedProduct?.currency || "USD")}</span>
             </div>
           )}
 
           <div className="flex justify-between font-bold text-sm text-zinc-100 pt-1 border-t border-zinc-800">
             <span>Total Payable:</span>
-            <span className="font-mono text-zinc-100">${grandTotal.toFixed(2)}</span>
+            <span className="font-mono text-zinc-100">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "USD")}</span>
           </div>
         </div>
 

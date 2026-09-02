@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowUpRight, Clock, PhoneCall, ShoppingBag, User } from "lucide-react";
 import { getRecentActivityAction } from "@/app/actions/analytics";
 import type { AnalyticsActionResult, RecentActivityEntry } from "@/lib/analytics";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 function formatDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -164,7 +165,7 @@ export function RecentActivityFeed() {
                   <span className={`w-1.5 h-1.5 rounded-full ${entry.type === "order" && entry.outcome === "completed" ? "bg-emerald-500" : "bg-zinc-400"}`} />
                   {entry.type === "call" ? getCallOutcomeLabel(entry.outcome) : getOrderOutcomeLabel(entry.outcome)}
                   {entry.type === "order" && typeof entry.amount === "number" && (
-                    <span className="font-mono text-zinc-200">(${entry.amount.toFixed(2)})</span>
+                    <span className="font-mono text-zinc-200">({formatCurrencyAmount(entry.amount, entry.currency ?? "USD")})</span>
                   )}
                 </span>
               </div>

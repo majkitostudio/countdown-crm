@@ -1,5 +1,6 @@
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "./dal/activity";
 import type { LeadDTO } from "./dal/leads";
+import { aggregateCurrencyAmounts, singleCurrency, type CurrencyAmount } from "./currency";
 
 type Customer360Lead = Pick<LeadDTO, "id" | "status">;
 type Customer360Call = Pick<WorkspaceCallDTO, "created_at" | "outcome">;
@@ -10,6 +11,7 @@ export interface Customer360Snapshot {
   totalOrders: number;
   fulfilledOrders: number;
   totalRevenue: number;
+  revenueByCurrency: CurrencyAmount[];
   currency: string | null;
   lastCallAt: string | null;
   lastCallOutcome: string | null;
@@ -43,7 +45,13 @@ export function buildCustomer360Snapshot(
   const lastCall = latest(activity.calls);
   const lastOrder = latest(activity.orders);
   const fulfilledOrders = activity.orders.filter((order) => isFulfilled(order.status));
-  const totalRevenue = fulfilledOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+  const revenueByCurrency = aggregateCurrencyAmounts(
+    fulfilledOrders,
+    (order) => Number(order.total_amount || 0),
+    (order) => order.currency,
+  );
+  const currency = singleCurrency(revenueByCurrency);
+  const totalRevenue = currency ? revenueByCurrency[0]?.amount || 0 : 0;
   const lastFulfilledOrder = latest(fulfilledOrders);
   let nextAction: Customer360Snapshot["nextAction"];
 
@@ -102,7 +110,8 @@ export function buildCustomer360Snapshot(
     totalOrders: activity.orders.length,
     fulfilledOrders: fulfilledOrders.length,
     totalRevenue: Math.round(totalRevenue * 100) / 100,
-    currency: lastFulfilledOrder?.currency || fulfilledOrders[0]?.currency || null,
+    revenueByCurrency,
+    currency,
     lastCallAt: lastCall?.created_at || null,
     lastCallOutcome: lastCall?.outcome || null,
     lastOrderAt: lastOrder?.created_at || null,

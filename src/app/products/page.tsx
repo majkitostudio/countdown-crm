@@ -15,6 +15,7 @@ import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal
 import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
 import type { ObjectionDTO } from "@/lib/dal/objections";
 import type { ObjectionBattleCard } from "@/lib/objections";
+import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -162,7 +163,12 @@ export default function ProductsPage() {
   const totalProducts = products.length;
   const inStockCount = products.filter((p) => p.in_stock).length;
   const totalObjectionsCount = objectionCards.length;
-  const totalCatalogValue = products.reduce((acc, p) => acc + p.price * (p.stock_count || 50), 0);
+  const totalCatalogValue = products.reduce((acc, p) => {
+    const current = acc.find((entry) => entry.currency === p.currency.toUpperCase());
+    if (current) current.amount += p.price * (p.stock_count || 50);
+    else acc.push({ currency: p.currency.toUpperCase(), amount: p.price * (p.stock_count || 50) });
+    return acc;
+  }, [] as { currency: string; amount: number }[]);
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">
@@ -243,7 +249,7 @@ export default function ProductsPage() {
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
             <span className="text-xs font-medium text-zinc-400 block">Total Asset Value</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">${totalCatalogValue.toLocaleString()}</span>
+            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{formatCurrencyAmounts(totalCatalogValue)}</span>
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
             <DollarSign className="w-4 h-4" />
@@ -389,7 +395,7 @@ export default function ProductsPage() {
                   .filter((product) => product.id !== reassignSourceProduct.id)
                   .map((product) => (
                     <option key={product.id} value={product.id}>
-                      {product.title} — ${product.price.toFixed(2)}
+                      {product.title} — {formatCurrencyAmount(product.price, product.currency)}
                     </option>
                   ))}
               </select>

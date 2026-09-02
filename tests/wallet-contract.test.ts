@@ -8,6 +8,7 @@ const migration = readFileSync(
 
 const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.url), "utf8");
 const walletPage = readFileSync(new URL("../src/app/wallet/page.tsx", import.meta.url), "utf8");
+const settingsPage = readFileSync(new URL("../src/app/settings/page.tsx", import.meta.url), "utf8");
 
 describe("user wallet MVP contract", () => {
   it("keeps the wallet as an immutable, workspace-scoped ledger", () => {
@@ -50,5 +51,8 @@ describe("user wallet MVP contract", () => {
     expect(walletDal).toContain("add_wallet_manual_adjustment");
     expect(walletPage).toContain("getWalletOverview");
     expect(walletPage).toContain("Derived from posted ledger transactions");
+    expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
+    expect(settingsPage).toContain('WalletManagerPanel mode="settings"');
+    expect(settingsPage).toContain('data-testid="wallet-settings-boundary"');
   });
 });

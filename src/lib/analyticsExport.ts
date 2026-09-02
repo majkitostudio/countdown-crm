@@ -1,4 +1,5 @@
 import type { AnalyticsOverview } from "./analytics";
+import { formatCurrencyAmounts } from "./currency";
 
 export function escapeCsvField(value: string): string {
   const escapedValue = value.replace(/"/g, '""');
@@ -15,9 +16,9 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
 
   const rows = [
     ["Metric", "Value"],
-    ["Total Revenue", `$${data.totalRevenue}`],
-    ["AI Forecast Revenue (Next 30d)", data.forecastAvailable ? `$${data.projectedRevenue}` : "Unavailable"],
-    ["Average Order Value (AOV)", `$${data.avgOrderValue}`],
+    ["Revenue by currency", formatCurrencyAmounts(data.revenueByCurrency)],
+    ["AI Forecast Revenue (Next 30d)", "Unavailable"],
+    ["Average Order Value by currency", formatCurrencyAmounts(data.avgOrderValueByCurrency)],
     ["Conversion Rate", `${data.conversionRate}%`],
     [
       "Objection Resolution Rate",
@@ -29,7 +30,7 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
       agent.agentName,
       String(agent.callsCount),
       String(agent.ordersCount),
-      `$${agent.revenueGenerated}`,
+      formatCurrencyAmounts(agent.revenueByCurrency),
       `${agent.conversionRate}%`,
     ]),
   ];

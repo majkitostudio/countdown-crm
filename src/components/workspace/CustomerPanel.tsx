@@ -17,6 +17,7 @@ import { OperatorCallControls } from "@/components/workspace/OperatorCallControl
 import { Lead } from "@/lib/leads";
 import { Order } from "@/lib/orders";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface CustomerPanelProps {
   leads: Lead[];
@@ -206,7 +207,7 @@ function OrderHistoryItem({ order }: { order: Order }) {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="font-mono font-semibold text-zinc-100">${order.total_amount.toFixed(2)}</span>
+          <span className="font-mono font-semibold text-zinc-100">{formatCurrencyAmount(order.total_amount, order.currency)}</span>
           <button type="button" onClick={() => setIsOpen((value) => !value)} aria-expanded={isOpen} aria-label={`${isOpen ? "Hide" : "Show"} order details`} className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200">
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </button>

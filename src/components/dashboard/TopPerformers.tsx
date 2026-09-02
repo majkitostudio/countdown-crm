@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import type { AgentLeaderboardPoint, AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
+import { formatCurrencyAmounts } from "@/lib/currency";
 
 export function TopPerformers() {
   const [leaderboard, setLeaderboard] = useState<AgentLeaderboardPoint[]>([]);
@@ -100,7 +101,7 @@ export function TopPerformers() {
 
               <div className="text-right shrink-0 pl-3">
                 <span className="text-xs font-semibold text-zinc-100 font-mono">
-                  ${agent.revenueGenerated.toFixed(2)}
+                  {formatCurrencyAmounts(agent.revenueByCurrency)}
                 </span>
                 <span className="block text-[10px] text-zinc-500 font-mono">
                   {agent.ordersCount} orders

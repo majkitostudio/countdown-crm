@@ -1,15 +1,15 @@
 # Countdown CRM — Product Status & Refactoring Baseline
 
-**Datum aktualizace:** 2026-08-30
+**Datum aktualizace:** 2026-09-02
 **Status dokumentu:** historická baseline a auditní historie; aktuální stav je v
 [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md)
-> **Aktualizace 30. 8. 2026:** Tento dokument obsahuje historickou baseline a
+> **Aktualizace 2. 9. 2026:** Tento dokument obsahuje historickou baseline a
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
-> současného checkoutu používej nejdříve
+> současného produktu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `origin/main` na `51686f6` a z odděleného read-only ověření
-> Preview/Sandbox i produkčního deploymentu. Historické počty a checkpointy
-> níže nejsou nový důkaz aktuálního runtime.
+> vychází z `main` na `e307aa7`; pořadí dalších slice je v
+> [`docs/NEXT_WORK_PACKAGE_20260902.md`](NEXT_WORK_PACKAGE_20260902.md).
+> Historické počty a checkpointy níže nejsou nový důkaz aktuálního runtime.
 
 **Datum baseline:** 2026-08-09  
 **Status:** stabilizační a auditní fáze
@@ -17,10 +17,19 @@
 
 > **Aktuální handoff:** Stručný stav, priority commitů a závazná pracovní pravidla jsou v [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tento dokument zůstává podrobnější auditní historií; starší části s datem nebo historickými počty se nemají číst jako dnešní ověření.
 
-## Aktuální delivery overlay — 2026-08-30
+## Aktuální delivery overlay — 2026-09-02
 
-Tento overlay doplňuje historické sekce níže a je jedinou aktuální částí tohoto
-dokumentu pro rozhodování o současném delivery stavu:
+Tento overlay doplňuje historické sekce níže. Pro rozhodování o současném
+delivery stavu je podrobnější kanonický zdroj `PROJECT.md` a aktuální pracovní
+balíček; tento overlay pouze zachycuje změny oproti starší baseline:
+
+- `main` je na `e307aa7`; po předchozím checkpointu přibyly User Wallet MVP,
+  Next Best Action, Team Leader Daily Brief a Customer 360 retention snapshot.
+- Čerstvý lokální gate na tomto pracovním balíku prošel: 126 Vitest testů, lint,
+  typecheck a production build.
+- Pilotní call/order evidence gate, re-order truthfulness, wallet Settings
+  boundary a analytics currency contract jsou implementované; podrobná evidence
+  a zbývající live brány jsou v `NEXT_WORK_PACKAGE_20260902.md`.
 
 - PR #23 je sloučené do `main` jako `9a8cbc0`. Po opravě prošly `npm test`
   (94/94), `npm run check` a `git diff --check`.
@@ -53,7 +62,8 @@ dokumentu pro rozhodování o současném delivery stavu:
   `npm test` (20 souborů / 98 testů), lint, typecheck, production build,
   `git diff --check`, Vercel Preview a lokální Product Design QA. Jde o UI-only
   změnu: autentizace, persistence, authorization, RLS a live team presence tím
-  nejsou znovu prokázané. Nejbližší samostatný slice zůstává review PR #28.
+  nejsou znovu prokázané. Review PR #28 je historické doporučení a není
+  automaticky dalším commitem.
 
 ## Aktuální checkpoint — 2026-08-22
 

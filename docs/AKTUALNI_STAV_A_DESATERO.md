@@ -1,10 +1,23 @@
 # Countdown CRM — aktuální stav a desatero
 
-**Snapshot:** 31. 8. 2026
-**Ověřený aplikační baseline před tímto slice:** `origin/main` = `bb8b36a3e9bc84b60643058d95bbc78237c60e6b`
-**Aktualizace baseline:** PR #61 (RLS policy hardening) a PR #65 (pravdivý Re-Order odhad) jsou sloučené; Administrator browser + reload + SQL persistence je doložená pro lead note, plný call/order a RLS důkaz zůstává otevřený.
-**Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v preview zobrazují stabilní stav bez dat a create controls; Re-Order používá pouze fulfilled historii a explicitní 14denní heuristiku; Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
+**Snapshot:** 2. 9. 2026
+**Aktuální aplikační baseline:** `main` = `e307aa7` (`feat: add customer 360 retention playbook`)
+**Aktualizace baseline:** Po posledním checkpointu přibyly User Wallet MVP,
+Next Best Action, Team Leader Daily Brief a Customer 360 retention snapshot.
+Lokální repo gate na tomto pracovním balíku prošel: `npm test` 30 souborů / 126 testů,
+lint, typecheck a production build. Administrator browser + reload + SQL
+persistence je doložená pro lead note i čerstvý Operator call/order průchod;
+plný Team Leader/Administrator browser a RLS důkaz zůstávají otevřené.
+**Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v
+preview zobrazují stabilní stav bez dat a create controls; Re-Order používá
+poslední fulfilled historii pro dvojici lead/product a explicitní 14denní
+heuristiku; Wallet nastavení je oddělené v Settings a analytics vrací měny
+odděleně. Blueprint infrastruktura je aplikovaná v Preview/Sandbox i produkci.
+Nové Customer 360, Next Best Action
+a Daily Brief vrstvy jsou deterministické nad uloženými daty, nikoli live AI.
 **Navazující checkpoint:** [PROJECT_POLISH_CHECKPOINT_20260826.md](PROJECT_POLISH_CHECKPOINT_20260826.md)
+
+**Aktuální pořadí dalších slice:** [NEXT_WORK_PACKAGE_20260902.md](NEXT_WORK_PACKAGE_20260902.md)
 
 ## Jedna věta na úvod
 
@@ -181,11 +194,12 @@ nejde o důkaz, že všechny lokální migrace jsou nasazené do produkce.
 - Workflow truth a Operator dispatch jsou po sloučení PR #17 v `main`; skutečný
   business side effect není doložen pro všechny action types a provider
   exactly-once zůstává mimo single-workspace MVP.
-- Atomic business mutation + audit kontrakt je po PR #45 v `main`; chybí však
-  live Postgres rollback, authenticated persistence a skutečný RLS/concurrency
-  důkaz. PR #21 je proto pouze duplicitní historický draft.
-- Hlavní Operator Console completion má server-owned dispatch cestu, ale chybí
-  nový end-to-end browser/persistence důkaz po aktuálním merge.
+- Atomic business mutation + audit kontrakt je po PR #45 v `main`; aktuální
+  Preview migrace doplňuje auditní trigger pro call/order a live průchod ověřil
+  obě události i následný cleanup. RLS/concurrency důkaz zůstává oddělený.
+- Hlavní Operator Console completion má server-owned dispatch cestu; aktuální
+  authenticated Operator průchod ověřil claim → start → outcome/order → reload
+  → timeline → SQL read-back včetně workspace a actor attribution.
 - Custom-object Operator denial je po PR #62/#63 ověřený v preview; pozitivní
   Team Leader/Administrator browser smoke a live RLS denial pro custom objects
   stále nejsou novým průchodem doložené.

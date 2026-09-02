@@ -20,6 +20,7 @@ describe("Customer 360 retention playbook", () => {
     expect(snapshot.totalOrders).toBe(2);
     expect(snapshot.fulfilledOrders).toBe(1);
     expect(snapshot.totalRevenue).toBe(125);
+    expect(snapshot.revenueByCurrency).toEqual([{ currency: "CZK", amount: 125 }]);
     expect(snapshot.currency).toBe("CZK");
     expect(snapshot.nextAction.title).toBe("Check order progress");
   });
@@ -41,5 +42,22 @@ describe("Customer 360 retention playbook", () => {
     expect(snapshot.totalOrders).toBe(0);
     expect(snapshot.currency).toBeNull();
     expect(snapshot.nextAction.title).toBe("Start first outreach");
+  });
+
+  it("keeps fulfilled revenue separated when a customer has multiple currencies", () => {
+    const snapshot = buildCustomer360Snapshot(lead, {
+      calls: [],
+      orders: [
+        { id: "order-czk", created_at: "2026-08-30T11:00:00.000Z", product_title: "CZK pack", total_amount: 125, currency: "CZK", status: "completed" },
+        { id: "order-eur", created_at: "2026-08-31T11:00:00.000Z", product_title: "EUR pack", total_amount: 80, currency: "EUR", status: "delivered" },
+      ],
+    });
+
+    expect(snapshot.totalRevenue).toBe(0);
+    expect(snapshot.currency).toBeNull();
+    expect(snapshot.revenueByCurrency).toEqual([
+      { currency: "CZK", amount: 125 },
+      { currency: "EUR", amount: 80 },
+    ]);
   });
 });

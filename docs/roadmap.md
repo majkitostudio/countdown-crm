@@ -1,10 +1,15 @@
 # AI-Native Call Center CRM — Roadmapa Vývoje
 
 > **Aktuální pořadí práce:** Pro dnešní stav používej [`docs/AKTUALNI_STAV_A_DESATERO.md`](./AKTUALNI_STAV_A_DESATERO.md). Tato roadmapa obsahuje historické fáze i detailní záznamy dokončených slice; není sama o sobě autoritou pro pořadí nejbližších commitů.
-> **Aktuální pořadí práce (30. 8. 2026):** Než se začne další velká feature,
+> **Aktuální pořadí práce (2. 9. 2026):** Než se začne další velká feature,
 > postupuj podle [aktuálního snapshotu a desatera](AKTUALNI_STAV_A_DESATERO.md).
 > Tato roadmapa obsahuje historické etapy i budoucí vizi; sama o sobě není
 > důkazem, že jsou všechny uvedené moduly v aktuálním runtime zapojené.
+
+> **Nejbližší pracovní balíček:** Konkrétní výběr a pořadí dalších slice je v
+> [`NEXT_WORK_PACKAGE_20260902.md`](NEXT_WORK_PACKAGE_20260902.md):
+> nejdříve pilotní evidence call → outcome/order, potom re-order truthfulness,
+> wallet Settings boundary a měnový kontrakt analytics.
 
 Roadmapa rozděluje vývoj platformy do logických fází. Ověřený pilotní scope
 rozlišuje lidské role Operator, Team Leader a Administrator; termín Agent je
@@ -608,6 +613,10 @@ UI průchodem znovu neprokazují.
 
 Další doporučený slice je samostatné review draft PR #28 (RLS policy cleanup),
 bez implicitního `db push` nebo změny živé databáze.
+
+Toto doporučení je historické. Pro aktuální pořadí práce platí
+[`NEXT_WORK_PACKAGE_20260902.md`](NEXT_WORK_PACKAGE_20260902.md); review PR #28
+se nemá znovu považovat za automaticky následující commit.
 
 Podrobný brief je v `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`.
 

@@ -4,7 +4,7 @@
 
 **Countdown CRM** je pilotní workspace pro operátory, obchodní týmy a manažery. Jádro tvoří workspace-scoped CRM data, serverová autorizace, fronta leadů, objednávkové workflow a explicitně označené pilotní/simulované telephony části.
 
-> **Aktuální stav (27. 8. 2026):** Projekt je ve stabilizaci před interním pilotem, ne v obecné produkční připravenosti. Autoritativní snapshot, otevřená rizika a závazné desatero jsou v [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md). Starší roadmapa a commitový katalog zachycují také historickou vizi, ne vždy dnešní ověřený runtime.
+> **Aktuální stav (2. 9. 2026):** Projekt je ve stabilizaci před interním pilotem, ne v obecné produkční připravenosti. Kanonický kontext, otevřená rizika a nejbližší pracovní balíček jsou v [PROJECT.md](PROJECT.md). Starší roadmapa a commitový katalog zachycují také historickou vizi, ne vždy dnešní ověřený runtime.
 
 ![Next.js 16](https://img.shields.io/badge/Next.js-16.3.2-black?style=flat-square&logo=next.js)
 ![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
@@ -25,7 +25,7 @@
   - 🛍️ **`Success / Order`** (Vytvořit objednávku)
 
 ### 2. 📖 Product Scripts & Battlecards
-- **Product Script panel**: Aktuálně statické schválené bloky s guardrails; persistentní draft/publish verze jsou připravené jako samostatný navazující slice.
+- **Product Script panel**: Workspace-scoped schválené skripty s administrator-only draft/publish/archive workflow, sanitizací a explicitním fallbackem, pokud publikovaný skript neexistuje.
 - **Objection Battlecards**: Workspace-scoped námitkové karty navázané na produktový katalog.
 - **Cross-Sell Recommendations**: Deterministické doporučení z katalogu, bez tvrzení o live AI detekci.
 
@@ -42,12 +42,18 @@
 ### 5. 🛡️ Enterprise Security Audit Log (`/audit`) & Multi-Format Exporter
 - **Bezpečnostní auditní log**: Sledování všech akcí operátorů s filtrováním závažnosti (Low / Medium / High / Critical).
 - **Multi-Format Report Generator**: Exporty do CSV, XLSX Excelu a tiskového PDF protokolu s živým náhledem.
-- **Call Transcripts Hub (`/calls`)**: Ukládání přepisů hovorů a export konverzačních dat pro fine-tuning LLM modelů.
+- **Call history (`/calls`)**: Přehled uložených hovorů a přepisů pouze tam, kde je skutečný zdroj; produkční audio upload a transcription pipeline nejsou součástí pilotu.
 
 ### 6. 🎨 Attio-Grade Design System & Dynamic EAV Architecture
 - **Monochromatický styl**: Ultra-čistá paleta zinku (`zinc-950`, `zinc-900`), typografická kázeň (`font-mono`) pro metriky.
 - **Dynamic EAV Engine**: Libovolné vlastní objekty a vlastnosti (Custom Objects Builder).
-- **Visual Workflow Builder**: Návrhář pravidiel automatizace s HTTP Webhook uzly (Zapier / Make).
+- **Workflow Builder**: Workspace-scoped pravidla s explicitně označenou serverovou dostupností, simulací a nedostupnými externími providery.
+
+### 7. 📌 Aktuální delivery slices
+- **Customer 360 retention**: Deterministický snapshot uložených call/order aktivit na detailu leada.
+- **Next Best Action & Team Leader Daily Brief**: Vysvětlitelné priority nad callbacky, re-order odhady, reminders a wallet přehledem; nejde o live AI predikci.
+- **User Wallet MVP**: Immutable ledger, delivered-order bonus, měsíční provize a auditované ruční úpravy. Fulfillment webhook a payout zůstávají budoucí integrací.
+- **Další práce**: [aktuální balíček dalších slice](docs/NEXT_WORK_PACKAGE_20260902.md). Roadmapa je historický katalog; pořadí práce určuje `PROJECT.md` a tento balíček.
 
 ---
 
@@ -87,9 +93,13 @@ Aplikace bude dostupná na adrese `http://localhost:3000`.
 
 ## 📜 Architektura & Dokumentace
 
+- **Kanonický projektový kontext:** [`PROJECT.md`](PROJECT.md)
+- Ostatní dokumenty v `docs/` jsou historická vize, dílčí plány nebo evidence;
+  při rozporu se řiďte `PROJECT.md` a skutečným ověřením.
 - **Aktuální stav a nové desatero pro Codex**: [`docs/AKTUALNI_STAV_A_DESATERO.md`](docs/AKTUALNI_STAV_A_DESATERO.md)
 - **Podrobný produktový status a auditní historie**: [`docs/PRODUCT_STATUS.md`](docs/PRODUCT_STATUS.md)
 - **Roadmapa a historický katalog commitů**: [`docs/roadmap.md`](docs/roadmap.md), [`docs/commits.md`](docs/commits.md)
+- **Aktuální balíček dalších slice:** [`docs/NEXT_WORK_PACKAGE_20260902.md`](docs/NEXT_WORK_PACKAGE_20260902.md)
 - [Architektura Systému](docs/architecture.md)
 - [Roadmapa Vývoje](docs/roadmap.md)
 - [Historie Commitů](docs/commits.md)

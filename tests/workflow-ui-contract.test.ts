@@ -55,4 +55,11 @@ describe("workflow server-boundary UI contract", () => {
     expect(summary).toContain('data-testid="post-call-summary"');
     expect(summary).toContain('aria-label="Dismiss post-call summary"');
   });
+
+  it("keeps the post-call summary visible when no next assignment is available", () => {
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+
+    expect(workspacePage).toContain('postCallSummary\n        ? "post_call_summary"');
+    expect(workspacePage).toContain("identity?.role === \"operator\" && !activeLead && !postCallSummary");
+  });
 });

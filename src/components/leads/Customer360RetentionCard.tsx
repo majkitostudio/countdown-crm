@@ -3,6 +3,7 @@ import { ArrowRight, CalendarClock, CheckCircle2, PhoneCall, ShoppingBag } from 
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { LeadDTO } from "@/lib/dal/leads";
 import { buildCustomer360Snapshot, type Customer360Snapshot } from "@/lib/customer360";
+import { formatCurrencyAmounts } from "@/lib/currency";
 
 interface Customer360RetentionCardProps {
   lead: LeadDTO;
@@ -16,15 +17,6 @@ interface Customer360RetentionCardProps {
 function formatDate(value: string | null): string {
   if (!value) return "No persisted activity";
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-
-function formatAmount(value: number, currency: string | null): string {
-  if (!currency) return "Unavailable";
-  try {
-    return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(value);
-  } catch {
-    return `${value.toFixed(2)} ${currency}`;
-  }
 }
 
 export function Customer360RetentionCard({
@@ -53,7 +45,12 @@ export function Customer360RetentionCard({
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <SnapshotMetric label="Calls" value={String(snapshot.totalCalls)} icon={PhoneCall} />
             <SnapshotMetric label="Orders" value={`${snapshot.fulfilledOrders}/${snapshot.totalOrders}`} icon={ShoppingBag} detail="fulfilled / total" />
-            <SnapshotMetric label="Revenue" value={formatAmount(snapshot.totalRevenue, snapshot.currency)} icon={CheckCircle2} />
+            <SnapshotMetric
+              label="Revenue"
+              value={formatCurrencyAmounts(snapshot.revenueByCurrency)}
+              detail={snapshot.revenueByCurrency.length > 1 ? "separate currencies; not summed" : undefined}
+              icon={CheckCircle2}
+            />
             <SnapshotMetric label="Last touch" value={formatDate(snapshot.lastCallAt)} icon={CalendarClock} compact />
           </div>
 

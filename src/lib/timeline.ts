@@ -16,6 +16,7 @@ export interface TimelineActivityEntry {
   metadata?: {
     order_id?: string;
     order_value?: number;
+    order_currency?: string;
     order_source?: string;
     source_note?: string;
     call_duration_seconds?: number;
@@ -28,6 +29,7 @@ export interface TimelineActivityEntry {
 
 import { listLeadActivityAction } from "@/app/actions/crm";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
+import { formatCurrencyAmount } from "./currency";
 
 export async function getLeadTimeline(leadId: string): Promise<TimelineActivityEntry[]> {
   const [activity, notes] = await Promise.all([
@@ -52,12 +54,13 @@ export async function getLeadTimeline(leadId: string): Promise<TimelineActivityE
       id: `tl-ord-${order.id}`,
       lead_id: leadId,
       type: "order" as const,
-      title: `Order Completed ($${order.total_amount.toFixed(2)})`,
+      title: `Order Completed (${formatCurrencyAmount(order.total_amount, order.currency)})`,
       description: `${order.product_title} • Source: ${order.order_source}${order.source_note ? ` • ${order.source_note}` : ""}`,
       operator_name: order.agent_name,
       timestamp: order.created_at,
       metadata: {
         order_value: order.total_amount,
+        order_currency: order.currency,
         order_source: order.order_source,
         source_note: order.source_note || undefined,
       },
