@@ -28,7 +28,6 @@ interface ProductOrderPanelProps {
   products: Product[];
   activeLead: Lead | null;
   leadNotes?: LeadNoteDTO[];
-  appliedPitch?: string;
   orderMode?: "call" | "manual";
   onClose: () => void;
   onOrderPlaced: (
@@ -44,7 +43,6 @@ export function ProductOrderPanel({
   products,
   activeLead,
   leadNotes = [],
-  appliedPitch,
   orderMode = "call",
   onClose,
   onOrderPlaced,
@@ -62,7 +60,6 @@ export function ProductOrderPanel({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const lastPitchRef = React.useRef<string | undefined>(undefined);
   const leadNotesInitializedRef = React.useRef(false);
 
   const formattedLeadNotes = leadNotes
@@ -83,13 +80,6 @@ export function ProductOrderPanel({
       setSourceNote(formattedLeadNotes);
     }
   }, [formattedLeadNotes, orderMode]);
-
-  React.useEffect(() => {
-    if (appliedPitch && appliedPitch !== lastPitchRef.current) {
-      lastPitchRef.current = appliedPitch;
-      setWrapUpNotes((prev) => (prev ? `${prev}\n• ${appliedPitch}` : `• ${appliedPitch}`));
-    }
-  }, [appliedPitch]);
 
   const effectiveProductId = selectedProductId || products[0]?.id || "";
   const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];

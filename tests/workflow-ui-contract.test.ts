@@ -57,9 +57,18 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("keeps the post-call summary visible when no next assignment is available", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8").replaceAll("\r\n", "\n");
 
     expect(workspacePage).toContain('postCallSummary\n        ? "post_call_summary"');
     expect(workspacePage).toContain("identity?.role === \"operator\" && !activeLead && !postCallSummary");
+  });
+
+  it("removes the pilot suggestion surface from Operator Console", () => {
+    const scriptPanel = readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductScriptPanel.tsx"), "utf8");
+    const orderPanel = readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductOrderPanel.tsx"), "utf8");
+
+    expect(scriptPanel).not.toContain("Pilot suggestion");
+    expect(scriptPanel).not.toContain("Use pilot suggestion");
+    expect(orderPanel).not.toContain("appliedPitch");
   });
 });

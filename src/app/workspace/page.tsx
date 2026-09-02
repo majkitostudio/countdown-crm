@@ -80,7 +80,6 @@ function WorkspaceContent() {
   
   const [isIncomingCallOpen, setIsIncomingCallOpen] = useState<boolean>(false);
   
-  const [appliedPitch, setAppliedPitch] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
@@ -278,7 +277,6 @@ function WorkspaceContent() {
         const nextAssignment = completion.next_lead;
         softphoneController.hangup();
         setOrderFlowMode(null);
-        setAppliedPitch("");
         setNotificationToast(null);
         sounds.playCallEndSound();
         setActiveQueueItemId(nextAssignment?.queue_item_id || null);
@@ -316,7 +314,6 @@ function WorkspaceContent() {
 
       softphoneController.hangup();
       setOrderFlowMode(null);
-      setAppliedPitch("");
       setNotificationToast(null);
       sounds.playCallEndSound();
 
@@ -666,10 +663,6 @@ function WorkspaceContent() {
     }
   };
 
-  const handleApplyPitch = (pitchText: string) => {
-    setAppliedPitch(pitchText);
-  };
-
   const operatorConsoleState: OperatorConsoleState = isLoading
     ? "loading"
     : loadError
@@ -813,7 +806,6 @@ function WorkspaceContent() {
             <ProductScriptPanel
               isCallActive={isCallActive}
               product={products[0]}
-              onApplyPitch={handleApplyPitch}
             />
           </div>
         </section>
@@ -859,7 +851,6 @@ function WorkspaceContent() {
                 products={products}
                 activeLead={activeLead}
                 leadNotes={leadNotes}
-                appliedPitch={appliedPitch}
                 orderMode={orderFlowMode}
                 onClose={() => setOrderFlowMode(null)}
                 onOrderPlaced={handleOrderPlaced}
