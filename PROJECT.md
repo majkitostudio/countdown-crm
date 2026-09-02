@@ -5,7 +5,7 @@ Codex. Tento soubor není povinný workflow protokol, nenahrazuje testy a sám o
 sobě neprokazuje, že je nějaká funkce pilot-ready nebo production-ready.
 
 **Snapshot:** 2. 9. 2026  
-**Repo baseline:** `main` na commitu `c1799c1` (`fix: enforce manager-only wallet configuration`)
+**Repo baseline:** `main` na commitu `09961d6` (`docs: align current status and follow-ups`)
 **Produktový stav:** stabilizace před bezpečným interním pilotem; aktuální slices 1–4 jsou implementované
 
 ## 1. Co Countdown CRM je
@@ -112,8 +112,8 @@ copilot. Aktuální interpretace je střízlivější:
 
 ## 4. Poslední zaznamenaná evidence
 
-Níže uvedené výsledky jsou převzaté z dokumentace s posledním snapshotem kolem
-31. 8. 2026. Nejsou automaticky novým testem po resetu Codexu.
+Níže uvedené výsledky kombinují evidenci z 31. 8. a 2. 9. 2026. Nejsou
+automaticky novým testem po resetu Codexu.
 
 ### Čerstvé lokální ověření — 2. 9. 2026
 
@@ -148,8 +148,10 @@ zpřesnila manager-only RLS hranici pro wallet konfiguraci.
 
 ### Stále otevřené nebo omezené
 
-- Čerstvý authenticated end-to-end důkaz call → outcome/order → reload → SQL
-  read-back po aktuálních mergech.
+- Úplný authenticated end-to-end důkaz call → outcome/order → reload → SQL
+  read-back po aktuálních mergech; poslední checkpoint potvrzuje Operator
+  průchod `claim → start → order → reload`, nikoli ještě všechny role a
+  negativní scénáře.
 - Pozitivní Team Leader/Administrator browser průchod a negativní
   cross-workspace/RLS scénáře v odpovídajícím cíli.
 - Live persistence, opakované eventy, rollback a skutečný concurrency důkaz
@@ -170,14 +172,15 @@ přípravě**, nikoli obecné `production-ready`.
 
 1. Řídit nejbližší práci podle [balíčku dalších slice](docs/NEXT_WORK_PACKAGE_20260902.md):
    implementace slices 1–4 je uzavřená; zbývá pozitivní Team Leader/Administrator
-   browser/RLS/wallet persistence evidence.
+   browser/RLS/wallet persistence evidence a doplnění negativních scénářů.
 2. Každý slice držet malý a samostatně ověřitelný; průběžně ukládat smysluplný
    checkpoint;
    není nutné čekat na absolutní jistotu o celém produktu před každým commitem.
 3. Live databázové změny, migration apply, externí provider a produkční deploy
    řešit jako samostatně schválené operace.
-4. Nové funkce z velkých historických roadmap přidávat až po stabilizaci
-   hlavního Operator Console workflow.
+4. Historickou roadmapu a starý workflow protokol při plánování ignorovat;
+   nové funkce vybírat až z aktuálního checkpointu a po stabilizaci hlavního
+   Operator Console workflow.
 
 ## 6. Jak číst starší dokumentaci
 
@@ -189,9 +192,9 @@ Když se dokumenty rozcházejí, použij toto pořadí:
 4. konkrétní evidence s přesnou hranicí důkazu,
 5. starší roadmapa, vize, implementační plán nebo commitový katalog.
 
-Historické dokumenty nejsou automaticky instrukce pro Codex. Zachovávají
+Historické dokumenty nejsou instrukce pro Codex ani pořadník práce. Zachovávají
 provenienci, rozhodnutí a důkazy, ale staré příkazy typu „další commit musí
-projít celým workflow“ se po resetu nepřenášejí jako povinný pracovní režim.
+projít celým workflow“ a historické popisy chybného workflow se ignorují.
 
 ## 7. Mapa dokumentace
 
