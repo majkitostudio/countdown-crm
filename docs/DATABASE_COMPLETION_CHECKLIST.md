@@ -1,6 +1,6 @@
 # Countdown CRM — Database Completion Checklist
 
-**Updated:** 2026-08-22
+**Updated:** 2026-09-02
 **Scope:** clean Supabase project, one-company MVP, workspace-ready data model  
 **Status:** complete for the verified one-company pilot scope; follow-up hardening remains
 
@@ -10,6 +10,13 @@
 > Remote Supabase už obsahuje i order detail/edit a Product Script versioning
 > migrations; před další migrací je nutné porovnat remote history s lokálními
 > názvy. Historické počty lint chyb níže nejsou dnešní gate.
+
+> **Current-state note — 2026-09-02:** Aktuální `main` je `c1799c1`; poslední
+> stabilizační slice uzavřel call/order evidence, re-order truthfulness, wallet
+> Settings boundary a analytics currency contract. Wallet konfigurace je nyní
+> v databázi čitelná pouze pro Team Leadera/Administrátora. Tento checklist
+> zůstává seznamem hardening follow-upů; nejbližší pořadí a live evidence jsou
+> v [`docs/NEXT_WORK_PACKAGE_20260902.md`](./NEXT_WORK_PACKAGE_20260902.md).
 
 > **Current-state note — 2026-08-19:** This checklist is a historical database
 > stabilization snapshot. For the current product status and next work, use
@@ -38,8 +45,8 @@ not considered complete merely because it renders or because a build passes.
   custom records.
 - `npm run typecheck` passes.
 - `npm run build` passes.
-- The verified stabilization work is committed in `3a41273`; the two following
-  commits only remove Playwright artifacts from repository history.
+- The older database stabilization work is committed in `3a41273`; current
+  repository evidence is tracked in `PROJECT.md` and the dated next-work package.
 
 ## Ordered worklist
 
@@ -142,7 +149,7 @@ negative foreign-workspace tests, leaked-password protection, duplicate policy
 cleanup, mock-only surfaces, persisted runtime rule evaluation, and
 database-backed dashboard widgets.
 
-## Current follow-up map — 2026-08-17
+## Current follow-up map — 2026-09-02
 
 - [x] Workflow rules and executions use the server DAL/Server Actions and no
       longer use a browser service or local execution-log storage.
@@ -169,8 +176,16 @@ database-backed dashboard widgets.
       Operator Console dynamic-attribute surfaces with a shared server-loaded
       schema context before claiming the entire schema engine is free of local
       fallback state.
-- [ ] Keep leaked-password protection, duplicate RLS policies, the unused
-      telephony simulation bridge and dashboard activity/KPI hardening as
-      separate follow-up slices. Training and Copilot remain explicitly
-      labelled session-only simulations. SMS and external follow-up dispatch
-      still require real integrations.
+- [ ] Enable leaked-password protection in the linked Supabase Auth project.
+- [ ] Review and remove duplicate/permissive RLS policies where they do not add
+      a distinct operation boundary; do not rewrite migration history blindly.
+- [ ] Replace or isolate remaining mock-only monitor, training/objection
+      fixtures and dashboard activity surfaces.
+- [ ] Make remaining query failures visible instead of converting them to
+      fabricated records or metrics.
+- [ ] Replace remaining static dashboard KPI/activity values with
+      database-derived values and load the operator profile from Auth data.
+- [ ] Keep the unused telephony simulation bridge, live monitoring, Training and
+      Copilot session simulations, SMS/external follow-up dispatch and provider
+      integrations as separate scope. They are not prerequisites for the next
+      evidence gate.

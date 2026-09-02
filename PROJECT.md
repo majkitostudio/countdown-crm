@@ -5,7 +5,7 @@ Codex. Tento soubor není povinný workflow protokol, nenahrazuje testy a sám o
 sobě neprokazuje, že je nějaká funkce pilot-ready nebo production-ready.
 
 **Snapshot:** 2. 9. 2026  
-**Repo baseline:** `main` na commitu `e307aa7`  
+**Repo baseline:** `main` na commitu `c1799c1` (`fix: enforce manager-only wallet configuration`)
 **Produktový stav:** stabilizace před bezpečným interním pilotem; aktuální slices 1–4 jsou implementované
 
 ## 1. Co Countdown CRM je
@@ -117,6 +117,9 @@ Níže uvedené výsledky jsou převzaté z dokumentace s posledním snapshotem 
 
 ### Čerstvé lokální ověření — 2. 9. 2026
 
+Evidence níže odpovídá aktuálnímu `main` na `c1799c1`; poslední změna
+zpřesnila manager-only RLS hranici pro wallet konfiguraci.
+
 - `npm test`: 30 testovacích souborů, 126 testů, vše prošlo.
 - `npm run lint`, `npm run typecheck` a `npm run build` prošly.
 - Production build zkompiloval všech 25 statických stránek a aktuální route
@@ -166,8 +169,8 @@ přípravě**, nikoli obecné `production-ready`.
 ## 5. Nejbližší smysluplný směr
 
 1. Řídit nejbližší práci podle [balíčku dalších slice](docs/NEXT_WORK_PACKAGE_20260902.md):
-   nejprve důkazní gate hlavního workflow, potom re-order truthfulness a wallet
-   boundary.
+   implementace slices 1–4 je uzavřená; zbývá pozitivní Team Leader/Administrator
+   browser/RLS/wallet persistence evidence.
 2. Každý slice držet malý a samostatně ověřitelný; průběžně ukládat smysluplný
    checkpoint;
    není nutné čekat na absolutní jistotu o celém produktu před každým commitem.

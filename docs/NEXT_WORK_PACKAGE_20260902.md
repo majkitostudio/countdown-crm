@@ -1,7 +1,7 @@
 # Countdown CRM — balíček dalších pracovních slice
 
 **Datum:** 2. 9. 2026  
-**Výchozí commit:** `e307aa7` (`main`)  
+**Výchozí commit:** `c1799c1` (`main`, `fix: enforce manager-only wallet configuration`)
 **Status:** slices 1–4 implementačně uzavřené; live manager/RLS evidence zůstává samostatnou bránou
 
 Tento dokument vybírá několik konkrétních částí z historické roadmapy a
@@ -49,6 +49,11 @@ a plný RLS/concurrency důkaz proto zůstávají otevřené. Starší mismatch
 `orders.currency = USD` versus položka `CZK` byl opraven na `CZK` a změna byla
 zapsána jako `ORDER_CURRENCY_REMEDIATED`; následná kontrola vrátila
 `currency_mismatches = 0`.
+
+Poslední commit `c1799c1` zpřísnil databázové čtení wallet konfigurace na
+Team Leadera/Administrátora pomocí workspace-manager guardu. UI, Server Action,
+DAL a RPC tedy mají stejnou hranici; její pozitivní browser ověření je stále
+čekající evidence, nikoli další implementační slice.
 
 ## Navržené pořadí
 

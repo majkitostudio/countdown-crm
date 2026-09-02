@@ -7,7 +7,7 @@
 > průběžné záznamy jednotlivých stabilizačních etap. Pro rozhodování podle
 > současného produktu používej nejdříve
 > [`docs/AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md), který
-> vychází z `main` na `e307aa7`; pořadí dalších slice je v
+> vychází z `main` na `c1799c1`; pořadí dalších slice je v
 > [`docs/NEXT_WORK_PACKAGE_20260902.md`](NEXT_WORK_PACKAGE_20260902.md).
 > Historické počty a checkpointy níže nejsou nový důkaz aktuálního runtime.
 
@@ -23,13 +23,14 @@ Tento overlay doplňuje historické sekce níže. Pro rozhodování o současné
 delivery stavu je podrobnější kanonický zdroj `PROJECT.md` a aktuální pracovní
 balíček; tento overlay pouze zachycuje změny oproti starší baseline:
 
-- `main` je na `e307aa7`; po předchozím checkpointu přibyly User Wallet MVP,
+- `main` je na `c1799c1`; po předchozím checkpointu přibyly User Wallet MVP,
   Next Best Action, Team Leader Daily Brief a Customer 360 retention snapshot.
 - Čerstvý lokální gate na tomto pracovním balíku prošel: 126 Vitest testů, lint,
   typecheck a production build.
 - Pilotní call/order evidence gate, re-order truthfulness, wallet Settings
-  boundary a analytics currency contract jsou implementované; podrobná evidence
-  a zbývající live brány jsou v `NEXT_WORK_PACKAGE_20260902.md`.
+  boundary a analytics currency contract jsou implementované; manager-only wallet
+  RLS boundary je zpřísněná v `c1799c1`. Podrobná evidence a zbývající live brány
+  jsou v `NEXT_WORK_PACKAGE_20260902.md`.
 
 - PR #23 je sloučené do `main` jako `9a8cbc0`. Po opravě prošly `npm test`
   (94/94), `npm run check` a `git diff --check`.

@@ -1,13 +1,15 @@
 # Countdown CRM — aktuální stav a desatero
 
 **Snapshot:** 2. 9. 2026
-**Aktuální aplikační baseline:** `main` = `e307aa7` (`feat: add customer 360 retention playbook`)
+**Aktuální aplikační baseline:** `main` = `c1799c1` (`fix: enforce manager-only wallet configuration`)
 **Aktualizace baseline:** Po posledním checkpointu přibyly User Wallet MVP,
 Next Best Action, Team Leader Daily Brief a Customer 360 retention snapshot.
 Lokální repo gate na tomto pracovním balíku prošel: `npm test` 30 souborů / 126 testů,
 lint, typecheck a production build. Administrator browser + reload + SQL
 persistence je doložená pro lead note i čerstvý Operator call/order průchod;
 plný Team Leader/Administrator browser a RLS důkaz zůstávají otevřené.
+Poslední commit navíc uzavřel manager-only RLS hranici pro wallet konfiguraci;
+pozitivní manažerská relace však stále není k dispozici.
 **Aktuální stav:** Custom objects jsou pro Operatora serverově odmítnuté a v
 preview zobrazují stabilní stav bez dat a create controls; Re-Order používá
 poslední fulfilled historii pro dvojici lead/product a explicitní 14denní
