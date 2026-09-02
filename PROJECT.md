@@ -128,6 +128,18 @@ zpřesnila manager-only RLS hranici pro wallet konfiguraci.
 - Toto je pouze repo/build evidence; nepotvrzuje live persistence, RLS,
   concurrency ani externí integrace.
 
+### Čerstvé authenticated browser ověření — 2. 9. 2026
+
+- Obnovená lokální relace potvrdila účet `majkito.studio` s rolí
+  `Administrator`.
+- `/settings` zobrazil Wallet rules, měnu `CZK`, sazbu `5 %` a aktivní bonusové
+  thresholdy; po reloadu zůstaly hodnoty i role dostupné.
+- `/wallet` zobrazil týmový zůstatek, týmové ledgerové souhrny a formulář pro
+  auditovanou ruční úpravu.
+- Browser konzole po průchodu neobsahovala warning ani error.
+- Ruční finanční adjustment nebyl vytvořen, takže nevznikla nová ledgerová ani
+  auditní transakce.
+
 ### Zaznamenáno jako ověřené
 
 - Repo gates v příslušných mergeh: testy, lint, typecheck, production build a
@@ -152,8 +164,9 @@ zpřesnila manager-only RLS hranici pro wallet konfiguraci.
   read-back po aktuálních mergech; poslední checkpoint potvrzuje Operator
   průchod `claim → start → order → reload`, nikoli ještě všechny role a
   negativní scénáře.
-- Pozitivní Team Leader/Administrator browser průchod a negativní
-  cross-workspace/RLS scénáře v odpovídajícím cíli.
+- Pozitivní Administrator browser průchod a persistence wallet konfigurace jsou
+  ověřené; stále chybí Team Leader průchod a negativní cross-workspace/RLS
+  scénáře v odpovídajícím cíli.
 - Live persistence, opakované eventy, rollback a skutečný concurrency důkaz
   mimo rollback/disposable testy.
 - Fulfillment provider a service-role webhook pro wallet.
@@ -172,7 +185,8 @@ přípravě**, nikoli obecné `production-ready`.
 
 1. Řídit nejbližší práci podle [balíčku dalších slice](docs/NEXT_WORK_PACKAGE_20260902.md):
    implementace slices 1–4 je uzavřená; zbývá pozitivní Team Leader/Administrator
-   browser/RLS/wallet persistence evidence a doplnění negativních scénářů.
+   Team Leader průchod a negativní cross-workspace/RLS scénáře; Administrator
+   Settings/Wallet persistence evidence je nyní zaznamenaná.
 2. Každý slice držet malý a samostatně ověřitelný; průběžně ukládat smysluplný
    checkpoint;
    není nutné čekat na absolutní jistotu o celém produktu před každým commitem.

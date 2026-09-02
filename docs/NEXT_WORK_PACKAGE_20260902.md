@@ -44,16 +44,29 @@ Preview migration provenance je zapsaná jako `20260902130804`
 
 Lokální regresní suite pokrývá re-order deduplikaci poslední fulfilled
 objednávkou, Wallet Settings boundary a oddělení analytics částek podle měny.
-Živá relace byla Operator; pozitivní Team Leader/Administrator browser průchod
-a plný RLS/concurrency důkaz proto zůstávají otevřené. Starší mismatch
+Starší Operator relace doložila negativní hranici; pozitivní Admin browser
+průchod je nyní doložen níže, zatímco Team Leader a plný RLS/concurrency důkaz
+zůstávají otevřené. Starší mismatch
 `orders.currency = USD` versus položka `CZK` byl opraven na `CZK` a změna byla
 zapsána jako `ORDER_CURRENCY_REMEDIATED`; následná kontrola vrátila
 `currency_mismatches = 0`.
 
 Poslední commit `c1799c1` zpřísnil databázové čtení wallet konfigurace na
 Team Leadera/Administrátora pomocí workspace-manager guardu. UI, Server Action,
-DAL a RPC tedy mají stejnou hranici; její pozitivní browser ověření je stále
-čekající evidence, nikoli další implementační slice.
+DAL a RPC tedy mají stejnou hranici.
+
+### Checkpoint Admin browser smoke — 2. 9. 2026
+
+Obnovená lokální relace potvrdila `majkito.studio / Administrator`. Na
+`/settings` byly po načtení i reloadu dostupné Wallet rules s měnou `CZK`,
+sazbou `5 %` a aktivními bonusovými thresholdy. Na `/wallet` byly dostupné
+týmové zůstatky, ledger a formulář auditované ruční úpravy. Browser konzole
+nehlásila warning ani error.
+
+Adjustment nebyl odeslán, aby smoke test nevytvořil finanční ledgerovou ani
+auditní transakci. Read-only Admin průchod a persistence konfigurace jsou tím
+doložené; Team Leader průchod, negativní cross-workspace/RLS scénáře a skutečná
+mutation evidence zůstávají samostatnou bránou.
 
 ## Navržené pořadí
 
@@ -121,8 +134,9 @@ hranice; tento slice nemá předstírat webhook ani bankovní payout.
 - Operator nevidí globální nastavení, týmové zůstatky ani mutation controls;
 - role/RLS smoke potvrdí vlastní ledger a odmítnutí cizího ledgeru;
 - změna pravidla nepřepíše immutable historické transakce;
-- migration provenance pro aktuální Preview je doložená; pozitivní manažerský
-  browser/RLS smoke zůstává před pilotem samostatnou bránou.
+- migration provenance pro aktuální Preview je doložená; Admin read-only
+  browser smoke je hotový, ale Team Leader, cross-workspace/RLS a mutation
+  evidence zůstávají před pilotem samostatnou bránou.
 
 ### 4. Analytics currency contract
 
@@ -152,6 +166,8 @@ potřebují měnové rozlišení. Současný denní summary i hlavní analytics 
 ## Pracovní pravidlo
 
 Implementace slices 1–4 je hotová a ověřená lokálním gate i Preview smoke.
-Další krok je získat Team Leader/Administrator relaci pro pozitivní browser,
-RLS a wallet persistence důkaz. Měnový mismatch je nyní opravený a chráněný
-databázovými triggery, bez skrytého přepočtu.
+Admin read-only browser a reload persistence důkaz je nyní zapsaný. Další krok
+je získat Team Leader relaci a doplnit negativní cross-workspace/RLS ověření;
+finanční mutation test vyžaduje samostatné potvrzení, protože zapisuje ledger a
+audit. Měnový mismatch je nyní opravený a chráněný databázovými triggery, bez
+skrytého přepočtu.
