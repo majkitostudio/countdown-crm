@@ -11,11 +11,13 @@ import {
   Trash2,
 } from "lucide-react";
 import { createOrderAction } from "@/app/actions/crm";
+import { completeLeadCallAction } from "@/app/actions/leadQueue";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 
 type OrderSource = "previous_call" | "email" | "web_form" | "manual" | "other";
 type OrderOrigin = "workspace" | "orders";
+type OrderFlow = "manual" | "call";
 
 interface LeadOption {
   id: string;
@@ -40,6 +42,8 @@ interface OrderCreateFormProps {
   products: ProductOption[];
   initialLeadId?: string;
   initialOrigin?: OrderOrigin;
+  flow?: OrderFlow;
+  callQueueItemId?: string;
 }
 
 type DraftItem = { productId: string; quantity: number; unitPrice: number };
@@ -61,6 +65,8 @@ export function OrderCreateForm({
   products,
   initialLeadId = "",
   initialOrigin = "orders",
+  flow = "manual",
+  callQueueItemId,
 }: OrderCreateFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -82,6 +88,7 @@ export function OrderCreateForm({
     [leadId, leads],
   );
   const backHref = initialOrigin === "workspace" ? "/workspace" : "/orders";
+  const isCallFlow = flow === "call";
   const resolvedItems = useMemo(
     () =>
       draftItems.flatMap((item) => {
@@ -164,13 +171,35 @@ export function OrderCreateForm({
     setErrorMessage(null);
     startTransition(async () => {
       try {
+        const items = resolvedItems.map((item) => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+        }));
+
+        if (isCallFlow) {
+          if (!callQueueItemId) {
+            throw new Error("The active call assignment is unavailable. Return to the Operator Console and try again.");
+          }
+
+          const completion = await completeLeadCallAction({
+            queue_item_id: callQueueItemId,
+            duration_seconds: 0,
+            outcome: "order_placed",
+            ai_sentiment: "Positive",
+            order_items: items,
+            transcript: null,
+          });
+          if (!completion.order_id) {
+            throw new Error("Call completion succeeded without creating an order.");
+          }
+          router.push(`/orders/${completion.order_id}?origin=workspace`);
+          return;
+        }
+
         const order = await createOrderAction({
           lead_id: selectedLead.id,
-          items: resolvedItems.map((item) => ({
-            product_id: item.product.id,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-          })),
+          items,
           order_source: orderSource,
           source_note: sourceNote.trim() || null,
           status: "in_progress",
@@ -355,7 +384,7 @@ export function OrderCreateForm({
             )}
           </section>
 
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          {!isCallFlow && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
             <div className="mb-5 border-b border-zinc-800/80 pb-4">
               <h2 className="text-sm font-semibold text-zinc-100">Order note and source</h2>
               <p className="mt-1 text-xs text-zinc-500">
@@ -391,7 +420,7 @@ export function OrderCreateForm({
                 />
               </label>
             </div>
-          </section>
+          </section>}
 
           <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
@@ -460,9 +489,11 @@ export function OrderCreateForm({
                 <p className="mt-1 text-amber-200/80">Minimum reference total: {orderCurrency} {minimumOrderTotal.toFixed(2)}. You can still create this order.</p>
               </div>
             )}
-            <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] leading-relaxed text-zinc-400">
-              <CheckCircle2 className="mb-1.5 h-4 w-4 text-zinc-300" />
-              The order is created as In-Progress. Items, total and the audit event are written atomically on the server.
+              <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] leading-relaxed text-zinc-400">
+                <CheckCircle2 className="mb-1.5 h-4 w-4 text-zinc-300" />
+              {isCallFlow
+                ? "The order and completed call are written atomically on the server."
+                : "The order is created as In-Progress. Items, total and the audit event are written atomically on the server."}
             </div>
             <button
               type="submit"
@@ -470,7 +501,7 @@ export function OrderCreateForm({
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-3 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {isPending ? "Creating order…" : "Create Order"}
+              {isPending ? (isCallFlow ? "Completing call…" : "Creating order…") : (isCallFlow ? "Complete Call & Create Order" : "Create Order")}
             </button>
             <button
               type="button"

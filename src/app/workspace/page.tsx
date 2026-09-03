@@ -12,7 +12,6 @@ import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCar
 import { LeadNotesCard } from "@/components/workspace/LeadNotesCard";
 import { OperatorLeadHeader } from "@/components/workspace/OperatorLeadHeader";
 import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
-import { ProductOrderPanel, type OrderPlacementResult } from "@/components/workspace/ProductOrderPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
 import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
@@ -23,7 +22,6 @@ import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
-import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import {
@@ -83,7 +81,6 @@ function WorkspaceContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
-  const [orderFlowMode, setOrderFlowMode] = useState<"call" | null>(null);
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
@@ -246,7 +243,7 @@ function WorkspaceContent() {
     orderValue = 0,
     orderProductId?: string,
     callbackScheduledAt?: string,
-    orderItems?: CallOrderItemInput[],
+    orderItems?: import("@/lib/callOrder").CallOrderItemInput[],
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
@@ -276,7 +273,6 @@ function WorkspaceContent() {
 
         const nextAssignment = completion.next_lead;
         softphoneController.hangup();
-        setOrderFlowMode(null);
         setNotificationToast(null);
         sounds.playCallEndSound();
         setActiveQueueItemId(nextAssignment?.queue_item_id || null);
@@ -313,7 +309,6 @@ function WorkspaceContent() {
       });
 
       softphoneController.hangup();
-      setOrderFlowMode(null);
       setNotificationToast(null);
       sounds.playCallEndSound();
 
@@ -586,8 +581,12 @@ function WorkspaceContent() {
     if (!isAwaitingOutcome || completionInFlightRef.current) return;
 
     if (outcome === "order") {
-      setOrderFlowMode("call");
-      setNotificationToast("Order flow unlocked. Review the product and place the order when ready.");
+      if (!activeLead || !activeQueueItemId) {
+        setNotificationToast("Order creation is unavailable because the active assignment could not be verified.");
+        return;
+      }
+      setNotificationToast(null);
+      router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace&mode=call`);
       return;
     }
 
@@ -624,35 +623,6 @@ function WorkspaceContent() {
       setCallbackScheduleError("Callback se nepodařilo uložit. Zkontrolujte aktivní assignment a zkuste to znovu.");
     }
     setIsCallbackSchedulePending(false);
-  };
-
-  const handleOrderPlaced = async (
-    input: { items: CallOrderItemInput[] },
-  ): Promise<OrderPlacementResult | null> => {
-    if (!activeLead) return null;
-
-    try {
-      const firstItem = input.items[0];
-      const totalAmount = totalCallOrderItems(input.items);
-      const completion = await completeCall(
-        "order_placed",
-        "Order placed",
-        "created",
-        totalAmount,
-        firstItem?.product_id,
-        undefined,
-        input.items,
-      );
-      if (!completion?.orderId) return null;
-      return { orderId: completion.orderId, callCompleted: true };
-    } catch (error) {
-      setNotificationToast(
-        error instanceof Error
-          ? `Order creation failed: ${error.message}`
-          : "Order creation failed. Nothing was recorded."
-      );
-      return null;
-    }
   };
 
   const handleNextLead = () => {
@@ -838,26 +808,6 @@ function WorkspaceContent() {
           <AdditionalQuestionsCard questions={getProductScript(products[0]).discoveryQuestions} />
         </aside>
       </div>
-
-        {orderFlowMode && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="order-dialog-title"
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-        >
-          <div className="w-full max-w-2xl">
-            <ProductOrderPanel
-                products={products}
-                activeLead={activeLead}
-                leadNotes={leadNotes}
-                orderMode={orderFlowMode}
-                onClose={() => setOrderFlowMode(null)}
-                onOrderPlaced={handleOrderPlaced}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Incoming Call Simulation Modal */}
       <IncomingCallModal

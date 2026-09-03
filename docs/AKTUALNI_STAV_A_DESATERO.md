@@ -364,6 +364,15 @@ nebo novou funkci jen proto, aby byl commit větší.
    `docs/commits.md`, aby vize nebyla zaměněná za současný live scope. Tento
    checkpoint aktualizuje aktuální stav, nikoli všechny historické katalogy.
 
+5. **P2 — Operator Console keyboard action binds — plánováno**
+
+   Doplnit klávesové zkratky pro nejčastější bezpečné akce v Operator Console
+   (zahájení/ukončení hovoru, outcome, poznámka a uložení checkoutu). Zkratky
+   nesmí obcházet stejné stavové, role a serverové guardy jako klikací ovládání;
+   při psaní do inputu nebo textarea se nesmí aktivovat omylem. Ověřit také
+   focus, screen reader dostupnost a chování při `loading`, `dialing`,
+   `awaiting_outcome` a `completion_pending`.
+
 ## Nové desatero pro práci na projektu
 
 1. **Nejdřív řekneme, co přesně měníme.** Každý úkol má cíl, co do něj

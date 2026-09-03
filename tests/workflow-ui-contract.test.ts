@@ -71,4 +71,18 @@ describe("workflow server-boundary UI contract", () => {
     expect(scriptPanel).not.toContain("Use pilot suggestion");
     expect(orderPanel).not.toContain("appliedPitch");
   });
+
+  it("opens operator order completion as a full-page flow", () => {
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const orderPage = readFileSync(path.join(projectRoot, "src", "app", "orders", "new", "page.tsx"), "utf8");
+    const orderForm = readFileSync(path.join(projectRoot, "src", "components", "orders", "OrderCreateForm.tsx"), "utf8");
+
+    expect(workspacePage).toContain("origin=workspace&mode=call");
+    expect(workspacePage).not.toContain("role=\"dialog\"");
+    expect(workspacePage).not.toContain("ProductOrderPanel");
+    expect(orderPage).toContain('requestedMode === "call"');
+    expect(orderPage).toContain('assignment_state !== "awaiting_outcome"');
+    expect(orderForm).toContain("completeLeadCallAction");
+    expect(orderForm).toContain('outcome: "order_placed"');
+  });
 });
