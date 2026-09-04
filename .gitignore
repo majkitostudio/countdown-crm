@@ -15,6 +15,7 @@
 /coverage
 /.playwright-cli/
 /output/
+/.worktrees/
 
 # next.js
 /.next/
