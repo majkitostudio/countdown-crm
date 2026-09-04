@@ -22,6 +22,7 @@ import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
+import { listScheduledCallbacksAction } from "@/app/actions/calendar";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import {
@@ -39,6 +40,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { getOperatorKeyboardAction } from "@/components/workspace/operatorKeyboardShortcuts";
 import { ClientProfileCard } from "@/components/workspace/ClientProfileCard";
 import { RecentContextRow } from "@/components/workspace/RecentContextRow";
+import {
+  OperatorNextActionPanel,
+} from "@/components/workspace/OperatorNextActionPanel";
+import type {
+  OperatorCallbackSignal,
+  OperatorNextActionState,
+} from "@/components/workspace/operatorNextAction";
 
 interface PostCallSummary {
   leadName: string;
@@ -90,6 +98,10 @@ function WorkspaceContent() {
   const [isCallbackScheduleOpen, setIsCallbackScheduleOpen] = useState(false);
   const [isCallbackSchedulePending, setIsCallbackSchedulePending] = useState(false);
   const [callbackScheduleError, setCallbackScheduleError] = useState<string | null>(null);
+  const [scheduledCallbacks, setScheduledCallbacks] = useState<OperatorCallbackSignal[]>([]);
+  const [isCallbacksLoading, setIsCallbacksLoading] = useState(false);
+  const [callbackInboxError, setCallbackInboxError] = useState<string | null>(null);
+  const [isAssignmentRefreshing, setIsAssignmentRefreshing] = useState(false);
   const [isCallStartPending, setIsCallStartPending] = useState(false);
   const [isEndCallPending, setIsEndCallPending] = useState(false);
   const [isCompletionPending, setIsCompletionPending] = useState(false);
@@ -110,12 +122,68 @@ function WorkspaceContent() {
     ? softphoneSession.startTime.toISOString()
     : null;
 
+  const refreshCallbackInbox = useCallback(async () => {
+    if (identity?.role !== "operator") return;
+
+    setIsCallbacksLoading(true);
+    setCallbackInboxError(null);
+    try {
+      const from = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const to = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      const callbacks = await listScheduledCallbacksAction(from, to);
+      setScheduledCallbacks(callbacks.map((callback) => ({
+        id: callback.id,
+        leadName: callback.lead.full_name,
+        scheduledAt: callback.scheduled_at,
+      })));
+    } catch (error) {
+      setScheduledCallbacks([]);
+      setCallbackInboxError(error instanceof Error ? error.message : "Callback inbox could not be loaded.");
+    } finally {
+      setIsCallbacksLoading(false);
+    }
+  }, [identity?.role]);
+
+  const refreshOperatorAssignment = useCallback(async () => {
+    if (identity?.role !== "operator") return;
+
+    setIsAssignmentRefreshing(true);
+    try {
+      await setOperatorPresenceAction("available");
+      const assignment = await claimNextLeadAction();
+      setLeads(assignment ? [assignment.lead] : []);
+      setActiveLead(assignment?.lead || null);
+      setActiveQueueItemId(assignment?.queue_item_id || null);
+      setAssignmentState(assignment?.assignment_state || null);
+      setRecoveryRequired(assignment?.recovery_required || false);
+      setCallDurationSeconds(
+        assignment?.call_started_at
+          ? Math.max(0, Math.round((Date.parse(assignment.call_ended_at || new Date().toISOString()) - Date.parse(assignment.call_started_at)) / 1000))
+          : 0,
+      );
+      setNotificationToast(null);
+      await refreshCallbackInbox();
+    } catch (error) {
+      setNotificationToast(error instanceof Error ? error.message : "The operator assignment could not be refreshed.");
+    } finally {
+      setIsAssignmentRefreshing(false);
+    }
+  }, [identity?.role, refreshCallbackInbox]);
+
   useEffect(() => {
     activeQueueItemIdRef.current = activeQueueItemId;
     identityRoleRef.current = identity?.role || null;
   }, [activeQueueItemId, identity?.role]);
 
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
+
+  useEffect(() => {
+    if (isIdentityLoading || identity?.role !== "operator") return;
+    const refreshTimer = window.setTimeout(() => {
+      void refreshCallbackInbox();
+    }, 0);
+    return () => window.clearTimeout(refreshTimer);
+  }, [activityRefreshToken, identity?.role, isIdentityLoading, refreshCallbackInbox]);
 
   useEffect(() => {
     return () => {
@@ -574,12 +642,12 @@ function WorkspaceContent() {
     sounds.playCallEndSound();
   };
 
-  const advanceToNextLead = () => {
+  const advanceToNextLead = useCallback(() => {
     if (!activeLead || leads.length === 0) return;
     const currentIndex = leads.findIndex((l) => l.id === activeLead.id);
     const nextIndex = (currentIndex + 1) % leads.length;
     setActiveLead(leads[nextIndex]);
-  };
+  }, [activeLead, leads]);
 
   const handleCallOutcome = useCallback((outcome: CallOutcome) => {
     if (!isAwaitingOutcome || completionInFlightRef.current) return;
@@ -629,13 +697,13 @@ function WorkspaceContent() {
     setIsCallbackSchedulePending(false);
   };
 
-  const handleNextLead = () => {
+  const handleNextLead = useCallback(() => {
     setPostCallSummary(null);
     setNotificationToast(null);
     if (identity?.role !== "operator") {
       advanceToNextLead();
     }
-  };
+  }, [advanceToNextLead, identity?.role]);
 
   useEffect(() => {
     if (identity?.role !== "operator") return;
@@ -718,6 +786,42 @@ function WorkspaceContent() {
     post_call_summary: { label: "Call completed", tone: "neutral" as const },
   }[operatorConsoleState];
 
+  const operatorActionState: OperatorNextActionState = operatorConsoleState === "loading" || operatorConsoleState === "load_error"
+    ? "waiting_assignment"
+    : operatorConsoleState;
+
+  const handleNextAction = useCallback(() => {
+    if (operatorConsoleState === "waiting_assignment") {
+      void refreshOperatorAssignment();
+      return;
+    }
+
+    if (operatorConsoleState === "awaiting_outcome" || operatorConsoleState === "callback_modal") {
+      document.getElementById("call-outcome-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    if (operatorConsoleState === "post_call_summary") {
+      handleNextLead();
+      return;
+    }
+
+    handleToggleCall();
+  }, [handleNextLead, handleToggleCall, operatorConsoleState, refreshOperatorAssignment]);
+
+  const operatorNextActionPanel = identity?.role === "operator" ? (
+    <OperatorNextActionPanel
+      state={operatorActionState}
+      leadName={activeLead?.full_name || null}
+      callbacks={scheduledCallbacks}
+      isCallbacksLoading={isCallbacksLoading}
+      callbackError={callbackInboxError}
+      isAssignmentRefreshing={isAssignmentRefreshing}
+      onPrimaryAction={handleNextAction}
+      onRefreshCallbacks={() => void refreshCallbackInbox()}
+    />
+  ) : null;
+
   const pageHeader = (
     <PageHeader
       icon={PhoneCall}
@@ -756,13 +860,7 @@ function WorkspaceContent() {
     return (
       <div className="mx-auto max-w-none space-y-4">
         {pageHeader}
-        <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
-          <RefreshCw className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h2 className="text-base font-semibold text-zinc-100">Operator Console waiting for assignment</h2>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            No callable contact is currently assigned. The routing service will place one here when an available lead is ready; Operators never browse or choose from the lead directory.
-          </p>
-        </div>
+        {operatorNextActionPanel}
       </div>
     );
   }
@@ -770,6 +868,7 @@ function WorkspaceContent() {
   return (
     <div className="mx-auto max-w-none space-y-4" data-testid="operator-console" data-state={operatorConsoleState}>
       {pageHeader}
+      {operatorNextActionPanel}
       
       {/* Toast Notification Banner */}
       {notificationToast && (
