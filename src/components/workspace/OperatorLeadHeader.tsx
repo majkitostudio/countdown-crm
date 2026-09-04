@@ -6,6 +6,7 @@ import { Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings,
 import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
+import type { FailDetails } from "@/lib/postCall";
 
 interface OperatorLeadHeaderProps {
   activeLead: Lead | null;
@@ -23,7 +24,7 @@ interface OperatorLeadHeaderProps {
   isAwaitingOutcome?: boolean;
   recoveryRequired?: boolean;
   isCompletionPending?: boolean;
-  onCallOutcome?: (outcome: CallOutcome) => void;
+  onCallOutcome?: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback?: () => void;
 }
 

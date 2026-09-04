@@ -17,6 +17,7 @@ import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard"
 import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
+import { getFailReasonLabel, type FailReason } from "@/lib/postCall";
 import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
@@ -55,6 +56,8 @@ interface PostCallSummary {
   orderStatus: "created" | "not_created";
   transcriptStatus: "unavailable";
   orderId?: string;
+  failReasonLabel?: string;
+  operatorNote?: string;
   workflowEntries: ExecutionLogEntry[];
   workflowDispatches: WorkflowDispatchResult[];
 }
@@ -315,6 +318,8 @@ function WorkspaceContent() {
     orderProductId?: string,
     callbackScheduledAt?: string,
     orderItems?: import("@/lib/callOrder").CallOrderItemInput[],
+    operatorNote?: string,
+    failReason?: FailReason,
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
@@ -340,6 +345,8 @@ function WorkspaceContent() {
           order_total_amount: orderProductId ? orderValue : null,
           transcript: null,
           callback_scheduled_at: queueOutcome === "followup_scheduled" ? callbackScheduledAt || null : null,
+          operator_note: operatorNote?.trim() || null,
+          fail_reason: failReason || null,
         });
 
         const nextAssignment = completion.next_lead;
@@ -361,6 +368,8 @@ function WorkspaceContent() {
           orderStatus,
           transcriptStatus: "unavailable",
           orderId: completion.order_id || undefined,
+          failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined,
+          operatorNote: operatorNote?.trim() || undefined,
           workflowEntries,
           workflowDispatches: completion.workflowDispatches,
         });
@@ -649,7 +658,7 @@ function WorkspaceContent() {
     setActiveLead(leads[nextIndex]);
   }, [activeLead, leads]);
 
-  const handleCallOutcome = useCallback((outcome: CallOutcome) => {
+  const handleCallOutcome = useCallback((outcome: CallOutcome, failDetails?: { failReason: FailReason; note: string }) => {
     if (!isAwaitingOutcome || completionInFlightRef.current) return;
 
     if (outcome === "order") {
@@ -671,10 +680,10 @@ function WorkspaceContent() {
     const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CompletionOutcome, string]> = {
       call_later: ["no_answer", "No answer"],
       schedule: ["followup_scheduled", "Follow-up scheduled"],
-      fail: ["objection_handled", "Not interested"],
+      fail: ["objection_handled", "Fail"],
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
-    void completeCall(callOutcome, outcomeLabel, "not_created");
+    void completeCall(callOutcome, outcomeLabel, "not_created", 0, undefined, undefined, undefined, failDetails?.note, failDetails?.failReason);
   }, [activeLead, activeQueueItemId, completeCall, isAwaitingOutcome, router]);
 
   const handleScheduleCallback = async (scheduledAt: string) => {
@@ -729,8 +738,8 @@ function WorkspaceContent() {
         case "schedule_callback":
           handleCallOutcome("schedule");
           return;
-        case "not_interested":
-          handleCallOutcome("fail");
+        case "fail":
+          document.getElementById("call-outcome-fail")?.click();
           return;
         case "create_order":
           handleCallOutcome("order");

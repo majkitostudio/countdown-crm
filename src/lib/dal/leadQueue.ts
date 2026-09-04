@@ -8,6 +8,7 @@ import type { LeadDTO } from "./leads";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
+import { isFailReason, validateFailDetails, type FailReason } from "@/lib/postCall";
 
 export type QueueState = Database["public"]["Tables"]["lead_queue_items"]["Row"]["state"];
 export type OperatorPresenceState = Database["public"]["Tables"]["operator_presence"]["Row"]["state"];
@@ -89,6 +90,8 @@ export interface CompleteLeadCallInput {
   order_product_id?: string | null;
   order_total_amount?: number | null;
   callback_scheduled_at?: string | null;
+  operator_note?: string | null;
+  fail_reason?: FailReason | null;
 }
 
 type QueueSnapshotRpc = LeadQueueSnapshot | null;
@@ -118,6 +121,17 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
 
   if (!input.outcome || !["order_placed", "followup_scheduled", "no_answer", "objection"].includes(input.outcome)) {
     throw new DataAccessError("VALIDATION", "Unsupported queue call outcome");
+  }
+
+  const operatorNote = input.operator_note || "";
+  if (operatorNote.trim().length > 2_000) {
+    throw new DataAccessError("VALIDATION", "Call note must contain at most 2,000 characters");
+  }
+  if (input.outcome === "objection") {
+    const failError = validateFailDetails({ failReason: input.fail_reason, note: operatorNote });
+    if (failError) throw new DataAccessError("VALIDATION", failError);
+  } else if (input.fail_reason !== null && input.fail_reason !== undefined) {
+    throw new DataAccessError("VALIDATION", "Fail reason is only valid for a fail outcome");
   }
 
   const hasLegacyProduct = Boolean(input.order_product_id);
@@ -258,6 +272,7 @@ export async function abortLeadCallStartForWorkspace(
 
 export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
   assertQueueInput(input);
+  const operatorNote = input.operator_note || "";
   const orderItems = input.order_items ?? (
     input.order_product_id
       ? [{
@@ -282,6 +297,8 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     call_ai_sentiment: input.ai_sentiment || "Neutral",
     order_items: hasOrder ? orderItems : null,
     callback_scheduled_at: input.callback_scheduled_at || null,
+    call_note: operatorNote.trim() || null,
+    call_fail_reason: input.fail_reason && isFailReason(input.fail_reason) ? input.fail_reason : null,
   });
   const completion = requireRpcData<QueueCompletionDTO>(data, error, "Call completion failed");
   const workflowDispatch = await dispatchWorkflowEventForWorkspace({
@@ -296,6 +313,8 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       sentiment: input.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
+      failReason: input.fail_reason || null,
+      operatorNote: operatorNote.trim(),
     },
   });
 

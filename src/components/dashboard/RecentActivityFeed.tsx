@@ -30,7 +30,7 @@ function getCallOutcomeLabel(outcome: string): string {
     case "no_answer":
       return "No answer";
     case "objection":
-      return "Objection logged";
+      return "Fail";
     case "completed":
       return "Completed";
     default:

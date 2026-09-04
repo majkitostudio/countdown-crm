@@ -139,6 +139,8 @@ describe("lead queue server contract", () => {
       call_ai_sentiment: "Positive",
       order_items: null,
       callback_scheduled_at: "2026-09-01T09:00:00.000Z",
+      call_note: null,
+      call_fail_reason: null,
     });
   });
 
@@ -170,6 +172,8 @@ describe("lead queue server contract", () => {
       call_ai_sentiment: "Neutral",
       order_items: orderItems,
       callback_scheduled_at: null,
+      call_note: null,
+      call_fail_reason: null,
     });
   });
 

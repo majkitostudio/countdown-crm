@@ -219,6 +219,8 @@ CREATE TABLE IF NOT EXISTS public.calls (
   agent_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   duration_seconds INT NOT NULL DEFAULT 0,
   outcome TEXT NOT NULL DEFAULT 'completed', -- 'order_placed', 'followup_scheduled', 'objection', 'no_answer', 'completed'
+  fail_reason TEXT,
+  operator_note TEXT,
   transcript TEXT,
   ai_sentiment TEXT DEFAULT 'Neutral',
   created_at TIMESTAMPTZ DEFAULT NOW()

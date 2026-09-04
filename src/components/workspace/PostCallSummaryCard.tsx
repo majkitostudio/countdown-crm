@@ -31,6 +31,8 @@ interface PostCallSummaryCardProps {
     orderStatus: "created" | "not_created";
     transcriptStatus: "unavailable";
     orderId?: string;
+    failReasonLabel?: string;
+    operatorNote?: string;
     workflowEntries: ExecutionLogEntry[];
     workflowDispatches: WorkflowDispatchResult[];
   };
@@ -125,6 +127,14 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
           <strong className="mt-1 block text-zinc-100">{automationSummary}</strong>
         </div>
       </div>
+
+      {summary.failReasonLabel && (
+        <div className="rounded-lg border border-rose-900/60 bg-rose-950/20 p-3 text-xs">
+          <span className="block text-[10px] uppercase tracking-wider text-rose-300/80">Fail details</span>
+          <strong className="mt-1 block text-rose-100">{summary.failReasonLabel}</strong>
+          {summary.operatorNote && <p className="mt-1 whitespace-pre-wrap text-rose-200/80">{summary.operatorNote}</p>}
+        </div>
+      )}
 
       {summary.transcriptStatus === "unavailable" && (
         <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">

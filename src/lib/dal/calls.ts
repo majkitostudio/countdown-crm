@@ -16,6 +16,8 @@ export type CallDTO = Pick<
   | "agent_id"
   | "duration_seconds"
   | "outcome"
+  | "fail_reason"
+  | "operator_note"
   | "transcript"
   | "ai_sentiment"
   | "created_at"
@@ -27,6 +29,8 @@ export interface CreateCallInput {
   outcome?: CallOutcome;
   transcript?: string | null;
   ai_sentiment?: string | null;
+  fail_reason?: CallRow["fail_reason"];
+  operator_note?: string | null;
 }
 
 export async function createCallForWorkspace(
@@ -73,8 +77,10 @@ export async function createCallForWorkspace(
       outcome: input.outcome || "completed",
       transcript: input.transcript || null,
       ai_sentiment: input.ai_sentiment || "Neutral",
+      fail_reason: input.fail_reason || null,
+      operator_note: input.operator_note?.trim() || null,
     })
-    .select("id, workspace_id, lead_id, agent_id, duration_seconds, outcome, transcript, ai_sentiment, created_at")
+    .select("id, workspace_id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, transcript, ai_sentiment, created_at")
     .single();
 
   if (error || !data) {

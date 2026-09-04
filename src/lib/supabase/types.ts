@@ -540,6 +540,8 @@ export interface Database {
           agent_id: string | null;
           duration_seconds: number;
           outcome: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
+          fail_reason: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
+          operator_note: string | null;
           transcript: string | null;
           ai_sentiment: string | null;
           created_at: string;
@@ -551,6 +553,8 @@ export interface Database {
           agent_id?: string | null;
           duration_seconds?: number;
           outcome?: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
+          fail_reason?: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
+          operator_note?: string | null;
           transcript?: string | null;
           ai_sentiment?: string | null;
           created_at?: string;
@@ -560,6 +564,8 @@ export interface Database {
           agent_id?: string | null;
           duration_seconds?: number;
           outcome?: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
+          fail_reason?: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
+          operator_note?: string | null;
           transcript?: string | null;
           ai_sentiment?: string | null;
         };

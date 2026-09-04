@@ -3,7 +3,7 @@ export type OperatorKeyboardAction =
   | "toggle_mute"
   | "call_later"
   | "schedule_callback"
-  | "not_interested"
+  | "fail"
   | "create_order"
   | "focus_note";
 
@@ -16,7 +16,7 @@ export const OPERATOR_KEYBOARD_SHORTCUTS: ReadonlyArray<{
   { action: "toggle_mute", key: "M", label: "Mute / unmute" },
   { action: "call_later", key: "1", label: "No answer" },
   { action: "schedule_callback", key: "2", label: "Schedule callback" },
-  { action: "not_interested", key: "3", label: "Not interested" },
+  { action: "fail", key: "3", label: "Fail" },
   { action: "create_order", key: "4", label: "Create order" },
   { action: "focus_note", key: "N", label: "Focus lead note" },
 ];
@@ -70,7 +70,7 @@ export function getOperatorKeyboardAction(
     case "2":
       return "schedule_callback";
     case "3":
-      return "not_interested";
+      return "fail";
     case "4":
       return "create_order";
     case "n":

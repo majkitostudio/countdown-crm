@@ -35,7 +35,7 @@ function outcomeLabel(value: string | undefined): string {
       return "No answer";
     case "objection":
     case "objection_handled":
-      return "Not interested";
+      return "Fail";
     default:
       return value?.trim() || "No result recorded";
   }

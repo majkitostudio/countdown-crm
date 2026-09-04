@@ -66,6 +66,7 @@ simulovaný softphone je jediný dostupný fallback.
 
 - [x] přidat `Operator Next Action`: stavová hlavní další akce je v Operator Console a respektuje assignment, call lifecycle i recovery,
 - [x] přidat první slice `Callback Recovery Inbox`: due/upcoming callbacky jsou v Operator Console a zůstávají omezené serverovým routingem; hlubší automatické recovery a claim callbacku jsou další krok,
+- [x] přejmenovat negativní outcome na `Fail` a při jeho uzavření vyžadovat konkrétní důvod i krátkou poznámku; důvod a poznámka se ukládají odděleně pro další reporting,
 - [ ] zrychlit post-call wrap-up tak, aby outcome, poznámka, další krok, callback a objednávka tvořily jeden krátký a jednoznačný tok chráněný proti dvojímu odeslání.
 
 ### P2 — operátorská čitelnost a vedení týmu

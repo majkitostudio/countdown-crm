@@ -39,7 +39,7 @@ export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
     case "followup_scheduled":
       return "Follow-up scheduled";
     case "objection":
-      return "Objection logged";
+      return "Fail";
     case "no_answer":
       return "No answer";
     case "completed":

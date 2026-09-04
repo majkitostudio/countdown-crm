@@ -21,7 +21,7 @@ describe("operator keyboard shortcuts", () => {
     expect(getOperatorKeyboardAction(keyEvent("M"))).toBe("toggle_mute");
     expect(getOperatorKeyboardAction(keyEvent("1"))).toBe("call_later");
     expect(getOperatorKeyboardAction(keyEvent("2"))).toBe("schedule_callback");
-    expect(getOperatorKeyboardAction(keyEvent("3"))).toBe("not_interested");
+    expect(getOperatorKeyboardAction(keyEvent("3"))).toBe("fail");
     expect(getOperatorKeyboardAction(keyEvent("4"))).toBe("create_order");
     expect(getOperatorKeyboardAction(keyEvent("n"))).toBe("focus_note");
   });

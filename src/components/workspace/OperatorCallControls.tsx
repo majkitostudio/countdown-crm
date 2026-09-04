@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import { isTelnyxEnabled } from "@/lib/telephony/telnyxClient";
+import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, validateFailDetails } from "@/lib/postCall";
 
 const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   value: CallOutcome;
@@ -24,9 +25,13 @@ const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
 }> = [
   { value: "call_later", label: "Call Later", icon: PhoneMissed, shortcut: "1" },
   { value: "schedule", label: "Schedule Callback", icon: CalendarClock, shortcut: "2" },
-  { value: "fail", label: "Not interested", icon: XCircle, shortcut: "3" },
+  { value: "fail", label: "Fail", icon: XCircle, shortcut: "3" },
   { value: "order", label: "Create Order", icon: ShoppingBag, shortcut: "4" },
 ];
+
+export function getCallOutcomeLabel(outcome: CallOutcome): string {
+  return CALL_OUTCOME_OPTIONS.find((option) => option.value === outcome)?.label || outcome;
+}
 
 interface OperatorCallControlsProps {
   isCallActive: boolean;
@@ -35,7 +40,7 @@ interface OperatorCallControlsProps {
   isMuted: boolean;
   onToggleCall: () => void;
   onToggleMute: () => void;
-  onCallOutcome: (outcome: CallOutcome) => void;
+  onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
@@ -48,7 +53,7 @@ export interface CallOutcomePanelProps {
   isAwaitingOutcome: boolean;
   isCompletionPending?: boolean;
   recoveryRequired?: boolean;
-  onCallOutcome: (outcome: CallOutcome) => void;
+  onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback: () => void;
 }
 
@@ -73,6 +78,9 @@ export function CallOutcomePanel({
   onScheduleCallback,
 }: CallOutcomePanelProps) {
   const [selectedOutcome, setSelectedOutcome] = useState<CallOutcome | null>(null);
+  const [failReason, setFailReason] = useState<FailReason | "">("");
+  const [failNote, setFailNote] = useState("");
+  const [failValidationError, setFailValidationError] = useState<string | null>(null);
 
   if (!isAwaitingOutcome) return null;
 
@@ -84,7 +92,23 @@ export function CallOutcomePanel({
       onScheduleCallback();
       return;
     }
+    if (outcome === "fail") {
+      setFailValidationError(null);
+      return;
+    }
+    setFailReason("");
+    setFailNote("");
+    setFailValidationError(null);
     onCallOutcome(outcome);
+  };
+
+  const handleFailSubmit = () => {
+    const validationError = validateFailDetails({ failReason, note: failNote });
+    if (validationError) {
+      setFailValidationError(validationError);
+      return;
+    }
+    onCallOutcome("fail", { failReason: failReason as FailReason, note: failNote.trim() });
   };
 
   return (
@@ -117,6 +141,7 @@ export function CallOutcomePanel({
           return (
             <button
               key={value}
+              id={value === "fail" ? "call-outcome-fail" : undefined}
               type="button"
               disabled={isCompletionPending}
               aria-busy={isCompletionPending && isSelected}
@@ -135,6 +160,51 @@ export function CallOutcomePanel({
           );
         })}
       </div>
+      {selectedOutcome === "fail" && (
+        <div className="mt-3 space-y-3 rounded-lg border border-rose-900/60 bg-rose-950/20 p-3" data-testid="fail-details-panel">
+          <div>
+            <label htmlFor="fail-reason" className="text-[11px] font-semibold text-rose-100">Fail reason</label>
+            <select
+              id="fail-reason"
+              value={failReason}
+              onChange={(event) => {
+                setFailReason(event.target.value as FailReason | "");
+                setFailValidationError(null);
+              }}
+              className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
+            >
+              <option value="">Select a reason…</option>
+              {FAIL_REASON_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="fail-note" className="text-[11px] font-semibold text-rose-100">Short note</label>
+            <textarea
+              id="fail-note"
+              value={failNote}
+              onChange={(event) => {
+                setFailNote(event.target.value);
+                setFailValidationError(null);
+              }}
+              rows={3}
+              maxLength={2_000}
+              placeholder="What prevented the conversion?"
+              className="mt-1.5 w-full resize-y rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
+            />
+          </div>
+          {failValidationError && <p role="alert" className="text-[11px] text-rose-300">{failValidationError}</p>}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleFailSubmit}
+              disabled={isCompletionPending}
+              className="rounded-lg bg-rose-200 px-3 py-2 text-[11px] font-semibold text-rose-950 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Save Fail
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

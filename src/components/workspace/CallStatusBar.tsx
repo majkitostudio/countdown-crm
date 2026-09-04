@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneOff, Play, Radio, Settings } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
 import { isTelnyxEnabled } from "@/lib/telephony/telnyxClient";
+import type { FailDetails } from "@/lib/postCall";
 
 export type CallOutcome = "call_later" | "schedule" | "fail" | "order";
 
@@ -22,7 +23,7 @@ interface CallStatusBarProps {
   onToggleHold: () => void;
   onSimulateIncoming: () => void;
   onStatusChange: (newStatus: OperatorStatus) => void;
-  onCallOutcome: (outcome: CallOutcome) => void;
+  onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback?: () => void;
   showIncomingSimulator?: boolean;
   isStarting?: boolean;
