@@ -111,3 +111,97 @@ Results:
 Requested commit message:
 
 `fix: keep calendar data available on partial failure`
+
+---
+
+## Fix Round 1
+
+Date: 2026-09-04
+Base commit for this fix round: `74d132ce8659ddf5ba60f39ece87e33f2afbd37e`
+
+### Reviewer Findings Addressed
+
+1. `NextBestActionCard` no longer treats callback-source failure as an ordinary empty callback list. It now resolves an explicit unavailable state from the Calendar result and renders that state instead of falling through to reorder or queue.
+2. `RecentContextRow` no longer collapses callback-source failure into `activeCallback: null` and “No record.” It now preserves callback-source unavailability through a calendar-aware recent-context helper and renders a truthful unavailable callback signal.
+3. `buildCalendarLoadResult(...)` now has a focused regression test proving that non-`DATABASE` `DataAccessError` values remain thrown rather than becoming partial unavailable.
+
+### Files Changed In Fix Round 1
+
+- `src/lib/nextBestAction.ts`
+- `src/components/dashboard/NextBestActionCard.tsx`
+- `src/components/workspace/recentContext.ts`
+- `src/components/workspace/RecentContextRow.tsx`
+- `tests/next-best-action.test.ts`
+- `tests/recent-context.test.ts`
+- `tests/calendar-runtime.test.ts`
+
+### TDD Evidence
+
+Added the following failing tests first:
+
+- `tests/next-best-action.test.ts` for callback-source unavailable state
+- `tests/recent-context.test.ts` for callback-source unavailable state
+- `tests/calendar-runtime.test.ts` for thrown non-database `DataAccessError`
+
+Initial red run:
+
+```text
+> countdown-crm@0.1.0 test
+> vitest run tests/next-best-action.test.ts tests/recent-context.test.ts tests/calendar-runtime.test.ts
+
+
+ RUN  v4.1.11 C:/Users/mikes/.projects/countdown-crm/.worktrees/codex-p1-runtime
+
+ ❯ tests/recent-context.test.ts (3 tests | 1 failed) 14ms
+     × preserves callback-source unavailability instead of reporting no active callback 6ms
+ ❯ tests/next-best-action.test.ts (4 tests | 1 failed) 10ms
+     × keeps the next-best-action card unavailable when the callback source is unavailable 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/next-best-action.test.ts > next best action > keeps the next-best-action card unavailable when the callback source is unavailable
+TypeError: resolveNextBestActionState is not a function
+
+ FAIL  tests/recent-context.test.ts > recent context > preserves callback-source unavailability instead of reporting no active callback
+TypeError: buildRecentContextFromCalendar is not a function
+```
+
+### Actual Verification Output
+
+Focused tests:
+
+```text
+> countdown-crm@0.1.0 test
+> vitest run tests/calendar-runtime.test.ts tests/next-best-action.test.ts tests/recent-context.test.ts tests/operator-next-action-ui-contract.test.ts tests/lead-queue-contract.test.ts
+
+
+ RUN  v4.1.11 C:/Users/mikes/.projects/countdown-crm/.worktrees/codex-p1-runtime
+
+
+ Test Files  5 passed (5)
+      Tests  22 passed (22)
+   Start at  17:07:06
+   Duration  796ms (transform 615ms, setup 0ms, import 1.09s, tests 72ms, environment 1ms)
+```
+
+Lint:
+
+```text
+> countdown-crm@0.1.0 lint
+> eslint src tests vitest.config.mts
+```
+
+Typecheck:
+
+```text
+> countdown-crm@0.1.0 typecheck
+> tsc --noEmit
+```
+
+### Constraint Audit For Fix Round 1
+
+- Callback-only `listScheduledCallbacksAction(...)` remains unchanged.
+- Workspace and role guards remain server-authoritative.
+- No callback failure is misrepresented as ordinary empty data in the fixed downstream consumers.
+- No Wallet or future-priority work was added.
+- Preserved untracked `Review.md` and the untracked plan file.

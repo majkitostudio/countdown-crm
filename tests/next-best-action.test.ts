@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getNextBestAction } from "@/lib/nextBestAction";
+import { getNextBestAction, resolveNextBestActionState } from "@/lib/nextBestAction";
 
 const now = new Date("2026-08-31T10:00:00.000Z");
 
@@ -57,5 +57,34 @@ describe("next best action", () => {
     expect(result.kind).toBe("queue");
     expect(result.href).toBe("/workspace");
     expect(result.source_id).toBeNull();
+  });
+
+  it("keeps the next-best-action card unavailable when the callback source is unavailable", () => {
+    const result = resolveNextBestActionState(
+      {
+        entries: [],
+        sources: {
+          callbacks: {
+            state: "unavailable",
+            message: "Scheduled callbacks could not be loaded.",
+          },
+          reminders: { state: "available" },
+        },
+      },
+      [{
+        id: "reorder-1",
+        lead_id: "lead-2",
+        lead_name: "Petr Svoboda",
+        product_title: "Test product",
+        days_remaining: 1,
+        urgency: "urgent",
+      }],
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "unavailable",
+      message: "Scheduled callbacks could not be loaded.",
+    });
   });
 });

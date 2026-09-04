@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildRecentContext, type RecentContextCallback } from "@/components/workspace/recentContext";
+import {
+  buildRecentContext,
+  buildRecentContextFromCalendar,
+  type RecentContextCallback,
+} from "@/components/workspace/recentContext";
 import type { WorkspaceActivity } from "@/lib/domain";
 
 const activities: WorkspaceActivity[] = [
@@ -71,5 +75,30 @@ describe("recent context", () => {
       lastOrder: null,
       activeCallback: null,
     });
+  });
+
+  it("preserves callback-source unavailability instead of reporting no active callback", () => {
+    const result = buildRecentContextFromCalendar(
+      "lead-1",
+      activities,
+      {
+        entries: [],
+        sources: {
+          callbacks: {
+            state: "unavailable",
+            message: "Scheduled callbacks could not be loaded.",
+          },
+          reminders: { state: "available" },
+        },
+      },
+      Date.parse("2026-08-31T00:00:00.000Z"),
+    );
+
+    expect(result.callbackSource).toEqual({
+      state: "unavailable",
+      message: "Scheduled callbacks could not be loaded.",
+    });
+    expect(result.context.activeCallback).toBeNull();
+    expect(result.context.lastContact?.activity.id).toBe("call-latest");
   });
 });

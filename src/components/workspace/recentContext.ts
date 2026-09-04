@@ -1,4 +1,5 @@
 import type { WorkspaceActivity } from "@/lib/domain";
+import type { CalendarLoadResult, CalendarSourceState } from "@/lib/dal/calendar";
 
 export interface RecentContextCallback {
   id: string;
@@ -15,6 +16,11 @@ export interface RecentContextData {
   lastCallResult: RecentContextSignal | null;
   lastOrder: RecentContextSignal | null;
   activeCallback: RecentContextCallback | null;
+}
+
+export interface RecentContextFromCalendarResult {
+  context: RecentContextData;
+  callbackSource: CalendarSourceState;
 }
 
 function latestActivity(entries: WorkspaceActivity[], type: WorkspaceActivity["type"]): WorkspaceActivity | null {
@@ -47,5 +53,35 @@ export function buildRecentContext(
     lastCallResult: lastCall ? { activity: lastCall } : null,
     lastOrder: lastOrder ? { activity: lastOrder } : null,
     activeCallback: selectActiveCallback(callbacks.filter((callback) => callback.lead_id === leadId), now),
+  };
+}
+
+export function buildRecentContextFromCalendar(
+  leadId: string,
+  activities: WorkspaceActivity[],
+  calendarResult: Pick<CalendarLoadResult, "entries" | "sources">,
+  now = Date.now(),
+): RecentContextFromCalendarResult {
+  if (calendarResult.sources.callbacks.state === "unavailable") {
+    return {
+      context: buildRecentContext(leadId, activities, [], now),
+      callbackSource: calendarResult.sources.callbacks,
+    };
+  }
+
+  return {
+    context: buildRecentContext(
+      leadId,
+      activities,
+      calendarResult.entries
+        .filter((entry) => entry.type === "callback" && entry.lead)
+        .map((entry) => ({
+          id: entry.id,
+          lead_id: entry.lead!.id,
+          scheduled_at: entry.starts_at,
+        })),
+      now,
+    ),
+    callbackSource: calendarResult.sources.callbacks,
   };
 }

@@ -6,7 +6,7 @@ import { listCalendarEntriesAction } from "@/app/actions/calendar";
 import { getLeadActivities } from "@/lib/domainActivity";
 import { formatCurrencyAmount } from "@/lib/currency";
 import type { WorkspaceActivity } from "@/lib/domain";
-import { buildRecentContext, type RecentContextData } from "./recentContext";
+import { buildRecentContextFromCalendar, type RecentContextData } from "./recentContext";
 
 interface RecentContextRowProps {
   leadId: string;
@@ -103,6 +103,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
   const [context, setContext] = useState<RecentContextData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [callbackUnavailableMessage, setCallbackUnavailableMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,20 +118,17 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
         ]);
         if (cancelled) return;
 
-        setContext(buildRecentContext(
-          leadId,
-          activities,
-          calendarResult.entries
-            .filter((entry) => entry.type === "callback" && entry.lead)
-            .map((entry) => ({
-              id: entry.id,
-              lead_id: entry.lead!.id,
-              scheduled_at: entry.starts_at,
-            })),
-        ));
+        const recentContext = buildRecentContextFromCalendar(leadId, activities, calendarResult);
+        setContext(recentContext.context);
+        setCallbackUnavailableMessage(
+          recentContext.callbackSource.state === "unavailable"
+            ? recentContext.callbackSource.message
+            : null,
+        );
       } catch (error) {
         if (!cancelled) {
           setContext(null);
+          setCallbackUnavailableMessage(null);
           setLoadError(error instanceof Error ? error.message : "Recent context could not be loaded.");
         }
       } finally {
@@ -148,9 +146,11 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
   const contact = renderSignal(context?.lastContact || null, "contact");
   const result = renderSignal(context?.lastCallResult || null, "result");
   const order = renderSignal(context?.lastOrder || null, "order");
-  const callback = context?.activeCallback
-    ? { value: formatDate(context.activeCallback.scheduled_at), detail: "Scheduled callback" }
-    : emptySignal;
+  const callback = callbackUnavailableMessage
+    ? { value: "Unavailable", detail: callbackUnavailableMessage }
+    : context?.activeCallback
+      ? { value: formatDate(context.activeCallback.scheduled_at), detail: "Scheduled callback" }
+      : emptySignal;
 
   return (
     <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3" data-testid="recent-context-row" aria-labelledby="recent-context-title">
@@ -171,7 +171,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
           <Signal icon={PhoneCall} label="Last contact" value={isLoading ? "Loading…" : contact.value} detail={isLoading ? "" : contact.detail} />
           <Signal icon={CheckCircle2} label="Last result" value={isLoading ? "Loading…" : result.value} detail={isLoading ? "" : result.detail} />
           <Signal icon={ShoppingBag} label="Last order" value={isLoading ? "Loading…" : order.value} detail={isLoading ? "" : order.detail} />
-          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} tone={context?.activeCallback ? "attention" : "default"} />
+          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} tone={!callbackUnavailableMessage && context?.activeCallback ? "attention" : "default"} />
         </div>
       )}
     </section>

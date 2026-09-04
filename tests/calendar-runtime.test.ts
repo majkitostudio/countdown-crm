@@ -138,4 +138,19 @@ describe("calendar runtime partial-failure contract", () => {
       message: "Calendar source could not be loaded.",
     });
   });
+
+  it("rethrows non-database DataAccessError values instead of downgrading them to partial unavailable", () => {
+    expect(() => buildCalendarLoadResult(
+      {
+        status: "rejected",
+        reason: new DataAccessError("FORBIDDEN", "Insufficient workspace permissions"),
+      },
+      { status: "fulfilled", value: [reminderEntry] },
+    )).toThrowError(
+      expect.objectContaining({
+        code: "FORBIDDEN",
+        message: "Insufficient workspace permissions",
+      }),
+    );
+  });
 });

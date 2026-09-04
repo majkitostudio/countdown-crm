@@ -1,3 +1,5 @@
+import type { CalendarLoadResult } from "@/lib/dal/calendar";
+
 export interface NextBestActionCallback {
   id: string;
   lead_id: string;
@@ -28,6 +30,10 @@ export interface NextBestActionInput {
   reorderOpportunities?: NextBestActionReorderOpportunity[];
   now?: Date;
 }
+
+export type NextBestActionState =
+  | { status: "ready"; action: NextBestAction }
+  | { status: "unavailable"; message: string };
 
 function isValidDate(value: string): boolean {
   return Number.isFinite(Date.parse(value));
@@ -84,5 +90,32 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
     href: "/workspace",
     source: "lead queue",
     source_id: null,
+  };
+}
+
+export function resolveNextBestActionState(
+  calendarResult: Pick<CalendarLoadResult, "entries" | "sources">,
+  reorderOpportunities: NextBestActionReorderOpportunity[] = [],
+  now?: Date,
+): NextBestActionState {
+  if (calendarResult.sources.callbacks.state === "unavailable") {
+    return {
+      status: "unavailable",
+      message: calendarResult.sources.callbacks.message,
+    };
+  }
+
+  const callbacks = calendarResult.entries
+    .filter((entry) => entry.type === "callback" && entry.lead)
+    .map((entry) => ({
+      id: entry.id,
+      lead_id: entry.lead!.id,
+      lead_name: entry.lead!.full_name,
+      scheduled_at: entry.starts_at,
+    }));
+
+  return {
+    status: "ready",
+    action: getNextBestAction({ callbacks, reorderOpportunities, now }),
   };
 }

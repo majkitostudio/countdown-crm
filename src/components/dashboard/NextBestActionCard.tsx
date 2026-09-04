@@ -5,12 +5,12 @@ import Link from "next/link";
 import { ArrowRight, CalendarClock, ListChecks, PhoneCall, RefreshCw } from "lucide-react";
 import { listCalendarEntriesAction } from "@/app/actions/calendar";
 import { getReorderOpportunities } from "@/lib/reorder";
-import { getNextBestAction, type NextBestAction } from "@/lib/nextBestAction";
+import { resolveNextBestActionState, type NextBestAction } from "@/lib/nextBestAction";
 
 export function NextBestActionCard() {
   const [action, setAction] = useState<NextBestAction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUnavailable, setIsUnavailable] = useState(false);
+  const [unavailableMessage, setUnavailableMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,22 +23,19 @@ export function NextBestActionCard() {
         ]);
 
         if (!cancelled) {
-          const callbacks = calendarResult.entries
-            .filter((entry) => entry.type === "callback" && entry.lead)
-            .map((entry) => ({
-              id: entry.id,
-              lead_id: entry.lead!.id,
-              lead_name: entry.lead!.full_name,
-              scheduled_at: entry.starts_at,
-            }));
-
-          setAction(getNextBestAction({ callbacks, reorderOpportunities }));
-          setIsUnavailable(false);
+          const nextActionState = resolveNextBestActionState(calendarResult, reorderOpportunities);
+          if (nextActionState.status === "unavailable") {
+            setAction(null);
+            setUnavailableMessage(nextActionState.message);
+          } else {
+            setAction(nextActionState.action);
+            setUnavailableMessage(null);
+          }
         }
       } catch {
         if (!cancelled) {
           setAction(null);
-          setIsUnavailable(true);
+          setUnavailableMessage("Prioritní signály nejsou dostupné. Data nebyla nahrazena syntetickou prioritou.");
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -76,9 +73,9 @@ export function NextBestActionCard() {
 
       {isLoading ? (
         <div className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Načítám priority…</div>
-      ) : isUnavailable ? (
+      ) : unavailableMessage ? (
         <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">
-          Prioritní signály nejsou dostupné. Data nebyla nahrazena syntetickou prioritou.
+          Prioritní signály nejsou dostupné: {unavailableMessage}
         </div>
       ) : action ? (
         <div className="flex flex-col gap-4 rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
