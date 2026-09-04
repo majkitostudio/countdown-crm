@@ -1,4 +1,4 @@
-# P1 runtime stability verification — Task 1 baseline
+# P1 runtime stability verification
 
 Observed on 2026-09-04 in the isolated `codex/p1-runtime-stability` worktree.
 This report captures repository evidence and separates it from target-runtime
@@ -395,5 +395,40 @@ Task 5 is **blocked**, not verified. The exact blocker is the provisioning
 command's missing `NEXT_PUBLIC_SUPABASE_URL`; the remaining documented target
 configuration and Team Leader variables were also absent. Consequently this
 run provides no authenticated runtime, persistence, RLS, role, workspace, or
-database read-back evidence. No source code, plan, `Review.md`, or status
-document was modified.
+database read-back evidence. No source code was modified during the Task 5
+provisioning attempt; the plan, `Review.md`, and status documents were not
+modified by that attempt.
+
+## Final verification and conclusion
+
+The following checks were rerun on the final P1 branch after all Task 1–6
+changes:
+
+- `npm test`: exit code `0`; 47 test files passed, 185 tests passed, 0 failed.
+- `npm run lint`: exit code `0`.
+- `npm run typecheck`: exit code `0`.
+- `npm run build`: exit code `0`; Next.js production build completed and 28/28
+  static pages were generated.
+- `git diff --check`: exit code `0`.
+- Secret scan: only documented variable names, placeholders, safe guards, and
+  test-only values were found; no credential value was found.
+- Final Luna review: approved with no Critical or Important findings.
+
+### Conclusion
+
+- Runtime code checks: verified
+- Migration history: partially verified — local migration inventory and
+  classification are recorded, but linked history and schema parity remain
+  blocked by the unavailable Supabase CLI/configuration.
+- Calendar partial failure: verified by repository tests and code review
+- Wallet partial failure: verified by repository tests and code review
+- Authenticated persistence read-back: blocked by missing target configuration
+  and disposable test credentials
+- Overall P1 status: partially verified
+- Remaining blocker: provide the documented Supabase URL, service key,
+  workspace ID, disposable Team Leader credentials, and linked-target access;
+  then rerun the authenticated smoke/read-back and linked migration checks.
+- Next priority: post-call wrap-up
+
+Live Telnyx remains intentionally outside this P1 plan and is not pilot-ready
+based on this report.
