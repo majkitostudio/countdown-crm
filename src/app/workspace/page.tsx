@@ -38,6 +38,7 @@ import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvide
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getOperatorKeyboardAction } from "@/components/workspace/operatorKeyboardShortcuts";
 import { ClientProfileCard } from "@/components/workspace/ClientProfileCard";
+import { RecentContextRow } from "@/components/workspace/RecentContextRow";
 
 interface PostCallSummary {
   leadName: string;
@@ -838,6 +839,7 @@ function WorkspaceContent() {
             </div>
             <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[9px] font-mono text-zinc-600">P2 / P3</span>
           </div>
+          {activeLead && <RecentContextRow leadId={activeLead.id} refreshToken={activityRefreshToken} />}
           <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3 shadow-sm">
             {activeLead ? (
               <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />

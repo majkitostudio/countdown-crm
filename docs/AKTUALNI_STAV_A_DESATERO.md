@@ -374,12 +374,13 @@ nebo novou funkci jen proto, aby byl commit větší.
    incoming-call nebo callback modal. Mapování a ochranné hranice pokrývá
    `tests/operator-keyboard-shortcuts.test.ts`.
 
-6. **P2 — Kompaktní režim karty klienta — plánováno**
+6. **P2 — Kompaktní režim karty klienta — dokončeno v aktuálním slice**
 
-   Zachovat kompletní Client Profile, ale umožnit přepnutí do kompaktního
-   řádku s nejdůležitějšími údaji během hovoru, aby měl operátor více prostoru
-   pro Product Script. Režim nesmí skrývat aktivní stav hovoru ani vytvořit
-   druhou variantu datového zdroje.
+   Client Profile nyní umožňuje přepnutí mezi kompletním profilem a kompaktním
+   řádkem s nejdůležitějšími údaji během hovoru. Volba se ukládá pouze lokálně
+   pro daný prohlížeč; data, assignment ani aktivní stav hovoru se nemění.
+   Kontrakt přepínání a validace uložené preference pokrývá
+   `tests/client-profile-density.test.ts`.
 
 7. **P2 — Callback modal focus management — dokončeno v aktuálním slice**
 
@@ -388,12 +389,13 @@ nebo novou funkci jen proto, aby byl commit větší.
    zaměří chybovou hlášku. Existující callback persistence a stavové guardy se
    nemění.
 
-8. **P2 — Recent context v Operator Console — plánováno**
+8. **P2 — Recent context v Operator Console — dokončeno v aktuálním slice**
 
-   Přidat krátký řádek s posledním kontaktem, posledním výsledkem hovoru,
-   poslední objednávkou a aktivním callbackem. Každá hodnota musí pocházet z
-   uložených a workspace-scoped dat; při chybějící hodnotě se zobrazí pravdivý
-   fallback. Nejde o nový tab ani prediktivní doporučení.
+   Operator Console nyní zobrazuje krátký řádek s posledním kontaktem,
+   výsledkem hovoru, objednávkou a aktivním callbackem. Hodnoty pocházejí z
+   uložené timeline a workspace-scoped kalendářní akce; při chybějící hodnotě
+   se zobrazí pravdivý fallback. Nejde o nový tab ani prediktivní doporučení.
+   Výběrový kontrakt pokrývá `tests/recent-context.test.ts`.
 
 9. **P1 — Telephony Foundation přes Telnyx — plánováno**
 

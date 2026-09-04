@@ -6,17 +6,26 @@ import {
   CircleGauge,
   FileText,
   Hash,
+  Maximize2,
   Mail,
   MapPin,
+  Minimize2,
   Phone,
   UserRound,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Lead } from "@/lib/leads";
+import {
+  getNextClientProfileDensity,
+  parseClientProfileDensity,
+  type ClientProfileDensity,
+} from "@/components/workspace/clientProfileDensity";
 
 interface ClientProfileCardProps {
   lead: Lead;
 }
+
+const PROFILE_DENSITY_STORAGE_KEY = "countdown-crm:operator-console:client-profile-density";
 
 const STATUS_LABELS: Record<Lead["status"], string> = {
   new: "New",
@@ -67,6 +76,37 @@ function ProfileField({
 
 export function ClientProfileCard({ lead }: ClientProfileCardProps) {
   const score = Math.min(100, Math.max(0, lead.ai_score));
+  const [density, setDensity] = useState<ClientProfileDensity>("full");
+  const preferenceLoadedRef = useRef(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      let savedPreference: string | null = null;
+      try {
+        savedPreference = window.localStorage.getItem(PROFILE_DENSITY_STORAGE_KEY);
+      } catch {
+        savedPreference = null;
+      }
+
+      const parsedPreference = parseClientProfileDensity(savedPreference);
+      if (parsedPreference) setDensity(parsedPreference);
+      preferenceLoadedRef.current = true;
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    if (!preferenceLoadedRef.current) return;
+
+    try {
+      window.localStorage.setItem(PROFILE_DENSITY_STORAGE_KEY, density);
+    } catch {
+      // The density switch still works for the current session if storage is blocked.
+    }
+  }, [density]);
+
+  const isCompact = density === "compact";
 
   return (
     <section
@@ -86,56 +126,93 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
             </h2>
           </div>
         </div>
-        <span className="rounded-md border border-zinc-800 bg-zinc-950/70 px-2 py-1 text-[10px] font-mono text-zinc-500">
-          Record details
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        <ProfileField icon={UserRound} label="Full name" value={lead.full_name} />
-        <ProfileField icon={Phone} label="Phone">
-          <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`tel:${lead.phone}`}>
-            {lead.phone}
-          </a>
-        </ProfileField>
-        <ProfileField icon={Mail} label="Email">
-          {lead.email ? (
-            <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`mailto:${lead.email}`}>
-              {lead.email}
-            </a>
-          ) : (
-            <p className="mt-1.5 truncate text-sm text-zinc-500">Unavailable</p>
-          )}
-        </ProfileField>
-        <ProfileField icon={Building2} label="Company" value={displayValue(lead.company)} />
-        <ProfileField icon={MapPin} label="Location" value={[lead.city, lead.country].filter(Boolean).join(", ") || "Unavailable"} />
-        <ProfileField icon={CircleGauge} label="Lead status" value={STATUS_LABELS[lead.status]} />
-      </div>
-
-      <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        <ProfileField icon={CircleGauge} label="Lead score">
-          <div className="mt-2 flex items-center gap-2">
-            <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-label="Lead score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score}>
-              <div className="h-full rounded-full bg-sky-400" style={{ width: `${score}%` }} />
-            </div>
-            <span className="shrink-0 font-mono text-sm text-zinc-200">{score}/100</span>
-          </div>
-        </ProfileField>
-        <ProfileField icon={Hash} label="Lead ID" value={lead.id} />
-        <ProfileField icon={CalendarDays} label="Created" value={formatRecordDate(lead.created_at)} />
-        <ProfileField icon={CalendarDays} label="Last updated" value={formatRecordDate(lead.updated_at)} />
-        <ProfileField icon={MapPin} label="Source" value="Unavailable" />
-      </div>
-
-      <div className="mt-2 rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-          <FileText className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" />
-          <span>Profile note</span>
+        <div className="flex items-center gap-2">
+          <span className="hidden rounded-md border border-zinc-800 bg-zinc-950/70 px-2 py-1 text-[10px] font-mono text-zinc-500 sm:inline">
+            {isCompact ? "Compact view" : "Record details"}
+          </span>
+          <button
+            type="button"
+            onClick={() => setDensity((current) => getNextClientProfileDensity(current))}
+            aria-pressed={isCompact}
+            aria-label={isCompact ? "Show full client profile" : "Use compact client profile"}
+            title={isCompact ? "Show full client profile" : "Use compact client profile"}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950/70 px-2.5 py-1.5 text-[10px] font-semibold text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          >
+            {isCompact ? <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" /> : <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" />}
+            <span>{isCompact ? "Full profile" : "Compact"}</span>
+          </button>
         </div>
-        <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
-          {displayValue(lead.notes, "No profile note saved.")}
-        </p>
       </div>
+
+      {isCompact ? (
+        <div className="mt-4 grid gap-2 sm:grid-cols-5">
+          <ProfileField icon={UserRound} label="Full name" value={lead.full_name} />
+          <ProfileField icon={CircleGauge} label="Status" value={STATUS_LABELS[lead.status]} />
+          <ProfileField icon={Phone} label="Phone">
+            <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`tel:${lead.phone}`}>
+              {lead.phone}
+            </a>
+          </ProfileField>
+          <ProfileField icon={Mail} label="Email">
+            {lead.email ? (
+              <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`mailto:${lead.email}`}>
+                {lead.email}
+              </a>
+            ) : (
+              <p className="mt-1.5 truncate text-sm text-zinc-500">Unavailable</p>
+            )}
+          </ProfileField>
+          <ProfileField icon={CircleGauge} label="Lead score" value={`${score}/100`} />
+        </div>
+      ) : (
+        <>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            <ProfileField icon={UserRound} label="Full name" value={lead.full_name} />
+            <ProfileField icon={Phone} label="Phone">
+              <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`tel:${lead.phone}`}>
+                {lead.phone}
+              </a>
+            </ProfileField>
+            <ProfileField icon={Mail} label="Email">
+              {lead.email ? (
+                <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`mailto:${lead.email}`}>
+                  {lead.email}
+                </a>
+              ) : (
+                <p className="mt-1.5 truncate text-sm text-zinc-500">Unavailable</p>
+              )}
+            </ProfileField>
+            <ProfileField icon={Building2} label="Company" value={displayValue(lead.company)} />
+            <ProfileField icon={MapPin} label="Location" value={[lead.city, lead.country].filter(Boolean).join(", ") || "Unavailable"} />
+            <ProfileField icon={CircleGauge} label="Lead status" value={STATUS_LABELS[lead.status]} />
+          </div>
+
+          <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            <ProfileField icon={CircleGauge} label="Lead score">
+              <div className="mt-2 flex items-center gap-2">
+                <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-label="Lead score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score}>
+                  <div className="h-full rounded-full bg-sky-400" style={{ width: `${score}%` }} />
+                </div>
+                <span className="shrink-0 font-mono text-sm text-zinc-200">{score}/100</span>
+              </div>
+            </ProfileField>
+            <ProfileField icon={Hash} label="Lead ID" value={lead.id} />
+            <ProfileField icon={CalendarDays} label="Created" value={formatRecordDate(lead.created_at)} />
+            <ProfileField icon={CalendarDays} label="Last updated" value={formatRecordDate(lead.updated_at)} />
+            <ProfileField icon={MapPin} label="Source" value="Unavailable" />
+          </div>
+
+          <div className="mt-2 rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+              <FileText className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" />
+              <span>Profile note</span>
+            </div>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+              {displayValue(lead.notes, "No profile note saved.")}
+            </p>
+          </div>
+        </>
+      )}
 
       <p className="mt-3 text-[10px] text-zinc-600">
         Activity timeline, shared notes and order history remain in the supporting context rail.
