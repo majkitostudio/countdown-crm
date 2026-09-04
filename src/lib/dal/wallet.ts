@@ -24,12 +24,27 @@ export interface WalletBalanceDTO {
   user_name: string;
 }
 
+export type WalletSectionState =
+  | { state: "available" }
+  | { state: "unavailable"; message: string }
+  | { state: "not_applicable" };
+
+export interface WalletSectionStates {
+  settings: WalletSectionState;
+  rules: WalletSectionState;
+  transactions: WalletSectionState;
+  balances: WalletSectionState;
+  members: WalletSectionState;
+  profiles: WalletSectionState;
+}
+
 export interface WalletOverviewDTO {
   settings: WalletSettingsRow | null;
   rules: WalletBonusRuleRow[];
   transactions: WalletTransactionDTO[];
   balances: WalletBalanceDTO[];
   members: WorkspaceMemberDTO[];
+  sections: WalletSectionStates;
   currentUserId: string;
   canManage: boolean;
 }
@@ -55,54 +70,141 @@ async function loadWalletSettings(
   return data as WalletSettingsRow;
 }
 
+async function loadWalletRules(
+  workspaceId: string,
+  supabase: Awaited<ReturnType<typeof createDataClient>>,
+): Promise<WalletBonusRuleRow[]> {
+  const { data, error } = await supabase
+    .from("wallet_bonus_rules")
+    .select("id, workspace_id, currency, minimum_order_amount, bonus_amount, effective_from, created_by, created_at")
+    .eq("workspace_id", workspaceId)
+    .order("currency", { ascending: true })
+    .order("effective_from", { ascending: false })
+    .order("minimum_order_amount", { ascending: false });
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Wallet bonus rules could not be loaded.");
+  }
+
+  return (data || []) as WalletBonusRuleRow[];
+}
+
+async function loadWalletTransactions(
+  workspaceId: string,
+  userId: string,
+  canManage: boolean,
+  supabase: Awaited<ReturnType<typeof createDataClient>>,
+): Promise<WalletTransactionRow[]> {
+  let query = supabase
+    .from("wallet_transactions")
+    .select("id, workspace_id, user_id, amount, currency, transaction_type, source_type, source_event_id, source_order_id, source_period_start, reason, author_id, audit_log_id, rule_snapshot, created_at")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false });
+
+  if (!canManage) query = query.eq("user_id", userId);
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Wallet transactions could not be loaded.");
+  }
+
+  return (data || []) as WalletTransactionRow[];
+}
+
+async function loadWalletBalances(
+  workspaceId: string,
+  supabase: Awaited<ReturnType<typeof createDataClient>>,
+): Promise<Array<Record<string, unknown>>> {
+  const { data, error } = await supabase.rpc("get_wallet_balances", { p_workspace_id: workspaceId } as never);
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Wallet balances could not be loaded.");
+  }
+
+  return (data || []) as Array<Record<string, unknown>>;
+}
+
+function availableSection(): WalletSectionState {
+  return { state: "available" };
+}
+
+function notApplicableSection(): WalletSectionState {
+  return { state: "not_applicable" };
+}
+
+function resolveSettledSection<T>(
+  result: PromiseSettledResult<T>,
+  fallbackMessage: string,
+): { data: T | null; section: WalletSectionState } {
+  if (result.status === "fulfilled") {
+    return { data: result.value, section: availableSection() };
+  }
+
+  const reason = result.reason;
+  if (reason instanceof DataAccessError) {
+    if (reason.code !== "DATABASE") {
+      throw reason;
+    }
+
+    return {
+      data: null,
+      section: { state: "unavailable", message: reason.message },
+    };
+  }
+
+  throw new DataAccessError("DATABASE", fallbackMessage);
+}
+
 export async function getWalletOverview(): Promise<WalletOverviewDTO> {
   const context = await requireWorkspaceContext();
   const supabase = await createDataClient();
   const canManage = context.role === "team_leader" || context.role === "administrator";
 
-  const [settings, rulesResult, transactionsResult, balancesResult, members] = await Promise.all([
+  const [settingsResult, rulesResult, transactionsResult, balancesResult, membersResult] = await Promise.allSettled([
     canManage ? loadWalletSettings(context.workspaceId, supabase) : Promise.resolve(null),
-    canManage ? supabase
-      .from("wallet_bonus_rules")
-      .select("id, workspace_id, currency, minimum_order_amount, bonus_amount, effective_from, created_by, created_at")
-      .eq("workspace_id", context.workspaceId)
-      .order("currency", { ascending: true })
-      .order("effective_from", { ascending: false })
-      .order("minimum_order_amount", { ascending: false }) : Promise.resolve({ data: [], error: null }),
-    (() => {
-      let query = supabase
-        .from("wallet_transactions")
-        .select("id, workspace_id, user_id, amount, currency, transaction_type, source_type, source_event_id, source_order_id, source_period_start, reason, author_id, audit_log_id, rule_snapshot, created_at")
-        .eq("workspace_id", context.workspaceId)
-        .order("created_at", { ascending: false });
-      if (!canManage) query = query.eq("user_id", context.userId);
-      return query;
-    })(),
-    supabase.rpc("get_wallet_balances", { p_workspace_id: context.workspaceId } as never),
+    canManage ? loadWalletRules(context.workspaceId, supabase) : Promise.resolve([]),
+    loadWalletTransactions(context.workspaceId, context.userId, canManage, supabase),
+    loadWalletBalances(context.workspaceId, supabase),
     canManage ? listWorkspaceOperators() : Promise.resolve([]),
   ]);
 
-  if (rulesResult.error || transactionsResult.error || balancesResult.error) {
-    throw new DataAccessError("DATABASE", "Wallet data could not be loaded.");
-  }
+  const settings = canManage
+    ? resolveSettledSection(settingsResult, "Wallet settings could not be loaded.")
+    : { data: null, section: notApplicableSection() };
+  const rules = canManage
+    ? resolveSettledSection(rulesResult, "Wallet bonus rules could not be loaded.")
+    : { data: [], section: notApplicableSection() };
+  const transactions = resolveSettledSection(transactionsResult, "Wallet transactions could not be loaded.");
+  const balances = resolveSettledSection(balancesResult, "Wallet balances could not be loaded.");
+  const members = canManage
+    ? resolveSettledSection(membersResult, "Workspace operators could not be loaded.")
+    : { data: [], section: notApplicableSection() };
 
-  const rawTransactions = (transactionsResult.data || []) as WalletTransactionRow[];
+  const rawTransactions = transactions.data || [];
   const userIds = Array.from(new Set([
     context.userId,
     ...rawTransactions.map((transaction) => transaction.user_id),
-    ...((members || []) as WorkspaceMemberDTO[]).map((member) => member.user_id),
+    ...(members.data || []).map((member) => member.user_id),
   ]));
-  const { data: profiles, error: profilesError } = await supabase
-    .from("profiles")
-    .select("id, full_name")
-    .in("id", userIds);
 
-  if (profilesError) {
-    throw new DataAccessError("DATABASE", "Wallet member names could not be loaded.");
+  let profilesSection: WalletSectionState = availableSection();
+  let profileNames = new Map<string, string>();
+
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", userIds);
+
+    if (profilesError) {
+      profilesSection = { state: "unavailable", message: "Wallet member names could not be loaded." };
+    } else {
+      profileNames = new Map((profiles || []).map((profile) => [profile.id, profile.full_name?.trim() || "Unknown user"]));
+    }
   }
 
-  const profileNames = new Map((profiles || []).map((profile) => [profile.id, profile.full_name?.trim() || "Unknown user"]));
-  const balances = ((balancesResult.data || []) as Array<Record<string, unknown>>).map((balance) => ({
+  const normalizedBalances = (balances.data || []).map((balance) => ({
     user_id: String(balance.user_id),
     transaction_count: numberValue(balance.transaction_count),
     balance: numberValue(balance.balance),
@@ -112,15 +214,23 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
   }));
 
   return {
-    settings,
-    rules: (rulesResult.data || []) as WalletBonusRuleRow[],
+    settings: settings.data,
+    rules: rules.data || [],
     transactions: rawTransactions.map((transaction) => ({
       ...transaction,
       amount: numberValue(transaction.amount),
       user_name: profileNames.get(transaction.user_id) || "Unknown user",
     })),
-    balances,
-    members: (members || []) as WorkspaceMemberDTO[],
+    balances: normalizedBalances,
+    members: members.data || [],
+    sections: {
+      settings: settings.section,
+      rules: rules.section,
+      transactions: transactions.section,
+      balances: balances.section,
+      members: members.section,
+      profiles: profilesSection,
+    },
     currentUserId: context.userId,
     canManage,
   };

@@ -52,8 +52,13 @@ describe("user wallet MVP contract", () => {
   it("keeps server role checks in the DAL and exposes the wallet page", () => {
     expect(walletDal).toContain("requireWorkspaceContext()");
     expect(walletDal).toContain("requireWorkspaceRole([\"team_leader\", \"administrator\"])");
+    expect(walletDal).toContain("WalletSectionState");
+    expect(walletDal).toContain("sections:");
+    expect(walletDal).toContain("Promise.allSettled");
     expect(walletDal).toContain("add_wallet_manual_adjustment");
     expect(walletPage).toContain("getWalletOverview");
+    expect(walletPage).toContain("No wallet transactions yet");
+    expect(walletPage).toContain("state === \"unavailable\"");
     expect(walletPage).toContain("Derived from posted ledger transactions");
     expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
     expect(settingsPage).toContain('WalletManagerPanel mode="settings"');
