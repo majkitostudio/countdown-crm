@@ -56,6 +56,10 @@ na connection a projít pilotní důkaz.
 Do dokončení těchto externích kroků zůstává živý Telnyx flag vypnutý a
 simulovaný softphone je jediný dostupný fallback.
 
+Telnyx není bezprostřední produktový krok. Před jeho návratem má přednost
+stabilizace migration history, post-call toku, Conversation Briefu, Team Leader
+Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
+
 ### P1 — runtime stabilita před pilotem
 
 - [ ] opravit a ověřit nedostupnost `/calendar` a `/wallet` v aktuálním cílovém workspace; rozlišit chybu datové vrstvy, chybějící migraci a rozdíl mezi lokálním/demo a linked prostředím,

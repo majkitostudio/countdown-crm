@@ -93,15 +93,21 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. Zrychlit post-call wrap-up: outcome, poznámka, další krok, callback a objednávka
+1. Držet P1 důkaz a runtime stabilitu: Team Leader provisioning, autentizovaný
+   call → outcome → reload → SQL, srovnání migration history a oprava `/calendar`
+   a `/wallet`.
+2. Zrychlit post-call wrap-up: outcome, poznámka, další krok, callback a objednávka
    v jednom krátkém toku s ochranou proti dvojímu odeslání.
-2. Přidat Conversation Brief do Operator Console a potom Team Leader Exception
-   Queue pro výjimky, které skutečně vyžadují zásah.
-3. Doplnit negativní role/cross-workspace scénáře a autentizovaný persistence
-   důkaz pro kritické workflow.
-4. Po dokončení externího Telnyx ověření zapnout pilotní telefonní důkaz; Gemini
-   transcription a editovatelný návrh verdiktu nechat až po stabilní telefonii.
-5. Další změny držet malé, tematické a samostatně ověřitelné.
+3. Přidat Conversation Brief do Operator Console.
+4. Přidat Team Leader Exception Queue pro výjimky, které skutečně vyžadují zásah.
+5. Dokončit role-aware úvodní plochy, zúžení navigace, Workspace Readiness,
+   Team Leader Review a auditní kontext; zmrazit custom objects, blueprints a Deals
+   pipeline, dokud denní smyčka call centra drží.
+6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
+   Telnyx pilotní telefonní důkaz. Telnyx zůstává vzdálené To-Do, ne bezprostřední
+   produktový krok.
+7. Až následně přidat Gemini transcription a editovatelný návrh verdiktu/poznámky.
+8. Další změny držet malé, tematické a samostatně ověřitelné.
 
 ## Zdroje pravdy
 
