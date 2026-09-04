@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneOff, Play, Radio, Settings } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
+import { isTelnyxEnabled } from "@/lib/telephony/telnyxClient";
 
 export type CallOutcome = "call_later" | "schedule" | "fail" | "order";
 
@@ -32,6 +33,7 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
   const formatTimer = (totalSeconds: number) => `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
   const statusLabel = status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break";
   const statusColor = status === "ready" ? "bg-emerald-500" : status === "in_call" ? "bg-rose-500" : "bg-amber-500";
+  const telephonyLabel = isTelnyxEnabled() ? "Telnyx call" : "Call simulation";
 
   return (
     <section className="p-5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-sm">
@@ -56,7 +58,7 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
               {activeLeadPhone && <span className="text-xs font-mono text-zinc-400 whitespace-nowrap">({activeLeadPhone})</span>}
             </div>
             {isDialing && <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5"><Radio className="w-3.5 h-3.5 animate-spin" />Dialing customer...</div>}
-            {isCallActive && !isDialing && <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" /></span><span>Call simulation ·</span><span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span><span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span></div>}
+            {isCallActive && !isDialing && <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" /></span><span>{telephonyLabel} ·</span><span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>{!isTelnyxEnabled() && <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>}</div>}
             {!isCallActive && !isDialing && <span className="text-[11px] text-zinc-400 block">Ready to place a call</span>}
           </div>
         </div>

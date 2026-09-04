@@ -443,6 +443,7 @@ function WorkspaceContent() {
                 startedAssignment.lead.id,
                 startedAssignment.lead.phone,
                 startedAssignment.lead.full_name,
+                { queueItemId: activeQueueItemId },
               ),
               CALL_START_SERVER_TIMEOUT_MS,
               "Audio initialization timed out",

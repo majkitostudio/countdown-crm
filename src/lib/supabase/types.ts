@@ -565,6 +565,142 @@ export interface Database {
         };
         Relationships: [];
       };
+      telephony_credentials: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          operator_id: string;
+          provider: "telnyx";
+          provider_credential_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          operator_id: string;
+          provider?: "telnyx";
+          provider_credential_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          provider?: "telnyx";
+          provider_credential_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      telephony_call_sessions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          queue_item_id: string | null;
+          lead_id: string | null;
+          operator_id: string | null;
+          provider: "telnyx";
+          direction: "inbound" | "outbound";
+          telnyx_call_control_id: string | null;
+          telnyx_call_leg_id: string | null;
+          telnyx_call_session_id: string | null;
+          telnyx_connection_id: string | null;
+          from_number: string | null;
+          to_number: string | null;
+          status: "initiated" | "ringing" | "connected" | "held" | "ended" | "failed";
+          started_at: string | null;
+          answered_at: string | null;
+          ended_at: string | null;
+          duration_seconds: number;
+          recording_id: string | null;
+          recording_url: string | null;
+          hangup_cause: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          queue_item_id?: string | null;
+          lead_id?: string | null;
+          operator_id?: string | null;
+          provider?: "telnyx";
+          direction: "inbound" | "outbound";
+          telnyx_call_control_id?: string | null;
+          telnyx_call_leg_id?: string | null;
+          telnyx_call_session_id?: string | null;
+          telnyx_connection_id?: string | null;
+          from_number?: string | null;
+          to_number?: string | null;
+          status?: "initiated" | "ringing" | "connected" | "held" | "ended" | "failed";
+          started_at?: string | null;
+          answered_at?: string | null;
+          ended_at?: string | null;
+          duration_seconds?: number;
+          recording_id?: string | null;
+          recording_url?: string | null;
+          hangup_cause?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          queue_item_id?: string | null;
+          lead_id?: string | null;
+          operator_id?: string | null;
+          telnyx_call_control_id?: string | null;
+          telnyx_call_leg_id?: string | null;
+          telnyx_call_session_id?: string | null;
+          telnyx_connection_id?: string | null;
+          from_number?: string | null;
+          to_number?: string | null;
+          status?: "initiated" | "ringing" | "connected" | "held" | "ended" | "failed";
+          started_at?: string | null;
+          answered_at?: string | null;
+          ended_at?: string | null;
+          duration_seconds?: number;
+          recording_id?: string | null;
+          recording_url?: string | null;
+          hangup_cause?: string | null;
+          metadata?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      telephony_call_events: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          call_session_id: string | null;
+          provider: "telnyx";
+          provider_event_id: string;
+          event_type: string;
+          provider_call_control_id: string | null;
+          provider_call_leg_id: string | null;
+          provider_call_session_id: string | null;
+          payload: Json;
+          occurred_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          call_session_id?: string | null;
+          provider?: "telnyx";
+          provider_event_id: string;
+          event_type: string;
+          provider_call_control_id?: string | null;
+          provider_call_leg_id?: string | null;
+          provider_call_session_id?: string | null;
+          payload?: Json;
+          occurred_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          payload?: Json;
+        };
+        Relationships: [];
+      };
       orders: {
         Row: {
           id: string;
