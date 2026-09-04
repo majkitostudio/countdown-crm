@@ -108,6 +108,7 @@ export class WebRtcSoftphoneController {
     });
     const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; error?: string };
     if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber) throw new Error(sessionBody.error || "Telnyx call session could not be created.");
+    this.telnyxSessionId = sessionBody.sessionId;
 
     const tokenResponse = await fetch("/api/telephony/telnyx/token", { method: "POST" });
     const tokenBody = await tokenResponse.json() as { token?: string; callerNumber?: string; error?: string };
@@ -118,7 +119,6 @@ export class WebRtcSoftphoneController {
     this.bindTelnyxClient(client);
     await this.ensureTelnyxReady(client);
 
-    this.telnyxSessionId = sessionBody.sessionId;
     this.currentSession.id = sessionBody.sessionId;
     this.notify();
     this.remoteAudio ||= this.createRemoteAudioElement();
@@ -179,10 +179,13 @@ export class WebRtcSoftphoneController {
     this.telnyxReadyResolve = resolveReady;
     this.telnyxReadyReject = rejectReady;
 
-    await client.connect();
-    await withTimeout(readyPromise, SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, "Telnyx client readiness timed out");
-    this.telnyxReadyResolve = null;
-    this.telnyxReadyReject = null;
+    try {
+      await client.connect();
+      await withTimeout(readyPromise, SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, "Telnyx client readiness timed out");
+    } finally {
+      if (this.telnyxReadyResolve === resolveReady) this.telnyxReadyResolve = null;
+      if (this.telnyxReadyReject === rejectReady) this.telnyxReadyReject = null;
+    }
   }
 
   private getProviderErrorMessage(event: unknown): string {
