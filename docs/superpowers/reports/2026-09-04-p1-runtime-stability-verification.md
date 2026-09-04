@@ -322,3 +322,78 @@ unverified target access.
 - No remote mutation was attempted. Demo auth was not used as a substitute for
   real Auth, and no credentials, passwords, private keys, or full personal
   phone numbers are included in this report.
+
+## Task 5 — authenticated runtime smoke and persistence read-back
+
+Observed on 2026-09-04 in this isolated worktree. This execution did not
+create an Auth user and therefore did not perform cleanup.
+
+### Provisioning
+
+- Command executed from the worktree root: `npm run provision:test-team-leader`
+- Exit code: `1`
+- Exact result: `Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL`
+- Configuration presence check: all documented `TEST_TEAM_LEADER_*` variables
+  were absent (`TEST_TEAM_LEADER_WORKSPACE_ID`, `TEST_TEAM_LEADER_EMAIL`,
+  `TEST_TEAM_LEADER_FULL_NAME`, and `TEST_TEAM_LEADER_PASSWORD`). Both
+  documented Supabase URL names and both documented service-key names were also
+  absent. Values were not printed or recorded.
+- Provisioned Auth user: no
+- Workspace/role evidence: unavailable; no real Auth session or target
+  workspace was reached.
+
+### Runtime smoke
+
+The authenticated browser/runtime smoke was not run because the provisioning
+command could not obtain the required target URL/configuration. No evidence is
+claimed for `/workspace`, `/calendar`, `/wallet`, or `/team`; direct-URL and
+supplied-workspace-ID isolation were not tested. No demo auth was used.
+
+| Surface or check | Evidence status | Reason |
+| --- | --- | --- |
+| `/workspace` as real Team Leader | Blocked | No target URL/configuration or Auth user |
+| `/calendar` as real Team Leader | Blocked | No target URL/configuration or Auth user |
+| `/wallet` as real Team Leader | Blocked | No target URL/configuration or Auth user |
+| `/team` as real Team Leader | Blocked | No target URL/configuration or Auth user |
+| Calendar partial-failure behavior | Blocked | No authenticated target runtime |
+| Wallet partial-failure behavior | Blocked | No authenticated target runtime |
+| Fallback/simulation call lifecycle | Blocked | No authenticated operator/session |
+| Live Telnyx | Not run by design | Live Telnyx is outside this task and remains disabled |
+
+### Persistence read-back
+
+- Claim → start → end → outcome/order was not run; no server response or
+  authenticated operator was available.
+- Reload verification was not run.
+- SQL read-back from `lead_queue_items`, `calls`, `orders`, or audit tables was
+  not run. No workspace, lead, operator, status, outcome, duration, notes, or
+  count is inferred.
+- Duplicate-submit/reload behavior was not run.
+
+### Task 5 negative matrix
+
+| Scenario | Evidence status | Exact limitation |
+| --- | --- | --- |
+| Unauthenticated request | Blocked | No target runtime/configuration available |
+| Authenticated user with insufficient role | Blocked | No real Auth session or seeded target user |
+| Authenticated user from another workspace | Blocked | No real Auth session or target workspace IDs |
+| Unavailable dependency | Blocked | No authenticated runtime to exercise the dependency boundary |
+| Successful empty query | Blocked | No target query could be issued |
+| Demo auth disabled as evidence source | Pass | `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` was not used |
+
+### Cleanup
+
+- Documented cleanup command was not run because this execution created no
+  account and no membership: `npm run provision:test-team-leader -- --cleanup
+  --delete-auth-user --confirm-cleanup`.
+- Cleanup result: not applicable; there was no run-created disposable account
+  to remove. No cleanup blocker is asserted.
+
+### Task 5 blocker and conclusion
+
+Task 5 is **blocked**, not verified. The exact blocker is the provisioning
+command's missing `NEXT_PUBLIC_SUPABASE_URL`; the remaining documented target
+configuration and Team Leader variables were also absent. Consequently this
+run provides no authenticated runtime, persistence, RLS, role, workspace, or
+database read-back evidence. No source code, plan, `Review.md`, or status
+document was modified.
