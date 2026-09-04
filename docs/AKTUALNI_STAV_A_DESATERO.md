@@ -1,7 +1,7 @@
 # Aktuální stav a To-Do
 
 **Snapshot:** 4. 9. 2026
-**Baseline:** `main` na commitu `b363b2a`
+**Baseline:** `main` na commitu `c7c03a2`
 **Produktový status:** stabilizace před interním pilotem
 
 Tento dokument je pracovní backlog a release checklist. Neříká, že celý produkt je production-ready; každá položka je uzavřená teprve po odpovídajícím ověření.
@@ -60,10 +60,17 @@ Tento dokument je pracovní backlog a release checklist. Neříká, že celý pr
 
 ### P2 — operátorská čitelnost a vedení týmu
 
-- [ ] zlepšit čitelnost Product Scriptu bez interaktivních kroků: statické sekční nadpisy, vizuální hierarchie, oddělení textu k přečtení od interních poznámek, lepší kontrast a scan-friendly layout; zachovat souvislou osnovu bez potvrzování a klikání během hovoru,
+- [x] zlepšit čitelnost Product Scriptu bez interaktivních kroků: statické sekční nadpisy, vizuální hierarchie, oddělení textu k přečtení od interních poznámek, lepší kontrast a scan-friendly layout; zachovat souvislou osnovu bez potvrzování a klikání během hovoru,
 - [ ] přidat předhovorový `Conversation Brief`: problém klienta, poslední relevantní kontakt, předchozí výsledek, callback promise a doporučený bezpečný další krok na jedné ploše,
 - [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
-- [ ] přidat Team Leader Exception Queue pro overdue callbacky, stuck recovery, neuzavřené outcomes, dlouhé leases, failed workflows a chybějící publikované skripty,
+- [ ] přidat Team Leader Exception Queue pro overdue callbacky, stuck recovery, neuzavřené outcomes, dlouhé leases, failed workflows a chybějící publikované skripty; každá položka musí mít důvod, prioritu, vlastníka a bezpečnou další akci,
+- [ ] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, teamleader týmové výjimky a admin stav workspace; nepřidávat další obecný dashboard bez akčního kontextu,
+- [ ] přidat Team Leader Review pro hovor, transcript, outcome, použitý skript a ruční coaching feedback; AI může navrhovat místa k pozornosti, ale nesmí sama vydávat definitivní verdikt,
+- [ ] přidat Admin `Workspace Readiness`: telefonie, webhook, migration history, RLS/role hranice, publikované skripty, callbacky, wallet a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`,
+- [ ] rozšířit správu Product Scriptů o diff draft/published, autora, účinnost, preview operátorského zobrazení a rollback předchozí verze,
+- [ ] role-aware úvodní plochy: operátorova práce, teamleaderovy výjimky a adminovo zdraví workspace; zachovat společný shell a serverové role,
+- [ ] přidat úzké Alert Center pouze pro akční upozornění s možností odložení a dohledatelným vyřešením; nebudovat obecný notifikační chat,
+- [ ] rozšířit auditní log o kontext změny, předchozí/nový stav a vazbu na entitu pro změny rolí, skriptů, callbacků, outcomes, objednávek a telefonie,
 - [ ] doplnit responsive layout pro menší displeje, nebo explicitně zdokumentovat desktop-only podporu,
 - [ ] sjednotit jazyk UI a zkontrolovat označení `AI`, `live`, `simulation` a `Unavailable`, aby odpovídala skutečnému zdroji dat a nepůsobila jako neověřený příslib.
 

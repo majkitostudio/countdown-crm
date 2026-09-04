@@ -5,7 +5,7 @@ nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
 **Snapshot:** 4. 9. 2026
-**Repo baseline:** `main` na commitu `b363b2a`
+**Repo baseline:** `main` na commitu `c7c03a2`
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -31,8 +31,9 @@ Operator Console už obsahuje plný i kompaktní režim Client Profile, recent
 context řádek, klávesové zkratky, přístupný callback modal, `Operator Next
 Action` a první slice `Callback Recovery Inbox`. Product Script zůstává
 souvislou osnovou bez pracovního Run mode a bez potvrzování jednotlivých
-kroků během hovoru. Deterministické Customer 360, Next Best Action a Team
-Leader Daily Brief nejsou live AI predikce.
+kroků během hovoru; jeho text má statické orientační sekce pro rychlejší
+čtení. Deterministické Customer 360, Next Best Action a Team Leader Daily
+Brief nejsou live AI predikce.
 
 ### Operator-first princip
 
