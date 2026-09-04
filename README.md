@@ -1,6 +1,6 @@
 # Countdown CRM
 
-Countdown CRM je workspace-scoped CRM pro výkonnostní call centra a tele-sales. Hlavní pracovní plocha je Operator Console: operátor dostane lead, vidí zákaznický kontext, vede hovor, uloží výsledek a pokračuje callbackem, objednávkou nebo dalším leadem.
+Countdown CRM je workspace-scoped CRM pro výkonnostní call centra a tele-sales. Hlavní pracovní plocha je Operator Console: operátor dostane lead, rychle pochopí zákaznický kontext, věnuje se klientovi na telefonu, uloží výsledek a pokračuje callbackem, objednávkou nebo dalším leadem. Produkt má operátorovi zjednodušit práci v citlivém rozhovoru, ne přidávat administrativní kroky.
 
 Projekt je ve stabilizaci před interním pilotem. Aktuální rozsah a otevřené kroky jsou v [PROJECT.md](PROJECT.md) a v [aktuálním To-Do](docs/AKTUALNI_STAV_A_DESATERO.md).
 
@@ -8,7 +8,7 @@ Projekt je ve stabilizaci před interním pilotem. Aktuální rozsah a otevřen�
 
 - workspace-scoped leady, zákaznický profil, timeline a produkty,
 - serverem řízená fronta leadů, assignment, callback a recovery,
-- Operator Console s Customer Profile kartou, kompaktním režimem a recent context řádkem,
+- Operator Console s Customer Profile kartou, kompaktním režimem, recent context řádkem, `Operator Next Action` a callback recovery inboxem,
 - call outcome workflow, objednávky, callbacky a auditní stopa,
 - Product Scripts a objection cards,
 - role `operator`, `team_leader` a `administrator`,
@@ -18,6 +18,11 @@ Projekt je ve stabilizaci před interním pilotem. Aktuální rozsah a otevřen�
 - připravený Telnyx WebRTC foundation; živé zapnutí čeká na číslo, environment a webhook.
 
 Simulovaný softphone, training a dosud nepřipojené externí providery se v UI nesmí vydávat za produkční telefonii nebo live AI. Přepis hovorů a post-call AI s Gemini jsou plánované další kroky, nikoli hotová funkce.
+
+U zdravotně citlivých témat, například bolestí kloubů nebo sexuálního zdraví,
+musí operátor pracovat se schváleným textem. CRM nemá diagnostikovat,
+slibovat léčbu ani vytvářet neověřená tvrzení; jeho role je dodat správný
+kontext, osnovu a další krok ve chvíli, kdy je operátor potřebuje.
 
 ## Technologický základ
 

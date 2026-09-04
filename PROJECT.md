@@ -5,15 +5,17 @@ nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
 **Snapshot:** 4. 9. 2026
-**Repo baseline:** `main` na commitu `b609e8d`
+**Repo baseline:** `main` na commitu `b363b2a`
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
 
 Countdown CRM je workspace-scoped CRM pro výkonnostní call centra a tele-sales.
-Hlavní pracovní plocha je Operator Console: operátor dostane lead, vidí
-zákaznický kontext, vede hovor, uloží výsledek a pokračuje callbackem,
-objednávkou nebo dalším leadem.
+Hlavní pracovní plocha je Operator Console: operátor dostane lead, rychle se
+zorientuje v zákaznickém kontextu, vede citlivý rozhovor, uloží výsledek a
+pokračuje callbackem, objednávkou nebo dalším leadem. Primární úkol operátora
+je klient na telefonu — CRM má odstraňovat hledání, přepisování a zbytečná
+rozhodnutí, ne odvádět pozornost administrací.
 
 ### Hlavní části
 
@@ -26,8 +28,22 @@ objednávkou nebo dalším leadem.
 - workspace-scoped serverové guardy a Supabase RLS.
 
 Operator Console už obsahuje plný i kompaktní režim Client Profile, recent
-context řádek, klávesové zkratky a přístupný callback modal. Deterministické
-Customer 360, Next Best Action a Team Leader Daily Brief nejsou live AI predikce.
+context řádek, klávesové zkratky, přístupný callback modal, `Operator Next
+Action` a první slice `Callback Recovery Inbox`. Product Script zůstává
+souvislou osnovou bez pracovního Run mode a bez potvrzování jednotlivých
+kroků během hovoru. Deterministické Customer 360, Next Best Action a Team
+Leader Daily Brief nejsou live AI predikce.
+
+### Operator-first princip
+
+- během hovoru má být nejdůležitější klient, jeho problém a další bezpečný krok,
+- kontext musí být dostupný na jedné pracovní ploše: poslední kontakt, potřeba,
+  relevantní historie, schválený text a stav assignmentu,
+- citlivá témata jako bolesti kloubů nebo sexuální zdraví vyžadují schválený
+  jazyk; systém nesmí diagnostikovat, slibovat léčbu ani vymýšlet zdravotní
+  tvrzení,
+- každá nová funkce se posuzuje podle toho, zda zkrátí čas hledání, psaní nebo
+  rozhodování operátora bez oslabení bezpečnosti, soukromí a auditní stopy.
 
 ## Technický základ
 

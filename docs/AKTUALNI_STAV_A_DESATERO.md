@@ -1,7 +1,7 @@
 # Aktuální stav a To-Do
 
 **Snapshot:** 4. 9. 2026
-**Baseline:** `main` na commitu `b609e8d`
+**Baseline:** `main` na commitu `b363b2a`
 **Produktový status:** stabilizace před interním pilotem
 
 Tento dokument je pracovní backlog a release checklist. Neříká, že celý produkt je production-ready; každá položka je uzavřená teprve po odpovídajícím ověření.
@@ -9,6 +9,8 @@ Tento dokument je pracovní backlog a release checklist. Neříká, že celý pr
 ## Co je hotové
 
 - hlavní Operator Console workflow: claim, call lifecycle, outcome, callback, recovery a objednávka,
+- `Operator Next Action`: stavová hlavní další akce bez ručního procházení lead directory,
+- první slice `Callback Recovery Inbox`: due/upcoming callbacky přímo v Operator Console se serverovým routingem,
 - karta klienta s plným a kompaktním režimem,
 - recent context řádek s posledním kontaktem, výsledkem, objednávkou a callbackem,
 - callback modal s počátečním fokusem, klávesou `Escape`, obnovou fokusu a přístupným chybovým stavem,
@@ -52,13 +54,15 @@ Tento dokument je pracovní backlog a release checklist. Neříká, že celý pr
 
 ### P1 — operátorský pracovní tok
 
-- [ ] přidat `Operator Next Action`: podle aktuálního assignmentu a call lifecycle vždy jasně zobrazit jednu hlavní další akci bez možnosti ručního procházení lead directory,
-- [ ] přidat `Callback Recovery Inbox`: due/overdue callbacky, přerušené hovory a potřebné návraty zobrazit přímo v pracovní ploše operátora při zachování callback affinity a serverového routingu,
+- [x] přidat `Operator Next Action`: stavová hlavní další akce je v Operator Console a respektuje assignment, call lifecycle i recovery,
+- [x] přidat první slice `Callback Recovery Inbox`: due/upcoming callbacky jsou v Operator Console a zůstávají omezené serverovým routingem; hlubší automatické recovery a claim callbacku jsou další krok,
 - [ ] zrychlit post-call wrap-up tak, aby outcome, poznámka, další krok, callback a objednávka tvořily jeden krátký a jednoznačný tok chráněný proti dvojímu odeslání.
 
 ### P2 — operátorská čitelnost a vedení týmu
 
 - [ ] zlepšit čitelnost Product Scriptu bez interaktivních kroků: statické sekční nadpisy, vizuální hierarchie, oddělení textu k přečtení od interních poznámek, lepší kontrast a scan-friendly layout; zachovat souvislou osnovu bez potvrzování a klikání během hovoru,
+- [ ] přidat předhovorový `Conversation Brief`: problém klienta, poslední relevantní kontakt, předchozí výsledek, callback promise a doporučený bezpečný další krok na jedné ploše,
+- [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
 - [ ] přidat Team Leader Exception Queue pro overdue callbacky, stuck recovery, neuzavřené outcomes, dlouhé leases, failed workflows a chybějící publikované skripty,
 - [ ] doplnit responsive layout pro menší displeje, nebo explicitně zdokumentovat desktop-only podporu,
 - [ ] sjednotit jazyk UI a zkontrolovat označení `AI`, `live`, `simulation` a `Unavailable`, aby odpovídala skutečnému zdroji dat a nepůsobila jako neověřený příslib.
