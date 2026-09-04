@@ -98,18 +98,32 @@ function createThenableQuery(result: QueryResult) {
   return builder;
 }
 
+function createRejectedQuery(reason: unknown) {
+  const rejection = Promise.reject(reason);
+  const builder = {
+    eq: vi.fn(() => builder),
+    order: vi.fn(() => builder),
+    in: vi.fn(() => rejection),
+    maybeSingle: vi.fn(() => rejection),
+    then: rejection.then.bind(rejection),
+  };
+  return builder;
+}
+
 function createWalletClient({
   settingsResult = { data: baseSettings, error: null },
   rulesResult = { data: [], error: null },
   transactionsResult = { data: [baseTransaction], error: null },
   profilesResult = { data: [baseProfile], error: null },
   balancesResult = { data: [baseBalance], error: null },
+  profilesRejection,
 }: {
   settingsResult?: QueryResult;
   rulesResult?: QueryResult;
   transactionsResult?: QueryResult;
   profilesResult?: QueryResult;
   balancesResult?: QueryResult;
+  profilesRejection?: unknown;
 } = {}) {
   return {
     from(table: string) {
@@ -126,7 +140,7 @@ function createWalletClient({
       }
 
       if (table === "profiles") {
-        return { select: vi.fn(() => createThenableQuery(profilesResult)) };
+        return { select: vi.fn(() => profilesRejection === undefined ? createThenableQuery(profilesResult) : createRejectedQuery(profilesRejection)) };
       }
 
       throw new Error(`Unexpected table ${table}`);
@@ -182,6 +196,25 @@ describe("wallet runtime partial-failure contract", () => {
       expect.objectContaining({ user_name: "Unknown user" }),
     ]);
     expect(overview.sections.profiles.state).toBe("unavailable");
+  });
+
+  it("keeps rows and marks profiles unavailable when the profile query rejects", async () => {
+    mocks.createDataClient.mockResolvedValue(
+      createWalletClient({ profilesRejection: new Error("profile transport failed") }),
+    );
+
+    const overview = await getWalletOverview();
+
+    expect(overview.transactions).toEqual([
+      expect.objectContaining({ user_name: "Unknown user" }),
+    ]);
+    expect(overview.balances).toEqual([
+      expect.objectContaining({ user_name: "Unknown user" }),
+    ]);
+    expect(overview.sections.profiles).toEqual({
+      state: "unavailable",
+      message: "Wallet member names could not be loaded.",
+    });
   });
 
   it("marks manager-only sections as not applicable for operators", async () => {

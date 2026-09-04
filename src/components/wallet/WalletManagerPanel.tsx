@@ -34,11 +34,13 @@ export function WalletManagerPanel({
   rules,
   members,
   mode = "all",
+  rulesAvailable = true,
 }: {
   settings: WalletSettings;
   rules: WalletRule[];
   members: WorkspaceMemberDTO[];
   mode?: "all" | "settings" | "adjustment";
+  rulesAvailable?: boolean;
 }) {
   const [currency, setCurrency] = useState<WalletCurrency>(settings.currency);
   const [rate, setRate] = useState(String(settings.monthly_commission_rate));
@@ -114,7 +116,7 @@ export function WalletManagerPanel({
     .filter((rule) => rule.currency === currency)
     .sort((left, right) => right.minimum_order_amount - left.minimum_order_amount);
   const showSettings = mode === "all" || mode === "settings";
-  const showRules = mode === "all" || mode === "settings";
+  const showRules = rulesAvailable && (mode === "all" || mode === "settings");
   const showAdjustment = mode === "all" || mode === "adjustment";
 
   return (

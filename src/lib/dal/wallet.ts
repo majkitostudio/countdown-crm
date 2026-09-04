@@ -192,15 +192,19 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
   let profileNames = new Map<string, string>();
 
   if (userIds.length > 0) {
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", userIds);
+    try {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
 
-    if (profilesError) {
+      if (profilesError) {
+        profilesSection = { state: "unavailable", message: "Wallet member names could not be loaded." };
+      } else {
+        profileNames = new Map((profiles || []).map((profile) => [profile.id, profile.full_name?.trim() || "Unknown user"]));
+      }
+    } catch {
       profilesSection = { state: "unavailable", message: "Wallet member names could not be loaded." };
-    } else {
-      profileNames = new Map((profiles || []).map((profile) => [profile.id, profile.full_name?.trim() || "Unknown user"]));
     }
   }
 

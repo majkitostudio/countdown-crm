@@ -63,6 +63,9 @@ describe("user wallet MVP contract", () => {
     expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
     expect(settingsPage).toContain('WalletManagerPanel mode="settings"');
     expect(settingsPage).toContain('data-testid="wallet-settings-boundary"');
+    expect(settingsPage).toContain('walletOverview.sections.settings.state');
+    expect(settingsPage).toContain('walletOverview.sections.rules.state');
+    expect(settingsPage).toContain("Wallet bonus rules unavailable");
     expect(rlsMigration).toContain("Workspace managers can view wallet settings");
     expect(rlsMigration).toContain("Workspace managers can view wallet bonus rules");
     expect(rlsMigration).toContain("private.is_workspace_manager_or_admin(workspace_id)");
