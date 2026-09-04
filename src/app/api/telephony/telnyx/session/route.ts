@@ -3,7 +3,8 @@ import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { createDataClient } from "@/lib/dal/db";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
-import type { TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
+import { canTransitionCallStatus, type TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
+import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/sessionTransitions";
 
 export const runtime = "nodejs";
 
@@ -76,21 +77,47 @@ export async function PATCH(request: Request) {
       telnyxCallSessionId?: string;
     };
     if (!body.sessionId || !body.status) return NextResponse.json({ error: "Session ID and status are required." }, { status: 400 });
+    if (!isSessionStatus(body.status)) return NextResponse.json({ error: "Unsupported telephony session status." }, { status: 400 });
 
-    const { error } = await createAdminClient()
+    const status = body.status as TelephonyCallStatus;
+    const admin = createAdminClient();
+    const { data: existingSession, error: lookupError } = await admin
+      .from("telephony_call_sessions")
+      .select("id,status")
+      .eq("id", body.sessionId)
+      .eq("workspace_id", context.workspaceId)
+      .eq("operator_id", context.userId)
+      .maybeSingle();
+    if (lookupError) throw new Error("Could not read the telephony session.");
+    if (!existingSession) return NextResponse.json({ error: "Telephony session is not available." }, { status: 404 });
+
+    if (!isSessionStatus(existingSession.status)) throw new Error("Stored telephony session has an invalid status.");
+    const currentStatus: TelephonyCallStatus = existingSession.status;
+    if (!canTransitionCallStatus(currentStatus, status)) {
+      return NextResponse.json({ error: "The telephony session has already moved past this state." }, { status: 409 });
+    }
+
+    const now = new Date().toISOString();
+    const enteredConnected = status === "connected" && currentStatus !== "connected";
+    const enteredTerminal = ["ended", "failed"].includes(status) && currentStatus !== status;
+    const { data: updatedSession, error } = await admin
       .from("telephony_call_sessions")
       .update({
-        status: body.status,
-        telnyx_call_control_id: body.telnyxCallControlId || undefined,
-        telnyx_call_leg_id: body.telnyxCallLegId || undefined,
-        telnyx_call_session_id: body.telnyxCallSessionId || undefined,
-        answered_at: body.status === "connected" ? new Date().toISOString() : undefined,
-        ended_at: ["ended", "failed"].includes(body.status) ? new Date().toISOString() : undefined,
+        status,
+        telnyx_call_control_id: body.telnyxCallControlId?.trim() || undefined,
+        telnyx_call_leg_id: body.telnyxCallLegId?.trim() || undefined,
+        telnyx_call_session_id: body.telnyxCallSessionId?.trim() || undefined,
+        answered_at: enteredConnected ? now : undefined,
+        ended_at: enteredTerminal ? now : undefined,
       })
       .eq("id", body.sessionId)
       .eq("workspace_id", context.workspaceId)
-      .eq("operator_id", context.userId);
+      .eq("operator_id", context.userId)
+      .in("status", getAllowedPreviousStatuses(status))
+      .select("id,status")
+      .maybeSingle();
     if (error) throw new Error("Could not update the telephony session.");
+    if (!updatedSession) return NextResponse.json({ error: "The telephony session changed before this update." }, { status: 409 });
     return NextResponse.json({ ok: true });
   } catch (error) {
     return errorResponse(error);
