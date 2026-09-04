@@ -50,3 +50,43 @@ attention first, team activity alongside it, supporting context below.
 ## Final result
 
 passed
+
+## Product Script sectioning design QA
+
+### Scope
+
+This check covers the selected first visual direction for the operator's
+Product Script: one continuous reading flow with four quiet, numbered section
+anchors and thin dividers. No run-mode controls, clickable script steps,
+Conversation Brief, or additional side-panel content were introduced.
+
+### Evidence
+
+- Source direction: `C:\Users\mikes\.codex\generated_images\01a069ca-48cb-7d91-a70f-e35d2db2bed9\exec-793e7bf7-7f93-4c00-a2c1-ceeee5433f99.png`
+- Runtime route checked: `http://127.0.0.1:3000/workspace`
+- Browser viewport: `794x742` CSS pixels; device pixel ratio `1.2`.
+- The workspace loaded with no current browser console errors or warnings.
+- The Product Script panel rendered its existing empty state because the demo
+  workspace has no active customer or product.
+
+### Visual QA boundary
+
+The live browser could not render the populated Product Script, so the four
+section anchors could not be compared against the source direction in the
+actual operator state. Creating or mutating demo product data was outside the
+requested implementation scope. Automated tests cover the generated fallback
+HTML and the scoped reading-flow hook; production build verification passed.
+
+### Findings
+
+- The implementation preserves the continuous static reading model.
+- The fallback script now provides the four requested anchors in order:
+  `1. První pozitivní dojem`, `2. Zjištění potřeb`, `3. Představení řešení`,
+  and `4. Závěrečný pozitivní dojem`.
+- Saved script HTML remains compatible with the existing sanitization path;
+  standalone bold paragraphs receive the same quiet section treatment.
+- No actionable runtime errors were observed in the available workspace state.
+
+### Final result
+
+blocked

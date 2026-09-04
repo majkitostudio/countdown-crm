@@ -6,6 +6,7 @@ export interface ProductScript {
   approvedBenefits: string[];
   objectionResponses: Record<string, string>;
   nextBestAction: string;
+  closing: string;
   guardrails: string[];
 }
 
@@ -33,6 +34,8 @@ const jointGelScript: ProductScript = {
       "Of course. What information would help you make a comfortable decision?",
   },
   nextBestAction: "Ask one discovery question before presenting the offer.",
+  closing:
+    "Thank you for sharing your situation. If you would like, we can review the next step and make sure the information is clear before you decide.",
   guardrails: [
     "Do not promise a cure, guaranteed result, or medical outcome.",
     "Do not invent discounts, referral details, delivery terms, or product claims.",
@@ -59,6 +62,8 @@ const genericScript: ProductScript = {
     hesitation: "Of course. What information would help you make a comfortable decision?",
   },
   nextBestAction: "Ask one discovery question before presenting the offer.",
+  closing:
+    "Thank you for your time and openness. If you have further questions, I can provide the approved product information and explain the next step clearly.",
   guardrails: [
     "Use only approved product information.",
     "Do not invent claims, discounts, guarantees, or delivery terms.",

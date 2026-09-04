@@ -41,9 +41,10 @@ describe("product script content", () => {
     const html = buildDefaultScriptHtml(product);
 
     expect(html).toContain("RoboClean Pro");
-    expect(html).toContain("Discovery questions");
-    expect(html).toContain("Approved benefits");
-    expect(html).toContain("Script guardrails");
+    expect(html).toContain("1. První pozitivní dojem");
+    expect(html).toContain("2. Zjištění potřeb");
+    expect(html).toContain("3. Představení řešení");
+    expect(html).toContain("4. Závěrečný pozitivní dojem");
     expect(html).not.toContain("<details");
   });
 });

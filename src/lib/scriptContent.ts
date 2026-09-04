@@ -17,20 +17,23 @@ export function buildDefaultScriptHtml(product: Product | undefined): string {
   const paragraph = (text: string) => `<p>${escapeHtml(interpolateScript(text, product))}</p>`;
   const labeledParagraph = (label: string, text: string) =>
     `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(interpolateScript(text, product))}</p>`;
+  const sectionHeading = (number: number, label: string) =>
+    `<p><strong>${escapeHtml(`${number}. ${label}`)}</strong></p>`;
 
   return [
+    sectionHeading(1, "První pozitivní dojem"),
     paragraph(script.opening),
-    "<p><strong>Discovery questions</strong></p>",
+    sectionHeading(2, "Zjištění potřeb"),
     ...script.discoveryQuestions.map(paragraph),
-    "<p><strong>Approved benefits</strong></p>",
+    sectionHeading(3, "Představení řešení"),
     ...script.approvedBenefits.map(paragraph),
-    "<p><strong>Objection handling</strong></p>",
     ...Object.entries(script.objectionResponses).map(([key, value]) =>
       labeledParagraph(key.replaceAll("_", " "), value),
     ),
-    paragraph(script.nextBestAction),
-    "<p><strong>Script guardrails</strong></p>",
-    ...script.guardrails.map(paragraph),
+    labeledParagraph("Internal guidance", script.nextBestAction),
+    sectionHeading(4, "Závěrečný pozitivní dojem"),
+    paragraph(script.closing),
+    ...script.guardrails.map((guardrail) => labeledParagraph("Script guidance", guardrail)),
   ].join("");
 }
 
