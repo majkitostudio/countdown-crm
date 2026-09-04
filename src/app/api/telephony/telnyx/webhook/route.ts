@@ -1,18 +1,29 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decodeTelnyxClientState, verifyTelnyxWebhookSignature } from "@/lib/telephony/telnyxServer";
-import { mapTelnyxEventType } from "@/lib/telephony/telnyxLifecycle";
+import { canTransitionCallStatus } from "@/lib/telephony/telnyxLifecycle";
+import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/sessionTransitions";
+import {
+  isDuplicateProviderEvent,
+  parseTelnyxVoiceEvent,
+  statusForTelnyxEvent,
+} from "@/lib/telephony/telnyxWebhook";
 
 export const runtime = "nodejs";
 
-type TelnyxEvent = {
-  data?: {
-    id?: string;
-    event_type?: string;
-    occurred_at?: string;
-    payload?: Record<string, unknown>;
-  };
-};
+function stringValue(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function durationSeconds(payload: Record<string, unknown>): number | null {
+  const startTime = stringValue(payload.start_time);
+  const endTime = stringValue(payload.end_time);
+  if (!startTime || !endTime) return null;
+  const start = Date.parse(startTime);
+  const end = Date.parse(endTime);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+  return Math.max(0, Math.round((end - start) / 1000));
+}
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -25,16 +36,13 @@ export async function POST(request: Request) {
   if (!isValid) return NextResponse.json({ error: "Invalid Telnyx webhook signature." }, { status: 401 });
 
   try {
-    const event = JSON.parse(rawBody) as TelnyxEvent;
-    const data = event.data;
-    const payload = data?.payload || {};
-    const eventId = data?.id;
-    const eventType = data?.event_type;
-    if (!eventId || !eventType) return NextResponse.json({ ok: true });
+    const event = parseTelnyxVoiceEvent(rawBody);
+    if (!event) return NextResponse.json({ ok: true });
+    const { eventId, eventType, occurredAt, payload } = event;
 
     const state = decodeTelnyxClientState(payload.client_state);
     const admin = createAdminClient();
-    let query = admin.from("telephony_call_sessions").select("id,workspace_id").limit(1);
+    let query = admin.from("telephony_call_sessions").select("id,workspace_id,status").limit(1);
     if (typeof state.sessionId === "string") query = query.eq("id", state.sessionId);
     else if (typeof payload.call_control_id === "string") query = query.eq("telnyx_call_control_id", payload.call_control_id);
     else return NextResponse.json({ ok: true });
@@ -51,27 +59,51 @@ export async function POST(request: Request) {
       provider_call_leg_id: typeof payload.call_leg_id === "string" ? payload.call_leg_id : null,
       provider_call_session_id: typeof payload.call_session_id === "string" ? payload.call_session_id : null,
       payload,
-      occurred_at: data.occurred_at || null,
+      occurred_at: occurredAt,
     });
     // Telnyx retries events. A duplicate event is already safely recorded.
-    if (eventError && !eventError.message.toLowerCase().includes("duplicate") && !eventError.message.toLowerCase().includes("unique")) {
+    if (eventError && !isDuplicateProviderEvent(eventError)) {
       throw eventError;
     }
+    if (eventError && isDuplicateProviderEvent(eventError)) return NextResponse.json({ ok: true });
 
-    const status = mapTelnyxEventType(eventType);
-    if (status) {
-      await admin.from("telephony_call_sessions").update({
-        status,
-        telnyx_call_control_id: typeof payload.call_control_id === "string" ? payload.call_control_id : undefined,
-        telnyx_call_leg_id: typeof payload.call_leg_id === "string" ? payload.call_leg_id : undefined,
-        telnyx_call_session_id: typeof payload.call_session_id === "string" ? payload.call_session_id : undefined,
-        started_at: eventType === "call.initiated" ? data.occurred_at || new Date().toISOString() : undefined,
-        answered_at: eventType === "call.answered" ? data.occurred_at || new Date().toISOString() : undefined,
-        ended_at: eventType === "call.hangup" ? data.occurred_at || new Date().toISOString() : undefined,
-        from_number: typeof payload.from === "string" ? payload.from : undefined,
-        to_number: typeof payload.to === "string" ? payload.to : undefined,
-        hangup_cause: typeof payload.hangup_cause === "string" ? payload.hangup_cause : undefined,
-      }).eq("id", session.id);
+    const status = statusForTelnyxEvent(eventType);
+    const sessionUpdates: Record<string, unknown> = {};
+    const callControlId = stringValue(payload.call_control_id);
+    const callLegId = stringValue(payload.call_leg_id);
+    const callSessionId = stringValue(payload.call_session_id);
+    const fromNumber = stringValue(payload.from);
+    const toNumber = stringValue(payload.to);
+    const hangupCause = stringValue(payload.hangup_cause);
+    if (callControlId) sessionUpdates.telnyx_call_control_id = callControlId;
+    if (callLegId) sessionUpdates.telnyx_call_leg_id = callLegId;
+    if (callSessionId) sessionUpdates.telnyx_call_session_id = callSessionId;
+    if (fromNumber) sessionUpdates.from_number = fromNumber;
+    if (toNumber) sessionUpdates.to_number = toNumber;
+    if (hangupCause) sessionUpdates.hangup_cause = hangupCause;
+
+    if (status && isSessionStatus(session.status) && session.status !== status && canTransitionCallStatus(session.status, status)) {
+      sessionUpdates.status = status;
+      const eventTime = occurredAt || new Date().toISOString();
+      if (eventType === "call.initiated") sessionUpdates.started_at = eventTime;
+      if (eventType === "call.answered") sessionUpdates.answered_at = eventTime;
+      if (eventType === "call.hangup") {
+        sessionUpdates.ended_at = eventTime;
+        const duration = durationSeconds(payload);
+        if (duration !== null) sessionUpdates.duration_seconds = duration;
+      }
+    }
+
+    if (Object.keys(sessionUpdates).length > 0) {
+      let update = admin.from("telephony_call_sessions")
+        .update(sessionUpdates)
+        .eq("id", session.id)
+        .eq("workspace_id", session.workspace_id);
+      if (status && isSessionStatus(session.status) && session.status !== status) {
+        update = update.in("status", getAllowedPreviousStatuses(status));
+      }
+      const { error: updateError } = await update;
+      if (updateError) throw updateError;
     }
 
     return NextResponse.json({ ok: true });
