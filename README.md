@@ -1,108 +1,79 @@
-# Countdown CRM — Next-Gen AI-Native Tele-Sales & CRM Platform
+# Countdown CRM
 
-> **Vision**: Vytvořit novou generaci **AI-native CRM platformy** konkurující světovým nástrojům jako **Attio**, s přímým zaměřením na automatizaci tele-sales, reálnou hlasovou asistenci, pokročilý tréninkový simulátor a enterprise bezpečnost.
+Countdown CRM je workspace-scoped CRM pro výkonnostní call centra a tele-sales. Hlavní pracovní plocha je Operator Console: operátor dostane lead, vidí zákaznický kontext, vede hovor, uloží výsledek a pokračuje callbackem, objednávkou nebo dalším leadem.
 
-**Countdown CRM** je pilotní workspace pro operátory, obchodní týmy a manažery. Jádro tvoří workspace-scoped CRM data, serverová autorizace, fronta leadů, objednávkové workflow a explicitně označené pilotní/simulované telephony části.
+Projekt je ve stabilizaci před interním pilotem. Aktuální rozsah a otevřené kroky jsou v [PROJECT.md](PROJECT.md) a v [aktuálním To-Do](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-> **Aktuální stav (2. 9. 2026):** Projekt je ve stabilizaci před interním pilotem, ne v obecné produkční připravenosti. Kanonický kontext, otevřená rizika a nejbližší pracovní balíček jsou v [PROJECT.md](PROJECT.md). Starší roadmapa a commitový katalog zachycují také historickou vizi, ne vždy dnešní ověřený runtime.
+## Co je v projektu
 
-![Next.js 16](https://img.shields.io/badge/Next.js-16.3.2-black?style=flat-square&logo=next.js)
-![React 19](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)
-![Supabase](https://img.shields.io/badge/Supabase-Database_%26_Auth-3ECF8E?style=flat-square&logo=supabase)
+- workspace-scoped leady, zákaznický profil, timeline a produkty,
+- serverem řízená fronta leadů, assignment, callback a recovery,
+- Operator Console s Customer Profile kartou, kompaktním režimem a recent context řádkem,
+- call outcome workflow, objednávky, callbacky a auditní stopa,
+- Product Scripts a objection cards,
+- role `operator`, `team_leader` a `administrator`,
+- Supabase Auth, PostgreSQL, serverové guardy a Row Level Security,
+- training/simulator workflow,
+- wallet ledger, bonusy a provizní přehled,
+- připravený Telnyx WebRTC foundation; živé zapnutí čeká na číslo, environment a webhook.
 
----
+Simulovaný softphone, training a dosud nepřipojené externí providery se v UI nesmí vydávat za produkční telefonii nebo live AI. Přepis hovorů a post-call AI s Gemini jsou plánované další kroky, nikoli hotová funkce.
 
-## 🚀 Klíčové Pilíře Platformy
+## Technologický základ
 
-### 1. ⚡ Lineární Operator Console Workflow (`/workspace`)
-- **Přímočará práce s kontaktem**: Serverem řízené přiřazení leadu, aktuální customer context a akce pro start, cancel, dokončení a callback.
-- **Pilotní telephony**: Softphone a příchozí hovor jsou simulace v prohlížeči; živá ústředna ani realtime audio stream nejsou součástí aktuálního pilotu.
-- **Rychlé výstupy hovoru na jedno kliknutí**:
-  - 📞 **`Call Later`** (Zavolat později / Nezvedá)
-  - 📅 **`Schedule Call`** (Naplánovat callback)
-  - ❌ **`Fail`** (Odmítnuto)
-  - 🛍️ **`Success / Order`** (Vytvořit objednávku)
+- Next.js App Router, React, TypeScript a Tailwind CSS
+- Supabase PostgreSQL + Auth
+- Telnyx WebRTC SDK pro budoucí živé hovory
+- Vitest, ESLint a TypeScript pro automatické kontroly
 
-### 2. 📖 Product Scripts & Battlecards
-- **Product Script panel**: Workspace-scoped schválené skripty s administrator-only draft/publish/archive workflow, sanitizací a explicitním fallbackem, pokud publikovaný skript neexistuje.
-- **Objection Battlecards**: Workspace-scoped námitkové karty navázané na produktový katalog.
-- **Cross-Sell Recommendations**: Deterministické doporučení z katalogu, bez tvrzení o live AI detekci.
+## Lokální spuštění
 
-### 3. 🌐 Workspace Timeline & Re-Order Estimates
-- **Workspace timeline**: Zobrazuje workspace-scoped hovory, objednávky a rychlé poznámky.
-- **External dispatch**: E-mail, WhatsApp a SMS pay-link zůstávají viditelně nedostupné bez schválené integrace.
-- **Re-Order Estimates**: Odhady doplnění jsou deterministický výpočet z historie objednávek a kategorií produktů.
-
-### 4. 🎓 Live Call Agent Simulator & Gamifikace (`/training`)
-- **Konfigurátor živého agenta**: Vlastní nastavení osobnosti, nálady (vč. Nedůvěřivý / Skeptik), typu produktu a cílů hovoru.
-- **Ukazatel trpělivosti (Patience Gauge)**: Dynamický výpočet nálady zákazníka s rizikem předčasného zavěšení (Hang Up).
-- **Gamifikace**: Odemykání skrytých motivací, XP body, odznaky a žebříček nejlepších operátorů.
-
-### 5. 🛡️ Enterprise Security Audit Log (`/audit`) & Multi-Format Exporter
-- **Bezpečnostní auditní log**: Sledování všech akcí operátorů s filtrováním závažnosti (Low / Medium / High / Critical).
-- **Multi-Format Report Generator**: Exporty do CSV, XLSX Excelu a tiskového PDF protokolu s živým náhledem.
-- **Call history (`/calls`)**: Přehled uložených hovorů a přepisů pouze tam, kde je skutečný zdroj; produkční audio upload a transcription pipeline nejsou součástí pilotu.
-
-### 6. 🎨 Attio-Grade Design System & Dynamic EAV Architecture
-- **Monochromatický styl**: Ultra-čistá paleta zinku (`zinc-950`, `zinc-900`), typografická kázeň (`font-mono`) pro metriky.
-- **Dynamic EAV Engine**: Libovolné vlastní objekty a vlastnosti (Custom Objects Builder).
-- **Workflow Builder**: Workspace-scoped pravidla s explicitně označenou serverovou dostupností, simulací a nedostupnými externími providery.
-
-### 7. 📌 Aktuální delivery slices
-- **Customer 360 retention**: Deterministický snapshot uložených call/order aktivit na detailu leada.
-- **Next Best Action & Team Leader Daily Brief**: Vysvětlitelné priority nad callbacky, re-order odhady, reminders a wallet přehledem; nejde o live AI predikci.
-- **User Wallet MVP**: Immutable ledger, delivered-order bonus, měsíční provize a auditované ruční úpravy. Fulfillment webhook a payout zůstávají budoucí integrací.
-- **Další práce**: [aktuální balíček dalších slice](docs/NEXT_WORK_PACKAGE_20260902.md). Roadmapa je historický katalog; pořadí práce určuje `PROJECT.md` a tento balíček.
-
----
-
-## 🛠️ Technologický Stos
-
-- **Framework**: Next.js 16.3.2 (Turbopack) & React 19
-- **AI LLM Engine**: Google Gemini 2.5 Flash API (`@google/genai`)
-- **Optional training AI**: Google Gemini/OpenAI providers pro explicitně pilotní tréninkový simulátor (`@google/genai`, OpenAI SDK)
-- **Styling**: Tailwind CSS v4 & Lucide React ikony
-- **Databáze & Auth**: Supabase PostgreSQL & `@supabase/ssr`
-- **Hlasové API**: Native Browser WebSpeech API, Syntetizátor Web Audio API & VAD Engine
-
----
-
-## 🚦 Rychlé Spuštění Pro Vývojáře
+Požadavky: Node.js a přístup k vývojovému Supabase projektu.
 
 ```bash
-# 1. Klonování repozitáře
-git clone https://github.com/majkitostudio/countdown-crm.git
-cd countdown-crm
-
-# 2. Instalace závislostí
 npm install
+```
 
-# 3. Nastavení Environment proměnných (.env.local)
-NEXT_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-GEMINI_API_KEY=your-google-gemini-api-key # volitelné; training provider
+Vytvoř `.env.local` podle [`.env.example`](.env.example). Tajné klíče patří pouze do serverového environmentu a nikdy do `NEXT_PUBLIC_*` proměnných.
 
-# 4. Spuštění vývojového serveru
+```bash
 npm run dev
 ```
 
-Aplikace bude dostupná na adrese `http://localhost:3000`.
+Aplikace se standardně otevře na `http://localhost:3000`.
 
----
+## Kontroly před předáním změny
 
-## 📜 Architektura & Dokumentace
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
 
-- **Kanonický projektový kontext:** [`PROJECT.md`](PROJECT.md)
-- Ostatní dokumenty v `docs/` jsou historická vize, dílčí plány nebo evidence;
-  při rozporu se řiďte `PROJECT.md` a skutečným ověřením.
-- **Aktuální stav a nové desatero pro Codex**: [`docs/AKTUALNI_STAV_A_DESATERO.md`](docs/AKTUALNI_STAV_A_DESATERO.md)
-- **Podrobný produktový status a auditní historie**: [`docs/PRODUCT_STATUS.md`](docs/PRODUCT_STATUS.md)
-- **Roadmapa a historický katalog commitů**: [`docs/roadmap.md`](docs/roadmap.md), [`docs/commits.md`](docs/commits.md)
-- **Aktuální balíček dalších slice:** [`docs/NEXT_WORK_PACKAGE_20260902.md`](docs/NEXT_WORK_PACKAGE_20260902.md)
-- [Architektura Systému](docs/architecture.md)
-- [Roadmapa Vývoje](docs/roadmap.md)
-- [Historie Commitů](docs/commits.md)
-- [Plán Fází & Commitů](docs/commits_roadmap.md)
-- [Banka Nápadů](docs/ideas.md)
-- [Vize Projektu](docs/vision.md)
+Pro databázovou změnu navíc ověř migration history, cílové schéma, RLS a autentizovaný read-back. Podrobnosti jsou v [pracovním postupu](docs/DEVELOPMENT_WORKFLOW.md) a [Telnyx setupu](docs/TELEPHONY_TELNYX_SETUP.md).
+
+## Hlavní plochy
+
+| Oblast | Cesta |
+|---|---|
+| Operator Console | `/workspace` |
+| Leady a detail klienta | `/leads`, `/leads/[leadId]` |
+| Hovory | `/calls` |
+| Kalendář a callbacky | `/calendar` |
+| Objednávky | `/orders` |
+| Produkty a skripty | `/products`, `/settings/scripts` |
+| Tým a audit | `/team`, `/audit` |
+| Dashboard a analytika | `/`, `/analytics` |
+| Training | `/training`, `/training/reviews` |
+| Wallet | `/wallet` |
+
+## Dokumentace
+
+- [PROJECT.md](PROJECT.md) — kanonický projektový kontext a hranice scope,
+- [Aktuální stav a To-Do](docs/AKTUALNI_STAV_A_DESATERO.md) — hotové části, otevřené kroky a release checklist,
+- [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) — stručný týmový postup pro změny,
+- [Telnyx setup](docs/TELEPHONY_TELNYX_SETUP.md) — konfigurace telefonní vrstvy bez tajných hodnot,
+- [Dokumentační index](docs/README.md) — vysvětlení, co do nové `/docs` patří.
+
+Historické Codex postupy, staré roadmapy, auditní protokoly a jednorázové handoffy nejsou součástí nové aktivní `/docs`. Pokud bude potřeba obnovit konkrétní důkaz, přidá se jako samostatný, aktuální dokument s jasným datem a účelem.

@@ -1,301 +1,108 @@
 # Countdown CRM — projektový kontext
 
-**Účel tohoto souboru:** jeden aktuální, stručný zdroj kontextu pro člověka i
-Codex. Tento soubor není povinný workflow protokol, nenahrazuje testy a sám o
-sobě neprokazuje, že je nějaká funkce pilot-ready nebo production-ready.
+Toto je kanonický stručný kontext projektu. Není to povinný workflow protokol,
+nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
+production-ready.
 
-**Snapshot:** 2. 9. 2026  
-**Repo baseline:** `main` na commitu `09961d6` (`docs: align current status and follow-ups`)
-**Produktový stav:** stabilizace před bezpečným interním pilotem; aktuální slices 1–4 jsou implementované
+**Snapshot:** 4. 9. 2026
+**Repo baseline:** `main` na commitu `b609e8d`
+**Produktový stav:** stabilizace před interním pilotem
 
-## 1. Co Countdown CRM je
+## Produkt
 
 Countdown CRM je workspace-scoped CRM pro výkonnostní call centra a tele-sales.
-Hlavní pracovní plocha je Operator Console: operátor dostane serverem řízený
-lead, vede hovor, zaznamená výsledek a podle výsledku pokračuje dalším leadem,
-callbackem nebo objednávkou.
+Hlavní pracovní plocha je Operator Console: operátor dostane lead, vidí
+zákaznický kontext, vede hovor, uloží výsledek a pokračuje callbackem,
+objednávkou nebo dalším leadem.
 
-Produkt stojí na těchto pilířích:
+### Hlavní části
 
-- leady, zákaznický kontext, produkty a produktové skripty,
+- leady, Customer Profile, timeline, produkty a Product Scripts,
 - serverem řízená fronta leadů, assignment, callback a recovery,
-- hovory a objednávky s lifecycle a auditní stopou,
-- workspace timeline, kalendář, dashboard a týmové přehledy,
+- hovory, outcomes, objednávky a auditní stopa,
+- dashboard, kalendář, týmové přehledy a Wallet MVP,
+- training/simulator workflow,
 - role `operator`, `team_leader` a `administrator`,
-- workspace-scoped oprávnění, serverové guardy a Supabase RLS,
-- administrace produktů, objection cards, workflow a blueprintů,
-- oddělený training/simulator workflow,
-- Customer 360 retention snapshot, vysvětlitelný Next Best Action a Team Leader
-  Daily Brief; všechny tři vrstvy jsou deterministické nad uloženými daty,
-- wallet ledger a pravidla pro delivered-order bonus a měsíční provizi.
+- workspace-scoped serverové guardy a Supabase RLS.
 
-## 2. Co dnes skutečně běží
+Operator Console už obsahuje plný i kompaktní režim Client Profile, recent
+context řádek, klávesové zkratky a přístupný callback modal. Deterministické
+Customer 360, Next Best Action a Team Leader Daily Brief nejsou live AI predikce.
 
-Repozitář a poslední stavové dokumenty popisují stabilizační základ, nikoli
-obecnou produkční připravenost.
+## Technický základ
 
-### Jádro CRM
+- Next.js App Router, React, TypeScript a Tailwind CSS,
+- Supabase PostgreSQL a Auth,
+- kritické zápisy přes serverovou datovou vrstvu, Server Actions nebo RPC,
+- Telnyx WebRTC SDK jako první externí telefonní provider,
+- Vitest, ESLint a TypeScript pro repo kontroly.
 
-- Next.js App Router, React, TypeScript a Tailwind CSS.
-- Supabase PostgreSQL a Auth jsou datový a autentizační základ.
-- Kritické zápisy vedou přes serverovou datovou vrstvu, Server Actions nebo
-  databázové RPC.
-- Workspace se odvozuje z membership uživatele; UI není jediná autorizace.
-- Operator Console má claim, start/cancel hovoru, heartbeat, outcome,
-  callback, lease/recovery a routing dalšího leadu.
-- Objednávky mají lifecycle, historii stavů, položky checkoutu a auditní stopu.
-- Product Scripts mají administrator-only editor, draft/publish/archive model,
-  sanitizaci a read-only zobrazení pro operátora.
-- Blueprint apply je server-authoritative a ukládá stav, atributy i workflow
-  společně.
-- Lead detail obsahuje Customer 360 retention snapshot; Dashboard obsahuje
-  Next Best Action a Team Leader Daily Brief. Nejde o live AI predikci ani
-  o nahrazení serverového queue assignmentu.
-- Wallet MVP má immutable ledger, delivered-order bonus, měsíční provizi a
-  auditované ruční úpravy; fulfillment webhook a settlement job zatím nejsou
-  připojené.
+Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá URL ani
+znalost UUID nejsou bezpečnostní hranice.
 
-### Role
+## Telefonie a AI
 
-| Role | Hlavní odpovědnost |
-|---|---|
-| Operator | Aktuální assignment, hovor, skript, outcome, callback, objednávka a vlastní pracovní data. |
-| Team Leader | Lead directory, týmové řízení, reassign/release/reopen, přehledy, schválené manažerské akce a auditované ruční wallet adjustmenty `+ / −`. |
-| Administrator | Katalog, skripty, objection cards, workflow, blueprinty, audit, workspace administrace a globální nastavení provizí a bonusů. |
+Telnyx foundation je v kódu a v linked Supabase prostředí. Obsahuje:
 
-Databáze musí vynutit workspace a roli. Přímá URL, skryté tlačítko ani UUID
-nesmí sloužit jako permission bypass.
+- serverové uložení provider credentials,
+- krátkodobý WebRTC token bez vystavení Telnyx API klíče browseru,
+- call session a call event persistence,
+- podepsaný webhook a idempotentní event trail,
+- připravený outbound browser lifecycle s mute, hold a DTMF.
 
-### Wallet
+Telnyx live režim je zatím vypnutý. V účtu není aktivní číslo přiřazené ke
+connection, takže chybí ověřený živý outbound test, webhook read-back a
+produkční telefonní důkaz. Současný fallback softphone je simulace.
 
-- Zůstatek je odvozený z immutable ledgeru, nikoli ručně upravovaný stav.
-- Bonus vzniká pouze na serverem autoritativní `delivered` události.
-- Vrácená objednávka vytváří reversal; opakovaný event je chráněný ID.
-- Měsíční provize je samostatná transakce za uzavřený měsíc.
-- Fulfillment event i měsíční settlement jsou service-role hranice.
-- Bankovní převod nebo produkční payout není součástí tohoto scope.
+Inbound routing, nahrávání, audio retention, přepis hovorů a post-call Gemini
+AI nejsou implementované. Gemini je plánovaná serverová hranice pro přepis a
+editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 
-### Odložené wallet nastavení a role
+## Co se nesmí vydávat za hotové
 
-Konfigurace provizí a automatických bonusových pravidel je nyní v administrační
-části `/settings`. Tato sekce je pro Team Leadera/Administrátora a zahrnuje
-měnu, provizní sazbu a bonusové thresholdy/pravidla.
+- simulovaný softphone nebo training nejsou živá ústředna,
+- fallback, `AI-assisted` nebo `Unavailable` label není důkaz externí integrace,
+- build a unit test nejsou důkaz persistence, RLS, concurrency ani live provideru,
+- e-mail, SMS, WhatsApp, pay-link dispatch a fulfillment webhook nejsou potvrzené
+  live integrace,
+- `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` patří pouze do lokálního vývoje,
+- `supabase/schema.sql` je historický snapshot; zdrojem databázových změn jsou
+  verzované migrace a ověření konkrétního cílového prostředí.
 
-Ve Wallet zůstane finanční přehled. `team_leader` může ve Wallet provádět
-ruční auditované kladné nebo záporné bonusové úpravy konkrétního člena, ale
-nesmí měnit globální provizní sazbu ani automatická bonusová pravidla.
-`operator` uvidí pouze vlastní zůstatek, bonusy a transakce; administrační
-formuláře ani týmové zůstatky se mu nezobrazují.
+## Aktuální pořadí práce
 
-Stejné hranice jsou v UI, Server Actions, DAL a RPC guardech. `/wallet` ponechává
-přehled a auditovanou ruční úpravu; globální nastavení už se tam nezobrazují.
+Podrobný aktivní backlog je v
+[docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-## 3. Co se nesmí vydávat za hotové
+1. Dokončit a ověřit Telnyx číslo, environment, webhook a outbound lifecycle.
+2. Doplnit negativní role/cross-workspace scénáře a autentizovaný persistence
+   důkaz pro kritické workflow.
+3. Až po stabilní telefonii přidat Gemini transcription a editovatelný návrh
+   verdiktu a poznámky.
+4. Další změny držet malé, tematické a samostatně ověřitelné.
 
-Starší vize a roadmapy místy popisují cílový produkt jako hotový live AI
-copilot. Aktuální interpretace je střízlivější:
+## Zdroje pravdy
 
-- Browser softphone a training jsou simulace, ne živá ústředna.
-- Inbound provider, webhooky, audio upload a produkční transcription/AI call
-  analysis jsou budoucí integrační scope.
-- Live sentiment, live supervisor monitoring, live presence stream a část
-  forecast/KPI zůstávají `Unavailable`, pokud pro ně neexistuje skutečný zdroj.
-- E-mail, SMS, WhatsApp a pay-link dispatch nejsou potvrzené live integrace.
-- `AI-assisted` nebo fallback label není důkaz živé AI.
-- Build, unit test nebo lokální fixture test není důkaz persistence,
-  authorization, RLS ani concurrency.
-- `NEXT_PUBLIC_ALLOW_DEMO_AUTH=true` patří pouze do lokálního vývoje; nesmí se
-  objevit ve sdíleném stagingu ani produkci.
-- `supabase/schema.sql` je historický/neúplný snapshot. Pro další změny jsou
-  zdrojem verzované migrace, aplikační kód a schválené SQL; nasazení se ověřuje
-  proti skutečné migration history a schématu konkrétního cíle.
-
-## 4. Poslední zaznamenaná evidence
-
-Níže uvedené výsledky kombinují evidenci z 31. 8. a 2. 9. 2026. Nejsou
-automaticky novým testem po resetu Codexu.
-
-### Čerstvé lokální ověření — 2. 9. 2026
-
-Evidence níže odpovídá aktuálnímu `main` na `c1799c1`; poslední změna
-zpřesnila manager-only RLS hranici pro wallet konfiguraci.
-
-- `npm test`: 30 testovacích souborů, 126 testů, vše prošlo.
-- `npm run lint`, `npm run typecheck` a `npm run build` prošly.
-- Production build zkompiloval všech 25 statických stránek a aktuální route
-  mapu včetně `/wallet`, `/leads/[leadId]`, `/training/reviews` a serverových
-  training API.
-- Toto je pouze repo/build evidence; nepotvrzuje live persistence, RLS,
-  concurrency ani externí integrace.
-
-### Čerstvé authenticated browser ověření — 2. 9. 2026
-
-- Obnovená lokální relace potvrdila účet `majkito.studio` s rolí
-  `Administrator`.
-- `/settings` zobrazil Wallet rules, měnu `CZK`, sazbu `5 %` a aktivní bonusové
-  thresholdy; po reloadu zůstaly hodnoty i role dostupné.
-- `/wallet` zobrazil týmový zůstatek, týmové ledgerové souhrny a formulář pro
-  auditovanou ruční úpravu.
-- Browser konzole po průchodu neobsahovala warning ani error.
-- Ruční finanční adjustment nebyl vytvořen, takže nevznikla nová ledgerová ani
-  auditní transakce.
-
-### Zaznamenáno jako ověřené
-
-- Repo gates v příslušných mergeh: testy, lint, typecheck, production build a
-  `git diff --check`.
-- Queue/assignment routing, callback affinity, recovery a multi-operator
-  browser smoke.
-- Operator Console telephony boundary: audio failure/cancel se nepřetvařují
-  jako aktivní nebo dokončený call.
-- Product Script draft → publish → archive, sanitizace a role boundary.
-- Custom-object Operator denial a pravdivý `Unavailable` stav.
-- Administrator Preview/Sandbox `/workspace`, lead-note persistence po reloadu
-  a read-only SQL read-back.
-- Lokální rollback-scoped RLS katalogový test; evidence uvádí 58 úspěšných testů
-  ve spojeném běhu.
-- Blueprint infrastruktura je podle evidence aplikovaná v Preview/Sandbox i
-  produkci; Preview má pozitivní activation/read-back, produkce zůstává bez
-  aktivovaného blueprintu.
-
-### Stále otevřené nebo omezené
-
-- Úplný authenticated end-to-end důkaz call → outcome/order → reload → SQL
-  read-back po aktuálních mergech; poslední checkpoint potvrzuje Operator
-  průchod `claim → start → order → reload`, nikoli ještě všechny role a
-  negativní scénáře.
-- Pozitivní Administrator browser průchod a persistence wallet konfigurace jsou
-  ověřené; stále chybí Team Leader průchod a negativní cross-workspace/RLS
-  scénáře v odpovídajícím cíli.
-- Live persistence, opakované eventy, rollback a skutečný concurrency důkaz
-  mimo rollback/disposable testy.
-- Fulfillment provider a service-role webhook pro wallet.
-- Skutečná telephony/inbound integrace.
-- Historický order/item mismatch v Preview/Sandbox byl opraven na měnu produktu
-  a itemu (`CZK`) s auditní událostí `ORDER_CURRENCY_REMEDIATED`; kontrola nyní
-  vrací nula mismatchů. Nové zápisy už mismatch odmítají a analytics částky
-  nezapočítávají přes různé měny.
-- Rozlišení aktuálního produktu od historických AI, omnichannel a workflow
-  slibů.
-
-Správný status bez nového důkazu je **stabilizační práce / interní pilot v
-přípravě**, nikoli obecné `production-ready`.
-
-## 5. Nejbližší smysluplný směr
-
-1. Řídit nejbližší práci podle [balíčku dalších slice](docs/NEXT_WORK_PACKAGE_20260902.md):
-   implementace slices 1–4 je uzavřená; zbývá pozitivní Team Leader/Administrator
-   Team Leader průchod a negativní cross-workspace/RLS scénáře; Administrator
-   Settings/Wallet persistence evidence je nyní zaznamenaná.
-2. Každý slice držet malý a samostatně ověřitelný; průběžně ukládat smysluplný
-   checkpoint;
-   není nutné čekat na absolutní jistotu o celém produktu před každým commitem.
-3. Live databázové změny, migration apply, externí provider a produkční deploy
-   řešit jako samostatně schválené operace.
-4. Historickou roadmapu a starý workflow protokol při plánování ignorovat;
-   nové funkce vybírat až z aktuálního checkpointu a po stabilizaci hlavního
-   Operator Console workflow.
-
-### To-Do
-
-- [ ] Přidat bezpečný provisioning testovacího Team Leadera: vytvoření nebo
-  pozvání Auth identity, přiřazení do aktuálního workspace jako
-  `team_leader`, ověřený login a následný cleanup/revokaci testovacího účtu.
-  Současné UI umí pouze změnit roli již existujícímu Auth uživateli; nový
-  invite/create flow zatím není součástí pilotu a nemá se nahrazovat přímým
-  zápisem do `auth.users`. Trusted helper je připravený v
-  `scripts/provision-test-team-leader.mjs`; live vytvoření, login a cleanup
-  testovacího účtu zůstávají samostatným důkazním krokem.
-
-## 6. Jak číst starší dokumentaci
-
-Když se dokumenty rozcházejí, použij toto pořadí:
-
-1. aktuální kód, migrations a skutečné ověření konkrétního cíle,
+1. aktuální kód, migrace a skutečné ověření cílového prostředí,
 2. tento `PROJECT.md`,
-3. nejnovější stavový dokument,
-4. konkrétní evidence s přesnou hranicí důkazu,
-5. starší roadmapa, vize, implementační plán nebo commitový katalog.
+3. aktuální dokumenty v `/docs`,
+4. starší materiály pouze tehdy, pokud jsou záměrně obnovené jako historický
+   důkaz.
 
-Historické dokumenty nejsou instrukce pro Codex ani pořadník práce. Zachovávají
-provenienci, rozhodnutí a důkazy, ale staré příkazy typu „další commit musí
-projít celým workflow“ a historické popisy chybného workflow se ignorují.
+Historické Codex postupy, staré roadmapy, commitové katalogy a jednorázové
+handoffy nejsou instrukce ani backlog. Do nové `/docs` se vracejí jen po
+samostatném rozhodnutí a po přepsání tak, aby odpovídaly aktuálnímu produktu.
 
-## 7. Mapa dokumentace
+## Mapa dokumentace
 
-### Aktivní kontext
+- [README.md](README.md) — rychlý vstup, spuštění a hlavní plochy,
+- [docs/README.md](docs/README.md) — index aktivní dokumentace,
+- [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md) — To-Do
+  a podmínky interního pilotu,
+- [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) — týmový
+  checklist pro změny,
+- [docs/TELEPHONY_TELNYX_SETUP.md](docs/TELEPHONY_TELNYX_SETUP.md) — Telnyx
+  konfigurace a hranice.
 
-- `PROJECT.md` — tento soubor; jediný sjednocený projektový kontext.
-
-### Stav produktu a stabilizace
-
-- `docs/AKTUALNI_STAV_A_DESATERO.md` — poslední podrobný stavový snapshot,
-  otevřené důkazy a historické desatero; slouží jako zdroj při této konsolidaci,
-  nikoli jako nový povinný workflow.
-- `docs/PRODUCT_STATUS.md` — detailní produktový status, baseline, rizika a
-  historický refactoringový kontext.
-- `docs/PROJECT_POLISH_CHECKPOINT_20260826.md` — audit nálezů a priorit.
-- `docs/PROJECT_POLISH_IMPLEMENTATION_PLAN_20260826.md` — historický plán
-  polish slices; neřídit podle něj nový task bez nového rozhodnutí.
-
-### Produktová vize, architektura a backlog
-
-- `README.md` — veřejný vstup do projektu a rychlé spuštění.
-- `docs/vision.md` — původní vize rolí a produktu.
-- `docs/architecture.md` — architektonická vize, EAV, workflow a směrování.
-- `docs/roadmap.md` — původní vícefázová roadmapa.
-- `docs/NEXT_WORK_PACKAGE_20260902.md` — aktuální výběr a pořadí nejbližších
-  implementačních a důkazních slice.
-- `docs/commits_roadmap.md` — historický katalog plánovaných fází.
-- `docs/commits.md` — historický katalog commitů.
-- `docs/ideas.md` — neschválená banka nápadů, nikoli současný delivery plán.
-
-### Databáze, migrace a autorizace
-
-- `docs/DATABASE_COMPLETION_CHECKLIST.md`
-- `docs/DATABASE_STABILIZATION_CHECKPOINT.md`
-- `docs/SUPABASE_PROVISIONING_CONTRACT_20260827.md`
-- `docs/RLS_ROLE_WORKSPACE_EVIDENCE_20260831.md`
-- `docs/CALL_OUTCOME_RECOVERY_MIGRATION_PROVENANCE_20260825.md`
-- `docs/CALL_OUTCOME_RECOVERY_MIGRATION_RECONCILIATION_20260825.md`
-- `docs/CALL_OUTCOME_RECOVERY_SANDBOX_APPLICATION_20260825.md`
-
-Tyto soubory oddělují lokální test, rollback evidence, migration provenance a
-live cíle. Žádný z nich sám o sobě nepovoluje produkční `db push`.
-
-### Operator Console, UX a browser evidence
-
-- `docs/OPERATOR_CONSOLE_AUDIT_2026-08-11.md`
-- `docs/OPERATOR_CONSOLE_REDESIGN_BRIEF_2026-08-19.md`
-- `docs/OPERATOR_CONSOLE_STATE_MAP_2026-08-30.md`
-- `docs/OPERATOR_UI_SMOKE_TEST_20260827.md`
-- `docs/ADMIN_UI_SMOKE_TEST_20260827.md`
-- `docs/ADMIN_PILOT_PERSISTENCE_20260831.md`
-- `design-qa.md` — historický design QA záznam.
-
-### Implementační plány a předávky
-
-- `docs/CALL_OUTCOME_RECOVERY_IMPLEMENTATION_PLAN.md`
-- `docs/IMPLEMENTATION_PLAN_COMMIT_6.md`
-- `docs/IMPLEMENTATION_PLAN_HARDENING_CHECKPOINT.md`
-- `docs/IMPLEMENTATION_PLAN_ROADMAP_RECONCILIATION.md`
-- `docs/USER_WALLET_MVP_HANDOFF_20260831.md`
-- `docs/TEST_TEAM_LEADER_PROVISIONING.md`
-
-Tyto soubory popisují dílčí scope a přijetí konkrétního slice. Nejsou
-globálním pracovním řádem.
-
-### Legacy workflow artefakty
-
-- `docs/GIT_WORKFLOW.md` — historický jednoduchý Git workflow; po resetu není
-  automatickým pravidlem.
-- `CLAUDE.md` — starý jednorádkový odkaz na odstraněný `AGENTS.md`; je
-  zastaralý a nemá být zdrojem nových instrukcí.
-
-## 8. Co je po konsolidaci záměrně zachováno
-
-Staré dokumenty se v tomto kroku nemažou. Obsahují historické důkazy, přesné
-hranice testů, migration provenance a rozhodnutí, která by se při slepém
-sloučení nebo smazání ztratila. `PROJECT.md` je nový kanonický vstup; později
-lze po samostatné kontrole staré soubory přesunout do archivu nebo odstranit
-jednotlivě.
+Aktivní dokumentace je záměrně malá. Smazané historické soubory se v tomto
+kroku neobnovují.
