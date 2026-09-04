@@ -12,6 +12,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome } from "@/lib/calls";
+import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
 
 interface CallDetailDrawerProps {
   call: CallRecord | null;
@@ -95,6 +96,18 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
               </span>
             </div>
           </div>
+
+          {(call.fail_reason || call.operator_note) && (
+            <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 space-y-1.5">
+              <span className="block text-[10px] font-semibold uppercase tracking-wider text-rose-300/80">Fail details</span>
+              {call.fail_reason && (
+                <p className="text-sm font-semibold text-rose-100">
+                  {isFailReason(call.fail_reason) ? getFailReasonLabel(call.fail_reason) : call.fail_reason}
+                </p>
+              )}
+              {call.operator_note && <p className="whitespace-pre-wrap text-xs leading-relaxed text-rose-200/80">{call.operator_note}</p>}
+            </div>
+          )}
 
           {/* Audio recording state */}
           <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-3">

@@ -4,6 +4,7 @@ import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceContext } from "./workspace";
 import { createDataClient } from "./db";
+import { validateCallFailFields } from "@/lib/postCall";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type CallOutcome = CallRow["outcome"];
@@ -37,6 +38,13 @@ export async function createCallForWorkspace(
   input: CreateCallInput,
   workspaceId?: string
 ): Promise<CallDTO> {
+  const outcome = input.outcome || "completed";
+  const operatorNote = input.operator_note || "";
+  const failError = validateCallFailFields({ outcome, failReason: input.fail_reason, note: operatorNote });
+  if (failError) {
+    throw new DataAccessError("VALIDATION", failError);
+  }
+
   if (
     input.duration_seconds !== undefined &&
     (!Number.isInteger(input.duration_seconds) || input.duration_seconds < 0)
@@ -74,11 +82,11 @@ export async function createCallForWorkspace(
       lead_id: input.lead_id || null,
       agent_id: context.userId,
       duration_seconds: input.duration_seconds ?? 0,
-      outcome: input.outcome || "completed",
+      outcome,
       transcript: input.transcript || null,
       ai_sentiment: input.ai_sentiment || "Neutral",
       fail_reason: input.fail_reason || null,
-      operator_note: input.operator_note?.trim() || null,
+      operator_note: operatorNote.trim() || null,
     })
     .select("id, workspace_id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, transcript, ai_sentiment, created_at")
     .single();

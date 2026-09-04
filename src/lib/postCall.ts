@@ -29,3 +29,12 @@ export function validateFailDetails(details: { failReason: unknown; note: string
   if (details.note.trim().length > 2_000) return "Fail note must contain at most 2,000 characters.";
   return null;
 }
+
+export function validateCallFailFields(details: { outcome: string; failReason: unknown; note: string }): string | null {
+  if (details.note.trim().length > 2_000) return "Call note must contain at most 2,000 characters";
+  if (details.outcome === "objection") return validateFailDetails(details);
+  if (details.failReason !== null && details.failReason !== undefined) {
+    return "Fail reason is only valid for a fail outcome";
+  }
+  return null;
+}

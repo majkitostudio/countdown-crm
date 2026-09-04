@@ -23,6 +23,8 @@ export type WorkspaceCallDTO = {
   agent_name: string;
   duration_seconds: number;
   outcome: CallRow["outcome"];
+  fail_reason: CallRow["fail_reason"];
+  operator_note: string | null;
   sentiment: string;
   order_value: number;
   transcript: string | null;
@@ -224,6 +226,8 @@ export async function listWorkspaceCallsInContext(
     agent_name: operatorNameFor(call.agent_id),
     duration_seconds: call.duration_seconds || 0,
     outcome: call.outcome,
+    fail_reason: call.fail_reason,
+    operator_note: call.operator_note,
     sentiment: call.ai_sentiment || "Neutral",
     order_value: 0,
     transcript: call.transcript,
@@ -249,6 +253,8 @@ export async function getWorkspaceCall(
     agent_name: operatorNameFor(call.agent_id),
     duration_seconds: call.duration_seconds || 0,
     outcome: call.outcome,
+    fail_reason: call.fail_reason,
+    operator_note: call.operator_note,
     sentiment: call.ai_sentiment || "Neutral",
     order_value: 0,
     transcript: call.transcript,
@@ -389,6 +395,8 @@ export async function listWorkspaceLeadActivity(
       agent_name: operatorNameFor(call.agent_id),
       duration_seconds: call.duration_seconds || 0,
       outcome: call.outcome,
+      fail_reason: call.fail_reason,
+      operator_note: call.operator_note,
       sentiment: call.ai_sentiment || "Neutral",
       order_value: 0,
       transcript: call.transcript,

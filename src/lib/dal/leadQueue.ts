@@ -8,7 +8,7 @@ import type { LeadDTO } from "./leads";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
-import { isFailReason, validateFailDetails, type FailReason } from "@/lib/postCall";
+import { isFailReason, validateCallFailFields, type FailReason } from "@/lib/postCall";
 
 export type QueueState = Database["public"]["Tables"]["lead_queue_items"]["Row"]["state"];
 export type OperatorPresenceState = Database["public"]["Tables"]["operator_presence"]["Row"]["state"];
@@ -124,15 +124,8 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
   }
 
   const operatorNote = input.operator_note || "";
-  if (operatorNote.trim().length > 2_000) {
-    throw new DataAccessError("VALIDATION", "Call note must contain at most 2,000 characters");
-  }
-  if (input.outcome === "objection") {
-    const failError = validateFailDetails({ failReason: input.fail_reason, note: operatorNote });
-    if (failError) throw new DataAccessError("VALIDATION", failError);
-  } else if (input.fail_reason !== null && input.fail_reason !== undefined) {
-    throw new DataAccessError("VALIDATION", "Fail reason is only valid for a fail outcome");
-  }
+  const failError = validateCallFailFields({ outcome: input.outcome, failReason: input.fail_reason, note: operatorNote });
+  if (failError) throw new DataAccessError("VALIDATION", failError);
 
   const hasLegacyProduct = Boolean(input.order_product_id);
   const hasLegacyAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
