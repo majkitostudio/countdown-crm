@@ -153,7 +153,10 @@ function resolveSettledSection<T>(
     };
   }
 
-  throw new DataAccessError("DATABASE", fallbackMessage);
+  return {
+    data: null,
+    section: { state: "unavailable", message: fallbackMessage },
+  };
 }
 
 export async function getWalletOverview(): Promise<WalletOverviewDTO> {

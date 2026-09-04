@@ -117,6 +117,7 @@ function createWalletClient({
   profilesResult = { data: [baseProfile], error: null },
   balancesResult = { data: [baseBalance], error: null },
   profilesRejection,
+  settingsRejection,
 }: {
   settingsResult?: QueryResult;
   rulesResult?: QueryResult;
@@ -124,11 +125,12 @@ function createWalletClient({
   profilesResult?: QueryResult;
   balancesResult?: QueryResult;
   profilesRejection?: unknown;
+  settingsRejection?: unknown;
 } = {}) {
   return {
     from(table: string) {
       if (table === "wallet_settings") {
-        return { select: vi.fn(() => createThenableQuery(settingsResult)) };
+        return { select: vi.fn(() => settingsRejection === undefined ? createThenableQuery(settingsResult) : createRejectedQuery(settingsRejection)) };
       }
 
       if (table === "wallet_bonus_rules") {
@@ -178,6 +180,21 @@ describe("wallet runtime partial-failure contract", () => {
     expect(overview.balances).toEqual([]);
     expect(overview.sections.settings.state).toBe("unavailable");
     expect(overview.sections.balances.state).toBe("unavailable");
+  });
+
+  it("keeps available transactions when a wallet section rejects with an ordinary error", async () => {
+    mocks.createDataClient.mockResolvedValue(
+      createWalletClient({ settingsRejection: new Error("settings transport failed") }),
+    );
+
+    const overview = await getWalletOverview();
+
+    expect(overview.transactions).toHaveLength(1);
+    expect(overview.sections.settings).toEqual({
+      state: "unavailable",
+      message: "Wallet settings could not be loaded.",
+    });
+    expect(overview.sections.transactions).toEqual({ state: "available" });
   });
 
   it("keeps rows and falls back to Unknown user when profile lookup fails", async () => {
