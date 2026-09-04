@@ -61,8 +61,9 @@ Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má s repozit
 srovnanou migration history i veřejné schema; poslední kontrola hlásí nulový
 schema diff a `db push --dry-run` nehlásí čekající migrace. Lokální databázové
 RLS testy prošly 58/58. Autentizovaný fallback průchod Team Leader → operátor →
-call → `no_answer` → reload → SQL read-back nyní prošel; živý Telnyx provider
-zůstává samostatně neověřený.
+call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
+ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`
+ledger. Živý Telnyx provider zůstává samostatně neověřený.
 
 ## Telefonie a AI
 
@@ -100,10 +101,9 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. Dokončit P1 runtime stabilitu: ověřit `/calendar` a `/wallet` v cílovém
-   workspace a doplnit diagnostiku připravenosti; autentizovaný fallback call →
-   outcome → reload → SQL důkaz je hotový, migration history a schema sync jsou
-   srovnané.
+1. Dokončit P1 runtime stabilitu: doplnit `Workspace Readiness` diagnostiku a
+   privilegovaný runner vzdálených databázových testů; `/calendar`, `/wallet`,
+   migration history a schema sync jsou ověřené.
 2. Zrychlit post-call wrap-up: outcome, poznámka, další krok, callback a objednávka
    v jednom krátkém toku s ochranou proti dvojímu odeslání.
 3. Přidat Conversation Brief do Operator Console.

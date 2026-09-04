@@ -7,9 +7,10 @@
 > testy prošly 58/58. Celá aplikační sada nyní prochází 187 testy ve 49 souborech.
 > Autentizovaný fallback call → outcome → reload → SQL read-back proti cílovému
 > workspace nyní prošel přes Team Leadera a operátora; testovací účty byly
-> odstraněny. Otevřenými P1 body zůstávají ověření `/calendar` a `/wallet` a
-> privilegovaný vzdálený test runner. Živý Telnyx pilot je samostatně externě
-> blokovaný.
+> odstraněny. Následně byly autentizovaně ověřeny také `/calendar` a `/wallet`,
+> včetně vytvoření/reload/zrušení reminderu a načtení wallet ledgeru.
+> Otevřenými P1 body zůstávají Workspace Readiness a privilegovaný vzdálený
+> test runner. Živý Telnyx pilot je samostatně externě blokovaný.
 
 ## Krátký verdikt
 
@@ -90,7 +91,7 @@ To ale neznamená, že je hotový pilot. Zelený build potvrzuje technickou konz
 - Gemini a post-call AI jsou plánované, nikoli implementované.
 - Conversation Brief chybí.
 - Team Leader Exception Queue chybí.
-- `/calendar` a `/wallet` potřebují ověření v linked prostředí.
+- `/calendar` a `/wallet` jsou ověřené v linked prostředí; chybí ještě jednotná Workspace Readiness diagnostika pro případ jejich budoucího selhání.
 - Autentizovaný persistence důkaz je nyní ověřený na fallback softphonu: call → `no_answer` outcome → reload → SQL read-back. Nejde o důkaz živého Telnyx provideru.
 - Chybí integrační a Playwright E2E testy proti reálnému prostředí Supabase.
 - Pilot-ready kritéria z dokumentace tedy ještě nejsou splněná.

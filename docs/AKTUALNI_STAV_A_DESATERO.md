@@ -25,6 +25,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Supabase CLI `2.116.0`, lokální konfigurace a linked sandbox jsou srovnané s repozitářem; migration history nemá mezery, `db push --dry-run` je up-to-date a schema diff je nulový,
 - wallet funkce i RLS politika na linked sandboxu odpovídají hranici manager/admin; lokální databázové RLS testy prošly 58/58.
 - autentizovaný runtime důkaz prošel: Team Leader login/role/queue release, operátorské přiřazení, fallback call, outcome `no_answer`, reload a SQL read-back; testovací účty byly po ověření odstraněny.
+- `/calendar` a `/wallet` byly ověřeny autentizovaným Team Leaderem v linked sandboxu; kalendář vytvoření/reload/zrušení reminderu přežil reload a Wallet načetl ledger i týmové zůstatky bez chyby.
 
 ## Co hotové není
 
@@ -68,7 +69,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 
 ### P1 — runtime stabilita před pilotem
 
-- [ ] ověřit dostupnost `/calendar` a `/wallet` v aktuálním cílovém workspace autentizovaným uživatelem; databázová migration/schema příčina je nyní vyloučená,
+- [x] ověřit dostupnost `/calendar` a `/wallet` v aktuálním cílovém workspace autentizovaným uživatelem; obě plochy i kalendářová persistence prošly, databázová migration/schema příčina je vyloučená,
 - [ ] doplnit diagnostiku připravenosti workspace pro queue, calendar/reminders, wallet settings, published scripts a aktivní integrace,
 - [ ] zajistit, aby selhání jedné podpůrné datové části neskrývalo dostupná data z ostatních zdrojů; například callbacky nesmí zmizet jen kvůli chybě osobních reminders.
 
@@ -172,7 +173,7 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 **Co bolí před pilotem:**
 
 1. Chybí `Workspace Readiness`: telefonie, webhook, migration history, publikované skripty, fronta, calendar/wallet, poslední chyby — `Ready` / `Needs attention` / `Blocked`.
-2. `/calendar` a `/wallet` umí spadnout v cílovém prostředí bez diagnózy (data vs. migrace vs. demo).
+2. Ověření `/calendar` a `/wallet` nyní v linked sandboxu prošlo; stále chybí jednotná diagnostika pro případ budoucího selhání (data vs. migrace vs. demo).
 3. Settings míchají zvuk operátora, schema engine, wallet a skripty. Admin nemá „provoz workspace“, má kuchyň modulů.
 4. Není ověřený negativní důkaz: cizí workspace, špatná role, Team Leader login a cleanup.
 
