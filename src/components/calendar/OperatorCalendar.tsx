@@ -22,12 +22,12 @@ import {
   listCalendarEntriesAction,
   updateReminderAction,
 } from "@/app/actions/calendar";
-import type { CalendarEntryDTO } from "@/lib/dal/calendar";
+import type { CalendarEntryDTO, CalendarLoadResult } from "@/lib/dal/calendar";
 
 type CalendarFilter = "all" | "callback" | "reminder";
 
 interface OperatorCalendarProps {
-  initialEntries: CalendarEntryDTO[];
+  initialCalendar: CalendarLoadResult;
 }
 
 interface ReminderFormState {
@@ -86,8 +86,16 @@ function toIso(localValue: string, label: string): string {
   return parsed.toISOString();
 }
 
-export function OperatorCalendar({ initialEntries }: OperatorCalendarProps) {
-  const [entries, setEntries] = useState(initialEntries);
+const SOURCE_LABELS = {
+  callbacks: "Callbacks",
+  reminders: "Reminders",
+} satisfies Record<keyof CalendarLoadResult["sources"], string>;
+
+type CalendarSourceKey = keyof CalendarLoadResult["sources"];
+type UnavailableCalendarSource = Extract<CalendarLoadResult["sources"][CalendarSourceKey], { state: "unavailable" }>;
+
+export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
+  const [calendar, setCalendar] = useState(initialCalendar);
   const [filter, setFilter] = useState<CalendarFilter>("all");
   const [form, setForm] = useState<ReminderFormState>(defaultFormState);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -96,11 +104,12 @@ export function OperatorCalendar({ initialEntries }: OperatorCalendarProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const entries = calendar.entries;
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      setEntries(await listCalendarEntriesAction());
+      setCalendar(await listCalendarEntriesAction());
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Calendar could not be refreshed.");
     } finally {
@@ -118,6 +127,12 @@ export function OperatorCalendar({ initialEntries }: OperatorCalendarProps) {
     [entries, filter],
   );
   const dueReminders = entries.filter(isReminderDue);
+  const unavailableSources = (Object.entries(calendar.sources) as Array<[CalendarSourceKey, CalendarLoadResult["sources"][CalendarSourceKey]]>)
+    .flatMap(([sourceKey, source]) => (
+      source.state === "unavailable"
+        ? [{ sourceKey, source: source as UnavailableCalendarSource }]
+        : []
+    ));
 
   const openCreate = () => {
     setEditingId(null);
@@ -189,6 +204,16 @@ export function OperatorCalendar({ initialEntries }: OperatorCalendarProps) {
             <div className="text-xs font-semibold">Připomínka je splatná</div>
             <div className="mt-1 text-xs text-amber-200/75">{dueReminders.map((entry) => entry.title).join(" · ")}</div>
           </div>
+        </div>
+      )}
+
+      {unavailableSources.length > 0 && (
+        <div className="rounded-xl border border-amber-900/70 bg-amber-950/10 p-3 text-xs text-amber-200" role="status">
+          {unavailableSources.map(({ sourceKey, source }) => (
+            <p key={sourceKey}>
+              {SOURCE_LABELS[sourceKey]} unavailable: {source.message}
+            </p>
+          ))}
         </div>
       )}
 

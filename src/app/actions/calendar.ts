@@ -2,7 +2,7 @@
 
 import {
   listOperatorCalendarEntriesForWorkspace,
-  type CalendarEntryDTO,
+  type CalendarLoadResult,
 } from "@/lib/dal/calendar";
 import {
   listScheduledCallbacksForWorkspace,
@@ -22,7 +22,7 @@ export async function listCalendarEntriesAction(
   from?: string,
   to?: string,
   workspaceId?: string,
-): Promise<CalendarEntryDTO[]> {
+): Promise<CalendarLoadResult> {
   return listOperatorCalendarEntriesForWorkspace(from, to, workspaceId);
 }
 

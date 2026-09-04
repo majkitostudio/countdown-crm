@@ -17,13 +17,13 @@ export function NextBestActionCard() {
 
     async function loadSignals() {
       try {
-        const [calendarEntries, reorderOpportunities] = await Promise.all([
+        const [calendarResult, reorderOpportunities] = await Promise.all([
           listCalendarEntriesAction(),
           getReorderOpportunities(),
         ]);
 
         if (!cancelled) {
-          const callbacks = calendarEntries
+          const callbacks = calendarResult.entries
             .filter((entry) => entry.type === "callback" && entry.lead)
             .map((entry) => ({
               id: entry.id,

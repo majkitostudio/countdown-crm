@@ -111,7 +111,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
       setIsLoading(true);
       setLoadError(null);
       try {
-        const [activities, calendarEntries] = await Promise.all([
+        const [activities, calendarResult] = await Promise.all([
           getLeadActivities(leadId),
           listCalendarEntriesAction(),
         ]);
@@ -120,7 +120,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
         setContext(buildRecentContext(
           leadId,
           activities,
-          calendarEntries
+          calendarResult.entries
             .filter((entry) => entry.type === "callback" && entry.lead)
             .map((entry) => ({
               id: entry.id,

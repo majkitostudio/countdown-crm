@@ -55,8 +55,16 @@ export function TeamLeaderDailyBriefCard() {
         if (cancelled) return;
 
         const warnings: string[] = [];
-        const calendarEntries = calendarResult.status === "fulfilled" ? calendarResult.value : [];
+        const calendarEntries = calendarResult.status === "fulfilled" ? calendarResult.value.entries : [];
         if (calendarResult.status === "rejected") warnings.push("Callbacky a reminders nejsou dostupné.");
+        if (calendarResult.status === "fulfilled") {
+          if (calendarResult.value.sources.callbacks.state === "unavailable") {
+            warnings.push(`Callbacky nejsou dostupné: ${calendarResult.value.sources.callbacks.message}`);
+          }
+          if (calendarResult.value.sources.reminders.state === "unavailable") {
+            warnings.push(`Reminders nejsou dostupné: ${calendarResult.value.sources.reminders.message}`);
+          }
+        }
         if (walletResult.status === "rejected") warnings.push("Wallet souhrn není dostupný.");
         if (reorderResult.status === "rejected") warnings.push("Re-order odhady nejsou dostupné.");
 

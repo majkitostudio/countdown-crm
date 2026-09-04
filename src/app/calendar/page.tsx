@@ -1,15 +1,15 @@
 import { CalendarDays, LockKeyhole } from "lucide-react";
-import { listOperatorCalendarEntriesForWorkspace, type CalendarEntryDTO } from "@/lib/dal/calendar";
+import { listOperatorCalendarEntriesForWorkspace, type CalendarLoadResult } from "@/lib/dal/calendar";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { OperatorCalendar } from "@/components/calendar/OperatorCalendar";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default async function CalendarPage() {
-  let entries: CalendarEntryDTO[] = [];
+  let calendar: CalendarLoadResult | null = null;
   let loadError: unknown = null;
 
   try {
-    entries = await listOperatorCalendarEntriesForWorkspace();
+    calendar = await listOperatorCalendarEntriesForWorkspace();
   } catch (error) {
     loadError = error;
   }
@@ -35,7 +35,7 @@ export default async function CalendarPage() {
         title="My Calendar"
         description="Callbacky a osobní reminders na jednom pracovním přehledu. Reminders nemění stav call queue."
       />
-      <OperatorCalendar initialEntries={entries} />
+      <OperatorCalendar initialCalendar={calendar!} />
     </div>
   );
 }
