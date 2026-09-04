@@ -1,7 +1,7 @@
 # Aktuální stav a To-Do
 
 **Snapshot:** 4. 9. 2026
-**Baseline:** `main` na commitu `c7c03a2`
+**Baseline:** `main` na commitu `83e4362`
 **Produktový status:** stabilizace před interním pilotem
 
 Tento dokument je pracovní backlog a release checklist. Neříká, že celý produkt je production-ready; každá položka je uzavřená teprve po odpovídajícím ověření.
@@ -23,8 +23,7 @@ Tento dokument je pracovní backlog a release checklist. Neříká, že celý pr
 
 ## Co hotové není
 
-- v Telnyx účtu zatím není aktivní číslo přiřazené ke connection,
-- live Telnyx environment a veřejná webhook URL ještě nejsou ověřené end-to-end,
+- Telnyx live pilot je dočasně odložený kvůli ověření telefonního čísla mimo repo; live environment a veřejná webhook URL proto ještě nejsou ověřené end-to-end,
 - inbound routing, nahrávání hovorů a přepis hovorů nejsou implementované,
 - Gemini post-call AI pro přepis, verdikt a návrh poznámky není implementovaná,
 - training a softphone fallback zůstávají simulací, dokud nebude výslovně zapnutá živá telefonní vrstva,
@@ -32,19 +31,30 @@ Tento dokument je pracovní backlog a release checklist. Neříká, že celý pr
 
 ## To-Do
 
-### P1 — dokončit ověřitelný telefonní základ
-
-- [ ] získat a přiřadit Telnyx číslo k vybrané voice connection,
-- [ ] nastavit serverové `TELNYX_*` proměnné a `NEXT_PUBLIC_TELNYX_ENABLED=true` pouze v cílovém environmentu,
-- [ ] nasadit veřejnou webhook URL `/api/telephony/telnyx/webhook` a ověřit podpisy i eventy,
-- [ ] projít přihlášený outbound hovor v browseru a ověřit lifecycle v UI i v databázi po reloadu,
-- [ ] doplnit negativní role/workspace scénáře pro telephony data.
-
 ### P1 — bezpečnost a pilotní důkaz
 
 - [ ] dokončit testovací Team Leader provisioning, login, ověření role a cleanup,
 - [ ] doplnit autentizovaný call → outcome/order → reload → SQL read-back pro kritické role,
 - [ ] explicitně evidovat rozdíly migration history mezi repozitářem a každým cílovým prostředím.
+
+### Vzdálené To-Do — Telnyx (externě blokované)
+
+Telnyx integrační základ je v repozitáři připravený, ale živé ověření teď není
+aktivní pracovní blok. Zakoupené číslo vedené pro Středočeský kraj neodpovídá
+adrese žadatele, proto probíhá žádost o refundaci. Po potvrzení refundace bude
+zakoupené číslo pro Moravskoslezský kraj potřeba ověřit a teprve potom navázat
+na connection a projít pilotní důkaz.
+
+- [ ] dokončit refundaci nevhodného krajského čísla,
+- [ ] zakoupit a ověřit Telnyx číslo odpovídající skutečné adrese,
+- [ ] přiřadit ověřené číslo k vybrané voice connection,
+- [ ] nastavit serverové `TELNYX_*` proměnné a `NEXT_PUBLIC_TELNYX_ENABLED=true` pouze v cílovém environmentu,
+- [ ] nasadit veřejnou webhook URL `/api/telephony/telnyx/webhook` a ověřit podpisy i eventy,
+- [ ] projít přihlášený outbound hovor v browseru a ověřit lifecycle v UI i v databázi po reloadu,
+- [ ] doplnit negativní role/workspace scénáře pro telephony data.
+
+Do dokončení těchto externích kroků zůstává živý Telnyx flag vypnutý a
+simulovaný softphone je jediný dostupný fallback.
 
 ### P1 — runtime stabilita před pilotem
 

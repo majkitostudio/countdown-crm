@@ -5,7 +5,7 @@ nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
 **Snapshot:** 4. 9. 2026
-**Repo baseline:** `main` na commitu `c7c03a2`
+**Repo baseline:** `main` na commitu `83e4362`
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -67,9 +67,11 @@ Telnyx foundation je v kódu a v linked Supabase prostředí. Obsahuje:
 - podepsaný webhook a idempotentní event trail,
 - připravený outbound browser lifecycle s mute, hold a DTMF.
 
-Telnyx live režim je zatím vypnutý. V účtu není aktivní číslo přiřazené ke
-connection, takže chybí ověřený živý outbound test, webhook read-back a
-produkční telefonní důkaz. Současný fallback softphone je simulace.
+Telnyx live režim je zatím vypnutý a je vedený jako vzdálené, externě blokované
+To-Do. Zakoupené číslo vedené pro Středočeský kraj neodpovídá adrese žadatele,
+probíhá refundace a následně bude potřeba ověřit číslo pro Moravskoslezský kraj.
+Do té doby chybí ověřený živý outbound test, webhook read-back a produkční
+telefonní důkaz. Současný fallback softphone je simulace.
 
 Inbound routing, nahrávání, audio retention, přepis hovorů a post-call Gemini
 AI nejsou implementované. Gemini je plánovaná serverová hranice pro přepis a
@@ -91,12 +93,15 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. Dokončit a ověřit Telnyx číslo, environment, webhook a outbound lifecycle.
-2. Doplnit negativní role/cross-workspace scénáře a autentizovaný persistence
+1. Zrychlit post-call wrap-up: outcome, poznámka, další krok, callback a objednávka
+   v jednom krátkém toku s ochranou proti dvojímu odeslání.
+2. Přidat Conversation Brief do Operator Console a potom Team Leader Exception
+   Queue pro výjimky, které skutečně vyžadují zásah.
+3. Doplnit negativní role/cross-workspace scénáře a autentizovaný persistence
    důkaz pro kritické workflow.
-3. Až po stabilní telefonii přidat Gemini transcription a editovatelný návrh
-   verdiktu a poznámky.
-4. Další změny držet malé, tematické a samostatně ověřitelné.
+4. Po dokončení externího Telnyx ověření zapnout pilotní telefonní důkaz; Gemini
+   transcription a editovatelný návrh verdiktu nechat až po stabilní telefonii.
+5. Další změny držet malé, tematické a samostatně ověřitelné.
 
 ## Zdroje pravdy
 

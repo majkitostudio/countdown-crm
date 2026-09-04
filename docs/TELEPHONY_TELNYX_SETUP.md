@@ -8,7 +8,7 @@ Countdown CRM má připravenou první Telnyx integrační vrstvu, ale živá tel
 - účet: upgradovaný účet s dostupným kreditem pro vývojové testy,
 - API v2 key: vytvořený v Telnyx dashboardu; tajná hodnota není v repozitáři,
 - connection: vytvořená a aktivní SIP/WebRTC connection,
-- číslo: v současnosti není aktivní číslo přiřazené ke connection,
+- číslo: živé ověření je odložené; zakoupené číslo vedené pro Středočeský kraj čeká na refundaci a nové číslo pro Moravskoslezský kraj bude potřeba ověřit podle skutečné adresy,
 - databáze: `telephony_credentials`, `telephony_call_sessions` a `telephony_call_events` jsou vytvořené s RLS,
 - živý režim: řídí `NEXT_PUBLIC_TELNYX_ENABLED` a je defaultně vypnutý.
 
@@ -34,13 +34,14 @@ NEXT_PUBLIC_TELNYX_ENABLED=false
 
 ## Aktivace v pořadí
 
-1. V Telnyx dashboardu dokonči číslo a přiřaď ho k voice connection.
-2. Zkontroluj connection ID a vlož serverové proměnné do cílového environmentu.
-3. Zkopíruj Telnyx account Public Key do `TELNYX_PUBLIC_KEY`.
-4. Nastav veřejnou URL aplikace s cestou `/api/telephony/telnyx/webhook` a povol relevantní call lifecycle eventy.
-5. Zapni `NEXT_PUBLIC_TELNYX_ENABLED=true` až po kontrole hodnot.
-6. Proveď přihlášený outbound test: token → session → ringing/connected/ended → webhook → databázový read-back.
-7. Pokud test selže, flag vypni a ověř session/event log; nesmí vzniknout falešný „completed“ call.
+1. Dokonči refundaci nevhodného krajského čísla a následně ověř nové číslo pro správný kraj podle skutečné adresy.
+2. V Telnyx dashboardu přiřaď ověřené číslo k voice connection.
+3. Zkontroluj connection ID a vlož serverové proměnné do cílového environmentu.
+4. Zkopíruj Telnyx account Public Key do `TELNYX_PUBLIC_KEY`.
+5. Nastav veřejnou URL aplikace s cestou `/api/telephony/telnyx/webhook` a povol relevantní call lifecycle eventy.
+6. Zapni `NEXT_PUBLIC_TELNYX_ENABLED=true` až po kontrole hodnot.
+7. Proveď přihlášený outbound test: token → session → ringing/connected/ended → webhook → databázový read-back.
+8. Pokud test selže, flag vypni a ověř session/event log; nesmí vzniknout falešný „completed“ call.
 
 ## Co zatím není součástí
 
