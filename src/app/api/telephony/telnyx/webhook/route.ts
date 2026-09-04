@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decodeTelnyxClientState, verifyTelnyxWebhookSignature } from "@/lib/telephony/telnyxServer";
+import { mapTelnyxEventType } from "@/lib/telephony/telnyxLifecycle";
 
 export const runtime = "nodejs";
 
@@ -12,15 +13,6 @@ type TelnyxEvent = {
     payload?: Record<string, unknown>;
   };
 };
-
-function statusForEvent(eventType: string): "initiated" | "ringing" | "connected" | "held" | "ended" | "failed" | null {
-  if (eventType === "call.initiated") return "initiated";
-  if (eventType === "call.ringing") return "ringing";
-  if (eventType === "call.answered") return "connected";
-  if (eventType === "call.held" || eventType === "call.unheld") return eventType === "call.held" ? "held" : "connected";
-  if (eventType === "call.hangup") return "ended";
-  return null;
-}
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -66,7 +58,7 @@ export async function POST(request: Request) {
       throw eventError;
     }
 
-    const status = statusForEvent(eventType);
+    const status = mapTelnyxEventType(eventType);
     if (status) {
       await admin.from("telephony_call_sessions").update({
         status,

@@ -1,5 +1,6 @@
 import { audioEngine } from "./audioEngine";
 import { encodeTelnyxClientState, isTelnyxEnabled } from "./telnyxClient";
+import { mapTelnyxCallState } from "./telnyxLifecycle";
 import { withTimeout } from "@/lib/withTimeout";
 
 export const SOFTPHONE_AUDIO_INIT_TIMEOUT_MS = 10_000;
@@ -144,8 +145,12 @@ export class WebRtcSoftphoneController {
   private handleTelnyxNotification(notification: { type?: string; call?: TelnyxCall; error?: Error }) {
     const call = notification.call || this.telnyxCall;
     if (call) this.telnyxCall = call;
-    const providerState = call?.state || notification.type || "";
-    const state: CallState | null = providerState === "active" ? "connected" : providerState === "held" ? "on_hold" : providerState === "hangup" || providerState === "destroy" ? "ended" : ["ringing", "answering", "early", "trying", "requesting"].includes(providerState) ? "ringing" : null;
+    const providerState = call?.state ? mapTelnyxCallState(call.state) : null;
+    const state: CallState | null = providerState === "held"
+      ? "on_hold"
+      : providerState === "connected" || providerState === "ringing" || providerState === "ended"
+        ? providerState
+        : null;
     if (!state || this.currentSession.state === "idle") return;
     if (call) this.syncTelnyxSession(state === "connected" ? "connected" : state === "on_hold" ? "held" : state === "ended" ? "ended" : "ringing", call.telnyxIDs);
     if (state === "connected" && !this.currentSession.startTime) { this.currentSession.startTime = new Date(); this.startTimer(); }

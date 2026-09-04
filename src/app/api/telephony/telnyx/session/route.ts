@@ -3,10 +3,11 @@ import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { createDataClient } from "@/lib/dal/db";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
+import type { TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
 
 export const runtime = "nodejs";
 
-type SessionStatus = "initiated" | "ringing" | "connected" | "held" | "ended" | "failed";
+type SessionStatus = TelephonyCallStatus;
 
 function errorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : "Telephony session request failed.";
