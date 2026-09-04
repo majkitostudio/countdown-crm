@@ -14,16 +14,18 @@ import {
   XCircle,
 } from "lucide-react";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
+import { isTelnyxEnabled } from "@/lib/telephony/telnyxClient";
 
 const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   value: CallOutcome;
   label: string;
   icon: typeof PhoneMissed;
+  shortcut: string;
 }> = [
-  { value: "call_later", label: "Call Later", icon: PhoneMissed },
-  { value: "schedule", label: "Schedule Callback", icon: CalendarClock },
-  { value: "fail", label: "Not interested", icon: XCircle },
-  { value: "order", label: "Create Order", icon: ShoppingBag },
+  { value: "call_later", label: "Call Later", icon: PhoneMissed, shortcut: "1" },
+  { value: "schedule", label: "Schedule Callback", icon: CalendarClock, shortcut: "2" },
+  { value: "fail", label: "Not interested", icon: XCircle, shortcut: "3" },
+  { value: "order", label: "Create Order", icon: ShoppingBag, shortcut: "4" },
 ];
 
 interface OperatorCallControlsProps {
@@ -110,7 +112,7 @@ export function CallOutcomePanel({
         Selection is local until the completion action succeeds. Keyboard focus is shown separately.
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Post-call outcome options">
-        {CALL_OUTCOME_OPTIONS.map(({ value, label, icon: Icon }) => {
+        {CALL_OUTCOME_OPTIONS.map(({ value, label, icon: Icon, shortcut }) => {
           const isSelected = selectedOutcome === value;
           return (
             <button
@@ -120,11 +122,13 @@ export function CallOutcomePanel({
               aria-busy={isCompletionPending && isSelected}
               aria-pressed={isSelected}
               aria-describedby="call-outcome-panel-help"
+              aria-keyshortcuts={shortcut}
               data-selected={isSelected ? "true" : "false"}
               onClick={() => handleOutcomeSelect(value)}
               className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11px] transition-[border-color,background-color,box-shadow,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 ${getCallOutcomeButtonClassName(isSelected)} ${value === "order" ? "font-semibold" : ""}`}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+              <kbd className="rounded border border-zinc-700/80 bg-zinc-950/70 px-1 font-mono text-[10px] text-zinc-500">{shortcut}</kbd>
               <span>{label}</span>
               {isSelected && <span className="sr-only">Selected</span>}
             </button>
@@ -164,9 +168,9 @@ export function OperatorCallControls({
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
               </span>
-              <span>Active call</span>
+              <span>{isTelnyxEnabled() ? "Telnyx call" : "Active call"}</span>
               <span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>
-              <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>
+              {!isTelnyxEnabled() && <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>}
             </div>
           ) : isDialing ? (
             <div className="flex items-center gap-2 text-xs text-zinc-300">

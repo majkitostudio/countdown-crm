@@ -364,14 +364,53 @@ nebo novou funkci jen proto, aby byl commit větší.
    `docs/commits.md`, aby vize nebyla zaměněná za současný live scope. Tento
    checkpoint aktualizuje aktuální stav, nikoli všechny historické katalogy.
 
-5. **P2 — Operator Console keyboard action binds — plánováno**
+5. **P2 — Operator Console keyboard action binds — dokončeno v aktuálním slice**
 
-   Doplnit klávesové zkratky pro nejčastější bezpečné akce v Operator Console
-   (zahájení/ukončení hovoru, outcome, poznámka a uložení checkoutu). Zkratky
-   nesmí obcházet stejné stavové, role a serverové guardy jako klikací ovládání;
-   při psaní do inputu nebo textarea se nesmí aktivovat omylem. Ověřit také
-   focus, screen reader dostupnost a chování při `loading`, `dialing`,
-   `awaiting_outcome` a `completion_pending`.
+   Operator Console nyní podporuje `C` pro zahájení/ukončení hovoru, `M` pro
+   mute/unmute, `1–4` pro post-call outcome a `N` pro focus poznámky. Zkratky
+   používají stejné handlery jako klikací ovládání, takže neobcházejí stavové,
+   role ani serverové guardy. Při psaní do inputu, textarea, selectu nebo
+   contenteditable se neaktivují; stejně tak jsou pozastavené přes otevřený
+   incoming-call nebo callback modal. Mapování a ochranné hranice pokrývá
+   `tests/operator-keyboard-shortcuts.test.ts`.
+
+6. **P2 — Kompaktní režim karty klienta — plánováno**
+
+   Zachovat kompletní Client Profile, ale umožnit přepnutí do kompaktního
+   řádku s nejdůležitějšími údaji během hovoru, aby měl operátor více prostoru
+   pro Product Script. Režim nesmí skrývat aktivní stav hovoru ani vytvořit
+   druhou variantu datového zdroje.
+
+7. **P2 — Callback modal focus management — dokončeno v aktuálním slice**
+
+   Callback modal nyní po otevření zaměří datum a čas, `Escape` ho zavře,
+   po zavření vrátí fokus na původní prvek a po validační nebo serverové chybě
+   zaměří chybovou hlášku. Existující callback persistence a stavové guardy se
+   nemění.
+
+8. **P2 — Recent context v Operator Console — plánováno**
+
+   Přidat krátký řádek s posledním kontaktem, posledním výsledkem hovoru,
+   poslední objednávkou a aktivním callbackem. Každá hodnota musí pocházet z
+   uložených a workspace-scoped dat; při chybějící hodnotě se zobrazí pravdivý
+   fallback. Nejde o nový tab ani prediktivní doporučení.
+
+9. **P1 — Telephony Foundation přes Telnyx — plánováno**
+
+   Pro první produkční telefonní vrstvu je vybraný Telnyx. Integrovat odchozí a
+   příchozí hovory, stavové webhooky, nahrávky, browser audio, media stream a
+   stabilní propojení hovoru s leadem, operátorem a objednávkou. Tento slice
+   nezahrnuje vlastní VoIP infrastrukturu ani osobní Vodafone číslo; začíná se
+   samostatným testovacím/firemním číslem. Lokální SIP provider zůstává možnou
+   pozdější cost-optimization variantou.
+
+10. **P1 — Gemini post-call AI — plánováno, závisí na telefonii**
+
+   Po dokončení telefonní vrstvy přidat Gemini přepis hovoru a následné
+   generování návrhu verdiktu, poznámky a dalších akcí. Návrh zůstává plně
+   editovatelný operátorem; free tier je určený pouze pro vývoj/test a reálná
+   zákaznická data patří do placeného režimu. Provider-neutral hranice zůstává
+   zachovaná pro případné pozdější přidání OpenAI.
 
 ## Nové desatero pro práci na projektu
 

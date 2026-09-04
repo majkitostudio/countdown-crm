@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PhoneCall, RefreshCw } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
@@ -36,6 +36,8 @@ import {
 } from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { getOperatorKeyboardAction } from "@/components/workspace/operatorKeyboardShortcuts";
+import { ClientProfileCard } from "@/components/workspace/ClientProfileCard";
 
 interface PostCallSummary {
   leadName: string;
@@ -236,7 +238,7 @@ function WorkspaceContent() {
     loadData();
   }, [identity, isIdentityLoading, leadIdParam]);
 
-  const completeCall = async (
+  const completeCall = useCallback(async (
     outcome: CompletionOutcome,
     outcomeLabel: string,
     orderStatus: PostCallSummary["orderStatus"],
@@ -343,10 +345,10 @@ function WorkspaceContent() {
       completionInFlightRef.current = false;
       setIsCompletionPending(false);
     }
-  };
+  }, [activeLead, activeQueueItemId, callDurationSeconds, callStartedAt, identity, softphoneSession.durationSeconds]);
 
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
-  const handleToggleCall = () => {
+  const handleToggleCall = useCallback(() => {
     if (stopAudioRef.current) {
       stopAudioRef.current();
       stopAudioRef.current = null;
@@ -530,7 +532,7 @@ function WorkspaceContent() {
           setIsCallStartPending(false);
         });
     }
-  };
+  }, [activeLead, activeQueueItemId, assignmentState, identity, isAwaitingOutcome, isCallActive, isDialing, isEndCallPending, softphoneSession.durationSeconds]);
 
   // Simulate Incoming Call Trigger
   const handleSimulateIncoming = () => {
@@ -578,7 +580,7 @@ function WorkspaceContent() {
     setActiveLead(leads[nextIndex]);
   };
 
-  const handleCallOutcome = (outcome: CallOutcome) => {
+  const handleCallOutcome = useCallback((outcome: CallOutcome) => {
     if (!isAwaitingOutcome || completionInFlightRef.current) return;
 
     if (outcome === "order") {
@@ -604,7 +606,7 @@ function WorkspaceContent() {
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
     void completeCall(callOutcome, outcomeLabel, "not_created");
-  };
+  }, [activeLead, activeQueueItemId, completeCall, isAwaitingOutcome, router]);
 
   const handleScheduleCallback = async (scheduledAt: string) => {
     if (!isAwaitingOutcome) return;
@@ -633,6 +635,51 @@ function WorkspaceContent() {
       advanceToNextLead();
     }
   };
+
+  useEffect(() => {
+    if (identity?.role !== "operator") return;
+
+    const handleKeyboardShortcut = (event: KeyboardEvent) => {
+      if (isIncomingCallOpen || isCallbackScheduleOpen) return;
+
+      const action = getOperatorKeyboardAction(event);
+      if (!action) return;
+
+      event.preventDefault();
+
+      switch (action) {
+        case "toggle_call":
+          handleToggleCall();
+          return;
+        case "toggle_mute":
+          if (isCallActive) softphoneController.toggleMute();
+          return;
+        case "call_later":
+          handleCallOutcome("call_later");
+          return;
+        case "schedule_callback":
+          handleCallOutcome("schedule");
+          return;
+        case "not_interested":
+          handleCallOutcome("fail");
+          return;
+        case "create_order":
+          handleCallOutcome("order");
+          return;
+        case "focus_note": {
+          const noteInput = document.getElementById("lead-note-input");
+          if (noteInput instanceof HTMLTextAreaElement) {
+            noteInput.focus();
+            noteInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          return;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyboardShortcut);
+    return () => window.removeEventListener("keydown", handleKeyboardShortcut);
+  }, [identity?.role, isIncomingCallOpen, isCallbackScheduleOpen, isCallActive, handleToggleCall, handleCallOutcome]);
 
   const operatorConsoleState: OperatorConsoleState = isLoading
     ? "loading"
@@ -773,6 +820,8 @@ function WorkspaceContent() {
             showIncomingSimulator={identity?.role !== "operator"}
           />
 
+          {activeLead && <ClientProfileCard lead={activeLead} />}
+
           <div className="min-h-[34rem] min-w-0 flex-1">
             <ProductScriptPanel
               isCallActive={isCallActive}
@@ -798,6 +847,7 @@ function WorkspaceContent() {
           </section>
           {activeLead && (
             <LeadNotesCard
+              key={activeLead.id}
               leadId={activeLead.id}
               notes={leadNotes}
               onNotesChange={(notes) => {
@@ -819,7 +869,6 @@ function WorkspaceContent() {
       />
 
       <CallbackScheduleModal
-        key={isCallbackScheduleOpen ? "callback-open" : "callback-closed"}
         isOpen={isCallbackScheduleOpen}
         leadName={activeLead?.full_name}
         isSubmitting={isCallbackSchedulePending}

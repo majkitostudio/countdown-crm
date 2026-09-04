@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CalendarClock, X } from "lucide-react";
 
 interface CallbackScheduleModalProps {
@@ -27,6 +27,49 @@ export function CallbackScheduleModal({
 }: CallbackScheduleModalProps) {
   const [scheduledAt, setScheduledAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60 * 1000)));
   const [validationError, setValidationError] = useState<string | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const focusFrame = window.requestAnimationFrame(() => dateInputRef.current?.focus());
+      return () => window.cancelAnimationFrame(focusFrame);
+    }
+
+    const previousFocus = previousFocusRef.current;
+    previousFocusRef.current = null;
+    if (!previousFocus) return;
+
+    const restoreFrame = window.requestAnimationFrame(() => {
+      if (document.contains(previousFocus)) previousFocus.focus();
+    });
+    return () => window.cancelAnimationFrame(restoreFrame);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSubmitting) {
+        event.preventDefault();
+        setValidationError(null);
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isSubmitting, onClose]);
+
+  useEffect(() => {
+    const visibleError = validationError || errorMessage;
+    if (!isOpen || !visibleError) return;
+
+    const focusFrame = window.requestAnimationFrame(() => errorRef.current?.focus());
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [errorMessage, isOpen, validationError]);
 
   if (!isOpen) return null;
 
@@ -57,11 +100,11 @@ export function CallbackScheduleModal({
 
         <label className="block space-y-1.5">
           <span className="text-xs font-medium text-zinc-300">Callback date and time</span>
-          <input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600" />
+          <input ref={dateInputRef} type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600" />
           <span className="block text-[11px] text-zinc-600">Časová zóna browseru: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
         </label>
 
-        {(validationError || errorMessage) && <div role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300">{validationError || errorMessage}</div>}
+        {(validationError || errorMessage) && <div ref={errorRef} role="alert" tabIndex={-1} className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">{validationError || errorMessage}</div>}
 
         <div className="flex justify-end gap-2 border-t border-zinc-800 pt-4">
           <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200">Cancel</button>

@@ -116,7 +116,8 @@ export function OperatorLeadHeader({
                 type="button"
                 onClick={onToggleMute}
                 aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-                title={isMuted ? "Unmute microphone" : "Mute microphone"}
+                aria-keyshortcuts="M"
+                title={`${isMuted ? "Unmute microphone" : "Mute microphone"} (M)`}
                 className="rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -133,7 +134,8 @@ export function OperatorLeadHeader({
                 type="button"
                 onClick={onToggleCall}
                 aria-label="End call"
-                title="End call"
+                aria-keyshortcuts="C"
+                title="End call (C)"
                 className="rounded-xl border border-rose-800 bg-rose-900/80 p-2.5 text-rose-100 hover:bg-rose-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 <PhoneOff className="h-4 w-4" />
@@ -151,10 +153,13 @@ export function OperatorLeadHeader({
                 onClick={onToggleCall}
                 disabled={isStarting}
                 aria-busy={isStarting}
+                aria-keyshortcuts="C"
+                title="Call client (C)"
                 className="flex items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <PhoneCall className="h-4 w-4" />
                 {isStarting ? "Starting call..." : "Call Client"}
+                {!isStarting && <kbd className="rounded border border-zinc-300/60 bg-zinc-200/70 px-1 font-mono text-[10px] text-zinc-600">C</kbd>}
               </button>
               {onCreateOrder && (
                 <button
