@@ -1,9 +1,21 @@
 import { generateKeyPairSync, sign } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { join } from "node:path";
 import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
 import { verifyTelnyxWebhookSignature } from "@/lib/telephony/telnyxSecurity";
 
 describe("Telnyx integration contracts", () => {
+  it("keeps telephony RLS policies on the private workspace helper", () => {
+    const migration = readFileSync(
+      join(process.cwd(), "supabase", "migrations", "20260903090000_telnyx_telephony_foundation.sql"),
+      "utf8",
+    );
+
+    expect(migration).toContain("private.is_workspace_member(workspace_id)");
+    expect(migration).not.toContain("public.is_workspace_member(workspace_id)");
+  });
+
   it("normalizes Czech and international numbers to E.164", () => {
     expect(normalizePhoneNumber("777 123 456")).toBe("+420777123456");
     expect(normalizePhoneNumber("00 420 777 123 456")).toBe("+420777123456");

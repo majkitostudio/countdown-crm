@@ -397,14 +397,16 @@ nebo novou funkci jen proto, aby byl commit větší.
    se zobrazí pravdivý fallback. Nejde o nový tab ani prediktivní doporučení.
    Výběrový kontrakt pokrývá `tests/recent-context.test.ts`.
 
-9. **P1 — Telephony Foundation přes Telnyx — plánováno**
+9. **P1 — Telephony Foundation přes Telnyx — foundation dokončen, live aktivace čeká**
 
-   Pro první produkční telefonní vrstvu je vybraný Telnyx. Integrovat odchozí a
-   příchozí hovory, stavové webhooky, nahrávky, browser audio, media stream a
-   stabilní propojení hovoru s leadem, operátorem a objednávkou. Tento slice
-   nezahrnuje vlastní VoIP infrastrukturu ani osobní Vodafone číslo; začíná se
-   samostatným testovacím/firemním číslem. Lokální SIP provider zůstává možnou
-   pozdější cost-optimization variantou.
+   Pro první produkční telefonní vrstvu je vybraný Telnyx. V repozitáři je
+   připravený outbound browser/WebRTC flow, session persistence, podepsané
+   lifecycle webhooky a provider credentials; Telnyx tabulky a RLS byly
+   cíleně aplikované do linked Supabase. Live aktivace stále čeká na Telnyx
+   číslo přiřazené ke connection, API environment variables a webhook URL.
+   Tento slice nezahrnuje vlastní VoIP infrastrukturu ani osobní Vodafone
+   číslo; lokální SIP provider zůstává možnou pozdější cost-optimization
+   variantou.
 
 10. **P1 — Gemini post-call AI — plánováno, závisí na telefonii**
 

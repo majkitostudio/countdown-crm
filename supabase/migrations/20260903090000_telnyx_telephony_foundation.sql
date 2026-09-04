@@ -79,11 +79,11 @@ GRANT SELECT ON TABLE public.telephony_call_sessions, public.telephony_call_even
 
 CREATE POLICY "Workspace members can view telephony sessions"
   ON public.telephony_call_sessions FOR SELECT TO authenticated
-  USING (public.is_workspace_member(workspace_id));
+  USING (private.is_workspace_member(workspace_id));
 
 CREATE POLICY "Workspace members can view telephony events"
   ON public.telephony_call_events FOR SELECT TO authenticated
-  USING (public.is_workspace_member(workspace_id));
+  USING (private.is_workspace_member(workspace_id));
 
 COMMENT ON TABLE public.telephony_credentials IS 'Server-owned Telnyx WebRTC credentials; never expose provider secrets to clients.';
 COMMENT ON TABLE public.telephony_call_sessions IS 'Provider call lifecycle, correlated with a CRM lead and optional queue item.';
