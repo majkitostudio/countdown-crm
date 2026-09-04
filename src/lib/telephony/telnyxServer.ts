@@ -1,6 +1,7 @@
 import "server-only";
 
 export { decodeTelnyxClientState, verifyTelnyxWebhookSignature } from "./telnyxSecurity";
+import { normalizePhoneNumber } from "./phoneNumber";
 
 const TELNYX_API_BASE = "https://api.telnyx.com/v2";
 
@@ -22,6 +23,10 @@ export function getTelnyxConfig() {
     );
   }
 
+  if (normalizePhoneNumber(callerNumber) !== callerNumber) {
+    throw new TelnyxConfigurationError("TELNYX_DEFAULT_CALLER_NUMBER must be an E.164 phone number.");
+  }
+
   return { apiKey, connectionId, callerNumber };
 }
 
@@ -37,8 +42,8 @@ async function telnyxRequest<T>(path: string, apiKey: string, init?: RequestInit
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Telnyx API request failed (${response.status}): ${detail.slice(0, 300)}`);
+    await response.text();
+    throw new Error(`Telnyx API request failed (${response.status}).`);
   }
 
   return (await response.json()) as T;
@@ -79,8 +84,8 @@ export async function issueTelnyxToken(credentialId: string): Promise<string> {
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Telnyx token request failed (${response.status}): ${detail.slice(0, 300)}`);
+    await response.text();
+    throw new Error(`Telnyx token request failed (${response.status}).`);
   }
 
   const raw = (await response.text()).trim();

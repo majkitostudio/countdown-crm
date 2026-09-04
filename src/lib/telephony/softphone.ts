@@ -24,13 +24,14 @@ export interface CallSession {
   durationSeconds: number;
   isMuted: boolean;
   isOnHold: boolean;
+  errorMessage: string | null;
 }
 
 export type CallStateListener = (session: CallSession) => void;
 interface DialContext { queueItemId?: string | null; }
 
 export class WebRtcSoftphoneController {
-  private currentSession: CallSession = { id: "", leadId: "", leadName: "", phone: "", state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false };
+  private currentSession: CallSession = { id: "", leadId: "", leadName: "", phone: "", state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null };
   private listeners: Set<CallStateListener> = new Set();
   private timerInterval: NodeJS.Timeout | null = null;
   private dialTimers: ReturnType<typeof setTimeout>[] = [];
@@ -78,7 +79,7 @@ export class WebRtcSoftphoneController {
     if (!isTelnyxEnabled()) audioEngine.release();
     this.telnyxCall = null;
     this.telnyxSessionId = null;
-    this.currentSession = { ...this.currentSession, state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false };
+    this.currentSession = { ...this.currentSession, state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null };
     this.notify();
   }
 
@@ -89,7 +90,7 @@ export class WebRtcSoftphoneController {
     }
     this.clearDialTimers();
     this.clearEndedResetTimer();
-    this.currentSession = { id: `call-wrtc-${Date.now()}`, leadId, leadName, phone, state: "dialing", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false };
+    this.currentSession = { id: `call-wrtc-${Date.now()}`, leadId, leadName, phone, state: "dialing", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null };
     this.notify();
 
     if (isTelnyxEnabled()) {
@@ -205,6 +206,7 @@ export class WebRtcSoftphoneController {
     this.syncTelnyxSession("failed");
     this.currentSession.state = "failed";
     this.currentSession.isOnHold = false;
+    this.currentSession.errorMessage = error.message;
     this.notify();
     this.scheduleReset();
     this.telnyxCall = null;

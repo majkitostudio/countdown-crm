@@ -13,6 +13,7 @@ interface OperatorLeadHeaderProps {
   isDialing: boolean;
   isMuted: boolean;
   durationSeconds: number;
+  callFailureMessage?: string | null;
   isStarting?: boolean;
   onToggleCall: () => void;
   onToggleMute: () => void;
@@ -32,6 +33,7 @@ export function OperatorLeadHeader({
   isDialing,
   isMuted,
   durationSeconds,
+  callFailureMessage = null,
   isStarting = false,
   onToggleCall,
   onToggleMute,
@@ -61,14 +63,18 @@ export function OperatorLeadHeader({
       ? "dialing"
       : isCallActive
         ? "in_call"
-        : "ready";
+        : callFailureMessage
+          ? "call_failed"
+          : "ready";
   const leadStateClassName = isAwaitingOutcome
     ? "border-amber-800/70 bg-amber-950/10 ring-1 ring-amber-300/10"
     : isDialing
       ? "border-sky-800/70 bg-sky-950/10 ring-1 ring-sky-300/10"
       : isCallActive
         ? "border-rose-800/70 bg-zinc-900/70 ring-1 ring-rose-300/10"
-        : "border-zinc-700/80 bg-zinc-900/70 ring-1 ring-white/5";
+        : callFailureMessage
+          ? "border-rose-900/70 bg-rose-950/10 ring-1 ring-rose-300/10"
+          : "border-zinc-700/80 bg-zinc-900/70 ring-1 ring-white/5";
 
   return (
     <section
@@ -141,6 +147,11 @@ export function OperatorLeadHeader({
                 <PhoneOff className="h-4 w-4" />
               </button>
             </>
+          ) : callFailureMessage ? (
+            <div className="max-w-xs rounded-xl border border-rose-900/60 bg-rose-950/30 px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-rose-200">Call failed</p>
+              <p className="mt-0.5 text-[10px] text-rose-300/80">{callFailureMessage}</p>
+            </div>
           ) : isAwaitingOutcome ? (
             <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-right">
               <p className="text-[10px] uppercase tracking-wider text-amber-200">Outcome required</p>

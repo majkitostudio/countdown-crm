@@ -1,9 +1,17 @@
 import { generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { join } from "node:path";
 import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
 import { verifyTelnyxWebhookSignature } from "@/lib/telephony/telnyxSecurity";
+import { getTelnyxConfig, issueTelnyxToken, TelnyxConfigurationError } from "@/lib/telephony/telnyxServer";
+
+vi.mock("server-only", () => ({}));
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe("Telnyx integration contracts", () => {
   it("keeps telephony RLS policies on the private workspace helper", () => {
@@ -33,5 +41,23 @@ describe("Telnyx integration contracts", () => {
     expect(verifyTelnyxWebhookSignature({ rawBody, signature, timestamp, publicKey: publicKeyPem, nowSeconds: 1799000000 })).toBe(true);
     expect(verifyTelnyxWebhookSignature({ rawBody: `${rawBody} `, signature, timestamp, publicKey: publicKeyPem, nowSeconds: 1799000000 })).toBe(false);
     expect(verifyTelnyxWebhookSignature({ rawBody, signature, timestamp, publicKey: publicKeyPem, nowSeconds: 1799000000 + 301 })).toBe(false);
+  });
+
+  it("requires an E.164 caller number in the server configuration", () => {
+    vi.stubEnv("TELNYX_API_KEY", "test-api-key");
+    vi.stubEnv("TELNYX_CONNECTION_ID", "connection-1");
+    vi.stubEnv("TELNYX_DEFAULT_CALLER_NUMBER", "777 123 456");
+
+    expect(() => getTelnyxConfig()).toThrow(TelnyxConfigurationError);
+  });
+
+  it("does not expose the provider error body when issuing a token fails", async () => {
+    vi.stubEnv("TELNYX_API_KEY", "test-api-key");
+    vi.stubEnv("TELNYX_CONNECTION_ID", "connection-1");
+    vi.stubEnv("TELNYX_DEFAULT_CALLER_NUMBER", "+420777123456");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("secret-provider-body", { status: 500 }));
+
+    await expect(issueTelnyxToken("credential-1")).rejects.toThrow("Telnyx token request failed (500).");
+    await expect(issueTelnyxToken("credential-1")).rejects.not.toThrow("secret-provider-body");
   });
 });

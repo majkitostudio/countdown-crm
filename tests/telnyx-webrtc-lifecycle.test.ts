@@ -142,6 +142,6 @@ describe("live Telnyx WebRTC lifecycle", () => {
 
     client.emit("telnyx.error", { error: { message: "media permission denied" } });
 
-    expect(controller.getSession().state).toBe("failed");
+    expect(controller.getSession()).toMatchObject({ state: "failed", errorMessage: "media permission denied" });
   });
 });

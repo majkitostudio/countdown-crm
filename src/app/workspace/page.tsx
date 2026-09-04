@@ -896,6 +896,7 @@ function WorkspaceContent() {
             isDialing={isDialing}
             isMuted={softphoneSession.isMuted}
             durationSeconds={softphoneSession.durationSeconds}
+            callFailureMessage={softphoneSession.errorMessage}
             isStarting={isCallStartPending || isEndCallPending}
             isAwaitingOutcome={isAwaitingOutcome}
             recoveryRequired={recoveryRequired}
