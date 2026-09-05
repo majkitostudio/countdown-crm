@@ -62,23 +62,23 @@
 
 **Produces:** `public.workspace_telephony_settings` with one row per workspace; `active_adapter` check for `simulation | local_sip | telnyx`; `updated_by`, timestamps, RLS; nullable `provider_call_id` on sessions with a partial unique `(provider, provider_call_id)` index.
 
-- [ ] **Step 1: Discover and create the migration**
+- [x] **Step 1: Discover and create the migration**
 
 Run `supabase migration new --help`, then `supabase migration new local_telephony_adapter`. Use the generated file path in all later commands.
 
-- [ ] **Step 2: Write the failing schema test**
+- [x] **Step 2: Write the failing schema test**
 
 Assert the migration source contains the new table, default `simulation`, allowed values, workspace key, RLS, administrator update boundary, `provider_call_id` and its partial unique index. Run `npm test -- tests/telephony-settings-contract.test.ts`; it must fail because the migration is empty.
 
-- [ ] **Step 3: Implement the migration and types**
+- [x] **Step 3: Implement the migration and types**
 
 Create the table, policies and index. Preserve existing Telnyx columns and rows. Add matching generated/manual types without weakening existing types.
 
-- [ ] **Step 4: Run focused and database checks**
+- [x] **Step 4: Run focused and database checks**
 
 Run `npm test -- tests/telephony-settings-contract.test.ts`, `supabase db reset`, `supabase migration list --local` and `supabase db diff --local`. Expected: focused test passes, migration applies once and post-reset schema diff is empty.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit migration, types and test as `feat: add workspace telephony adapter settings`.
 
@@ -108,7 +108,7 @@ Keep types, labels and blocked Telnyx decision independent of Supabase access. T
 
 - [ ] **Step 3: Implement DAL and actions**
 
-Derive workspace from `requireWorkspaceContext`; require `administrator` for writes; use existing audit DAL; never accept a trusted workspace ID from the browser. Return a DTO with workspace, active adapter, updater and timestamp.
+Derive workspace from `requireWorkspaceContext`; require `administrator` for writes; align RLS with the existing `private.is_workspace_admin` helper; use existing audit DAL; never accept a trusted workspace ID from the browser. Return a DTO with workspace, active adapter, updater and timestamp.
 
 - [ ] **Step 4: Run focused tests and commit**
 

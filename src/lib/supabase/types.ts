@@ -95,6 +95,28 @@ export interface Database {
           }
         ];
       };
+      workspace_telephony_settings: {
+        Row: {
+          workspace_id: string;
+          active_adapter: "simulation" | "local_sip" | "telnyx";
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          workspace_id: string;
+          active_adapter?: "simulation" | "local_sip" | "telnyx";
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          active_adapter?: "simulation" | "local_sip" | "telnyx";
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -604,7 +626,8 @@ export interface Database {
           queue_item_id: string | null;
           lead_id: string | null;
           operator_id: string | null;
-          provider: "telnyx";
+          provider: "telnyx" | "local_sip";
+          provider_call_id: string | null;
           direction: "inbound" | "outbound";
           telnyx_call_control_id: string | null;
           telnyx_call_leg_id: string | null;
@@ -630,7 +653,8 @@ export interface Database {
           queue_item_id?: string | null;
           lead_id?: string | null;
           operator_id?: string | null;
-          provider?: "telnyx";
+          provider?: "telnyx" | "local_sip";
+          provider_call_id?: string | null;
           direction: "inbound" | "outbound";
           telnyx_call_control_id?: string | null;
           telnyx_call_leg_id?: string | null;
@@ -651,6 +675,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
+          provider_call_id?: string | null;
           queue_item_id?: string | null;
           lead_id?: string | null;
           operator_id?: string | null;
@@ -678,7 +703,7 @@ export interface Database {
           id: string;
           workspace_id: string;
           call_session_id: string | null;
-          provider: "telnyx";
+          provider: "telnyx" | "local_sip";
           provider_event_id: string;
           event_type: string;
           provider_call_control_id: string | null;
@@ -692,7 +717,7 @@ export interface Database {
           id?: string;
           workspace_id: string;
           call_session_id?: string | null;
-          provider?: "telnyx";
+          provider?: "telnyx" | "local_sip";
           provider_event_id: string;
           event_type: string;
           provider_call_control_id?: string | null;
