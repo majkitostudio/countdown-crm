@@ -97,6 +97,7 @@ function WorkspaceContent() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
+  const [completionSaveState, setCompletionSaveState] = useState<"saving" | "saved" | "failed">("saved");
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
@@ -343,6 +344,7 @@ function WorkspaceContent() {
 
     completionInFlightRef.current = true;
     setIsCompletionPending(true);
+    setCompletionSaveState("saving");
     const durationSeconds = callDurationSeconds || (callStartedAt
       ? Math.max(0, Math.round((Date.parse(new Date().toISOString()) - Date.parse(callStartedAt)) / 1000))
       : softphoneSession.durationSeconds);
@@ -391,12 +393,14 @@ function WorkspaceContent() {
           workflowEntries,
           workflowDispatches: completion.workflowDispatches,
         });
+        setCompletionSaveState("saved");
         setActivityRefreshToken((current) => current + 1);
         return { callId: completion.call_id, orderId: completion.order_id || undefined };
       }
 
       const completion = await completeCallAction({
         lead_id: activeLead.id,
+        call_session_id: activeQueueItemId || activeLead.id,
         duration_seconds: durationSeconds,
         outcome,
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
@@ -404,6 +408,9 @@ function WorkspaceContent() {
         order_product_id: orderProductId,
         order_total_amount: orderProductId ? orderValue : null,
         transcript: null,
+        operator_note: operatorNote?.trim() || null,
+        fail_reason: failReason || null,
+        callback_scheduled_at: outcome === "followup_scheduled" ? callbackScheduledAt || null : null,
       });
 
       softphoneController.hangup();
@@ -427,10 +434,22 @@ function WorkspaceContent() {
         workflowEntries,
         workflowDispatches: completion.workflowDispatches,
       });
+      setCompletionSaveState("saved");
       setActivityRefreshToken((current) => current + 1);
       return { callId: completion.call_id, orderId: completion.order_id || undefined };
     } catch (error) {
-      setPostCallSummary(null);
+      setCompletionSaveState("failed");
+      setPostCallSummary({
+        leadName: activeLead.full_name,
+        outcomeLabel,
+        durationSeconds,
+        orderStatus,
+        transcriptStatus: "unavailable",
+        failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined,
+        operatorNote: operatorNote?.trim() || undefined,
+        workflowEntries: [],
+        workflowDispatches: [],
+      });
       setNotificationToast(
         error instanceof Error
           ? `Call completion failed: ${error.message}`
@@ -911,6 +930,8 @@ function WorkspaceContent() {
           summary={postCallSummary}
           onDismiss={() => setPostCallSummary(null)}
           onNextLead={handleNextLead}
+          saveState={completionSaveState}
+          onRetry={() => window.location.reload()}
         />
       )}
 

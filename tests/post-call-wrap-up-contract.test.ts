@@ -7,6 +7,9 @@ const migration = readFileSync(
   "utf8",
 );
 const normalizedMigration = migration.replace(/\s+/g, " ");
+const completionDal = readFileSync(resolve(process.cwd(), "src/lib/dal/callCompletion.ts"), "utf8");
+const workspacePage = readFileSync(resolve(process.cwd(), "src/app/workspace/page.tsx"), "utf8");
+const summaryCard = readFileSync(resolve(process.cwd(), "src/components/workspace/PostCallSummaryCard.tsx"), "utf8");
 
 describe("post-call fail persistence contract", () => {
   it("stores fail reason and operator note as separate call fields", () => {
@@ -27,5 +30,18 @@ describe("post-call fail persistence contract", () => {
   it("rejects a fail without both required details in SQL", () => {
     expect(migration).toContain("Fail outcomes require a fail reason");
     expect(migration).toContain("Fail outcomes require an operator note");
+  });
+
+  it("keeps completion retries on one stable request identity", () => {
+    expect(completionDal).toContain("call_session_id?: string | null");
+    expect(completionDal).toContain("completionRequests");
+    expect(completionDal).toContain("context.workspaceId}:${context.userId}:${requestId}");
+    expect(workspacePage).toContain("call_session_id: activeQueueItemId || activeLead.id");
+  });
+
+  it("exposes an explicit saving, saved, failed and retry UI contract", () => {
+    expect(summaryCard).toContain('data-testid="post-call-save-state"');
+    expect(summaryCard).toContain('"saving" | "saved" | "failed"');
+    expect(summaryCard).toContain("Retry");
   });
 });

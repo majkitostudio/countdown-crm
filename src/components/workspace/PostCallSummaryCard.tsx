@@ -38,6 +38,8 @@ interface PostCallSummaryCardProps {
   };
   onDismiss: () => void;
   onNextLead: () => void;
+  saveState?: "saving" | "saved" | "failed";
+  onRetry?: () => void;
 }
 
 // ─── Action Icon Map ────────────────────────────────────────────────────────
@@ -52,7 +54,7 @@ const ACTION_ICON_MAP: Record<string, React.ElementType> = {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCallSummaryCardProps) {
+export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState = "saved", onRetry }: PostCallSummaryCardProps) {
   const { workflowEntries: entries } = summary;
   const successCount = entries.filter((e) => e.status === "success").length;
   const failureCount = entries.filter((e) => e.status === "failure").length;
@@ -126,6 +128,26 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead }: PostCall
           <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Automation</span>
           <strong className="mt-1 block text-zinc-100">{automationSummary}</strong>
         </div>
+      </div>
+
+      <div
+        className={
+          saveState === "failed"
+            ? "rounded-lg border border-rose-900/60 bg-rose-950/20 px-3 py-2 text-xs text-rose-200"
+            : saveState === "saving"
+              ? "rounded-lg border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-xs text-amber-200"
+              : "rounded-lg border border-emerald-900/60 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200"
+        }
+        role="status"
+        aria-live="polite"
+        data-testid="post-call-save-state"
+      >
+        {saveState === "saving" ? "Saving" : saveState === "failed" ? "Failed" : "Saved"}
+        {saveState === "failed" && onRetry && (
+          <button type="button" onClick={onRetry} className="ml-3 underline underline-offset-2">
+            Retry
+          </button>
+        )}
       </div>
 
       {summary.failReasonLabel && (

@@ -8,6 +8,7 @@ import { getScopedLeadForWorkspace } from "./leadQueue";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
+import { validateCallFailFields, type FailReason } from "@/lib/postCall";
 
 type CallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
@@ -15,6 +16,8 @@ export type CompletionOutcome = "order_placed" | "followup_scheduled" | "no_answ
 
 export interface CompleteCallInput {
   lead_id: string;
+  /** Stable identity for a retry of the same post-call submission. */
+  call_session_id?: string | null;
   duration_seconds: number;
   outcome: CompletionOutcome;
   transcript?: string | null;
@@ -22,6 +25,9 @@ export interface CompleteCallInput {
   order_items?: CallOrderItemInput[] | null;
   order_product_id?: string | null;
   order_total_amount?: number | null;
+  callback_scheduled_at?: string | null;
+  operator_note?: string | null;
+  fail_reason?: FailReason | null;
 }
 
 export interface CompleteCallDTO {
@@ -39,6 +45,16 @@ const outcomeMap: Record<CompletionOutcome, CallOutcome> = {
   objection_handled: "objection",
 };
 
+// The queue RPC is the durable atomic boundary for the operator flow. This
+// small request guard also collapses concurrent retries of the legacy/direct
+// completion path before they can reach its order-writing RPC twice.
+const completionRequests = new Map<string, Promise<CompleteCallDTO>>();
+
+function normalizeOptionalText(value: string | null | undefined): string | null {
+  const normalized = value?.trim() || null;
+  return normalized;
+}
+
 export async function completeCallForWorkspace(
   input: CompleteCallInput,
   workspaceId?: string
@@ -50,6 +66,37 @@ export async function completeCallForWorkspace(
   if (!Number.isInteger(input.duration_seconds) || input.duration_seconds < 0) {
     throw new DataAccessError("VALIDATION", "Call duration must be a non-negative integer");
   }
+
+  const operatorNote = normalizeOptionalText(input.operator_note);
+  const failError = validateCallFailFields({
+    outcome: outcomeMap[input.outcome],
+    failReason: input.fail_reason,
+    note: operatorNote || "",
+  });
+  if (failError) throw new DataAccessError("VALIDATION", failError);
+
+  const requestId = normalizeOptionalText(input.call_session_id);
+  const context = await requireWorkspaceContext(workspaceId);
+  const requestKey = requestId ? `${context.workspaceId}:${context.userId}:${requestId}` : null;
+  if (requestKey && completionRequests.has(requestKey)) {
+    return completionRequests.get(requestKey)!;
+  }
+
+  const completionPromise = completeCallForAuthorizedWorkspace(input, context, operatorNote);
+  if (requestKey) {
+    completionRequests.set(requestKey, completionPromise);
+    void completionPromise.catch(() => {
+      if (completionRequests.get(requestKey) === completionPromise) completionRequests.delete(requestKey);
+    });
+  }
+  return completionPromise;
+}
+
+async function completeCallForAuthorizedWorkspace(
+  input: CompleteCallInput,
+  context: Awaited<ReturnType<typeof requireWorkspaceContext>>,
+  operatorNote: string | null,
+): Promise<CompleteCallDTO> {
 
   const hasLegacyProduct = Boolean(input.order_product_id);
   const hasLegacyAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
@@ -91,7 +138,6 @@ export async function completeCallForWorkspace(
     }
   }
 
-  const context = await requireWorkspaceContext(workspaceId);
   const lead = await getScopedLeadForWorkspace(input.lead_id, context.workspaceId);
   const supabase = await createDataClient();
   const { data: operatorProfile, error: operatorProfileError } = await supabase
@@ -135,6 +181,8 @@ export async function completeCallForWorkspace(
       sentiment: input.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
+      failReason: input.fail_reason || null,
+      operatorNote: operatorNote || "",
     },
   });
 
