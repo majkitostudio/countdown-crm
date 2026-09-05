@@ -11,6 +11,10 @@
 > včetně vytvoření/reload/zrušení reminderu a načtení wallet ledgeru.
 > Otevřenými P1 body zůstávají Workspace Readiness a privilegovaný vzdálený
 > test runner. Živý Telnyx pilot je samostatně externě blokovaný.
+>
+> **Doplnění 5. 9. 2026:** Pro názorné ověření telefonní vrstvy byla zvolena
+> lokální SIP ústředna v Dockeru pro integrační testy bez veřejného čísla. Tato
+> ústředna zatím není implementovaná a nenahrazuje budoucí Telnyx carrier.
 
 ## Krátký verdikt
 
@@ -88,6 +92,8 @@ To ale neznamená, že je hotový pilot. Zelený build potvrzuje technickou konz
 ### Není dokončené nebo prokázané
 
 - Telnyx live pilot je blokovaný externě číslem a regionem/refundací.
+- Lokální Docker SIP laboratoř je schválená jako pomocná validační cesta, ale zatím není implementovaná.
+- Aktivní telephony adapter zatím nemá serverovou workspace konfiguraci; před implementací `/telephony` se nesmí řešit pouze lokálním nastavením prohlížeče.
 - Gemini a post-call AI jsou plánované, nikoli implementované.
 - Conversation Brief chybí.
 - Team Leader Exception Queue chybí.

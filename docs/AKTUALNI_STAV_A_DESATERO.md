@@ -30,6 +30,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 ## Co hotové není
 
 - Telnyx live pilot je dočasně odložený kvůli ověření telefonního čísla mimo repo; live environment a veřejná webhook URL proto ještě nejsou ověřené end-to-end,
+- lokální SIP ústředna v Dockeru je schválená jako validační cesta, ale zatím není implementovaná ani ověřená,
 - inbound routing, nahrávání hovorů a přepis hovorů nejsou implementované,
 - Gemini post-call AI pro přepis, verdikt a návrh poznámky není implementovaná,
 - training a softphone fallback zůstávají simulací, dokud nebude výslovně zapnutá živá telefonní vrstva,
@@ -43,6 +44,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - [x] doplnit autentizovaný call → outcome/order → reload → SQL read-back pro kritické role; ověřený je fallback call s výsledkem `no_answer`, nikoli živý Telnyx pilot,
 - [x] explicitně evidovat a srovnat rozdíly migration history mezi repozitářem a linked sandboxem; schema diff je po opravě nulový,
 - [ ] vyřešit privilegovaný způsob spuštění databázových testů proti linked sandboxu; aktuální Supabase runner nemá přístup do interních schémat `auth` a `private`, lokální testy proto zůstávají hlavním automatizovaným důkazem.
+- [ ] uložit aktivní telefonní adapter serverově na úrovni workspace; nepoužívat `localStorage`, změnu povolit pouze administrátorovi a zapsat ji do auditu.
 
 ### Vzdálené To-Do — Telnyx (externě blokované)
 
@@ -62,6 +64,40 @@ na connection a projít pilotní důkaz.
 
 Do dokončení těchto externích kroků zůstává živý Telnyx flag vypnutý a
 simulovaný softphone je jediný dostupný fallback.
+
+### Dočasná validační telefonní cesta — Docker ústředna
+
+Tato cesta nemění pořadí produktu ani nenahrazuje budoucí Telnyx pilot. Má nám
+umožnit pochopit a ověřit, jak se telefonie chová v Countdownu, i když zatím
+nemáme ověřené Telnyx číslo.
+
+**Docker ústředna** bude lokální integrační laboratoř, předběžně postavená na
+Asterisku, se dvěma interními testovacími linkami. Bez SIP trunku nebude volat
+na veřejná mobilní čísla. Jejím úkolem bude ověřit zejména:
+
+- vytvoření a ukončení call session,
+- přechody stavů hovoru a jejich bezpečné opakování,
+- vazbu hovoru na operátora, lead a workspace,
+- post-call wrap-up, outcome a recovery,
+- auditní kontext a chování při chybě,
+- oddělení telefonního adaptéru od zbytku Countdownu.
+
+V Admin Settings bude sekce **Telephony adapter** se stabilní kotvou
+`/settings#telephony-adapter`. Volba `Local SIP` zobrazí proklik na
+`/telephony`. Volba `Telnyx adapter` zůstane viditelná, ale zablokovaná s
+vysvětlením externího blockeru. Pokud administrátor otevře `/telephony` při
+jiném aktivním adapteru, stránka mu nabídne proklik přímo zpět na
+`/settings#telephony-adapter`.
+
+Navržený postup:
+
+1. přidat malou provider-neutrální telephony service boundary,
+2. připojit k ní lokální SIP adapter,
+3. spustit Asterisk v Dockeru se dvěma interními endpointy,
+4. projít call lifecycle a databázový read-back,
+5. Telnyx připojit až později jako produkční carrier adapter.
+
+Stav této cesty: **schválený směr, implementace ještě nezačala**.
 
 Telnyx není bezprostřední produktový krok. Před jeho návratem má přednost
 stabilizace migration history, post-call toku, Conversation Briefu, Team Leader

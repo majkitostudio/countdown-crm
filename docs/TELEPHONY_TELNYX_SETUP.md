@@ -12,6 +12,37 @@ Countdown CRM má připravenou první Telnyx integrační vrstvu, ale živá tel
 - databáze: `telephony_credentials`, `telephony_call_sessions` a `telephony_call_events` jsou vytvořené s RLS,
 - živý režim: řídí `NEXT_PUBLIC_TELNYX_ENABLED` a je defaultně vypnutý.
 
+## Dočasná validační cesta mimo Telnyx
+
+Pro současné ověření telefonního workflow bude sloužit **lokální SIP ústředna
+v Dockeru**, předběžně Asterisk. Bez veřejného čísla a bez SIP trunku bude
+fungovat jako integrační laboratoř se dvěma interními testovacími endpointy.
+Umožní ověřit call lifecycle, napojení na CRM session, ukončení hovoru,
+post-call wrap-up a auditní kontext.
+
+Volba aktivního adapteru patří do serverového workspace nastavení v Admin
+Settings, nikoli do `localStorage` prohlížeče. Sekce má stabilní odkaz
+`/settings#telephony-adapter`. Při aktivním Local SIP se z této sekce zobrazí
+proklik na `/telephony`; pokud Local SIP aktivní není, administrátorská
+stránka `/telephony` nabídne proklik zpět přímo na tuto volbu.
+
+Lokální ústředna je v tuto chvíli **plánovaná, nikoli implementovaná**. Jejím
+účelem není nahradit Telnyx, ale umožnit vývoj a ověření chování Countdownu v
+době, kdy není možné ověřit Telnyx číslo. Veřejné volání na mobil z ní nebude
+fungovat bez samostatného SIP trunku nebo jiné telefonní brány.
+
+Budoucí hranice má zůstat provider-neutrální:
+
+```text
+Countdown telephony service
+        ↓
+Telnyx adapter / local SIP adapter
+        ↓
+provider nebo lokální testovací ústředna
+```
+
+Dokud nebude výslovně dokončený živý Telnyx pilot, zůstává `NEXT_PUBLIC_TELNYX_ENABLED=false`.
+
 ## Environment
 
 ```env
@@ -46,6 +77,10 @@ NEXT_PUBLIC_TELNYX_ENABLED=false
 ## Co zatím není součástí
 
 Inbound routing, nahrávání, audio retention, přepis hovorů a post-call Gemini AI. Tyto vrstvy se přidají až nad ověřený call session/event kontrakt.
+
+Lokální Docker ústředna sama o sobě není důkazem připravenosti produkční
+telefonie. V ověřovacím reportu se musí uvést, co bylo skutečně otestováno a
+co zůstává mimo rozsah.
 
 ## Pilotní ověření přes standardní localhost
 
