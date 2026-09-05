@@ -30,6 +30,13 @@ describe("telephony admin route contract", () => {
     expect(route).not.toContain("SECRET");
   });
 
+  it("checks the Asterisk HTTP server using a real endpoint", () => {
+    const route = readSource("src/app/api/telephony/local/status/route.ts");
+
+    expect(route).toContain("http://127.0.0.1:8088/static/");
+    expect(route).toContain("response.status < 500");
+  });
+
   it("keeps the first admin panel truthful about local-only boundaries", () => {
     const panel = readSource("src/components/telephony/TelephonyAdminPanel.tsx");
 

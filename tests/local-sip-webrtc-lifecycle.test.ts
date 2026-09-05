@@ -32,4 +32,11 @@ describe("Local SIP WebRTC lifecycle contract", () => {
     expect(adapter).not.toContain('this.onState?.("ringing");\n    await this.user.call');
   });
 
+  it("does not recursively disconnect after the SIP server closes", () => {
+    const adapter = readSource("src/lib/telephony/localSipAdapter.ts");
+
+    expect(adapter).toContain("serverDisconnected");
+    expect(adapter).toContain("disconnectPromise");
+  });
+
 });

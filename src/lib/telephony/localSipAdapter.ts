@@ -17,6 +17,8 @@ export class LocalSipAdapter {
   private readonly user: SimpleUser;
   private readonly onState?: (state: LocalSipState) => void;
   private readonly onError?: (error: Error) => void;
+  private serverDisconnected = false;
+  private disconnectPromise: Promise<void> | null = null;
 
   constructor(options: LocalSipAdapterOptions) {
     this.onState = options.onState;
@@ -27,6 +29,7 @@ export class LocalSipAdapter {
       onCallHangup: () => this.onState?.("ended"),
       onCallHold: (held) => this.onState?.(held ? "held" : "connected"),
       onServerDisconnect: (error) => {
+        this.serverDisconnected = true;
         if (error) this.onError?.(error);
         this.onState?.("failed");
       },
@@ -42,7 +45,10 @@ export class LocalSipAdapter {
     });
   }
 
-  async connect(): Promise<void> { await this.user.connect(); }
+  async connect(): Promise<void> {
+    this.serverDisconnected = false;
+    await this.user.connect();
+  }
   async register(): Promise<void> { await this.user.register(); }
   async dial(destination: string): Promise<void> {
     await this.user.call(destination, {}, {
@@ -55,7 +61,15 @@ export class LocalSipAdapter {
     });
   }
   async hangup(): Promise<void> { await this.user.hangup(); }
-  async disconnect(): Promise<void> { await this.user.disconnect(); }
+  async disconnect(): Promise<void> {
+    if (this.serverDisconnected) return;
+    if (!this.disconnectPromise) {
+      this.disconnectPromise = this.user.disconnect().finally(() => {
+        this.disconnectPromise = null;
+      });
+    }
+    await this.disconnectPromise;
+  }
   async toggleHold(): Promise<void> { await (this.user.isHeld() ? this.user.unhold() : this.user.hold()); }
   toggleMute(): boolean {
     if (this.user.isMuted()) this.user.unmute();

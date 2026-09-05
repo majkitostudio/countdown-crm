@@ -6,7 +6,7 @@
 
 ## Výsledek jednou větou
 
-Implementace Local SIP je v repozitáři připravená a lokální Asterisk běží zdravě. Automatické kontroly jsou zelené a neadmin flow je ověřený. Pozitivní admin flow a skutečný browserový audio hovor 1001 ↔ 1002 zatím nejsou potvrzené, protože aktuální browser session je operator a není připojený druhý SIP endpoint.
+Implementace Local SIP je v repozitáři připravená a lokální Asterisk běží zdravě. Admin flow Settings → Local SIP → `/telephony` je ověřený, konzole hlásí Asterisk `Available` a interní test se bezpečně dostane až k SIP registraci/volání. Skutečný spojený browserový audio hovor 1001 ↔ 1002 zatím není potvrzený, protože je otevřený pouze jeden SIP browser endpoint.
 
 ## Co je implementováno
 
@@ -15,7 +15,7 @@ Implementace Local SIP je v repozitáři připravená a lokální Asterisk běž
 - `/telephony` má serverový admin guard a při neaktivním Local SIP odkazuje přímo na `/settings#telephony-adapter`.
 - Local SIP používá sdílený CRM session lifecycle a zapisuje bezpečné stavové eventy.
 - Browserový adapter používá SIP.js `0.21.2`, runtime bootstrap má pětiminutovou platnost a SIP hodnoty se neukládají do CRM ani `localStorage`.
-- Asterisk je localhost-only, má pouze interní endpointy 1001/1002 a interní dialplan bez SIP trunku/PSTN.
+- Asterisk je localhost-only, má pouze interní endpointy 1001/1002 a interní dialplan bez SIP trunku/PSTN; PJSIP hesla se při startu Dockeru generují do ignorovaného runtime souboru.
 - Local SIP lab route přijímá pouze interní 1001/1002; skutečné číslo leada se do lokální ústředny neposílá.
 - `/telephony` má stav Asterisku, endpointy, aktivní relace, poslední bezpečné eventy a kontrolovaný test 1001 → 1002.
 
@@ -49,7 +49,7 @@ Asterisk CLI read-back potvrdil:
 
 ## Supabase read-back
 
-`npx supabase migration list --local` ukázal shodnou lokální i vzdálenou historii včetně migrace `20260905052514`.
+`npx supabase migration list` po aplikaci migrací ukázal vzdálenou historii včetně `20260905052514` a `20260905150000`.
 
 Autentizovaný/CLI read-back lokální databáze potvrdil:
 
@@ -64,20 +64,21 @@ Aktuální pokus `npx supabase db diff --local` byl zablokovaný při startu sha
 
 Ověřeno ve skutečné session na `http://localhost:3000`:
 
-1. `/settings#telephony-adapter` se načetl bez build chyby po oddělení klientských sdílených typů od `server-only` modulu.
-2. Session má roli `operator`, proto admin-only Telephony adapter sekce není dostupná.
-3. Přímé otevření `/telephony` zobrazilo bezpečný stav `Telephony administration unavailable` s textem, že přístup má pouze workspace Administrator.
-4. `/workspace` se načetl s existujícím leadem a tlačítkem `Call Client`.
+1. Administrátorská session byla rozpoznána jako `Administrator`.
+2. `/settings#telephony-adapter` se načetl bez build chyby; `Local SIP` byl vybrán a uložil se serverově.
+3. Nastavení zobrazilo proklik `Open Local SIP console` na `/telephony`; `Telnyx adapter` zůstal disabled.
+4. `/telephony` zobrazilo `Active adapter: Local SIP`, `Asterisk status: Available`, interní linky `1001 / 1002` a hranice Local only / Public PSTN disabled / Recording disabled / Telnyx blocked.
+5. Tlačítko interního testu vytvořilo Local SIP session a bezpečné eventy. Test prošel přes bootstrap a SIP registraci, ale skončil očekávaně jako `failed`, protože druhý endpoint `1002` nebyl připojený; aplikace nevytvořila veřejný hovor.
+6. Po testu se konzole vrátila do `idle` bez původní chyby rekurzivního odpojování.
 
 ## Co zatím není potvrzené
 
-- pozitivní admin flow: přepnutí Local SIP v Settings → proklik `/telephony`,
 - skutečný browserový audio hovor 1001 → 1002,
 - registrace endpointů po připojení dvou browserových SIP klientů,
 - Operator Console Local SIP hovor až po post-call wrap-up a databázový read-back,
 - aktuální `db diff` kvůli obsazenému shadow DB portu 54320.
 
-Tyto body nejsou vydávané za hotové. K jejich dokončení je potřeba admin přihlášení a druhý browserový SIP endpoint, například druhá lokální browser session s linkou 1002.
+Tyto body nejsou vydávané za hotové. K jejich dokončení je potřeba druhý browserový SIP endpoint připojený jako linka `1002`; samotná jedna admin session může ověřit pouze bootstrap, registraci prvního endpointu a bezpečný failure path.
 
 ## Bezpečnostní hranice
 

@@ -38,6 +38,11 @@ aktivní relace, bezpečné poslední eventy a umožňuje interní test 1001 →
 Operator Console v Local SIP režimu také používá pouze interní 1002; skutečné
 telefonní číslo leada se do lokální ústředny neposílá.
 
+Pro skutečný spojený audio test je potřeba připojit dva browserové SIP endpointy:
+první jako `1001` a druhý jako `1002`. Jedna admin session umí ověřit stav
+Asterisku, bootstrap, registraci prvního endpointu a bezpečný failure path, ale
+sama nemůže vytvořit obousměrný hovor s druhou linkou.
+
 Pro browserové připojení server vydá krátkodobý pětiminutový runtime bootstrap.
 Heslo je načtené pouze pro běh aktuálního klienta, neukládá se do CRM ani do
 `localStorage`, auditů, diagnostiky nebo commitu. Lokální hodnoty jsou v

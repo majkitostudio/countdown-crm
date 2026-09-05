@@ -10,8 +10,11 @@ export async function GET() {
 
   if (settings.active_adapter === "local_sip") {
     try {
-      const response = await fetch("http://127.0.0.1:8088/httpstatus", { cache: "no-store" });
-      asterisk = response.ok ? "Available" : "Unavailable";
+      // Asterisk's HTTP server intentionally returns 403 for its static root.
+      // Any response below 500 proves the local HTTP service is reachable;
+      // fetch() throwing is the unavailable case.
+      const response = await fetch("http://127.0.0.1:8088/static/", { cache: "no-store" });
+      asterisk = response.status < 500 ? "Available" : "Unavailable";
     } catch {
       asterisk = "Unavailable";
     }

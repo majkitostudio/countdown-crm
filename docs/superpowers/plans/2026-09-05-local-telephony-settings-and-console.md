@@ -267,7 +267,7 @@ Run `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `git diff 
 
 Mark only evidenced items complete. Keep Telnyx public PSTN, recording, transcription and Gemini blocked/out of scope. Add the verification report and plan link to `docs/README.md`; commit as `docs: record local telephony verification`.
 
-**Implementation note:** The admin read model now returns capped active sessions and safe event summaries without raw payloads, and the internal test-call route is limited to 1001 ↔ 1002. Automated verification and the non-admin browser denial passed. The positive admin/audio flow remains open until an administrator session and a second registered browser SIP endpoint are available. The current Supabase schema diff retry is also blocked by an unrelated Docker port conflict on 54320.
+**Implementation note:** The admin read model now returns capped active sessions and safe event summaries without raw payloads, and the internal test-call route is limited to 1001 ↔ 1002. Automated verification, the non-admin browser denial and the positive admin path (Settings → Local SIP → `/telephony`) passed. During manual testing we also corrected the Asterisk health endpoint, added explicit `service_role` grants, generated PJSIP auth into an ignored runtime file, aligned endpoint/AOR names with SIP registration, and made browser disconnect cleanup idempotent. The connected 1001 ↔ 1002 audio flow remains open until a second registered browser SIP endpoint is available. The current Supabase schema diff retry is also blocked by an unrelated Docker port conflict on 54320.
 
 ## Final Definition of Done
 

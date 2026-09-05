@@ -30,7 +30,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 ## Co hotové není
 
 - Telnyx live pilot je dočasně odložený kvůli ověření telefonního čísla mimo repo; live environment a veřejná webhook URL proto ještě nejsou ověřené end-to-end,
-- lokální SIP ústředna v Dockeru je implementovaná jako validační cesta; pozitivní admin browser flow čeká na admin session a druhý browserový SIP endpoint,
+- lokální SIP ústředna v Dockeru je implementovaná jako validační cesta; pozitivní admin flow Settings → Local SIP → `/telephony` je ověřený, skutečný spojený audio hovor čeká na druhý browserový SIP endpoint,
 - inbound routing, nahrávání hovorů a přepis hovorů nejsou implementované,
 - Gemini post-call AI pro přepis, verdikt a návrh poznámky není implementovaná,
 - training zůstává mimo telefonní vrstvu; softphone používá simulaci, Local SIP nebo blokovaný Telnyx podle serverové workspace volby,
