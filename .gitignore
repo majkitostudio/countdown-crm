@@ -49,6 +49,7 @@ yarn-error.log*
 
 # local recovery and connector state
 /supabase/.temp/
+/.superpowers/
 
 # vscode
 .vscode/
