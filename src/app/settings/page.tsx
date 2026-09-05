@@ -24,6 +24,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { getWalletOverviewAction } from "@/app/actions/wallet";
 import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
 import type { WalletOverviewDTO } from "@/lib/dal/wallet";
+import { TelephonyAdapterSettings } from "@/components/settings/TelephonyAdapterSettings";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
@@ -197,6 +198,8 @@ export default function SettingsPage() {
           ) : null}
         </section>
       )}
+
+      {canManageProductScripts && <TelephonyAdapterSettings />}
 
       {/* Section: Custom Schema & Objects (Attio Engine) */}
       <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-5">

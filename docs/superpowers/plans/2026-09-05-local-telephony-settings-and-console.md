@@ -120,15 +120,15 @@ Run the focused test and commit as `feat: add server-backed telephony adapter bo
 
 **Files:** `src/components/settings/TelephonyAdapterSettings.tsx`, `src/app/settings/page.tsx`, `tests/local-sip-ui-contract.test.ts`
 
-- [ ] **Step 1: Write failing UI tests**
+- [x] **Step 1: Write failing UI tests**
 
 Assert `id="telephony-adapter"`, Local SIP selectable, Telnyx visible but disabled with blocker copy, Local SIP shows `href="/telephony"`, inactive page link target is `/settings#telephony-adapter`, and no adapter field is added to `UserSettings` or its localStorage payload. Run focused test and verify RED.
 
-- [ ] **Step 2: Implement the component**
+- [x] **Step 2: Implement the component**
 
 Use the existing settings visual language. Load the server DTO and call the Server Action for Local SIP. Keep ringtone preferences local and separate. Render the section only for an administrator, while relying on server authorization for safety.
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 Run `npm test -- tests/local-sip-ui-contract.test.ts`; commit as `feat: add admin telephony adapter settings`.
 
