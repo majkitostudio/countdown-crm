@@ -215,11 +215,11 @@ Run the focused Docker contract test; commit as `feat: add local asterisk docker
 
 **Files:** `src/lib/telephony/localSipAdapter.ts`, `package.json`, `package-lock.json`, `src/lib/telephony/softphone.ts`, `src/components/workspace/CallStatusBar.tsx`, `src/components/workspace/OperatorCallControls.tsx`, `tests/local-sip-webrtc-lifecycle.test.ts`
 
-- [ ] **Step 1: Pin SIP.js and write failing tests**
+- [x] **Step 1: Pin SIP.js and write failing tests**
 
 Pin `sip.js@0.21.2` in package files. Test readiness before dial, session-before-provider, ringing only after SIP ringing, connected only after answer/media confirmation, ended, failed, mute, hold, DTMF, no simulation audio under `local_sip`, and unchanged simulation/Telnyx fake-client behavior. Run focused test and verify RED.
 
-- [ ] **Step 2: Implement the adapter**
+- [x] **Step 2: Implement the adapter**
 
 Expose `connect`, `register`, `dial`, `hangup`, `toggleMute`, `toggleHold`, `sendDtmf` and `disconnect`. Translate SIP.js notifications to shared statuses and post transitions to the local session route. Never persist SIP credentials.
 
@@ -230,6 +230,8 @@ Load active adapter before dialing: simulation uses existing `audioEngine`, loca
 - [ ] **Step 4: Verify and commit**
 
 Run `npm test -- tests/local-sip-webrtc-lifecycle.test.ts tests/telnyx-webrtc-lifecycle.test.ts`; commit as `feat: connect local sip adapter to operator calls`.
+
+**Implementation note:** SIP.js is pinned and the browser adapter is implemented, but provider selection is intentionally paused until a short-lived local SIP credential bootstrap exists. Hard-coding or exposing a persistent SIP password would violate the security boundary.
 
 ---
 
