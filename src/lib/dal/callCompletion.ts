@@ -17,7 +17,7 @@ export type CompletionOutcome = "order_placed" | "followup_scheduled" | "no_answ
 export interface CompleteCallInput {
   lead_id: string;
   /** Stable identity for a retry of the same post-call submission. */
-  call_session_id?: string | null;
+  call_session_id: string;
   duration_seconds: number;
   outcome: CompletionOutcome;
   transcript?: string | null;
@@ -45,11 +45,6 @@ const outcomeMap: Record<CompletionOutcome, CallOutcome> = {
   objection_handled: "objection",
 };
 
-// The queue RPC is the durable atomic boundary for the operator flow. This
-// small request guard also collapses concurrent retries of the legacy/direct
-// completion path before they can reach its order-writing RPC twice.
-const completionRequests = new Map<string, Promise<CompleteCallDTO>>();
-
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim() || null;
   return normalized;
@@ -66,6 +61,9 @@ export async function completeCallForWorkspace(
   if (!Number.isInteger(input.duration_seconds) || input.duration_seconds < 0) {
     throw new DataAccessError("VALIDATION", "Call duration must be a non-negative integer");
   }
+  if (!input.call_session_id?.trim()) {
+    throw new DataAccessError("VALIDATION", "Call completion requires a server-authorized call session");
+  }
 
   const operatorNote = normalizeOptionalText(input.operator_note);
   const failError = validateCallFailFields({
@@ -74,22 +72,15 @@ export async function completeCallForWorkspace(
     note: operatorNote || "",
   });
   if (failError) throw new DataAccessError("VALIDATION", failError);
+  if (input.outcome === "followup_scheduled" && !input.callback_scheduled_at) {
+    throw new DataAccessError("VALIDATION", "Callback date and time are required");
+  }
+  if (input.outcome !== "followup_scheduled" && input.callback_scheduled_at) {
+    throw new DataAccessError("VALIDATION", "Callback time is only valid for Schedule Callback");
+  }
 
-  const requestId = normalizeOptionalText(input.call_session_id);
   const context = await requireWorkspaceContext(workspaceId);
-  const requestKey = requestId ? `${context.workspaceId}:${context.userId}:${requestId}` : null;
-  if (requestKey && completionRequests.has(requestKey)) {
-    return completionRequests.get(requestKey)!;
-  }
-
-  const completionPromise = completeCallForAuthorizedWorkspace(input, context, operatorNote);
-  if (requestKey) {
-    completionRequests.set(requestKey, completionPromise);
-    void completionPromise.catch(() => {
-      if (completionRequests.get(requestKey) === completionPromise) completionRequests.delete(requestKey);
-    });
-  }
-  return completionPromise;
+  return completeCallForAuthorizedWorkspace(input, context, operatorNote);
 }
 
 async function completeCallForAuthorizedWorkspace(
@@ -151,13 +142,18 @@ async function completeCallForAuthorizedWorkspace(
   }
 
   const operatorName = operatorProfile?.full_name?.trim() || "Unknown operator";
-  const { data, error } = await supabase.rpc("complete_call_with_order_items", {
-    p_lead_id: input.lead_id,
-    p_duration_seconds: input.duration_seconds,
-    p_outcome: outcomeMap[input.outcome],
-    p_transcript: input.transcript || null,
-    p_ai_sentiment: input.ai_sentiment || "Neutral",
-    p_order_items: hasOrder ? orderItems : null,
+  const { data, error } = await supabase.rpc("complete_call_with_order_items_idempotent", {
+    completion_key: input.call_session_id,
+    call_session_id: input.call_session_id,
+    lead_id: input.lead_id,
+    duration_seconds: input.duration_seconds,
+    outcome: outcomeMap[input.outcome],
+    transcript: input.transcript || null,
+    ai_sentiment: input.ai_sentiment || "Neutral",
+    order_items: hasOrder ? orderItems : null,
+    callback_scheduled_at: input.callback_scheduled_at || null,
+    call_note: operatorNote,
+    call_fail_reason: input.fail_reason || null,
   });
 
   if (error || !data || !Array.isArray(data) || data.length !== 1) {

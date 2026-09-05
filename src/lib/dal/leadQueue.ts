@@ -282,7 +282,8 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
   }
   const supabase = await createDataClient();
-  const { data, error } = await supabase.rpc("complete_lead_call_with_order_items", {
+  const { data, error } = await supabase.rpc("complete_lead_call_with_order_items_idempotent", {
+    completion_key: input.queue_item_id,
     target_queue_item_id: input.queue_item_id,
     call_duration_seconds: input.duration_seconds,
     call_outcome: input.outcome,

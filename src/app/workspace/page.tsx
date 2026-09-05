@@ -18,6 +18,7 @@ import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleMo
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { getFailReasonLabel, type FailReason } from "@/lib/postCall";
+import { createPostCallRetry } from "@/lib/postCallCompletion";
 import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
@@ -117,6 +118,7 @@ function WorkspaceContent() {
   const callStartPendingRef = React.useRef(false);
   const callStartRecoveryRef = React.useRef(false);
   const completionInFlightRef = React.useRef(false);
+  const retryCompletionRef = React.useRef<(() => void) | null>(null);
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
@@ -339,6 +341,7 @@ function WorkspaceContent() {
     orderItems?: import("@/lib/callOrder").CallOrderItemInput[],
     operatorNote?: string,
     failReason?: FailReason,
+    callSessionId = softphoneSession.id,
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
@@ -394,13 +397,14 @@ function WorkspaceContent() {
           workflowDispatches: completion.workflowDispatches,
         });
         setCompletionSaveState("saved");
+        retryCompletionRef.current = null;
         setActivityRefreshToken((current) => current + 1);
         return { callId: completion.call_id, orderId: completion.order_id || undefined };
       }
 
       const completion = await completeCallAction({
         lead_id: activeLead.id,
-        call_session_id: activeQueueItemId || activeLead.id,
+        call_session_id: callSessionId,
         duration_seconds: durationSeconds,
         outcome,
         ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
@@ -435,10 +439,37 @@ function WorkspaceContent() {
         workflowDispatches: completion.workflowDispatches,
       });
       setCompletionSaveState("saved");
+      retryCompletionRef.current = null;
       setActivityRefreshToken((current) => current + 1);
       return { callId: completion.call_id, orderId: completion.order_id || undefined };
     } catch (error) {
       setCompletionSaveState("failed");
+      retryCompletionRef.current = createPostCallRetry(
+        (payload) => completeCall(
+          payload.outcome,
+          payload.outcomeLabel,
+          payload.orderStatus,
+          payload.orderValue,
+          payload.orderProductId,
+          payload.callbackScheduledAt,
+          payload.orderItems,
+          payload.operatorNote,
+          payload.failReason,
+          payload.callSessionId,
+        ),
+        {
+          callSessionId: softphoneSession.id,
+          outcome,
+          outcomeLabel,
+          orderStatus,
+          orderValue,
+          orderProductId,
+          callbackScheduledAt,
+          orderItems,
+          operatorNote,
+          failReason,
+        },
+      );
       setPostCallSummary({
         leadName: activeLead.full_name,
         outcomeLabel,
@@ -460,7 +491,7 @@ function WorkspaceContent() {
       completionInFlightRef.current = false;
       setIsCompletionPending(false);
     }
-  }, [activeLead, activeQueueItemId, callDurationSeconds, callStartedAt, identity, softphoneSession.durationSeconds]);
+  }, [activeLead, activeQueueItemId, callDurationSeconds, callStartedAt, identity, softphoneSession.durationSeconds, softphoneSession.id]);
 
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = useCallback(() => {
@@ -931,7 +962,7 @@ function WorkspaceContent() {
           onDismiss={() => setPostCallSummary(null)}
           onNextLead={handleNextLead}
           saveState={completionSaveState}
-          onRetry={() => window.location.reload()}
+          onRetry={() => retryCompletionRef.current?.()}
         />
       )}
 

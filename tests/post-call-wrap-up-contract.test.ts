@@ -10,6 +10,10 @@ const normalizedMigration = migration.replace(/\s+/g, " ");
 const completionDal = readFileSync(resolve(process.cwd(), "src/lib/dal/callCompletion.ts"), "utf8");
 const workspacePage = readFileSync(resolve(process.cwd(), "src/app/workspace/page.tsx"), "utf8");
 const summaryCard = readFileSync(resolve(process.cwd(), "src/components/workspace/PostCallSummaryCard.tsx"), "utf8");
+const idempotencyMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260905163258_harden_post_call_completion_idempotency.sql"),
+  "utf8",
+);
 
 describe("post-call fail persistence contract", () => {
   it("stores fail reason and operator note as separate call fields", () => {
@@ -33,15 +37,26 @@ describe("post-call fail persistence contract", () => {
   });
 
   it("keeps completion retries on one stable request identity", () => {
-    expect(completionDal).toContain("call_session_id?: string | null");
-    expect(completionDal).toContain("completionRequests");
-    expect(completionDal).toContain("context.workspaceId}:${context.userId}:${requestId}");
-    expect(workspacePage).toContain("call_session_id: activeQueueItemId || activeLead.id");
+    expect(completionDal).toContain("call_session_id: string");
+    expect(completionDal).toContain("complete_call_with_order_items_idempotent");
+    expect(completionDal).toContain("completion_key: input.call_session_id");
+    expect(workspacePage).toContain("call_session_id: softphoneSession.id");
+    expect(workspacePage).not.toContain("activeQueueItemId || activeLead.id");
   });
 
   it("exposes an explicit saving, saved, failed and retry UI contract", () => {
     expect(summaryCard).toContain('data-testid="post-call-save-state"');
     expect(summaryCard).toContain('"saving" | "saved" | "failed"');
     expect(summaryCard).toContain("Retry");
+  });
+
+  it("uses a durable server-side request ledger for both completion boundaries", () => {
+    expect(idempotencyMigration).toContain("CREATE TABLE IF NOT EXISTS public.call_completion_requests");
+    expect(idempotencyMigration).toContain("CREATE OR REPLACE FUNCTION public.complete_lead_call_with_order_items_idempotent");
+    expect(idempotencyMigration).toContain("CREATE OR REPLACE FUNCTION public.complete_call_with_order_items_idempotent");
+    expect(idempotencyMigration).toContain("ON CONFLICT (workspace_id, completion_key) DO NOTHING");
+    expect(idempotencyMigration).toContain("operator_note = NULLIF(btrim(call_note), '')");
+    expect(idempotencyMigration).toContain("fail_reason = call_fail_reason");
+    expect(idempotencyMigration).toContain("callback_scheduled_at', callback_scheduled_at");
   });
 });

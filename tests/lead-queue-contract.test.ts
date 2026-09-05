@@ -131,7 +131,8 @@ describe("lead queue server contract", () => {
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator"]);
     expect(rpc).toHaveBeenCalledTimes(2);
-    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items", {
+    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items_idempotent", {
+      completion_key: "queue-1",
       target_queue_item_id: "queue-1",
       call_duration_seconds: 42,
       call_outcome: "followup_scheduled",
@@ -164,7 +165,8 @@ describe("lead queue server contract", () => {
       }),
     ).resolves.toMatchObject(completion);
 
-    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items", {
+    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items_idempotent", {
+      completion_key: "queue-1",
       target_queue_item_id: "queue-1",
       call_duration_seconds: 42,
       call_outcome: "order_placed",
