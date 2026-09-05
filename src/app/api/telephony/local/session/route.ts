@@ -3,8 +3,8 @@ import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { createDataClient } from "@/lib/dal/db";
 import { DataAccessError } from "@/lib/dal/errors";
 import { createTelephonySession, transitionTelephonySession } from "@/lib/dal/telephonySessions";
+import { recordTelephonyEvent } from "@/lib/dal/telephonyEvents";
 import { getActiveTelephonyAdapter } from "@/lib/dal/telephonySettings";
-import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
 import { isSessionStatus } from "@/lib/telephony/sessionTransitions";
 
 export const runtime = "nodejs";
@@ -27,8 +27,11 @@ export async function POST(request: Request) {
   try {
     const context = await requireLocalSipContext();
     const body = await request.json() as { leadId?: string; queueItemId?: string; toNumber?: string };
-    const toNumber = body.toNumber ? normalizePhoneNumber(body.toNumber) : null;
-    if (!body.leadId || !toNumber) return NextResponse.json({ error: "A valid lead and E.164 phone number are required." }, { status: 400 });
+    const requestedNumber = body.toNumber?.trim() || "";
+    const toNumber = requestedNumber === "1001" || requestedNumber === "1002"
+      ? requestedNumber
+      : null;
+    if (!body.leadId || !toNumber) return NextResponse.json({ error: "Local SIP calls are limited to internal extensions 1001 and 1002." }, { status: 400 });
 
     const dataClient = await createDataClient();
     const { data: lead, error: leadError } = await dataClient
@@ -47,6 +50,13 @@ export async function POST(request: Request) {
       queueItemId: body.queueItemId || null,
       toNumber,
       direction: "outbound",
+    });
+    await recordTelephonyEvent({
+      workspaceId: context.workspaceId,
+      sessionId: session.sessionId,
+      provider: "local_sip",
+      eventId: `local:${session.sessionId}:initiated`,
+      eventType: "local_sip.session.initiated",
     });
     return NextResponse.json({ ...session, toNumber });
   } catch (error) {
@@ -67,6 +77,14 @@ export async function PATCH(request: Request) {
       operatorId: context.userId,
       status: body.status,
       providerCallId: body.providerCallId || null,
+      occurredAt: body.occurredAt || null,
+    });
+    await recordTelephonyEvent({
+      workspaceId: context.workspaceId,
+      sessionId: body.sessionId,
+      provider: "local_sip",
+      eventId: `local:${body.sessionId}:${result.status}`,
+      eventType: `local_sip.session.${result.status}`,
       occurredAt: body.occurredAt || null,
     });
     return NextResponse.json({ ok: true, ...result });

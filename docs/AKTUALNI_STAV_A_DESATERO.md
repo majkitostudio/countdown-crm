@@ -30,10 +30,10 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 ## Co hotové není
 
 - Telnyx live pilot je dočasně odložený kvůli ověření telefonního čísla mimo repo; live environment a veřejná webhook URL proto ještě nejsou ověřené end-to-end,
-- lokální SIP ústředna v Dockeru je schválená jako validační cesta, ale zatím není implementovaná ani ověřená,
+- lokální SIP ústředna v Dockeru je implementovaná jako validační cesta; pozitivní admin browser flow čeká na admin session a druhý browserový SIP endpoint,
 - inbound routing, nahrávání hovorů a přepis hovorů nejsou implementované,
 - Gemini post-call AI pro přepis, verdikt a návrh poznámky není implementovaná,
-- training a softphone fallback zůstávají simulací, dokud nebude výslovně zapnutá živá telefonní vrstva,
+- training zůstává mimo telefonní vrstvu; softphone používá simulaci, Local SIP nebo blokovaný Telnyx podle serverové workspace volby,
 - fulfillment webhook a produkční payout nejsou součástí Wallet MVP.
 
 ## To-Do
@@ -44,7 +44,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - [x] doplnit autentizovaný call → outcome/order → reload → SQL read-back pro kritické role; ověřený je fallback call s výsledkem `no_answer`, nikoli živý Telnyx pilot,
 - [x] explicitně evidovat a srovnat rozdíly migration history mezi repozitářem a linked sandboxem; schema diff je po opravě nulový,
 - [ ] vyřešit privilegovaný způsob spuštění databázových testů proti linked sandboxu; aktuální Supabase runner nemá přístup do interních schémat `auth` a `private`, lokální testy proto zůstávají hlavním automatizovaným důkazem.
-- [ ] uložit aktivní telefonní adapter serverově na úrovni workspace; nepoužívat `localStorage`, změnu povolit pouze administrátorovi a zapsat ji do auditu.
+- [x] uložit aktivní telefonní adapter serverově na úrovni workspace; nepoužívat `localStorage`, změnu povolit pouze administrátorovi a zapsat ji do auditu.
 
 ### Vzdálené To-Do — Telnyx (externě blokované)
 
@@ -97,7 +97,9 @@ Navržený postup:
 4. projít call lifecycle a databázový read-back,
 5. Telnyx připojit až později jako produkční carrier adapter.
 
-Stav této cesty: **schválený směr, implementace ještě nezačala**.
+Stav této cesty: **implementováno a lokálně ověřeno v Dockeru**. Asterisk je
+localhost-only, obsahuje pouze interní endpointy 1001/1002 a nepředstavuje
+produkční veřejnou telefonii.
 
 Telnyx není bezprostřední produktový krok. Před jeho návratem má přednost
 stabilizace migration history, post-call toku, Conversation Briefu, Team Leader

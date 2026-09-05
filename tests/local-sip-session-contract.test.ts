@@ -29,4 +29,13 @@ describe("shared telephony session contract", () => {
     expect(route).toContain("createTelephonySession");
     expect(route).toContain("transitionTelephonySession");
   });
+
+  it("keeps local lab sessions on internal extensions instead of public numbers", () => {
+    const route = readSource("src/app/api/telephony/local/session/route.ts");
+    const controller = readSource("src/lib/telephony/softphone.ts");
+
+    expect(route).toContain('"1001"');
+    expect(route).toContain('"1002"');
+    expect(controller).toContain('toNumber: "1002"');
+  });
 });

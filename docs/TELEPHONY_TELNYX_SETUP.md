@@ -26,10 +26,22 @@ Settings, nikoli do `localStorage` prohlížeče. Sekce má stabilní odkaz
 proklik na `/telephony`; pokud Local SIP aktivní není, administrátorská
 stránka `/telephony` nabídne proklik zpět přímo na tuto volbu.
 
-Lokální ústředna je v tuto chvíli **plánovaná, nikoli implementovaná**. Jejím
-účelem není nahradit Telnyx, ale umožnit vývoj a ověření chování Countdownu v
-době, kdy není možné ověřit Telnyx číslo. Veřejné volání na mobil z ní nebude
-fungovat bez samostatného SIP trunku nebo jiné telefonní brány.
+Lokální ústředna je nyní **implementovaná jako lokální validační laboratoř**.
+Jejím účelem není nahradit Telnyx, ale umožnit vývoj a ověření chování
+Countdownu v době, kdy není možné ověřit Telnyx číslo. Veřejné volání na mobil
+z ní nebude fungovat: Local SIP přijímá pouze interní testovací endpointy
+1001/1002 a nemá SIP trunk ani PSTN routing.
+
+Správa je dostupná pouze administrátorovi na `/telephony`, pokud je v Admin
+Settings vybraný `Local SIP`. Konzole ukazuje stav Asterisku, interní endpointy,
+aktivní relace, bezpečné poslední eventy a umožňuje interní test 1001 → 1002.
+Operator Console v Local SIP režimu také používá pouze interní 1002; skutečné
+telefonní číslo leada se do lokální ústředny neposílá.
+
+Pro browserové připojení server vydá krátkodobý pětiminutový runtime bootstrap.
+Heslo je načtené pouze pro běh aktuálního klienta, neukládá se do CRM ani do
+`localStorage`, auditů, diagnostiky nebo commitu. Lokální hodnoty jsou v
+ignorovaném `docker/asterisk/.env`; vzor je v `docker/asterisk/.env.example`.
 
 Budoucí hranice má zůstat provider-neutrální:
 
@@ -60,6 +72,12 @@ NEXT_PUBLIC_TELNYX_ENABLED=false
 - `POST /api/telephony/telnyx/token` vydává krátkodobý token po ověření uživatele a konfigurace,
 - `POST/PATCH /api/telephony/telnyx/session` zakládá a synchronizuje CRM call session,
 - `POST /api/telephony/telnyx/webhook` ověřuje podpis a ukládá provider eventy idempotentně,
+- `GET /api/telephony/adapter` vrací workspace aktivní adapter bez cache,
+- `GET /api/telephony/local/status` vrací bezpečný stav Asterisku, aktivní relace a poslední eventy,
+- `POST /api/telephony/local/test-call` povoluje pouze interní test 1001 ↔ 1002,
+- `POST/PATCH /api/telephony/local/session` zakládá a synchronizuje Local SIP session,
+- `GET /api/telephony/local/bootstrap` vydává krátký runtime bootstrap pro browserové SIP připojení,
+- `docker compose -f docker-compose.telephony.yml up -d` spouští lokální Asterisk s endpointy 1001/1002,
 - browser softphone umí připravený outbound lifecycle, mute, hold a DTMF,
 - při vypnutém flagu zůstává současný simulovaný softphone.
 

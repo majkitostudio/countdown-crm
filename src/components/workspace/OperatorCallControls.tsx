@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, validateFailDetails } from "@/lib/postCall";
-import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 
 const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   value: CallOutcome;

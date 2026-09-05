@@ -7,7 +7,7 @@ import {
   getWorkspaceTelephonySettingsAction,
   updateWorkspaceTelephonyAdapterAction,
 } from "@/app/actions/telephonySettings";
-import { TELNYX_BLOCKER_COPY, type SelectableTelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
+import { TELNYX_BLOCKER_COPY, type SelectableTelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import type { WorkspaceTelephonySettings } from "@/lib/dal/telephonySettings";
 
 export function TelephonyAdapterSettings() {

@@ -1,4 +1,4 @@
-import type { TelephonyAdapter } from "./telephonyAdapter";
+import type { TelephonyAdapter } from "./telephonyAdapterShared";
 
 export async function getActiveTelephonyAdapterClient(): Promise<TelephonyAdapter> {
   const response = await fetch("/api/telephony/adapter", { cache: "no-store" });

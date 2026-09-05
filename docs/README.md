@@ -10,6 +10,8 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) | Krátký týmový checklist pro návrh, implementaci a ověření změn. |
 | [TELEPHONY_TELNYX_SETUP.md](TELEPHONY_TELNYX_SETUP.md) | Stav Telnyx vrstvy a dočasná validační cesta přes Docker SIP laboratoř. Neobsahuje tajné klíče. |
 | [superpowers/specs/2026-09-05-local-telephony-settings-design.md](superpowers/specs/2026-09-05-local-telephony-settings-design.md) | Schválená specifikace workspace adapteru, admin-only `/telephony` a lokální Asterisk laboratoře. |
+| [superpowers/reports/2026-09-05-local-telephony-verification.md](superpowers/reports/2026-09-05-local-telephony-verification.md) | Důkazní report lokálního Docker/Asterisk stavu, automatických kontrol a otevřených browser blockerů. |
+| [superpowers/plans/2026-09-05-local-telephony-settings-and-console.md](superpowers/plans/2026-09-05-local-telephony-settings-and-console.md) | Implementační plán a stav jednotlivých kroků lokální telefonní laboratoře. |
 | [superpowers/specs/2026-09-04-telnyx-outbound-pilot-design.md](superpowers/specs/2026-09-04-telnyx-outbound-pilot-design.md) | Schválený návrh pro dokončení outbound telefonie. |
 | [superpowers/plans/2026-09-04-telnyx-outbound-pilot.md](superpowers/plans/2026-09-04-telnyx-outbound-pilot.md) | Implementační plán pro Telnyx outbound pilot. |
 

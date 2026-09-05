@@ -7,7 +7,7 @@ import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import type { FailDetails } from "@/lib/postCall";
-import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 
 interface OperatorLeadHeaderProps {
   activeLead: Lead | null;

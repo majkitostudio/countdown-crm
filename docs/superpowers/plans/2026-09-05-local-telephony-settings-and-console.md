@@ -243,11 +243,11 @@ Run `npm test -- tests/local-sip-webrtc-lifecycle.test.ts tests/telnyx-webrtc-li
 
 **Files:** `src/components/telephony/TelephonyAdminPanel.tsx`, local status/session routes, new event DAL, `tests/telephony-admin-panel-contract.test.ts`, verification report under `docs/superpowers/reports/2026-09-05-local-telephony-verification.md`, current telephony docs.
 
-- [ ] **Step 1: Write failing admin-panel tests**
+- [x] **Step 1: Write failing admin-panel tests**
 
 Assert status, extension registration, test call controls, active calls, safe recent events, local-only boundaries, deep link and absence of secrets. Run focused test and verify RED.
 
-- [ ] **Step 2: Implement read model and test call**
+- [x] **Step 2: Implement read model and test call**
 
 Return capped workspace-scoped active calls/events without raw payloads. Start only `1001` ↔ `1002` calls through the same Local SIP/session path; disable duplicate submissions.
 
@@ -263,9 +263,11 @@ Verify non-admin route denial, non-admin update denial, foreign workspace denial
 
 Run `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `git diff --check`, local Supabase migration/RLS/schema checks and the documented browser/database read-back. Record exact outputs and blockers.
 
-- [ ] **Step 6: Update docs and commit**
+- [x] **Step 6: Update docs and commit**
 
 Mark only evidenced items complete. Keep Telnyx public PSTN, recording, transcription and Gemini blocked/out of scope. Add the verification report and plan link to `docs/README.md`; commit as `docs: record local telephony verification`.
+
+**Implementation note:** The admin read model now returns capped active sessions and safe event summaries without raw payloads, and the internal test-call route is limited to 1001 ↔ 1002. Automated verification and the non-admin browser denial passed. The positive admin/audio flow remains open until an administrator session and a second registered browser SIP endpoint are available. The current Supabase schema diff retry is also blocked by an unrelated Docker port conflict on 54320.
 
 ## Final Definition of Done
 

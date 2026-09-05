@@ -18,7 +18,7 @@ import { Lead } from "@/lib/leads";
 import { Order } from "@/lib/orders";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
 import { formatCurrencyAmount } from "@/lib/currency";
-import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 
 interface CustomerPanelProps {
   leads: Lead[];

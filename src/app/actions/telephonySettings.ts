@@ -6,7 +6,7 @@ import {
   updateWorkspaceTelephonyAdapter,
   type WorkspaceTelephonySettings,
 } from "@/lib/dal/telephonySettings";
-import type { SelectableTelephonyAdapter, TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
+import type { SelectableTelephonyAdapter, TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 
 export async function getWorkspaceTelephonySettingsAction(): Promise<WorkspaceTelephonySettings> {
   return getWorkspaceTelephonySettings();

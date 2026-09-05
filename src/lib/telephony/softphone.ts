@@ -12,7 +12,7 @@ import { mapTelnyxCallState } from "./telnyxLifecycle";
 import { withTimeout } from "@/lib/withTimeout";
 import { LocalSipAdapter, type LocalSipState } from "./localSipAdapter";
 import { getActiveTelephonyAdapterClient } from "./telephonyAdapterClient";
-import type { TelephonyAdapter } from "./telephonyAdapter";
+import type { TelephonyAdapter } from "./telephonyAdapterShared";
 
 export const SOFTPHONE_AUDIO_INIT_TIMEOUT_MS = 10_000;
 export type CallState = "idle" | "dialing" | "ringing" | "connected" | "on_hold" | "ended" | "failed";
@@ -137,7 +137,7 @@ export class WebRtcSoftphoneController {
     const sessionResponse = await fetch("/api/telephony/local/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone }),
+       body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: "1002" }),
     });
     const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; error?: string };
     if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber) throw new Error(sessionBody.error || "Local SIP call session could not be created.");

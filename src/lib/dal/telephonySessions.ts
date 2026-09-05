@@ -7,11 +7,11 @@ import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/ses
 
 export type TelephonySessionProvider = "telnyx" | "local_sip";
 
-interface CreateTelephonySessionInput {
+export interface CreateTelephonySessionInput {
   workspaceId: string;
   operatorId: string;
   provider: TelephonySessionProvider;
-  leadId: string;
+  leadId?: string | null;
   queueItemId?: string | null;
   toNumber: string;
   direction: "inbound" | "outbound";

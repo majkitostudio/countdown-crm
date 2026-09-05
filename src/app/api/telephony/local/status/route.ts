@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getWorkspaceTelephonySettings } from "@/lib/dal/telephonySettings";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
+import { listActiveTelephonySessions, listRecentTelephonyEvents } from "@/lib/dal/telephonyEvents";
 
 export async function GET() {
   const context = await requireWorkspaceRole(["administrator"]);
@@ -16,11 +17,22 @@ export async function GET() {
     }
   }
 
+  const [activeCalls, recentEvents] = await Promise.all([
+    listActiveTelephonySessions(context.workspaceId, 20),
+    listRecentTelephonyEvents(context.workspaceId, 20),
+  ]);
+
   return NextResponse.json({
     workspaceId: context.workspaceId,
     activeAdapter: settings.active_adapter,
     asterisk,
     extensions: ["1001", "1002"],
+    extensionRegistration: [
+      { extension: "1001", status: "configured" },
+      { extension: "1002", status: "configured" },
+    ],
+    activeCalls,
+    recentEvents,
     boundaries: {
       localOnly: true,
       publicPstn: "disabled",

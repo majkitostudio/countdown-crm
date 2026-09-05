@@ -22,7 +22,7 @@ import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
 import { getActiveTelephonyAdapterClient } from "@/lib/telephony/telephonyAdapterClient";
-import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
 import { listScheduledCallbacksAction } from "@/app/actions/calendar";

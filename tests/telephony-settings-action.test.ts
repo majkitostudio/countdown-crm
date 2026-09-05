@@ -10,7 +10,7 @@ function readSource(relativePath: string) {
 
 describe("server-backed telephony adapter boundary", () => {
   it("defines the complete adapter vocabulary and blocks Telnyx activation", () => {
-    const source = readSource("src/lib/telephony/telephonyAdapter.ts");
+    const source = readSource("src/lib/telephony/telephonyAdapterShared.ts");
 
     expect(source).toContain('"simulation" | "local_sip" | "telnyx"');
     expect(source).toContain('"local_sip" | "telnyx"');

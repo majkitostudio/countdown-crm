@@ -10,7 +10,7 @@ import {
   isTelnyxActivationBlocked,
   type SelectableTelephonyAdapter,
   type TelephonyAdapter,
-} from "@/lib/telephony/telephonyAdapter";
+} from "@/lib/telephony/telephonyAdapterShared";
 
 type SettingsRow = Database["public"]["Tables"]["workspace_telephony_settings"]["Row"];
 
