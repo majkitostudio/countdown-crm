@@ -1,7 +1,7 @@
 # Aktuální stav a To-Do
 
 **Snapshot:** 5. 9. 2026
-**Baseline:** `main` na commitu `799dae9` + necommitnuté Supabase sync změny
+**Baseline:** `main` po dokončení post-call hranice + rozpracovaný Conversation Brief
 **Produktový status:** stabilizace před interním pilotem
 
 Tento dokument je pracovní backlog a release checklist. Neříká, že celý produkt je production-ready; každá položka je uzavřená teprve po odpovídajícím ověření.
@@ -13,6 +13,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - hlavní Operator Console workflow: claim, call lifecycle, outcome, callback, recovery a objednávka,
 - `Operator Next Action`: stavová hlavní další akce bez ručního procházení lead directory,
 - první slice `Callback Recovery Inbox`: due/upcoming callbacky přímo v Operator Console se serverovým routingem,
+- operátorský Conversation Brief: serverově načtený problém, poslední kontakt, výsledek, callback, poznámka, objednávka, dostupnost schváleného skriptu a bezpečný další krok,
 - karta klienta s plným a kompaktním režimem,
 - recent context řádek s posledním kontaktem, výsledkem, objednávkou a callbackem,
 - callback modal s počátečním fokusem, klávesou `Escape`, obnovou fokusu a přístupným chybovým stavem,
@@ -22,10 +23,12 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Customer 360, deterministický Next Best Action, Team Leader Daily Brief a Wallet MVP,
 - Telnyx foundation: serverové credentials, krátkodobý WebRTC token, call session/event persistence, podepsaný webhook a idempotentní event trail,
 - Telnyx tabulky a RLS migrace jsou aplikované v linked Supabase prostředí.
-- Supabase CLI `2.116.0`, lokální konfigurace a linked sandbox jsou srovnané s repozitářem; migration history nemá mezery, `db push --dry-run` je up-to-date a schema diff je nulový,
+- Supabase CLI `2.116.0`, lokální konfigurace a linked sandbox mají srovnanou migration history 80/80 a `db push --dry-run` je up-to-date; veřejný schema diff nemá destruktivní změny, ale nadále ukazuje rozdíly definic několika starších funkcí,
 - wallet funkce i RLS politika na linked sandboxu odpovídají hranici manager/admin; lokální databázové RLS testy prošly 58/58.
 - autentizovaný runtime důkaz prošel: Team Leader login/role/queue release, operátorské přiřazení, fallback call, outcome `no_answer`, reload a SQL read-back; testovací účty byly po ověření odstraněny.
 - `/calendar` a `/wallet` byly ověřeny autentizovaným Team Leaderem v linked sandboxu; kalendář vytvoření/reload/zrušení reminderu přežil reload a Wallet načetl ledger i týmové zůstatky bez chyby.
+- post-call idempotency a `calls.callback_scheduled_at` byly nasazeny do linked sandboxu; operátorský callback dotaz i `/calendar` byly po nasazení ověřeny bez chyby,
+- operátor už nevidí odkaz na nepřístupné Deals & Pipelines a produkt bez obrázku nevytváří prázdný `img src` požadavek.
 
 ## Co hotové není
 
@@ -42,7 +45,8 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 
 - [x] dokončit testovací Team Leader provisioning, login, ověření role a cleanup,
 - [x] doplnit autentizovaný call → outcome/order → reload → SQL read-back pro kritické role; ověřený je fallback call s výsledkem `no_answer`, nikoli živý Telnyx pilot,
-- [x] explicitně evidovat a srovnat rozdíly migration history mezi repozitářem a linked sandboxem; schema diff je po opravě nulový,
+- [x] explicitně evidovat a srovnat migration history mezi repozitářem a linked sandboxem; aktuálně 80/80 a dry-run bez čekajících migrací,
+- [ ] srovnat zbývající nedestruktivní drift definic starších public funkcí a teprve potom tvrdit úplnou schema shodu,
 - [ ] vyřešit privilegovaný způsob spuštění databázových testů proti linked sandboxu; aktuální Supabase runner nemá přístup do interních schémat `auth` a `private`, lokální testy proto zůstávají hlavním automatizovaným důkazem.
 - [x] uložit aktivní telefonní adapter serverově na úrovni workspace; nepoužívat `localStorage`, změnu povolit pouze administrátorovi a zapsat ji do auditu.
 
@@ -116,12 +120,12 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 - [x] přidat `Operator Next Action`: stavová hlavní další akce je v Operator Console a respektuje assignment, call lifecycle i recovery,
 - [x] přidat první slice `Callback Recovery Inbox`: due/upcoming callbacky jsou v Operator Console a zůstávají omezené serverovým routingem; hlubší automatické recovery a claim callbacku jsou další krok,
 - [x] přejmenovat negativní outcome na `Fail` a při jeho uzavření vyžadovat konkrétní důvod i krátkou poznámku; důvod a poznámka se ukládají odděleně pro další reporting,
-- [ ] zrychlit post-call wrap-up tak, aby outcome, poznámka, další krok, callback a objednávka tvořily jeden krátký a jednoznačný tok chráněný proti dvojímu odeslání.
+- [x] zrychlit post-call wrap-up tak, aby outcome, poznámka, další krok, callback a objednávka tvořily jeden krátký a jednoznačný tok chráněný proti dvojímu odeslání; idempotentní hranice je nasazená i v linked sandboxu.
 
 ### P2 — operátorská čitelnost a vedení týmu
 
 - [x] zlepšit čitelnost Product Scriptu bez interaktivních kroků: statické sekční nadpisy, vizuální hierarchie, oddělení textu k přečtení od interních poznámek, lepší kontrast a scan-friendly layout; zachovat souvislou osnovu bez potvrzování a klikání během hovoru,
-- [ ] přidat předhovorový `Conversation Brief`: problém klienta, poslední relevantní kontakt, předchozí výsledek, callback promise a doporučený bezpečný další krok na jedné ploše,
+- [x] přidat předhovorový `Conversation Brief`: problém klienta, poslední relevantní kontakt, předchozí výsledek, callback promise a doporučený bezpečný další krok na jedné ploše; chybějící zdroje se označují a nic se nedopočítává modelem,
 - [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
 - [ ] přidat Team Leader Exception Queue pro overdue callbacky, stuck recovery, neuzavřené outcomes, dlouhé leases, failed workflows a chybějící publikované skripty; každá položka musí mít důvod, prioritu, vlastníka a bezpečnou další akci,
 - [ ] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, teamleader týmové výjimky a admin stav workspace; nepřidávat další obecný dashboard bez akčního kontextu,
@@ -208,11 +212,10 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 **Co bolí v reálném hovoru:**
 
-1. Před hovorem není jeden `Conversation Brief` — problém, poslední kontakt, slib, bezpečný další krok. Operátor skládá kontext z karty, timeline, skriptu a recent row.
-2. Po hovoru není jeden krátký wrap-up. Outcome, poznámka, callback a objednávka jsou pořád víc kroků; po uložení skočí Post-call summary, které víc hlásí automatizace než „co teď“.
-3. Neví, *proč* tenhle lead volá zrovna teď: chybí kampaň / list / nabídka / souhlas. Queue dává „další člověka“, ne „další práci“.
-4. Status v sidebaru je lokální UI, ne stav směny. Pauza, wrap-up a konec směny nejsou provozní akce.
-5. Navigace ho tahá do Dashboardu, Deals, Training, Products, Wallet, Call Logs. Během hovoru má zůstat v Console.
+1. Conversation Brief a idempotentní post-call wrap-up jsou doplněné; zbývá jejich provozní UX ověření v celé směně s reálně přidělenými leady.
+2. Stále chybí hlubší obchodní důvod, *proč* se lead volá právě teď: kampaň / list / nabídka / souhlas. Brief bezpečně ukazuje jen důvod odvoditelný z aktuálního assignmentu.
+3. Status v sidebaru je lokální UI, ne stav směny. Pauza, wrap-up a konec směny nejsou provozní akce.
+4. Navigace byla opravena tak, aby operátor neviděl Deals; další zúžení role-aware shellu zůstává součástí pozdějšího kroku.
 
 **Neměnit teď:** skript nepřevádět na klikací Run mode. Wallet operátorovi nechat jako přehled bonusů, nerozšiřovat. Training nechat simulací a neprodávat ho jako coaching živého hovoru.
 

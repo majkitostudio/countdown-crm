@@ -1,5 +1,21 @@
 # Task 1 — database parity evidence
 
+## Follow-up: post-call rollout
+
+Later on 2026-09-05, the two reviewed post-call migrations
+`20260905163258` and `20260905170856` were applied to the linked sandbox after
+a dry-run identified exactly those files. Read-back then showed 80/80 migration
+IDs aligned and a new `db push --linked --dry-run` returned no pending
+migrations, seeds, or roles. An authenticated operator query confirmed that
+`calls.callback_scheduled_at` is readable without PostgreSQL error `42703`, and
+the operator Calendar loaded without an unavailable-source warning.
+
+The post-rollout public schema diff exited successfully with no destructive
+statements, but remained non-empty because definitions of several older public
+functions differ. Migration history is therefore aligned; full public schema
+parity is still an explicit follow-up and must not be claimed yet. Production
+was not selected or changed.
+
 Date: 2026-09-05 (Europe/Prague)
 
 Overall classification: `schema-drift`. Migration history is fully aligned (`78/78`), but the successful linked schema diff returned non-empty SQL changes.

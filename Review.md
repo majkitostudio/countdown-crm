@@ -1,14 +1,18 @@
 # Countdown CRM — upřímná kritika a vlastní interpretace review
 
 > **Aktualizace 5. 9. 2026:** Supabase CLI `2.116.0` je v projektu připnuté,
-> linked sandbox má s repozitářem srovnanou migration history i veřejné schema,
-> schema diff je nulový a `db push --dry-run` nehlásí čekající migrace. Wallet
+> linked sandbox má s repozitářem srovnanou migration history (80/80) a
+> `db push --dry-run` nehlásí čekající migrace. Veřejný schema diff již
+> neobsahuje destruktivní změny, ale stále ukazuje rozdíly v definicích několika
+> starších funkcí; úplnou schema shodu proto zatím netvrdíme. Wallet
 > funkce i RLS politika odpovídají hranici manager/admin a lokální databázové
-> testy prošly 58/58. Celá aplikační sada nyní prochází 187 testy ve 49 souborech.
+> testy prošly 58/58. Celá aplikační sada nyní prochází 240 testy v 64 souborech.
 > Autentizovaný fallback call → outcome → reload → SQL read-back proti cílovému
 > workspace nyní prošel přes Team Leadera a operátora; testovací účty byly
 > odstraněny. Následně byly autentizovaně ověřeny také `/calendar` a `/wallet`,
 > včetně vytvoření/reload/zrušení reminderu a načtení wallet ledgeru.
+> Post-call idempotency a callback sloupec jsou nasazené také do linked sandboxu;
+> operátorský Calendar po nasazení načítá callback zdroj bez chyby.
 > Otevřenými P1 body zůstávají Workspace Readiness a privilegovaný vzdálený
 > test runner. Živý Telnyx pilot je samostatně externě blokovaný.
 >
@@ -84,18 +88,18 @@ Při rychlé kontrole vycházelo:
 - lint: v pořádku,
 - typecheck: v pořádku,
 - production build: v pořádku,
-- 28 rout,
-- čistý working tree.
+- 35 rout,
+- 240 testů v 64 souborech.
 
 To ale neznamená, že je hotový pilot. Zelený build potvrzuje technickou konzistenci, ne to, že člověk může bezpečně odpracovat celou směnu.
 
 ### Není dokončené nebo prokázané
 
 - Telnyx live pilot je blokovaný externě číslem a regionem/refundací.
-- Lokální Docker SIP laboratoř je schválená jako pomocná validační cesta, ale zatím není implementovaná.
-- Aktivní telephony adapter zatím nemá serverovou workspace konfiguraci; před implementací `/telephony` se nesmí řešit pouze lokálním nastavením prohlížeče.
+- Lokální Docker SIP cesta a admin stránka `/telephony` jsou implementované; skutečný spojený audio hovor čeká na druhý SIP endpoint.
+- Aktivní telephony adapter je uložený serverově na úrovni workspace a mění jej pouze administrátor.
 - Gemini a post-call AI jsou plánované, nikoli implementované.
-- Conversation Brief chybí.
+- Conversation Brief je implementovaný; ještě bude potřeba provozní ověření s reálně přiděleným leadem.
 - Team Leader Exception Queue chybí.
 - `/calendar` a `/wallet` jsou ověřené v linked prostředí; chybí ještě jednotná Workspace Readiness diagnostika pro případ jejich budoucího selhání.
 - Autentizovaný persistence důkaz je nyní ověřený na fallback softphonu: call → `no_answer` outcome → reload → SQL read-back. Nejde o důkaz živého Telnyx provideru.
@@ -122,11 +126,11 @@ Co už mu pomáhá:
 - profil klienta,
 - skript jako osnova,
 - fail outcome s důvodem.
+- Conversation Brief se skutečnými údaji a bezpečným dalším krokem.
 
 Co mu ještě komplikuje práci:
 
-- před hovorem chybí jeden Conversation Brief: problém, poslední kontakt, slíbený krok a bezpečný další postup;
-- po hovoru chybí jeden krátký wrap-up, který skončí jasnou odpovědí „co teď“;
+- Conversation Brief i krátký post-call wrap-up jsou nově doplněné; zbývá je prověřit v celém směnovém scénáři s reálnými daty;
 - fronta dává dalšího člověka, ale méně vysvětluje, proč je tento lead právě teď důležitý;
 - Ready/Break je lokální přepínač místo spolehlivého stavu směny;
 - skript by se neměl měnit v těžkopádný klikací Run mode;

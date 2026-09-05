@@ -5,7 +5,7 @@ nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
 **Snapshot:** 5. 9. 2026
-**Repo baseline:** `main` na commitu `799dae9` + necommitnuté Supabase sync změny
+**Repo baseline:** `main` po dokončení post-call hranice + rozpracovaný Conversation Brief
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -29,7 +29,8 @@ rozhodnutí, ne odvádět pozornost administrací.
 
 Operator Console už obsahuje plný i kompaktní režim Client Profile, recent
 context řádek, klávesové zkratky, přístupný callback modal, `Operator Next
-Action` a první slice `Callback Recovery Inbox`. Product Script zůstává
+Action`, první slice `Callback Recovery Inbox` a serverový Conversation Brief
+se skutečnými údaji a bezpečným dalším krokem. Product Script zůstává
 souvislou osnovou bez pracovního Run mode a bez potvrzování jednotlivých
 kroků během hovoru; jeho text má statické orientační sekce pro rychlejší
 čtení. Deterministické Customer 360, Next Best Action a Team Leader Daily
@@ -58,12 +59,15 @@ Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá 
 znalost UUID nejsou bezpečnostní hranice.
 
 Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má s repozitářem
-srovnanou migration history i veřejné schema; poslední kontrola hlásí nulový
-schema diff a `db push --dry-run` nehlásí čekající migrace. Lokální databázové
+srovnanou migration history 80/80 a `db push --dry-run` nehlásí čekající
+migrace. Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
+v definicích několika starších funkcí, takže úplná schema shoda zůstává otevřená.
+Lokální databázové
 RLS testy prošly 58/58. Autentizovaný fallback průchod Team Leader → operátor →
 call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
 ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`
-ledger. Živý Telnyx provider zůstává samostatně neověřený.
+ledger. Operátorský callback dotaz a `/calendar` byly znovu ověřeny po nasazení
+post-call migrací. Živý Telnyx provider zůstává samostatně neověřený.
 
 ## Telefonie a AI
 
@@ -101,14 +105,12 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. Dokončit P1 runtime stabilitu: doplnit `Workspace Readiness` diagnostiku a
-   privilegovaný runner vzdálených databázových testů; `/calendar`, `/wallet`,
-   migration history a schema sync jsou ověřené.
-2. Zrychlit post-call wrap-up: outcome, poznámka, další krok, callback a objednávka
-   v jednom krátkém toku s ochranou proti dvojímu odeslání.
-3. Přidat Conversation Brief do Operator Console.
-4. Přidat Team Leader Exception Queue pro výjimky, které skutečně vyžadují zásah.
-5. Dokončit role-aware úvodní plochy, zúžení navigace, Workspace Readiness,
+1. Dokončit zbývající P1 diagnostiku: `Workspace Readiness`, privilegovaný runner
+   vzdálených databázových testů a nedestruktivní drift definic starších funkcí.
+2. Post-call wrap-up s idempotentní hranicí je dokončený a nasazený v linked sandboxu.
+3. Conversation Brief je implementovaný v Operator Console.
+4. Přidat admin-only queue policy, na kterou naváže Team Leader Exception Queue.
+5. Dokončit role-aware úvodní plochy, další zúžení navigace, Workspace Readiness,
    Team Leader Review a auditní kontext; zmrazit custom objects, blueprints a Deals
    pipeline, dokud denní smyčka call centra drží.
 6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
