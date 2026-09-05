@@ -178,6 +178,7 @@ Proběhlé směny a schválené změny se nepřepisují bez historie. Konflikty 
 
 - Modify: `docs/AKTUALNI_STAV_A_DESATERO.md`
 - Modify: `PROJECT.md` tak, aby obsahoval aktuální pořadí priorit a schválený scope
+- Include: `docs/superpowers/plans/2026-09-05-p1-p5-settings-shifts-roadmap.md` jako hlavní implementační plán
 - Create: `docs/superpowers/reports/2026-09-05-roadmap-baseline.md`
 - Test: `git diff --check`
 
@@ -199,6 +200,7 @@ rg -n "assignment|maximum|lead|směnov|absence|přesčas|Users & Permissions|pra
 
 ```powershell
 git add docs/AKTUALNI_STAV_A_DESATERO.md PROJECT.md docs/superpowers/reports/2026-09-05-roadmap-baseline.md
+git add docs/superpowers/plans/2026-09-05-p1-p5-settings-shifts-roadmap.md
 git commit -m "docs: record current roadmap decisions"
 ```
 
