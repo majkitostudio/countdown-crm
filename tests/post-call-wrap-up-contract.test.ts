@@ -40,7 +40,8 @@ describe("post-call fail persistence contract", () => {
     expect(completionDal).toContain("call_session_id: string");
     expect(completionDal).toContain("complete_call_with_order_items_idempotent");
     expect(completionDal).toContain("completion_key: input.call_session_id");
-    expect(workspacePage).toContain("call_session_id: softphoneSession.id");
+    expect(workspacePage).toContain("call_session_id: callSessionId");
+    expect(workspacePage).toContain("callSessionId = softphoneSession.id");
     expect(workspacePage).not.toContain("activeQueueItemId || activeLead.id");
   });
 

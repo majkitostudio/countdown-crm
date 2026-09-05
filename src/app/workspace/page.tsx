@@ -65,6 +65,21 @@ interface PostCallSummary {
   workflowDispatches: WorkflowDispatchResult[];
 }
 
+interface WorkspaceCompletionRetryPayload {
+  callSessionId: string;
+  outcome: CompletionOutcome;
+  outcomeLabel: string;
+  orderStatus: PostCallSummary["orderStatus"];
+  orderValue: number;
+  orderProductId?: string;
+  callbackScheduledAt?: string;
+  orderItems?: import("@/lib/callOrder").CallOrderItemInput[];
+  operatorNote?: string;
+  failReason?: FailReason;
+}
+
+type CompletionExecutor = (payload: WorkspaceCompletionRetryPayload) => Promise<{ callId: string; orderId?: string } | null>;
+
 const CALL_START_SERVER_TIMEOUT_MS = 10_000;
 
 type OperatorConsoleState =
@@ -119,6 +134,7 @@ function WorkspaceContent() {
   const callStartRecoveryRef = React.useRef(false);
   const completionInFlightRef = React.useRef(false);
   const retryCompletionRef = React.useRef<(() => void) | null>(null);
+  const completionExecutorRef = React.useRef<CompletionExecutor | null>(null);
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
@@ -445,18 +461,7 @@ function WorkspaceContent() {
     } catch (error) {
       setCompletionSaveState("failed");
       retryCompletionRef.current = createPostCallRetry(
-        (payload) => completeCall(
-          payload.outcome,
-          payload.outcomeLabel,
-          payload.orderStatus,
-          payload.orderValue,
-          payload.orderProductId,
-          payload.callbackScheduledAt,
-          payload.orderItems,
-          payload.operatorNote,
-          payload.failReason,
-          payload.callSessionId,
-        ),
+        (payload) => completionExecutorRef.current?.(payload) || Promise.resolve(null),
         {
           callSessionId: softphoneSession.id,
           outcome,
@@ -492,6 +497,24 @@ function WorkspaceContent() {
       setIsCompletionPending(false);
     }
   }, [activeLead, activeQueueItemId, callDurationSeconds, callStartedAt, identity, softphoneSession.durationSeconds, softphoneSession.id]);
+
+  useEffect(() => {
+    completionExecutorRef.current = (payload) => completeCall(
+      payload.outcome,
+      payload.outcomeLabel,
+      payload.orderStatus,
+      payload.orderValue,
+      payload.orderProductId,
+      payload.callbackScheduledAt,
+      payload.orderItems,
+      payload.operatorNote,
+      payload.failReason,
+      payload.callSessionId,
+    );
+    return () => {
+      completionExecutorRef.current = null;
+    };
+  }, [completeCall]);
 
   // Outbound call toggle flow (Dialing -> Audio Ringtone -> Connected)
   const handleToggleCall = useCallback(() => {
