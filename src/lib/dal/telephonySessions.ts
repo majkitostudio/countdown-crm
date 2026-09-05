@@ -5,7 +5,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 import { canTransitionCallStatus, type TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
 import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/sessionTransitions";
 
-export type TelephonySessionProvider = "telnyx" | "local_sip";
+export type TelephonySessionProvider = "simulation" | "telnyx" | "local_sip";
 
 export interface CreateTelephonySessionInput {
   workspaceId: string;

@@ -564,6 +564,7 @@ export interface Database {
           outcome: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
           fail_reason: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
           operator_note: string | null;
+          callback_scheduled_at: string | null;
           transcript: string | null;
           ai_sentiment: string | null;
           created_at: string;
@@ -577,6 +578,7 @@ export interface Database {
           outcome?: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
           fail_reason?: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
           operator_note?: string | null;
+          callback_scheduled_at?: string | null;
           transcript?: string | null;
           ai_sentiment?: string | null;
           created_at?: string;
@@ -588,6 +590,7 @@ export interface Database {
           outcome?: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
           fail_reason?: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
           operator_note?: string | null;
+          callback_scheduled_at?: string | null;
           transcript?: string | null;
           ai_sentiment?: string | null;
         };
@@ -626,7 +629,7 @@ export interface Database {
           queue_item_id: string | null;
           lead_id: string | null;
           operator_id: string | null;
-          provider: "telnyx" | "local_sip";
+          provider: "simulation" | "telnyx" | "local_sip";
           provider_call_id: string | null;
           direction: "inbound" | "outbound";
           telnyx_call_control_id: string | null;
@@ -653,7 +656,7 @@ export interface Database {
           queue_item_id?: string | null;
           lead_id?: string | null;
           operator_id?: string | null;
-          provider?: "telnyx" | "local_sip";
+          provider?: "simulation" | "telnyx" | "local_sip";
           provider_call_id?: string | null;
           direction: "inbound" | "outbound";
           telnyx_call_control_id?: string | null;
@@ -703,7 +706,7 @@ export interface Database {
           id: string;
           workspace_id: string;
           call_session_id: string | null;
-          provider: "telnyx" | "local_sip";
+          provider: "simulation" | "telnyx" | "local_sip";
           provider_event_id: string;
           event_type: string;
           provider_call_control_id: string | null;
@@ -717,7 +720,7 @@ export interface Database {
           id?: string;
           workspace_id: string;
           call_session_id?: string | null;
-          provider?: "telnyx" | "local_sip";
+          provider?: "simulation" | "telnyx" | "local_sip";
           provider_event_id: string;
           event_type: string;
           provider_call_control_id?: string | null;

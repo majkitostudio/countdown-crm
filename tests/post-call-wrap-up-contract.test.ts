@@ -14,6 +14,10 @@ const idempotencyMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260905163258_harden_post_call_completion_idempotency.sql"),
   "utf8",
 );
+const boundaryMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20260905170856_harden_post_call_completion_boundary.sql"),
+  "utf8",
+);
 
 describe("post-call fail persistence contract", () => {
   it("stores fail reason and operator note as separate call fields", () => {
@@ -59,5 +63,17 @@ describe("post-call fail persistence contract", () => {
     expect(idempotencyMigration).toContain("operator_note = NULLIF(btrim(call_note), '')");
     expect(idempotencyMigration).toContain("fail_reason = call_fail_reason");
     expect(idempotencyMigration).toContain("callback_scheduled_at', callback_scheduled_at");
+    expect(boundaryMigration).toContain("request_fingerprint");
+    expect(boundaryMigration).toContain("different payload");
+    expect(boundaryMigration).toContain("REVOKE ALL ON FUNCTION public.complete_call_with_order_items");
+    expect(boundaryMigration).toContain("REVOKE ALL ON FUNCTION public.complete_lead_call_with_order_items");
+    expect(boundaryMigration).toContain("completion_key <> call_session_id");
+  });
+
+  it("keeps callback data in the canonical calls read model and workflow event", () => {
+    expect(boundaryMigration).toContain("callback_scheduled_at TIMESTAMPTZ");
+    expect(completionDal).toContain("callbackScheduledAt");
+    expect(workspacePage).toContain("failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined");
+    expect(workspacePage).toContain("operatorNote: operatorNote?.trim() || undefined");
   });
 });

@@ -26,7 +26,14 @@ describe("Local SIP runtime bootstrap contract", () => {
     const settings = readSource("src/lib/settings.ts");
 
     expect(route).not.toContain("localStorage");
-    expect(route).not.toContain("telephony_call_sessions");
     expect(settings).not.toContain("SIP_PASSWORD");
+  });
+
+  it("gives simulation calls the same server-owned session identity", () => {
+    const softphone = readSource("src/lib/telephony/softphone.ts");
+    const simulationRoute = readSource("src/app/api/telephony/simulation/session/route.ts");
+    expect(softphone).toContain("/api/telephony/simulation/session");
+    expect(simulationRoute).toContain("createTelephonySession");
+    expect(simulationRoute).toContain('provider: "simulation"');
   });
 });

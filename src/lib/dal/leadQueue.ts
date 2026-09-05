@@ -82,6 +82,8 @@ export interface ScheduledCallbackDTO {
 
 export interface CompleteLeadCallInput {
   queue_item_id: string;
+  /** Server-created identity for this individual call attempt. */
+  call_session_id: string;
   duration_seconds: number;
   outcome: QueueCallOutcome;
   transcript?: string | null;
@@ -123,11 +125,31 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
     throw new DataAccessError("VALIDATION", "Unsupported queue call outcome");
   }
 
-  const operatorNote = input.operator_note || "";
+  if (input.callback_scheduled_at != null && typeof input.callback_scheduled_at !== "string") {
+    throw new DataAccessError("VALIDATION", "Callback date and time are invalid");
+  }
+  if (input.outcome === "followup_scheduled" && !input.callback_scheduled_at?.trim()) {
+    throw new DataAccessError("VALIDATION", "Callback date and time are required");
+  }
+  if (input.outcome !== "followup_scheduled" && input.callback_scheduled_at) {
+    throw new DataAccessError("VALIDATION", "Callback time is only valid for Schedule Callback");
+  }
+
+  if (typeof input.call_session_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.call_session_id)) {
+    throw new DataAccessError("VALIDATION", "Call requires a server-authorized call session");
+  }
+
+  const operatorNote = typeof input.operator_note === "string" ? input.operator_note.trim() : "";
   const failError = validateCallFailFields({ outcome: input.outcome, failReason: input.fail_reason, note: operatorNote });
   if (failError) throw new DataAccessError("VALIDATION", failError);
 
   const hasLegacyProduct = Boolean(input.order_product_id);
+  if (input.order_items != null && !Array.isArray(input.order_items)) {
+    throw new DataAccessError("VALIDATION", "Order items must be an array");
+  }
+  if (input.order_product_id != null && typeof input.order_product_id !== "string") {
+    throw new DataAccessError("VALIDATION", "Order product is invalid");
+  }
   const hasLegacyAmount = input.order_total_amount !== null && input.order_total_amount !== undefined;
   if (input.order_items == null && hasLegacyProduct !== hasLegacyAmount) {
     throw new DataAccessError("VALIDATION", "Order product and amount must be provided together");
@@ -159,7 +181,7 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
     throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
   }
   for (const item of orderItems) {
-    if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
+    if (!item || typeof item !== "object" || typeof item.product_id !== "string" || !item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
       throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
     }
     if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1_000_000_000) {
@@ -265,7 +287,7 @@ export async function abortLeadCallStartForWorkspace(
 
 export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
   assertQueueInput(input);
-  const operatorNote = input.operator_note || "";
+  const operatorNote = typeof input.operator_note === "string" ? input.operator_note.trim() : "";
   const orderItems = input.order_items ?? (
     input.order_product_id
       ? [{
@@ -276,37 +298,44 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       : []
   );
   const hasOrder = orderItems.length > 0;
-  const context = await requireWorkspaceRole(["operator"]);
-  const currentLead = await getCurrentLeadForWorkspace(context.workspaceId);
-  if (!currentLead || currentLead.queue_item_id !== input.queue_item_id) {
-    throw new DataAccessError("NOT_FOUND", "Lead assignment is no longer available");
-  }
+  await requireWorkspaceRole(["operator"]);
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call_with_order_items_idempotent", {
-    completion_key: input.queue_item_id,
+    completion_key: input.call_session_id,
     target_queue_item_id: input.queue_item_id,
+    call_session_id: input.call_session_id,
     call_duration_seconds: input.duration_seconds,
     call_outcome: input.outcome,
-    call_transcript: input.transcript || null,
-    call_ai_sentiment: input.ai_sentiment || "Neutral",
+    call_transcript: typeof input.transcript === "string" ? input.transcript.trim() || null : null,
+    call_ai_sentiment: typeof input.ai_sentiment === "string" ? input.ai_sentiment.trim() || "Neutral" : "Neutral",
     order_items: hasOrder ? orderItems : null,
     callback_scheduled_at: input.callback_scheduled_at || null,
-    call_note: operatorNote.trim() || null,
+    call_note: operatorNote || null,
     call_fail_reason: input.fail_reason && isFailReason(input.fail_reason) ? input.fail_reason : null,
   });
   const completion = requireRpcData<QueueCompletionDTO>(data, error, "Call completion failed");
+  const leadId = typeof (completion as QueueCompletionDTO & { lead_id?: unknown }).lead_id === "string"
+    ? (completion as QueueCompletionDTO & { lead_id: string }).lead_id
+    : null;
+  const leadName = typeof (completion as QueueCompletionDTO & { lead_name?: unknown }).lead_name === "string"
+    ? (completion as QueueCompletionDTO & { lead_name: string }).lead_name
+    : null;
+  if (!leadId || !leadName) {
+    throw new DataAccessError("DATABASE", "Call completion returned no lead context");
+  }
   const workflowDispatch = await dispatchWorkflowEventForWorkspace({
     trigger: "on_call_ended",
     eventId: completion.call_id,
     payload: {
       callId: completion.call_id,
-      leadId: currentLead.lead_id,
-      leadName: currentLead.lead.full_name,
+      leadId,
+      leadName,
       agentName: "Authenticated operator",
       outcome: input.outcome,
       sentiment: input.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
+      callbackScheduledAt: input.callback_scheduled_at || null,
       failReason: input.fail_reason || null,
       operatorNote: operatorNote.trim(),
     },
@@ -347,7 +376,7 @@ export async function listScheduledCallbacksForWorkspace(
 ): Promise<ScheduledCallbackDTO[]> {
   const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
-  let query = supabase
+  let queueQuery = supabase
     .from("lead_queue_items")
     .select(`
       id, workspace_id, lead_id, scheduled_at, preferred_operator_id,
@@ -361,13 +390,53 @@ export async function listScheduledCallbacksForWorkspace(
     .lte("scheduled_at", to)
     .order("scheduled_at", { ascending: true });
 
+  let directQuery = supabase
+    .from("calls")
+    .select(`
+      id, workspace_id, lead_id, agent_id, callback_scheduled_at,
+      lead:leads(id, full_name, phone, email)
+    `)
+    .eq("workspace_id", context.workspaceId)
+    .eq("outcome", "followup_scheduled")
+    .not("callback_scheduled_at", "is", null)
+    .gte("callback_scheduled_at", from)
+    .lte("callback_scheduled_at", to);
+
   if (context.role === "operator") {
-    query = query.eq("preferred_operator_id", context.userId);
+    queueQuery = queueQuery.eq("preferred_operator_id", context.userId);
+    directQuery = directQuery.eq("agent_id", context.userId);
   }
 
-  const { data, error } = await query;
-  if (error) throw new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded.");
-  return (data || []) as unknown as ScheduledCallbackDTO[];
+  const [{ data: queueData, error: queueError }, { data: directData, error: directError }] = await Promise.all([
+    queueQuery,
+    directQuery,
+  ]);
+  if (queueError || directError) throw new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded.");
+
+  const queueCallbacks = (queueData || []) as unknown as ScheduledCallbackDTO[];
+  const directCallbacks = (directData || []).map((callback) => {
+    const row = callback as unknown as {
+      id: string;
+      workspace_id: string;
+      lead_id: string;
+      agent_id: string | null;
+      callback_scheduled_at: string;
+      lead: ScheduledCallbackDTO["lead"];
+    };
+    return {
+      id: row.id,
+      workspace_id: row.workspace_id,
+      lead_id: row.lead_id,
+      scheduled_at: row.callback_scheduled_at,
+      preferred_operator_id: row.agent_id,
+      lead: row.lead,
+      preferred_operator: null,
+    } satisfies ScheduledCallbackDTO;
+  });
+
+  return [...queueCallbacks, ...directCallbacks].sort(
+    (left, right) => Date.parse(left.scheduled_at) - Date.parse(right.scheduled_at),
+  );
 }
 
 export async function releaseLeadAssignmentForWorkspace(

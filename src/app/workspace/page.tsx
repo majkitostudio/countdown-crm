@@ -67,6 +67,8 @@ interface PostCallSummary {
 
 interface WorkspaceCompletionRetryPayload {
   callSessionId: string;
+  queueItemId: string | null;
+  durationSeconds: number;
   outcome: CompletionOutcome;
   outcomeLabel: string;
   orderStatus: PostCallSummary["orderStatus"];
@@ -358,24 +360,27 @@ function WorkspaceContent() {
     operatorNote?: string,
     failReason?: FailReason,
     callSessionId = softphoneSession.id,
+    queueItemId = activeQueueItemId,
+    preservedDurationSeconds?: number,
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
     completionInFlightRef.current = true;
     setIsCompletionPending(true);
     setCompletionSaveState("saving");
-    const durationSeconds = callDurationSeconds || (callStartedAt
+    const durationSeconds = preservedDurationSeconds ?? (callDurationSeconds || (callStartedAt
       ? Math.max(0, Math.round((Date.parse(new Date().toISOString()) - Date.parse(callStartedAt)) / 1000))
-      : softphoneSession.durationSeconds);
+      : softphoneSession.durationSeconds));
     try {
       if (identity?.role === "operator") {
-        if (!activeQueueItemId) {
+        if (!queueItemId) {
           throw new Error("No active server assignment is available for call completion");
         }
 
         const queueOutcome = outcome === "objection_handled" ? "objection" : outcome;
         const completion = await completeLeadCallAction({
-          queue_item_id: activeQueueItemId,
+          queue_item_id: queueItemId,
+          call_session_id: callSessionId,
           duration_seconds: durationSeconds,
           outcome: queueOutcome,
           ai_sentiment: orderStatus === "created" ? "Positive" : "Neutral",
@@ -451,6 +456,8 @@ function WorkspaceContent() {
         orderStatus,
         transcriptStatus: "unavailable",
         orderId: completion.order_id || undefined,
+        failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined,
+        operatorNote: operatorNote?.trim() || undefined,
         workflowEntries,
         workflowDispatches: completion.workflowDispatches,
       });
@@ -463,7 +470,9 @@ function WorkspaceContent() {
       retryCompletionRef.current = createPostCallRetry(
         (payload) => completionExecutorRef.current?.(payload) || Promise.resolve(null),
         {
-          callSessionId: softphoneSession.id,
+          callSessionId,
+          queueItemId,
+          durationSeconds,
           outcome,
           outcomeLabel,
           orderStatus,
@@ -510,6 +519,8 @@ function WorkspaceContent() {
       payload.operatorNote,
       payload.failReason,
       payload.callSessionId,
+      payload.queueItemId,
+      payload.durationSeconds,
     );
     return () => {
       completionExecutorRef.current = null;
@@ -758,7 +769,7 @@ function WorkspaceContent() {
         return;
       }
       setNotificationToast(null);
-      router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace&mode=call`);
+      router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace&mode=call&callSessionId=${encodeURIComponent(softphoneSession.id)}`);
       return;
     }
 
@@ -775,7 +786,7 @@ function WorkspaceContent() {
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
     void completeCall(callOutcome, outcomeLabel, "not_created", 0, undefined, undefined, undefined, failDetails?.note, failDetails?.failReason);
-  }, [activeLead, activeQueueItemId, completeCall, isAwaitingOutcome, router]);
+  }, [activeLead, activeQueueItemId, completeCall, isAwaitingOutcome, router, softphoneSession.id]);
 
   const handleScheduleCallback = async (scheduledAt: string) => {
     if (!isAwaitingOutcome) return;

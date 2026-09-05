@@ -8,11 +8,11 @@ import { DataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-type SearchParams = Promise<{ leadId?: string | string[]; origin?: string | string[]; mode?: string | string[] }>;
+type SearchParams = Promise<{ leadId?: string | string[]; origin?: string | string[]; mode?: string | string[]; callSessionId?: string | string[] }>;
 type OrderFlow = "manual" | "call";
 
 type NewOrderLoadResult =
-  | { leads: Awaited<ReturnType<typeof listLeadsForWorkspace>>; products: Awaited<ReturnType<typeof listProductsForWorkspace>>; requestedLeadId?: string; origin: "workspace" | "orders"; flow: OrderFlow; queueItemId?: string }
+  | { leads: Awaited<ReturnType<typeof listLeadsForWorkspace>>; products: Awaited<ReturnType<typeof listProductsForWorkspace>>; requestedLeadId?: string; origin: "workspace" | "orders"; flow: OrderFlow; queueItemId?: string; callSessionId?: string }
   | { error: unknown };
 
 async function loadNewOrderData(searchParams: SearchParams): Promise<NewOrderLoadResult> {
@@ -21,6 +21,7 @@ async function loadNewOrderData(searchParams: SearchParams): Promise<NewOrderLoa
     const requestedLeadId = Array.isArray(params.leadId) ? params.leadId[0] : params.leadId;
     const requestedOrigin = Array.isArray(params.origin) ? params.origin[0] : params.origin;
     const requestedMode = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+    const callSessionId = Array.isArray(params.callSessionId) ? params.callSessionId[0] : params.callSessionId;
     const origin = requestedOrigin === "workspace" ? "workspace" : "orders";
     const context = await requireWorkspaceContext();
     if (context.role === "operator" && !requestedLeadId) {
@@ -54,6 +55,7 @@ async function loadNewOrderData(searchParams: SearchParams): Promise<NewOrderLoa
       origin,
       flow: isCallFlow ? "call" : "manual",
       queueItemId: currentAssignment?.queue_item_id,
+      callSessionId,
     };
   } catch (error) {
     return { error };
@@ -88,7 +90,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
     );
   }
 
-  const { leads, products, requestedLeadId, origin, flow, queueItemId } = result;
+  const { leads, products, requestedLeadId, origin, flow, queueItemId, callSessionId } = result;
   return (
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
@@ -114,6 +116,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
         initialOrigin={origin}
         flow={flow}
         callQueueItemId={queueItemId}
+        callSessionId={callSessionId}
       />
     </div>
   );

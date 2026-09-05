@@ -1,11 +1,19 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { audioEngine } from "@/lib/telephony/audioEngine";
 import { SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, WebRtcSoftphoneController } from "@/lib/telephony/softphone";
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(
+    JSON.stringify({ sessionId: "11111111-1111-4111-8111-111111111111" }),
+    { status: 200, headers: { "Content-Type": "application/json" } },
+  )));
 });
 
 describe("WebRtcSoftphoneController lifecycle", () => {

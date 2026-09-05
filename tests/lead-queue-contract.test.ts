@@ -4,6 +4,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 const mocks = vi.hoisted(() => ({
   createDataClient: vi.fn(),
   requireWorkspaceRole: vi.fn(),
+  requireWorkspaceContext: vi.fn(),
   dispatchWorkflowEventForWorkspace: vi.fn(),
 }));
 
@@ -15,6 +16,7 @@ vi.mock("@/lib/dal/db", () => ({
 
 vi.mock("@/lib/dal/workspace", () => ({
   requireWorkspaceRole: mocks.requireWorkspaceRole,
+  requireWorkspaceContext: mocks.requireWorkspaceContext,
 }));
 
 vi.mock("@/lib/workflows/dispatcher", () => ({
@@ -24,6 +26,7 @@ vi.mock("@/lib/workflows/dispatcher", () => ({
 import {
   abortLeadCallStartForWorkspace,
   completeLeadCallForWorkspace,
+  listScheduledCallbacksForWorkspace,
 } from "@/lib/dal/leadQueue";
 
 const workspaceContext = {
@@ -31,6 +34,8 @@ const workspaceContext = {
   workspaceId: "workspace-1",
   role: "operator" as const,
 };
+
+const callSessionId = "11111111-1111-4111-8111-111111111111";
 
 const queueSnapshot = {
   queue_item_id: "queue-1",
@@ -59,6 +64,7 @@ describe("lead queue server contract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.requireWorkspaceRole.mockResolvedValue(workspaceContext);
+    mocks.requireWorkspaceContext.mockResolvedValue(workspaceContext);
     mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({ entries: [] });
   });
 
@@ -66,6 +72,7 @@ describe("lead queue server contract", () => {
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
+        call_session_id: callSessionId,
         duration_seconds: -1,
         outcome: "no_answer",
       }),
@@ -79,6 +86,7 @@ describe("lead queue server contract", () => {
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
+        call_session_id: callSessionId,
         duration_seconds: 30,
         outcome: "order_placed",
       }),
@@ -113,14 +121,13 @@ describe("lead queue server contract", () => {
 
   it("passes completion fields to one server-authoritative RPC", async () => {
     const completion = { call_id: "call-1", order_id: null, queue_state: "completed" };
-    const rpc = vi.fn()
-      .mockResolvedValueOnce({ data: queueSnapshot, error: null })
-      .mockResolvedValueOnce({ data: completion, error: null });
+    const rpc = vi.fn().mockResolvedValueOnce({ data: { ...completion, lead_id: "lead-1", lead_name: "Test Lead" }, error: null });
     mocks.createDataClient.mockResolvedValue({ rpc });
 
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
+        call_session_id: callSessionId,
         duration_seconds: 42,
         outcome: "followup_scheduled",
         transcript: "Follow up next week",
@@ -130,10 +137,11 @@ describe("lead queue server contract", () => {
     ).resolves.toMatchObject(completion);
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator"]);
-    expect(rpc).toHaveBeenCalledTimes(2);
-    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items_idempotent", {
-      completion_key: "queue-1",
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("complete_lead_call_with_order_items_idempotent", {
+      completion_key: callSessionId,
       target_queue_item_id: "queue-1",
+      call_session_id: callSessionId,
       call_duration_seconds: 42,
       call_outcome: "followup_scheduled",
       call_transcript: "Follow up next week",
@@ -147,9 +155,7 @@ describe("lead queue server contract", () => {
 
   it("forwards every checkout item to the atomic completion RPC", async () => {
     const completion = { call_id: "call-2", order_id: "order-2", queue_state: "completed" };
-    const rpc = vi.fn()
-      .mockResolvedValueOnce({ data: queueSnapshot, error: null })
-      .mockResolvedValueOnce({ data: completion, error: null });
+    const rpc = vi.fn().mockResolvedValueOnce({ data: { ...completion, lead_id: "lead-1", lead_name: "Test Lead" }, error: null });
     mocks.createDataClient.mockResolvedValue({ rpc });
     const orderItems = [
       { product_id: "product-1", quantity: 2, unit_price: 18.5 },
@@ -159,15 +165,17 @@ describe("lead queue server contract", () => {
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
+        call_session_id: callSessionId,
         duration_seconds: 42,
         outcome: "order_placed",
         order_items: orderItems,
       }),
     ).resolves.toMatchObject(completion);
 
-    expect(rpc).toHaveBeenNthCalledWith(2, "complete_lead_call_with_order_items_idempotent", {
-      completion_key: "queue-1",
+    expect(rpc).toHaveBeenCalledWith("complete_lead_call_with_order_items_idempotent", {
+      completion_key: callSessionId,
       target_queue_item_id: "queue-1",
+      call_session_id: callSessionId,
       call_duration_seconds: 42,
       call_outcome: "order_placed",
       call_transcript: null,
@@ -181,7 +189,6 @@ describe("lead queue server contract", () => {
 
   it("preserves the RPC error as a database access error", async () => {
     const rpc = vi.fn()
-      .mockResolvedValueOnce({ data: queueSnapshot, error: null })
       .mockResolvedValueOnce({
         data: null,
         error: { message: "assignment is no longer owned by this operator" },
@@ -191,6 +198,7 @@ describe("lead queue server contract", () => {
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
+        call_session_id: callSessionId,
         duration_seconds: 42,
         outcome: "no_answer",
       }),
@@ -200,5 +208,53 @@ describe("lead queue server contract", () => {
         message: "assignment is no longer owned by this operator",
       } satisfies Partial<DataAccessError>),
     );
+  });
+
+  it("merges queue and direct-call callbacks into one canonical read model", async () => {
+    const createQuery = (result: unknown) => {
+      const query: Record<string, unknown> = {
+        then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) => Promise.resolve(result).then(resolve, reject),
+      };
+      for (const method of ["select", "eq", "not", "gte", "lte", "order"]) {
+        query[method] = vi.fn(() => query);
+      }
+      return query;
+    };
+    const queueQuery = createQuery({
+      data: [{
+        id: "queue-callback",
+        workspace_id: "workspace-1",
+        lead_id: "lead-1",
+        scheduled_at: "2026-09-06T10:00:00.000Z",
+        preferred_operator_id: "user-1",
+        lead: { id: "lead-1", full_name: "Queue Lead", phone: "+4201", email: null },
+        preferred_operator: null,
+      }],
+      error: null,
+    });
+    const directQuery = createQuery({
+      data: [{
+        id: "direct-call",
+        workspace_id: "workspace-1",
+        lead_id: "lead-2",
+        agent_id: "user-1",
+        callback_scheduled_at: "2026-09-05T10:00:00.000Z",
+        lead: { id: "lead-2", full_name: "Direct Lead", phone: "+4202", email: null },
+      }],
+      error: null,
+    });
+    mocks.createDataClient.mockResolvedValue({
+      from: vi.fn()
+        .mockReturnValueOnce(queueQuery)
+        .mockReturnValueOnce(directQuery),
+    });
+
+    await expect(listScheduledCallbacksForWorkspace(
+      "2026-09-05T00:00:00.000Z",
+      "2026-09-07T00:00:00.000Z",
+    )).resolves.toMatchObject([
+      { id: "direct-call", preferred_operator_id: "user-1", scheduled_at: "2026-09-05T10:00:00.000Z" },
+      { id: "queue-callback", preferred_operator_id: "user-1", scheduled_at: "2026-09-06T10:00:00.000Z" },
+    ]);
   });
 });

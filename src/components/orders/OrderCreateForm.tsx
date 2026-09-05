@@ -44,6 +44,7 @@ interface OrderCreateFormProps {
   initialOrigin?: OrderOrigin;
   flow?: OrderFlow;
   callQueueItemId?: string;
+  callSessionId?: string;
 }
 
 type DraftItem = { productId: string; quantity: number; unitPrice: number };
@@ -67,6 +68,7 @@ export function OrderCreateForm({
   initialOrigin = "orders",
   flow = "manual",
   callQueueItemId,
+  callSessionId,
 }: OrderCreateFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -181,9 +183,13 @@ export function OrderCreateForm({
           if (!callQueueItemId) {
             throw new Error("The active call assignment is unavailable. Return to the Operator Console and try again.");
           }
+          if (!callSessionId) {
+            throw new Error("The server call session is unavailable. Return to the Operator Console and try again.");
+          }
 
           const completion = await completeLeadCallAction({
             queue_item_id: callQueueItemId,
+            call_session_id: callSessionId,
             duration_seconds: 0,
             outcome: "order_placed",
             ai_sentiment: "Positive",
