@@ -98,19 +98,19 @@ updateWorkspaceTelephonyAdapter(adapter: SelectableTelephonyAdapter): Promise<Wo
 getActiveTelephonyAdapter(): Promise<TelephonyAdapter>;
 ```
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Cover missing row → `simulation`, valid `local_sip`, invalid value, non-admin update, cross-workspace access, blocked `telnyx` and unchanged setting after blocked request. Run `npm test -- tests/telephony-settings-action.test.ts`; verify expected RED.
 
-- [ ] **Step 2: Implement pure adapter rules**
+- [x] **Step 2: Implement pure adapter rules**
 
 Keep types, labels and blocked Telnyx decision independent of Supabase access. Treat `simulation` as fallback, not a normal selectable UI option.
 
-- [ ] **Step 3: Implement DAL and actions**
+- [x] **Step 3: Implement DAL and actions**
 
 Derive workspace from `requireWorkspaceContext`; require `administrator` for writes; align RLS with the existing `private.is_workspace_admin` helper; use existing audit DAL; never accept a trusted workspace ID from the browser. Return a DTO with workspace, active adapter, updater and timestamp.
 
-- [ ] **Step 4: Run focused tests and commit**
+- [x] **Step 4: Run focused tests and commit**
 
 Run the focused test and commit as `feat: add server-backed telephony adapter boundary`.
 
