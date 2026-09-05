@@ -169,21 +169,23 @@ createTelephonySession({ provider, leadId, queueItemId, toNumber, direction }): 
 transitionTelephonySession({ sessionId, provider, status, providerCallId, providerEventId, occurredAt }): Promise<{ status: TelephonyCallStatus }>;
 ```
 
-- [ ] **Step 1: Write failing lifecycle tests**
+- [x] **Step 1: Write failing lifecycle tests**
 
 Cover local creation, provider ID persistence, initiated → ringing → connected → ended, duplicate event no-op, out-of-order event rejection, terminal protection, workspace/assignment checks and provider failure. Run focused test and verify RED.
 
-- [ ] **Step 2: Extract existing Telnyx logic**
+- [x] **Step 2: Extract existing Telnyx logic**
 
 Move only shared validation and monotonic transition logic into the DAL. Preserve Telnyx signature verification, response statuses and correlation behavior.
 
-- [ ] **Step 3: Add local route**
+- [x] **Step 3: Add local route**
 
 Require authenticated workspace roles, require active adapter `local_sip`, use `provider_call_id`, and write idempotent local events. Reject direct local requests when simulation or blocked Telnyx is active.
 
-- [ ] **Step 4: Run regression and commit**
+- [x] **Step 4: Run regression and commit**
 
 Run `npm test -- tests/local-sip-session-contract.test.ts tests/telnyx-lifecycle.test.ts tests/telnyx-contract.test.ts`; commit as `feat: share telephony session lifecycle across adapters`.
+
+**Implementation note:** The shared DAL now owns session creation and Local SIP transitions. Telnyx PATCH and webhook handling remain provider-specific for this slice so their existing response semantics and signature-verification boundary stay unchanged.
 
 ---
 

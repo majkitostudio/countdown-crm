@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { createDataClient } from "@/lib/dal/db";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createTelephonySession } from "@/lib/dal/telephonySessions";
 import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
 import { canTransitionCallStatus, type TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
 import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/sessionTransitions";
@@ -45,22 +46,16 @@ export async function POST(request: Request) {
       if (queueError || !queueItem) return NextResponse.json({ error: "The lead assignment is no longer available." }, { status: 409 });
     }
 
-    const { data: session, error } = await createAdminClient()
-      .from("telephony_call_sessions")
-      .insert({
-        workspace_id: context.workspaceId,
-        lead_id: body.leadId,
-        queue_item_id: body.queueItemId || null,
-        operator_id: context.userId,
-        provider: "telnyx",
-        direction: "outbound",
-        to_number: toNumber,
-        status: "initiated",
-      })
-      .select("id")
-      .single();
-    if (error || !session) throw new Error("Could not create the telephony session.");
-    return NextResponse.json({ sessionId: session.id, toNumber });
+    const session = await createTelephonySession({
+      workspaceId: context.workspaceId,
+      operatorId: context.userId,
+      provider: "telnyx",
+      leadId: body.leadId,
+      queueItemId: body.queueItemId || null,
+      toNumber,
+      direction: "outbound",
+    });
+    return NextResponse.json({ sessionId: session.sessionId, toNumber });
   } catch (error) {
     return errorResponse(error);
   }
