@@ -145,6 +145,15 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 
 Tyto body přišly z průchodu třemi rolemi. Nejsou nový produkt; opravují, že tři práce sdílejí jeden obecný shell a že některé plochy slibují víc, než umí.
 
+- [ ] vybudovat kompletní směnový kalendář jako jediný zdroj pravdy pro směny, docházkový kontext a plánovanou dostupnost; nevytvářet paralelní Admin Settings pro pracovní dny, pracovní hodiny nebo svátky,
+- [ ] umožnit Team Leaderům a administrátorům vytvářet, upravovat a rušit směny s jasným workspace/role oprávněním a auditním záznamem,
+- [ ] přidat detailní osobní rozvrh operátora s přehledem směn, změn, absence, schválených přesčasů a relevantních upozornění,
+- [ ] přidat evidenci absence a jejího schvalování; rozlišit plánovanou nepřítomnost, nemoc, neplánovaný výpadek a další důvody bez toho, aby se absence zaměňovala za pouhý lokální status,
+- [ ] přidat workflow přesčasů: žádost nebo záznam, schválení Team Leaderem/administrátorem, časový rozsah, důvod a auditní stopa,
+- [ ] validovat překrývající se směny, neplatné časové rozsahy, konfliktní absence a změny již proběhlých směn; kritické změny nesmí tiše přepsat historická data,
+- [ ] navázat směnový kontext na serverovou `operator_presence`, ale ponechat jasný rozdíl mezi plánovanou směnou a aktuálním stavem `Ready` / `In call` / `Break`,
+- [ ] ověřit kalendář přes reload, více rolí, více uživatelů a workspace hranici; ukládaný rozvrh musí být server-side a dohledatelný v auditu,
+
 - [ ] role-aware úvodní plocha: operátor začíná v Operator Console, team leader u výjimek a denního briefu, administrátor u zdraví workspace; Dashboard Overview nesmí být výchozí práce pro všechny,
 - [ ] zúžit navigaci podle práce, ne podle počtu modulů: operátor vidí Console, Calendar, Orders, Wallet, Products/skripty, Call Logs, Settings; Deals, Live Monitor, AI Training a Workflows nejsou denní nástroje operátora,
 - [ ] dát team leaderovi v navigaci cestu k frontě (`/team` dnes umí queue, ale v sidebaru je jen pro administrátora jako Workspace Members),
@@ -153,6 +162,23 @@ Tyto body přišly z průchodu třemi rolemi. Nejsou nový produkt; opravují, �
 - [ ] Call Logs nesmí slibovat „full speech transcript protocols“, dokud přepis neexistuje; stránka je historie hovorů, ne QA nahrávek,
 - [ ] přejmenovat branding `AI CRM` a pole `ai_score`: skóre je deterministická heuristika (telefon, e-mail, status), ne predikce modelu; stejné pravidlo platí pro cross-sell copy s vymyšlenými procenty,
 - [ ] sjednotit jazyk UI (čeština vs. angličtina) a zkontrolovat označení `AI`, `live`, `simulation` a `Unavailable`.
+
+### P2 — role-aware settings a správa přístupu
+
+**Schválená hranice pro další roadmapu:** způsob přidělování kontaktů a
+maximální počet leadů na operátora jsou výhradně admin-only nastavení. Směnový
+kalendář je jediný zdroj plánované dostupnosti, směn, absence a přesčasů;
+pracovní dny, pracovní hodiny ani svátky nebudou samostatnou Admin Settings
+konfigurací. Správa členů, rolí a oprávnění patří na samostatnou
+administrátorskou stránku `Users & Permissions`.
+
+- [ ] dokončit server-side `workspace_user_preferences` pro osobní preference všech uživatelů: audio, zobrazení, výchozí stránka, upozornění a další preference; `localStorage` smí zůstat pouze cache nebo dočasný draft,
+- [ ] převést uložené filtrovací pohledy do server-side `workspace_saved_views` s vlastnictvím uživatele a připravenou možností týmového sdílení,
+- [ ] ponechat způsob přidělování kontaktů a maximální počet leadů na operátora výhradně v Admin Settings; Team Leader je může číst v provozním kontextu, ale nemění je,
+- [ ] vytvořit samostatnou administrátorskou stránku `Users & Permissions` pro pozvánky členů, výchozí roli, deaktivaci uživatelů, správu členství, hranice pravomocí Team Leadera a pravidla práce s neaktivními členy,
+- [ ] chránit `Users & Permissions` server-side přes role/RLS; změny rolí, členství a deaktivací zapisovat do auditního logu,
+- [ ] odstranit z Admin Settings samostatná nastavení pracovních dnů, pracovních hodin a svátků; jejich jediným zdrojem pravdy bude směnový kalendář,
+- [ ] sjednotit názvy a umístění Settings podle role: osobní `My Settings`, týmová provozní pravidla pro Team Leadera a `Workspace/Admin Settings` pro administrátora.
 
 ### Zmrazit do po-pilota (neodebírat, nerozšiřovat)
 

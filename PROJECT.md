@@ -117,6 +117,16 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 7. Až následně přidat Gemini transcription a editovatelný návrh verdiktu/poznámky.
 8. Další změny držet malé, tematické a samostatně ověřitelné.
 
+### Schválený scope pro P1–P5
+
+- Assignment strategy a maximum leadů na operátora mění pouze administrátor;
+  Team Leader je může číst v provozním kontextu, ale nemění je.
+- Směnový kalendář je jediný zdroj směn, plánované dostupnosti, absence a
+  přesčasů. Pracovní dny, pracovní hodiny ani svátky nebudou paralelní
+  konfigurací v Admin Settings.
+- Správa pozvánek, členství, rolí, deaktivací a hranic oprávnění bude na
+  samostatné administrátorské stránce `Users & Permissions`.
+
 ## Zdroje pravdy
 
 1. aktuální kód, migrace a skutečné ověření cílového prostředí,
