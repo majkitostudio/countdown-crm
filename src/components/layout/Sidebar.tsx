@@ -3,53 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  PhoneCall,
-  Users,
-  Package,
-  History,
-  Settings,
-  BarChart3,
-  Radio,
-  ChevronLeft,
-  ChevronRight,
-  GraduationCap,
-  Workflow,
-  Briefcase,
-  ShieldAlert,
-  ClipboardList,
-  UserCog,
-  CalendarDays,
-  ShoppingBag,
-  WalletCards,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
-import type { WorkspaceRole } from "@/lib/auth/roles";
 import { CountdownMark } from "@/components/brand/CountdownMark";
+import { getAllowedSidebarNavigationItems } from "./sidebarNavigation";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
-
-const NAV_ITEMS: Array<{ label: string; href: string; icon: typeof LayoutDashboard; roles?: WorkspaceRole[] }> = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Operator Console", href: "/workspace", icon: PhoneCall },
-  { label: "Orders", href: "/orders", icon: ShoppingBag },
-  { label: "Wallet", href: "/wallet", icon: WalletCards },
-  { label: "My Calendar", href: "/calendar", icon: CalendarDays },
-  { label: "AI Training", href: "/training", icon: GraduationCap },
-  { label: "Team Leader Review", href: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
-  { label: "Leads & Contacts", href: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
-  { label: "Deals & Pipelines", href: "/objects/deals", icon: Briefcase },
-  { label: "Product Catalog", href: "/products", icon: Package },
-  { label: "Call Logs", href: "/calls", icon: History },
-  { label: "Workflows", href: "/workflows", icon: Workflow, roles: ["team_leader", "administrator"] },
-  { label: "Analytics", href: "/analytics", icon: BarChart3, roles: ["team_leader", "administrator"] },
-  { label: "Security Audit Log", href: "/audit", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
-  { label: "Live Monitor", href: "/monitor", icon: Radio, roles: ["team_leader", "administrator"] },
-  { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Workspace Members", href: "/team", icon: UserCog, roles: ["administrator"] },
-];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -132,9 +92,7 @@ export function Sidebar() {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.filter((item) =>
-          !item.roles || (!isIdentityLoading && identity?.role && item.roles.includes(identity.role))
-        ).map((item) => {
+        {getAllowedSidebarNavigationItems(isIdentityLoading ? null : identity?.role).map((item) => {
           const Icon = item.icon;
           const isActive =
             item.href === "/"

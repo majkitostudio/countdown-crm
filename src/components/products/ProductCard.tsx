@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ShieldAlert, Edit3, Layers, ArrowRightLeft, Trash2 } from "lucide-react";
+import { ShieldAlert, Edit3, Layers, ArrowRightLeft, Trash2, ImageOff } from "lucide-react";
 import { Product } from "@/lib/products";
 import { formatCurrencyAmount } from "@/lib/currency";
 
@@ -30,12 +30,19 @@ export function ProductCard({
       
       {/* Product Image Box */}
       <div className="relative h-48 w-full bg-zinc-950 overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={product.image_url}
-          alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
+        {product.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image_url}
+            alt={product.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-600" role="img" aria-label={`${product.title}: no product image`}>
+            <ImageOff className="h-8 w-8" aria-hidden="true" />
+            <span className="text-xs font-medium">No product image</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-black/30" />
 
         {/* Category Pill Top Left */}
