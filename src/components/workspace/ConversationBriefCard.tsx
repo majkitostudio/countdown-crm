@@ -1,0 +1,188 @@
+import {
+  BookOpenCheck,
+  CalendarClock,
+  MessageSquareText,
+  PhoneCall,
+  ShoppingBag,
+  TriangleAlert,
+} from "lucide-react";
+import type { ConversationBriefDTO } from "@/lib/dal/conversationBrief";
+
+interface ConversationBriefCardProps {
+  brief: ConversationBriefDTO | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Time unavailable";
+  return new Intl.DateTimeFormat("cs-CZ", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatDuration(seconds: number): string {
+  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.round(seconds)) : 0;
+  return `${Math.floor(safeSeconds / 60)}m ${safeSeconds % 60}s`;
+}
+
+function outcomeLabel(outcome: NonNullable<ConversationBriefDTO["last_outcome"]>["outcome"]): string {
+  switch (outcome) {
+    case "order_placed":
+      return "Order placed";
+    case "followup_scheduled":
+      return "Follow-up scheduled";
+    case "no_answer":
+      return "No answer";
+    case "objection":
+      return "Not completed";
+    case "completed":
+      return "Completed";
+  }
+}
+
+function unavailableMessages(brief: ConversationBriefDTO): string[] {
+  return Object.values(brief.sources)
+    .filter((source): source is Extract<typeof source, { state: "unavailable" }> => source.state === "unavailable")
+    .map((source) => source.message)
+    .filter((message, index, messages) => messages.indexOf(message) === index);
+}
+
+export function ConversationBriefCard({ brief, isLoading, error }: ConversationBriefCardProps) {
+  if (isLoading) {
+    return (
+      <section className="rounded-xl border border-sky-900/50 bg-sky-950/10 p-4" aria-busy="true">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-300">Conversation Brief</p>
+        <p className="mt-2 text-xs text-zinc-500">Loading recorded customer context…</p>
+      </section>
+    );
+  }
+
+  if (error || !brief) {
+    return (
+      <section className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4" role="alert">
+        <div className="flex items-start gap-2">
+          <TriangleAlert className="mt-0.5 h-4 w-4 text-amber-300" aria-hidden="true" />
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Conversation Brief unavailable</p>
+            <p className="mt-1 text-xs text-amber-100/80">{error || "Recorded customer context could not be loaded."}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const unavailable = unavailableMessages(brief);
+  const callUnavailable = brief.sources.call.state === "unavailable";
+  const callbackUnavailable = brief.sources.callback.state === "unavailable";
+  const noteUnavailable = brief.sources.note.state === "unavailable";
+  const orderUnavailable = brief.sources.order.state === "unavailable";
+
+  return (
+    <section
+      className="rounded-xl border border-sky-900/50 bg-gradient-to-br from-sky-950/20 to-zinc-950/30 p-4 shadow-sm"
+      aria-labelledby="conversation-brief-title"
+      data-testid="conversation-brief"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">Before the call</p>
+          <h2 id="conversation-brief-title" className="mt-1 text-sm font-semibold text-zinc-100">Conversation Brief</h2>
+          <p className="mt-1 text-[11px] text-zinc-500">Recorded facts for {brief.lead.full_name}</p>
+        </div>
+        <span className="rounded-md border border-sky-900/60 bg-sky-950/30 px-2 py-1 text-[9px] font-mono text-sky-200">
+          Server context
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 p-3">
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Customer focus</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-zinc-200">{brief.lead.problem || "Not recorded"}</p>
+          {brief.queue_reason && <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">Routing context: {brief.queue_reason}</p>}
+          {brief.sources.queue_reason.state === "unavailable" && <p className="mt-2 text-[10px] text-amber-300">{brief.sources.queue_reason.message}</p>}
+        </div>
+
+        <div className="rounded-lg border border-sky-900/50 bg-sky-950/15 p-3">
+          <div className="flex items-start gap-2">
+            <BookOpenCheck className="mt-0.5 h-4 w-4 text-sky-300" aria-hidden="true" />
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-wider text-sky-300">Safe next step</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-zinc-100">{brief.next_safe_step.label}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
+          <PhoneCall className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Last contact</p>
+          {callUnavailable ? (
+            <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
+          ) : brief.last_contact && brief.last_outcome ? (
+            <>
+              <p className="mt-1 text-xs font-medium text-zinc-200">{outcomeLabel(brief.last_outcome.outcome)}</p>
+              <p className="mt-0.5 text-[10px] text-zinc-500">{formatDate(brief.last_contact.occurred_at)} · {formatDuration(brief.last_contact.duration_seconds)}</p>
+            </>
+          ) : (
+            <p className="mt-1 text-[11px] text-zinc-500">No previous call recorded</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
+          <CalendarClock className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Callback promise</p>
+          {callbackUnavailable ? (
+            <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
+          ) : brief.callback ? (
+            <p className="mt-1 text-xs font-medium text-amber-200">{formatDate(brief.callback.scheduled_at)}</p>
+          ) : (
+            <p className="mt-1 text-[11px] text-zinc-500">No callback recorded</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
+          <MessageSquareText className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Latest note</p>
+          {noteUnavailable ? (
+            <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
+          ) : brief.last_note ? (
+            <>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-300">{brief.last_note.body}</p>
+              <p className="mt-1 text-[9px] text-zinc-600">{brief.last_note.author_name}</p>
+            </>
+          ) : (
+            <p className="mt-1 text-[11px] text-zinc-500">No note recorded</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
+          <ShoppingBag className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Last order</p>
+          {orderUnavailable ? (
+            <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
+          ) : brief.last_order ? (
+            <>
+              <p className="mt-1 text-xs font-medium text-zinc-200">{brief.last_order.total_amount.toLocaleString("cs-CZ")} {brief.last_order.currency}</p>
+              <p className="mt-0.5 text-[10px] capitalize text-zinc-500">{brief.last_order.status}</p>
+            </>
+          ) : (
+            <p className="mt-1 text-[11px] text-zinc-500">No order recorded</p>
+          )}
+        </div>
+      </div>
+
+      {unavailable.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-900/40 bg-amber-950/10 px-3 py-2 text-[10px] leading-relaxed text-amber-200/80">
+          {unavailable.join(" ")}
+        </div>
+      )}
+    </section>
+  );
+}

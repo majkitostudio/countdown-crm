@@ -29,6 +29,8 @@ import { completeCallAction } from "@/app/actions/crm";
 import { listScheduledCallbacksAction } from "@/app/actions/calendar";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
+import { getConversationBriefAction } from "@/app/actions/conversationBrief";
+import type { ConversationBriefDTO } from "@/lib/dal/conversationBrief";
 import {
   abortLeadCallStartAction,
   claimNextLeadAction,
@@ -44,6 +46,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { getOperatorKeyboardAction } from "@/components/workspace/operatorKeyboardShortcuts";
 import { ClientProfileCard } from "@/components/workspace/ClientProfileCard";
 import { RecentContextRow } from "@/components/workspace/RecentContextRow";
+import { ConversationBriefCard } from "@/components/workspace/ConversationBriefCard";
 import {
   OperatorNextActionPanel,
 } from "@/components/workspace/OperatorNextActionPanel";
@@ -117,6 +120,9 @@ function WorkspaceContent() {
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [completionSaveState, setCompletionSaveState] = useState<"saving" | "saved" | "failed">("saved");
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
+  const [conversationBrief, setConversationBrief] = useState<ConversationBriefDTO | null>(null);
+  const [isConversationBriefLoading, setIsConversationBriefLoading] = useState(false);
+  const [conversationBriefError, setConversationBriefError] = useState<string | null>(null);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [isCallbackScheduleOpen, setIsCallbackScheduleOpen] = useState(false);
@@ -276,6 +282,38 @@ function WorkspaceContent() {
       cancelled = true;
     };
   }, [activeLeadId, activityRefreshToken]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadConversationBrief() {
+      if (identity?.role !== "operator" || !activeLeadId) {
+        setConversationBrief(null);
+        setConversationBriefError(null);
+        setIsConversationBriefLoading(false);
+        return;
+      }
+
+      setIsConversationBriefLoading(true);
+      setConversationBriefError(null);
+      try {
+        const brief = await getConversationBriefAction(activeLeadId);
+        if (!cancelled) setConversationBrief(brief);
+      } catch (error) {
+        if (!cancelled) {
+          setConversationBrief(null);
+          setConversationBriefError(error instanceof Error ? error.message : "Conversation Brief could not be loaded.");
+        }
+      } finally {
+        if (!cancelled) setIsConversationBriefLoading(false);
+      }
+    }
+
+    void loadConversationBrief();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeLeadId, activityRefreshToken, assignmentState, identity?.role, recoveryRequired]);
 
   useEffect(() => {
     if (identity?.role !== "operator" || !activeQueueItemId) return;
@@ -1003,6 +1041,14 @@ function WorkspaceContent() {
       {/* Operator Console hierarchy: P0/P1 lead action first, P2 script second, P3 support in the right rail. */}
       <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
+          {identity?.role === "operator" && activeLead && (
+            <ConversationBriefCard
+              brief={conversationBrief}
+              isLoading={isConversationBriefLoading || (!conversationBrief && !conversationBriefError)}
+              error={conversationBriefError}
+            />
+          )}
+
           <OperatorLeadHeader
             activeLead={activeLead}
             isCallActive={isCallActive}
