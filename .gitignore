@@ -28,6 +28,9 @@
 # misc
 .DS_Store
 *.pem
+docker/asterisk/.env
+docker/asterisk/*.pem
+docker/asterisk/pjsip.local.conf
 *.code-workspace
 
 # debug

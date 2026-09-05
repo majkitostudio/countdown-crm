@@ -193,19 +193,19 @@ Run `npm test -- tests/local-sip-session-contract.test.ts tests/telnyx-lifecycle
 
 **Files:** `docker-compose.telephony.yml`, `docker/asterisk/pjsip.conf`, `extensions.conf`, `http.conf`, `ari.conf`, `rtp.conf`, `.gitignore`, `tests/local-sip-docker-contract.test.ts`
 
-- [ ] **Step 1: Write the failing Docker contract test**
+- [x] **Step 1: Write the failing Docker contract test**
 
 Assert a pinned non-`latest` Asterisk image, service name, endpoints `1001`/`1002`, WebSocket/WebRTC transport, bounded local RTP mapping, local-only bindings, no SIP trunk and no committed secrets. Run focused test and verify RED.
 
-- [ ] **Step 2: Add Compose and PJSIP configuration**
+- [x] **Step 2: Add Compose and PJSIP configuration**
 
 Use the exact pinned image `andrius/asterisk:22.10.1_debian-trixie`; do not use `latest` or an unpinned tag. Before relying on it, verify that the image exposes the required PJSIP, HTTP/WebSocket and WebRTC modules. Configure two authenticated WebRTC endpoints, local-only HTTP/WebSocket diagnostics and an internal dialplan that permits only `1001` ↔ `1002`. Keep passwords and certificates in ignored local files.
 
-- [ ] **Step 3: Validate the container**
+- [x] **Step 3: Validate the container**
 
 Run `docker compose -f docker-compose.telephony.yml config`, `docker compose -f docker-compose.telephony.yml up -d`, `docker compose -f docker-compose.telephony.yml ps` and `docker compose -f docker-compose.telephony.yml logs --no-color --tail 120 asterisk`. Expected: valid config, running container, WebRTC/PJSIP modules loaded and no public trunk.
 
-- [ ] **Step 4: Run test and commit**
+- [x] **Step 4: Run test and commit**
 
 Run the focused Docker contract test; commit as `feat: add local asterisk docker service`.
 

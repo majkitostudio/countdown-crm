@@ -1,0 +1,17 @@
+services:
+  asterisk:
+    image: andrius/asterisk:22.10.1_debian-trixie
+    container_name: countdown-crm-asterisk
+    restart: unless-stopped
+    env_file:
+      - ./docker/asterisk/.env
+    ports:
+      - "127.0.0.1:5060:5060/udp"
+      - "127.0.0.1:8088:8088/tcp"
+      - "127.0.0.1:12000-12020:12000-12020/udp"
+    volumes:
+      - ./docker/asterisk/pjsip.conf:/etc/asterisk/pjsip.conf:ro
+      - ./docker/asterisk/extensions.conf:/etc/asterisk/extensions.conf:ro
+      - ./docker/asterisk/http.conf:/etc/asterisk/http.conf:ro
+      - ./docker/asterisk/ari.conf:/etc/asterisk/ari.conf:ro
+      - ./docker/asterisk/rtp.conf:/etc/asterisk/rtp.conf:ro
