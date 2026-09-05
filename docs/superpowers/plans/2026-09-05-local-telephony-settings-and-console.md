@@ -140,19 +140,19 @@ Run `npm test -- tests/local-sip-ui-contract.test.ts`; commit as `feat: add admi
 
 **Produces:** administrator-only page and safe `LocalTelephonyStatus` DTO with active adapter, Asterisk status, extensions `1001`/`1002` and local-only boundaries.
 
-- [ ] **Step 1: Write failing authorization tests**
+- [x] **Step 1: Write failing authorization tests**
 
 Cover administrator access, operator/team leader denial, direct URL denial, simulation state, inactive Local SIP state and exact deep link back to Settings. Run focused test and verify RED.
 
-- [ ] **Step 2: Implement server guard and status endpoint**
+- [x] **Step 2: Implement server guard and status endpoint**
 
 Make the page a server component using `requireWorkspaceRole(["administrator"])`. Health-check only the local Asterisk status endpoint. Return no secrets, raw provider payloads or environment values.
 
-- [ ] **Step 3: Implement the first panel**
+- [x] **Step 3: Implement the first panel**
 
 Render status, extensions, Local only/Public PSTN disabled/Recording disabled/Telnyx blocked boundaries, and inactive/error states. Keep test-call, active-call and event areas explicitly unavailable until their real data path exists.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run `npm test -- tests/telephony-route-authorization.test.ts`; commit as `feat: add admin telephony page`.
 
