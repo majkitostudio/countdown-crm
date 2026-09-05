@@ -18,6 +18,7 @@ import { Lead } from "@/lib/leads";
 import { Order } from "@/lib/orders";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
 import { formatCurrencyAmount } from "@/lib/currency";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
 
 interface CustomerPanelProps {
   leads: Lead[];
@@ -37,6 +38,7 @@ interface CustomerPanelProps {
   onScheduleCallback: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
+  telephonyAdapter?: TelephonyAdapter;
   showTimeline?: boolean;
 }
 
@@ -63,6 +65,7 @@ export function CustomerPanel({
   onScheduleCallback,
   onSimulateIncoming,
   isStarting = false,
+  telephonyAdapter = "simulation",
   showTimeline = true,
 }: CustomerPanelProps) {
   const [customerOrders, setCustomerOrders] = useState<Order[]>([]);
@@ -161,6 +164,7 @@ export function CustomerPanel({
         onScheduleCallback={onScheduleCallback}
         onSimulateIncoming={onSimulateIncoming}
         isStarting={isStarting}
+        telephonyAdapter={telephonyAdapter}
       />
 
       {/* Lead Timeline */}

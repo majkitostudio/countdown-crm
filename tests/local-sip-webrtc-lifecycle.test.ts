@@ -23,4 +23,13 @@ describe("Local SIP WebRTC lifecycle contract", () => {
     expect(adapter).toContain("sendDtmf");
   });
 
+  it("reports ringing only from SIP provisional responses", () => {
+    const adapter = readSource("src/lib/telephony/localSipAdapter.ts");
+
+    expect(adapter).toContain("onProgress");
+    expect(adapter).toContain("statusCode === 180");
+    expect(adapter).toContain("statusCode === 183");
+    expect(adapter).not.toContain('this.onState?.("ringing");\n    await this.user.call');
+  });
+
 });

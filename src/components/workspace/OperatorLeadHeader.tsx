@@ -7,6 +7,7 @@ import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import type { FailDetails } from "@/lib/postCall";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
 
 interface OperatorLeadHeaderProps {
   activeLead: Lead | null;
@@ -16,6 +17,7 @@ interface OperatorLeadHeaderProps {
   durationSeconds: number;
   callFailureMessage?: string | null;
   isStarting?: boolean;
+  telephonyAdapter?: TelephonyAdapter;
   onToggleCall: () => void;
   onToggleMute: () => void;
   onCreateOrder?: () => void;
@@ -36,6 +38,7 @@ export function OperatorLeadHeader({
   durationSeconds,
   callFailureMessage = null,
   isStarting = false,
+  telephonyAdapter = "simulation",
   onToggleCall,
   onToggleMute,
   onCreateOrder,
@@ -116,7 +119,7 @@ export function OperatorLeadHeader({
           {isCallActive || isDialing ? (
             <>
               <div className="mr-1 text-right">
-                <p className="text-[10px] uppercase tracking-wider text-zinc-500">{isDialing ? "Dialing" : "Active call"}</p>
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500">{isDialing ? "Dialing" : telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call"}</p>
                 <p className="font-mono text-xs text-zinc-200">{formatTimer(durationSeconds)}</p>
               </div>
               <button

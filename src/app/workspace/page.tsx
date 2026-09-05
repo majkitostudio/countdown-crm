@@ -21,6 +21,8 @@ import { getFailReasonLabel, type FailReason } from "@/lib/postCall";
 import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
+import { getActiveTelephonyAdapterClient } from "@/lib/telephony/telephonyAdapterClient";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
 import { listScheduledCallbacksAction } from "@/app/actions/calendar";
@@ -109,6 +111,7 @@ function WorkspaceContent() {
   const [isEndCallPending, setIsEndCallPending] = useState(false);
   const [isCompletionPending, setIsCompletionPending] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
+  const [telephonyAdapter, setTelephonyAdapter] = useState<TelephonyAdapter>("simulation");
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
   const callStartRecoveryRef = React.useRef(false);
@@ -179,6 +182,21 @@ function WorkspaceContent() {
   }, [activeQueueItemId, identity?.role]);
 
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
+
+  useEffect(() => {
+    if (isIdentityLoading || !identity) return;
+    let isCurrent = true;
+    void getActiveTelephonyAdapterClient()
+      .then((adapter) => {
+        if (isCurrent) setTelephonyAdapter(adapter);
+      })
+      .catch(() => {
+        if (isCurrent) setTelephonyAdapter("simulation");
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [identity, isIdentityLoading]);
 
   useEffect(() => {
     if (isIdentityLoading || identity?.role !== "operator") return;
@@ -907,6 +925,7 @@ function WorkspaceContent() {
             durationSeconds={softphoneSession.durationSeconds}
             callFailureMessage={softphoneSession.errorMessage}
             isStarting={isCallStartPending || isEndCallPending}
+            telephonyAdapter={telephonyAdapter}
             isAwaitingOutcome={isAwaitingOutcome}
             recoveryRequired={recoveryRequired}
             isCompletionPending={isCompletionPending}

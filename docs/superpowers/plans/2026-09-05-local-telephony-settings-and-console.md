@@ -37,7 +37,11 @@
 - `src/lib/dal/telephonySessions.ts` — shared session creation and monotonic transitions,
 - `src/lib/dal/telephonyEvents.ts` — workspace-scoped safe event read model for the admin console,
 - `src/lib/telephony/localSipAdapter.ts` — SIP.js-backed browser adapter,
+- `src/lib/telephony/localSipServer.ts` — server-only runtime credential lease,
 - `src/app/api/telephony/local/status/route.ts` — safe Asterisk health response,
+- `src/app/api/telephony/local/bootstrap/route.ts` — authenticated no-store SIP bootstrap,
+- `src/app/api/telephony/adapter/route.ts` — authenticated no-store active-adapter response,
+- `src/lib/telephony/telephonyAdapterClient.ts` — client-side adapter response validation,
 - `src/app/api/telephony/local/session/route.ts` — local session/event synchronization,
 - `docker-compose.telephony.yml` — local-only Asterisk service,
 - `docker/asterisk/pjsip.conf`, `extensions.conf`, `http.conf`, `ari.conf`, `rtp.conf` — local PBX configuration,
@@ -223,15 +227,15 @@ Pin `sip.js@0.21.2` in package files. Test readiness before dial, session-before
 
 Expose `connect`, `register`, `dial`, `hangup`, `toggleMute`, `toggleHold`, `sendDtmf` and `disconnect`. Translate SIP.js notifications to shared statuses and post transitions to the local session route. Never persist SIP credentials.
 
-- [ ] **Step 3: Select provider from server configuration**
+- [x] **Step 3: Select provider from server configuration**
 
 Load active adapter before dialing: simulation uses existing `audioEngine`, local SIP uses the new adapter, Telnyx keeps its existing path. Remove `isTelnyxEnabled()` as the sole provider selector and keep truthful labels.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run `npm test -- tests/local-sip-webrtc-lifecycle.test.ts tests/telnyx-webrtc-lifecycle.test.ts`; commit as `feat: connect local sip adapter to operator calls`.
 
-**Implementation note:** SIP.js is pinned and the browser adapter is implemented, but provider selection is intentionally paused until a short-lived local SIP credential bootstrap exists. Hard-coding or exposing a persistent SIP password would violate the security boundary.
+**Implementation note:** SIP.js is pinned, the browser adapter is implemented, the controller selects the provider from the server-backed workspace setting, and the bootstrap route supplies a five-minute no-store runtime lease. The Asterisk account remains local-only and is not persisted in CRM settings or browser storage. Provisional SIP ringing is reported only from 180/183 responses.
 
 ---
 

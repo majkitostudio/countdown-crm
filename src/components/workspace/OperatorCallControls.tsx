@@ -14,8 +14,8 @@ import {
   XCircle,
 } from "lucide-react";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
-import { isTelnyxEnabled } from "@/lib/telephony/telnyxClient";
 import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, validateFailDetails } from "@/lib/postCall";
+import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
 
 const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   value: CallOutcome;
@@ -44,6 +44,7 @@ interface OperatorCallControlsProps {
   onScheduleCallback: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
+  telephonyAdapter?: TelephonyAdapter;
   isAwaitingOutcome?: boolean;
   isCompletionPending?: boolean;
   recoveryRequired?: boolean;
@@ -224,6 +225,7 @@ export function OperatorCallControls({
   onScheduleCallback,
   onSimulateIncoming,
   isStarting = false,
+  telephonyAdapter = "simulation",
   isAwaitingOutcome = false,
   isCompletionPending = false,
   recoveryRequired = false,
@@ -238,9 +240,9 @@ export function OperatorCallControls({
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
               </span>
-              <span>{isTelnyxEnabled() ? "Telnyx call" : "Active call"}</span>
+              <span>{telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call"}</span>
               <span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>
-              {!isTelnyxEnabled() && <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>}
+              {telephonyAdapter === "simulation" && <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>}
             </div>
           ) : isDialing ? (
             <div className="flex items-center gap-2 text-xs text-zinc-300">

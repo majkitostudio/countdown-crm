@@ -45,8 +45,14 @@ export class LocalSipAdapter {
   async connect(): Promise<void> { await this.user.connect(); }
   async register(): Promise<void> { await this.user.register(); }
   async dial(destination: string): Promise<void> {
-    this.onState?.("ringing");
-    await this.user.call(destination);
+    await this.user.call(destination, {}, {
+      requestDelegate: {
+        onProgress: (response) => {
+          const statusCode = response.message.statusCode;
+          if (statusCode === 180 || statusCode === 183) this.onState?.("ringing");
+        },
+      },
+    });
   }
   async hangup(): Promise<void> { await this.user.hangup(); }
   async disconnect(): Promise<void> { await this.user.disconnect(); }
