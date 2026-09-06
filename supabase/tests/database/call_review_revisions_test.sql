@@ -1,6 +1,6 @@
 begin;
 
-select plan(15);
+select plan(21);
 
 select ok(
   to_regclass('public.call_review_revisions') is not null,
@@ -141,6 +141,79 @@ select ok(
       and tgname = 'call_review_revisions_audit'
   ),
   'review audit trigger exists'
+);
+
+select is(
+  (select count(*)::integer
+   from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'telephony_call_sessions'
+     and column_name in (
+       'completed_call_id',
+       'script_source',
+       'script_product_id',
+       'script_product_title',
+       'script_version_id',
+       'script_version_number',
+       'script_snapshot_html',
+       'script_captured_at'
+     )),
+  8,
+  'telephony sessions contain exact call and script evidence columns'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_indexes
+    where schemaname = 'public'
+      and tablename = 'telephony_call_sessions'
+      and indexname = 'telephony_call_sessions_completed_call_id_key'
+      and indexdef like '%UNIQUE%'
+  ),
+  'one completed call can link to at most one telephony session'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_constraint
+    where conrelid = to_regclass('public.telephony_call_sessions')
+      and conname = 'telephony_call_sessions_script_snapshot_check'
+  ),
+  'script snapshot field combinations are constrained'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_constraint
+    where conrelid = to_regclass('public.telephony_call_sessions')
+      and conname = 'telephony_call_sessions_completed_call_id_fkey'
+  ),
+  'completed call link has a foreign key'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_trigger
+    where tgrelid = to_regclass('public.call_completion_requests')
+      and not tgisinternal
+      and tgname = 'call_completion_requests_link_session'
+  ),
+  'the shared completion ledger links both completion paths to the exact session'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_trigger
+    where tgrelid = to_regclass('public.telephony_call_sessions')
+      and not tgisinternal
+      and tgname = 'telephony_call_sessions_preserve_evidence'
+  ),
+  'captured script evidence cannot be rewritten after session creation'
 );
 
 select * from finish();

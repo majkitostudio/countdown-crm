@@ -777,6 +777,7 @@ export interface Database {
       telephony_call_sessions: {
         Row: {
           id: string;
+          completed_call_id: string | null;
           workspace_id: string;
           queue_item_id: string | null;
           lead_id: string | null;
@@ -798,12 +799,20 @@ export interface Database {
           recording_id: string | null;
           recording_url: string | null;
           hangup_cause: string | null;
+          script_source: "published_version" | "built_in_fallback" | "unavailable" | null;
+          script_product_id: string | null;
+          script_product_title: string | null;
+          script_version_id: string | null;
+          script_version_number: number | null;
+          script_snapshot_html: string | null;
+          script_captured_at: string | null;
           metadata: Json;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
+          completed_call_id?: string | null;
           workspace_id: string;
           queue_item_id?: string | null;
           lead_id?: string | null;
@@ -825,11 +834,19 @@ export interface Database {
           recording_id?: string | null;
           recording_url?: string | null;
           hangup_cause?: string | null;
+          script_source?: "published_version" | "built_in_fallback" | "unavailable" | null;
+          script_product_id?: string | null;
+          script_product_title?: string | null;
+          script_version_id?: string | null;
+          script_version_number?: number | null;
+          script_snapshot_html?: string | null;
+          script_captured_at?: string | null;
           metadata?: Json;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
+          completed_call_id?: string | null;
           provider_call_id?: string | null;
           queue_item_id?: string | null;
           lead_id?: string | null;
@@ -848,6 +865,13 @@ export interface Database {
           recording_id?: string | null;
           recording_url?: string | null;
           hangup_cause?: string | null;
+          script_source?: "published_version" | "built_in_fallback" | "unavailable" | null;
+          script_product_id?: string | null;
+          script_product_title?: string | null;
+          script_version_id?: string | null;
+          script_version_number?: number | null;
+          script_snapshot_html?: string | null;
+          script_captured_at?: string | null;
           metadata?: Json;
           updated_at?: string;
         };

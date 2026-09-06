@@ -316,3 +316,148 @@ REVOKE ALL ON FUNCTION public.record_call_review_revision(UUID, INTEGER, TEXT, T
   FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.record_call_review_revision(UUID, INTEGER, TEXT, TEXT, TEXT)
   TO authenticated;
+
+ALTER TABLE public.telephony_call_sessions
+  ADD COLUMN completed_call_id UUID,
+  ADD COLUMN script_source TEXT,
+  ADD COLUMN script_product_id UUID,
+  ADD COLUMN script_product_title TEXT,
+  ADD COLUMN script_version_id UUID,
+  ADD COLUMN script_version_number INTEGER,
+  ADD COLUMN script_snapshot_html TEXT,
+  ADD COLUMN script_captured_at TIMESTAMPTZ;
+
+ALTER TABLE public.telephony_call_sessions
+  ADD CONSTRAINT telephony_call_sessions_completed_call_id_fkey
+    FOREIGN KEY (completed_call_id) REFERENCES public.calls(id) ON DELETE RESTRICT,
+  ADD CONSTRAINT telephony_call_sessions_script_product_id_fkey
+    FOREIGN KEY (script_product_id) REFERENCES public.products(id) ON DELETE RESTRICT,
+  ADD CONSTRAINT telephony_call_sessions_script_version_id_fkey
+    FOREIGN KEY (script_version_id) REFERENCES public.product_script_versions(id) ON DELETE RESTRICT,
+  ADD CONSTRAINT telephony_call_sessions_script_snapshot_check CHECK (
+    (
+      script_source IS NULL
+      AND script_product_id IS NULL
+      AND script_product_title IS NULL
+      AND script_version_id IS NULL
+      AND script_version_number IS NULL
+      AND script_snapshot_html IS NULL
+      AND script_captured_at IS NULL
+    )
+    OR
+    (
+      script_source = 'published_version'
+      AND script_product_id IS NOT NULL
+      AND NULLIF(btrim(script_product_title), '') IS NOT NULL
+      AND script_version_id IS NOT NULL
+      AND script_version_number > 0
+      AND NULLIF(btrim(script_snapshot_html), '') IS NOT NULL
+      AND script_captured_at IS NOT NULL
+    )
+    OR
+    (
+      script_source = 'built_in_fallback'
+      AND script_product_id IS NOT NULL
+      AND NULLIF(btrim(script_product_title), '') IS NOT NULL
+      AND script_version_id IS NULL
+      AND script_version_number IS NULL
+      AND NULLIF(btrim(script_snapshot_html), '') IS NOT NULL
+      AND script_captured_at IS NOT NULL
+    )
+    OR
+    (
+      script_source = 'unavailable'
+      AND script_product_id IS NULL
+      AND script_product_title IS NULL
+      AND script_version_id IS NULL
+      AND script_version_number IS NULL
+      AND script_snapshot_html IS NULL
+      AND script_captured_at IS NOT NULL
+    )
+  );
+
+CREATE UNIQUE INDEX telephony_call_sessions_completed_call_id_key
+  ON public.telephony_call_sessions (completed_call_id)
+  WHERE completed_call_id IS NOT NULL;
+
+CREATE INDEX telephony_call_sessions_script_product_id_idx
+  ON public.telephony_call_sessions (script_product_id)
+  WHERE script_product_id IS NOT NULL;
+
+CREATE INDEX telephony_call_sessions_script_version_id_idx
+  ON public.telephony_call_sessions (script_version_id)
+  WHERE script_version_id IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION private.preserve_telephony_call_evidence()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.script_source IS DISTINCT FROM OLD.script_source
+     OR NEW.script_product_id IS DISTINCT FROM OLD.script_product_id
+     OR NEW.script_product_title IS DISTINCT FROM OLD.script_product_title
+     OR NEW.script_version_id IS DISTINCT FROM OLD.script_version_id
+     OR NEW.script_version_number IS DISTINCT FROM OLD.script_version_number
+     OR NEW.script_snapshot_html IS DISTINCT FROM OLD.script_snapshot_html
+     OR NEW.script_captured_at IS DISTINCT FROM OLD.script_captured_at THEN
+    RAISE EXCEPTION 'Captured call script evidence cannot be changed';
+  END IF;
+
+  IF OLD.completed_call_id IS NOT NULL
+     AND NEW.completed_call_id IS DISTINCT FROM OLD.completed_call_id THEN
+    RAISE EXCEPTION 'Completed call link cannot be changed';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER telephony_call_sessions_preserve_evidence
+  BEFORE UPDATE ON public.telephony_call_sessions
+  FOR EACH ROW EXECUTE FUNCTION private.preserve_telephony_call_evidence();
+
+CREATE OR REPLACE FUNCTION private.link_completed_call_to_session()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.call_id IS NULL OR NEW.call_id IS NOT DISTINCT FROM OLD.call_id THEN
+    RETURN NEW;
+  END IF;
+
+  UPDATE public.telephony_call_sessions AS session
+  SET completed_call_id = NEW.call_id
+  WHERE session.id = NEW.completion_key
+    AND session.workspace_id = NEW.workspace_id
+    AND session.operator_id = NEW.actor_id
+    AND (session.completed_call_id IS NULL OR session.completed_call_id = NEW.call_id);
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Completed call could not be linked to its telephony session';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER call_completion_requests_link_session
+  AFTER UPDATE OF call_id ON public.call_completion_requests
+  FOR EACH ROW EXECUTE FUNCTION private.link_completed_call_to_session();
+
+UPDATE public.telephony_call_sessions AS session
+SET completed_call_id = request.call_id
+FROM public.call_completion_requests AS request
+WHERE request.call_id IS NOT NULL
+  AND request.completion_key = session.id
+  AND request.workspace_id = session.workspace_id
+  AND request.actor_id = session.operator_id
+  AND session.completed_call_id IS NULL;
+
+REVOKE ALL ON FUNCTION private.preserve_telephony_call_evidence()
+  FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION private.link_completed_call_to_session()
+  FROM PUBLIC, anon;

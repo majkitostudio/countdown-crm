@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { DataAccessError } from "@/lib/dal/errors";
 import { canTransitionCallStatus, type TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
 import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/sessionTransitions";
+import { resolveCallScriptSnapshot, type ScriptSnapshotDTO } from "@/lib/dal/productScripts";
 
 export type TelephonySessionProvider = "simulation" | "telnyx" | "local_sip";
 
@@ -15,6 +16,7 @@ export interface CreateTelephonySessionInput {
   queueItemId?: string | null;
   toNumber: string;
   direction: "inbound" | "outbound";
+  productId?: string | null;
 }
 
 interface TransitionTelephonySessionInput {
@@ -27,7 +29,15 @@ interface TransitionTelephonySessionInput {
   occurredAt?: string | null;
 }
 
-export async function createTelephonySession(input: CreateTelephonySessionInput): Promise<{ sessionId: string; provider: TelephonySessionProvider }> {
+export async function createTelephonySession(input: CreateTelephonySessionInput): Promise<{
+  sessionId: string;
+  provider: TelephonySessionProvider;
+  scriptSnapshot: ScriptSnapshotDTO;
+}> {
+  const scriptSnapshot = await resolveCallScriptSnapshot(
+    input.productId ?? null,
+    input.workspaceId,
+  );
   const { data, error } = await createAdminClient()
     .from("telephony_call_sessions")
     .insert({
@@ -39,12 +49,23 @@ export async function createTelephonySession(input: CreateTelephonySessionInput)
       direction: input.direction,
       to_number: input.toNumber,
       status: "initiated",
+      script_source: scriptSnapshot.source,
+      script_product_id: scriptSnapshot.productId,
+      script_product_title: scriptSnapshot.productTitle,
+      script_version_id: scriptSnapshot.versionId,
+      script_version_number: scriptSnapshot.versionNumber,
+      script_snapshot_html: scriptSnapshot.html,
+      script_captured_at: scriptSnapshot.capturedAt,
     })
     .select("id, provider")
     .single();
 
   if (error || !data) throw new DataAccessError("DATABASE", "Could not create the telephony session.");
-  return { sessionId: data.id, provider: data.provider as TelephonySessionProvider };
+  return {
+    sessionId: data.id,
+    provider: data.provider as TelephonySessionProvider,
+    scriptSnapshot,
+  };
 }
 
 export async function transitionTelephonySession(input: TransitionTelephonySessionInput): Promise<{ status: TelephonyCallStatus }> {
