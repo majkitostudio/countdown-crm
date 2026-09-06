@@ -34,6 +34,7 @@ const NAV_ITEMS: SidebarNavigationItem[] = [
   { label: "My Calendar", href: "/calendar", icon: CalendarDays },
   { label: "AI Training", href: "/training", icon: GraduationCap },
   { label: "Team Leader Review", href: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
+  { label: "Exception Queue", href: "/exceptions", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
   { label: "Leads & Contacts", href: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
   { label: "Deals & Pipelines", href: "/objects/deals", icon: Briefcase, roles: ["team_leader", "administrator"] },
   { label: "Product Catalog", href: "/products", icon: Package },

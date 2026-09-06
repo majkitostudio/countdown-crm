@@ -321,6 +321,59 @@ export interface Database {
         };
         Relationships: [];
       };
+      team_leader_exception_actions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          exception_key: string;
+          status: "resolved" | "snoozed";
+          resolution: string;
+          snoozed_until: string | null;
+          actor_id: string;
+          previous_state: Json;
+          new_state: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          exception_key: string;
+          status: "resolved" | "snoozed";
+          resolution: string;
+          snoozed_until?: string | null;
+          actor_id: string;
+          previous_state?: Json;
+          new_state?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: "resolved" | "snoozed";
+          resolution?: string;
+          snoozed_until?: string | null;
+          actor_id?: string;
+          previous_state?: Json;
+          new_state?: Json;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_leader_exception_actions_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_leader_exception_actions_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       lead_notes: {
         Row: {
           id: string;
@@ -1398,6 +1451,23 @@ export interface Database {
           p_version_id: string;
         };
         Returns: Database["public"]["Tables"]["product_script_versions"]["Row"][];
+      };
+      resolve_team_leader_exception: {
+        Args: {
+          p_workspace_id: string;
+          p_exception_key: string;
+          p_resolution: string;
+        };
+        Returns: Database["public"]["Tables"]["team_leader_exception_actions"]["Row"][];
+      };
+      snooze_team_leader_exception: {
+        Args: {
+          p_workspace_id: string;
+          p_exception_key: string;
+          p_snoozed_until: string;
+          p_reason: string;
+        };
+        Returns: Database["public"]["Tables"]["team_leader_exception_actions"]["Row"][];
       };
       update_wallet_settings: {
         Args: {

@@ -35,6 +35,7 @@ const NAV_ITEMS: NavigationCommand[] = [
   { label: "Live Team Monitor", path: "/monitor", icon: Activity, roles: ["team_leader", "administrator"] },
   { label: "AI Roleplay Training", path: "/training", icon: GraduationCap },
   { label: "Team Leader Review", path: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
+  { label: "Exception Queue", path: "/exceptions", icon: ShieldCheck, roles: ["team_leader", "administrator"] },
   { label: "Workflows", path: "/workflows", icon: Sparkles, roles: ["team_leader", "administrator"] },
   { label: "Security Audit Log", path: "/audit", icon: ShieldCheck, roles: ["team_leader", "administrator"] },
   { label: "Settings", path: "/settings", icon: Settings },

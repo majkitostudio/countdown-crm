@@ -13,4 +13,10 @@ describe("role-aware sidebar navigation", () => {
     expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).toContain("/objects/deals");
     expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/objects/deals");
   });
+
+  it("shows the exception queue only to team leaders and administrators", () => {
+    expect(getAllowedSidebarNavigationItems("operator").map((item) => item.href)).not.toContain("/exceptions");
+    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).toContain("/exceptions");
+    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/exceptions");
+  });
 });

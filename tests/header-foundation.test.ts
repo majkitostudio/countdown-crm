@@ -21,7 +21,9 @@ describe("unified authenticated header foundations", () => {
 
     expect(leaderPaths).toContain("/leads");
     expect(leaderPaths).toContain("/analytics");
+    expect(leaderPaths).toContain("/exceptions");
     expect(leaderPaths).not.toContain("/team");
+    expect(administratorPaths).toContain("/exceptions");
     expect(administratorPaths).toContain("/team");
   });
 
