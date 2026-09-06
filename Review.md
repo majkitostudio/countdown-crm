@@ -8,6 +8,14 @@
 > starších funkcí; úplnou schema shodu proto zatím netvrdíme. Wallet
 > funkce i RLS politika odpovídají hranici manager/admin a lokální databázové
 > testy prošly 92/92. Celá aplikační sada nyní prochází 251 testy v 68 souborech.
+
+> Aktualizace po dokončení prvního server-side settings slice (6. 9. 2026):
+> osobní preference nyní žijí v `workspace_user_preferences` podle workspace a
+> uživatele. Aktuálně se ukládá hlasitost vyzvánění a hustota Client Profile;
+> RLS i autentizovaný read/write smoke test prošly. Staré `localStorage` hodnoty
+> slouží pouze jako jednorázový import. Aktuální repo kontrola je 255/255
+> aplikačních testů a 109/109 databázových testů; migration history linked
+> sandboxu je 83/83.
 > Autentizovaný fallback call → outcome → reload → SQL read-back proti cílovému
 > workspace nyní prošel přes Team Leadera a operátora; testovací účty byly
 > odstraněny. Následně byly autentizovaně ověřeny také `/calendar` a `/wallet`,

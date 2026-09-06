@@ -5,7 +5,7 @@ nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
 **Snapshot:** 6. 9. 2026
-**Repo baseline:** post-call hranice, Conversation Brief a lokálně ověřený Team Leader Exception Queue
+**Repo baseline:** post-call hranice, Conversation Brief, Team Leader Exception Queue a server-side osobní preference
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -41,6 +41,12 @@ Exception Queue. Zobrazuje pouze problémy doložené současnými workspace dat
 umožňuje je s důvodem vyřešit nebo odložit a každou změnu zapisuje do auditu.
 Operátor položku v navigaci nevidí a serverový role guard odmítne i přímou URL.
 
+Osobní preference operátorů jsou uložené v `workspace_user_preferences` podle
+kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění a hustotu
+karty Client Profile. Server odvozuje identitu z přihlášené session, RLS brání
+čtení či zápisu cizích hodnot a staré browserové hodnoty se případně importují
+jen jednou.
+
 ### Operator-first princip
 
 - během hovoru má být nejdůležitější klient, jeho problém a další bezpečný krok,
@@ -64,12 +70,12 @@ Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá 
 znalost UUID nejsou bezpečnostní hranice.
 
 Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má po nasazení
-Exception Queue znovu srovnanou migration history 81/81. Migrace byla nejprve
+osobních preferencí srovnanou migration history 83/83. Migrace byla nejprve
 ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
 prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
 Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
 v definicích několika starších funkcí, takže úplná schema shoda zůstává otevřená.
-Lokální databázové testy prošly 92/92 a aplikační sada 251/251 v 68 souborech;
+Lokální databázové testy prošly 109/109 a aplikační sada 255/255 v 69 souborech;
 lint, typecheck i produkční build jsou zelené. Autentizovaný fallback průchod Team Leader → operátor →
 call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
 ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`

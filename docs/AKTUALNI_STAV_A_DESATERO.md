@@ -15,6 +15,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - první slice `Callback Recovery Inbox`: due/upcoming callbacky přímo v Operator Console se serverovým routingem,
 - operátorský Conversation Brief: serverově načtený problém, poslední kontakt, výsledek, callback, poznámka, objednávka, dostupnost schváleného skriptu a bezpečný další krok,
 - Team Leader Exception Queue na `/exceptions`: odvozené skutečné problémy, filtry, bezpečné vyřešení/odložení, audit a serverová role hranice pro Team Leadera a administrátora,
+- server-side osobní preference v `workspace_user_preferences`: hlasitost vyzvánění a hustota Client Profile podle workspace + uživatel, s RLS a jednorázovým importem starých browserových hodnot,
 - karta klienta s plným a kompaktním režimem,
 - recent context řádek s posledním kontaktem, výsledkem, objednávkou a callbackem,
 - callback modal s počátečním fokusem, klávesou `Escape`, obnovou fokusu a přístupným chybovým stavem,
@@ -180,7 +181,7 @@ pracovní dny, pracovní hodiny ani svátky nebudou samostatnou Admin Settings
 konfigurací. Správa členů, rolí a oprávnění patří na samostatnou
 administrátorskou stránku `Users & Permissions`.
 
-- [ ] dokončit server-side `workspace_user_preferences` pro osobní preference všech uživatelů: audio, zobrazení, výchozí stránka, upozornění a další preference; `localStorage` smí zůstat pouze cache nebo dočasný draft,
+- [x] dokončit první skutečně používaný slice server-side `workspace_user_preferences` pro osobní preference všech uživatelů: audio a zobrazení; `localStorage` slouží pouze jako jednorázový migrační fallback. Výchozí stránka, upozornění a další preference se přidají až spolu s reálnou funkcí,
 - [ ] převést uložené filtrovací pohledy do server-side `workspace_saved_views` s vlastnictvím uživatele a připravenou možností týmového sdílení,
 - [x] zachovat současnou serverem řízenou frontu bez dalších assignment strategií a bez konfigurovatelného počtu souběžných leadů,
 - [ ] vytvořit samostatnou administrátorskou stránku `Users & Permissions` pro pozvánky členů, výchozí roli, deaktivaci uživatelů, správu členství, hranice pravomocí Team Leadera a pravidla práce s neaktivními členy,

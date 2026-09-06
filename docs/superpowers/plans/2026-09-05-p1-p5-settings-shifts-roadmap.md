@@ -341,6 +341,7 @@ git commit -m "feat: add team leader exception queue"
 - Modify: `src/lib/supabase/types.ts`
 - Create: `src/lib/dal/userPreferences.ts`
 - Create: `src/app/actions/userPreferences.ts`
+- Create: `src/hooks/useUserPreferences.ts`
 - Modify: `src/lib/settings.ts`
 - Modify: `src/app/settings/page.tsx`
 - Modify: `src/components/workspace/ClientProfileCard.tsx`
@@ -352,14 +353,19 @@ git commit -m "feat: add team leader exception queue"
 - Consumes: current `UserSettings`, `getUserSettings`, `saveUserSettings` and `ClientProfileDensity` behavior.
 - Produces: `getUserPreferencesForWorkspace()`, `updateUserPreferencesForWorkspace(input)`, `UserPreferencesDTO`.
 
-- [ ] **Step 1: Napsat failing migration and DAL contract.** Ověřit composite key, volume/density checks, self-only RLS read/write a odmítnutí cizího `user_id`/`workspace_id`.
-- [ ] **Step 2: Ověřit RED.** Spustit `npm test -- tests/user-preferences-contract.test.ts`; test musí selhat před novou tabulkou/DAL.
-- [ ] **Step 3: Vygenerovat a lokálně replayovat migraci.** Použít `npx supabase migration new user_preferences`, `supabase db reset`, `supabase migration list --local` a `supabase db diff --local`.
-- [ ] **Step 4: Implementovat server DAL/action.** Context se odvodí z authenticated session. Input z browseru obsahuje pouze nastavitelné hodnoty, nikoli identity nebo workspace authority.
-- [ ] **Step 5: Převést Settings UI.** Načíst preference po přihlášení, ukládat přes server action a zobrazit pravdivé `saved on this account`. Hlasitost a density přežijí reload, logout/login i jiný browser.
-- [ ] **Step 6: Odstranit localStorage jako authority.** `src/lib/settings.ts` nesmí být zdrojem pravdy. Krátkodobý migration fallback může načíst starou lokální hodnotu pouze jednou a explicitně ji odeslat na server; po úspěchu se lokální klíč odstraní.
-- [ ] **Step 7: Ověřit GREEN.** Focused tests, typecheck, browser persistence a negativní role/workspace scénáře.
-- [ ] **Step 8: Commit.**
+- [x] **Step 1: Napsat failing migration and DAL contract.** Ověřena composite key, volume/density checks, self-only RLS read/write, servisní účet a odmítnutí cizího `user_id`/`workspace_id`.
+- [x] **Step 2: Ověřit RED.** Failing stav byl zachycen před implementací tabulky a DAL; následně prošel GREEN.
+- [x] **Step 3: Vygenerovat a lokálně replayovat migraci.** Migrace `20260906154428_user_preferences.sql` i navazující grant `20260906155820_grant_user_preferences_service_role.sql` prošly čistým `supabase db reset`.
+- [x] **Step 4: Implementovat server DAL/action.** Context se odvozuje z authenticated session. Browser posílá pouze nastavitelné hodnoty, nikdy identity nebo workspace authority.
+- [x] **Step 5: Převést Settings UI.** Načtení a uložení jde přes Server Action; potvrzení říká, že nastavení patří účtu. Hlasitost přežila reálný reload v autentizovaném browseru; density je napojená na stejný serverový model v Operator Console.
+- [x] **Step 6: Odstranit localStorage jako authority.** `localStorage` slouží pouze jako jednorázový import starších hodnot; po úspěšném serverovém zápisu se oba staré klíče odstraňují.
+- [x] **Step 7: Ověřit GREEN.** Prošlo 255 aplikačních testů, 109 databázových testů, lint, typecheck, produkční build, RLS negativní scénáře a vzdálený Auth read/write smoke test s cleanupem.
+- [x] **Step 8: Commit.** Implementace bude uzavřena samostatným commitem `feat: persist user preferences server-side`.
+
+**Poznámka k rozsahu:** Do tabulky byly zařazeny pouze preference, které už mají
+skutečné chování v produktu: hlasitost vyzvánění a hustota Client Profile. Výchozí
+stránka, notifikace a další volby zůstávají plánované až ve chvíli, kdy pro ně
+existuje reálná funkce; nevytváříme nastavení, která by nic neovlivňovala.
 
 ```powershell
 git add supabase/migrations src/lib/supabase/types.ts src/lib/dal/userPreferences.ts src/app/actions/userPreferences.ts src/lib/settings.ts src/app/settings/page.tsx src/components/workspace/ClientProfileCard.tsx src/components/workspace/clientProfileDensity.ts tests/user-preferences-contract.test.ts tests/settings.test.ts
