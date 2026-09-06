@@ -12,7 +12,6 @@ import {
   FileText,
   Plus,
 } from "lucide-react";
-import { DEFAULT_USER_SETTINGS, getUserSettings, saveUserSettings, UserSettings } from "@/lib/settings";
 import { sounds } from "@/lib/audio";
 import { deleteSchemaAction, listSchemasAction } from "@/app/actions/schema";
 import { ObjectSchema } from "@/lib/schema/types";
@@ -25,10 +24,11 @@ import { getWalletOverviewAction } from "@/app/actions/wallet";
 import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
 import type { WalletOverviewDTO } from "@/lib/dal/wallet";
 import { TelephonyAdapterSettings } from "@/components/settings/TelephonyAdapterSettings";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const [isSavedAlert, setIsSavedAlert] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
   const [isObjectBuilderOpen, setIsObjectBuilderOpen] = useState(false);
   const [schemas, setSchemas] = useState<ObjectSchema[]>([]);
@@ -37,19 +37,18 @@ export default function SettingsPage() {
   const [schemaActionError, setSchemaActionError] = useState<string | null>(null);
   const [walletOverview, setWalletOverview] = useState<WalletOverviewDTO | null>(null);
   const [walletError, setWalletError] = useState<string | null>(null);
+  const {
+    preferences: settings,
+    setPreferences: setSettings,
+    isLoading: isPreferencesLoading,
+    error: preferencesError,
+    save: savePreferences,
+  } = useUserPreferences();
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
   const canManageWorkspaceSchema = isTeamLeaderOrAdministrator(identity?.role);
   const canManageProductScripts = isAdministrator(identity?.role);
   const walletSettingsAvailable = walletOverview?.sections.settings.state === "available";
   const walletRulesAvailable = walletOverview?.sections.rules.state === "available";
-
-  useEffect(() => {
-    const loadSettingsTimer = window.setTimeout(() => {
-      setSettings(getUserSettings());
-    }, 0);
-
-    return () => window.clearTimeout(loadSettingsTimer);
-  }, []);
 
   useEffect(() => {
     if (!canManageWorkspaceSchema) {
@@ -85,6 +84,10 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    if (!canManageWorkspaceSchema) {
+      return;
+    }
+
     let isCurrent = true;
 
     void listSchemasAction()
@@ -103,18 +106,25 @@ export default function SettingsPage() {
     return () => {
       isCurrent = false;
     };
-  }, []);
+  }, [canManageWorkspaceSchema]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    saveUserSettings(settings);
-    setIsSavedAlert(true);
-    setTimeout(() => setIsSavedAlert(false), 4000);
+    setIsSavingPreferences(true);
+    try {
+      await savePreferences(settings);
+      setIsSavedAlert(true);
+      window.setTimeout(() => setIsSavedAlert(false), 4000);
+    } catch {
+      setIsSavedAlert(false);
+    } finally {
+      setIsSavingPreferences(false);
+    }
   };
 
   const handleTestAudio = () => {
     setIsPlayingTestSound(true);
-    const stopAudio = sounds.playRingtone();
+    const stopAudio = sounds.playRingtone(settings.ringtone_volume);
     setTimeout(() => {
       stopAudio();
       setIsPlayingTestSound(false);
@@ -137,9 +147,11 @@ export default function SettingsPage() {
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={SettingsIcon}
-        title="Operator Settings & Schema Engine"
+        title={canManageWorkspaceSchema ? "Operator Settings & Schema Engine" : "Operator Settings"}
         badge={{ label: "Config Active", tone: "neutral" }}
-        description="Configure operator audio feedback and workspace custom objects"
+        description={canManageWorkspaceSchema
+          ? "Configure operator audio feedback and workspace custom objects"
+          : "Configure your personal operator preferences"}
         actions={
           <>
           {canManageProductScripts && (
@@ -171,8 +183,14 @@ export default function SettingsPage() {
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <div>
             <p className="font-semibold text-zinc-100">Preferences saved successfully!</p>
-            <p className="text-[11px] text-zinc-400">Your operator preferences have been saved locally.</p>
+            <p className="text-[11px] text-zinc-400">Your preferences are saved to your account.</p>
           </div>
+        </div>
+      )}
+
+      {preferencesError && (
+        <div role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 text-xs text-rose-300">
+          Preferences unavailable: {preferencesError}
         </div>
       )}
 
@@ -202,6 +220,7 @@ export default function SettingsPage() {
       {canManageProductScripts && <TelephonyAdapterSettings />}
 
       {/* Section: Custom Schema & Objects (Attio Engine) */}
+      {canManageWorkspaceSchema && (
       <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-5">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
@@ -273,6 +292,7 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+      )}
 
       <form onSubmit={handleSave} className="space-y-8">
         {/* Section 1: Operator Profile */}
@@ -374,10 +394,11 @@ export default function SettingsPage() {
         <div className="flex justify-end pt-2">
           <button
             type="submit"
+            disabled={isPreferencesLoading || isSavingPreferences}
             className="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
           >
             <Save className="w-4 h-4" />
-            <span>Save Preferences</span>
+            <span>{isSavingPreferences ? "Saving..." : isPreferencesLoading ? "Loading..." : "Save Preferences"}</span>
           </button>
         </div>
       </form>

@@ -54,6 +54,8 @@ import type {
   OperatorCallbackSignal,
   OperatorNextActionState,
 } from "@/components/workspace/operatorNextAction";
+import type { ClientProfileDensity } from "@/components/workspace/clientProfileDensity";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 interface PostCallSummary {
   leadName: string;
@@ -137,6 +139,7 @@ function WorkspaceContent() {
   const [isCompletionPending, setIsCompletionPending] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const [telephonyAdapter, setTelephonyAdapter] = useState<TelephonyAdapter>("simulation");
+  const [isProfilePreferenceSaving, setIsProfilePreferenceSaving] = useState(false);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
   const callStartRecoveryRef = React.useRef(false);
@@ -146,6 +149,11 @@ function WorkspaceContent() {
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
+  const {
+    preferences: userPreferences,
+    error: userPreferencesError,
+    save: saveUserPreferences,
+  } = useUserPreferences();
   const activeLeadId = activeLead?.id;
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
@@ -759,9 +767,20 @@ function WorkspaceContent() {
       setActiveLead(targetLead);
     }
     setIsIncomingCallOpen(true);
-    const stopRingtone = sounds.playRingtone();
+    const stopRingtone = sounds.playRingtone(userPreferences.ringtone_volume);
     stopAudioRef.current = stopRingtone;
   };
+
+  const handleProfileDensityChange = useCallback(async (density: ClientProfileDensity) => {
+    setIsProfilePreferenceSaving(true);
+    try {
+      await saveUserPreferences({ ...userPreferences, client_profile_density: density });
+    } catch {
+      // The shared preference hook exposes the save error beside the control.
+    } finally {
+      setIsProfilePreferenceSaving(false);
+    }
+  }, [saveUserPreferences, userPreferences]);
 
   const handleAcceptIncomingCall = () => {
     if (stopAudioRef.current) {
@@ -1081,7 +1100,15 @@ function WorkspaceContent() {
             showIncomingSimulator={identity?.role !== "operator"}
           />
 
-          {activeLead && <ClientProfileCard lead={activeLead} />}
+          {activeLead && (
+            <ClientProfileCard
+              lead={activeLead}
+              density={userPreferences.client_profile_density}
+              isPreferenceSaving={isProfilePreferenceSaving}
+              preferenceError={userPreferencesError}
+              onDensityChange={(density) => void handleProfileDensityChange(density)}
+            />
+          )}
 
           <div className="min-h-[34rem] min-w-0 flex-1">
             <ProductScriptPanel

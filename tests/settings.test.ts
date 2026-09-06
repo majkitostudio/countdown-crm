@@ -1,29 +1,24 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  clearLegacyUserPreferences,
   DEFAULT_USER_SETTINGS,
-  getUserSettings,
-  saveUserSettings,
+  readLegacyUserPreferences,
 } from "@/lib/settings";
 
-const SETTINGS_KEY = "countdown_crm_user_settings";
+const LEGACY_SETTINGS_KEY = "countdown_crm_user_settings";
+const LEGACY_DENSITY_KEY = "countdown-crm:operator-console:client-profile-density";
 
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
 const originalLocalStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
 
-function setBrowserStorage(value: string | null = null) {
+function setBrowserStorage(values: Record<string, string> = {}) {
   const storage = {
-    getItem: vi.fn(() => value),
-    setItem: vi.fn(),
+    getItem: vi.fn((key: string) => values[key] ?? null),
+    removeItem: vi.fn(),
   } as unknown as Storage;
 
-  Object.defineProperty(globalThis, "window", {
-    configurable: true,
-    value: {},
-  });
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: storage,
-  });
+  Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+  Object.defineProperty(globalThis, "localStorage", { configurable: true, value: storage });
 
   return storage;
 }
@@ -37,38 +32,40 @@ afterEach(() => {
 });
 
 describe("user settings", () => {
-  it("uses the deterministic defaults during server rendering", () => {
-    delete (globalThis as { window?: unknown }).window;
-    delete (globalThis as { localStorage?: unknown }).localStorage;
-
-    expect(getUserSettings()).toEqual(DEFAULT_USER_SETTINGS);
+  it("defines deterministic server defaults for every active personal preference", () => {
+    expect(DEFAULT_USER_SETTINGS).toEqual({
+      ringtone_volume: 80,
+      client_profile_density: "full",
+    });
   });
 
-  it("loads a valid persisted ringtone volume in the browser", () => {
-    setBrowserStorage(JSON.stringify({ ringtone_volume: 10 }));
+  it("reads valid legacy browser values only for one-time server migration", () => {
+    setBrowserStorage({
+      [LEGACY_SETTINGS_KEY]: JSON.stringify({ ringtone_volume: 25 }),
+      [LEGACY_DENSITY_KEY]: "compact",
+    });
 
-    expect(getUserSettings()).toEqual({ ringtone_volume: 10 });
+    expect(readLegacyUserPreferences()).toEqual({
+      ringtone_volume: 25,
+      client_profile_density: "compact",
+    });
   });
 
-  it.each([
-    "not-json",
-    JSON.stringify({ ringtone_volume: -1 }),
-    JSON.stringify({ ringtone_volume: 101 }),
-    JSON.stringify({ ringtone_volume: "10" }),
-  ])("falls back to defaults for invalid local storage: %s", (storedValue) => {
-    setBrowserStorage(storedValue);
+  it("ignores invalid legacy values instead of turning them into account settings", () => {
+    setBrowserStorage({
+      [LEGACY_SETTINGS_KEY]: JSON.stringify({ ringtone_volume: 101 }),
+      [LEGACY_DENSITY_KEY]: "unexpected",
+    });
 
-    expect(getUserSettings()).toEqual(DEFAULT_USER_SETTINGS);
+    expect(readLegacyUserPreferences()).toBeNull();
   });
 
-  it("persists the ringtone volume locally", () => {
+  it("removes both legacy keys only after a successful server migration", () => {
     const storage = setBrowserStorage();
 
-    saveUserSettings({ ringtone_volume: 25 });
+    clearLegacyUserPreferences();
 
-    expect(storage.setItem).toHaveBeenCalledWith(
-      SETTINGS_KEY,
-      JSON.stringify({ ringtone_volume: 25 }),
-    );
+    expect(storage.removeItem).toHaveBeenCalledWith(LEGACY_SETTINGS_KEY);
+    expect(storage.removeItem).toHaveBeenCalledWith(LEGACY_DENSITY_KEY);
   });
 });

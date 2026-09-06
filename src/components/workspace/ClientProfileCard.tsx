@@ -13,19 +13,20 @@ import {
   Phone,
   UserRound,
 } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { Lead } from "@/lib/leads";
 import {
   getNextClientProfileDensity,
-  parseClientProfileDensity,
   type ClientProfileDensity,
 } from "@/components/workspace/clientProfileDensity";
 
 interface ClientProfileCardProps {
   lead: Lead;
+  density: ClientProfileDensity;
+  isPreferenceSaving?: boolean;
+  preferenceError?: string | null;
+  onDensityChange: (density: ClientProfileDensity) => void;
 }
-
-const PROFILE_DENSITY_STORAGE_KEY = "countdown-crm:operator-console:client-profile-density";
 
 const STATUS_LABELS: Record<Lead["status"], string> = {
   new: "New",
@@ -74,38 +75,14 @@ function ProfileField({
   );
 }
 
-export function ClientProfileCard({ lead }: ClientProfileCardProps) {
+export function ClientProfileCard({
+  lead,
+  density,
+  isPreferenceSaving = false,
+  preferenceError = null,
+  onDensityChange,
+}: ClientProfileCardProps) {
   const score = Math.min(100, Math.max(0, lead.ai_score));
-  const [density, setDensity] = useState<ClientProfileDensity>("full");
-  const preferenceLoadedRef = useRef(false);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      let savedPreference: string | null = null;
-      try {
-        savedPreference = window.localStorage.getItem(PROFILE_DENSITY_STORAGE_KEY);
-      } catch {
-        savedPreference = null;
-      }
-
-      const parsedPreference = parseClientProfileDensity(savedPreference);
-      if (parsedPreference) setDensity(parsedPreference);
-      preferenceLoadedRef.current = true;
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
-  useEffect(() => {
-    if (!preferenceLoadedRef.current) return;
-
-    try {
-      window.localStorage.setItem(PROFILE_DENSITY_STORAGE_KEY, density);
-    } catch {
-      // The density switch still works for the current session if storage is blocked.
-    }
-  }, [density]);
-
   const isCompact = density === "compact";
 
   return (
@@ -132,7 +109,8 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
           </span>
           <button
             type="button"
-            onClick={() => setDensity((current) => getNextClientProfileDensity(current))}
+            onClick={() => onDensityChange(getNextClientProfileDensity(density))}
+            disabled={isPreferenceSaving}
             aria-pressed={isCompact}
             aria-label={isCompact ? "Show full client profile" : "Use compact client profile"}
             title={isCompact ? "Show full client profile" : "Use compact client profile"}
@@ -143,6 +121,12 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
           </button>
         </div>
       </div>
+
+      {preferenceError && (
+        <p className="mt-3 text-[10px] text-rose-300" role="alert">
+          Profile view preference could not be saved: {preferenceError}
+        </p>
+      )}
 
       {isCompact ? (
         <div className="mt-4 grid gap-2 sm:grid-cols-5">

@@ -95,6 +95,38 @@ export interface Database {
           }
         ];
       };
+      workspace_user_preferences: {
+        Row: {
+          workspace_id: string;
+          user_id: string;
+          ringtone_volume: number;
+          client_profile_density: "full" | "compact";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          workspace_id: string;
+          user_id: string;
+          ringtone_volume?: number;
+          client_profile_density?: "full" | "compact";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          ringtone_volume?: number;
+          client_profile_density?: "full" | "compact";
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workspace_user_preferences_membership_fkey";
+            columns: ["workspace_id", "user_id"];
+            isOneToOne: true;
+            referencedRelation: "workspace_members";
+            referencedColumns: ["workspace_id", "user_id"];
+          }
+        ];
+      };
       workspace_telephony_settings: {
         Row: {
           workspace_id: string;

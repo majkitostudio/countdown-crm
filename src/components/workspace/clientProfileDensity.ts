@@ -1,4 +1,6 @@
-export type ClientProfileDensity = "full" | "compact";
+import type { UserSettings } from "@/lib/settings";
+
+export type ClientProfileDensity = UserSettings["client_profile_density"];
 
 export function getNextClientProfileDensity(
   current: ClientProfileDensity,

@@ -60,7 +60,7 @@ class SoundEffects {
   /**
    * Plays incoming call ringtone pattern
    */
-  public playRingtone(): () => void {
+  public playRingtone(volumePercent = 80): () => void {
     const ctx = this.getContext();
     if (!ctx) return () => {};
 
@@ -77,7 +77,8 @@ class SoundEffects {
       osc1.frequency.value = 523.25; // C5
       osc2.frequency.value = 659.25; // E5
 
-      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      const normalizedVolume = Math.min(100, Math.max(0, volumePercent)) / 100;
+      gain.gain.setValueAtTime(0.1 * normalizedVolume, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
 
       osc1.connect(gain);
