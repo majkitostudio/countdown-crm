@@ -671,7 +671,7 @@ function WorkspaceContent() {
                 startedAssignment.lead.id,
                 startedAssignment.lead.phone,
                 startedAssignment.lead.full_name,
-                { queueItemId: activeQueueItemId },
+                { queueItemId: activeQueueItemId, productId: products[0]?.id || null },
               ),
               CALL_START_SERVER_TIMEOUT_MS,
               "Audio initialization timed out",
@@ -737,7 +737,9 @@ function WorkspaceContent() {
       const stopTone = sounds.playDialTone();
       stopAudioRef.current = stopTone;
 
-      void softphoneController.dial(activeLead.id, activeLead.phone, activeLead.full_name)
+      void softphoneController.dial(activeLead.id, activeLead.phone, activeLead.full_name, {
+        productId: products[0]?.id || null,
+      })
         .then((audioReady) => {
           if (!audioReady) throw new Error("Audio session could not be initialized");
         })
@@ -758,7 +760,7 @@ function WorkspaceContent() {
           setIsCallStartPending(false);
         });
     }
-  }, [activeLead, activeQueueItemId, assignmentState, identity, isAwaitingOutcome, isCallActive, isDialing, isEndCallPending, softphoneSession.durationSeconds]);
+  }, [activeLead, activeQueueItemId, assignmentState, identity, isAwaitingOutcome, isCallActive, isDialing, isEndCallPending, products, softphoneSession.durationSeconds]);
 
   // Simulate Incoming Call Trigger
   const handleSimulateIncoming = () => {
@@ -1114,6 +1116,7 @@ function WorkspaceContent() {
             <ProductScriptPanel
               isCallActive={isCallActive}
               product={products[0]}
+              activeSnapshot={softphoneSession.scriptSnapshot}
             />
           </div>
         </section>

@@ -58,7 +58,19 @@ function mockTelephonyFetch() {
     const url = String(input);
     const body = init?.body ? JSON.parse(String(init.body)) as Record<string, string> : {};
     const responseBody = url.endsWith("/session") && init?.method === "POST"
-      ? { sessionId: "session-1", toNumber: "+420777123456" }
+      ? {
+          sessionId: "session-1",
+          toNumber: "+420777123456",
+          scriptSnapshot: {
+            source: "unavailable",
+            productId: null,
+            productTitle: null,
+            versionId: null,
+            versionNumber: null,
+            html: null,
+            capturedAt: "2026-09-07T10:00:00.000Z",
+          },
+        }
       : url.endsWith("/token")
         ? { token: "test-token", callerNumber: "+420777000000" }
         : { ok: true, body };

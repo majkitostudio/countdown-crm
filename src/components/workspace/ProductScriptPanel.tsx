@@ -5,13 +5,15 @@ import { ShieldCheck, Type } from "lucide-react";
 import { getProductScriptAction } from "@/app/actions/productScripts";
 import { Product } from "@/lib/products";
 import { buildDefaultScriptHtml } from "@/lib/scriptContent";
+import type { ScriptSnapshotDTO } from "@/lib/dal/productScripts";
 
 interface ProductScriptPanelProps {
   product?: Product;
   isCallActive: boolean;
+  activeSnapshot?: ScriptSnapshotDTO | null;
 }
 
-export function ProductScriptPanel({ product, isCallActive }: ProductScriptPanelProps) {
+export function ProductScriptPanel({ product, isCallActive, activeSnapshot = null }: ProductScriptPanelProps) {
   const [scriptResource, setScriptResource] = useState<{
     productId: string | null;
     html: string | null;
@@ -22,12 +24,15 @@ export function ProductScriptPanel({ product, isCallActive }: ProductScriptPanel
   const currentProductId = product?.id || null;
   const hasCurrentScriptResource = scriptResource.productId === currentProductId;
   const persistedHtml = hasCurrentScriptResource ? scriptResource.html : null;
-  const scriptStatus = hasCurrentScriptResource ? scriptResource.status : "loading";
-  const scriptLoadError = hasCurrentScriptResource ? scriptResource.error : null;
+  const scriptStatus = activeSnapshot ? "ready" : hasCurrentScriptResource ? scriptResource.status : "loading";
+  const scriptLoadError = activeSnapshot ? null : hasCurrentScriptResource ? scriptResource.error : null;
   const isLoadingScript = Boolean(currentProductId) && scriptStatus === "loading";
-  const scriptHtml = persistedHtml || (scriptStatus === "not_found" ? fallbackHtml : "");
+  const scriptHtml = activeSnapshot?.html || persistedHtml || (scriptStatus === "not_found" ? fallbackHtml : "");
   useEffect(() => {
     let cancelled = false;
+    if (activeSnapshot) return () => {
+      cancelled = true;
+    };
     const productId = product?.id;
     if (!productId) return () => {
       cancelled = true;
@@ -58,7 +63,7 @@ export function ProductScriptPanel({ product, isCallActive }: ProductScriptPanel
     return () => {
       cancelled = true;
     };
-  }, [product?.id]);
+  }, [activeSnapshot, product?.id]);
 
   return (
     <section className="flex h-full min-h-0 flex-col space-y-4 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-5 shadow-sm backdrop-blur-md" data-testid="operator-script-context" aria-labelledby="product-script-title">
@@ -74,7 +79,7 @@ export function ProductScriptPanel({ product, isCallActive }: ProductScriptPanel
                 Continuous script
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">{product?.title || "Select a product"} · approved text</p>
+            <p className="text-[11px] text-zinc-400">{activeSnapshot?.productTitle || product?.title || "Select a product"} · approved text</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -83,6 +88,18 @@ export function ProductScriptPanel({ product, isCallActive }: ProductScriptPanel
           </span>
         </div>
       </div>
+
+      {activeSnapshot?.source === "published_version" && (
+        <p className="rounded-lg border border-emerald-900/50 bg-emerald-950/20 px-3 py-2 text-[10px] leading-relaxed text-emerald-200/80">
+          Version {activeSnapshot.versionNumber} captured for this call
+        </p>
+      )}
+      {activeSnapshot?.source === "built_in_fallback" && (
+        <p className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-[10px] leading-relaxed text-zinc-400">Built-in fallback captured for this call</p>
+      )}
+      {activeSnapshot?.source === "unavailable" && (
+        <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[10px] leading-relaxed text-amber-200/80">No script was captured for this call.</p>
+      )}
 
       {scriptLoadError && <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[10px] leading-relaxed text-amber-200/80">{scriptLoadError}</p>}
       {scriptStatus === "not_found" && <p className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-[10px] leading-relaxed text-zinc-500">No saved workspace script exists for this product. Showing the built-in pilot fallback.</p>}

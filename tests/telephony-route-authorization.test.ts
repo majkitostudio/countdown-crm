@@ -46,3 +46,24 @@ describe("telephony admin route contract", () => {
     expect(panel).toContain("Telnyx blocked");
   });
 });
+
+describe("call session script snapshot contract", () => {
+  const sessionRoutes = [
+    "src/app/api/telephony/simulation/session/route.ts",
+    "src/app/api/telephony/local/session/route.ts",
+    "src/app/api/telephony/telnyx/session/route.ts",
+  ];
+
+  it.each(sessionRoutes)("captures the selected product in %s", (relativePath) => {
+    const route = readSource(relativePath);
+
+    expect(route).toMatch(/productId\?:\s*(?:unknown|string)/);
+    expect(route).toMatch(/productId:[^\r\n]*body\.productId/);
+  });
+
+  it.each(sessionRoutes)("returns the server-owned snapshot from %s", (relativePath) => {
+    const route = readSource(relativePath);
+
+    expect(route).toMatch(/return NextResponse\.json\(\{[^}]*?(?:\.\.\.session|scriptSnapshot:\s*session\.scriptSnapshot)/);
+  });
+});

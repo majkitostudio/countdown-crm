@@ -13,6 +13,7 @@ import { withTimeout } from "@/lib/withTimeout";
 import { LocalSipAdapter, type LocalSipState } from "./localSipAdapter";
 import { getActiveTelephonyAdapterClient } from "./telephonyAdapterClient";
 import type { TelephonyAdapter } from "./telephonyAdapterShared";
+import type { ScriptSnapshotDTO } from "@/lib/dal/productScripts";
 
 export const SOFTPHONE_AUDIO_INIT_TIMEOUT_MS = 10_000;
 export type CallState = "idle" | "dialing" | "ringing" | "connected" | "on_hold" | "ended" | "failed";
@@ -28,13 +29,14 @@ export interface CallSession {
   isMuted: boolean;
   isOnHold: boolean;
   errorMessage: string | null;
+  scriptSnapshot: ScriptSnapshotDTO | null;
 }
 
 export type CallStateListener = (session: CallSession) => void;
-interface DialContext { queueItemId?: string | null; }
+interface DialContext { queueItemId?: string | null; productId?: string | null; }
 
 export class WebRtcSoftphoneController {
-  private currentSession: CallSession = { id: "", leadId: "", leadName: "", phone: "", state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null };
+  private currentSession: CallSession = { id: "", leadId: "", leadName: "", phone: "", state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null, scriptSnapshot: null };
   private listeners: Set<CallStateListener> = new Set();
   private timerInterval: NodeJS.Timeout | null = null;
   private dialTimers: ReturnType<typeof setTimeout>[] = [];
@@ -102,7 +104,7 @@ export class WebRtcSoftphoneController {
     this.localSipAdapter = null;
     this.localSipSessionId = null;
     this.simulationSessionId = null;
-    this.currentSession = { ...this.currentSession, state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null };
+    this.currentSession = { ...this.currentSession, state: "idle", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null, scriptSnapshot: null };
     this.notify();
   }
 
@@ -113,7 +115,7 @@ export class WebRtcSoftphoneController {
     }
     this.clearDialTimers();
     this.clearEndedResetTimer();
-    this.currentSession = { id: `call-wrtc-${Date.now()}`, leadId, leadName, phone, state: "dialing", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null };
+    this.currentSession = { id: `call-wrtc-${Date.now()}`, leadId, leadName, phone, state: "dialing", startTime: null, durationSeconds: 0, isMuted: false, isOnHold: false, errorMessage: null, scriptSnapshot: null };
     this.notify();
 
     const adapter = await this.resolveActiveAdapter();
@@ -139,10 +141,10 @@ export class WebRtcSoftphoneController {
     const sessionResponse = await fetch("/api/telephony/local/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: "1002" }),
+       body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: "1002", productId: context.productId || null }),
     });
-    const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; error?: string };
-    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber) throw new Error(sessionBody.error || "Local SIP call session could not be created.");
+    const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; scriptSnapshot?: ScriptSnapshotDTO; error?: string };
+    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Local SIP call session could not be created.");
     this.localSipSessionId = sessionBody.sessionId;
     this.remoteAudio ||= this.createRemoteAudioElement();
     this.localSipAdapter = new LocalSipAdapter({
@@ -157,6 +159,7 @@ export class WebRtcSoftphoneController {
     await this.localSipAdapter.connect();
     await this.localSipAdapter.register();
     this.currentSession.id = sessionBody.sessionId;
+    this.currentSession.scriptSnapshot = sessionBody.scriptSnapshot;
     this.notify();
     await this.localSipAdapter.dial(`sip:${sessionBody.toNumber}@127.0.0.1`);
     return true;
@@ -211,10 +214,10 @@ export class WebRtcSoftphoneController {
     const sessionResponse = await fetch("/api/telephony/telnyx/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone }),
+      body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone, productId: context.productId || null }),
     });
-    const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; error?: string };
-    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber) throw new Error(sessionBody.error || "Telnyx call session could not be created.");
+    const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; scriptSnapshot?: ScriptSnapshotDTO; error?: string };
+    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Telnyx call session could not be created.");
     this.telnyxSessionId = sessionBody.sessionId;
 
     const tokenResponse = await fetch("/api/telephony/telnyx/token", { method: "POST" });
@@ -227,6 +230,7 @@ export class WebRtcSoftphoneController {
     await this.ensureTelnyxReady(client);
 
     this.currentSession.id = sessionBody.sessionId;
+    this.currentSession.scriptSnapshot = sessionBody.scriptSnapshot;
     this.notify();
     this.remoteAudio ||= this.createRemoteAudioElement();
     this.telnyxCall = client.newCall({ destinationNumber: sessionBody.toNumber, callerNumber: tokenBody.callerNumber, audio: true, remoteElement: this.remoteAudio, clientState: encodeTelnyxClientState({ sessionId: sessionBody.sessionId }) });
@@ -238,12 +242,13 @@ export class WebRtcSoftphoneController {
     const sessionResponse = await fetch("/api/telephony/simulation/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone }),
+      body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone, productId: context.productId || null }),
     });
-    const sessionBody = await sessionResponse.json() as { sessionId?: string; error?: string };
-    if (!sessionResponse.ok || !sessionBody.sessionId) throw new Error(sessionBody.error || "Simulation call session could not be created.");
+    const sessionBody = await sessionResponse.json() as { sessionId?: string; scriptSnapshot?: ScriptSnapshotDTO; error?: string };
+    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Simulation call session could not be created.");
     this.simulationSessionId = sessionBody.sessionId;
     this.currentSession.id = sessionBody.sessionId;
+    this.currentSession.scriptSnapshot = sessionBody.scriptSnapshot;
     this.notify();
     const sessionId = this.currentSession.id;
     return withTimeout(audioEngine.initialize(), SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, "Audio initialization timed out").then((audioOk) => {
