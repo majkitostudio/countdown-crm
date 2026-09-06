@@ -5,6 +5,7 @@ export type DataAccessErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "VALIDATION"
+  | "CONFLICT"
   | "DATABASE";
 
 export class DataAccessError extends Error {
