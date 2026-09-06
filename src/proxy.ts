@@ -54,10 +54,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user is logged in and navigates to /login, redirect to /workspace
+  // Authenticated users enter through the role-aware server home route.
   if (user && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/workspace";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 

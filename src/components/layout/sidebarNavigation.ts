@@ -28,7 +28,7 @@ export interface SidebarNavigationItem {
 }
 
 const NAV_ITEMS: SidebarNavigationItem[] = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["team_leader", "administrator"] },
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
   { label: "Orders", href: "/orders", icon: ShoppingBag },
   { label: "Wallet", href: "/wallet", icon: WalletCards },

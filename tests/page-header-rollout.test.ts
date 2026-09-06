@@ -15,7 +15,10 @@ function findPageFiles(directory: string): string[] {
 describe("PageHeader route rollout", () => {
   it("keeps the shared PageHeader on every authenticated route", () => {
     const pageFiles = findPageFiles(path.join(projectRoot, "src", "app"));
-    const authenticatedPages = pageFiles.filter((filePath) => !filePath.includes(`${path.sep}login${path.sep}`));
+    const roleEntryPage = path.join(projectRoot, "src", "app", "page.tsx");
+    const authenticatedPages = pageFiles.filter((filePath) => (
+      filePath !== roleEntryPage && !filePath.includes(`${path.sep}login${path.sep}`)
+    ));
 
     expect(authenticatedPages.length).toBeGreaterThan(0);
     for (const filePath of authenticatedPages) {

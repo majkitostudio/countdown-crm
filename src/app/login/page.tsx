@@ -32,7 +32,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/workspace");
+      router.replace("/");
     } catch {
       setErrorMsg("Přihlášení se nezdařilo. Zkuste to prosím znovu.");
     } finally {

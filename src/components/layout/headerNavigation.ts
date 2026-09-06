@@ -27,7 +27,7 @@ export interface NavigationCommand {
 }
 
 const NAV_ITEMS: NavigationCommand[] = [
-  { label: "Dashboard Overview", path: "/", icon: LayoutDashboard },
+  { label: "Dashboard Overview", path: "/dashboard", icon: LayoutDashboard, roles: ["team_leader", "administrator"] },
   { label: "Operator Console (Workspace)", path: "/workspace", icon: PhoneCall },
   { label: "My Calendar", path: "/calendar", icon: CalendarDays },
   { label: "Leads & Contacts", path: "/leads", icon: Users, roles: ["team_leader", "administrator"] },

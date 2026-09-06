@@ -34,6 +34,18 @@ describe("role-aware navigation parity", () => {
     ];
 
     expect(operatorPaths).toEqual(expect.not.arrayContaining(restrictedPaths));
+    expect(operatorPaths).not.toContain("/");
+  });
+
+  it("does not advertise one generic dashboard as the home for every role", () => {
+    for (const role of ["operator", "team_leader", "administrator"] as const) {
+      expect(sidebarPaths(role)).not.toContain("/");
+      expect(commandPaths(role)).not.toContain("/");
+    }
+
+    expect(sidebarPaths("operator")).not.toContain("/dashboard");
+    expect(sidebarPaths("team_leader")).toContain("/dashboard");
+    expect(sidebarPaths("administrator")).toContain("/dashboard");
   });
 
   it("shows Workspace Readiness only to administrators", () => {

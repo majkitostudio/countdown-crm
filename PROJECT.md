@@ -124,9 +124,11 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 3. Conversation Brief je implementovaný v Operator Console.
 4. Team Leader Exception Queue je implementovaný, nasazený do linked sandboxu
    a ověřený přes Team Leader/operator Auth smoke test včetně cleanupu.
-5. Dokončit role-aware úvodní plochy, Team Leader Review a auditní kontext; Workspace
-   Readiness je nyní samostatná admin-only plocha. Zmrazit custom objects, blueprints a Deals
-   pipeline, dokud denní smyčka call centra drží.
+5. Role-aware vstup je dokončený: operátor začíná v Operator Console, Team Leader
+   v Exception Queue a administrátor ve Workspace Readiness; původní Dashboard je
+   manažerský přehled na `/dashboard`. Zbývá Team Leader Review reálného hovoru,
+   auditní kontext a další zúžení role-aware navigace. Zmrazit custom objects,
+   blueprints a Deals pipeline, dokud denní smyčka call centra drží.
 6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
    Telnyx pilotní telefonní důkaz. Telnyx zůstává vzdálené To-Do, ne bezprostřední
    produktový krok.
