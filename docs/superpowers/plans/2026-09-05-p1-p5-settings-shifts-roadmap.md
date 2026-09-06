@@ -321,9 +321,10 @@ git commit -m "feat: add operator conversation brief"
 - [x] **Step 7: Ověřit GREEN a runtime.** 92 databázových testů, 251 aplikačních testů, lint/typecheck/build, lokální TL/operator browser flow, reload a audit read-back; admin hranice je ověřená databázově.
 - [x] **Step 8: Commit.** `aa3618c feat: add team leader exception queue`.
 
-**Stav nasazení:** lokálně ověřeno. Vzdálený dry-run ukazuje pouze migraci
-`20260906062331_team_leader_exception_queue.sql`; do linked sandboxu zatím nebyla
-aplikována, takže vzdálený smoke test zůstává otevřený.
+**Stav nasazení:** lokálně i v linked sandboxu ověřeno. Dry-run nejprve ukázal
+pouze migraci `20260906062331_team_leader_exception_queue.sql`; následný push ji
+aplikoval bez seedů, změn rolí a Vault secrets. Migration history je 81/81 a
+skutečný Team Leader/operator Auth smoke test prošel včetně cleanupu.
 
 ```powershell
 git add supabase/migrations src/lib/supabase/types.ts src/lib/dal/exceptionQueue.ts src/app/actions/exceptionQueue.ts src/app/exceptions/page.tsx src/components/exceptions/ExceptionQueue.tsx tests/exception-queue-contract.test.ts

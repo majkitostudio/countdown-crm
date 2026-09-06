@@ -1,9 +1,9 @@
 # Countdown CRM — upřímná kritika a vlastní interpretace review
 
 > **Aktualizace 6. 9. 2026:** Supabase CLI `2.116.0` je v projektu připnuté.
-> Linked sandbox měl před Exception Queue migrací s repozitářem srovnanou
-> migration history (80/80); aktuální dry-run ukazuje právě jednu novou čekající
-> migraci a nic nebylo vzdáleně aplikováno. Veřejný schema diff již
+> Linked sandbox má po nasazení Exception Queue migrace s repozitářem srovnanou
+> migration history (81/81). Migrace byla nejprve ověřena dry-runem a poté
+> aplikována bez seedů, změn rolí a Vault secrets. Veřejný schema diff již
 > neobsahuje destruktivní změny, ale stále ukazuje rozdíly v definicích několika
 > starších funkcí; úplnou schema shodu proto zatím netvrdíme. Wallet
 > funkce i RLS politika odpovídají hranici manager/admin a lokální databázové
@@ -14,9 +14,9 @@
 > včetně vytvoření/reload/zrušení reminderu a načtení wallet ledgeru.
 > Post-call idempotency a callback sloupec jsou nasazené také do linked sandboxu;
 > operátorský Calendar po nasazení načítá callback zdroj bez chyby.
-> Team Leader Exception Queue je implementovaný a lokálně ověřený pro Team
-> Leadera i zakázaný přístup operátora; vzdálený smoke test čeká na aplikaci
-> nové migrace. Otevřenými P1 body zůstávají Workspace Readiness a privilegovaný vzdálený
+> Team Leader Exception Queue je implementovaný a ověřený i v linked sandboxu:
+> Team Leader prošel tabulkovou i source-guard cestou, operátor byl odmítnut a
+> dočasný testovací účet byl odstraněn. Otevřenými P1 body zůstávají Workspace Readiness a privilegovaný vzdálený
 > test runner. Živý Telnyx pilot je samostatně externě blokovaný.
 >
 > **Doplnění 5. 9. 2026:** Pro názorné ověření telefonní vrstvy byla zvolena
@@ -104,7 +104,7 @@ To ale neznamená, že je hotový pilot. Zelený build potvrzuje technickou konz
 - Aktivní telephony adapter je uložený serverově na úrovni workspace a mění jej pouze administrátor.
 - Gemini a post-call AI jsou plánované, nikoli implementované.
 - Conversation Brief je implementovaný; ještě bude potřeba provozní ověření s reálně přiděleným leadem.
-- Team Leader Exception Queue je lokálně implementovaný a ověřený; linked sandbox ještě čeká na jeho jedinou novou migraci a následný smoke test.
+- Team Leader Exception Queue je implementovaný, nasazený a ověřený v linked sandboxu přes skutečné Team Leader/operator role.
 - `/calendar` a `/wallet` jsou ověřené v linked prostředí; chybí ještě jednotná Workspace Readiness diagnostika pro případ jejich budoucího selhání.
 - Autentizovaný persistence důkaz je nyní ověřený na fallback softphonu: call → `no_answer` outcome → reload → SQL read-back. Nejde o důkaz živého Telnyx provideru.
 - Chybí integrační a Playwright E2E testy proti reálnému prostředí Supabase.
@@ -173,7 +173,7 @@ Calendar a wallet by neměly pouze spadnout. Pokud nemohou fungovat, administrá
 
 - krátký post-call wrap-up,
 - Conversation Brief,
-- vzdálené nasazení a smoke test Team Leader Exception Queue,
+- další role-aware sjednocení Team Leader ploch kolem hotového Exception Queue,
 - role-aware home a navigaci,
 - Workspace Readiness,
 - autentizovaný persistence důkaz.
@@ -238,7 +238,7 @@ Aktuální pořadí priorit je:
 1. P1 runtime stabilita a srovnání migration history.
 2. Dokončení post-call wrap-up jako jednoho krátkého a idempotentního toku bez double-submit problémů.
 3. Conversation Brief pro operátory.
-4. Team Leader Exception Queue — implementovaný a lokálně ověřený, čeká na vzdálenou migraci a smoke test.
+4. Team Leader Exception Queue — implementovaný, nasazený a ověřený v linked sandboxu.
 5. Role-aware plochy, Workspace Readiness, Team Leader Review a auditní kontext.
 6. Telnyx pilot, až po externím ověření čísla.
 7. Gemini transcription a AI návrhy.

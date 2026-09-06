@@ -24,7 +24,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Customer 360, deterministický Next Best Action, Team Leader Daily Brief a Wallet MVP,
 - Telnyx foundation: serverové credentials, krátkodobý WebRTC token, call session/event persistence, podepsaný webhook a idempotentní event trail,
 - Telnyx tabulky a RLS migrace jsou aplikované v linked Supabase prostředí.
-- Supabase CLI `2.116.0`; linked sandbox měl před Exception Queue migrací srovnanou migration history 80/80. Aktuální vzdálený dry-run ukazuje pouze novou Exception Queue migraci a nic nebylo aplikováno; veřejný schema diff nemá destruktivní změny, ale nadále ukazuje rozdíly definic několika starších funkcí,
+- Supabase CLI `2.116.0`; linked sandbox má po dry-runu a nasazení Exception Queue migrace srovnanou migration history 81/81. Migrace nepřidala seedy, role ani Vault secrets; veřejný schema diff nemá destruktivní změny, ale nadále ukazuje rozdíly definic několika starších funkcí,
 - wallet funkce i RLS politika na linked sandboxu odpovídají hranici manager/admin; lokální databázové testy prošly 92/92 a aplikační sada 251/251 v 68 souborech.
 - autentizovaný runtime důkaz prošel: Team Leader login/role/queue release, operátorské přiřazení, fallback call, outcome `no_answer`, reload a SQL read-back; testovací účty byly po ověření odstraněny.
 - `/calendar` a `/wallet` byly ověřeny autentizovaným Team Leaderem v linked sandboxu; kalendář vytvoření/reload/zrušení reminderu přežil reload a Wallet načetl ledger i týmové zůstatky bez chyby.
@@ -39,7 +39,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Gemini post-call AI pro přepis, verdikt a návrh poznámky není implementovaná,
 - training zůstává mimo telefonní vrstvu; softphone používá simulaci, Local SIP nebo blokovaný Telnyx podle serverové workspace volby,
 - fulfillment webhook a produkční payout nejsou součástí Wallet MVP.
-- Exception Queue ještě není nasazený do linked sandboxu; před vzdáleným smoke testem je nutné aplikovat připravenou migraci `20260906062331_team_leader_exception_queue.sql`.
+- Exception Queue je nasazený i v linked sandboxu; skutečný Team Leader mohl tabulku číst a source guard správně odmítl neexistující výjimku, zatímco operátor neviděl manažerské řádky a jeho mutation byla odmítnuta. Dočasný testovací účet a členství byly po smoke testu odstraněny.
 
 ## To-Do
 
@@ -129,7 +129,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 - [x] zlepšit čitelnost Product Scriptu bez interaktivních kroků: statické sekční nadpisy, vizuální hierarchie, oddělení textu k přečtení od interních poznámek, lepší kontrast a scan-friendly layout; zachovat souvislou osnovu bez potvrzování a klikání během hovoru,
 - [x] přidat předhovorový `Conversation Brief`: problém klienta, poslední relevantní kontakt, předchozí výsledek, callback promise a doporučený bezpečný další krok na jedné ploše; chybějící zdroje se označují a nic se nedopočítává modelem,
 - [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
-- [x] přidat Team Leader Exception Queue pro overdue callbacky, recovery bez outcome, propadlé assignmenty, failed workflows a chybějící publikované skripty; každá položka má důvod, prioritu, vlastníka/cíl a bezpečnou další akci, resolve/snooze je auditovaný a operátor je odmítnut serverem i RLS; lokální ověření je hotové, linked smoke test čeká na migraci,
+- [x] přidat Team Leader Exception Queue pro overdue callbacky, recovery bez outcome, propadlé assignmenty, failed workflows a chybějící publikované skripty; každá položka má důvod, prioritu, vlastníka/cíl a bezpečnou další akci, resolve/snooze je auditovaný a operátor je odmítnut serverem i RLS; lokální i linked Auth smoke ověření je hotové,
 - [ ] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, teamleader týmové výjimky a admin stav workspace; nepřidávat další obecný dashboard bez akčního kontextu,
 - [ ] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` je review simulace, ne tento bod; AI může navrhnout místa k pozornosti, ale nesmí sama vydat verdikt,
 - [ ] přidat Admin `Workspace Readiness`: telefonie, webhook, migration history, RLS/role hranice, publikované skripty, callbacky, wallet a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`,
@@ -229,7 +229,7 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 **Co bolí na směně:**
 
-1. **Exception Queue je hotový lokálně**, ale před linked použitím ještě potřebuje aplikovat migraci a krátký vzdálený smoke test.
+1. **Exception Queue je hotový i v linked sandboxu**; dalším krokem je jeho začlenění do širší role-aware Team Leader plochy a pozdější zúžení na explicitní tým.
 2. **Live Monitor je prázdný** (`getLiveOperators()` vrací `[]`) a přitom vypadá jako floor s ticking duration. To je horší než chybějící stránka.
 3. **Koučink reálného hovoru chybí.** Team Leader Review je review training sessions, ne call + outcome + použitý skript + ruční feedback.
 4. Týmová fronta `/team` stále potřebuje role-aware pojmenování a umístění; Exception Queue už Team Leader v navigaci vidí samostatně.

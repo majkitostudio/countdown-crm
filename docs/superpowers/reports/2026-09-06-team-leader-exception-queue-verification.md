@@ -4,7 +4,7 @@
 
 **Commit:** `aa3618c feat: add team leader exception queue`
 
-**Stav:** lokálně ověřeno, linked migrace zatím neaplikována
+**Stav:** lokálně i v linked sandboxu ověřeno
 
 ## Co bylo postaveno
 
@@ -54,18 +54,29 @@ regresní test.
 
 ## Vzdálený stav
 
-Vzdálený `db push --dry-run` ukazuje pouze:
+Vzdálený `db push --dry-run` ukázal pouze:
 
 - `20260906062331_team_leader_exception_queue.sql`
 
-Dry-run nic nezapsal. Linked sandbox tedy zatím tuto funkci nemá. Po schváleném
-nasazení bude potřeba krátce zopakovat Team Leader/admin/operator smoke test a
-auditní read-back.
+Následný push aplikoval právě tuto migraci bez seedů, změn rolí a Vault secrets.
+Migration history je po nasazení srovnaná 81/81.
+
+Vzdálené pgTAP soubory nešlo spustit celé, protože omezený CLI testovací login
+nemá zápis do interních schémat `auth` a `private`. Proto byl proveden skutečný
+Auth smoke test přes aplikační role:
+
+- dočasný Team Leader tabulku přečetl a source guard odmítl neexistující výjimku,
+- operátor neviděl manažerské řádky a jeho mutation byla odmítnuta,
+- dočasný Team Leader účet i membership byly po testu odstraněny.
+
+Vzdálené advisories nadále ukazují pouze dříve známé obecné položky: pgTAP v
+`public`, starší zamýšlená privilegovaná RPC a vypnutou leaked-password ochranu.
+Nová Exception Queue nepřidala vlastní advisor nález.
 
 ## Závěr
 
-- Team Leader Exception Queue: **lokálně ověřeno**
-- Role a workspace hranice: **ověřeno testy a TL/operator browser průchodem**
-- Linked sandbox: **čeká na jednu migraci a smoke test**
+- Team Leader Exception Queue: **lokálně i v linked sandboxu ověřeno**
+- Role a workspace hranice: **ověřeno testy, browser průchodem a linked Auth smoke testem**
+- Linked sandbox: **migration history 81/81, smoke test prošel**
 - Telnyx: **beze změny, záměrně odloženo kvůli externímu ověření čísla**
 - Další priorita: **server-side osobní preference uživatelů**

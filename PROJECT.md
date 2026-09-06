@@ -63,10 +63,10 @@ Operátor položku v navigaci nevidí a serverový role guard odmítne i přímo
 Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá URL ani
 znalost UUID nejsou bezpečnostní hranice.
 
-Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox měl před tímto
-feature branchem s repozitářem srovnanou migration history 80/80. Nová migrace
-Exception Queue je ověřená lokálně a vzdálený `db push --dry-run` hlásí právě
-tuto jedinou čekající migraci; do linked sandboxu zatím nebyla aplikována.
+Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má po nasazení
+Exception Queue znovu srovnanou migration history 81/81. Migrace byla nejprve
+ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
+prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
 Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
 v definicích několika starších funkcí, takže úplná schema shoda zůstává otevřená.
 Lokální databázové testy prošly 92/92 a aplikační sada 251/251 v 68 souborech;
@@ -116,8 +116,8 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    vzdálených databázových testů a nedestruktivní drift definic starších funkcí.
 2. Post-call wrap-up s idempotentní hranicí je dokončený a nasazený v linked sandboxu.
 3. Conversation Brief je implementovaný v Operator Console.
-4. Team Leader Exception Queue je implementovaný a lokálně ověřený; před použitím
-   v linked sandboxu zbývá aplikovat jedinou připravenou migraci a zopakovat smoke test.
+4. Team Leader Exception Queue je implementovaný, nasazený do linked sandboxu
+   a ověřený přes Team Leader/operator Auth smoke test včetně cleanupu.
 5. Dokončit role-aware úvodní plochy, další zúžení navigace, Workspace Readiness,
    Team Leader Review a auditní kontext; zmrazit custom objects, blueprints a Deals
    pipeline, dokud denní smyčka call centra drží.
