@@ -189,6 +189,20 @@ administrátorskou stránku `Users & Permissions`.
 - [ ] odstranit z Admin Settings samostatná nastavení pracovních dnů, pracovních hodin a svátků; jejich jediným zdrojem pravdy bude směnový kalendář,
 - [ ] sjednotit názvy a umístění Settings podle role: osobní `My Settings`, týmová provozní pravidla pro Team Leadera a `Workspace/Admin Settings` pro administrátora.
 
+### Odložený samostatný slice — týmy a operátorské výsledky
+
+Tento slice není součástí aktuálního pořadí P1–P5. Stávající Analytics počítá
+workspace-level leaderboard pro Team Leadera a administrátora, ale databáze zatím nemá
+`teams` ani týmové členství. Před implementací se musí jako celek navrhnout týmová hranice,
+oprávnění a způsob správy; stále není rozhodnuto, zda může jeden člen patřit do jednoho,
+nebo více týmů.
+
+- [ ] zavést skutečnou týmovou strukturu workspace (např. Příchozí linka / Odchozí linka), přiřazení členů k týmům a vazbu Team Leadera na tým,
+- [ ] doplnit server-side a RLS hranici, která bezpečně omezuje týmová data a odmítne přístup k jinému týmu nebo workspace,
+- [ ] doplnit administrátorskou správu týmů a členství v návaznosti na budoucí stránku `Users & Permissions`,
+- [ ] teprve poté přidat operátorskou stránku `/results`, která ukáže vlastní výsledek a kolegy pouze ze stejného týmu; celý workspace se nesmí použít jako dočasná náhrada týmu,
+- [ ] v návrhu `/results` rozhodnout zobrazované metriky, časová období a pravidla pořadí tak, aby porovnání bylo srozumitelné a férové.
+
 ### Zmrazit do po-pilota (neodebírat, nerozšiřovat)
 
 Tyto plochy mají v kódu smysl, ale odvádějí práci od denní smyčky call centra. Do interního pilotu je **nemazat**, jen **nezakládat na nich další featury**.

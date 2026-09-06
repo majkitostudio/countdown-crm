@@ -133,6 +133,11 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 7. Až následně přidat Gemini transcription a editovatelný návrh verdiktu/poznámky.
 8. Další změny držet malé, tematické a samostatně ověřitelné.
 
+**Odložené To-Do mimo aktuální pořadí:** operátorské výsledky a porovnání se
+spolupracovníky řešit jako samostatný slice až po návrhu skutečné týmové struktury.
+Současný workspace zatím nemá oddělení typu Příchozí linka nebo Odchozí linka,
+proto stránka `Results` nesmí dočasně používat celý workspace jako náhradu týmu.
+
 ### Schválený scope pro P1–P5
 
 - Současný způsob práce s leady zůstává zachovaný: operátor zpracovává jeden
