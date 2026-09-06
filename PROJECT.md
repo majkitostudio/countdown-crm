@@ -4,7 +4,7 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 6. 9. 2026
+**Snapshot:** 7. 9. 2026
 **Repo baseline:** post-call hranice, Conversation Brief, Team Leader Exception Queue a server-side osobní preference
 **Produktový stav:** stabilizace před interním pilotem
 
@@ -46,6 +46,15 @@ kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění a
 karty Client Profile. Server odvozuje identitu z přihlášené session, RLS brání
 čtení či zápisu cizích hodnot a staré browserové hodnoty se případně importují
 jen jednou.
+
+Team Leader Review reálného hovoru je nyní oddělený od `/training/reviews`.
+Manažer nebo administrátor otevře přesný uložený hovor, vidí jeho outcome,
+operátorskou poznámku, zachovaný transcript a důkaz použitého skriptu. U starých
+hovorů se bez uložené vazby zobrazí „verze nebyla zaznamenána“; systém nic
+nedopočítává. Budoucí telephony sessions ukládají immutable snapshot publikované
+verze skriptu a při dokončení se vážou na konkrétní call. Verdikt a coaching zapisuje
+člověk jako append-only revizi; oprava vytvoří další revizi a audit obsahuje přesný
+previous/new stav. Operátor nemá review link ani přístup k review stránce.
 
 ### Operator-first princip
 
@@ -126,9 +135,10 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    a ověřený přes Team Leader/operator Auth smoke test včetně cleanupu.
 5. Role-aware vstup je dokončený: operátor začíná v Operator Console, Team Leader
    v Exception Queue a administrátor ve Workspace Readiness; původní Dashboard je
-   manažerský přehled na `/dashboard`. Zbývá Team Leader Review reálného hovoru,
-   auditní kontext a další zúžení role-aware navigace. Zmrazit custom objects,
-   blueprints a Deals pipeline, dokud denní smyčka call centra drží.
+   manažerský přehled na `/dashboard`. Team Leader Review reálného hovoru je
+   implementovaný lokálně včetně historie a auditu; před nasazením je třeba ověřit
+   migraci v konkrétním linked sandboxu. Zmrazit custom objects, blueprints a Deals
+   pipeline, dokud denní smyčka call centra drží.
 6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
    Telnyx pilotní telefonní důkaz. Telnyx zůstává vzdálené To-Do, ne bezprostřední
    produktový krok.

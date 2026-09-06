@@ -24,4 +24,14 @@ describe("real call review page boundary", () => {
     expect(source).toContain("notFound()");
     expect(source).toContain("CallReviewWorkspace");
   });
+
+  it("renders a safe permission boundary instead of leaking a server error", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/app/calls/[callId]/review/page.tsx"),
+      "utf8",
+    );
+
+    expect(source).toContain('error.code === "FORBIDDEN"');
+    expect(source).toContain("Team Leaders and Administrators only");
+  });
 });

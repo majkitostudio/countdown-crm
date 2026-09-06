@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, ReactNode, useState, useTransition } from "react";
-import { ArrowLeft, Clock3, FileText, History, PhoneCall, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
+import { Clock3, FileText, History, PhoneCall, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
 import { recordCallReviewAction } from "@/app/actions/callReviews";
 import type {
   CallReviewDTO,
@@ -263,16 +262,7 @@ export function CallReviewWorkspace({ initialReview }: { initialReview: CallRevi
         : "Simulation";
 
   return (
-    <main className="mx-auto max-w-6xl space-y-5">
-      <header className="flex flex-col gap-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <Link href="/calls" className="mb-3 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300"><ArrowLeft className="h-3.5 w-3.5" />Back to calls</Link>
-          <h1 className="text-xl font-semibold text-zinc-100">Team Leader Review</h1>
-          <p className="mt-1 font-mono text-[11px] text-zinc-500">Real call #{initialReview.call.id}</p>
-        </div>
-        <span className="inline-flex items-center gap-2 self-start rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-[11px] text-zinc-300"><ShieldCheck className="h-3.5 w-3.5" />Manager-only human review</span>
-      </header>
-
+    <main className="space-y-5">
       <div className="grid gap-5 lg:grid-cols-2">
         <Section title="Call facts" icon={<PhoneCall className="h-4 w-4" />}>
           <dl className="grid grid-cols-2 gap-4 text-xs">

@@ -1,0 +1,76 @@
+# Ověření Team Leader Review reálného hovoru
+
+**Datum:** 7. 9. 2026  
+**Větev:** `codex/team-leader-real-call-review`  
+**Výchozí commit:** `34be446`  
+**Lokální migrační soubor:** `supabase/migrations/20260906223213_team_leader_real_call_review.sql`
+
+## Co je ověřeno
+
+- Review je dostupný pouze rolím `team_leader` a `administrator`.
+- Review čte konkrétní uložený call, outcome, fail reason, operátorskou poznámku,
+  zdroj hovoru a transcript bez rekonstrukce chybějících dat.
+- Budoucí call se zobrazeným snapshotem ukazuje přesnou publikovanou verzi skriptu
+  (lokální fixture: verze 7, `Verified Joint Support`).
+- Starý call bez vazby ukazuje `Script version was not recorded for this call` a
+  legacy plain transcript; systém nehádá historickou verzi skriptu.
+- Call bez transcriptu ukazuje `Transcript unavailable` a nic nedoplňuje.
+- Dokončení review vytvořilo revizi 1. Oprava vytvořila revizi 2 s důvodem;
+  revize 1 zůstala viditelná v timeline.
+- Audit zobrazil události `Call review completed` a `Call review corrected` a po
+  rozbalení přesný previous/new verdict, coaching, reviewer ID a correction reason.
+- Operátor nemá review link v Call Logs; při přímé URL dostane bezpečnou stránku
+  s informací, že oblast je pouze pro Team Leaders a Administrators.
+- Exception Queue neodkazuje na review, pokud nemá prokazatelnou vazbu
+  `queue item → telephony session → completed_call_id`.
+- AI nevytváří verdict ani revizi; formulář je označen jako lidské rozhodnutí.
+
+## Lokální autentizovaný browser smoke
+
+Použité lokální účty (vytvořené pouze pro tento ephemeral test):
+
+- `review-team-leader@example.test` — Team Leader
+- `review-admin@example.test` — Administrator
+- `review-operator@example.test` — Operator
+
+Ověřené fixture calls:
+
+| Call | Scénář | Výsledek |
+| --- | --- | --- |
+| `50000000-0000-4000-8000-000000000002` | strukturovaný transcript, přesný snapshot publikované verze 7 | Team Leader vytvořil revizi 1 a opravil ji na revizi 2; audit read-back prošel |
+| `50000000-0000-4000-8000-000000000001` | starý plain transcript bez telephony/session vazby | zobrazeno „verze nebyla zaznamenána“, bez domýšlení skriptu |
+| `50000000-0000-4000-8000-000000000003` | administrátorský průchod, transcript unavailable, built-in fallback snapshot | Administrator vytvořil revizi 1 |
+
+Browser smoke proběhl proti `http://localhost:3000` po lokálním `supabase db reset`.
+Testovací data ani účty nejsou součástí repozitáře; po resetu lokální databáze zmizí.
+
+## Automatizované ověření
+
+Po poslední změně permission boundary proběhl celý checklist znovu:
+
+- `npm test`: 85 souborů / 335 testů prošlo
+- `npm run lint`: exit 0
+- `npm run typecheck`: exit 0
+- `npm run build`: exit 0; route `/calls/[callId]/review` je v buildu
+- `git diff --check`: bez chyb
+- `npx supabase db reset`: exit 0; lokální migrace aplikované
+- `npx supabase test db`: 8 souborů / 154 testů prošlo
+- `npx supabase db advisors --local --type all --level warn --fail-on error`: `No issues found`
+
+## Vzdálený sandbox
+
+Do vzdáleného Supabase prostředí nebyla migrace odeslána. Read-only kontrola
+`npx supabase migration list --linked` skončila zprávou:
+`Cannot find project ref. Have you run supabase link?`
+
+Repozitář tedy nemá připojený cílový project ref a tento report netvrdí, že je
+migrace nasazená mimo lokální databázi. Před deploymentem je třeba explicitně
+vybrat správný sandbox, provést dry-run, zkontrolovat migration history a teprve
+potom aplikovat migraci podle release postupu.
+
+## Co zůstává mimo tento důkaz
+
+- živý Telnyx hovor, veřejný webhook, nahrávání a externí transcription,
+- nasazení této migrace do konkrétního linked sandboxu,
+- Gemini návrh míst k pozornosti. Budoucí AI může pouze navrhnout pozornost;
+  verdikt a auditní revizi musí stále vydat člověk.
