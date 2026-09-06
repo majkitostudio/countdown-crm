@@ -169,16 +169,18 @@ Tyto body přišly z průchodu třemi rolemi. Nejsou nový produkt; opravují, �
 
 ### P2 — role-aware settings a správa přístupu
 
-**Schválená hranice pro další roadmapu:** způsob přidělování kontaktů a
-maximální počet leadů na operátora jsou výhradně admin-only nastavení. Směnový
-kalendář je jediný zdroj plánované dostupnosti, směn, absence a přesčasů;
+**Schválená hranice pro další roadmapu:** současná serverem řízená fronta leadů
+zůstává beze změny. Operátor zpracovává jeden aktivní kontakt a další mu server
+vybere podle priority, dostupnosti a callbacku. Alternativní assignment strategie
+ani konfigurovatelný počet souběžných leadů se nepřidávají. Směnový kalendář je
+jediný zdroj plánované dostupnosti, směn, absence a přesčasů;
 pracovní dny, pracovní hodiny ani svátky nebudou samostatnou Admin Settings
 konfigurací. Správa členů, rolí a oprávnění patří na samostatnou
 administrátorskou stránku `Users & Permissions`.
 
 - [ ] dokončit server-side `workspace_user_preferences` pro osobní preference všech uživatelů: audio, zobrazení, výchozí stránka, upozornění a další preference; `localStorage` smí zůstat pouze cache nebo dočasný draft,
 - [ ] převést uložené filtrovací pohledy do server-side `workspace_saved_views` s vlastnictvím uživatele a připravenou možností týmového sdílení,
-- [ ] ponechat způsob přidělování kontaktů a maximální počet leadů na operátora výhradně v Admin Settings; Team Leader je může číst v provozním kontextu, ale nemění je,
+- [x] zachovat současnou serverem řízenou frontu bez dalších assignment strategií a bez konfigurovatelného počtu souběžných leadů,
 - [ ] vytvořit samostatnou administrátorskou stránku `Users & Permissions` pro pozvánky členů, výchozí roli, deaktivaci uživatelů, správu členství, hranice pravomocí Team Leadera a pravidla práce s neaktivními členy,
 - [ ] chránit `Users & Permissions` server-side přes role/RLS; změny rolí, členství a deaktivací zapisovat do auditního logu,
 - [ ] odstranit z Admin Settings samostatná nastavení pracovních dnů, pracovních hodin a svátků; jejich jediným zdrojem pravdy bude směnový kalendář,

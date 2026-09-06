@@ -4,7 +4,8 @@ Task 0 uzamyká dokumentační hranice před P1.
 
 ## Schválená rozhodnutí
 
-- Assignment strategy a maximum leadů na operátora jsou admin-only.
+- Současná serverem řízená fronta leadů zůstává zachovaná bez alternativních
+  assignment strategií a bez konfigurovatelného počtu souběžných leadů.
 - Směnový kalendář je jediný zdroj směn a plánované dostupnosti, včetně absence a přesčasů.
 - Pracovní dny, pracovní hodiny a svátky nejsou samostatná Admin Settings konfigurace.
 - Správa členů, rolí a oprávnění patří na samostatnou admin stránku `Users & Permissions`.

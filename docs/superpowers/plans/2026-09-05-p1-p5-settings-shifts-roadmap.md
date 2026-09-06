@@ -20,7 +20,8 @@
 - Produkční databáze se nesmí resetovat; `migration repair` je přípustný pouze po důkazu, že cílové schema už přesně odpovídá dané migraci.
 - Každá tabulka v `public` musí mít RLS, explicitní grants a politiky s workspace/user/role hranicí; `TO authenticated` samo o sobě není autorizace.
 - `service_role` a všechny externí API klíče zůstávají mimo browser; server-side secrets se nikdy neukládají do běžných user settings.
-- Assignment strategy a maximum leadů na operátora smí měnit pouze administrátor.
+- Současná serverem řízená fronta leadů zůstává zachovaná; alternativní assignment
+  strategie ani konfigurovatelný počet souběžných leadů se nepřidávají.
 - Pracovní dny, pracovní hodiny a svátky nebudou paralelní Admin Settings; jediným zdrojem pravdy bude směnový kalendář.
 - Osobní dlouhodobé preference uživatelů budou server-side; `localStorage` smí zůstat pouze pro dočasné drafty nebo neautoritativní cache.
 - Local SIP je lokální validační cesta v Dockeru; Telnyx zůstává externě blokovaný a Gemini je pozdější fáze.
@@ -35,8 +36,6 @@
 Toto nastavení platí pro celý workspace a mění ho pouze administrátor:
 
 - aktivní telephony adapter,
-- strategie přidělování kontaktů,
-- maximální počet aktivních leadů na operátora,
 - workspace a integrační nastavení,
 - pravidla bezpečnosti, auditu a readiness,
 - produktové skripty, custom objects a další administrátorské konfigurace.
@@ -77,20 +76,19 @@ Použijeme doménově oddělené tabulky a serverové DAL/actions. Jedna univerz
 | 1 | `chore: verify and align database migration state` | Evidence a bezpečně srovnané cílové databáze | Vše další závisí na pravdivém schema a migration history |
 | 2 | `feat: harden post-call completion flow` | Krátký a idempotentní wrap-up | Nejvyšší produktová hodnota pro operátorský pilot |
 | 3 | `feat: add operator conversation brief` | Kontext před hovorem | Zkrátí hledání a přípravu bez AI závislosti |
-| 4 | `feat: add admin queue policy settings` | Admin-only assignment a lead capacity | Exception Queue musí znát provozní hranice |
-| 5 | `feat: add team leader exception queue` | Akční fronta výjimek | Team Leader dostane skutečnou provozní práci |
-| 6 | `feat: persist user preferences server-side` | Audio, density a základ osobních settings | Odstraní skutečnou chybu `localStorage` persistence |
-| 7 | `feat: persist saved views server-side` | Uživatelské Saved Views | Uložené filtry přežijí zařízení a session |
-| 8 | `refactor: make blueprint state server authoritative` | Blueprint bez lokální autority | Sjednotí další workspace setting s pravdou na serveru |
-| 9 | `feat: split role-aware settings surfaces` | My Settings, Team Operations, Workspace/Admin | Settings přestanou být směsí různých rolí |
-| 10 | `feat: add role-aware surfaces and attention layer` | Role-aware home/nav a další akce | Každá role dostane správný pracovní kontext |
-| 11 | `feat: add workspace readiness checks` | Pravdivý stav workspace | Admin uvidí konkrétní blokery a ne falešné „Ready“ |
-| 12 | `feat: add real call review and audit context` | TL review reálných hovorů a kontext změn | Navazuje na stabilní call lifecycle a Exception Queue |
-| 13 | `feat: add users and permissions administration` | Admin stránka `/users` | Explicitní týmy a oprávnění jsou nutné pro směny |
-| 14 | `feat: add shift calendar data model` | Serverový model směn a osobního rozvrhu | Připraví jediný zdroj pravdy pro plánovanou dostupnost |
-| 15 | `feat: add shift management workflows` | Směny, absence, přesčasy a schvalování | Admin/TL dostanou řízené provozní akce |
-| 16 | `feat: connect schedule with presence and queue` | Rozvrh, presence a queue spolupracují | Dokončí směnový kontext bez záměny plánu za live status |
-| 17 | `docs: record p1-p5 verification evidence` | Kompletní release evidence | Teprve zde lze rozhodnout o interním pilotu |
+| 4 | `feat: add team leader exception queue` | Akční fronta výjimek | Team Leader dostane skutečnou provozní práci |
+| 5 | `feat: persist user preferences server-side` | Audio, density a základ osobních settings | Odstraní skutečnou chybu `localStorage` persistence |
+| 6 | `feat: persist saved views server-side` | Uživatelské Saved Views | Uložené filtry přežijí zařízení a session |
+| 7 | `refactor: make blueprint state server authoritative` | Blueprint bez lokální autority | Sjednotí další workspace setting s pravdou na serveru |
+| 8 | `feat: split role-aware settings surfaces` | My Settings, Team Operations, Workspace/Admin | Settings přestanou být směsí různých rolí |
+| 9 | `feat: add role-aware surfaces and attention layer` | Role-aware home/nav a další akce | Každá role dostane správný pracovní kontext |
+| 10 | `feat: add workspace readiness checks` | Pravdivý stav workspace | Admin uvidí konkrétní blokery a ne falešné „Ready“ |
+| 11 | `feat: add real call review and audit context` | TL review reálných hovorů a kontext změn | Navazuje na stabilní call lifecycle a Exception Queue |
+| 12 | `feat: add users and permissions administration` | Admin stránka `/users` | Explicitní týmy a oprávnění jsou nutné pro směny |
+| 13 | `feat: add shift calendar data model` | Serverový model směn a osobního rozvrhu | Připraví jediný zdroj pravdy pro plánovanou dostupnost |
+| 14 | `feat: add shift management workflows` | Směny, absence, přesčasy a schvalování | Admin/TL dostanou řízené provozní akce |
+| 15 | `feat: connect schedule with presence and queue` | Rozvrh, presence a queue spolupracují | Dokončí směnový kontext bez záměny plánu za live status |
+| 16 | `docs: record p1-p5 verification evidence` | Kompletní release evidence | Teprve zde lze rozhodnout o interním pilotu |
 
 Telnyx a Gemini nejsou součástí těchto bezprostředních commitů. Zůstanou jako navazující kroky po externím ověření čísla a po stabilizaci předchozích vrstev.
 
@@ -131,21 +129,6 @@ Uživatel čte a mění pouze vlastní řádek v workspace, ve kterém je člene
 
 Vlastnictví `(workspace_id, user_id)` a validovaný `filters JSONB`. Filtry obsahují pouze známé `fieldKey`, `operator` a scalar `value`; nesmí obsahovat SQL, callback nebo executable content. RLS dovolí vlastníku číst, vytvářet, měnit a mazat vlastní pohledy. Týmové sdílení se nepřidá v první migraci, ale model ho musí umožnit bez porušení vlastnictví.
 
-#### `workspace_queue_policies`
-
-Jeden řádek na workspace, například:
-
-```sql
-workspace_id UUID PRIMARY KEY
-assignment_strategy TEXT NOT NULL CHECK (assignment_strategy IN ('round_robin', 'capacity', 'manual'))
-max_active_leads_per_operator INTEGER NOT NULL CHECK (max_active_leads_per_operator BETWEEN 1 AND 100)
-updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL
-created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-```
-
-Čtení mohou potřebovat členové workspace a queue runtime, zápis pouze administrátor. Výchozí strategie musí zachovat chování současného queue algoritmu; implementace ji nesmí změnit jen proto, že vznikla nová tabulka.
-
 #### Users, teams and permissions
 
 Stávající `workspace_members` nestačí pro bezpečné pravidlo „Team Leader spravuje svůj tým“. Pokud aktuální schema nemá explicitní týmovou vazbu, přidají se:
@@ -184,16 +167,16 @@ Proběhlé směny a schválené změny se nepřepisují bez historie. Konflikty 
 
 **Interfaces:**
 
-- Consumes: poslední uživatelské rozhodnutí o admin-only queue policy, Users & Permissions a směnovém kalendáři.
+- Consumes: poslední uživatelské rozhodnutí o zachování současné lead queue, Users & Permissions a směnovém kalendáři.
 - Produces: dokumentační baseline, na kterou odkazují všechny další commity.
 
-- [ ] **Step 1: Zapsat schválené hranice.** Do To-Do uvést admin-only assignment/max leadů, směnový kalendář jako jediný zdroj plánované dostupnosti a samostatnou admin stránku `Users & Permissions`.
+- [ ] **Step 1: Zapsat schválené hranice.** Do To-Do uvést zachování současné lead queue bez alternativních strategií a souběžných leadů, směnový kalendář jako jediný zdroj plánované dostupnosti a samostatnou admin stránku `Users & Permissions`.
 - [ ] **Step 2: Zkontrolovat konzistenci dokumentů.** `PROJECT.md`, `Review.md` a To-Do nesmí tvrdit, že pracovní dny, hodiny a svátky existují jako samostatná admin konfigurace.
 - [ ] **Step 3: Ověřit dokumentaci.** Spustit:
 
 ```powershell
 git diff --check
-rg -n "assignment|maximum|lead|směnov|absence|přesčas|Users & Permissions|pracovní dny|pracovní hodiny|svát" docs/AKTUALNI_STAV_A_DESATERO.md PROJECT.md
+rg -n "lead|směnov|absence|přesčas|Users & Permissions|pracovní dny|pracovní hodiny|svát" docs/AKTUALNI_STAV_A_DESATERO.md PROJECT.md
 ```
 
 - [ ] **Step 4: Commit.**
@@ -311,41 +294,7 @@ git commit -m "feat: add operator conversation brief"
 
 ---
 
-## Task 4: Admin-only queue policy
-
-**Files:**
-
-- Create: migration generated by `npx supabase migration new queue_policies`
-- Modify: `src/lib/supabase/types.ts`
-- Create: `src/lib/dal/queuePolicy.ts`
-- Create: `src/app/actions/queuePolicy.ts`
-- Create: `src/components/settings/QueuePolicySettings.tsx`
-- Modify: `src/app/settings/page.tsx`
-- Modify: `src/lib/dal/leadQueue.ts`
-- Test: `tests/queue-policy-contract.test.ts`, `tests/lead-queue-contract.test.ts`
-
-**Interfaces:**
-
-- Consumes: current queue assignment algorithm and administrator role guard.
-- Produces: `getQueuePolicyForWorkspace()`, `updateQueuePolicyForWorkspace(input)`, and a queue runtime policy read used only server-side.
-
-- [ ] **Step 1: Napsat failing migration contract.** Assert table, allowed strategies, positive lead cap, RLS, explicit grants and administrator-only INSERT/UPDATE policies.
-- [ ] **Step 2: Ověřit RED.** Spustit `npm test -- tests/queue-policy-contract.test.ts`; test musí selhat kvůli chybějící tabulce/policy.
-- [ ] **Step 3: Vygenerovat migraci přes CLI.** Spustit `npx supabase migration new queue_policies` a až potom upravit CLI-vygenerovaný soubor. Lokálně replayovat migrace; do linked targetu zatím pouze dry-run.
-- [ ] **Step 4: Implementovat DAL a action.** `updateQueuePolicyForWorkspace` musí volat `requireWorkspaceRole(["administrator"])`, validovat input a auditovat předchozí/nový stav. Nikdy nepřijímat workspace ID z browseru jako autoritu.
-- [ ] **Step 5: Napojit queue runtime.** Existující claim/assignment logika načte policy server-side. Výchozí hodnota musí odpovídat dnešnímu chování; změna strategie je samostatná explicitní admin akce.
-- [ ] **Step 6: Přidat Admin Settings UI.** Team Leader ani operator nesmí vidět edit controls. Admin uvidí assignment strategy a maximum aktivních leadů na operátora.
-- [ ] **Step 7: Ověřit GREEN.** Spustit focused tests, lokální Supabase reset/list/diff, RLS role checks a browser test administrator versus Team Leader/operator.
-- [ ] **Step 8: Commit.**
-
-```powershell
-git add supabase/migrations src/lib/supabase/types.ts src/lib/dal/queuePolicy.ts src/app/actions/queuePolicy.ts src/components/settings/QueuePolicySettings.tsx src/app/settings/page.tsx src/lib/dal/leadQueue.ts tests/queue-policy-contract.test.ts tests/lead-queue-contract.test.ts
-git commit -m "feat: add admin queue policy settings"
-```
-
----
-
-## Task 5: Team Leader Exception Queue
+## Task 4: Team Leader Exception Queue
 
 **Files:**
 
@@ -355,18 +304,18 @@ git commit -m "feat: add admin queue policy settings"
 - Create: `src/app/actions/exceptionQueue.ts`
 - Create: `src/app/exceptions/page.tsx`
 - Create: `src/components/exceptions/ExceptionQueue.tsx`
-- Modify: role-aware navigation when Task 10 lands
+- Modify: role-aware navigation when Task 9 lands
 - Test: `tests/exception-queue-contract.test.ts`
 
 **Interfaces:**
 
-- Consumes: overdue callbacks, stuck recovery, unclosed outcomes, long leases, failed workflows, missing published scripts and queue policy.
+- Consumes: overdue callbacks, stuck recovery, unclosed outcomes, long leases, failed workflows and missing published scripts.
 - Produces: `listTeamLeaderExceptions()`, `resolveException(id, resolution)`, `snoozeException(id, until)` with server-side ownership and audit.
 
 - [ ] **Step 1: Napsat failing contract.** Assert every exception has reason, priority, owner/target, source entity and safe next action; operator cannot read the team queue.
 - [ ] **Step 2: Ověřit RED.** Spustit `npm test -- tests/exception-queue-contract.test.ts`.
 - [ ] **Step 3: Navrhnout read model.** Preferovat derivaci z existujících source tables plus explicit resolution/snooze table; nevytvářet falešné výjimky jen kvůli chybě podpůrného zdroje.
-- [ ] **Step 4: Implementovat role boundary.** Team Leader vidí pouze své explicitní týmy/workspace, administrátor celý workspace; operator dostane jen vlastní bezpečné recovery akce.
+- [ ] **Step 4: Implementovat role boundary.** V současném role modelu vidí Team Leader a administrátor celý aktivní workspace; operator nesmí týmovou frontu číst. Po zavedení explicitních týmů v Users & Permissions se Team Leader scope zúží na jeho tým.
 - [ ] **Step 5: Implementovat resolve/snooze.** Každá změna uloží actor, timestamp, předchozí stav, nový stav a důvod. Opakovaný resolve je idempotentní.
 - [ ] **Step 6: Přidat UI.** Stránka má filtrovat podle priority/stavu/typu a u každé položky ukázat konkrétní další akci. Nejde o obecný notifikační chat.
 - [ ] **Step 7: Ověřit GREEN a runtime.** Testy, RLS, Team Leader/operator/admin browser flow, reload a audit read-back.
@@ -379,7 +328,7 @@ git commit -m "feat: add team leader exception queue"
 
 ---
 
-## Task 6: Server-side osobní preference
+## Task 5: Server-side osobní preference
 
 **Files:**
 
@@ -414,7 +363,7 @@ git commit -m "feat: persist user preferences server-side"
 
 ---
 
-## Task 7: Server-side Saved Views
+## Task 6: Server-side Saved Views
 
 **Files:**
 
@@ -445,7 +394,7 @@ git commit -m "feat: persist saved views server-side"
 
 ---
 
-## Task 8: Udělat blueprint state skutečně server-authoritative
+## Task 7: Udělat blueprint state skutečně server-authoritative
 
 **Files:**
 
@@ -475,7 +424,7 @@ git commit -m "refactor: make blueprint state server authoritative"
 
 ---
 
-## Task 9: Rozdělit Settings podle role
+## Task 8: Rozdělit Settings podle role
 
 **Files:**
 
@@ -491,14 +440,14 @@ git commit -m "refactor: make blueprint state server authoritative"
 
 **Interfaces:**
 
-- Consumes: user preferences, telephony adapter, queue policy, wallet/schema/script visibility, existing role guards.
+- Consumes: user preferences, telephony adapter, wallet/schema/script visibility and existing role guards.
 - Produces: oddělené plochy `My Settings`, `Team Operations` a `Workspace/Admin Settings` s route-level server guardem.
 
 - [ ] **Step 1: Napsat failing boundary test.** Operator vidí pouze My Settings, Team Leader vidí My Settings + Team Operations, Admin vidí vše; přímá URL nesmí boundary obejít.
 - [ ] **Step 2: Ověřit RED.** Spustit `npm test -- tests/settings-role-boundary.test.ts`.
 - [ ] **Step 3: Přesunout osobní settings.** Audio, density, default page a notifications patří do `My Settings`; server načte identity a preferences.
-- [ ] **Step 4: Přesunout provozní settings.** Queue policy zůstane výhradně v Admin Settings. Team Operations bude připravené pro Exception Queue, review a směny, ale nedostane admin-only controls.
-- [ ] **Step 5: Zjednodušit Admin Settings.** Telephony, queue policy, workspace schema/scripts a později Users & Permissions zůstanou admin-only. Pracovní dny/hodiny/svátky se nepřidají.
+- [ ] **Step 4: Přesunout provozní settings.** Team Operations bude připravené pro Exception Queue, review a směny, ale nedostane admin-only controls.
+- [ ] **Step 5: Zjednodušit Admin Settings.** Telephony, workspace schema/scripts a později Users & Permissions zůstanou admin-only. Pracovní dny/hodiny/svátky se nepřidají.
 - [ ] **Step 6: Ověřit browser.** Přihlášený operator/TL/admin, direct URL, reload, navigation visibility a forbidden response.
 - [ ] **Step 7: Commit.**
 
@@ -509,7 +458,7 @@ git commit -m "feat: split role-aware settings surfaces"
 
 ---
 
-## Task 10: Role-aware plochy a Attention Layer
+## Task 9: Role-aware plochy a Attention Layer
 
 **Files:**
 
@@ -524,7 +473,7 @@ git commit -m "feat: split role-aware settings surfaces"
 
 **Interfaces:**
 
-- Consumes: role identity, queue policy, Conversation Brief, Exception Queue, operator presence.
+- Consumes: role identity, Conversation Brief, Exception Queue and operator presence.
 - Produces: operator-first Console, TL-first exceptions/brief a admin-first workspace health bez obecného dashboardu jako výchozí práce.
 
 - [ ] **Step 1: Napsat failing UI contracts.** Assert operator default landing `/workspace`, Team Leader exception path and Admin readiness path; hidden nav items must not be security boundary.
@@ -542,7 +491,7 @@ git commit -m "feat: add role-aware surfaces and attention layer"
 
 ---
 
-## Task 11: Workspace Readiness
+## Task 10: Workspace Readiness
 
 **Files:**
 
@@ -573,7 +522,7 @@ git commit -m "feat: add workspace readiness checks"
 
 ---
 
-## Task 12: Team Leader Review reálných hovorů a auditní kontext
+## Task 11: Team Leader Review reálných hovorů a auditní kontext
 
 **Files:**
 
@@ -608,7 +557,7 @@ git commit -m "feat: add real call review and audit context"
 
 ---
 
-## Task 13: Users & Permissions admin page
+## Task 12: Users & Permissions admin page
 
 **Files:**
 
@@ -644,7 +593,7 @@ git commit -m "feat: add users and permissions administration"
 
 ---
 
-## Task 14: Shift calendar data model a read-only rozvrh
+## Task 13: Shift calendar data model a read-only rozvrh
 
 **Files:**
 
@@ -677,7 +626,7 @@ git commit -m "feat: add shift calendar data model"
 
 ---
 
-## Task 15: Shift management, absence and overtime workflows
+## Task 14: Shift management, absence and overtime workflows
 
 **Files:**
 
@@ -713,7 +662,7 @@ git commit -m "feat: add shift management workflows"
 
 ---
 
-## Task 16: Napojit směnový kalendář na presence a queue
+## Task 15: Napojit směnový kalendář na presence a queue
 
 **Files:**
 
@@ -727,13 +676,13 @@ git commit -m "feat: add shift management workflows"
 
 **Interfaces:**
 
-- Consumes: approved/current shift, absence/overtime status, `operator_presence`, queue policy and team mapping.
+- Consumes: approved/current shift, absence/overtime status, `operator_presence` and team mapping.
 - Produces: honest schedule-aware context without turning schedule into automatic live presence.
 
-- [ ] **Step 1: Napsat failing contract.** Assert a scheduled operator is not automatically `Ready`; off-shift presence is represented honestly; queue assignment honors explicit capacity/absence policy without deleting data.
+- [ ] **Step 1: Napsat failing contract.** Assert a scheduled operator is not automatically `Ready`; off-shift presence is represented honestly; queue assignment honors approved absence without deleting data.
 - [ ] **Step 2: Ověřit RED.** Run `npm test -- tests/shift-presence-queue-contract.test.ts tests/lead-queue-contract.test.ts`.
 - [ ] **Step 3: Implementovat derived context.** Add server-side helper returning scheduled/absent/overtime/current presence separately. Keep `Ready`, `In call`, `Break` as live states.
-- [ ] **Step 4: Integrate safe queue behavior.** Queue uses approved absence and active capacity according to admin policy; recovery remains auditable. No silent reassignment solely because a browser tab is closed.
+- [ ] **Step 4: Integrate safe queue behavior.** Queue uses approved absence while preserving the current one-active-lead workflow; recovery remains auditable. No silent reassignment solely because a browser tab is closed.
 - [ ] **Step 5: Update UI/status labels.** Sidebar and readiness distinguish `Scheduled`, `Absent`, `Overtime`, `Ready`, `In call`, `Break` and `Unavailable`.
 - [ ] **Step 6: Verify concurrency and reload.** Two operators, TL/admin schedule edit, presence heartbeat, queue claim/recovery, and cross-workspace checks.
 - [ ] **Step 7: Commit.**
@@ -745,7 +694,7 @@ git commit -m "feat: connect schedule with presence and queue"
 
 ---
 
-## Task 17: Finální evidence, review a release gate
+## Task 16: Finální evidence, review a release gate
 
 **Files:**
 
@@ -756,7 +705,7 @@ git commit -m "feat: connect schedule with presence and queue"
 
 **Interfaces:**
 
-- Consumes: all commits and evidence from Tasks 0–16.
+- Consumes: all commits and evidence from Tasks 0–15.
 - Produces: honest pilot decision with explicit remaining blockers.
 
 - [ ] **Step 1: Repository evidence.** Run `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `git diff --check`; record exact counts and exit codes.
@@ -806,7 +755,7 @@ Až po stabilizaci živé/validované telefonie:
 - [ ] P1 migration/runtime evidence je doložená zvlášť pro repo, sandbox a production.
 - [ ] Post-call wrap-up je idempotentní a reload zachová serverový výsledek.
 - [ ] Conversation Brief používá pouze skutečná data a bezpečně označuje chybějící kontext.
-- [ ] Queue strategy a maximum leadů mění pouze administrátor.
+- [ ] Současná serverem řízená lead queue zůstává bez nefunkčních alternativních strategií a bez konfigurovatelného počtu souběžných leadů.
 - [ ] Exception Queue má konkrétní důvod, prioritu, vlastníka a bezpečné resolution.
 - [ ] Osobní preference a Saved Views přežijí reload, logout/login a změnu browseru.
 - [ ] `localStorage` není autoritou pro žádné trvalé workspace/user nastavení; lokální drafty jsou výslovně označené.

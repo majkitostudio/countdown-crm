@@ -109,7 +109,7 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    vzdálených databázových testů a nedestruktivní drift definic starších funkcí.
 2. Post-call wrap-up s idempotentní hranicí je dokončený a nasazený v linked sandboxu.
 3. Conversation Brief je implementovaný v Operator Console.
-4. Přidat admin-only queue policy, na kterou naváže Team Leader Exception Queue.
+4. Přidat Team Leader Exception Queue nad současnou serverem řízenou frontou leadů.
 5. Dokončit role-aware úvodní plochy, další zúžení navigace, Workspace Readiness,
    Team Leader Review a auditní kontext; zmrazit custom objects, blueprints a Deals
    pipeline, dokud denní smyčka call centra drží.
@@ -121,8 +121,10 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 
 ### Schválený scope pro P1–P5
 
-- Assignment strategy a maximum leadů na operátora mění pouze administrátor;
-  Team Leader je může číst v provozním kontextu, ale nemění je.
+- Současný způsob práce s leady zůstává zachovaný: operátor zpracovává jeden
+  aktivní kontakt a další mu server vybere podle priority, dostupnosti a callbacku.
+  Alternativní assignment strategie ani konfigurovatelný počet souběžných leadů
+  se nepřidávají.
 - Směnový kalendář je jediný zdroj směn, plánované dostupnosti, absence a
   přesčasů. Pracovní dny, pracovní hodiny ani svátky nebudou paralelní
   konfigurací v Admin Settings.
