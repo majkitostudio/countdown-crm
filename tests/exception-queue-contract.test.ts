@@ -95,6 +95,10 @@ const sources: ExceptionQueueSourcesInput = {
     value: [{ product_id: "product-ready" }],
   },
   actions: { status: "fulfilled", value: [] },
+  callSessions: {
+    status: "fulfilled",
+    value: [{ queue_item_id: "queue-recovery", completed_call_id: "call-a" }],
+  },
 };
 
 function queryResult(data: unknown, error: unknown = null) {
@@ -137,6 +141,41 @@ describe("Team Leader Exception Queue", () => {
     expect(result.items.find((item) => item.type === "overdue_callback")?.owner).toEqual({
       id: "operator-2",
       name: "Eva Operator",
+    });
+  });
+
+  it("links outcome recovery only through its queue item session and completed call", () => {
+    const result = buildTeamLeaderExceptionQueue(sources, now);
+    const item = result.items.find((candidate) => candidate.type === "outcome_recovery");
+
+    expect(item?.callReview).toEqual({
+      kind: "linked",
+      callId: "call-a",
+      href: "/calls/call-a/review",
+    });
+  });
+
+  it("does not pick a latest lead call when the exact session link is absent", () => {
+    const result = buildTeamLeaderExceptionQueue({
+      ...sources,
+      callSessions: { status: "fulfilled", value: [] },
+    }, now);
+    const item = result.items.find((candidate) => candidate.type === "outcome_recovery");
+
+    expect(item?.callReview).toEqual({ kind: "not_recorded" });
+  });
+
+  it("distinguishes an unavailable link lookup from a proven missing link", () => {
+    const result = buildTeamLeaderExceptionQueue({
+      ...sources,
+      callSessions: { status: "rejected", reason: new Error("session lookup failed") },
+    }, now);
+    const item = result.items.find((candidate) => candidate.type === "outcome_recovery");
+
+    expect(item?.callReview).toBeNull();
+    expect(result.sources.callReviews).toEqual({
+      state: "unavailable",
+      message: "Exact call review links could not be loaded.",
     });
   });
 
@@ -220,6 +259,7 @@ describe("Team Leader Exception Queue", () => {
       products: [],
       product_scripts: [],
       team_leader_exception_actions: [],
+      telephony_call_sessions: [],
     };
     const queueQuery = queryResult(tableResults.lead_queue_items);
     const productQuery = queryResult(tableResults.products);
@@ -237,6 +277,29 @@ describe("Team Leader Exception Queue", () => {
     expect(queueQuery.in).toHaveBeenCalledWith("state", ["assigned", "awaiting_outcome", "waiting_callback"]);
     expect(productQuery.select).toHaveBeenCalledWith("id, title, in_stock, created_at");
     expect(productQuery.order).toHaveBeenCalledWith("created_at", { ascending: false });
+    expect(from).not.toHaveBeenCalledWith("calls");
+  });
+
+  it("loads exact session links by queue item IDs and never queries calls by lead", async () => {
+    const queueRows = sources.queueItems.status === "fulfilled" ? sources.queueItems.value : [];
+    const queueQuery = queryResult(queueRows);
+    const sessionQuery = queryResult([{ queue_item_id: "queue-recovery", completed_call_id: "call-a" }]);
+    const from = vi.fn((table: string) => {
+      if (table === "lead_queue_items") return queueQuery;
+      if (table === "telephony_call_sessions") return sessionQuery;
+      return queryResult([]);
+    });
+    mocks.createDataClient.mockResolvedValue({ from });
+
+    const result = await listTeamLeaderExceptions();
+
+    expect(sessionQuery.in).toHaveBeenCalledWith("queue_item_id", queueRows.map((row) => row.id));
+    expect(from).not.toHaveBeenCalledWith("calls");
+    expect(result.items.find((item) => item.type === "outcome_recovery")?.callReview).toEqual({
+      kind: "linked",
+      callId: "call-a",
+      href: "/calls/call-a/review",
+    });
   });
 
   it("rejects malformed resolution input before authorization or database access", async () => {

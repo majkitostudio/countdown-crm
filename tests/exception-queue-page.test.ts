@@ -28,6 +28,7 @@ describe("Exception Queue page", () => {
         workflows: { state: "available" },
         scripts: { state: "available" },
         actions: { state: "available" },
+        callReviews: { state: "available" },
       },
     });
 

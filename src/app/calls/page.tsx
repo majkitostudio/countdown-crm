@@ -221,6 +221,7 @@ export default function CallLogsPage() {
       {/* Call Detail Drawer */}
       <CallDetailDrawer
         call={selectedCall}
+        reviewHref={selectedCall?.review_href || null}
         isOpen={Boolean(selectedCall)}
         onClose={() => setSelectedCall(null)}
       />

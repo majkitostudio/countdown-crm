@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   X,
   PhoneCall,
@@ -18,9 +19,10 @@ interface CallDetailDrawerProps {
   call: CallRecord | null;
   isOpen: boolean;
   onClose: () => void;
+  reviewHref?: string | null;
 }
 
-export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProps) {
+export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: CallDetailDrawerProps) {
   if (!isOpen || !call) return null;
 
   const transcriptTurnCount = call.transcript.kind === "structured"
@@ -73,6 +75,11 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
 
         {/* Content Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {reviewHref && (
+            <Link href={reviewHref} className="inline-flex w-full items-center justify-center rounded-xl border border-sky-900/70 bg-sky-950/20 px-4 py-2.5 text-xs font-semibold text-sky-200 hover:bg-sky-950/40">
+              Open Team Leader Review
+            </Link>
+          )}
           
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-3 gap-3 text-xs">

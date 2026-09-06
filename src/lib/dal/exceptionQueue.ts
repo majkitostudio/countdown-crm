@@ -23,6 +23,7 @@ export interface ExceptionQueueItemDTO {
   occurred_at: string;
   due_at: string | null;
   next_action: { label: string; href: string };
+  callReview: { kind: "linked"; callId: string; href: string } | { kind: "not_recorded" } | null;
 }
 
 export interface ExceptionQueueSourceStatus {
@@ -43,6 +44,7 @@ export interface ExceptionQueueDTO {
     workflows: ExceptionQueueSourceStatus;
     scripts: ExceptionQueueSourceStatus;
     actions: ExceptionQueueSourceStatus;
+    callReviews: ExceptionQueueSourceStatus;
   };
 }
 
@@ -81,6 +83,11 @@ interface ProductScriptSourceRow {
   product_id: string;
 }
 
+interface CallSessionLinkSourceRow {
+  queue_item_id: string | null;
+  completed_call_id: string | null;
+}
+
 export interface ExceptionActionSourceRow {
   id?: string;
   workspace_id?: string;
@@ -101,6 +108,7 @@ export interface ExceptionQueueSourcesInput {
   products: PromiseSettledResult<ProductSourceRow[]>;
   productScripts: PromiseSettledResult<ProductScriptSourceRow[]>;
   actions: PromiseSettledResult<ExceptionActionSourceRow[]>;
+  callSessions: PromiseSettledResult<CallSessionLinkSourceRow[]>;
 }
 
 const PRIORITY_ORDER: Record<ExceptionPriority, number> = {
@@ -168,12 +176,34 @@ function queueOwner(row: QueueSourceRow): ExceptionQueueItemDTO["owner"] {
   return null;
 }
 
-function buildQueueExceptions(rows: QueueSourceRow[], now: Date): ExceptionQueueItemDTO[] {
+function callReviewForQueueItem(
+  queueItemId: string,
+  callSessions: ExceptionQueueSourcesInput["callSessions"],
+): ExceptionQueueItemDTO["callReview"] {
+  if (callSessions.status === "rejected") return null;
+
+  const exactCallIds = new Set(
+    callSessions.value
+      .filter((session) => session.queue_item_id === queueItemId && session.completed_call_id)
+      .map((session) => session.completed_call_id as string),
+  );
+  if (exactCallIds.size !== 1) return { kind: "not_recorded" };
+
+  const callId = [...exactCallIds][0];
+  return { kind: "linked", callId, href: `/calls/${callId}/review` };
+}
+
+function buildQueueExceptions(
+  rows: QueueSourceRow[],
+  callSessions: ExceptionQueueSourcesInput["callSessions"],
+  now: Date,
+): ExceptionQueueItemDTO[] {
   const items: ExceptionQueueItemDTO[] = [];
 
   for (const row of rows) {
     const owner = queueOwner(row);
     const target = { kind: "lead" as const, id: row.lead_id, label: row.lead.full_name };
+    const callReview = callReviewForQueueItem(row.id, callSessions);
 
     if (row.recovery_required || row.state === "awaiting_outcome") {
       items.push({
@@ -187,6 +217,7 @@ function buildQueueExceptions(rows: QueueSourceRow[], now: Date): ExceptionQueue
         occurred_at: row.updated_at,
         due_at: row.lease_expires_at,
         next_action: { label: "Open queue operations", href: "/team" },
+        callReview,
       });
       continue;
     }
@@ -203,6 +234,7 @@ function buildQueueExceptions(rows: QueueSourceRow[], now: Date): ExceptionQueue
         occurred_at: row.scheduled_at,
         due_at: row.scheduled_at,
         next_action: { label: "Open customer", href: `/leads/${row.lead_id}` },
+        callReview,
       });
       continue;
     }
@@ -219,6 +251,7 @@ function buildQueueExceptions(rows: QueueSourceRow[], now: Date): ExceptionQueue
         occurred_at: row.lease_expires_at,
         due_at: row.lease_expires_at,
         next_action: { label: "Open queue operations", href: "/team" },
+        callReview,
       });
     }
   }
@@ -245,6 +278,7 @@ function buildWorkflowExceptions(rows: WorkflowSourceRow[]): ExceptionQueueItemD
       occurred_at: row.created_at,
       due_at: null,
       next_action: { label: "Open workflows", href: "/workflows" },
+      callReview: null,
     }];
   });
 }
@@ -267,6 +301,7 @@ function buildScriptExceptions(
       occurred_at: product.created_at,
       due_at: null,
       next_action: { label: "Open product scripts", href: "/settings/scripts" },
+      callReview: null,
     }];
   });
 }
@@ -278,7 +313,7 @@ export function buildTeamLeaderExceptionQueue(
   const items: ExceptionQueueItemDTO[] = [];
 
   if (sources.queueItems.status === "fulfilled") {
-    items.push(...buildQueueExceptions(sources.queueItems.value, now));
+    items.push(...buildQueueExceptions(sources.queueItems.value, sources.callSessions, now));
   }
   if (sources.workflowExecutions.status === "fulfilled") {
     items.push(...buildWorkflowExceptions(sources.workflowExecutions.value));
@@ -323,6 +358,9 @@ export function buildTeamLeaderExceptionQueue(
       actions: sources.actions.status === "fulfilled"
         ? available()
         : unavailable("Resolved and snoozed exception state could not be loaded."),
+      callReviews: sources.callSessions.status === "fulfilled"
+        ? available()
+        : unavailable("Exact call review links could not be loaded."),
     },
   };
 }
@@ -385,7 +423,24 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
     ),
   ]);
 
-  return buildTeamLeaderExceptionQueue({ queueItems, workflowExecutions, products, productScripts, actions });
+  let callSessions: PromiseSettledResult<CallSessionLinkSourceRow[]> = {
+    status: "fulfilled",
+    value: [],
+  };
+  if (queueItems.status === "fulfilled" && queueItems.value.length > 0) {
+    [callSessions] = await Promise.allSettled([
+      loadRows<CallSessionLinkSourceRow>(
+        supabase
+          .from("telephony_call_sessions")
+          .select("queue_item_id, completed_call_id")
+          .eq("workspace_id", context.workspaceId)
+          .in("queue_item_id", queueItems.value.map((row) => row.id)),
+        "Exact call review links could not be loaded.",
+      ),
+    ]);
+  }
+
+  return buildTeamLeaderExceptionQueue({ queueItems, workflowExecutions, products, productScripts, actions, callSessions });
 }
 
 function validateExceptionId(exceptionId: string): string {

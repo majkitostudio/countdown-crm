@@ -248,9 +248,17 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                           {item.snoozed_until && <span className="ml-2">Until {formatDate(item.snoozed_until)}</span>}
                         </div>
                       )}
+                      {item.callReview?.kind === "not_recorded" && (
+                        <p className="text-[11px] text-zinc-600">Exact call was not recorded for this exception</p>
+                      )}
                     </div>
 
                     <div className="flex shrink-0 flex-wrap gap-2">
+                      {item.callReview?.kind === "linked" && (
+                        <Link href={item.callReview.href} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-900/70 bg-sky-950/20 px-3 py-2 text-xs font-medium text-sky-200 hover:bg-sky-950/40">
+                          Open call review<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
+                      )}
                       <Link href={item.next_action.href} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 hover:bg-white">
                         {item.next_action.label}<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                       </Link>

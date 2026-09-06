@@ -18,6 +18,7 @@ export interface CallRecord {
   order_value: number;
   transcript: CallTranscript;
   created_at: string;
+  review_href: string | null;
 }
 
 export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
@@ -53,6 +54,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     order_value: call.order_value,
     transcript: parseCallTranscript(call.transcript),
     created_at: call.created_at,
+    review_href: call.review_href,
   }));
 }
 
@@ -73,5 +75,6 @@ export async function getCallById(id: string): Promise<CallRecord | null> {
     order_value: call.order_value,
     transcript: parseCallTranscript(call.transcript),
     created_at: call.created_at,
+    review_href: null,
   };
 }
