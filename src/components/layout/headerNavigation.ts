@@ -3,6 +3,7 @@ import {
   BarChart3,
   CalendarDays,
   ClipboardList,
+  ClipboardCheck,
   GraduationCap,
   Briefcase,
   History,
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavigationCommand[] = [
   { label: "Exception Queue", path: "/exceptions", icon: ShieldCheck, roles: ["team_leader", "administrator"] },
   { label: "Workflows", path: "/workflows", icon: Sparkles, roles: ["team_leader", "administrator"] },
   { label: "Security Audit Log", path: "/audit", icon: ShieldCheck, roles: ["team_leader", "administrator"] },
+  { label: "Workspace Readiness", path: "/readiness", icon: ClipboardCheck, roles: ["administrator"] },
   { label: "Settings", path: "/settings", icon: Settings },
   { label: "Workspace Members", path: "/team", icon: Users, roles: ["administrator"] },
 ];

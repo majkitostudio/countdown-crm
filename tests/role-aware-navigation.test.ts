@@ -35,4 +35,13 @@ describe("role-aware navigation parity", () => {
 
     expect(operatorPaths).toEqual(expect.not.arrayContaining(restrictedPaths));
   });
+
+  it("shows Workspace Readiness only to administrators", () => {
+    expect(sidebarPaths("operator")).not.toContain("/readiness");
+    expect(sidebarPaths("team_leader")).not.toContain("/readiness");
+    expect(sidebarPaths("administrator")).toContain("/readiness");
+    expect(commandPaths("operator")).not.toContain("/readiness");
+    expect(commandPaths("team_leader")).not.toContain("/readiness");
+    expect(commandPaths("administrator")).toContain("/readiness");
+  });
 });

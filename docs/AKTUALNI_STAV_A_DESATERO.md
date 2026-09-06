@@ -115,7 +115,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 ### P1 — runtime stabilita před pilotem
 
 - [x] ověřit dostupnost `/calendar` a `/wallet` v aktuálním cílovém workspace autentizovaným uživatelem; obě plochy i kalendářová persistence prošly, databázová migration/schema příčina je vyloučená,
-- [ ] doplnit diagnostiku připravenosti workspace pro queue, calendar/reminders, wallet settings, published scripts a aktivní integrace,
+- [x] doplnit Admin `Workspace Readiness` diagnostiku pro queue, calendar/reminders, wallet settings, published scripts, workflow, telephony, migration/RLS evidence a kritické auditní události; chybějící důkaz zůstává viditelný jako `Needs attention` nebo `Blocked`,
 - [ ] zajistit, aby selhání jedné podpůrné datové části neskrývalo dostupná data z ostatních zdrojů; například callbacky nesmí zmizet jen kvůli chybě osobních reminders.
 
 ### P1 — operátorský pracovní tok
@@ -133,7 +133,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 - [x] přidat Team Leader Exception Queue pro overdue callbacky, recovery bez outcome, propadlé assignmenty, failed workflows a chybějící publikované skripty; každá položka má důvod, prioritu, vlastníka/cíl a bezpečnou další akci, resolve/snooze je auditovaný a operátor je odmítnut serverem i RLS; lokální i linked Auth smoke ověření je hotové,
 - [ ] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, teamleader týmové výjimky a admin stav workspace; nepřidávat další obecný dashboard bez akčního kontextu,
 - [ ] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` je review simulace, ne tento bod; AI může navrhnout místa k pozornosti, ale nesmí sama vydat verdikt,
-- [ ] přidat Admin `Workspace Readiness`: telefonie, webhook, migration history, RLS/role hranice, publikované skripty, callbacky, wallet a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`,
+- [x] přidat Admin `Workspace Readiness` na `/readiness`: telefonie, Telnyx externí blocker, migration history, RLS/role hranice, publikované skripty, callbacky, wallet, workflow a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`; stránka je serverově chráněná pro administrátory,
 - [ ] rozšířit správu Product Scriptů o diff draft/published, autora, účinnost, preview operátorského zobrazení a rollback předchozí verze,
 - [ ] role-aware úvodní plochy a zúžení navigace — podrobnosti v sekci P2 níže,
 - [ ] Alert Center **až po** Exception Queue: jen akční upozornění s odložením a dohledatelným vyřešením; nebudovat notifikační chat ani duplicitní dashboard,
@@ -244,8 +244,8 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 **Co bolí před pilotem:**
 
-1. Chybí `Workspace Readiness`: telefonie, webhook, migration history, publikované skripty, fronta, calendar/wallet, poslední chyby — `Ready` / `Needs attention` / `Blocked`.
-2. Ověření `/calendar` a `/wallet` nyní v linked sandboxu prošlo; stále chybí jednotná diagnostika pro případ budoucího selhání (data vs. migrace vs. demo).
+1. `Workspace Readiness` je implementovaný na `/readiness`; v lokálním prostředí bez zaznamenané deployment evidence zůstává migration/RLS stav poctivě `Needs attention` a Telnyx `Blocked` kvůli externímu ověření čísla.
+2. Ověření `/calendar` a `/wallet` nyní v linked sandboxu prošlo; nová diagnostika zachovává oddělené stavy zdrojů pro případ budoucího selhání (data vs. migrace vs. demo).
 3. Settings míchají zvuk operátora, schema engine, wallet a skripty. Admin nemá „provoz workspace“, má kuchyň modulů.
 4. Není ověřený negativní důkaz: cizí workspace, špatná role, Team Leader login a cleanup.
 

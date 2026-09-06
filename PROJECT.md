@@ -118,14 +118,14 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. Dokončit zbývající P1 diagnostiku: `Workspace Readiness`, privilegovaný runner
-   vzdálených databázových testů a nedestruktivní drift definic starších funkcí.
+1. `Workspace Readiness` je implementovaný; zbývá privilegovaný runner vzdálených
+   databázových testů a nedestruktivní drift definic starších funkcí.
 2. Post-call wrap-up s idempotentní hranicí je dokončený a nasazený v linked sandboxu.
 3. Conversation Brief je implementovaný v Operator Console.
 4. Team Leader Exception Queue je implementovaný, nasazený do linked sandboxu
    a ověřený přes Team Leader/operator Auth smoke test včetně cleanupu.
-5. Dokončit role-aware úvodní plochy, další zúžení navigace, Workspace Readiness,
-   Team Leader Review a auditní kontext; zmrazit custom objects, blueprints a Deals
+5. Dokončit role-aware úvodní plochy, Team Leader Review a auditní kontext; Workspace
+   Readiness je nyní samostatná admin-only plocha. Zmrazit custom objects, blueprints a Deals
    pipeline, dokud denní smyčka call centra drží.
 6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
    Telnyx pilotní telefonní důkaz. Telnyx zůstává vzdálené To-Do, ne bezprostřední

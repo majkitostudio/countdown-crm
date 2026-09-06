@@ -3,6 +3,7 @@ import {
   Briefcase,
   CalendarDays,
   ClipboardList,
+  ClipboardCheck,
   GraduationCap,
   History,
   LayoutDashboard,
@@ -43,6 +44,7 @@ const NAV_ITEMS: SidebarNavigationItem[] = [
   { label: "Analytics", href: "/analytics", icon: BarChart3, roles: ["team_leader", "administrator"] },
   { label: "Security Audit Log", href: "/audit", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
   { label: "Live Monitor", href: "/monitor", icon: Radio, roles: ["team_leader", "administrator"] },
+  { label: "Workspace Readiness", href: "/readiness", icon: ClipboardCheck, roles: ["administrator"] },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Workspace Members", href: "/team", icon: UserCog, roles: ["administrator"] },
 ];
