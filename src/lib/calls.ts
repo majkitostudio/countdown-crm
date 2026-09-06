@@ -1,14 +1,9 @@
 import { getCallAction, listCallsAction } from "@/app/actions/crm";
+import { parseCallTranscript, type CallTranscript } from "./callTranscript";
 import type { WorkspaceCallDTO } from "./dal/activity";
 import type { Database } from "./supabase/types";
 
 export type PersistedCallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
-
-export interface TranscriptEntry {
-  speaker: "operator" | "customer";
-  text: string;
-  timestamp: string;
-}
 
 export interface CallRecord {
   id: string;
@@ -21,18 +16,8 @@ export interface CallRecord {
   operator_note: WorkspaceCallDTO["operator_note"];
   sentiment: "Positive" | "Price Objection" | "Product Objection" | "Neutral";
   order_value: number;
-  transcript: TranscriptEntry[];
+  transcript: CallTranscript;
   created_at: string;
-}
-
-function parseTranscript(value: string | null): TranscriptEntry[] {
-  if (!value) return [];
-  try {
-    const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed) ? (parsed as TranscriptEntry[]) : [];
-  } catch {
-    return [];
-  }
 }
 
 export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
@@ -66,7 +51,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     operator_note: call.operator_note,
     sentiment: (call.sentiment as CallRecord["sentiment"]) || "Neutral",
     order_value: call.order_value,
-    transcript: parseTranscript(call.transcript),
+    transcript: parseCallTranscript(call.transcript),
     created_at: call.created_at,
   }));
 }
@@ -86,7 +71,7 @@ export async function getCallById(id: string): Promise<CallRecord | null> {
     operator_note: call.operator_note,
     sentiment: (call.sentiment as CallRecord["sentiment"]) || "Neutral",
     order_value: call.order_value,
-    transcript: parseTranscript(call.transcript),
+    transcript: parseCallTranscript(call.transcript),
     created_at: call.created_at,
   };
 }

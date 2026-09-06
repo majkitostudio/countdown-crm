@@ -23,6 +23,10 @@ interface CallDetailDrawerProps {
 export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProps) {
   if (!isOpen || !call) return null;
 
+  const transcriptTurnCount = call.transcript.kind === "structured"
+    ? call.transcript.entries.length
+    : null;
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -126,18 +130,29 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
             <div className="flex items-center justify-between text-xs border-b border-zinc-800 pb-2">
               <h3 className="font-semibold text-zinc-200 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-zinc-400" />
-                Speech transcript ({call.transcript.length} turns)
+                Speech transcript {transcriptTurnCount === null ? "" : `(${transcriptTurnCount} turns)`}
               </h3>
-              <span className="text-[11px] text-amber-300 font-mono">{call.transcript.length > 0 ? "Captured" : "Unavailable"}</span>
+              <span className="text-[11px] text-amber-300 font-mono">
+                {call.transcript.kind === "unavailable" ? "Unavailable" : "Captured"}
+              </span>
             </div>
 
-            {call.transcript.length === 0 ? (
+            {call.transcript.kind === "unavailable" ? (
               <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-xs leading-relaxed text-amber-200">
                 No verified speech transcript was captured for this call. The CRM did not invent a transcript.
               </div>
+            ) : call.transcript.kind === "plain_text" ? (
+              <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                  Legacy unstructured transcript
+                </p>
+                <p className="whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">
+                  {call.transcript.text}
+                </p>
+              </div>
             ) : (
               <div className="space-y-2.5">
-                {call.transcript.map((item, idx) => (
+                {call.transcript.entries.map((item, idx) => (
                   <div
                     key={idx}
                     className={`p-3 rounded-xl border space-y-1 text-xs ${
