@@ -76,7 +76,7 @@ Použijeme doménově oddělené tabulky a serverové DAL/actions. Jedna univerz
 | 1 | `chore: verify and align database migration state` | Evidence a bezpečně srovnané cílové databáze | Vše další závisí na pravdivém schema a migration history |
 | 2 | `feat: harden post-call completion flow` | Krátký a idempotentní wrap-up | Nejvyšší produktová hodnota pro operátorský pilot |
 | 3 | `feat: add operator conversation brief` | Kontext před hovorem | Zkrátí hledání a přípravu bez AI závislosti |
-| 4 | `feat: add team leader exception queue` | Akční fronta výjimek | Team Leader dostane skutečnou provozní práci |
+| 4 | ✅ `feat: add team leader exception queue` | Akční fronta výjimek | Lokálně dokončeno v commitu `aa3618c` |
 | 5 | `feat: persist user preferences server-side` | Audio, density a základ osobních settings | Odstraní skutečnou chybu `localStorage` persistence |
 | 6 | `feat: persist saved views server-side` | Uživatelské Saved Views | Uložené filtry přežijí zařízení a session |
 | 7 | `refactor: make blueprint state server authoritative` | Blueprint bez lokální autority | Sjednotí další workspace setting s pravdou na serveru |
@@ -312,14 +312,18 @@ git commit -m "feat: add operator conversation brief"
 - Consumes: overdue callbacks, stuck recovery, unclosed outcomes, long leases, failed workflows and missing published scripts.
 - Produces: `listTeamLeaderExceptions()`, `resolveException(id, resolution)`, `snoozeException(id, until)` with server-side ownership and audit.
 
-- [ ] **Step 1: Napsat failing contract.** Assert every exception has reason, priority, owner/target, source entity and safe next action; operator cannot read the team queue.
-- [ ] **Step 2: Ověřit RED.** Spustit `npm test -- tests/exception-queue-contract.test.ts`.
-- [ ] **Step 3: Navrhnout read model.** Preferovat derivaci z existujících source tables plus explicit resolution/snooze table; nevytvářet falešné výjimky jen kvůli chybě podpůrného zdroje.
-- [ ] **Step 4: Implementovat role boundary.** V současném role modelu vidí Team Leader a administrátor celý aktivní workspace; operator nesmí týmovou frontu číst. Po zavedení explicitních týmů v Users & Permissions se Team Leader scope zúží na jeho tým.
-- [ ] **Step 5: Implementovat resolve/snooze.** Každá změna uloží actor, timestamp, předchozí stav, nový stav a důvod. Opakovaný resolve je idempotentní.
-- [ ] **Step 6: Přidat UI.** Stránka má filtrovat podle priority/stavu/typu a u každé položky ukázat konkrétní další akci. Nejde o obecný notifikační chat.
-- [ ] **Step 7: Ověřit GREEN a runtime.** Testy, RLS, Team Leader/operator/admin browser flow, reload a audit read-back.
-- [ ] **Step 8: Commit.**
+- [x] **Step 1: Napsat failing contract.** Každá výjimka má důvod, prioritu, vlastníka/cíl, source entity a bezpečnou další akci; operátor týmovou frontu nečte.
+- [x] **Step 2: Ověřit RED.** Fail-first byl doložen pro základní model i pozdější návrat opakované výjimky.
+- [x] **Step 3: Navrhnout read model.** Výjimky se odvozují ze source tables; ukládá se pouze auditované resolve/snooze rozhodnutí a výpadek jednoho zdroje nevyrábí falešné řádky.
+- [x] **Step 4: Implementovat role boundary.** Team Leader a administrátor pracují v celém aktivním workspace, operátor je odmítnut navigací, serverovým guardem i RLS. Po explicitních týmech se TL scope zúží.
+- [x] **Step 5: Implementovat resolve/snooze.** Ukládá se actor, timestamp, předchozí/nový stav a důvod; opakovaný stejný požadavek je idempotentní, ale skutečně nový výskyt stejného problému se znovu zobrazí a audituje.
+- [x] **Step 6: Přidat UI.** `/exceptions` filtruje prioritu/stav/typ, ukazuje konkrétní důvod a další akci a přiznává částečný výpadek zdroje.
+- [x] **Step 7: Ověřit GREEN a runtime.** 92 databázových testů, 251 aplikačních testů, lint/typecheck/build, lokální TL/operator browser flow, reload a audit read-back; admin hranice je ověřená databázově.
+- [x] **Step 8: Commit.** `aa3618c feat: add team leader exception queue`.
+
+**Stav nasazení:** lokálně ověřeno. Vzdálený dry-run ukazuje pouze migraci
+`20260906062331_team_leader_exception_queue.sql`; do linked sandboxu zatím nebyla
+aplikována, takže vzdálený smoke test zůstává otevřený.
 
 ```powershell
 git add supabase/migrations src/lib/supabase/types.ts src/lib/dal/exceptionQueue.ts src/app/actions/exceptionQueue.ts src/app/exceptions/page.tsx src/components/exceptions/ExceptionQueue.tsx tests/exception-queue-contract.test.ts
@@ -756,7 +760,7 @@ Až po stabilizaci živé/validované telefonie:
 - [ ] Post-call wrap-up je idempotentní a reload zachová serverový výsledek.
 - [ ] Conversation Brief používá pouze skutečná data a bezpečně označuje chybějící kontext.
 - [ ] Současná serverem řízená lead queue zůstává bez nefunkčních alternativních strategií a bez konfigurovatelného počtu souběžných leadů.
-- [ ] Exception Queue má konkrétní důvod, prioritu, vlastníka a bezpečné resolution.
+- [x] Exception Queue má konkrétní důvod, prioritu, vlastníka/cíl a bezpečné auditované resolution; linked nasazení se sleduje zvlášť.
 - [ ] Osobní preference a Saved Views přežijí reload, logout/login a změnu browseru.
 - [ ] `localStorage` není autoritou pro žádné trvalé workspace/user nastavení; lokální drafty jsou výslovně označené.
 - [ ] Role-aware Settings a navigace neslouží jako jediná bezpečnostní hranice; server/RLS odmítá přímé URL i action request.

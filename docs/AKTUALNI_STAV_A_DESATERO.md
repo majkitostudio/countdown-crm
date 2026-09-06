@@ -1,7 +1,7 @@
 # Aktuální stav a To-Do
 
-**Snapshot:** 5. 9. 2026
-**Baseline:** `main` po dokončení post-call hranice + rozpracovaný Conversation Brief
+**Snapshot:** 6. 9. 2026
+**Baseline:** post-call hranice, Conversation Brief a lokálně ověřený Team Leader Exception Queue
 **Produktový status:** stabilizace před interním pilotem
 
 Tento dokument je pracovní backlog a release checklist. Neříká, že celý produkt je production-ready; každá položka je uzavřená teprve po odpovídajícím ověření.
@@ -14,6 +14,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - `Operator Next Action`: stavová hlavní další akce bez ručního procházení lead directory,
 - první slice `Callback Recovery Inbox`: due/upcoming callbacky přímo v Operator Console se serverovým routingem,
 - operátorský Conversation Brief: serverově načtený problém, poslední kontakt, výsledek, callback, poznámka, objednávka, dostupnost schváleného skriptu a bezpečný další krok,
+- Team Leader Exception Queue na `/exceptions`: odvozené skutečné problémy, filtry, bezpečné vyřešení/odložení, audit a serverová role hranice pro Team Leadera a administrátora,
 - karta klienta s plným a kompaktním režimem,
 - recent context řádek s posledním kontaktem, výsledkem, objednávkou a callbackem,
 - callback modal s počátečním fokusem, klávesou `Escape`, obnovou fokusu a přístupným chybovým stavem,
@@ -23,8 +24,8 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Customer 360, deterministický Next Best Action, Team Leader Daily Brief a Wallet MVP,
 - Telnyx foundation: serverové credentials, krátkodobý WebRTC token, call session/event persistence, podepsaný webhook a idempotentní event trail,
 - Telnyx tabulky a RLS migrace jsou aplikované v linked Supabase prostředí.
-- Supabase CLI `2.116.0`, lokální konfigurace a linked sandbox mají srovnanou migration history 80/80 a `db push --dry-run` je up-to-date; veřejný schema diff nemá destruktivní změny, ale nadále ukazuje rozdíly definic několika starších funkcí,
-- wallet funkce i RLS politika na linked sandboxu odpovídají hranici manager/admin; lokální databázové RLS testy prošly 58/58.
+- Supabase CLI `2.116.0`; linked sandbox měl před Exception Queue migrací srovnanou migration history 80/80. Aktuální vzdálený dry-run ukazuje pouze novou Exception Queue migraci a nic nebylo aplikováno; veřejný schema diff nemá destruktivní změny, ale nadále ukazuje rozdíly definic několika starších funkcí,
+- wallet funkce i RLS politika na linked sandboxu odpovídají hranici manager/admin; lokální databázové testy prošly 92/92 a aplikační sada 251/251 v 68 souborech.
 - autentizovaný runtime důkaz prošel: Team Leader login/role/queue release, operátorské přiřazení, fallback call, outcome `no_answer`, reload a SQL read-back; testovací účty byly po ověření odstraněny.
 - `/calendar` a `/wallet` byly ověřeny autentizovaným Team Leaderem v linked sandboxu; kalendář vytvoření/reload/zrušení reminderu přežil reload a Wallet načetl ledger i týmové zůstatky bez chyby.
 - post-call idempotency a `calls.callback_scheduled_at` byly nasazeny do linked sandboxu; operátorský callback dotaz i `/calendar` byly po nasazení ověřeny bez chyby,
@@ -38,6 +39,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Gemini post-call AI pro přepis, verdikt a návrh poznámky není implementovaná,
 - training zůstává mimo telefonní vrstvu; softphone používá simulaci, Local SIP nebo blokovaný Telnyx podle serverové workspace volby,
 - fulfillment webhook a produkční payout nejsou součástí Wallet MVP.
+- Exception Queue ještě není nasazený do linked sandboxu; před vzdáleným smoke testem je nutné aplikovat připravenou migraci `20260906062331_team_leader_exception_queue.sql`.
 
 ## To-Do
 
@@ -127,7 +129,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 - [x] zlepšit čitelnost Product Scriptu bez interaktivních kroků: statické sekční nadpisy, vizuální hierarchie, oddělení textu k přečtení od interních poznámek, lepší kontrast a scan-friendly layout; zachovat souvislou osnovu bez potvrzování a klikání během hovoru,
 - [x] přidat předhovorový `Conversation Brief`: problém klienta, poslední relevantní kontakt, předchozí výsledek, callback promise a doporučený bezpečný další krok na jedné ploše; chybějící zdroje se označují a nic se nedopočítává modelem,
 - [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
-- [ ] přidat Team Leader Exception Queue pro overdue callbacky, stuck recovery, neuzavřené outcomes, dlouhé leases, failed workflows a chybějící publikované skripty; každá položka musí mít důvod, prioritu, vlastníka a bezpečnou další akci,
+- [x] přidat Team Leader Exception Queue pro overdue callbacky, recovery bez outcome, propadlé assignmenty, failed workflows a chybějící publikované skripty; každá položka má důvod, prioritu, vlastníka/cíl a bezpečnou další akci, resolve/snooze je auditovaný a operátor je odmítnut serverem i RLS; lokální ověření je hotové, linked smoke test čeká na migraci,
 - [ ] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, teamleader týmové výjimky a admin stav workspace; nepřidávat další obecný dashboard bez akčního kontextu,
 - [ ] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` je review simulace, ne tento bod; AI může navrhnout místa k pozornosti, ale nesmí sama vydat verdikt,
 - [ ] přidat Admin `Workspace Readiness`: telefonie, webhook, migration history, RLS/role hranice, publikované skripty, callbacky, wallet a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`,
@@ -223,14 +225,14 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 ### Team leader
 
-**Co už drží:** Daily Brief na dashboardu, analytics z workspace dat, správa fronty na `/team`, lead directory, CSV import, workflows, audit, training reviews.
+**Co už drží:** Daily Brief na dashboardu, analytics z workspace dat, správa fronty na `/team`, samostatný Exception Queue na `/exceptions`, lead directory, CSV import, workflows, audit, training reviews.
 
 **Co bolí na směně:**
 
-1. Nemá **Exception Queue**: overdue callback, stuck recovery, neuzavřený outcome, dlouhý lease, chybějící publikovaný skript. Brief počítá callbacky a re-ordery, ale není to seznam „teď zasáhni tady“.
+1. **Exception Queue je hotový lokálně**, ale před linked použitím ještě potřebuje aplikovat migraci a krátký vzdálený smoke test.
 2. **Live Monitor je prázdný** (`getLiveOperators()` vrací `[]`) a přitom vypadá jako floor s ticking duration. To je horší než chybějící stránka.
 3. **Koučink reálného hovoru chybí.** Team Leader Review je review training sessions, ne call + outcome + použitý skript + ruční feedback.
-4. Fronta existuje, ale v sidebaru na ni team leader nevidí; `/team` je schované jako Workspace Members pro admina.
+4. Týmová fronta `/team` stále potřebuje role-aware pojmenování a umístění; Exception Queue už Team Leader v navigaci vidí samostatně.
 5. Dashboard, Analytics, Monitor, Brief a Next Best Action říkají podobné věci na čtyřech místech. Vedení týmu má jednu pozornost: výjimka → vlastník → další akce.
 
 **Neměnit teď:** nepřidávat další obecný dashboard. Workflows nechat pro pozdější automatizaci e-mail/SMS, ale nepřestavovat je na jádro pilotu.
@@ -252,7 +254,8 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 | Rozhodnutí | Co | Proč |
 |---|---|---|
-| Přidat (P1/P2) | krátký wrap-up, Conversation Brief, Exception Queue, role-aware home/nav, Workspace Readiness, persistence důkaz | To je chybějící denní práce |
+| Dokončeno lokálně | krátký wrap-up, Conversation Brief, Exception Queue, fallback persistence důkaz | Základní operátorská a TL smyčka už má konkrétní pracovní kroky |
+| Přidat (P1/P2) | role-aware home/nav, Workspace Readiness a review reálného hovoru | To je zbývající denní práce |
 | Zjednodušit | jedna pozornost na roli, pravdivé labely, team leader cesta k frontě, status = presence | Teď se tři práce tváří jako jeden CRM |
 | Zmrazit | schema/blueprints/deals, AI training expansion, wallet payout, inbound/Gemini | Široké, ale nepilotní |
 | Neodebírat | Console, fronta, RLS, skripty, objednávky, wallet ledger, Telnyx foundation | Jádro produktu |

@@ -4,8 +4,8 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 5. 9. 2026
-**Repo baseline:** `main` po dokončení post-call hranice + rozpracovaný Conversation Brief
+**Snapshot:** 6. 9. 2026
+**Repo baseline:** post-call hranice, Conversation Brief a lokálně ověřený Team Leader Exception Queue
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -36,6 +36,11 @@ kroků během hovoru; jeho text má statické orientační sekce pro rychlejší
 čtení. Deterministické Customer 360, Next Best Action a Team Leader Daily
 Brief nejsou live AI predikce.
 
+Team Leader a administrátor mají na samostatné stránce `/exceptions` odvozený
+Exception Queue. Zobrazuje pouze problémy doložené současnými workspace daty,
+umožňuje je s důvodem vyřešit nebo odložit a každou změnu zapisuje do auditu.
+Operátor položku v navigaci nevidí a serverový role guard odmítne i přímou URL.
+
 ### Operator-first princip
 
 - během hovoru má být nejdůležitější klient, jeho problém a další bezpečný krok,
@@ -58,12 +63,14 @@ Brief nejsou live AI predikce.
 Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá URL ani
 znalost UUID nejsou bezpečnostní hranice.
 
-Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má s repozitářem
-srovnanou migration history 80/80 a `db push --dry-run` nehlásí čekající
-migrace. Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
+Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox měl před tímto
+feature branchem s repozitářem srovnanou migration history 80/80. Nová migrace
+Exception Queue je ověřená lokálně a vzdálený `db push --dry-run` hlásí právě
+tuto jedinou čekající migraci; do linked sandboxu zatím nebyla aplikována.
+Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
 v definicích několika starších funkcí, takže úplná schema shoda zůstává otevřená.
-Lokální databázové
-RLS testy prošly 58/58. Autentizovaný fallback průchod Team Leader → operátor →
+Lokální databázové testy prošly 92/92 a aplikační sada 251/251 v 68 souborech;
+lint, typecheck i produkční build jsou zelené. Autentizovaný fallback průchod Team Leader → operátor →
 call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
 ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`
 ledger. Operátorský callback dotaz a `/calendar` byly znovu ověřeny po nasazení
@@ -109,7 +116,8 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    vzdálených databázových testů a nedestruktivní drift definic starších funkcí.
 2. Post-call wrap-up s idempotentní hranicí je dokončený a nasazený v linked sandboxu.
 3. Conversation Brief je implementovaný v Operator Console.
-4. Přidat Team Leader Exception Queue nad současnou serverem řízenou frontou leadů.
+4. Team Leader Exception Queue je implementovaný a lokálně ověřený; před použitím
+   v linked sandboxu zbývá aplikovat jedinou připravenou migraci a zopakovat smoke test.
 5. Dokončit role-aware úvodní plochy, další zúžení navigace, Workspace Readiness,
    Team Leader Review a auditní kontext; zmrazit custom objects, blueprints a Deals
    pipeline, dokud denní smyčka call centra drží.
