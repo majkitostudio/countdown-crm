@@ -1,9 +1,9 @@
 # Ověření Team Leader Review reálného hovoru
 
-**Datum:** 7. 9. 2026  
-**Větev:** `codex/team-leader-real-call-review`  
-**Výchozí commit:** `34be446`  
-**Lokální migrační soubor:** `supabase/migrations/20260906223213_team_leader_real_call_review.sql`
+- **Datum:** 7. 9. 2026
+- **Větev:** sloučeno do `main` přes PR #76
+- **Výchozí commit:** `34be446`
+- **Lokální migrační soubor:** `supabase/migrations/20260906223213_team_leader_real_call_review.sql`
 
 ## Co je ověřeno
 
@@ -69,18 +69,36 @@ Po poslední změně permission boundary proběhl celý checklist znovu:
 
 ## Vzdálený sandbox
 
-Do vzdáleného Supabase prostředí nebyla migrace odeslána. Read-only kontrola
-`npx supabase migration list --linked` skončila zprávou:
-`Cannot find project ref. Have you run supabase link?`
+Po sloučení PR #76 byl potvrzen dříve zdokumentovaný sandbox `lpv…zqo`.
+`npx supabase migration list --linked` ukázal jedinou lokální migraci bez
+vzdáleného protějšku a `npx supabase db push --linked --dry-run` plánoval pouze
+`20260906223213_team_leader_real_call_review.sql`, bez seedů a rolí. Po lokálním
+replay a průchodu 154/154 databázových testů byla migrace aplikována. Následná
+historie je 84/84 a opakovaný dry-run je prázdný.
 
-Repozitář tedy nemá připojený cílový project ref a tento report netvrdí, že je
-migrace nasazená mimo lokální databázi. Před deploymentem je třeba explicitně
-vybrat správný sandbox, provést dry-run, zkontrolovat migration history a teprve
-potom aplikovat migraci podle release postupu.
+Autentizovaný smoke test v sandboxu ověřil:
+
+- Team Leader vytvořil revizi 1 a administrátor opravu jako revizi 2;
+- Team Leader načetl obě revize;
+- operátor a anonymní klient review data nenačetli ani nezapsali;
+- Team Leader nezapsal review hovoru z cizího workspace;
+- přímý `UPDATE` hotové revize byl odmítnut;
+- vznikly dvě odpovídající auditní události s before/new detaily.
+
+Dočasné workspaces, leady, calls, revize, auditní řádky, memberships a Auth účty
+byly po ověření odstraněny. Přímý Data API přístup nového `sb_secret` klíče k
+tabulce `workspaces` je kvůli chybějícímu `service_role` grantu odmítnut; fixture
+setup proto použil privilegované CLI databázové spojení. Tento stav potvrzuje
+existující To-Do pro privilegovaný vzdálený test runner, ale neovlivňuje ověřené
+aplikační role.
+
+Linked advisors skončily bez `ERROR`. Zůstává sedm starších `WARN`: `pgtap` v
+`public`, pět existujících `SECURITY DEFINER` RPC dostupných roli `authenticated`
+a vypnutá kontrola uniklých hesel. Nová call-review funkce je `SECURITY INVOKER`
+a mezi nálezy není.
 
 ## Co zůstává mimo tento důkaz
 
 - živý Telnyx hovor, veřejný webhook, nahrávání a externí transcription,
-- nasazení této migrace do konkrétního linked sandboxu,
 - Gemini návrh míst k pozornosti. Budoucí AI může pouze navrhnout pozornost;
   verdikt a auditní revizi musí stále vydat člověk.

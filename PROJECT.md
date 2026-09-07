@@ -91,7 +91,7 @@ Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá 
 znalost UUID nejsou bezpečnostní hranice.
 
 Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má po nasazení
-osobních preferencí srovnanou migration history 83/83. Migrace byla nejprve
+Team Leader Review srovnanou migration history 84/84. Migrace byla nejprve
 ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
 prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
 Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
@@ -148,8 +148,8 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 5. Role-aware vstup je dokončený: operátor začíná v Operator Console, Team Leader
    v Exception Queue a administrátor ve Workspace Readiness; původní Dashboard je
    manažerský přehled na `/dashboard`. Team Leader Review reálného hovoru je
-   implementovaný lokálně včetně historie a auditu; před nasazením je třeba ověřit
-   migraci v konkrétním linked sandboxu. Zmrazit custom objects, blueprints a Deals
+   implementovaný a ověřený lokálně i v linked sandboxu včetně historie, auditu
+   a negativních role/workspace hranic. Zmrazit custom objects, blueprints a Deals
    pipeline, dokud denní smyčka call centra drží.
 6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
    Telnyx pilotní telefonní důkaz. Telnyx zůstává vzdálené To-Do, ne bezprostřední

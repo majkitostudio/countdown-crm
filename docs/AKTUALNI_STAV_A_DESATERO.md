@@ -29,13 +29,13 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - Customer 360, deterministický Next Best Action, Team Leader Daily Brief a Wallet MVP,
 - Telnyx foundation: serverové credentials, krátkodobý WebRTC token, call session/event persistence, podepsaný webhook a idempotentní event trail,
 - Telnyx tabulky a RLS migrace jsou aplikované v linked Supabase prostředí.
-- Supabase CLI `2.116.0`; linked sandbox má po dry-runu a nasazení Exception Queue migrace srovnanou migration history 81/81. Migrace nepřidala seedy, role ani Vault secrets; veřejný schema diff nemá destruktivní změny, ale nadále ukazuje rozdíly definic několika starších funkcí,
+- Supabase CLI `2.116.0`; linked sandbox má po dry-runu a nasazení Team Leader Review migrace srovnanou migration history 84/84. Poslední rollout nepřidal seedy ani role; veřejný schema diff zůstává samostatným checkpointem kvůli starším rozdílům definic funkcí,
 - wallet funkce i RLS politika na linked sandboxu odpovídají hranici manager/admin; lokální databázové testy prošly 92/92 a aplikační sada 251/251 v 68 souborech.
 - autentizovaný runtime důkaz prošel: Team Leader login/role/queue release, operátorské přiřazení, fallback call, outcome `no_answer`, reload a SQL read-back; testovací účty byly po ověření odstraněny.
 - `/calendar` a `/wallet` byly ověřeny autentizovaným Team Leaderem v linked sandboxu; kalendář vytvoření/reload/zrušení reminderu přežil reload a Wallet načetl ledger i týmové zůstatky bez chyby.
 - post-call idempotency a `calls.callback_scheduled_at` byly nasazeny do linked sandboxu; operátorský callback dotaz i `/calendar` byly po nasazení ověřeny bez chyby,
 - operátor už nevidí odkaz na nepřístupné Deals & Pipelines a produkt bez obrázku nevytváří prázdný `img src` požadavek.
-- lokální ověření Team Leader Review prošlo přes autentizované účty Team Leadera, administrátora a operátora: strukturovaný transcript + snapshot verze 7, legacy plain transcript bez domýšlení skriptu, fallback snapshot, revize 1 → 2 a auditní read-back; operátor dostává bezpečnou permission stránku bez review odkazu.
+- lokální i linked ověření Team Leader Review prošlo přes autentizované role Team Leadera, administrátora a operátora: revize 1 → 2, auditní read-back, odmítnutí operátora, anonymního přístupu, cizího workspace a přímého update; dočasná data i účty byly odstraněny.
 
 ## Co hotové není
 
@@ -53,7 +53,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 
 - [x] dokončit testovací Team Leader provisioning, login, ověření role a cleanup,
 - [x] doplnit autentizovaný call → outcome/order → reload → SQL read-back pro kritické role; ověřený je fallback call s výsledkem `no_answer`, nikoli živý Telnyx pilot,
-- [x] explicitně evidovat a srovnat migration history mezi repozitářem a linked sandboxem; aktuálně 80/80 a dry-run bez čekajících migrací,
+- [x] explicitně evidovat a srovnat migration history mezi repozitářem a linked sandboxem; aktuálně 84/84 a dry-run bez čekajících migrací,
 - [ ] srovnat zbývající nedestruktivní drift definic starších public funkcí a teprve potom tvrdit úplnou schema shodu,
 - [ ] vyřešit privilegovaný způsob spuštění databázových testů proti linked sandboxu; aktuální Supabase runner nemá přístup do interních schémat `auth` a `private`, lokální testy proto zůstávají hlavním automatizovaným důkazem.
 - [x] uložit aktivní telefonní adapter serverově na úrovni workspace; nepoužívat `localStorage`, změnu povolit pouze administrátorovi a zapsat ji do auditu.
@@ -137,7 +137,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 - [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
 - [x] přidat Team Leader Exception Queue pro overdue callbacky, recovery bez outcome, propadlé assignmenty, failed workflows a chybějící publikované skripty; každá položka má důvod, prioritu, vlastníka/cíl a bezpečnou další akci, resolve/snooze je auditovaný a operátor je odmítnut serverem i RLS; lokální i linked Auth smoke ověření je hotové,
 - [x] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, Team Leader týmové výjimky a administrátor stav workspace; serverová rozcestnice `/` je po přihlášení pošle přímo na odpovídající existující plochu,
-- [x] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` zůstává review simulace, ne tento bod; AI nevydává verdikt. Lokální migrace `20260906223213_team_leader_real_call_review.sql` a runtime důkaz jsou hotové, linked sandbox zatím není připojený,
+- [x] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` zůstává review simulace, ne tento bod; AI nevydává verdikt. Migrace `20260906223213_team_leader_real_call_review.sql` je ověřená lokálně i v linked sandboxu včetně autentizovaných role/workspace hranic a cleanupu,
 - [x] přidat Admin `Workspace Readiness` na `/readiness`: telefonie, Telnyx externí blocker, migration history, RLS/role hranice, publikované skripty, callbacky, wallet, workflow a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`; stránka je serverově chráněná pro administrátory,
 - [ ] rozšířit správu Product Scriptů o diff draft/published, autora, účinnost, preview operátorského zobrazení a rollback předchozí verze,
 - [x] dokončit role-aware vstup na existující pracovní plochy — podrobnosti v sekci P2 níže,
@@ -252,7 +252,7 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 1. **Exception Queue je hotový i v linked sandboxu**; Team Leader Review nyní doplňuje přesný koučink konkrétního hovoru a pozdější zúžení zůstává na explicitní tým.
 2. **Live Monitor je prázdný** (`getLiveOperators()` vrací `[]`) a přitom vypadá jako floor s ticking duration. To je horší než chybějící stránka.
-3. **Koučink reálného hovoru je první implementovaný slice.** Review je oddělený od training sessions, pracuje s konkrétním callem, outcome, transcriptem, script evidence a ručním feedbackem; linked sandbox deployment a živý Telnyx důkaz jsou samostatné kroky.
+3. **Koučink reálného hovoru je první implementovaný slice.** Review je oddělený od training sessions, pracuje s konkrétním callem, outcome, transcriptem, script evidence a ručním feedbackem; linked sandbox deployment je ověřený, živý Telnyx důkaz zůstává samostatný externí krok.
 4. Týmová fronta `/team` stále potřebuje role-aware pojmenování a umístění; Exception Queue už Team Leader v navigaci vidí samostatně.
 5. Dashboard, Analytics, Monitor, Brief a Next Best Action říkají podobné věci na čtyřech místech. Vedení týmu má jednu pozornost: výjimka → vlastník → další akce.
 
