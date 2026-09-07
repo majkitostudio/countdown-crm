@@ -146,6 +146,9 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(() => parseEvidencePayload(
       '{"rows":[{"email":"person@example.test"}]}',
     )).toThrow("INVALID_EVIDENCE_PAYLOAD");
+    expect(() => parseEvidencePayload(
+      '{"rows":[{"evidence":{"pgtap_not_public":true},"email":"person@example.test"}]}',
+    )).toThrow("INVALID_EVIDENCE_PAYLOAD");
   });
 
   it("ships a read-only catalog query for the P0.2 contracts", () => {

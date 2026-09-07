@@ -144,6 +144,10 @@ export function parseEvidencePayload(output) {
   }
 
   const row = payload.rows[0];
+  if (!row || typeof row !== "object" || Array.isArray(row)
+    || Object.keys(row).length !== 1 || !Object.hasOwn(row, "evidence")) {
+    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+  }
   const evidence = row && typeof row === "object" && !Array.isArray(row)
     ? row.evidence
     : undefined;
