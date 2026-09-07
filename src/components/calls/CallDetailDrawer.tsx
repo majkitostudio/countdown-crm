@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   X,
   PhoneCall,
@@ -12,25 +13,27 @@ import {
   Volume2,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome } from "@/lib/calls";
+import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
 
 interface CallDetailDrawerProps {
   call: CallRecord | null;
   isOpen: boolean;
   onClose: () => void;
+  reviewHref?: string | null;
 }
 
-export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProps) {
+export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: CallDetailDrawerProps) {
   if (!isOpen || !call) return null;
+
+  const transcriptTurnCount = call.transcript.kind === "structured"
+    ? call.transcript.entries.length
+    : null;
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
-  };
-
-  const getOutcomeBadge = () => {
-    return "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono";
   };
 
   return (
@@ -46,7 +49,7 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-semibold text-zinc-100 font-mono">Call Record #{call.id}</h2>
-                <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getOutcomeBadge()}`}>
+                <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(call.outcome)}`}>
                   {formatCallOutcome(call.outcome)}
                 </span>
               </div>
@@ -69,6 +72,11 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
 
         {/* Content Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {reviewHref && (
+            <Link href={reviewHref} className="inline-flex w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-800">
+              Open Team Leader Review
+            </Link>
+          )}
           
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-3 gap-3 text-xs">
@@ -126,18 +134,29 @@ export function CallDetailDrawer({ call, isOpen, onClose }: CallDetailDrawerProp
             <div className="flex items-center justify-between text-xs border-b border-zinc-800 pb-2">
               <h3 className="font-semibold text-zinc-200 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-zinc-400" />
-                Speech transcript ({call.transcript.length} turns)
+                Speech transcript {transcriptTurnCount === null ? "" : `(${transcriptTurnCount} turns)`}
               </h3>
-              <span className="text-[11px] text-amber-300 font-mono">{call.transcript.length > 0 ? "Captured" : "Unavailable"}</span>
+              <span className="text-[11px] text-amber-300 font-mono">
+                {call.transcript.kind === "unavailable" ? "Unavailable" : "Captured"}
+              </span>
             </div>
 
-            {call.transcript.length === 0 ? (
+            {call.transcript.kind === "unavailable" ? (
               <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-xs leading-relaxed text-amber-200">
                 No verified speech transcript was captured for this call. The CRM did not invent a transcript.
               </div>
+            ) : call.transcript.kind === "plain_text" ? (
+              <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                  Legacy unstructured transcript
+                </p>
+                <p className="whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">
+                  {call.transcript.text}
+                </p>
+              </div>
             ) : (
               <div className="space-y-2.5">
-                {call.transcript.map((item, idx) => (
+                {call.transcript.entries.map((item, idx) => (
                   <div
                     key={idx}
                     className={`p-3 rounded-xl border space-y-1 text-xs ${

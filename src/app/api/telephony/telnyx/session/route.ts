@@ -20,7 +20,7 @@ function errorResponse(error: unknown) {
 export async function POST(request: Request) {
   try {
     const context = await requireWorkspaceRole(["operator", "team_leader", "administrator"]);
-    const body = await request.json() as { leadId?: string; queueItemId?: string; toNumber?: string };
+    const body = await request.json() as { leadId?: string; queueItemId?: string; toNumber?: string; productId?: string | null };
     const toNumber = body.toNumber ? normalizePhoneNumber(body.toNumber) : null;
     if (!body.leadId || !toNumber) return NextResponse.json({ error: "A valid lead and E.164 phone number are required." }, { status: 400 });
 
@@ -54,8 +54,13 @@ export async function POST(request: Request) {
       queueItemId: body.queueItemId || null,
       toNumber,
       direction: "outbound",
+      productId: body.productId || null,
     });
-    return NextResponse.json({ sessionId: session.sessionId, toNumber });
+    return NextResponse.json({
+      sessionId: session.sessionId,
+      toNumber,
+      scriptSnapshot: session.scriptSnapshot,
+    });
   } catch (error) {
     return errorResponse(error);
   }

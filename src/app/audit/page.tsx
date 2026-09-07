@@ -13,9 +13,54 @@ import {
   Filter,
   RefreshCw
 } from "lucide-react";
-import { AuditLogEntry, getAuditLogs, exportAuditLogsToCSV } from "@/lib/audit";
+import {
+  auditActionLabel,
+  AuditLogEntry,
+  getAuditLogs,
+  exportAuditLogsToCSV,
+  parseCallReviewAuditDetails,
+  type CallReviewAuditState,
+} from "@/lib/audit";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
+
+function ReviewAuditState({ label, state }: { label: string; state: CallReviewAuditState | null }) {
+  if (!state) {
+    return <p className="text-[11px] text-zinc-500"><strong className="text-zinc-400">{label}:</strong> No previous review</p>;
+  }
+
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label} · Revision {state.revisionNumber}</p>
+      <dl className="mt-2 space-y-2 text-[11px] text-zinc-300">
+        <div><dt className="text-zinc-500">Verdict</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.verdict}</dd></div>
+        <div><dt className="text-zinc-500">Coaching</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.coachingNote}</dd></div>
+        <div><dt className="text-zinc-500">Reviewer ID</dt><dd className="mt-0.5 break-all font-mono text-zinc-400">{state.reviewerId}</dd></div>
+      </dl>
+    </div>
+  );
+}
+
+export function AuditDetailCell({ log }: { log: AuditLogEntry }) {
+  const isReviewAction = log.actionType === "CALL_REVIEW_COMPLETED" || log.actionType === "CALL_REVIEW_CORRECTED";
+  const reviewDetails = isReviewAction ? parseCallReviewAuditDetails(log.details) : null;
+  if (!reviewDetails) {
+    return <span className="whitespace-pre-wrap break-words">{log.details}</span>;
+  }
+
+  return (
+    <details className="min-w-[22rem] rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
+      <summary className="cursor-pointer text-[11px] font-semibold text-zinc-200">{auditActionLabel(log.actionType)} · show exact change</summary>
+      <div className="mt-3 space-y-3">
+        <ReviewAuditState label="Previous review" state={reviewDetails.previous} />
+        <ReviewAuditState label="New review" state={reviewDetails.next} />
+        {reviewDetails.correctionReason && (
+          <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200/80"><strong>Correction reason:</strong> {reviewDetails.correctionReason}</p>
+        )}
+      </div>
+    </details>
+  );
+}
 
 export default function AuditPage() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
@@ -225,7 +270,7 @@ export default function AuditPage() {
                     <td className="py-3 px-3 text-zinc-200 font-medium whitespace-nowrap">{log.operatorName}</td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 text-[10px]">
-                        {log.actionType}
+                        {auditActionLabel(log.actionType)}
                       </span>
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
@@ -255,7 +300,7 @@ export default function AuditPage() {
                       </span>
                     </td>
                     <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">{log.ipAddress}</td>
-                    <td className="py-3 px-3 text-zinc-300 text-[11px] max-w-md truncate">{log.details}</td>
+                    <td className="py-3 px-3 text-zinc-300 text-[11px] max-w-xl"><AuditDetailCell log={log} /></td>
                   </tr>
                 ))}
               </tbody>

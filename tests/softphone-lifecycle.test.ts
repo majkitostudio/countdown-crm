@@ -11,7 +11,18 @@ afterEach(() => {
 
 beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(
-    JSON.stringify({ sessionId: "11111111-1111-4111-8111-111111111111" }),
+    JSON.stringify({
+      sessionId: "11111111-1111-4111-8111-111111111111",
+      scriptSnapshot: {
+        source: "unavailable",
+        productId: null,
+        productTitle: null,
+        versionId: null,
+        versionNumber: null,
+        html: null,
+        capturedAt: "2026-09-07T10:00:00.000Z",
+      },
+    }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   )));
 });

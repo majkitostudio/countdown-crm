@@ -89,7 +89,7 @@ export function CallbackScheduleModal({
       <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-2xl border border-zinc-700/80 bg-zinc-900 p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-sky-950/50 p-2 text-sky-300"><CalendarClock className="h-4 w-4" /></div>
+            <div className="rounded-lg bg-zinc-900 p-2 text-zinc-300"><CalendarClock className="h-4 w-4" /></div>
             <div>
               <h2 id="callback-dialog-title" className="text-base font-semibold text-zinc-100">Schedule Callback</h2>
               <p className="mt-1 text-xs text-zinc-500">{leadName || "Current lead"}</p>

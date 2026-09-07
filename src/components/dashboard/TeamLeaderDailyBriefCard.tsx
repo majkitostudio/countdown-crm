@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarClock, CheckCircle2, ClipboardList, Coins, PhoneCall } from "lucide-react";
 import { listCalendarEntriesAction } from "@/app/actions/calendar";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
+import { listCallsAction } from "@/app/actions/crm";
 import { getWalletOverviewAction } from "@/app/actions/wallet";
 import { getReorderOpportunities } from "@/lib/reorder";
 import { buildTeamLeaderDailyBrief, type TeamLeaderDailyBrief } from "@/lib/teamLeaderDailyBrief";
@@ -47,10 +48,11 @@ export function TeamLeaderDailyBriefCard() {
           return;
         }
 
-        const [calendarResult, walletResult, reorderResult] = await Promise.allSettled([
+        const [calendarResult, walletResult, reorderResult, callsResult] = await Promise.allSettled([
           listCalendarEntriesAction(),
           getWalletOverviewAction(),
           getReorderOpportunities(),
+          listCallsAction(),
         ]);
         if (cancelled) return;
 
@@ -67,6 +69,7 @@ export function TeamLeaderDailyBriefCard() {
         }
         if (walletResult.status === "rejected") warnings.push("Wallet souhrn není dostupný.");
         if (reorderResult.status === "rejected") warnings.push("Re-order odhady nejsou dostupné.");
+        if (callsResult.status === "rejected") warnings.push("Review fronta není dostupná.");
 
         const callbacks = calendarEntries
           .filter((entry) => entry.type === "callback" && entry.lead)
@@ -86,6 +89,9 @@ export function TeamLeaderDailyBriefCard() {
             }
           : null;
         const reorderOpportunities = reorderResult.status === "fulfilled" ? reorderResult.value : [];
+        const pendingReviews = callsResult.status === "fulfilled"
+          ? callsResult.value.filter((call) => call.review_status === "not_reviewed").length
+          : null;
 
         setState({
           status: "ready",
@@ -94,6 +100,7 @@ export function TeamLeaderDailyBriefCard() {
             callbacks,
             reminders,
             reorderOpportunities,
+            pendingReviews,
             wallet,
           }),
           warnings,
@@ -139,9 +146,18 @@ export function TeamLeaderDailyBriefCard() {
             <BriefMetric label="Callback attention" value={String(readyState.brief.callbacksToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueCallbacks} po termínu`} />
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-4">
             <BriefDetail label="Today" value={`${formatDate(readyState.brief.daily.date)} • ${readyState.brief.daily.conversionRate.toFixed(1)}% conversion`} />
             <BriefDetail label="Open reminders" value={String(readyState.brief.openReminders)} href="/calendar" />
+            <BriefDetail
+              label="Needs review"
+              value={readyState.brief.pendingReviews === null
+                ? "Unavailable"
+                : readyState.brief.pendingReviews === 0
+                  ? "All calls reviewed"
+                  : String(readyState.brief.pendingReviews)}
+              href="/calls?review=unreviewed"
+            />
             {readyState.brief.teamWalletBalance === null ? (
               <BriefDetail label="Team wallet" value="Unavailable" href="/wallet" />
             ) : (

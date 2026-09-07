@@ -22,13 +22,15 @@ import { completeCallForWorkspace } from "@/lib/dal/callCompletion";
 import type { CompleteCallDTO, CompleteCallInput } from "@/lib/dal/callCompletion";
 import {
   getWorkspaceCall,
-  listWorkspaceCalls,
+  listWorkspaceCallsInContext,
   listWorkspaceOrders,
   listWorkspaceOrdersForLead,
   listWorkspaceLeadActivity,
 } from "@/lib/dal/activity";
+import { listCallReviewStatuses, type CallReviewStatus } from "@/lib/dal/callReviews";
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { Database } from "@/lib/supabase/types";
+import { requireWorkspaceContext } from "@/lib/dal/workspace";
 
 type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
 
@@ -103,8 +105,23 @@ export async function completeCallAction(
   return completeCallForWorkspace(input, workspaceId);
 }
 
-export async function listCallsAction(workspaceId?: string): Promise<WorkspaceCallDTO[]> {
-  return listWorkspaceCalls(workspaceId);
+export type WorkspaceCallWithReviewAccessDTO = WorkspaceCallDTO & {
+  review_href: string | null;
+  review_status: CallReviewStatus | null;
+};
+
+export async function listCallsAction(workspaceId?: string): Promise<WorkspaceCallWithReviewAccessDTO[]> {
+  const context = await requireWorkspaceContext(workspaceId);
+  const calls = await listWorkspaceCallsInContext(context);
+  const canReview = context.role === "team_leader" || context.role === "administrator";
+  const reviewStatuses = canReview
+    ? await listCallReviewStatuses(context, calls.map((call) => call.id))
+    : new Map<string, CallReviewStatus>();
+  return calls.map((call) => ({
+    ...call,
+    review_href: canReview ? `/calls/${call.id}/review` : null,
+    review_status: canReview ? reviewStatuses.get(call.id) || "not_reviewed" : null,
+  }));
 }
 
 export async function getCallAction(

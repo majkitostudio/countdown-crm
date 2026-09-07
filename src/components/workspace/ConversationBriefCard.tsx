@@ -56,8 +56,8 @@ function unavailableMessages(brief: ConversationBriefDTO): string[] {
 export function ConversationBriefCard({ brief, isLoading, error }: ConversationBriefCardProps) {
   if (isLoading) {
     return (
-      <section className="rounded-xl border border-sky-900/50 bg-sky-950/10 p-4" aria-busy="true">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-sky-300">Conversation Brief</p>
+      <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4" aria-busy="true">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Conversation Brief</p>
         <p className="mt-2 text-xs text-zinc-500">Loading recorded customer context…</p>
       </section>
     );
@@ -85,17 +85,17 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
 
   return (
     <section
-      className="rounded-xl border border-sky-900/50 bg-gradient-to-br from-sky-950/20 to-zinc-950/30 p-4 shadow-sm"
+      className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 shadow-sm"
       aria-labelledby="conversation-brief-title"
       data-testid="conversation-brief"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">Before the call</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Before the call</p>
           <h2 id="conversation-brief-title" className="mt-1 text-sm font-semibold text-zinc-100">Conversation Brief</h2>
           <p className="mt-1 text-[11px] text-zinc-500">Recorded facts for {brief.lead.full_name}</p>
         </div>
-        <span className="rounded-md border border-sky-900/60 bg-sky-950/30 px-2 py-1 text-[9px] font-mono text-sky-200">
+        <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-mono text-zinc-500">
           Server context
         </span>
       </div>
@@ -108,11 +108,11 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           {brief.sources.queue_reason.state === "unavailable" && <p className="mt-2 text-[10px] text-amber-300">{brief.sources.queue_reason.message}</p>}
         </div>
 
-        <div className="rounded-lg border border-sky-900/50 bg-sky-950/15 p-3">
+        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 p-3">
           <div className="flex items-start gap-2">
-            <BookOpenCheck className="mt-0.5 h-4 w-4 text-sky-300" aria-hidden="true" />
+            <BookOpenCheck className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-wider text-sky-300">Safe next step</p>
+              <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Safe next step</p>
               <p className="mt-1.5 text-xs leading-relaxed text-zinc-100">{brief.next_safe_step.label}</p>
             </div>
           </div>

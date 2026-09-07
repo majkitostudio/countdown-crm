@@ -1,6 +1,6 @@
 # Aktuální stav a To-Do
 
-**Snapshot:** 6. 9. 2026
+**Snapshot:** 7. 9. 2026
 **Baseline:** post-call hranice, Conversation Brief a lokálně ověřený Team Leader Exception Queue
 **Produktový status:** stabilizace před interním pilotem
 
@@ -15,6 +15,9 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - první slice `Callback Recovery Inbox`: due/upcoming callbacky přímo v Operator Console se serverovým routingem,
 - operátorský Conversation Brief: serverově načtený problém, poslední kontakt, výsledek, callback, poznámka, objednávka, dostupnost schváleného skriptu a bezpečný další krok,
 - Team Leader Exception Queue na `/exceptions`: odvozené skutečné problémy, filtry, bezpečné vyřešení/odložení, audit a serverová role hranice pro Team Leadera a administrátora,
+- Team Leader Review reálného hovoru na `/calls/[callId]/review`: skutečný call s outcome, operátorskou poznámkou, transcriptovou evidencí a použitým skriptem; lidský verdict/coaching v append-only revizích, opravy s důvodem a přesný before/after audit,
+- Call Logs pro manažery nyní zobrazují stav `Not reviewed` / `Reviewed` / `Corrected`, počet čekajících review, filtr nehodnocených hovorů, prázdný stav po vyřízení fronty a přímý odkaz na přesný review s návratem do stejného filtru; operátor tyto manažerské prvky nedostává,
+- vizuální hierarchie CRM je sjednocená: běžný obsah a dekorativní kontext používají neutrální `zinc`, barvy zůstávají pro outcome, chyby, pozornost, readiness, živou telefonii, auditní závažnost a finanční polaritu,
 - role-aware vstup přes `/`: operátor míří do Operator Console, Team Leader do Exception Queue a administrátor do Workspace Readiness; stejné pravidlo používá přihlášení i logo,
 - server-side osobní preference v `workspace_user_preferences`: hlasitost vyzvánění a hustota Client Profile podle workspace + uživatel, s RLS a jednorázovým importem starých browserových hodnot,
 - karta klienta s plným a kompaktním režimem,
@@ -32,6 +35,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - `/calendar` a `/wallet` byly ověřeny autentizovaným Team Leaderem v linked sandboxu; kalendář vytvoření/reload/zrušení reminderu přežil reload a Wallet načetl ledger i týmové zůstatky bez chyby.
 - post-call idempotency a `calls.callback_scheduled_at` byly nasazeny do linked sandboxu; operátorský callback dotaz i `/calendar` byly po nasazení ověřeny bez chyby,
 - operátor už nevidí odkaz na nepřístupné Deals & Pipelines a produkt bez obrázku nevytváří prázdný `img src` požadavek.
+- lokální ověření Team Leader Review prošlo přes autentizované účty Team Leadera, administrátora a operátora: strukturovaný transcript + snapshot verze 7, legacy plain transcript bez domýšlení skriptu, fallback snapshot, revize 1 → 2 a auditní read-back; operátor dostává bezpečnou permission stránku bez review odkazu.
 
 ## Co hotové není
 
@@ -133,7 +137,7 @@ Exception Queue, role-aware ploch a první bezpečné AI vrstvy.
 - [ ] rozšířit schválené objection cards a FAQ o bezpečné formulace pro zdravotně citlivá témata; nesmí jít o diagnózu, léčebný slib ani improvizované tvrzení,
 - [x] přidat Team Leader Exception Queue pro overdue callbacky, recovery bez outcome, propadlé assignmenty, failed workflows a chybějící publikované skripty; každá položka má důvod, prioritu, vlastníka/cíl a bezpečnou další akci, resolve/snooze je auditovaný a operátor je odmítnut serverem i RLS; lokální i linked Auth smoke ověření je hotové,
 - [x] vytvořit role-aware `Attention Layer`: operátor vidí další akci u klienta, Team Leader týmové výjimky a administrátor stav workspace; serverová rozcestnice `/` je po přihlášení pošle přímo na odpovídající existující plochu,
-- [ ] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` je review simulace, ne tento bod; AI může navrhnout místa k pozornosti, ale nesmí sama vydat verdikt,
+- [x] přidat Team Leader Review **reálného hovoru** (call, outcome, použitý skript, ruční coaching); `/training/reviews` zůstává review simulace, ne tento bod; AI nevydává verdikt. Lokální migrace `20260906223213_team_leader_real_call_review.sql` a runtime důkaz jsou hotové, linked sandbox zatím není připojený,
 - [x] přidat Admin `Workspace Readiness` na `/readiness`: telefonie, Telnyx externí blocker, migration history, RLS/role hranice, publikované skripty, callbacky, wallet, workflow a poslední kritické chyby se stavem `Ready`, `Needs attention` nebo `Blocked`; stránka je serverově chráněná pro administrátory,
 - [ ] rozšířit správu Product Scriptů o diff draft/published, autora, účinnost, preview operátorského zobrazení a rollback předchozí verze,
 - [x] dokončit role-aware vstup na existující pracovní plochy — podrobnosti v sekci P2 níže,
@@ -246,9 +250,9 @@ Dnes je jádro (fronta, Console, outcome, callback, objednávka, skripty, RLS) s
 
 **Co bolí na směně:**
 
-1. **Exception Queue je hotový i v linked sandboxu**; dalším krokem je jeho začlenění do širší role-aware Team Leader plochy a pozdější zúžení na explicitní tým.
+1. **Exception Queue je hotový i v linked sandboxu**; Team Leader Review nyní doplňuje přesný koučink konkrétního hovoru a pozdější zúžení zůstává na explicitní tým.
 2. **Live Monitor je prázdný** (`getLiveOperators()` vrací `[]`) a přitom vypadá jako floor s ticking duration. To je horší než chybějící stránka.
-3. **Koučink reálného hovoru chybí.** Team Leader Review je review training sessions, ne call + outcome + použitý skript + ruční feedback.
+3. **Koučink reálného hovoru je první implementovaný slice.** Review je oddělený od training sessions, pracuje s konkrétním callem, outcome, transcriptem, script evidence a ručním feedbackem; linked sandbox deployment a živý Telnyx důkaz jsou samostatné kroky.
 4. Týmová fronta `/team` stále potřebuje role-aware pojmenování a umístění; Exception Queue už Team Leader v navigaci vidí samostatně.
 5. Dashboard, Analytics, Monitor, Brief a Next Best Action říkají podobné věci na čtyřech místech. Vedení týmu má jednu pozornost: výjimka → vlastník → další akce.
 

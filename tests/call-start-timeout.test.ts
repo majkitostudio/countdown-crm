@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
 
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 
@@ -22,5 +23,17 @@ describe("call-start async timeout contract", () => {
     const operation = Promise.resolve(true);
 
     await expect(withTimeout(operation, 1_000, "Call start timed out")).resolves.toBe(true);
+  });
+
+  it("threads the selected product and returned snapshot through the live call state", () => {
+    const softphone = readFileSync("src/lib/telephony/softphone.ts", "utf8");
+    const workspace = readFileSync("src/app/workspace/page.tsx", "utf8");
+
+    expect(softphone).toContain("productId?: string | null");
+    expect(softphone).toContain("scriptSnapshot: ScriptSnapshotDTO | null");
+    expect(softphone).toContain("productId: context.productId || null");
+    expect(softphone).toContain("scriptSnapshot = sessionBody.scriptSnapshot");
+    expect(workspace).toContain("productId: products[0]?.id || null");
+    expect(workspace).toContain("activeSnapshot={softphoneSession.scriptSnapshot}");
   });
 });

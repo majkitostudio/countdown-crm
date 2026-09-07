@@ -27,7 +27,7 @@ async function requireSimulationContext() {
 export async function POST(request: Request) {
   try {
     const context = await requireSimulationContext();
-    const body = await request.json() as { leadId?: unknown; queueItemId?: unknown; toNumber?: unknown };
+    const body = await request.json() as { leadId?: unknown; queueItemId?: unknown; toNumber?: unknown; productId?: unknown };
     if (typeof body.leadId !== "string" || !body.leadId.trim() || typeof body.toNumber !== "string" || !body.toNumber.trim()) {
       return NextResponse.json({ error: "A lead and destination number are required." }, { status: 400 });
     }
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
       queueItemId,
       toNumber: body.toNumber,
       direction: "outbound",
+      productId: typeof body.productId === "string" && body.productId.trim() ? body.productId : null,
     });
     await recordTelephonyEvent({
       workspaceId: context.workspaceId,

@@ -49,4 +49,21 @@ describe("Team Leader Daily Brief", () => {
     expect(brief.teamWalletBalance).toBeNull();
     expect(brief.nextAction.kind).toBe("callback");
   });
+
+  it("carries the persisted pending review count without inventing a value", () => {
+    const brief = buildTeamLeaderDailyBrief({
+      now,
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      pendingReviews: 2,
+    });
+
+    expect(brief.pendingReviews).toBe(2);
+
+    const unavailable = buildTeamLeaderDailyBrief({
+      now,
+      daily: { date: "2026-08-31", calls: 0, completedOrders: 0, revenue: 0, revenueByCurrency: [], currency: "CZK", conversionRate: 0 },
+    });
+
+    expect(unavailable.pendingReviews).toBeNull();
+  });
 });

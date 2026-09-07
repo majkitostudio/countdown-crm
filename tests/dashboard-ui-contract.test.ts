@@ -22,6 +22,9 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(nextBestAction).toContain('data-testid="next-best-action"');
     expect(dashboard).toContain("<TeamLeaderDailyBriefCard />");
     expect(dailyBrief).toContain('data-testid="team-leader-daily-brief"');
+    expect(dailyBrief).toContain("listCallsAction");
+    expect(dailyBrief).toContain("Needs review");
+    expect(dailyBrief).toContain('href="/calls?review=unreviewed"');
     expect(dailyBrief).toContain("getWalletOverviewAction");
     expect(kpis).toContain('label: "Team Calls"');
     expect(kpis).toContain('label: "Team Conversion Rate"');

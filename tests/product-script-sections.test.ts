@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { buildDefaultScriptHtml } from "@/lib/scriptContent";
+import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
+
+vi.mock("@/app/actions/productScripts", () => ({
+  getProductScriptAction: vi.fn(),
+}));
 
 const product = {
   id: "product-1",
@@ -38,5 +45,25 @@ describe("product script section structure", () => {
     );
 
     expect(panel).toContain("operator-script-reading-flow");
+  });
+
+  it("shows the immutable call snapshot instead of a newer current script", () => {
+    const rendered = renderToStaticMarkup(React.createElement(ProductScriptPanel, {
+      product,
+      isCallActive: true,
+      activeSnapshot: {
+        source: "published_version",
+        productId: product.id,
+        productTitle: product.title,
+        versionId: "version-7",
+        versionNumber: 7,
+        html: "<p>Approved v7 used for this call</p>",
+        capturedAt: "2026-09-07T10:00:00.000Z",
+      },
+    }));
+
+    expect(rendered).toContain("Approved v7 used for this call");
+    expect(rendered).not.toContain("První pozitivní dojem");
+    expect(rendered).toContain("Version 7 captured for this call");
   });
 });

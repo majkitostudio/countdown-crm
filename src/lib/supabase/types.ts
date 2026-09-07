@@ -406,6 +406,73 @@ export interface Database {
           }
         ];
       };
+      call_review_revisions: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          call_id: string;
+          revision_number: number;
+          verdict: string;
+          coaching_note: string;
+          correction_reason: string | null;
+          reviewer_id: string;
+          supersedes_revision_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          call_id: string;
+          revision_number: number;
+          verdict: string;
+          coaching_note: string;
+          correction_reason?: string | null;
+          reviewer_id: string;
+          supersedes_revision_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          workspace_id?: string;
+          call_id?: string;
+          revision_number?: number;
+          verdict?: string;
+          coaching_note?: string;
+          correction_reason?: string | null;
+          reviewer_id?: string;
+          supersedes_revision_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "call_review_revisions_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "call_review_revisions_call_id_fkey";
+            columns: ["call_id"];
+            isOneToOne: false;
+            referencedRelation: "calls";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "call_review_revisions_reviewer_id_fkey";
+            columns: ["reviewer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "call_review_revisions_supersedes_revision_id_fkey";
+            columns: ["supersedes_revision_id"];
+            isOneToOne: false;
+            referencedRelation: "call_review_revisions";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       lead_notes: {
         Row: {
           id: string;
@@ -710,6 +777,7 @@ export interface Database {
       telephony_call_sessions: {
         Row: {
           id: string;
+          completed_call_id: string | null;
           workspace_id: string;
           queue_item_id: string | null;
           lead_id: string | null;
@@ -731,12 +799,20 @@ export interface Database {
           recording_id: string | null;
           recording_url: string | null;
           hangup_cause: string | null;
+          script_source: "published_version" | "built_in_fallback" | "unavailable" | null;
+          script_product_id: string | null;
+          script_product_title: string | null;
+          script_version_id: string | null;
+          script_version_number: number | null;
+          script_snapshot_html: string | null;
+          script_captured_at: string | null;
           metadata: Json;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
+          completed_call_id?: string | null;
           workspace_id: string;
           queue_item_id?: string | null;
           lead_id?: string | null;
@@ -758,11 +834,19 @@ export interface Database {
           recording_id?: string | null;
           recording_url?: string | null;
           hangup_cause?: string | null;
+          script_source?: "published_version" | "built_in_fallback" | "unavailable" | null;
+          script_product_id?: string | null;
+          script_product_title?: string | null;
+          script_version_id?: string | null;
+          script_version_number?: number | null;
+          script_snapshot_html?: string | null;
+          script_captured_at?: string | null;
           metadata?: Json;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
+          completed_call_id?: string | null;
           provider_call_id?: string | null;
           queue_item_id?: string | null;
           lead_id?: string | null;
@@ -781,6 +865,13 @@ export interface Database {
           recording_id?: string | null;
           recording_url?: string | null;
           hangup_cause?: string | null;
+          script_source?: "published_version" | "built_in_fallback" | "unavailable" | null;
+          script_product_id?: string | null;
+          script_product_title?: string | null;
+          script_version_id?: string | null;
+          script_version_number?: number | null;
+          script_snapshot_html?: string | null;
+          script_captured_at?: string | null;
           metadata?: Json;
           updated_at?: string;
         };
@@ -1483,6 +1574,16 @@ export interface Database {
           p_version_id: string;
         };
         Returns: Database["public"]["Tables"]["product_script_versions"]["Row"][];
+      };
+      record_call_review_revision: {
+        Args: {
+          p_call_id: string;
+          p_expected_revision: number;
+          p_verdict: string;
+          p_coaching_note: string;
+          p_correction_reason?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["call_review_revisions"]["Row"][];
       };
       resolve_team_leader_exception: {
         Args: {

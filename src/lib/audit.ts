@@ -16,7 +16,89 @@ export type AuditActionType =
   | "ORDER_CREATED_MANUAL"
   | "ORDER_PRODUCT_REASSIGNED"
   | "ORDER_STATUS_CHANGED"
-  | "ORDER_DETAILS_UPDATED";
+  | "ORDER_DETAILS_UPDATED"
+  | "CALL_REVIEW_COMPLETED"
+  | "CALL_REVIEW_CORRECTED";
+
+export interface CallReviewAuditState {
+  id: string;
+  revisionNumber: number;
+  verdict: string;
+  coachingNote: string;
+  correctionReason: string | null;
+  reviewerId: string;
+  createdAt: string;
+}
+
+export interface CallReviewAuditDetails {
+  previous: CallReviewAuditState | null;
+  next: CallReviewAuditState;
+  correctionReason: string | null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseReviewState(value: unknown): CallReviewAuditState | null {
+  if (!isRecord(value)) return null;
+  if (
+    typeof value.id !== "string"
+    || !Number.isInteger(value.revision_number)
+    || (value.revision_number as number) < 1
+    || typeof value.verdict !== "string"
+    || typeof value.coaching_note !== "string"
+    || (value.correction_reason !== null && typeof value.correction_reason !== "string")
+    || typeof value.reviewer_id !== "string"
+    || typeof value.created_at !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: value.id,
+    revisionNumber: value.revision_number as number,
+    verdict: value.verdict,
+    coachingNote: value.coaching_note,
+    correctionReason: value.correction_reason as string | null,
+    reviewerId: value.reviewer_id,
+    createdAt: value.created_at,
+  };
+}
+
+export function parseCallReviewAuditDetails(value: string): CallReviewAuditDetails | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+  if (!isRecord(parsed)) return null;
+
+  const next = parseReviewState(parsed.new);
+  const previousRecord = parsed.previous;
+  const previous = isRecord(previousRecord) && Object.keys(previousRecord).length === 0
+    ? null
+    : parseReviewState(previousRecord);
+  if (!next || (previousRecord !== null && previousRecord !== undefined && previous === null && !(isRecord(previousRecord) && Object.keys(previousRecord).length === 0))) {
+    return null;
+  }
+  if (parsed.correction_reason !== null && typeof parsed.correction_reason !== "string") {
+    return null;
+  }
+
+  return {
+    previous,
+    next,
+    correctionReason: parsed.correction_reason as string | null,
+  };
+}
+
+export function auditActionLabel(action: AuditActionType): string {
+  if (action === "CALL_REVIEW_COMPLETED") return "Call review completed";
+  if (action === "CALL_REVIEW_CORRECTED") return "Call review corrected";
+  return action;
+}
 
 export interface AuditLogEntry {
   id: string;

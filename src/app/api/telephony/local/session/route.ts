@@ -26,7 +26,7 @@ async function requireLocalSipContext() {
 export async function POST(request: Request) {
   try {
     const context = await requireLocalSipContext();
-    const body = await request.json() as { leadId?: string; queueItemId?: string; toNumber?: string };
+    const body = await request.json() as { leadId?: string; queueItemId?: string; toNumber?: string; productId?: string | null };
     const requestedNumber = body.toNumber?.trim() || "";
     const toNumber = requestedNumber === "1001" || requestedNumber === "1002"
       ? requestedNumber
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       queueItemId: body.queueItemId || null,
       toNumber,
       direction: "outbound",
+      productId: body.productId || null,
     });
     await recordTelephonyEvent({
       workspaceId: context.workspaceId,

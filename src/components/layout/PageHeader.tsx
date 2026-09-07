@@ -25,8 +25,8 @@ export interface PageHeaderProps {
 
 const BADGE_TONE_CLASSES: Record<PageHeaderBadgeTone, string> = {
   neutral: "border-zinc-700 bg-zinc-900 text-zinc-300",
-  success: "border-emerald-800/70 bg-emerald-950/50 text-emerald-300",
-  warning: "border-amber-800/70 bg-amber-950/50 text-amber-300",
+  success: "border-emerald-800/50 bg-emerald-950/20 text-emerald-200/90",
+  warning: "border-amber-800/50 bg-amber-950/20 text-amber-200/90",
   unavailable: "border-zinc-700 bg-zinc-900 text-zinc-400",
 };
 
