@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   requireWorkspaceContext: vi.fn(),
   listWorkspaceCallsInContext: vi.fn(),
+  listCallReviewStatuses: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -15,6 +16,10 @@ vi.mock("@/lib/dal/workspace", async (importOriginal) => ({
 vi.mock("@/lib/dal/activity", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/lib/dal/activity")>(),
   listWorkspaceCallsInContext: mocks.listWorkspaceCallsInContext,
+}));
+vi.mock("@/lib/dal/callReviews", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/dal/callReviews")>(),
+  listCallReviewStatuses: mocks.listCallReviewStatuses,
 }));
 
 import { listCallsAction } from "@/app/actions/crm";
@@ -42,11 +47,13 @@ const callRecord: CallRecord = {
   sentiment: "Neutral",
   transcript: { kind: "unavailable" },
   review_href: null,
+  review_status: null,
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.listWorkspaceCallsInContext.mockResolvedValue([workspaceCall]);
+  mocks.listCallReviewStatuses.mockResolvedValue(new Map([["call-1", "not_reviewed"]]));
 });
 
 describe("Calls review entry authorization", () => {
@@ -54,16 +61,25 @@ describe("Calls review entry authorization", () => {
     mocks.requireWorkspaceContext.mockResolvedValue({ userId: "manager-1", workspaceId: "workspace-1", role });
 
     await expect(listCallsAction()).resolves.toEqual([
-      expect.objectContaining({ id: "call-1", review_href: "/calls/call-1/review" }),
+      expect.objectContaining({
+        id: "call-1",
+        review_href: "/calls/call-1/review",
+        review_status: "not_reviewed",
+      }),
     ]);
+    expect(mocks.listCallReviewStatuses).toHaveBeenCalledWith(
+      expect.objectContaining({ role }),
+      ["call-1"],
+    );
   });
 
   it("supplies no review URL to an operator", async () => {
     mocks.requireWorkspaceContext.mockResolvedValue({ userId: "operator-1", workspaceId: "workspace-1", role: "operator" });
 
     await expect(listCallsAction()).resolves.toEqual([
-      expect.objectContaining({ id: "call-1", review_href: null }),
+      expect.objectContaining({ id: "call-1", review_href: null, review_status: null }),
     ]);
+    expect(mocks.listCallReviewStatuses).not.toHaveBeenCalled();
   });
 
   it("renders only a server-supplied review URL", () => {

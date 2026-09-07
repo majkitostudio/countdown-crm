@@ -54,7 +54,9 @@ hovorů se bez uložené vazby zobrazí „verze nebyla zaznamenána“; systém
 nedopočítává. Budoucí telephony sessions ukládají immutable snapshot publikované
 verze skriptu a při dokončení se vážou na konkrétní call. Verdikt a coaching zapisuje
 člověk jako append-only revizi; oprava vytvoří další revizi a audit obsahuje přesný
-previous/new stav. Operátor nemá review link ani přístup k review stránce.
+previous/new stav. V Call Logs má manažer stav `Not reviewed`, `Reviewed` nebo
+`Corrected`, filtr nehodnocených hovorů a přímý odkaz na review. Operátor nemá
+review link ani přístup k review stránce.
 
 ### Operator-first princip
 

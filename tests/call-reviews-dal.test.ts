@@ -14,7 +14,7 @@ vi.mock("@/lib/dal/db", () => ({
 }));
 
 import { DataAccessError } from "@/lib/dal/errors";
-import { getCallReview, recordCallReview } from "@/lib/dal/callReviews";
+import { getCallReview, listCallReviewStatuses, recordCallReview } from "@/lib/dal/callReviews";
 
 const context = {
   userId: "manager-1",
@@ -183,6 +183,45 @@ describe("getCallReview", () => {
       [1, "Tara Team Leader"],
       [2, "Adam Admin"],
     ]);
+  });
+});
+
+describe("listCallReviewStatuses", () => {
+  it("maps the latest stored revision to a manager-facing status", async () => {
+    const query = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      in: vi.fn(),
+      order: vi.fn().mockResolvedValue({
+        data: [
+          { call_id: "call-2", revision_number: 2 },
+          { call_id: "call-1", revision_number: 1 },
+        ],
+        error: null,
+      }),
+    };
+    query.select.mockReturnValue(query);
+    query.eq.mockReturnValue(query);
+    query.in.mockReturnValue(query);
+    mocks.createDataClient.mockResolvedValue({
+      from: vi.fn().mockReturnValue(query),
+    });
+
+    const statuses = await listCallReviewStatuses(context, ["call-1", "call-2", "call-3"]);
+
+    expect(query.eq).toHaveBeenCalledWith("workspace_id", context.workspaceId);
+    expect(query.in).toHaveBeenCalledWith("call_id", ["call-1", "call-2", "call-3"]);
+    expect(statuses.get("call-1")).toBe("reviewed");
+    expect(statuses.get("call-2")).toBe("corrected");
+    expect(statuses.get("call-3")).toBe("not_reviewed");
+  });
+
+  it("rejects an operator context before reading review revisions", async () => {
+    await expect(listCallReviewStatuses(
+      { ...context, role: "operator" },
+      ["call-1"],
+    )).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(mocks.createDataClient).not.toHaveBeenCalled();
   });
 });
 

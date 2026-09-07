@@ -4,7 +4,7 @@ import { parseCallTranscript, type CallTranscript } from "@/lib/callTranscript";
 import type { Database } from "@/lib/supabase/types";
 import { createDataClient } from "@/lib/dal/db";
 import { DataAccessError } from "@/lib/dal/errors";
-import { requireWorkspaceRole } from "@/lib/dal/workspace";
+import { requireWorkspaceRole, type WorkspaceContext } from "@/lib/dal/workspace";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type SessionRow = Database["public"]["Tables"]["telephony_call_sessions"]["Row"];
@@ -68,9 +68,43 @@ export interface RecordCallReviewInput {
   correctionReason?: string | null;
 }
 
+export type CallReviewStatus = "not_reviewed" | "reviewed" | "corrected";
+
 const CALL_SELECT = "id, workspace_id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, callback_scheduled_at, transcript, created_at";
 const SESSION_SELECT = "provider, script_source, script_product_id, script_product_title, script_version_id, script_version_number, script_snapshot_html, script_captured_at";
 const REVISION_SELECT = "id, call_id, revision_number, verdict, coaching_note, correction_reason, reviewer_id, supersedes_revision_id, created_at";
+
+export async function listCallReviewStatuses(
+  context: WorkspaceContext,
+  callIds: string[],
+): Promise<Map<string, CallReviewStatus>> {
+  if (context.role !== "team_leader" && context.role !== "administrator") {
+    throw new DataAccessError("FORBIDDEN", "Call review statuses are available to managers only.");
+  }
+
+  const statuses = new Map<string, CallReviewStatus>(callIds.map((callId) => [callId, "not_reviewed"]));
+  if (callIds.length === 0) return statuses;
+
+  const supabase = await createDataClient();
+  const { data, error } = await supabase
+    .from("call_review_revisions")
+    .select("call_id, revision_number")
+    .eq("workspace_id", context.workspaceId)
+    .in("call_id", callIds)
+    .order("revision_number", { ascending: false });
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Unable to load call review statuses.");
+  }
+
+  for (const row of (data || []) as Array<{ call_id: string; revision_number: number }>) {
+    const current = statuses.get(row.call_id);
+    if (!current || current === "corrected") continue;
+    statuses.set(row.call_id, row.revision_number > 1 ? "corrected" : "reviewed");
+  }
+
+  return statuses;
+}
 
 function mapScriptEvidence(session: Pick<
   SessionRow,

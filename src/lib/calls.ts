@@ -1,6 +1,7 @@
 import { getCallAction, listCallsAction } from "@/app/actions/crm";
 import { parseCallTranscript, type CallTranscript } from "./callTranscript";
 import type { WorkspaceCallDTO } from "./dal/activity";
+import type { CallReviewStatus } from "./dal/callReviews";
 import type { Database } from "./supabase/types";
 
 export type PersistedCallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
@@ -19,6 +20,7 @@ export interface CallRecord {
   transcript: CallTranscript;
   created_at: string;
   review_href: string | null;
+  review_status: CallReviewStatus | null;
 }
 
 export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
@@ -55,6 +57,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     transcript: parseCallTranscript(call.transcript),
     created_at: call.created_at,
     review_href: call.review_href,
+    review_status: call.review_status,
   }));
 }
 
@@ -76,5 +79,6 @@ export async function getCallById(id: string): Promise<CallRecord | null> {
     transcript: parseCallTranscript(call.transcript),
     created_at: call.created_at,
     review_href: null,
+    review_status: null,
   };
 }

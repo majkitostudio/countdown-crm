@@ -21,6 +21,9 @@
   rozbalení přesný previous/new verdict, coaching, reviewer ID a correction reason.
 - Operátor nemá review link v Call Logs; při přímé URL dostane bezpečnou stránku
   s informací, že oblast je pouze pro Team Leaders a Administrators.
+- Manažer v Call Logs vidí stav `Not reviewed`, `Reviewed` nebo `Corrected`, může
+  filtrovat `Unreviewed` a otevřít přesný review přímo z řádku. Operátor stav,
+  filtr ani odkaz nevidí.
 - Exception Queue neodkazuje na review, pokud nemá prokazatelnou vazbu
   `queue item → telephony session → completed_call_id`.
 - AI nevytváří verdict ani revizi; formulář je označen jako lidské rozhodnutí.
@@ -48,7 +51,7 @@ Testovací data ani účty nejsou součástí repozitáře; po resetu lokální 
 
 Po poslední změně permission boundary proběhl celý checklist znovu:
 
-- `npm test`: 85 souborů / 335 testů prošlo
+- `npm test`: 86 souborů / 339 testů prošlo
 - `npm run lint`: exit 0
 - `npm run typecheck`: exit 0
 - `npm run build`: exit 0; route `/calls/[callId]/review` je v buildu

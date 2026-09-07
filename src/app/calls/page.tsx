@@ -35,8 +35,20 @@ export default function CallLogsPage() {
       c.id.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedOutcomeFilter === "all") return matchesSearch;
+    if (selectedOutcomeFilter === "unreviewed") {
+      return matchesSearch && c.review_status === "not_reviewed";
+    }
     return matchesSearch && c.outcome === selectedOutcomeFilter;
   });
+
+  const canReview = calls.some((call) => call.review_href !== null);
+
+  const reviewStatusLabel = (status: CallRecord["review_status"]) => {
+    if (status === "not_reviewed") return "Not reviewed";
+    if (status === "corrected") return "Corrected";
+    if (status === "reviewed") return "Reviewed";
+    return null;
+  };
 
   const totalCallsCount = calls.length;
   const totalSalesVolume = calls.reduce((acc, c) => acc + c.order_value, 0);
@@ -160,6 +172,18 @@ export default function CallLogsPage() {
             >
               Follow-ups
             </button>
+            {canReview && (
+              <button
+                onClick={() => setSelectedOutcomeFilter("unreviewed")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                  selectedOutcomeFilter === "unreviewed"
+                    ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
+                    : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
+                }`}
+              >
+                Unreviewed
+              </button>
+            )}
           </div>
 
         </div>
@@ -177,6 +201,7 @@ export default function CallLogsPage() {
                 <th className="px-5 py-3">Outcome</th>
                 <th className="px-5 py-3">Sentiment</th>
                 <th className="px-5 py-3">Revenue</th>
+                {canReview && <th className="px-5 py-3">Review</th>}
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -202,6 +227,29 @@ export default function CallLogsPage() {
                   <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
                     ${c.order_value.toFixed(2)}
                   </td>
+                  {canReview && (
+                    <td className="px-5 py-3">
+                      <div className="flex flex-col items-start gap-1.5">
+                        <span className={`rounded-md border px-2.5 py-0.5 text-[11px] font-medium ${
+                          c.review_status === "not_reviewed"
+                            ? "border-amber-900/70 bg-amber-950/30 text-amber-200"
+                            : c.review_status === "corrected"
+                              ? "border-sky-900/70 bg-sky-950/30 text-sky-200"
+                              : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"
+                        }`}>
+                          {reviewStatusLabel(c.review_status)}
+                        </span>
+                        {c.review_href && (
+                          <Link
+                            href={c.review_href}
+                            className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                          >
+                            Open review
+                          </Link>
+                        )}
+                      </div>
+                    </td>
+                  )}
                   <td className="px-5 py-4 text-right">
                     <button
                       onClick={() => setSelectedCall(c)}
