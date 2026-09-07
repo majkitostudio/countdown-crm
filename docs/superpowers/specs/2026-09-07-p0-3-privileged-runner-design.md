@@ -13,15 +13,16 @@ produkční service-role klíč ani zaměňovat linked sandbox za produkční d�
 
 ## Rozhodnutí
 
-Základní režim používá Supabase CLI `2.116.0` a `supabase db query --linked`
-proti explicitně zadanému project ref. Autentizace probíhá samostatným scoped
-Supabase access tokenem, omezeným na jediný linked sandbox a pouze na potřebné
-read oprávnění databáze. Token je dodán mimo Git jako runtime secret; runner
-nepřijímá `SUPABASE_SECRET_KEY` ani `SUPABASE_SERVICE_ROLE_KEY`.
+Základní režim používá přímo read-only Supabase Management API endpoint
+`POST /v1/projects/{ref}/database/query/read-only` proti explicitně zadanému
+project ref. Autentizace probíhá samostatným scoped Supabase access tokenem,
+omezeným na jediný linked sandbox a oprávnění `Database: Read`. Token je dodán
+mimo Git jako runtime secret; runner nepřijímá `SUPABASE_SECRET_KEY` ani
+`SUPABASE_SERVICE_ROLE_KEY`.
 
 Docker je distribuční a izolační obal, ne bezpečnostní hranice databáze. Image
-obsahuje pouze pinned Node/npm závislosti a CLI z lockfile; žádný secret se
-nepředává při buildu ani se nezapisuje do image.
+obsahuje pouze pinned Node runtime a runner; žádný secret se nepředává při
+buildu ani se nezapisuje do image.
 
 Volitelný write-capable režim není součástí výchozího read-only běhu. Pokud bude
 později potřeba vzdálený pgTAP test se zápisem, musí mít samostatný explicitní
@@ -42,7 +43,7 @@ odmítne před připojením.
 - deterministický výsledek `PASS`/`FAIL` s počtem kontrol a sanitizovaným
   výstupem,
 - bezpečné odmítnutí chybějícího, nesprávného nebo zakázaného credentialu,
-- verifikovatelnou konstrukci příkazu bez shell interpolace.
+- verifikovatelnou konstrukci API požadavku bez shell interpolace.
 
 ### Runner neposkytuje
 
@@ -64,17 +65,17 @@ runtime secret manager / lokální secret store
                 │
         pinned Node runner nebo Docker image
                 │
-        Supabase CLI --linked --project-ref
+        read-only Supabase Management API
                 │
         allow-listed read-only SQL
                 │
         sanitizovaný report bez tokenu, URL credentialu,
-        hesla, JWT, Auth emailu nebo raw CLI diagnostiky
+        hesla, JWT, Auth emailu nebo raw API diagnostiky
 ```
 
 Runner nebude volat Data API a nebude do prostředí nastavovat žádný
-`NEXT_PUBLIC_*` secret. Project ref se předá pouze jako argument CLI a v reportu
-se zobrazí jen jeho bezpečně zkrácený otisk, nikoli credential.
+`NEXT_PUBLIC_*` secret. Project ref se předá pouze v URL API požadavku a v
+reportu se zobrazí jen jeho bezpečně zkrácený otisk, nikoli credential.
 
 ## Bezpečnostní kontrakty
 
@@ -91,7 +92,6 @@ Runner odmítne:
 - project ref s neplatným formátem,
 - přítomnost `SUPABASE_SECRET_KEY` nebo `SUPABASE_SERVICE_ROLE_KEY`,
 - secret v názvu `NEXT_PUBLIC_*`,
-- chybějící lokální pinned CLI,
 - pokus o neallow-listed SQL nebo write flag bez explicitního opt-in.
 
 Chybové zprávy obsahují pouze název chybějící konfigurace nebo bezpečný typ
@@ -132,7 +132,7 @@ Výstup bude strojově čitelný JSON s následujícími poli:
 - `mode`: `read-only` nebo explicitně povolený `transactional-test`,
 - `checks`: počet kontrol, počet úspěchů a bezpečné identifikátory kontrol,
 - `status`: `passed` nebo `failed`,
-- `failureCode`: stabilní kód bez raw CLI výstupu.
+- `failureCode`: stabilní kód bez raw API výstupu.
 
 Report nebude obsahovat project URL, access token, connection string, SQL
 credential, Auth email, heslo, celé UUID fixture ani raw databázový payload.
@@ -147,14 +147,14 @@ Vitest pokryje čisté funkce a orchestraci bez připojení:
 - odmítnutí app/service-role credentialů,
 - odmítnutí `NEXT_PUBLIC_*` secret konfigurace,
 - read-only SQL allow-list,
-- konstrukci CLI argumentů bez shellu,
+- konstrukci read-only API požadavku,
 - parsování očekávaného JSON payloadu,
 - fingerprint a redakci citlivých hodnot,
-- mapování CLI failure na stabilní bezpečný error,
+- mapování API failure na stabilní bezpečný error,
 - výchozí zákaz write mode a požadavek na přesný opt-in.
 
 Testy nebudou mockovat úspěšný linked důkaz jako náhradu skutečného běhu.
-Mockované subprocess hranice pouze ověří bezpečnost orchestrace a budou
+Mockovaná HTTP hranice pouze ověří bezpečnost orchestrace a bude
 oddělené od reportu prvního skutečného linked běhu.
 
 ## Dokumentace a prostředí

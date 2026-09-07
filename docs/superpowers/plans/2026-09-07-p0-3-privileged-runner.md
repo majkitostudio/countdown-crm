@@ -4,9 +4,9 @@
 
 **Goal:** Přidat read-only runner pro opakovatelné ověření linked Supabase databázových kontraktů bez rozšíření produkčních oprávnění aplikace.
 
-**Architecture:** Node runner bude používat lokálně instalované Supabase CLI `2.116.0`, explicitní project ref a scoped `SUPABASE_ACCESS_TOKEN`. Spustí pouze verzovaný read-only SQL allow-list přes `supabase db query --linked`, z výstupu vytvoří sanitizovaný JSON report a při chybě vypíše pouze stabilní bezpečný kód. Docker image bude stejný runner pouze izolovat a nepřevezme žádné secrets při buildu.
+**Architecture:** Node runner bude používat explicitní project ref a scoped `SUPABASE_ACCESS_TOKEN`. Spustí pouze verzovaný read-only SQL allow-list přes Supabase Management API endpoint `/v1/projects/{ref}/database/query/read-only`, z odpovědi vytvoří sanitizovaný JSON report a při chybě vypíše pouze stabilní bezpečný kód. Docker image bude stejný runner pouze izolovat a nepřevezme žádné secrets při buildu.
 
-**Tech Stack:** Node.js ESM, `node:child_process`, `node:crypto`, Supabase CLI `2.116.0`, Docker, Vitest.
+**Tech Stack:** Node.js ESM, `fetch`, `node:crypto`, Supabase Management API, Docker, Vitest.
 
 **Spec:** `docs/superpowers/specs/2026-09-07-p0-3-privileged-runner-design.md`
 
@@ -29,9 +29,9 @@
 - Test: `tests/p0-3-remote-db-evidence.test.ts`
 
 **Interfaces:**
-- Produces `readRunnerConfig(env, paths)`, `validateReadOnlySql(sql)`, `buildLinkedQueryInvocation(options)`, `fingerprint(value)`, `sanitizeDiagnostic(text)` and `makeFailureReport(input)`.
-- `readRunnerConfig` vrací pouze bezpečná metadata `{ projectRef, cliPath, workdir }`; credential zůstává pouze v child-process environmentu a nikdy se nevrací.
-- `buildLinkedQueryInvocation` vrací `{ command: process.execPath, args: string[] }` a nepoužívá shell.
+- Produces `readRunnerConfig(env)`, `validateReadOnlySql(sql)`, `buildReadOnlyQueryRequest(options)`, `fingerprint(value)`, `sanitizeDiagnostic(text)` and `makeFailureReport(input)`.
+- `readRunnerConfig` vrací pouze bezpečná metadata `{ projectRef }`; credential zůstává pouze v API hlavičce požadavku a nikdy se nevrací.
+- `buildReadOnlyQueryRequest` vrací explicitní read-only Management API URL, hlavičky a JSON body.
 
 - [ ] **Step 1: Napiš první failing testy pro chybějící konfiguraci.**
 
@@ -59,11 +59,11 @@ Expected: FAIL s chybou, že importované konfigurační funkce neexistují.
 - [ ] **Step 3: Implementuj minimální validaci konfigurace.**
 
 Požaduj project ref odpovídající `/^[a-z0-9]{20}$/`, neprázdný
-`SUPABASE_ACCESS_TOKEN`, existenci lokálního CLI souboru a nepřítomnost
+`SUPABASE_ACCESS_TOKEN` a nepřítomnost
 `SUPABASE_SECRET_KEY`/`SUPABASE_SERVICE_ROLE_KEY`. Název chyby musí být stabilní
 safe code; nesmí obsahovat hodnotu env proměnné.
 
-- [ ] **Step 4: Přidej failing testy pro SQL a subprocess argumenty.**
+- [ ] **Step 4: Přidej failing test pro read-only API požadavek.**
 
 ```ts
 it("accepts only a single read-only select or with query", () => {
@@ -71,15 +71,14 @@ it("accepts only a single read-only select or with query", () => {
   expect(() => validateReadOnlySql("delete from public.workspaces;")).toThrow("NON_READ_ONLY_SQL");
 });
 
-it("builds a linked CLI invocation without a shell", () => {
-  expect(buildLinkedQueryInvocation({
-    cliPath: "C:\\repo\\node_modules\\supabase\\dist\\supabase.js",
+it("builds the read-only Management API request", () => {
+  expect(buildReadOnlyQueryRequest({
     projectRef: "abcdefghijklmnopqrst",
-    sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
-    workdir: "C:\\repo",
+    token: "scoped-token",
+    sql: "select 1;",
   })).toEqual({
-    command: process.execPath,
-    args: expect.arrayContaining(["db", "query", "--linked", "--project-ref", "abcdefghijklmnopqrst", "--output-format", "json"]),
+    url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+    options: expect.objectContaining({ method: "POST" }),
   });
 });
 ```
@@ -138,7 +137,7 @@ Expected: FAIL, protože parser ještě neexistuje.
 
 - [ ] **Step 3: Implementuj parser s allow-listem klíčů.**
 
-Extrahuj pouze JSON objekt z CLI status prefixu, vyžaduj právě jeden řádek,
+Extrahuj pouze JSON pole z read-only API odpovědi, vyžaduj právě jeden řádek,
 objekt `evidence` a booleovské hodnoty pod známými check keys. Ignoruj a nikdy
 nepropaguj jiné databázové hodnoty.
 
@@ -161,7 +160,7 @@ Run: `npm test -- tests/p0-3-remote-db-evidence.test.ts`
 Expected: PASS; commit:
 `git add scripts/p0-3-remote-db-evidence.sql scripts/p0-3-remote-db-evidence-lib.mjs tests/p0-3-remote-db-evidence.test.ts && git commit -m "feat: add p0-3 linked evidence query"`
 
-### Task 3: Zaveď runner s bezpečným subprocess a JSON reportem
+### Task 3: Zaveď runner s bezpečným read-only API požadavkem a JSON reportem
 
 **Files:**
 - Create: `scripts/p0-3-remote-db-evidence.mjs`
@@ -169,7 +168,7 @@ Expected: PASS; commit:
 - Test: `tests/p0-3-remote-db-evidence.test.ts`
 
 **Interfaces:**
-- CLI entrypoint: `node scripts/p0-3-remote-db-evidence.mjs`.
+- Node entrypoint: `node scripts/p0-3-remote-db-evidence.mjs`.
 - Default mode is read-only and requires `P0_3_LINKED_PROJECT_REF` plus
   `SUPABASE_ACCESS_TOKEN`.
 - It invokes only the checked-in SQL file and prints a sanitized JSON report.
@@ -177,9 +176,9 @@ Expected: PASS; commit:
 
 - [ ] **Step 1: Napiš failing test pro default read-only orchestration.**
 
-Testuj přes dependency injection subprocessu, že environment child procesu
-obsahuje scoped token, ale výstup ani report ho neobsahují. Ověř také, že
-`--allow-linked-test-writes` bez přesného potvrzení skončí před subprocess call.
+Testuj přes dependency injection HTTP požadavku, že scoped token je pouze v
+Authorization hlavičce, ale výstup ani report ho neobsahují. Ověř také, že
+`--allow-linked-test-writes` bez přesného potvrzení skončí před API voláním.
 
 - [ ] **Step 2: Spusť cílený test a ověř RED.**
 
@@ -189,16 +188,15 @@ Expected: FAIL na chybějícím `runLinkedEvidence`/entrypoint orchestration.
 
 - [ ] **Step 3: Implementuj runner.**
 
-Načti env bez logování hodnot, načti a validuj SQL, spusť `spawnSync` s
-`shell: false`, `encoding: "utf8"`, `stdio` zachyceným pouze v paměti, zpracuj
-JSON a vyrob report. Při nenulovém exit code vrať pouze `CLI_QUERY_FAILED`.
-Při parseru nebo validaci vrať stabilní safe code. Raw stdout/stderr nikdy
-nepředej do chyby ani reportu.
+Načti env bez logování hodnot, načti a validuj SQL, zavolej pouze read-only
+Management API endpoint, zpracuj JSON a vyrob report. Při HTTP chybě vrať pouze
+`API_QUERY_FAILED`. Při parseru nebo validaci vrať stabilní safe code. Raw API
+odpověď ani diagnostiku nikdy nepředej do chyby ani reportu.
 
-- [ ] **Step 4: Přidej testy pro CLI error, invalid JSON a všechny false checks.**
+- [ ] **Step 4: Přidej testy pro API error, invalid JSON a všechny false checks.**
 
 Každý scénář musí ověřit `exitCode === 1`, stabilní `failureCode` a absenci
-řetězců reprezentujících token, URL credentialu nebo raw CLI výstup.
+řetězců reprezentujících token, URL credentialu nebo raw API výstup.
 
 - [ ] **Step 5: Spusť cílené testy a lokální bezpečný preflight.**
 
@@ -234,9 +232,8 @@ Expected: PASS; commit:
 
 - [ ] **Step 1: Napiš test, že Dockerfile nekopíruje env soubory ani secret values.**
 
-Ověř, že Dockerfile obsahuje `npm ci --ignore-scripts`, pinned Supabase CLI
-pochází z lockfile a neobsahuje `COPY .env`, `ARG SUPABASE`, `ENV SUPABASE_ACCESS_TOKEN`
-ani service-role key.
+Ověř, že Dockerfile používá pinned Node image a neobsahuje `COPY .env`,
+`ARG SUPABASE`, `ENV SUPABASE_ACCESS_TOKEN` ani service-role key.
 
 - [ ] **Step 2: Spusť test a ověř RED, pokud Dockerfile neexistuje.**
 
@@ -246,8 +243,8 @@ Expected: FAIL pouze na chybějícím Dockerfile.
 
 - [ ] **Step 3: Vytvoř minimální Dockerfile.**
 
-Použij Node 22 slim image, zkopíruj pouze `package.json`, `package-lock.json`,
-`supabase/config.toml`, runner library, runner entrypoint a SQL allow-list.
+Použij Node 22 slim image a zkopíruj pouze runner library, runner entrypoint a
+SQL allow-list.
 Nespouštěj `npm install` s secrets a nastav entrypoint na runner.
 
 - [ ] **Step 4: Přidej README s bezpečným runtime příkladem.**
@@ -321,7 +318,7 @@ Expected: PASS; commit:
 
 **Interfaces:**
 - Report contains exact sanitized runner JSON and command metadata without any
-  token, URL credential, Auth email, password or raw CLI diagnostic.
+  token, URL credential, Auth email, password or raw API diagnostic.
 - No migration, `db push`, `db reset`, `db diff` write path or test fixture write
   is used in this task.
 
@@ -329,7 +326,7 @@ Expected: PASS; commit:
 
 Check only boolean presence of `SUPABASE_ACCESS_TOKEN` and project ref. Never
 print values. If scoped token is absent, stop and report the precise blocker;
-do not fall back to the existing CLI session or an app service key.
+do not fall back to an app service key or any other broader credential.
 
 - [ ] **Step 2: Spusť read-only runner.**
 
@@ -343,7 +340,7 @@ only the safe failure code and stop; do not rerun with a broader credential.
 Run: `rg -n "sbp_|sb_secret_|eyJ|postgresql://|password=|@.*:" docs/superpowers/reports/2026-09-07-p0-3-linked-run.md`
 
 Expected: no matches. If a match exists, delete the report before committing,
-fix sanitizer and rerun locally; never copy raw CLI output into the report.
+fix sanitizer and rerun locally; never copy raw API output into the report.
 
 - [ ] **Step 4: Commituj pouze report.**
 

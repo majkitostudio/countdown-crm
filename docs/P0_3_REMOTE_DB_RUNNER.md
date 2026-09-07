@@ -6,7 +6,8 @@ Runner ověří, že linked Supabase sandbox skutečně odpovídá bezpečnostn�
 kontraktům P0.2. Kontroluje katalog databáze, nikoli data zákazníků.
 
 Lokální pgTAP není důkaz linked sandboxu. Lokální test běží v lokální databázi;
-runner posílá stejný verzovaný read-only dotaz do konkrétního linked projektu.
+runner posílá verzovaný read-only dotaz do konkrétního linked projektu přes
+Supabase Management API.
 
 ## Co runner dokazuje
 
@@ -53,9 +54,12 @@ Z důvěryhodného hostitele, kde jsou runtime proměnné nastavené mimo Git:
 npm run verify:linked-security
 ```
 
-Příkaz používá `supabase db query --linked` a pinned CLI `2.116.0`. Read-only
-SQL je verzovaný v `scripts/p0-3-remote-db-evidence.sql` a runner odmítne
-zápisová SQL slova ještě před připojením.
+Příkaz používá read-only endpoint
+`POST /v1/projects/{ref}/database/query/read-only`. Tento endpoint je dostupný
+se scoped oprávněním `Database: Read` a SQL je proveden jako read-only databázová
+identita. Read-only SQL je verzovaný v
+`scripts/p0-3-remote-db-evidence.sql` a runner odmítne zápisová SQL slova ještě
+před síťovým požadavkem.
 
 ## Spuštění v Dockeru
 
@@ -89,11 +93,11 @@ Při chybě se vypíše stabilní kód, například:
 - `MISSING_P0_3_LINKED_PROJECT_REF` — chybí project ref,
 - `MISSING_SUPABASE_ACCESS_TOKEN` — chybí runner token,
 - `FORBIDDEN_APPLICATION_CREDENTIAL` — byl nabídnut app/service-role klíč,
-- `CLI_QUERY_FAILED` — linked CLI dotaz selhal,
+- `API_QUERY_FAILED` — read-only Management API dotaz selhal,
 - `INVALID_EVIDENCE_PAYLOAD` — odpověď nemá očekávaný bezpečný tvar,
 - `EVIDENCE_CHECK_FAILED` — některý databázový kontrakt je porušený.
 
-Raw CLI výstup se do chyby ani reportu nekopíruje.
+Raw API odpověď se do chyby ani reportu nekopíruje.
 
 ## Rozdíl prostředí
 
