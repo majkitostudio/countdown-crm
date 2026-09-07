@@ -21,6 +21,7 @@ export interface TeamLeaderDailyBrief {
   overdueCallbacks: number;
   openReminders: number;
   urgentReorders: number;
+  pendingReviews: number | null;
   teamWalletBalance: number | null;
   teamWalletTransactions: number | null;
   walletCurrency: string | null;
@@ -32,6 +33,7 @@ export interface TeamLeaderDailyBriefInput {
   callbacks?: NextBestActionCallback[];
   reminders?: DailyBriefReminder[];
   reorderOpportunities?: NextBestActionReorderOpportunity[];
+  pendingReviews?: number | null;
   wallet?: DailyBriefWallet | null;
   now?: Date;
 }
@@ -65,6 +67,7 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
     urgentReorders: (input.reorderOpportunities ?? []).filter(
       (opportunity) => opportunity.urgency === "urgent" || opportunity.urgency === "due_soon",
     ).length,
+    pendingReviews: input.pendingReviews ?? null,
     teamWalletBalance: wallet ? wallet.balances.reduce((sum, balance) => sum + Number(balance.balance || 0), 0) : null,
     teamWalletTransactions: wallet
       ? wallet.balances.reduce((sum, balance) => sum + Number(balance.transaction_count || 0), 0)

@@ -31,6 +31,9 @@
 - Vizuální pass Call Logs a workspace ponechává barvu u Call Outcome a důležitých
   provozních stavů, zatímco běžné kontextové karty, profily, review affordance a
   nadpisy Product Scriptu používají neutrální nebo výrazně ztlumené zacházení.
+- Team Leader Daily Brief zobrazuje počet nehodnocených hovorů s odkazem na
+  `/calls?review=unreviewed`; při nedostupnosti review fronty zůstává stav
+  `Unavailable` a nepředstírá nulu.
 
 ## Lokální autentizovaný browser smoke
 
@@ -55,7 +58,7 @@ Testovací data ani účty nejsou součástí repozitáře; po resetu lokální 
 
 Po poslední změně permission boundary proběhl celý checklist znovu:
 
-- `npm test`: 88 souborů / 344 testů prošlo
+- `npm test`: 88 souborů / 345 testů prošlo
 - `npm run lint`: exit 0
 - `npm run typecheck`: exit 0
 - `npm run build`: exit 0; route `/calls/[callId]/review` je v buildu
