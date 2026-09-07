@@ -55,8 +55,9 @@ nedopočítává. Budoucí telephony sessions ukládají immutable snapshot publ
 verze skriptu a při dokončení se vážou na konkrétní call. Verdikt a coaching zapisuje
 člověk jako append-only revizi; oprava vytvoří další revizi a audit obsahuje přesný
 previous/new stav. V Call Logs má manažer stav `Not reviewed`, `Reviewed` nebo
-`Corrected`, filtr nehodnocených hovorů a přímý odkaz na review. Operátor nemá
-review link ani přístup k review stránce.
+`Corrected`, počet čekajících review, filtr nehodnocených hovorů, prázdný stav po
+vyřízení celé fronty a přímý odkaz na review s návratem do stejného filtru.
+Operátor nemá review link ani přístup k review stránce.
 
 ### Operator-first princip
 

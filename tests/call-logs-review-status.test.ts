@@ -8,8 +8,9 @@ describe("manager review affordances in Call Logs", () => {
   it("offers a manager-only unreviewed filter and exact row review link", () => {
     expect(source).toContain('selectedOutcomeFilter === "unreviewed"');
     expect(source).toContain("Unreviewed");
-    expect(source).toContain('href={c.review_href}');
+    expect(source).toContain("reviewHrefForCall(c)");
     expect(source).toContain("Open review");
+    expect(source).toContain("return=unreviewed");
   });
 
   it("renders review status labels without exposing them to operators", () => {
@@ -17,5 +18,7 @@ describe("manager review affordances in Call Logs", () => {
     expect(source).toContain('review_status === "not_reviewed"');
     expect(source).toContain('review_status === "corrected"');
     expect(source).toContain("canReview &&");
+    expect(source).toContain("unreviewedCount");
+    expect(source).toContain("All available calls are reviewed.");
   });
 });

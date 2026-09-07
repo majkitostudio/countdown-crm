@@ -34,4 +34,15 @@ describe("real call review page boundary", () => {
     expect(source).toContain('error.code === "FORBIDDEN"');
     expect(source).toContain("Team Leaders and Administrators only");
   });
+
+  it("preserves the unreviewed Call Logs filter when returning from a review", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "src/app/calls/[callId]/review/page.tsx"),
+      "utf8",
+    );
+
+    expect(source).toContain("searchParams");
+    expect(source).toContain("returnToCallsHref");
+    expect(source).toContain('"/calls?review=unreviewed"');
+  });
 });

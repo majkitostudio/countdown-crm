@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   PhoneCall,
@@ -14,11 +14,24 @@ import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
 
+function useReviewQueryFilter() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("popstate", onStoreChange);
+      return () => window.removeEventListener("popstate", onStoreChange);
+    },
+    () => (new URLSearchParams(window.location.search).get("review") === "unreviewed" ? "unreviewed" : null),
+    () => null,
+  );
+}
+
 export default function CallLogsPage() {
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedOutcomeFilter, setSelectedOutcomeFilter] = useState<string>("all");
+  const [selectedOutcomeFilterState, setSelectedOutcomeFilter] = useState<string>("all");
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
+  const reviewQueryFilter = useReviewQueryFilter();
+  const selectedOutcomeFilter = reviewQueryFilter === "unreviewed" ? "unreviewed" : selectedOutcomeFilterState;
 
   useEffect(() => {
     async function loadCalls() {
@@ -27,6 +40,19 @@ export default function CallLogsPage() {
     }
     loadCalls();
   }, []);
+
+  const selectOutcomeFilter = (filter: string) => {
+    setSelectedOutcomeFilter(filter);
+    const params = new URLSearchParams(window.location.search);
+    if (filter === "unreviewed") {
+      params.set("review", "unreviewed");
+    } else {
+      params.delete("review");
+    }
+    const query = params.toString();
+    window.history.replaceState(null, "", query ? `/calls?${query}` : "/calls");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
   const filteredCalls = calls.filter((c) => {
     const matchesSearch =
@@ -42,6 +68,12 @@ export default function CallLogsPage() {
   });
 
   const canReview = calls.some((call) => call.review_href !== null);
+  const unreviewedCount = calls.filter((call) => call.review_status === "not_reviewed").length;
+
+  const reviewHrefForCall = (call: CallRecord) => {
+    if (!call.review_href || selectedOutcomeFilter !== "unreviewed") return call.review_href;
+    return `${call.review_href}?return=unreviewed`;
+  };
 
   const reviewStatusLabel = (status: CallRecord["review_status"]) => {
     if (status === "not_reviewed") return "Not reviewed";
@@ -74,10 +106,20 @@ export default function CallLogsPage() {
         badge={{ label: `${totalCallsCount} Logged Calls`, tone: "neutral" }}
         description="Real-time call history logs, AHT benchmarks, and full speech transcript protocols"
         actions={
-          <Link href="/workspace" className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200">
-            <PhoneCall className="h-4 w-4" aria-hidden="true" />
-            <span>Launch Operator Console</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            {canReview && (
+              <Link
+                href="/calls?review=unreviewed"
+                className="inline-flex items-center rounded-xl border border-amber-900/70 bg-amber-950/30 px-4 py-2.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-950/50"
+              >
+                Needs review: {unreviewedCount}
+              </Link>
+            )}
+            <Link href="/workspace" className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200">
+              <PhoneCall className="h-4 w-4" aria-hidden="true" />
+              <span>Launch Operator Console</span>
+            </Link>
+          </div>
         }
       />
 
@@ -143,7 +185,7 @@ export default function CallLogsPage() {
           {/* Outcome Filter Buttons */}
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <button
-              onClick={() => setSelectedOutcomeFilter("all")}
+              onClick={() => selectOutcomeFilter("all")}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "all"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -153,7 +195,7 @@ export default function CallLogsPage() {
               All Logs ({calls.length})
             </button>
             <button
-              onClick={() => setSelectedOutcomeFilter("order_placed")}
+              onClick={() => selectOutcomeFilter("order_placed")}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "order_placed"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -163,7 +205,7 @@ export default function CallLogsPage() {
               Order Placed
             </button>
             <button
-              onClick={() => setSelectedOutcomeFilter("followup_scheduled")}
+              onClick={() => selectOutcomeFilter("followup_scheduled")}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "followup_scheduled"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -174,7 +216,7 @@ export default function CallLogsPage() {
             </button>
             {canReview && (
               <button
-                onClick={() => setSelectedOutcomeFilter("unreviewed")}
+                onClick={() => selectOutcomeFilter("unreviewed")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   selectedOutcomeFilter === "unreviewed"
                     ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -206,7 +248,22 @@ export default function CallLogsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {filteredCalls.map((c) => (
+              {filteredCalls.length === 0 ? (
+                <tr>
+                  <td colSpan={canReview ? 8 : 7} className="px-5 py-12 text-center">
+                    <p className="text-sm font-semibold text-zinc-200">
+                      {selectedOutcomeFilter === "unreviewed"
+                        ? "All available calls are reviewed."
+                        : "No calls match the selected filters."}
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      {selectedOutcomeFilter === "unreviewed"
+                        ? "There is no remaining Team Leader coaching action in this list."
+                        : "Try a different outcome or search term."}
+                    </p>
+                  </td>
+                </tr>
+              ) : filteredCalls.map((c) => (
                 <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors">
                   <td className="px-5 py-3">
                     <div>
@@ -241,7 +298,7 @@ export default function CallLogsPage() {
                         </span>
                         {c.review_href && (
                           <Link
-                            href={c.review_href}
+                            href={reviewHrefForCall(c) || "#"}
                             className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
                           >
                             Open review
@@ -269,7 +326,7 @@ export default function CallLogsPage() {
       {/* Call Detail Drawer */}
       <CallDetailDrawer
         call={selectedCall}
-        reviewHref={selectedCall?.review_href || null}
+        reviewHref={selectedCall ? reviewHrefForCall(selectedCall) : null}
         isOpen={Boolean(selectedCall)}
         onClose={() => setSelectedCall(null)}
       />

@@ -20,9 +20,14 @@ async function loadCallReview(callId: string) {
 
 export default async function CallReviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ callId: string }>;
+  searchParams: Promise<{ return?: string | string[] | undefined }>;
 }) {
+  const query = await searchParams;
+  const returnToCallsHref = query.return === "unreviewed" ? "/calls?review=unreviewed" : "/calls";
+
   try {
     await requireWorkspaceRole(["team_leader", "administrator"]);
   } catch (error) {
@@ -35,7 +40,7 @@ export default async function CallReviewPage({
             This area is available to Team Leaders and Administrators only.
           </p>
           <Link
-            href="/calls"
+            href={returnToCallsHref}
             className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
@@ -57,7 +62,7 @@ export default async function CallReviewPage({
         description={`Real call #${review.call.id} · manager-only human review`}
         badge={{ label: "Real call evidence", tone: "neutral" }}
         actions={
-          <Link href="/calls" className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-800">
+          <Link href={returnToCallsHref} className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-800">
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />Back to calls
           </Link>
         }

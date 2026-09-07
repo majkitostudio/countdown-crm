@@ -16,7 +16,7 @@ Produktový průchod třemi rolemi (operátor, team leader, administrátor) je v
 - operátorský Conversation Brief: serverově načtený problém, poslední kontakt, výsledek, callback, poznámka, objednávka, dostupnost schváleného skriptu a bezpečný další krok,
 - Team Leader Exception Queue na `/exceptions`: odvozené skutečné problémy, filtry, bezpečné vyřešení/odložení, audit a serverová role hranice pro Team Leadera a administrátora,
 - Team Leader Review reálného hovoru na `/calls/[callId]/review`: skutečný call s outcome, operátorskou poznámkou, transcriptovou evidencí a použitým skriptem; lidský verdict/coaching v append-only revizích, opravy s důvodem a přesný before/after audit,
-- Call Logs pro manažery nyní zobrazují stav `Not reviewed` / `Reviewed` / `Corrected`, filtr nehodnocených hovorů a přímý odkaz na přesný review; operátor tyto manažerské prvky nedostává,
+- Call Logs pro manažery nyní zobrazují stav `Not reviewed` / `Reviewed` / `Corrected`, počet čekajících review, filtr nehodnocených hovorů, prázdný stav po vyřízení fronty a přímý odkaz na přesný review s návratem do stejného filtru; operátor tyto manažerské prvky nedostává,
 - role-aware vstup přes `/`: operátor míří do Operator Console, Team Leader do Exception Queue a administrátor do Workspace Readiness; stejné pravidlo používá přihlášení i logo,
 - server-side osobní preference v `workspace_user_preferences`: hlasitost vyzvánění a hustota Client Profile podle workspace + uživatel, s RLS a jednorázovým importem starých browserových hodnot,
 - karta klienta s plným a kompaktním režimem,
