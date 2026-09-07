@@ -5,6 +5,16 @@ import process from "node:process";
 const PROJECT_REF_PATTERN = /^[a-z0-9]{20}$/;
 const FORBIDDEN_SQL_PATTERN = /\b(insert|update|delete|merge|alter|drop|create|grant|revoke|truncate|copy|vacuum|refresh|call)\b/i;
 const SENSITIVE_ENV_PATTERN = /(secret|token|password|credential|private[_-]?key)/i;
+export const EVIDENCE_CHECK_KEYS = new Set([
+  "public_rpc_boundaries",
+  "public_rpc_grants",
+  "public_rpc_search_path",
+  "private_rpc_implementations",
+  "private_rpc_grants",
+  "private_rpc_search_path",
+  "pgtap_not_public",
+  "private_schema_not_exposed",
+]);
 
 const runnerError = (code) => {
   const error = new Error(code);
@@ -90,6 +100,46 @@ export function sanitizeDiagnostic(text) {
     .replace(/postgres(?:ql)?:\/\/[^\s]+/gi, "postgresql://[REDACTED]")
     .replace(/password\s*=\s*[^\s,;]+/gi, "password=[REDACTED]")
     .slice(0, 240);
+}
+
+export function parseEvidencePayload(output) {
+  const firstBrace = output.indexOf("{");
+  const lastBrace = output.lastIndexOf("}");
+  if (firstBrace < 0 || lastBrace < firstBrace) {
+    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(output.slice(firstBrace, lastBrace + 1));
+  } catch {
+    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+  }
+
+  if (!Array.isArray(payload?.rows) || payload.rows.length !== 1) {
+    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+  }
+
+  const row = payload.rows[0];
+  const evidence = row && typeof row === "object" && !Array.isArray(row)
+    ? row.evidence
+    : undefined;
+  if (!evidence || typeof evidence !== "object" || Array.isArray(evidence)) {
+    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+  }
+
+  const checks = {};
+  for (const [key, value] of Object.entries(evidence)) {
+    if (!EVIDENCE_CHECK_KEYS.has(key) || typeof value !== "boolean") {
+      throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+    }
+    checks[key] = value;
+  }
+  if (Object.keys(checks).length === 0) {
+    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
+  }
+
+  return { checks };
 }
 
 export function makeFailureReport({ failureCode, projectRef, mode = "read-only" }) {

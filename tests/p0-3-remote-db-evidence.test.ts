@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 
 import {
   buildLinkedQueryInvocation,
   fingerprint,
   makeFailureReport,
+  parseEvidencePayload,
   readRunnerConfig,
   sanitizeDiagnostic,
   validateReadOnlySql,
@@ -13,6 +15,11 @@ const paths = {
   cliPath: "C:\\repo\\node_modules\\supabase\\dist\\supabase.js",
   workdir: "C:\\repo",
 };
+
+const evidenceSqlPath = new URL(
+  "../scripts/p0-3-remote-db-evidence.sql",
+  import.meta.url,
+);
 
 describe("P0.3 remote evidence runner configuration", () => {
   it("rejects a missing scoped access token without exposing a value", () => {
@@ -94,5 +101,34 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(fingerprint("abcdefghijklmnopqrst")).toMatch(/^[0-9a-f]{12}$/);
     expect(fingerprint("abcdefghijklmnopqrst")).toBe(fingerprint("abcdefghijklmnopqrst"));
     expect(fingerprint("abcdefghijklmnopqrst")).not.toContain("abcdefghijklmnopqrst");
+  });
+
+  it("parses one safe evidence row", () => {
+    expect(parseEvidencePayload(
+      "status text\n{" +
+      '"rows":[{"evidence":{"public_rpc_boundaries":true,"pgtap_not_public":true}}]}' +
+      "\n",
+    )).toEqual({
+      checks: {
+        public_rpc_boundaries: true,
+        pgtap_not_public: true,
+      },
+    });
+  });
+
+  it("rejects a payload with arbitrary database rows", () => {
+    expect(() => parseEvidencePayload(
+      '{"rows":[{"email":"person@example.test"}]}',
+    )).toThrow("INVALID_EVIDENCE_PAYLOAD");
+  });
+
+  it("ships a read-only catalog query for the P0.2 contracts", () => {
+    const sql = readFileSync(evidenceSqlPath, "utf8");
+
+    expect(() => validateReadOnlySql(sql)).not.toThrow();
+    expect(sql).toContain("pg_proc");
+    expect(sql).toContain("pg_extension");
+    expect(sql).toContain("pgtap_not_public");
+    expect(sql).not.toMatch(/\b(insert|update|delete|alter|drop|grant|revoke)\b/i);
   });
 });
