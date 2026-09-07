@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
@@ -7,6 +7,7 @@ import {
   makeFailureReport,
   parseEvidencePayload,
   readRunnerConfig,
+  requestReadOnlyQuery,
   runLinkedEvidence,
   sanitizeDiagnostic,
   validateReadOnlySql,
@@ -23,6 +24,10 @@ const evidenceSqlPath = new URL(
 );
 const dockerfilePath = new URL(
   "../docker/p0-3-runner/Dockerfile",
+  import.meta.url,
+);
+const dockerignorePath = new URL(
+  "../.dockerignore",
   import.meta.url,
 );
 const guidePath = new URL(
@@ -161,6 +166,18 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(dockerfile).not.toContain("SERVICE_ROLE_KEY");
   });
 
+  it("keeps local secrets out of the Docker build context", () => {
+    const dockerignore = readFileSync(dockerignorePath, "utf8");
+
+    expect(dockerignore).toContain("*");
+    expect(dockerignore).toContain("!docker/p0-3-runner/Dockerfile");
+    expect(dockerignore).toContain("!scripts/p0-3-remote-db-evidence.mjs");
+    expect(dockerignore).toContain("!scripts/p0-3-remote-db-evidence-lib.mjs");
+    expect(dockerignore).toContain("!scripts/p0-3-remote-db-evidence.sql");
+    expect(dockerignore).toContain(".env*");
+    expect(dockerignore).toContain("supabase/.temp/");
+  });
+
   it("documents the three environment boundaries for the runner", () => {
     const guide = readFileSync(guidePath, "utf8");
 
@@ -264,6 +281,30 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(result.exitCode).toBe(1);
     expect(result.report.failureCode).toBe("API_QUERY_FAILED");
     expect(JSON.stringify(result.report)).not.toContain("transport secret");
+  });
+
+  it("sets a finite timeout on the real read-only API request", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      status: 201,
+      text: async () => "[]",
+    } as Response);
+
+    try {
+      await requestReadOnlyQuery({
+        url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+        options: {
+          method: "POST",
+          headers: { authorization: "Bearer test-token" },
+          body: JSON.stringify({ query: "select 1;" }),
+        },
+      });
+
+      const requestOptions = fetchMock.mock.calls[0]?.[1];
+      expect(requestOptions?.signal).toBeInstanceOf(AbortSignal);
+      expect(requestOptions?.signal?.aborted).toBe(false);
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it("rejects invalid API JSON without returning the raw payload", async () => {

@@ -10,6 +10,10 @@ Build z kořene repozitáře:
 docker build -f docker/p0-3-runner/Dockerfile -t countdown-crm-p0-3-runner .
 ```
 
+Kořenový `.dockerignore` zmenšuje build context na Dockerfile, runner a jeho
+read-only SQL dotaz. Lokální `.env`, `.git` a Supabase CLI stav se do buildu
+neposílají. Síťový požadavek má pevný timeout 30 sekund.
+
 Spuštění předává hodnoty až za běhu z hostitelského secret manageru nebo
 lokálního environmentu:
 

@@ -4,6 +4,7 @@ import process from "node:process";
 const PROJECT_REF_PATTERN = /^[a-z0-9]{20}$/;
 const FORBIDDEN_SQL_PATTERN = /\b(insert|update|delete|merge|alter|drop|create|grant|revoke|truncate|copy|vacuum|refresh|call)\b/i;
 const SENSITIVE_ENV_PATTERN = /(secret|token|password|credential|private[_-]?key)/i;
+const REQUEST_TIMEOUT_MS = 30_000;
 export const EVIDENCE_CHECK_KEYS = new Set([
   "public_rpc_boundaries",
   "public_rpc_grants",
@@ -135,8 +136,11 @@ export function parseEvidencePayload(output) {
  * @param {{ url: string, options: { method: string, headers: Record<string, string>, body: string } }} input
  * @returns {Promise<{ status: number, body: string }>}
  */
-async function requestReadOnlyQuery({ url, options }) {
-  const response = await globalThis.fetch(url, options);
+export async function requestReadOnlyQuery({ url, options }) {
+  const response = await globalThis.fetch(url, {
+    ...options,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   return { status: response.status, body: await response.text() };
 }
 
