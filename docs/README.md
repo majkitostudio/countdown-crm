@@ -11,6 +11,7 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [TELEPHONY_TELNYX_SETUP.md](TELEPHONY_TELNYX_SETUP.md) | Stav Telnyx vrstvy a dočasná validační cesta přes Docker SIP laboratoř. Neobsahuje tajné klíče. |
 | [superpowers/reports/2026-09-07-project-checkpoint.md](superpowers/reports/2026-09-07-project-checkpoint.md) | Celoprojektový checkpoint, důkazy, rizika a důvody priorit P0–P4. |
 | [superpowers/reports/2026-09-07-linked-function-drift.md](superpowers/reports/2026-09-07-linked-function-drift.md) | Root-cause důkaz, že raw function drift je CRLF/LF false positive, a nový sémantický verifier. |
+| [superpowers/reports/2026-09-07-p0-2-privileged-rpc-pgtap.md](superpowers/reports/2026-09-07-p0-2-privileged-rpc-pgtap.md) | Návrh a lokální důkazy izolace pěti privilegovaných RPC a přesunu `pgtap` mimo `public`. |
 | [superpowers/specs/2026-09-07-project-checkpoint-design.md](superpowers/specs/2026-09-07-project-checkpoint-design.md) | Schválená hranice a prioritní model checkpointu. |
 | [superpowers/plans/2026-09-07-project-checkpoint.md](superpowers/plans/2026-09-07-project-checkpoint.md) | Provedený plán checkpointu a jeho ověřovací kroky. |
 | [superpowers/specs/2026-09-05-local-telephony-settings-design.md](superpowers/specs/2026-09-05-local-telephony-settings-design.md) | Schválená specifikace workspace adapteru, admin-only `/telephony` a lokální Asterisk laboratoře. |

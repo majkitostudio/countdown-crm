@@ -45,6 +45,11 @@ akceptační kritéria a důkazní plán.
    Každá musí mít explicitní workspace/role kontrolu, minimální grant a negativní
    test; změna na invoker/revoke se provede jen podle skutečného kontraktu.
    Extension `pgtap` se přesune mimo exponované `public` schéma bezpečným postupem.
+   - Lokálně připraveno: stabilní veřejné RPC signatury jsou invoker wrappery,
+     privilegovaná těla jsou v `private`, granty a záporné role/workspace/call
+     scénáře kryjí testy a idempotentní migrace přesouvá `pgtap` do `extensions`.
+     Čistý reset prošel 183/183 databázovými testy a lokální advisor už původních
+     šest příčin nehlásí. Bod zůstává otevřený do linked nasazení a read-backu.
    - Hotovo, když advisor nálezy mají odstraněnou příčinu nebo zdokumentované
      bezpečné odůvodnění podložené testem a `pgtap` už není v `public`.
 3. **Definovat bezpečný privileged runner pro vzdálené databázové důkazy.**
