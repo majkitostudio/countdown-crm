@@ -3,9 +3,11 @@ import { readFileSync } from "node:fs";
 
 import {
   buildReadOnlyQueryRequest,
+  buildPostgrestConfigRequest,
   fingerprint,
   makeFailureReport,
   parseEvidencePayload,
+  parsePostgrestConfig,
   readRunnerConfig,
   requestReadOnlyQuery,
   runLinkedEvidence,
@@ -150,6 +152,22 @@ describe("P0.3 remote evidence runner configuration", () => {
 
     expect(() => validateReadOnlySql(sql)).not.toThrow();
     expect(sql).toContain("pg_proc");
+    expect(sql).toContain("pg_get_function_identity_arguments");
+    expect(sql).toContain(
+      "p_workspace_id uuid, p_currency text, p_minimum_order_amount numeric, p_bonus_amount numeric, p_effective_from date",
+    );
+    expect(sql).toContain(
+      "p_workspace_id uuid, p_user_id uuid, p_amount numeric, p_reason text",
+    );
+    expect(sql).toContain(
+      "p_workspace_id uuid, p_currency text, p_monthly_commission_rate numeric",
+    );
+    expect(sql).toContain(
+      "completion_key uuid, target_queue_item_id uuid, call_session_id uuid",
+    );
+    expect(sql).toContain(
+      "completion_key uuid, call_session_id uuid, lead_id uuid",
+    );
     expect(sql).toContain("pg_extension");
     expect(sql).toContain("pgtap_not_public");
     expect(sql).not.toMatch(/\b(insert|update|delete|alter|drop|grant|revoke)\b/i);
@@ -191,7 +209,10 @@ describe("P0.3 remote evidence runner configuration", () => {
   });
 
   it("passes the scoped token only in the API request and returns a safe report", async () => {
-    let requestInput: { url?: string, options?: { headers?: Record<string, string> } } = {};
+    const requestInputs: Array<{
+      url?: string,
+      options?: { headers?: Record<string, string> },
+    }> = [];
     const result = await runLinkedEvidence({
       env: {
         ...testEnv,
@@ -202,14 +223,20 @@ describe("P0.3 remote evidence runner configuration", () => {
       },
       sql: "select 1;",
       request: async (input) => {
-        requestInput = input;
+        requestInputs.push(input);
+        if (input.url.endsWith("/postgrest")) {
+          return {
+            status: 200,
+            body: JSON.stringify({ db_schema: "public, graphql_public" }),
+          };
+        }
         return {
           status: 201,
           body: '[{"evidence":{' +
             '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
             '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
             '"private_rpc_grants":true,"private_rpc_search_path":true,' +
-            '"pgtap_not_public":true,"private_schema_not_exposed":true' +
+            '"pgtap_not_public":true' +
             '}}]',
         };
       },
@@ -217,10 +244,13 @@ describe("P0.3 remote evidence runner configuration", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.report.status).toBe("passed");
-    expect(requestInput.url).toBe(
+    expect(requestInputs.map(({ url }) => url)).toEqual([
       "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
-    );
-    expect(requestInput.options?.headers?.authorization).toBe(`Bearer ${scopedToken}`);
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/postgrest",
+    ]);
+    expect(requestInputs.every(
+      ({ options }) => options?.headers?.authorization === `Bearer ${scopedToken}`,
+    )).toBe(true);
     expect(JSON.stringify(result.report)).not.toContain(scopedToken);
   });
 
@@ -307,6 +337,109 @@ describe("P0.3 remote evidence runner configuration", () => {
     }
   });
 
+  it("builds the authoritative PostgREST configuration request", () => {
+    expect(buildPostgrestConfigRequest({
+      projectRef: "abcdefghijklmnopqrst",
+      token: scopedToken,
+    })).toEqual({
+      url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/postgrest",
+      options: {
+        method: "GET",
+        headers: {
+          authorization: `Bearer ${scopedToken}`,
+          accept: "application/json",
+        },
+      },
+    });
+  });
+
+  it("derives private schema exposure without returning other config fields", () => {
+    expect(parsePostgrestConfig(JSON.stringify({
+      db_schema: "public, graphql_public",
+      jwt_secret: "must-never-leave-the-parser",
+    }))).toEqual({ private_schema_not_exposed: true });
+
+    expect(parsePostgrestConfig(JSON.stringify({
+      db_schema: "public, private",
+      jwt_secret: "must-never-leave-the-parser",
+    }))).toEqual({ private_schema_not_exposed: false });
+
+    expect(() => parsePostgrestConfig(JSON.stringify({
+      jwt_secret: "must-never-leave-the-parser",
+    }))).toThrow("INVALID_POSTGREST_CONFIG");
+  });
+
+  it("uses PostgREST configuration as the source of schema exposure evidence", async () => {
+    const requestedUrls: string[] = [];
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async ({ url }) => {
+        requestedUrls.push(url);
+        if (url.endsWith("/postgrest")) {
+          return {
+            status: 200,
+            body: JSON.stringify({
+              db_schema: "public, private",
+              jwt_secret: "must-never-escape",
+            }),
+          };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
+    });
+
+    expect(requestedUrls).toEqual([
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/postgrest",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("EVIDENCE_CHECK_FAILED");
+    expect(result.report.checks.failed).toEqual(["private_schema_not_exposed"]);
+    expect(JSON.stringify(result.report)).not.toContain("must-never-escape");
+  });
+
+  it("fails safely when PostgREST configuration cannot be read", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async ({ url }) => {
+        if (url.endsWith("/postgrest")) {
+          return { status: 403, body: "jwt_secret=must-never-escape" };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("POSTGREST_CONFIG_FAILED");
+    expect(JSON.stringify(result.report)).not.toContain("must-never-escape");
+  });
+
   it("rejects invalid API JSON without returning the raw payload", async () => {
     const result = await runLinkedEvidence({
       env: {
@@ -334,15 +467,23 @@ describe("P0.3 remote evidence runner configuration", () => {
         SUPABASE_ACCESS_TOKEN: scopedToken,
       },
       sql: "select 1;",
-      request: async () => ({
-        status: 201,
-        body: '[{"evidence":{' +
-          '"public_rpc_boundaries":false,"public_rpc_grants":true,' +
-          '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
-          '"private_rpc_grants":true,"private_rpc_search_path":true,' +
-          '"pgtap_not_public":true,"private_schema_not_exposed":true' +
-          '}}]',
-      }),
+      request: async ({ url }) => {
+        if (url.endsWith("/postgrest")) {
+          return {
+            status: 200,
+            body: JSON.stringify({ db_schema: "public, graphql_public" }),
+          };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":false,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
     });
 
     expect(result.exitCode).toBe(1);

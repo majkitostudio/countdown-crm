@@ -26,3 +26,5 @@ docker run --rm `
 
 Výchozí režim je read-only. Nepoužívejte `SUPABASE_SECRET_KEY` ani
 `SUPABASE_SERVICE_ROLE_KEY`. Image nepoužívejte proti produkčnímu projektu.
+Scoped token musí mít pouze `Database: Read` a `Data API Config: Read` pro
+konkrétní linked sandbox.

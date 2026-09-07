@@ -15,6 +15,9 @@ export const EVIDENCE_CHECK_KEYS = new Set([
   "pgtap_not_public",
   "private_schema_not_exposed",
 ]);
+const DATABASE_EVIDENCE_CHECK_KEYS = new Set(
+  [...EVIDENCE_CHECK_KEYS].filter((key) => key !== "private_schema_not_exposed"),
+);
 export const REQUIRED_EVIDENCE_CHECK_KEYS = [...EVIDENCE_CHECK_KEYS];
 const runnerError = (code) => {
   const error = new Error(code);
@@ -80,6 +83,19 @@ export function buildReadOnlyQueryRequest({ projectRef, token, sql }) {
   };
 }
 
+export function buildPostgrestConfigRequest({ projectRef, token }) {
+  return {
+    url: `https://api.supabase.com/v1/projects/${projectRef}/postgrest`,
+    options: {
+      method: "GET",
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+      },
+    },
+  };
+}
+
 export function fingerprint(value) {
   return createHash("sha256").update(String(value)).digest("hex").slice(0, 12);
 }
@@ -120,7 +136,7 @@ export function parseEvidencePayload(output) {
 
   const checks = {};
   for (const [key, value] of Object.entries(evidence)) {
-    if (!EVIDENCE_CHECK_KEYS.has(key) || typeof value !== "boolean") {
+    if (!DATABASE_EVIDENCE_CHECK_KEYS.has(key) || typeof value !== "boolean") {
       throw runnerError("INVALID_EVIDENCE_PAYLOAD");
     }
     checks[key] = value;
@@ -132,8 +148,28 @@ export function parseEvidencePayload(output) {
   return { checks };
 }
 
+export function parsePostgrestConfig(output) {
+  let config;
+  try {
+    config = JSON.parse(String(output).trim());
+  } catch {
+    throw runnerError("INVALID_POSTGREST_CONFIG");
+  }
+
+  if (!config || typeof config !== "object" || Array.isArray(config)
+    || typeof config.db_schema !== "string" || !config.db_schema.trim()) {
+    throw runnerError("INVALID_POSTGREST_CONFIG");
+  }
+
+  const exposedSchemas = config.db_schema
+    .split(",")
+    .map((schema) => schema.trim())
+    .filter(Boolean);
+  return { private_schema_not_exposed: !exposedSchemas.includes("private") };
+}
+
 /**
- * @param {{ url: string, options: { method: string, headers: Record<string, string>, body: string } }} input
+ * @param {{ url: string, options: { method: string, headers: Record<string, string>, body?: string } }} input
  * @returns {Promise<{ status: number, body: string }>}
  */
 export async function requestReadOnlyQuery({ url, options }) {
@@ -149,7 +185,7 @@ export async function requestReadOnlyQuery({ url, options }) {
  *   env?: Record<string, string | undefined>,
  *   sql: string,
  *   mode?: string,
- *   request?: (input: { url: string, options: { method: string, headers: Record<string, string>, body: string } }) => Promise<{ status: number, body: string }>,
+ *   request?: (input: { url: string, options: { method: string, headers: Record<string, string>, body?: string } }) => Promise<{ status: number, body: string }>,
  * }} input
  * @returns {Promise<{ exitCode: number, report: { [key: string]: any } }>}
  */
@@ -179,7 +215,22 @@ export async function runLinkedEvidence({
     }
     if (result.status < 200 || result.status >= 300) throw runnerError("API_QUERY_FAILED");
 
-    const { checks } = parseEvidencePayload(result.body ?? "");
+    const databaseEvidence = parseEvidencePayload(result.body ?? "");
+    const postgrestRequest = buildPostgrestConfigRequest({
+      projectRef: config.projectRef,
+      token: env.SUPABASE_ACCESS_TOKEN.trim(),
+    });
+    let postgrestResult;
+    try {
+      postgrestResult = await request(postgrestRequest);
+    } catch {
+      throw runnerError("POSTGREST_CONFIG_FAILED");
+    }
+    if (postgrestResult.status < 200 || postgrestResult.status >= 300) {
+      throw runnerError("POSTGREST_CONFIG_FAILED");
+    }
+    const postgrestEvidence = parsePostgrestConfig(postgrestResult.body ?? "");
+    const checks = { ...databaseEvidence.checks, ...postgrestEvidence };
     const failedChecks = REQUIRED_EVIDENCE_CHECK_KEYS.filter((key) => checks[key] !== true);
     const report = {
       status: failedChecks.length === 0 ? "passed" : "failed",

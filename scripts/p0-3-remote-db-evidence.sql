@@ -1,23 +1,42 @@
-with rpc_names(name) as (
+with rpc_contracts(name, identity_arguments) as (
   values
-    ('add_wallet_bonus_rule'::text),
-    ('add_wallet_manual_adjustment'::text),
-    ('complete_call_with_order_items_idempotent'::text),
-    ('complete_lead_call_with_order_items_idempotent'::text),
-    ('update_wallet_settings'::text)
+    (
+      'add_wallet_bonus_rule'::text,
+      'p_workspace_id uuid, p_currency text, p_minimum_order_amount numeric, p_bonus_amount numeric, p_effective_from date'::text
+    ),
+    (
+      'add_wallet_manual_adjustment'::text,
+      'p_workspace_id uuid, p_user_id uuid, p_amount numeric, p_reason text'::text
+    ),
+    (
+      'complete_call_with_order_items_idempotent'::text,
+      'completion_key uuid, call_session_id uuid, lead_id uuid, duration_seconds integer, outcome text, transcript text, ai_sentiment text, order_items jsonb, callback_scheduled_at timestamp with time zone, call_note text, call_fail_reason text'::text
+    ),
+    (
+      'complete_lead_call_with_order_items_idempotent'::text,
+      'completion_key uuid, target_queue_item_id uuid, call_session_id uuid, call_duration_seconds integer, call_outcome text, call_transcript text, call_ai_sentiment text, order_items jsonb, callback_scheduled_at timestamp with time zone, call_note text, call_fail_reason text'::text
+    ),
+    (
+      'update_wallet_settings'::text,
+      'p_workspace_id uuid, p_currency text, p_monthly_commission_rate numeric'::text
+    )
 ),
 public_rpc as (
   select procedure.oid, procedure.proname, procedure.prosecdef, procedure.proconfig, procedure.proacl
   from pg_proc as procedure
   join pg_namespace as namespace on namespace.oid = procedure.pronamespace
-  join rpc_names on rpc_names.name = procedure.proname
+  join rpc_contracts
+    on rpc_contracts.name = procedure.proname
+    and rpc_contracts.identity_arguments = pg_get_function_identity_arguments(procedure.oid)
   where namespace.nspname = 'public'
 ),
 private_rpc as (
   select procedure.oid, procedure.proname, procedure.prosecdef, procedure.proconfig, procedure.proacl
   from pg_proc as procedure
   join pg_namespace as namespace on namespace.oid = procedure.pronamespace
-  join rpc_names on rpc_names.name = procedure.proname
+  join rpc_contracts
+    on rpc_contracts.name = procedure.proname
+    and rpc_contracts.identity_arguments = pg_get_function_identity_arguments(procedure.oid)
   where namespace.nspname = 'private'
 ),
 public_grants as (
@@ -59,11 +78,5 @@ select jsonb_build_object(
     join pg_namespace as namespace on namespace.oid = extension.extnamespace
     where extension.extname = 'pgtap'
       and namespace.nspname = 'public'
-  ),
-  'private_schema_not_exposed', not (
-    'private' = any(string_to_array(
-      regexp_replace(coalesce(current_setting('pgrst.db_schemas', true), ''), '\s+', '', 'g'),
-      ','
-    ))
   )
 ) as evidence

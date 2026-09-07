@@ -17,6 +17,7 @@ Supabase Management API.
 - ACL nepovoluje anonymní nebo veřejné vykonání a zachovává očekávaný
   `authenticated` přístup,
 - `pgtap` není v `public`,
+- skutečná PostgREST konfigurace nevystavuje schéma `private`,
 - výsledek pochází z explicitně zadaného linked project refu.
 
 ## Co runner nedokazuje
@@ -28,7 +29,8 @@ Nespouští migrace, reset databáze ani write testy.
 ## Identita a secrets
 
 Použijte samostatný scoped Supabase access token pouze pro linked sandbox.
-Token musí být omezený na jeden projekt a potřebné `Database: Read` oprávnění.
+Token musí být omezený na jeden projekt a přesně dvě čtecí oprávnění:
+`Database: Read` a `Data API Config: Read`.
 Classic/full-account token není vhodná náhrada pro automatizaci.
 
 Token vytvořte mimo repozitář a vložte ho až při běhu. Nikdy ho neukládejte do
@@ -60,6 +62,11 @@ se scoped oprávněním `Database: Read` a SQL je proveden jako read-only datab�
 identita. Read-only SQL je verzovaný v
 `scripts/p0-3-remote-db-evidence.sql` a runner odmítne zápisová SQL slova ještě
 před síťovým požadavkem.
+
+Schéma `private` se nekontroluje z databázové session. Runner čte autoritativní
+PostgREST konfiguraci přes `GET /v1/projects/{ref}/postgrest`, která vyžaduje
+`Data API Config: Read`. Z odpovědi převezme pouze `db_schema`; ostatní pole se
+nikdy nekopírují do reportu nebo chyby.
 
 ## Spuštění v Dockeru
 
@@ -94,7 +101,9 @@ Při chybě se vypíše stabilní kód, například:
 - `MISSING_SUPABASE_ACCESS_TOKEN` — chybí runner token,
 - `FORBIDDEN_APPLICATION_CREDENTIAL` — byl nabídnut app/service-role klíč,
 - `API_QUERY_FAILED` — read-only Management API dotaz selhal,
+- `POSTGREST_CONFIG_FAILED` — skutečnou Data API konfiguraci nebylo možné načíst,
 - `INVALID_EVIDENCE_PAYLOAD` — odpověď nemá očekávaný bezpečný tvar,
+- `INVALID_POSTGREST_CONFIG` — konfigurace neobsahuje bezpečně čitelný seznam schémat,
 - `EVIDENCE_CHECK_FAILED` — některý databázový kontrakt je porušený.
 
 Raw API odpověď se do chyby ani reportu nekopíruje.

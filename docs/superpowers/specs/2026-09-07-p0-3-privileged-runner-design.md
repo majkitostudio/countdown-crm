@@ -13,10 +13,11 @@ produkční service-role klíč ani zaměňovat linked sandbox za produkční d�
 
 ## Rozhodnutí
 
-Základní režim používá přímo read-only Supabase Management API endpoint
-`POST /v1/projects/{ref}/database/query/read-only` proti explicitně zadanému
-project ref. Autentizace probíhá samostatným scoped Supabase access tokenem,
-omezeným na jediný linked sandbox a oprávnění `Database: Read`. Token je dodán
+Základní režim používá dva read-only Supabase Management API endpointy:
+`POST /v1/projects/{ref}/database/query/read-only` pro databázový katalog a
+`GET /v1/projects/{ref}/postgrest` pro skutečný seznam Data API schémat.
+Autentizace probíhá samostatným scoped Supabase access tokenem omezeným na
+jediný linked sandbox a oprávnění `Database: Read` a `Data API Config: Read`. Token je dodán
 mimo Git jako runtime secret; runner nepřijímá `SUPABASE_SECRET_KEY` ani
 `SUPABASE_SERVICE_ROLE_KEY`.
 
@@ -38,6 +39,7 @@ odmítne před připojením.
 - read-only katalogový důkaz security režimu, signatur, `search_path`, umístění
   a ACL pěti P0.2 RPC hranic,
 - důkaz, že `pgtap` není v `public`,
+- autoritativní důkaz, že PostgREST konfigurace nevystavuje `private`,
 - kontrolu očekávaných linked migration-history a databázových metadat, pokud
   jsou pro daný dotaz dostupná,
 - deterministický výsledek `PASS`/`FAIL` s počtem kontrol a sanitizovaným
@@ -61,19 +63,20 @@ odmítne před připojením.
 runtime secret manager / lokální secret store
         │
         ├── P0_3_LINKED_PROJECT_REF
-        └── SUPABASE_ACCESS_TOKEN (scoped, jeden sandbox, Database: Read)
+        └── SUPABASE_ACCESS_TOKEN (scoped, jeden sandbox,
+                                   Database: Read + Data API Config: Read)
                 │
         pinned Node runner nebo Docker image
                 │
         read-only Supabase Management API
                 │
-        allow-listed read-only SQL
+        allow-listed read-only SQL + PostgREST db_schema
                 │
         sanitizovaný report bez tokenu, URL credentialu,
         hesla, JWT, Auth emailu nebo raw API diagnostiky
 ```
 
-Runner nebude volat Data API a nebude do prostředí nastavovat žádný
+Runner nebude volat veřejné Data API a nebude do prostředí nastavovat žádný
 `NEXT_PUBLIC_*` secret. Project ref se předá pouze v URL API požadavku a v
 reportu se zobrazí jen jeho bezpečně zkrácený otisk, nikoli credential.
 
@@ -105,6 +108,8 @@ nepovolené tokeny typu `insert`, `update`, `delete`, `merge`, `alter`, `drop`,
 `create`, `grant`, `revoke`, `truncate`, `copy`, `vacuum`, `refresh` a `call`.
 Dotaz bude vracet pouze agregované kontrakty a booleany; nebude vracet řádky
 zákazníků, Auth metadata, e-mailové adresy, telephony payloady ani tokeny.
+Kontrola Data API exposure převezme z PostgREST Management API odpovědi pouze
+`db_schema`; raw konfigurační odpověď se nikdy nezapisuje ani nevypisuje.
 
 ### Volitelné zápisy
 
@@ -148,6 +153,7 @@ Vitest pokryje čisté funkce a orchestraci bez připojení:
 - odmítnutí `NEXT_PUBLIC_*` secret konfigurace,
 - read-only SQL allow-list,
 - konstrukci read-only API požadavku,
+- konstrukci PostgREST config požadavku a parsování pouze `db_schema`,
 - parsování očekávaného JSON payloadu,
 - fingerprint a redakci citlivých hodnot,
 - mapování API failure na stabilní bezpečný error,
