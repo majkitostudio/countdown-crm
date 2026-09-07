@@ -1,0 +1,120 @@
+# P0.3 — vzdálený databázový runner
+
+## K čemu slouží
+
+Runner ověří, že linked Supabase sandbox skutečně odpovídá bezpečnostním
+kontraktům P0.2. Kontroluje katalog databáze, nikoli data zákazníků.
+
+Lokální pgTAP není důkaz linked sandboxu. Lokální test běží v lokální databázi;
+runner posílá verzovaný read-only dotaz do konkrétního linked projektu přes
+Supabase Management API.
+
+## Co runner dokazuje
+
+- pět veřejných RPC je `SECURITY INVOKER`,
+- pět privilegovaných implementací je v `private` a má `SECURITY DEFINER`,
+- veřejné i privátní funkce mají očekávaný prázdný `search_path`,
+- ACL nepovoluje anonymní nebo veřejné vykonání a zachovává očekávaný
+  `authenticated` přístup,
+- `pgtap` není v `public`,
+- skutečná PostgREST konfigurace nevystavuje schéma `private`,
+- výsledek pochází z explicitně zadaného linked project refu.
+
+## Co runner nedokazuje
+
+Runner není produkční readiness test. Nedokazuje produkční databázi, browser,
+Auth session tří rolí, živý Telnyx, UI autorizaci ani business mutaci.
+Nespouští migrace, reset databáze ani write testy.
+
+## Identita a secrets
+
+Použijte samostatný scoped Supabase access token pouze pro linked sandbox.
+Token musí být omezený na jeden projekt a přesně dvě čtecí oprávnění:
+`Database: Read` a `Data API Config: Read`.
+Classic/full-account token není vhodná náhrada pro automatizaci.
+
+Token vytvořte mimo repozitář a vložte ho až při běhu. Nikdy ho neukládejte do
+`.env` v projektu, Dockerfile, Docker build argů, GitHub logu ani `NEXT_PUBLIC_*`.
+Runner záměrně odmítne `SUPABASE_SECRET_KEY` a
+`SUPABASE_SERVICE_ROLE_KEY`.
+
+Potřebné runtime proměnné:
+
+```text
+P0_3_LINKED_PROJECT_REF=<jediný linked sandbox project ref>
+SUPABASE_ACCESS_TOKEN=<scoped runner token z secret manageru>
+```
+
+Hodnoty nikdy nevypisujte do konzole. Runner v reportu používá pouze krátký
+fingerprint project refu a nevrací token ani URL credential.
+
+## Spuštění mimo Docker
+
+Z důvěryhodného hostitele, kde jsou runtime proměnné nastavené mimo Git:
+
+```powershell
+npm run verify:linked-security
+```
+
+Příkaz používá read-only endpoint
+`POST /v1/projects/{ref}/database/query/read-only`. Tento endpoint je dostupný
+se scoped oprávněním `Database: Read` a SQL je proveden jako read-only databázová
+identita. Read-only SQL je verzovaný v
+`scripts/p0-3-remote-db-evidence.sql` a runner odmítne zápisová SQL slova ještě
+před síťovým požadavkem.
+
+Schéma `private` se nekontroluje z databázové session. Runner čte autoritativní
+PostgREST konfiguraci přes `GET /v1/projects/{ref}/postgrest`, která vyžaduje
+`Data API Config: Read`. Z odpovědi převezme pouze `db_schema`; ostatní pole se
+nikdy nekopírují do reportu nebo chyby.
+
+## Spuštění v Dockeru
+
+```powershell
+docker build -f docker/p0-3-runner/Dockerfile -t countdown-crm-p0-3-runner .
+docker run --rm `
+  --env P0_3_LINKED_PROJECT_REF `
+  --env SUPABASE_ACCESS_TOKEN `
+  countdown-crm-p0-3-runner
+```
+
+Secret se předává až při `docker run`; při buildu se nepoužívá `ARG` ani
+`ENV` s tokenem.
+
+## Bezpečný výstup
+
+Úspěch vrací JSON podobný tomuto tvaru:
+
+```json
+{
+  "status": "passed",
+  "target": "linked-sandbox",
+  "mode": "read-only",
+  "projectRefFingerprint": "0123456789ab",
+  "checks": { "total": 8, "passed": 8, "failed": [] }
+}
+```
+
+Při chybě se vypíše stabilní kód, například:
+
+- `MISSING_P0_3_LINKED_PROJECT_REF` — chybí project ref,
+- `MISSING_SUPABASE_ACCESS_TOKEN` — chybí runner token,
+- `FORBIDDEN_APPLICATION_CREDENTIAL` — byl nabídnut app/service-role klíč,
+- `API_QUERY_FAILED` — read-only Management API dotaz selhal,
+- `POSTGREST_CONFIG_FAILED` — skutečnou Data API konfiguraci nebylo možné načíst,
+- `INVALID_EVIDENCE_PAYLOAD` — odpověď nemá očekávaný bezpečný tvar,
+- `INVALID_POSTGREST_CONFIG` — konfigurace neobsahuje bezpečně čitelný seznam schémat,
+- `EVIDENCE_CHECK_FAILED` — některý databázový kontrakt je porušený.
+
+Raw API odpověď se do chyby ani reportu nekopíruje.
+
+## Rozdíl prostředí
+
+| Prostředí | Příkaz / důkaz | Co znamená |
+|---|---|---|
+| Lokální runtime | `npx supabase test db` | Test lokální databáze; není to linked důkaz. |
+| Linked sandbox | `npm run verify:linked-security` | Skutečný read-only katalogový důkaz konkrétního sandboxu. |
+| Produkce | runner se nepoužívá | Produkční readiness a autorizace vyžadují vlastní schválený proces. |
+
+P0.3 je dokončené až po skutečném linked běhu, jehož sanitizovaný report je
+uložený v `docs/superpowers/reports/`.

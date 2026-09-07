@@ -1,0 +1,17 @@
+# Start with an empty build context and allow only the runner inputs below.
+*
+
+!docker/
+docker/p0-3-runner/*
+!docker/p0-3-runner/Dockerfile
+
+!scripts/
+scripts/*
+!scripts/p0-3-remote-db-evidence.mjs
+!scripts/p0-3-remote-db-evidence-lib.mjs
+!scripts/p0-3-remote-db-evidence.sql
+
+# Keep local credentials and Supabase CLI state out even if the allow-list grows.
+.env*
+**/.env*
+supabase/.temp/

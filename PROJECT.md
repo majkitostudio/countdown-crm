@@ -146,9 +146,10 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. P0 pokračuje bezpečným vzdáleným test runnerem a poté produkčním Auth
-   nastavením. Funkční schema drift i advisor nálezy privilegovaných RPC a
-   `pgtap` jsou uzavřené a podložené read-backem.
+1. P0.3 bezpečný vzdálený test runner je uzavřený skutečným linked sandbox
+   důkazem `8/8`; další položkou P0 je samostatné produkční Auth nastavení.
+   Funkční schema drift i advisor nálezy privilegovaných RPC a `pgtap` jsou
+   uzavřené a podložené read-backem.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
 3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
@@ -195,6 +196,8 @@ samostatném rozhodnutí a po přepsání tak, aby odpovídaly aktuálnímu prod
   checklist pro změny,
 - [docs/TELEPHONY_TELNYX_SETUP.md](docs/TELEPHONY_TELNYX_SETUP.md) — Telnyx
   konfigurace a hranice.
+- [docs/P0_3_REMOTE_DB_RUNNER.md](docs/P0_3_REMOTE_DB_RUNNER.md) — bezpečný
+  read-only runner pro linked databázové důkazy.
 
 Aktivní dokumentace je záměrně malá. Smazané historické soubory se v tomto
 kroku neobnovují.

@@ -53,13 +53,16 @@ akceptační kritéria a důkazní plán.
      linked advisor už původních šest příčin nehlásí.
    - Hotovo, když advisor nálezy mají odstraněnou příčinu nebo zdokumentované
      bezpečné odůvodnění podložené testem a `pgtap` už není v `public`.
-3. **Definovat bezpečný privileged runner pro vzdálené databázové důkazy.**
+3. [x] **Definovat bezpečný privileged runner pro vzdálené databázové důkazy.**
    Současný secret key zvládá Auth admin operace, ale Data API nemá grant na
    `public.workspaces`; lokální pgTAP proto není vzdálený důkaz. Široké granty se
    nesmějí přidat jen kvůli testu.
    - Hotovo, když existuje oddělený, minimálně oprávněný a opakovatelný způsob
      vzdáleného ověření, nebo výslovně schválená alternativa bez produkčního
      rozšíření práv.
+   - Implementace read-only runneru a Docker obalu je hotová. Skutečný linked
+     běh proti sandboxu prošel `8/8` kontrolami; důkaz je uložený v
+     `docs/superpowers/reports/2026-09-07-p0-3-linked-run.md`.
 4. **Uzavřít produkční Auth nastavení.**
    Před přístupem reálných uživatelů zapnout leaked-password protection a znovu
    projít auth smoke test. `NEXT_PUBLIC_ALLOW_DEMO_AUTH` zůstává pouze lokální.

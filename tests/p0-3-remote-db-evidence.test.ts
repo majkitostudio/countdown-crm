@@ -1,0 +1,493 @@
+import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+
+import {
+  buildReadOnlyQueryRequest,
+  buildPostgrestConfigRequest,
+  fingerprint,
+  makeFailureReport,
+  parseEvidencePayload,
+  parsePostgrestConfig,
+  readRunnerConfig,
+  requestReadOnlyQuery,
+  runLinkedEvidence,
+  sanitizeDiagnostic,
+  validateReadOnlySql,
+} from "../scripts/p0-3-remote-db-evidence-lib.mjs";
+
+const testEnv = {
+  NODE_ENV: "test",
+};
+const scopedToken = ["sbp", "fc-test-only"].join("_");
+
+const evidenceSqlPath = new URL(
+  "../scripts/p0-3-remote-db-evidence.sql",
+  import.meta.url,
+);
+const dockerfilePath = new URL(
+  "../docker/p0-3-runner/Dockerfile",
+  import.meta.url,
+);
+const dockerignorePath = new URL(
+  "../.dockerignore",
+  import.meta.url,
+);
+const guidePath = new URL(
+  "../docs/P0_3_REMOTE_DB_RUNNER.md",
+  import.meta.url,
+);
+
+describe("P0.3 remote evidence runner configuration", () => {
+  it("rejects a missing scoped access token without exposing a value", () => {
+    expect(() =>
+      readRunnerConfig(
+        { ...testEnv, P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst" },
+      ),
+    ).toThrow("MISSING_SUPABASE_ACCESS_TOKEN");
+  });
+
+  it("rejects application service credentials", () => {
+    expect(() =>
+      readRunnerConfig(
+        {
+          ...testEnv,
+          P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+          SUPABASE_ACCESS_TOKEN: scopedToken,
+          SUPABASE_SERVICE_ROLE_KEY: "must-not-be-used",
+        },
+      ),
+    ).toThrow("FORBIDDEN_APPLICATION_CREDENTIAL");
+  });
+
+  it("accepts only a single read-only select or with query", () => {
+    expect(() => validateReadOnlySql("select 1;")).not.toThrow();
+    expect(() => validateReadOnlySql("with rows as (select 1) select * from rows;"))
+      .not.toThrow();
+    expect(() => validateReadOnlySql("delete from public.workspaces;"))
+      .toThrow("NON_READ_ONLY_SQL");
+    expect(() => validateReadOnlySql("select 1; delete from public.workspaces;"))
+      .toThrow("MULTIPLE_SQL_STATEMENTS");
+  });
+
+  it("rejects a non-scoped access token", () => {
+    expect(() => readRunnerConfig(
+      {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: "classic-account-token",
+      },
+    )).toThrow("INVALID_SUPABASE_ACCESS_TOKEN");
+  });
+
+  it("builds the Supabase read-only Management API request", () => {
+    expect(buildReadOnlyQueryRequest({
+      projectRef: "abcdefghijklmnopqrst",
+      token: scopedToken,
+      sql: "select 1;",
+    })).toEqual({
+      url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+      options: {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${scopedToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ query: "select 1;" }),
+      },
+    });
+  });
+
+  it("redacts token, JWT and database credentials from diagnostics", () => {
+    const diagnostic = sanitizeDiagnostic(
+      ["sbp", "very-secret"].join("_") + " Bearer eyJheader.payload.signature " +
+      "postgresql://user:password@host/db password=another-secret",
+    );
+
+    expect(diagnostic).not.toContain("very-secret");
+    expect(diagnostic).not.toContain("header.payload.signature");
+    expect(diagnostic).not.toContain("user:password@host");
+    expect(diagnostic).not.toContain("another-secret");
+    expect(diagnostic).toContain("[REDACTED]");
+  });
+
+  it("does not add an undefined fingerprint to a failure report", () => {
+    expect(makeFailureReport({ failureCode: "MISSING_SUPABASE_ACCESS_TOKEN" }))
+      .toEqual({
+        status: "failed",
+        failureCode: "MISSING_SUPABASE_ACCESS_TOKEN",
+        target: "linked-sandbox",
+        mode: "read-only",
+      });
+  });
+
+  it("creates a short deterministic fingerprint without returning the source", () => {
+    expect(fingerprint("abcdefghijklmnopqrst")).toMatch(/^[0-9a-f]{12}$/);
+    expect(fingerprint("abcdefghijklmnopqrst")).toBe(fingerprint("abcdefghijklmnopqrst"));
+    expect(fingerprint("abcdefghijklmnopqrst")).not.toContain("abcdefghijklmnopqrst");
+  });
+
+  it("parses one safe evidence row", () => {
+    expect(parseEvidencePayload(
+      '[{"evidence":{"public_rpc_boundaries":true,"pgtap_not_public":true}}]' +
+      "\n",
+    )).toEqual({
+      checks: {
+        public_rpc_boundaries: true,
+        pgtap_not_public: true,
+      },
+    });
+  });
+
+  it("rejects a payload with arbitrary database rows", () => {
+    expect(() => parseEvidencePayload(
+      '[{"email":"person@example.test"}]',
+    )).toThrow("INVALID_EVIDENCE_PAYLOAD");
+    expect(() => parseEvidencePayload(
+      '[{"evidence":{"pgtap_not_public":true},"email":"person@example.test"}]',
+    )).toThrow("INVALID_EVIDENCE_PAYLOAD");
+  });
+
+  it("ships a read-only catalog query for the P0.2 contracts", () => {
+    const sql = readFileSync(evidenceSqlPath, "utf8");
+
+    expect(() => validateReadOnlySql(sql)).not.toThrow();
+    expect(sql).toContain("pg_proc");
+    expect(sql).toContain("pg_get_function_identity_arguments");
+    expect(sql).toContain(
+      "p_workspace_id uuid, p_currency text, p_minimum_order_amount numeric, p_bonus_amount numeric, p_effective_from date",
+    );
+    expect(sql).toContain(
+      "p_workspace_id uuid, p_user_id uuid, p_amount numeric, p_reason text",
+    );
+    expect(sql).toContain(
+      "p_workspace_id uuid, p_currency text, p_monthly_commission_rate numeric",
+    );
+    expect(sql).toContain(
+      "completion_key uuid, target_queue_item_id uuid, call_session_id uuid",
+    );
+    expect(sql).toContain(
+      "completion_key uuid, call_session_id uuid, lead_id uuid",
+    );
+    expect(sql).toContain("pg_extension");
+    expect(sql).toContain("pgtap_not_public");
+    expect(sql).not.toMatch(/\b(insert|update|delete|alter|drop|grant|revoke)\b/i);
+  });
+
+  it("keeps secrets out of the Docker image", () => {
+    const dockerfile = readFileSync(dockerfilePath, "utf8");
+
+    expect(dockerfile).toContain("node:22.19.0-bookworm-slim");
+    expect(dockerfile).toContain("p0-3-remote-db-evidence.sql");
+    expect(dockerfile).not.toMatch(/COPY[^\n]*\.env/i);
+    expect(dockerfile).not.toMatch(/\bARG\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
+    expect(dockerfile).not.toMatch(/\bENV\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
+    expect(dockerfile).not.toContain("SERVICE_ROLE_KEY");
+  });
+
+  it("keeps local secrets out of the Docker build context", () => {
+    const dockerignore = readFileSync(dockerignorePath, "utf8");
+
+    expect(dockerignore).toContain("*");
+    expect(dockerignore).toContain("!docker/p0-3-runner/Dockerfile");
+    expect(dockerignore).toContain("!scripts/p0-3-remote-db-evidence.mjs");
+    expect(dockerignore).toContain("!scripts/p0-3-remote-db-evidence-lib.mjs");
+    expect(dockerignore).toContain("!scripts/p0-3-remote-db-evidence.sql");
+    expect(dockerignore).toContain(".env*");
+    expect(dockerignore).toContain("supabase/.temp/");
+  });
+
+  it("documents the three environment boundaries for the runner", () => {
+    const guide = readFileSync(guidePath, "utf8");
+
+    expect(guide).toContain("SUPABASE_ACCESS_TOKEN");
+    expect(guide).toContain("P0_3_LINKED_PROJECT_REF");
+    expect(guide).toContain("read-only");
+    expect(guide).toContain("produkční");
+    expect(guide).toContain("service-role");
+    expect(guide).toContain("Docker");
+    expect(guide.toLowerCase()).toContain("lokální pgtap není důkaz linked sandboxu");
+  });
+
+  it("passes the scoped token only in the API request and returns a safe report", async () => {
+    const requestInputs: Array<{
+      url?: string,
+      options?: { headers?: Record<string, string> },
+    }> = [];
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-value",
+        UNRELATED_APP_SECRET: "should-not-be-forwarded",
+      },
+      sql: "select 1;",
+      request: async (input) => {
+        requestInputs.push(input);
+        if (input.url.endsWith("/postgrest")) {
+          return {
+            status: 200,
+            body: JSON.stringify({ db_schema: "public, graphql_public" }),
+          };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.report.status).toBe("passed");
+    expect(requestInputs.map(({ url }) => url)).toEqual([
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/postgrest",
+    ]);
+    expect(requestInputs.every(
+      ({ options }) => options?.headers?.authorization === `Bearer ${scopedToken}`,
+    )).toBe(true);
+    expect(JSON.stringify(result.report)).not.toContain(scopedToken);
+  });
+
+  it("refuses linked write mode before invoking the API", async () => {
+    let wasRequested = false;
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      mode: "transactional-test",
+      request: async () => {
+        wasRequested = true;
+        return { status: 201, body: "" };
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("WRITE_MODE_DISABLED");
+    expect(wasRequested).toBe(false);
+  });
+
+  it("maps an API failure to a safe stable code", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async () => ({
+        status: 403,
+        body: "raw database output with password=secret",
+      }),
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("API_QUERY_FAILED");
+    expect(JSON.stringify(result.report)).not.toContain("secret");
+    expect(JSON.stringify(result.report)).not.toContain("raw database output");
+  });
+
+  it("maps a transport exception to the same safe API failure code", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async () => {
+        throw new Error("transport secret=must-not-escape");
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("API_QUERY_FAILED");
+    expect(JSON.stringify(result.report)).not.toContain("transport secret");
+  });
+
+  it("sets a finite timeout on the real read-only API request", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      status: 201,
+      text: async () => "[]",
+    } as Response);
+
+    try {
+      await requestReadOnlyQuery({
+        url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+        options: {
+          method: "POST",
+          headers: { authorization: "Bearer test-token" },
+          body: JSON.stringify({ query: "select 1;" }),
+        },
+      });
+
+      const requestOptions = fetchMock.mock.calls[0]?.[1];
+      expect(requestOptions?.signal).toBeInstanceOf(AbortSignal);
+      expect(requestOptions?.signal?.aborted).toBe(false);
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("builds the authoritative PostgREST configuration request", () => {
+    expect(buildPostgrestConfigRequest({
+      projectRef: "abcdefghijklmnopqrst",
+      token: scopedToken,
+    })).toEqual({
+      url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/postgrest",
+      options: {
+        method: "GET",
+        headers: {
+          authorization: `Bearer ${scopedToken}`,
+          accept: "application/json",
+        },
+      },
+    });
+  });
+
+  it("derives private schema exposure without returning other config fields", () => {
+    expect(parsePostgrestConfig(JSON.stringify({
+      db_schema: "public, graphql_public",
+      jwt_secret: "must-never-leave-the-parser",
+    }))).toEqual({ private_schema_not_exposed: true });
+
+    expect(parsePostgrestConfig(JSON.stringify({
+      db_schema: "public, private",
+      jwt_secret: "must-never-leave-the-parser",
+    }))).toEqual({ private_schema_not_exposed: false });
+
+    expect(() => parsePostgrestConfig(JSON.stringify({
+      jwt_secret: "must-never-leave-the-parser",
+    }))).toThrow("INVALID_POSTGREST_CONFIG");
+  });
+
+  it("uses PostgREST configuration as the source of schema exposure evidence", async () => {
+    const requestedUrls: string[] = [];
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async ({ url }) => {
+        requestedUrls.push(url);
+        if (url.endsWith("/postgrest")) {
+          return {
+            status: 200,
+            body: JSON.stringify({
+              db_schema: "public, private",
+              jwt_secret: "must-never-escape",
+            }),
+          };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
+    });
+
+    expect(requestedUrls).toEqual([
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/postgrest",
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("EVIDENCE_CHECK_FAILED");
+    expect(result.report.checks.failed).toEqual(["private_schema_not_exposed"]);
+    expect(JSON.stringify(result.report)).not.toContain("must-never-escape");
+  });
+
+  it("fails safely when PostgREST configuration cannot be read", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async ({ url }) => {
+        if (url.endsWith("/postgrest")) {
+          return { status: 403, body: "jwt_secret=must-never-escape" };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("POSTGREST_CONFIG_FAILED");
+    expect(JSON.stringify(result.report)).not.toContain("must-never-escape");
+  });
+
+  it("rejects invalid API JSON without returning the raw payload", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async () => ({
+        status: 201,
+        body: "not-json-with-a-secret-value",
+      }),
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("INVALID_EVIDENCE_PAYLOAD");
+    expect(JSON.stringify(result.report)).not.toContain("not-json-with-a-secret-value");
+  });
+
+  it("fails when a required database contract is false", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async ({ url }) => {
+        if (url.endsWith("/postgrest")) {
+          return {
+            status: 200,
+            body: JSON.stringify({ db_schema: "public, graphql_public" }),
+          };
+        }
+        return {
+          status: 201,
+          body: '[{"evidence":{' +
+            '"public_rpc_boundaries":false,"public_rpc_grants":true,' +
+            '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
+            '"private_rpc_grants":true,"private_rpc_search_path":true,' +
+            '"pgtap_not_public":true' +
+            '}}]',
+        };
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("EVIDENCE_CHECK_FAILED");
+    expect(result.report.checks.failed).toEqual(["public_rpc_boundaries"]);
+  });
+});
