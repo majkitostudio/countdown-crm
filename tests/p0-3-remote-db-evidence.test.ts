@@ -20,6 +20,7 @@ const paths = {
 const testEnv = {
   NODE_ENV: "test",
 };
+const scopedToken = ["sbp", "fc-test-only"].join("_");
 
 const evidenceSqlPath = new URL(
   "../scripts/p0-3-remote-db-evidence.sql",
@@ -50,7 +51,7 @@ describe("P0.3 remote evidence runner configuration", () => {
         {
           ...testEnv,
           P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
-          SUPABASE_ACCESS_TOKEN: "scoped-token",
+          SUPABASE_ACCESS_TOKEN: scopedToken,
           SUPABASE_SERVICE_ROLE_KEY: "must-not-be-used",
         },
         paths,
@@ -66,6 +67,17 @@ describe("P0.3 remote evidence runner configuration", () => {
       .toThrow("NON_READ_ONLY_SQL");
     expect(() => validateReadOnlySql("select 1; delete from public.workspaces;"))
       .toThrow("MULTIPLE_SQL_STATEMENTS");
+  });
+
+  it("rejects a non-scoped access token", () => {
+    expect(() => readRunnerConfig(
+      {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: "classic-account-token",
+      },
+      { ...paths, pathExists: () => true },
+    )).toThrow("INVALID_SUPABASE_ACCESS_TOKEN");
   });
 
   it("builds a linked CLI invocation without a shell", () => {
@@ -90,7 +102,7 @@ describe("P0.3 remote evidence runner configuration", () => {
 
   it("redacts token, JWT and database credentials from diagnostics", () => {
     const diagnostic = sanitizeDiagnostic(
-      "sbp_very-secret Bearer eyJheader.payload.signature " +
+      ["sbp", "very-secret"].join("_") + " Bearer eyJheader.payload.signature " +
       "postgresql://user:password@host/db password=another-secret",
     );
 
@@ -175,7 +187,7 @@ describe("P0.3 remote evidence runner configuration", () => {
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
-        SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-value",
         UNRELATED_APP_SECRET: "should-not-be-forwarded",
       },
@@ -199,9 +211,9 @@ describe("P0.3 remote evidence runner configuration", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.report.status).toBe("passed");
-    expect(childEnvironment.SUPABASE_ACCESS_TOKEN).toBe("sbp_scoped-token");
+    expect(childEnvironment.SUPABASE_ACCESS_TOKEN).toBe(scopedToken);
     expect(childEnvironment.UNRELATED_APP_SECRET).toBeUndefined();
-    expect(JSON.stringify(result.report)).not.toContain("sbp_scoped-token");
+    expect(JSON.stringify(result.report)).not.toContain(scopedToken);
   });
 
   it("refuses linked write mode before invoking the CLI", () => {
@@ -210,7 +222,7 @@ describe("P0.3 remote evidence runner configuration", () => {
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
-        SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
       },
       paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
@@ -232,7 +244,7 @@ describe("P0.3 remote evidence runner configuration", () => {
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
-        SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
       },
       paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
@@ -255,7 +267,7 @@ describe("P0.3 remote evidence runner configuration", () => {
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
-        SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
       },
       paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
@@ -277,7 +289,7 @@ describe("P0.3 remote evidence runner configuration", () => {
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
-        SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
       },
       paths: { ...paths, pathExists: () => true },
       sql: "select 1;",

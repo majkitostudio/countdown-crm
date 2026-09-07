@@ -60,6 +60,9 @@ export function readRunnerConfig(env = process.env, paths = {}) {
   if (!env.SUPABASE_ACCESS_TOKEN?.trim()) {
     throw runnerError("MISSING_SUPABASE_ACCESS_TOKEN");
   }
+  if (!env.SUPABASE_ACCESS_TOKEN.trim().startsWith("sbp_fc")) {
+    throw runnerError("INVALID_SUPABASE_ACCESS_TOKEN");
+  }
 
   const cliPath = paths.cliPath;
   if (!cliPath || !(paths.pathExists ?? existsSync)(cliPath)) {
@@ -240,11 +243,12 @@ export function runLinkedEvidence({
  * @returns {{ status: string, failureCode: string, target: string, mode: string, projectRefFingerprint?: string }}
  */
 export function makeFailureReport({ failureCode, projectRef, mode = "read-only" }) {
-  return {
+  const report = {
     status: "failed",
     failureCode,
     target: "linked-sandbox",
     mode,
-    projectRefFingerprint: projectRef ? fingerprint(projectRef) : undefined,
   };
+  if (projectRef) report.projectRefFingerprint = fingerprint(projectRef);
+  return report;
 }
