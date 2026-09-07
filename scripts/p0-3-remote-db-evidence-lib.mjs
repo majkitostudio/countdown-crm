@@ -37,6 +37,11 @@ const runnerError = (code) => {
   return error;
 };
 
+/**
+ * @param {Record<string, string | undefined>} env
+ * @param {{ cliPath?: string, workdir?: string, pathExists?: (path: string) => boolean }} paths
+ * @returns {{ projectRef: string, cliPath: string, workdir: string }}
+ */
 export function readRunnerConfig(env = process.env, paths = {}) {
   if (Object.entries(env).some(
     ([name, value]) => name.startsWith("NEXT_PUBLIC_") && value?.trim() && SENSITIVE_ENV_PATTERN.test(name),
@@ -165,6 +170,17 @@ function childEnvironment(env) {
   return result;
 }
 
+/**
+ * @param {{
+ *   env?: Record<string, string | undefined>,
+ *   paths?: { cliPath?: string, workdir?: string, pathExists?: (path: string) => boolean },
+ *   sql: string,
+ *   sqlFile: string,
+ *   mode?: string,
+ *   spawn?: (...args: any[]) => any,
+ * }} input
+ * @returns {{ exitCode: number, report: { [key: string]: any } }}
+ */
 export function runLinkedEvidence({
   env = process.env,
   paths = {},
@@ -219,6 +235,10 @@ export function runLinkedEvidence({
   }
 }
 
+/**
+ * @param {{ failureCode: string, projectRef?: string, mode?: string }} input
+ * @returns {{ status: string, failureCode: string, target: string, mode: string, projectRefFingerprint?: string }}
+ */
 export function makeFailureReport({ failureCode, projectRef, mode = "read-only" }) {
   return {
     status: "failed",

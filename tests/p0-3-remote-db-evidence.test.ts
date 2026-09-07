@@ -17,6 +17,10 @@ const paths = {
   workdir: "C:\\repo",
 };
 
+const testEnv = {
+  NODE_ENV: "test",
+};
+
 const evidenceSqlPath = new URL(
   "../scripts/p0-3-remote-db-evidence.sql",
   import.meta.url,
@@ -34,7 +38,7 @@ describe("P0.3 remote evidence runner configuration", () => {
   it("rejects a missing scoped access token without exposing a value", () => {
     expect(() =>
       readRunnerConfig(
-        { P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst" },
+        { ...testEnv, P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst" },
         paths,
       ),
     ).toThrow("MISSING_SUPABASE_ACCESS_TOKEN");
@@ -44,6 +48,7 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(() =>
       readRunnerConfig(
         {
+          ...testEnv,
           P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
           SUPABASE_ACCESS_TOKEN: "scoped-token",
           SUPABASE_SERVICE_ROLE_KEY: "must-not-be-used",
@@ -165,9 +170,10 @@ describe("P0.3 remote evidence runner configuration", () => {
   });
 
   it("passes the scoped token only to the child process and returns a safe report", () => {
-    let childEnvironment;
+    let childEnvironment: Record<string, string | undefined> = {};
     const result = runLinkedEvidence({
       env: {
+        ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-value",
@@ -177,7 +183,7 @@ describe("P0.3 remote evidence runner configuration", () => {
       sql: "select 1;",
       sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
       spawn: (_command, _args, options) => {
-        childEnvironment = options.env;
+        childEnvironment = options?.env ?? {};
         return {
           status: 0,
           stdout: '{"rows":[{"evidence":{' +
@@ -202,6 +208,7 @@ describe("P0.3 remote evidence runner configuration", () => {
     let wasSpawned = false;
     const result = runLinkedEvidence({
       env: {
+        ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
       },
@@ -223,6 +230,7 @@ describe("P0.3 remote evidence runner configuration", () => {
   it("maps a CLI failure to a safe stable code", () => {
     const result = runLinkedEvidence({
       env: {
+        ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
       },
@@ -245,6 +253,7 @@ describe("P0.3 remote evidence runner configuration", () => {
   it("rejects invalid CLI JSON without returning the raw payload", () => {
     const result = runLinkedEvidence({
       env: {
+        ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
       },
@@ -266,6 +275,7 @@ describe("P0.3 remote evidence runner configuration", () => {
   it("fails when a required database contract is false", () => {
     const result = runLinkedEvidence({
       env: {
+        ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: "sbp_scoped-token",
       },
