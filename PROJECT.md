@@ -94,8 +94,11 @@ Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má po nasaze
 Team Leader Review srovnanou migration history 84/84. Migrace byla nejprve
 ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
 prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
-Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
-v definicích několika starších funkcí, takže úplná schema shoda zůstává otevřená.
+Raw veřejný schema diff nemá destruktivní změny. Devět vypsaných definic funkcí
+bylo katalogově prokázáno jako čistý CRLF/LF false positive; všech 80
+projektových funkcí se shoduje v těle po line-ending normalizaci i v security
+metadatech. Extension `pgtap` v public schématu zůstává samostatným P0 advisor
+bodem.
 Checkpointová lokální databázová sada prošla 154/154 a aplikační sada 345/345
 v 88 souborech;
 lint, typecheck i produkční build jsou zelené. Autentizovaný fallback průchod Team Leader → operátor →
@@ -140,8 +143,9 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. P0 uzavírá databázový drift, privilegované RPC/grants, vzdálený test runner a
-   produkční Auth nastavení.
+1. P0 pokračuje auditem privilegovaných RPC/grants a `pgtap`, vzdáleným test
+   runnerem a produkčním Auth nastavením. Funkční schema drift je vysvětlený a
+   hlídaný samostatným sémantickým checkem.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
 3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
