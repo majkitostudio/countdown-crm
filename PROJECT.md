@@ -5,7 +5,7 @@ nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
 **Snapshot:** 7. 9. 2026
-**Repo baseline:** post-call hranice, Conversation Brief, Team Leader Exception Queue a server-side osobní preference
+**Repo baseline:** post-call hranice, Conversation Brief, Exception Queue, server-side osobní preference a Team Leader Review reálného hovoru
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -96,7 +96,8 @@ ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
 prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
 Veřejný schema diff nemá destruktivní změny, ale stále obsahuje rozdíly
 v definicích několika starších funkcí, takže úplná schema shoda zůstává otevřená.
-Lokální databázové testy prošly 109/109 a aplikační sada 255/255 v 69 souborech;
+Checkpointová lokální databázová sada prošla 154/154 a aplikační sada 345/345
+v 88 souborech;
 lint, typecheck i produkční build jsou zelené. Autentizovaný fallback průchod Team Leader → operátor →
 call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
 ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`
@@ -139,30 +140,21 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. `Workspace Readiness` je implementovaný; zbývá privilegovaný runner vzdálených
-   databázových testů a nedestruktivní drift definic starších funkcí.
-2. Post-call wrap-up s idempotentní hranicí je dokončený a nasazený v linked sandboxu.
-3. Conversation Brief je implementovaný v Operator Console.
-4. Team Leader Exception Queue je implementovaný, nasazený do linked sandboxu
-   a ověřený přes Team Leader/operator Auth smoke test včetně cleanupu.
-5. Role-aware vstup je dokončený: operátor začíná v Operator Console, Team Leader
-   v Exception Queue a administrátor ve Workspace Readiness; původní Dashboard je
-   manažerský přehled na `/dashboard`. Team Leader Review reálného hovoru je
-   implementovaný a ověřený lokálně i v linked sandboxu včetně historie, auditu
-   a negativních role/workspace hranic. Zmrazit custom objects, blueprints a Deals
-   pipeline, dokud denní smyčka call centra drží.
-6. Teprve po stabilizaci předchozích vrstev a dokončení externího ověření řešit
-   Telnyx pilotní telefonní důkaz. Telnyx zůstává vzdálené To-Do, ne bezprostřední
-   produktový krok.
-7. Až následně přidat Gemini transcription a editovatelný návrh verdiktu/poznámky.
-8. Další změny držet malé, tematické a samostatně ověřitelné.
+1. P0 uzavírá databázový drift, privilegované RPC/grants, vzdálený test runner a
+   produkční Auth nastavení.
+2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
+   pravdivé UI, full-shift smoke test a dependency gate.
+3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
+   Teprve nad tímto základem vzniknou operátorské Results a týmová srovnání.
+4. P3 propojí presence, směny, Live Monitor a role-aware Settings.
+5. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
+6. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní
+   telefonii. Široké moduly zůstávají do po-pilotního rozhodnutí zmrazené.
 
-**Odložené To-Do mimo aktuální pořadí:** operátorské výsledky a porovnání se
-spolupracovníky řešit jako samostatný slice až po návrhu skutečné týmové struktury.
-Současný workspace zatím nemá oddělení typu Příchozí linka nebo Odchozí linka,
-proto stránka `Results` nesmí dočasně používat celý workspace jako náhradu týmu.
+Celoprojektový důkaz a důvody tohoto pořadí jsou v
+[checkpoint reportu](docs/superpowers/reports/2026-09-07-project-checkpoint.md).
 
-### Schválený scope pro P1–P5
+### Schválené hranice scope
 
 - Současný způsob práce s leady zůstává zachovaný: operátor zpracovává jeden
   aktivní kontakt a další mu server vybere podle priority, dostupnosti a callbacku.
