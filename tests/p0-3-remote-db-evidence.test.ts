@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
 import {
-  buildLinkedQueryInvocation,
+  buildReadOnlyQueryRequest,
   fingerprint,
   makeFailureReport,
   parseEvidencePayload,
@@ -11,11 +11,6 @@ import {
   sanitizeDiagnostic,
   validateReadOnlySql,
 } from "../scripts/p0-3-remote-db-evidence-lib.mjs";
-
-const paths = {
-  cliPath: "C:\\repo\\node_modules\\supabase\\dist\\supabase.js",
-  workdir: "C:\\repo",
-};
 
 const testEnv = {
   NODE_ENV: "test",
@@ -40,7 +35,6 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(() =>
       readRunnerConfig(
         { ...testEnv, P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst" },
-        paths,
       ),
     ).toThrow("MISSING_SUPABASE_ACCESS_TOKEN");
   });
@@ -54,7 +48,6 @@ describe("P0.3 remote evidence runner configuration", () => {
           SUPABASE_ACCESS_TOKEN: scopedToken,
           SUPABASE_SERVICE_ROLE_KEY: "must-not-be-used",
         },
-        paths,
       ),
     ).toThrow("FORBIDDEN_APPLICATION_CREDENTIAL");
   });
@@ -76,27 +69,24 @@ describe("P0.3 remote evidence runner configuration", () => {
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: "classic-account-token",
       },
-      { ...paths, pathExists: () => true },
     )).toThrow("INVALID_SUPABASE_ACCESS_TOKEN");
   });
 
-  it("builds a linked CLI invocation without a shell", () => {
-    expect(buildLinkedQueryInvocation({
-      cliPath: "C:\\repo\\node_modules\\supabase\\dist\\supabase.js",
+  it("builds the Supabase read-only Management API request", () => {
+    expect(buildReadOnlyQueryRequest({
       projectRef: "abcdefghijklmnopqrst",
-      sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
-      workdir: "C:\\repo",
+      token: scopedToken,
+      sql: "select 1;",
     })).toEqual({
-      command: process.execPath,
-      args: expect.arrayContaining([
-        "db",
-        "query",
-        "--linked",
-        "--project-ref",
-        "abcdefghijklmnopqrst",
-        "--output-format",
-        "json",
-      ]),
+      url: "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+      options: {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${scopedToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ query: "select 1;" }),
+      },
     });
   });
 
@@ -131,8 +121,7 @@ describe("P0.3 remote evidence runner configuration", () => {
 
   it("parses one safe evidence row", () => {
     expect(parseEvidencePayload(
-      "status text\n{" +
-      '"rows":[{"evidence":{"public_rpc_boundaries":true,"pgtap_not_public":true}}]}' +
+      '[{"evidence":{"public_rpc_boundaries":true,"pgtap_not_public":true}}]' +
       "\n",
     )).toEqual({
       checks: {
@@ -144,10 +133,10 @@ describe("P0.3 remote evidence runner configuration", () => {
 
   it("rejects a payload with arbitrary database rows", () => {
     expect(() => parseEvidencePayload(
-      '{"rows":[{"email":"person@example.test"}]}',
+      '[{"email":"person@example.test"}]',
     )).toThrow("INVALID_EVIDENCE_PAYLOAD");
     expect(() => parseEvidencePayload(
-      '{"rows":[{"evidence":{"pgtap_not_public":true},"email":"person@example.test"}]}',
+      '[{"evidence":{"pgtap_not_public":true},"email":"person@example.test"}]',
     )).toThrow("INVALID_EVIDENCE_PAYLOAD");
   });
 
@@ -164,8 +153,8 @@ describe("P0.3 remote evidence runner configuration", () => {
   it("keeps secrets out of the Docker image", () => {
     const dockerfile = readFileSync(dockerfilePath, "utf8");
 
-    expect(dockerfile).toContain("npm ci --ignore-scripts");
-    expect(dockerfile).toContain("package-lock.json");
+    expect(dockerfile).toContain("node:22.19.0-bookworm-slim");
+    expect(dockerfile).toContain("p0-3-remote-db-evidence.sql");
     expect(dockerfile).not.toMatch(/COPY[^\n]*\.env/i);
     expect(dockerfile).not.toMatch(/\bARG\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
     expect(dockerfile).not.toMatch(/\bENV\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
@@ -184,9 +173,9 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(guide.toLowerCase()).toContain("lokální pgtap není důkaz linked sandboxu");
   });
 
-  it("passes the scoped token only to the child process and returns a safe report", () => {
-    let childEnvironment: Record<string, string | undefined> = {};
-    const result = runLinkedEvidence({
+  it("passes the scoped token only in the API request and returns a safe report", async () => {
+    let requestInput: { url?: string, options?: { headers?: Record<string, string> } } = {};
+    const result = await runLinkedEvidence({
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
@@ -194,91 +183,100 @@ describe("P0.3 remote evidence runner configuration", () => {
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "public-value",
         UNRELATED_APP_SECRET: "should-not-be-forwarded",
       },
-      paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
-      sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
-      spawn: (_command, _args, options) => {
-        childEnvironment = options?.env ?? {};
+      request: async (input) => {
+        requestInput = input;
         return {
-          status: 0,
-          stdout: '{"rows":[{"evidence":{' +
+          status: 201,
+          body: '[{"evidence":{' +
             '"public_rpc_boundaries":true,"public_rpc_grants":true,' +
             '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
             '"private_rpc_grants":true,"private_rpc_search_path":true,' +
             '"pgtap_not_public":true,"private_schema_not_exposed":true' +
-            '}}]}',
-          stderr: "",
+            '}}]',
         };
       },
     });
 
     expect(result.exitCode).toBe(0);
     expect(result.report.status).toBe("passed");
-    expect(childEnvironment.SUPABASE_ACCESS_TOKEN).toBe(scopedToken);
-    expect(childEnvironment.UNRELATED_APP_SECRET).toBeUndefined();
+    expect(requestInput.url).toBe(
+      "https://api.supabase.com/v1/projects/abcdefghijklmnopqrst/database/query/read-only",
+    );
+    expect(requestInput.options?.headers?.authorization).toBe(`Bearer ${scopedToken}`);
     expect(JSON.stringify(result.report)).not.toContain(scopedToken);
   });
 
-  it("refuses linked write mode before invoking the CLI", () => {
-    let wasSpawned = false;
-    const result = runLinkedEvidence({
+  it("refuses linked write mode before invoking the API", async () => {
+    let wasRequested = false;
+    const result = await runLinkedEvidence({
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: scopedToken,
       },
-      paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
-      sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
       mode: "transactional-test",
-      spawn: () => {
-        wasSpawned = true;
-        return { status: 0, stdout: "", stderr: "" };
+      request: async () => {
+        wasRequested = true;
+        return { status: 201, body: "" };
       },
     });
 
     expect(result.exitCode).toBe(1);
     expect(result.report.failureCode).toBe("WRITE_MODE_DISABLED");
-    expect(wasSpawned).toBe(false);
+    expect(wasRequested).toBe(false);
   });
 
-  it("maps a CLI failure to a safe stable code", () => {
-    const result = runLinkedEvidence({
+  it("maps an API failure to a safe stable code", async () => {
+    const result = await runLinkedEvidence({
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: scopedToken,
       },
-      paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
-      sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
-      spawn: () => ({
-        status: 1,
-        stdout: "raw database output with password=secret",
-        stderr: "postgresql://user:secret@host/db",
+      request: async () => ({
+        status: 403,
+        body: "raw database output with password=secret",
       }),
     });
 
     expect(result.exitCode).toBe(1);
-    expect(result.report.failureCode).toBe("CLI_QUERY_FAILED");
+    expect(result.report.failureCode).toBe("API_QUERY_FAILED");
     expect(JSON.stringify(result.report)).not.toContain("secret");
     expect(JSON.stringify(result.report)).not.toContain("raw database output");
   });
 
-  it("rejects invalid CLI JSON without returning the raw payload", () => {
-    const result = runLinkedEvidence({
+  it("maps a transport exception to the same safe API failure code", async () => {
+    const result = await runLinkedEvidence({
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: scopedToken,
       },
-      paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
-      sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
-      spawn: () => ({
-        status: 0,
-        stdout: "not-json-with-a-secret-value",
-        stderr: "",
+      request: async () => {
+        throw new Error("transport secret=must-not-escape");
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.report.failureCode).toBe("API_QUERY_FAILED");
+    expect(JSON.stringify(result.report)).not.toContain("transport secret");
+  });
+
+  it("rejects invalid API JSON without returning the raw payload", async () => {
+    const result = await runLinkedEvidence({
+      env: {
+        ...testEnv,
+        P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
+        SUPABASE_ACCESS_TOKEN: scopedToken,
+      },
+      sql: "select 1;",
+      request: async () => ({
+        status: 201,
+        body: "not-json-with-a-secret-value",
       }),
     });
 
@@ -287,25 +285,22 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(JSON.stringify(result.report)).not.toContain("not-json-with-a-secret-value");
   });
 
-  it("fails when a required database contract is false", () => {
-    const result = runLinkedEvidence({
+  it("fails when a required database contract is false", async () => {
+    const result = await runLinkedEvidence({
       env: {
         ...testEnv,
         P0_3_LINKED_PROJECT_REF: "abcdefghijklmnopqrst",
         SUPABASE_ACCESS_TOKEN: scopedToken,
       },
-      paths: { ...paths, pathExists: () => true },
       sql: "select 1;",
-      sqlFile: "C:\\repo\\scripts\\p0-3-remote-db-evidence.sql",
-      spawn: () => ({
-        status: 0,
-        stdout: '{"rows":[{"evidence":{' +
+      request: async () => ({
+        status: 201,
+        body: '[{"evidence":{' +
           '"public_rpc_boundaries":false,"public_rpc_grants":true,' +
           '"public_rpc_search_path":true,"private_rpc_implementations":true,' +
           '"private_rpc_grants":true,"private_rpc_search_path":true,' +
           '"pgtap_not_public":true,"private_schema_not_exposed":true' +
-          '}}]}',
-        stderr: "",
+          '}}]',
       }),
     });
 

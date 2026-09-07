@@ -1,6 +1,4 @@
-import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { spawnSync } from "node:child_process";
 import process from "node:process";
 
 const PROJECT_REF_PATTERN = /^[a-z0-9]{20}$/;
@@ -17,20 +15,6 @@ export const EVIDENCE_CHECK_KEYS = new Set([
   "private_schema_not_exposed",
 ]);
 export const REQUIRED_EVIDENCE_CHECK_KEYS = [...EVIDENCE_CHECK_KEYS];
-const CHILD_ENV_NAMES = [
-  "PATH",
-  "Path",
-  "SystemRoot",
-  "TEMP",
-  "TMP",
-  "HOME",
-  "USERPROFILE",
-  "APPDATA",
-  "LOCALAPPDATA",
-  "CI",
-  "NO_COLOR",
-];
-
 const runnerError = (code) => {
   const error = new Error(code);
   error.code = code;
@@ -39,10 +23,9 @@ const runnerError = (code) => {
 
 /**
  * @param {Record<string, string | undefined>} env
- * @param {{ cliPath?: string, workdir?: string, pathExists?: (path: string) => boolean }} paths
- * @returns {{ projectRef: string, cliPath: string, workdir: string }}
+ * @returns {{ projectRef: string }}
  */
-export function readRunnerConfig(env = process.env, paths = {}) {
+export function readRunnerConfig(env = process.env) {
   if (Object.entries(env).some(
     ([name, value]) => name.startsWith("NEXT_PUBLIC_") && value?.trim() && SENSITIVE_ENV_PATTERN.test(name),
   )) {
@@ -64,16 +47,7 @@ export function readRunnerConfig(env = process.env, paths = {}) {
     throw runnerError("INVALID_SUPABASE_ACCESS_TOKEN");
   }
 
-  const cliPath = paths.cliPath;
-  if (!cliPath || !(paths.pathExists ?? existsSync)(cliPath)) {
-    throw runnerError("MISSING_SUPABASE_CLI");
-  }
-
-  return {
-    projectRef,
-    cliPath,
-    workdir: paths.workdir ?? process.cwd(),
-  };
+  return { projectRef };
 }
 
 export function validateReadOnlySql(sql) {
@@ -91,23 +65,17 @@ export function validateReadOnlySql(sql) {
   return true;
 }
 
-export function buildLinkedQueryInvocation({ cliPath, projectRef, sqlFile, workdir }) {
+export function buildReadOnlyQueryRequest({ projectRef, token, sql }) {
   return {
-    command: process.execPath,
-    args: [
-      cliPath,
-      "db",
-      "query",
-      "--linked",
-      "--project-ref",
-      projectRef,
-      "--output-format",
-      "json",
-      "--file",
-      sqlFile,
-      "--workdir",
-      workdir,
-    ],
+    url: `https://api.supabase.com/v1/projects/${projectRef}/database/query/read-only`,
+    options: {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ query: sql }),
+    },
   };
 }
 
@@ -126,24 +94,18 @@ export function sanitizeDiagnostic(text) {
 }
 
 export function parseEvidencePayload(output) {
-  const firstBrace = output.indexOf("{");
-  const lastBrace = output.lastIndexOf("}");
-  if (firstBrace < 0 || lastBrace < firstBrace) {
-    throw runnerError("INVALID_EVIDENCE_PAYLOAD");
-  }
-
   let payload;
   try {
-    payload = JSON.parse(output.slice(firstBrace, lastBrace + 1));
+    payload = JSON.parse(String(output).trim());
   } catch {
     throw runnerError("INVALID_EVIDENCE_PAYLOAD");
   }
 
-  if (!Array.isArray(payload?.rows) || payload.rows.length !== 1) {
+  if (!Array.isArray(payload) || payload.length !== 1) {
     throw runnerError("INVALID_EVIDENCE_PAYLOAD");
   }
 
-  const row = payload.rows[0];
+  const row = payload[0];
   if (!row || typeof row !== "object" || Array.isArray(row)
     || Object.keys(row).length !== 1 || !Object.hasOwn(row, "evidence")) {
     throw runnerError("INVALID_EVIDENCE_PAYLOAD");
@@ -169,54 +131,51 @@ export function parseEvidencePayload(output) {
   return { checks };
 }
 
-function childEnvironment(env) {
-  const result = { SUPABASE_ACCESS_TOKEN: env.SUPABASE_ACCESS_TOKEN.trim() };
-  for (const name of CHILD_ENV_NAMES) {
-    if (env[name]) result[name] = env[name];
-  }
-  return result;
+/**
+ * @param {{ url: string, options: { method: string, headers: Record<string, string>, body: string } }} input
+ * @returns {Promise<{ status: number, body: string }>}
+ */
+async function requestReadOnlyQuery({ url, options }) {
+  const response = await globalThis.fetch(url, options);
+  return { status: response.status, body: await response.text() };
 }
 
 /**
  * @param {{
  *   env?: Record<string, string | undefined>,
- *   paths?: { cliPath?: string, workdir?: string, pathExists?: (path: string) => boolean },
  *   sql: string,
- *   sqlFile: string,
  *   mode?: string,
- *   spawn?: (...args: any[]) => any,
+ *   request?: (input: { url: string, options: { method: string, headers: Record<string, string>, body: string } }) => Promise<{ status: number, body: string }>,
  * }} input
- * @returns {{ exitCode: number, report: { [key: string]: any } }}
+ * @returns {Promise<{ exitCode: number, report: { [key: string]: any } }>}
  */
-export function runLinkedEvidence({
+export async function runLinkedEvidence({
   env = process.env,
-  paths = {},
   sql,
-  sqlFile,
   mode = "read-only",
-  spawn = spawnSync,
+  request = requestReadOnlyQuery,
 }) {
   let projectRef;
   try {
     if (mode !== "read-only") throw runnerError("WRITE_MODE_DISABLED");
-    const config = readRunnerConfig(env, paths);
+    const config = readRunnerConfig(env);
     projectRef = config.projectRef;
     validateReadOnlySql(sql);
 
-    const invocation = buildLinkedQueryInvocation({
-      cliPath: config.cliPath,
+    const queryRequest = buildReadOnlyQueryRequest({
       projectRef: config.projectRef,
-      sqlFile,
-      workdir: config.workdir,
+      token: env.SUPABASE_ACCESS_TOKEN.trim(),
+      sql,
     });
-    const result = spawn(invocation.command, invocation.args, {
-      encoding: "utf8",
-      shell: false,
-      env: childEnvironment(env),
-    });
-    if (result.status !== 0) throw runnerError("CLI_QUERY_FAILED");
+    let result;
+    try {
+      result = await request(queryRequest);
+    } catch {
+      throw runnerError("API_QUERY_FAILED");
+    }
+    if (result.status < 200 || result.status >= 300) throw runnerError("API_QUERY_FAILED");
 
-    const { checks } = parseEvidencePayload(result.stdout ?? "");
+    const { checks } = parseEvidencePayload(result.body ?? "");
     const failedChecks = REQUIRED_EVIDENCE_CHECK_KEYS.filter((key) => checks[key] !== true);
     const report = {
       status: failedChecks.length === 0 ? "passed" : "failed",

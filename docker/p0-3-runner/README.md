@@ -1,7 +1,8 @@
 # P0.3 runner v Dockeru
 
-Image obsahuje pouze pinned npm závislosti, Supabase CLI z `package-lock.json`,
-runner a read-only SQL dotaz. Secret se do image nikdy nepředává při buildu.
+Image obsahuje pouze pinned Node image, runner a read-only SQL dotaz. Secret se
+do image nikdy nepředává při buildu. Runner volá přímo read-only Management API;
+Supabase CLI ani přímé Postgres připojení v image nejsou potřeba.
 
 Build z kořene repozitáře:
 
