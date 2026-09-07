@@ -2,7 +2,7 @@
 
 **Datum:** 7. 9. 2026
 
-**Stav:** návrh ke kontrole
+**Stav:** schválený návrh
 
 ## Cíl
 
@@ -181,4 +181,3 @@ Tato změna nepřidá:
 - změnu Auth konfigurace nebo leaked-password protection,
 - řešení `rls_enabled_no_policy`,
 - UI, CRM business logiku nebo produktový backlog.
-
