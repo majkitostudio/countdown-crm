@@ -13,6 +13,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome } from "@/lib/calls";
+import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
 
 interface CallDetailDrawerProps {
@@ -35,10 +36,6 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
     return `${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
   };
 
-  const getOutcomeBadge = () => {
-    return "bg-zinc-900 text-zinc-300 border-zinc-800 font-mono";
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-zinc-950/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="w-full max-w-xl bg-zinc-950/90 backdrop-blur-xl border-l border-zinc-800/80 h-full flex flex-col shadow-2xl">
@@ -52,7 +49,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-semibold text-zinc-100 font-mono">Call Record #{call.id}</h2>
-                <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getOutcomeBadge()}`}>
+                <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(call.outcome)}`}>
                   {formatCallOutcome(call.outcome)}
                 </span>
               </div>
@@ -76,7 +73,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
         {/* Content Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {reviewHref && (
-            <Link href={reviewHref} className="inline-flex w-full items-center justify-center rounded-xl border border-sky-900/70 bg-sky-950/20 px-4 py-2.5 text-xs font-semibold text-sky-200 hover:bg-sky-950/40">
+            <Link href={reviewHref} className="inline-flex w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-800">
               Open Team Leader Review
             </Link>
           )}

@@ -59,6 +59,15 @@ previous/new stav. V Call Logs má manažer stav `Not reviewed`, `Reviewed` nebo
 vyřízení celé fronty a přímý odkaz na review s návratem do stejného filtru.
 Operátor nemá review link ani přístup k review stránce.
 
+### Barevná hierarchie
+
+CRM používá barvu jako signál, ne jako dekoraci: běžné plochy, odkazy, ikony a
+kontextové karty zůstávají v neutrální škále `zinc`. `emerald` označuje potvrzení
+nebo připravenost, `amber` vyžaduje pozornost, `rose` chybu či riziko a `sky` je
+vyhrazená pro skutečný informační kontext nebo důležitou navigaci. Call Outcome,
+readiness, živá telefonie, auditní závažnost a finanční polarita si ponechávají
+své sémantické barvy.
+
 ### Operator-first princip
 
 - během hovoru má být nejdůležitější klient, jeho problém a další bezpečný krok,

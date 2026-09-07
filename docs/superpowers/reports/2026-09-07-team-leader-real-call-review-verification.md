@@ -28,6 +28,9 @@
 - Exception Queue neodkazuje na review, pokud nemá prokazatelnou vazbu
   `queue item → telephony session → completed_call_id`.
 - AI nevytváří verdict ani revizi; formulář je označen jako lidské rozhodnutí.
+- Vizuální pass Call Logs a workspace ponechává barvu u Call Outcome a důležitých
+  provozních stavů, zatímco běžné kontextové karty, profily, review affordance a
+  nadpisy Product Scriptu používají neutrální nebo výrazně ztlumené zacházení.
 
 ## Lokální autentizovaný browser smoke
 
@@ -52,7 +55,7 @@ Testovací data ani účty nejsou součástí repozitáře; po resetu lokální 
 
 Po poslední změně permission boundary proběhl celý checklist znovu:
 
-- `npm test`: 86 souborů / 340 testů prošlo
+- `npm test`: 88 souborů / 344 testů prošlo
 - `npm run lint`: exit 0
 - `npm run typecheck`: exit 0
 - `npm run build`: exit 0; route `/calls/[callId]/review` je v buildu

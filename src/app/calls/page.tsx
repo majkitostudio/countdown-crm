@@ -11,6 +11,7 @@ import {
   Eye,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
+import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
 
@@ -274,7 +275,7 @@ export default function CallLogsPage() {
                   <td className="px-5 py-3 text-zinc-300">{c.agent_name}</td>
                   <td className="px-5 py-3 font-mono text-zinc-300">{formatDuration(c.duration_seconds)}</td>
                   <td className="px-5 py-3">
-                    <span className="px-2.5 py-0.5 rounded-md text-xs font-mono border bg-zinc-900 text-zinc-300 border-zinc-800">
+                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(c.outcome)}`}>
                       {formatCallOutcome(c.outcome)}
                     </span>
                   </td>

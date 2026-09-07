@@ -93,7 +93,7 @@ export function ClientProfileCard({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-900/60 bg-sky-950/40 text-sky-200">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200">
             <UserRound className="h-5 w-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">
@@ -175,7 +175,7 @@ export function ClientProfileCard({
             <ProfileField icon={CircleGauge} label="Lead score">
               <div className="mt-2 flex items-center gap-2">
                 <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-label="Lead score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score}>
-                  <div className="h-full rounded-full bg-sky-400" style={{ width: `${score}%` }} />
+                  <div className="h-full rounded-full bg-zinc-500" style={{ width: `${score}%` }} />
                 </div>
                 <span className="shrink-0 font-mono text-sm text-zinc-200">{score}/100</span>
               </div>

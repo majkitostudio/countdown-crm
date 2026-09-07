@@ -31,6 +31,6 @@ describe("unified authenticated header foundations", () => {
     expect(getCommandPalettePlaceholder("operator")).toBe("Type a product or page...");
     expect(getCommandPalettePlaceholder("administrator")).toContain("lead name");
     expect(getPageHeaderBadgeClassName("unavailable")).toContain("text-zinc-400");
-    expect(getPageHeaderBadgeClassName("success")).toContain("text-emerald-300");
+    expect(getPageHeaderBadgeClassName("success")).toContain("text-emerald-200/90");
   });
 });

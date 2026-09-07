@@ -178,7 +178,7 @@ export function CallReviewForm({
 
   return (
     <form className="space-y-4" onSubmit={submit}>
-      <p className="rounded-xl border border-sky-900/50 bg-sky-950/20 px-3 py-2 text-xs text-sky-200/80">
+      <p className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-300">
         Human decision only. AI has not issued this verdict.
       </p>
       <label className="block text-xs font-medium text-zinc-400">
