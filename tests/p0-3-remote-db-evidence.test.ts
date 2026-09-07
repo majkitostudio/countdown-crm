@@ -25,6 +25,10 @@ const dockerfilePath = new URL(
   "../docker/p0-3-runner/Dockerfile",
   import.meta.url,
 );
+const guidePath = new URL(
+  "../docs/P0_3_REMOTE_DB_RUNNER.md",
+  import.meta.url,
+);
 
 describe("P0.3 remote evidence runner configuration", () => {
   it("rejects a missing scoped access token without exposing a value", () => {
@@ -146,6 +150,18 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(dockerfile).not.toMatch(/\bARG\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
     expect(dockerfile).not.toMatch(/\bENV\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
     expect(dockerfile).not.toContain("SERVICE_ROLE_KEY");
+  });
+
+  it("documents the three environment boundaries for the runner", () => {
+    const guide = readFileSync(guidePath, "utf8");
+
+    expect(guide).toContain("SUPABASE_ACCESS_TOKEN");
+    expect(guide).toContain("P0_3_LINKED_PROJECT_REF");
+    expect(guide).toContain("read-only");
+    expect(guide).toContain("produkční");
+    expect(guide).toContain("service-role");
+    expect(guide).toContain("Docker");
+    expect(guide.toLowerCase()).toContain("lokální pgtap není důkaz linked sandboxu");
   });
 
   it("passes the scoped token only to the child process and returns a safe report", () => {

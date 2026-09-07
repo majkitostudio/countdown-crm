@@ -60,6 +60,8 @@ akceptační kritéria a důkazní plán.
    - Hotovo, když existuje oddělený, minimálně oprávněný a opakovatelný způsob
      vzdáleného ověření, nebo výslovně schválená alternativa bez produkčního
      rozšíření práv.
+   - Implementace read-only runneru a Docker obalu je připravená; P0.3 zůstává
+     otevřené do doložení skutečného linked běhu sanitizovaným reportem.
 4. **Uzavřít produkční Auth nastavení.**
    Před přístupem reálných uživatelů zapnout leaked-password protection a znovu
    projít auth smoke test. `NEXT_PUBLIC_ALLOW_DEMO_AUTH` zůstává pouze lokální.

@@ -195,6 +195,8 @@ samostatném rozhodnutí a po přepsání tak, aby odpovídaly aktuálnímu prod
   checklist pro změny,
 - [docs/TELEPHONY_TELNYX_SETUP.md](docs/TELEPHONY_TELNYX_SETUP.md) — Telnyx
   konfigurace a hranice.
+- [docs/P0_3_REMOTE_DB_RUNNER.md](docs/P0_3_REMOTE_DB_RUNNER.md) — bezpečný
+  read-only runner pro linked databázové důkazy.
 
 Aktivní dokumentace je záměrně malá. Smazané historické soubory se v tomto
 kroku neobnovují.
