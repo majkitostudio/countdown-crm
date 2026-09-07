@@ -90,18 +90,19 @@ své sémantické barvy.
 Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá URL ani
 znalost UUID nejsou bezpečnostní hranice.
 
-Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má po nasazení
-Team Leader Review srovnanou migration history 84/84. Migrace byla nejprve
+Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má srovnanou
+migration history 86/86. Migrace Team Leader Review byla nejprve
 ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
 prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
 Raw veřejný schema diff nemá destruktivní změny. Devět vypsaných definic funkcí
 bylo katalogově prokázáno jako čistý CRLF/LF false positive; všech 80
 projektových funkcí se shoduje v těle po line-ending normalizaci i v security
-metadatech. Pro další P0 advisor bod je lokálně připravená změna: pět stabilních
+metadatech. Následující P0 advisor bod je rovněž uzavřený: pět stabilních
 veřejných RPC signatur používá invoker wrappery, privilegovaná těla jsou v
-`private` a idempotentní migrace přesouvá `pgtap` z `public` do `extensions`.
-Čistý lokální reset a 183/183 databázových testů prošly; linked sandbox zatím
-zůstává na 84/84 migracích a bod není uzavřený bez nasazení a nového read-backu.
+`private` a `pgtap` 1.3.3 je přesunutý z `public` do `extensions`. Linked
+katalogový read-back potvrdil očekávané security režimy, ACL a prázdný
+`search_path`; advisor už těchto šest původních příčin nehlásí. Čistý lokální
+reset a 183/183 databázových testů prošly.
 Aktuální P0.2 větev navíc prošla aplikační sadou 351/351 v 89 souborech, lintem,
 typecheckem a produkčním buildem. Autentizovaný fallback průchod Team Leader → operátor →
 call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
@@ -145,10 +146,9 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. P0 dokončí linked nasazení a read-back lokálně připravené izolace
-   privilegovaných RPC a přesunu `pgtap`; potom pokračuje vzdáleným test runnerem
-   a produkčním Auth nastavením. Funkční schema drift je vysvětlený a hlídaný
-   samostatným sémantickým checkem.
+1. P0 pokračuje bezpečným vzdáleným test runnerem a poté produkčním Auth
+   nastavením. Funkční schema drift i advisor nálezy privilegovaných RPC a
+   `pgtap` jsou uzavřené a podložené read-backem.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
 3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.

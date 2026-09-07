@@ -18,8 +18,8 @@
   skriptu, append-only revizemi hodnocení a auditem. Linked sandbox prošel
   autentizovaným smoke testem včetně cleanupu.
 - Osobní preference operátora jsou serverové, workspace-scoped a chráněné RLS.
-- Linked migration history je srovnaná 84/84. Poslední ověřený checkpoint prošel
-  345/345 aplikačními a 154/154 databázovými testy, lintem, typecheckem a buildem.
+- Linked migration history je srovnaná 86/86. Aktuální P0.2 checkpoint prošel
+  351/351 aplikačními a 183/183 databázovými testy, lintem, typecheckem a buildem.
 
 Hotový bod se do priorit níže nevrací. Pokud se objeví regrese, zapisuje se jako
 nový konkrétní problém s vlastním důkazem.
@@ -39,17 +39,18 @@ akceptační kritéria a důkazní plán.
    diffu je známý Windows line-ending false positive Supabase enginů, ne logický
    drift. Reprodukovatelný `npm run verify:linked-functions` nyní skutečný rozdíl
    odmítne; žádný migration repair ani no-op migrace nevznikly.
-2. **Prověřit pět RPC funkcí typu `SECURITY DEFINER`, které může volat role
+2. [x] **Prověřit pět RPC funkcí typu `SECURITY DEFINER`, které může volat role
    `authenticated`, a umístění `pgtap`.**
    Jde o wallet a call-completion hranice označené linked Security Advisorem.
    Každá musí mít explicitní workspace/role kontrolu, minimální grant a negativní
    test; změna na invoker/revoke se provede jen podle skutečného kontraktu.
    Extension `pgtap` se přesune mimo exponované `public` schéma bezpečným postupem.
-   - Lokálně připraveno: stabilní veřejné RPC signatury jsou invoker wrappery,
+   - Dokončeno: stabilní veřejné RPC signatury jsou invoker wrappery,
      privilegovaná těla jsou v `private`, granty a záporné role/workspace/call
      scénáře kryjí testy a idempotentní migrace přesouvá `pgtap` do `extensions`.
-     Čistý reset prošel 183/183 databázovými testy a lokální advisor už původních
-     šest příčin nehlásí. Bod zůstává otevřený do linked nasazení a read-backu.
+     Linked historie je 86/86, katalogový read-back potvrdil security režim,
+     signatury, ACL i prázdný `search_path`, `pgtap` 1.3.3 je v `extensions` a
+     linked advisor už původních šest příčin nehlásí.
    - Hotovo, když advisor nálezy mají odstraněnou příčinu nebo zdokumentované
      bezpečné odůvodnění podložené testem a `pgtap` už není v `public`.
 3. **Definovat bezpečný privileged runner pro vzdálené databázové důkazy.**

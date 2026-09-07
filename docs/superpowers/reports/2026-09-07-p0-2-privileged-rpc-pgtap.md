@@ -2,7 +2,7 @@
 
 **Datum:** 7. 9. 2026
 
-**Stav:** lokální implementace připravená; linked nasazení a read-back čekají
+**Stav:** dokončeno a ověřeno v linked sandboxu
 
 ## Rozsah
 
@@ -69,16 +69,21 @@ function warningů ani `pgtap` v `public` už nehlásil. Aplikační sada prošl
 **351/351** testy v 89 souborech; zelený je také lint, TypeScript typecheck a
 produkční build.
 
-## Uzavírací podmínka
+## Linked uzavření
 
-P0.2 se označí za dokončené až po review a sloučení změny, bezpečné aplikaci obou
-migrací do linked sandboxu a novém linked read-backu:
+PR #80 byl sloučen do `main` jako `8aef10c`. Dry-run nabídl pouze dvě očekávané
+migrace bez seedů a změn rolí; obě byly následně aplikované do linked sandboxu.
+Opakovaný dry-run potvrdil aktuální stav a migration history je srovnaná 86/86.
 
-1. migration history obsahuje obě nové migrace,
-2. veřejné signatury zůstávají dostupné jako `SECURITY INVOKER`, privátní těla
-   jako `SECURITY DEFINER` s očekávanými ACL a prázdným `search_path`,
-3. `pgtap` je v `extensions`, nikoli v `public`,
-4. linked Security Advisor už nehlásí těchto šest původních příčin.
+Linked katalogový read-back potvrdil:
 
-Teprve potom pokračuje pořadí P0.3 — bezpečný privileged runner pro vzdálené
-databázové důkazy.
+1. všech pět veřejných signatur je dostupných jako `SECURITY INVOKER`,
+2. všech pět privátních těl zůstává `SECURITY DEFINER` s očekávanými ACL a
+   prázdným `search_path`,
+3. `pgtap` verze `1.3.3` je v `extensions`, nikoli v `public`,
+4. Security Advisor už nehlásí pět function warningů ani extension warning.
+
+Advisor nadále uvádí dva INFO nálezy `rls_enabled_no_policy` a Auth warning k
+leaked-password protection. Tyto položky nebyly součástí P0.2 a zůstávají ve
+svých následujících bodech. Pořadí práce nyní pokračuje P0.3 — bezpečným
+privileged runnerem pro vzdálené databázové důkazy.
