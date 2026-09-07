@@ -103,12 +103,16 @@ veřejných RPC signatur používá invoker wrappery, privilegovaná těla jsou 
 katalogový read-back potvrdil očekávané security režimy, ACL a prázdný
 `search_path`; advisor už těchto šest původních příčin nehlásí. Čistý lokální
 reset a 183/183 databázových testů prošly.
-Aktuální P0.2 větev navíc prošla aplikační sadou 351/351 v 89 souborech, lintem,
-typecheckem a produkčním buildem. Autentizovaný fallback průchod Team Leader → operátor →
-call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
-ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`
-ledger. Operátorský callback dotaz a `/calendar` byly znovu ověřeny po nasazení
-post-call migrací. Živý Telnyx provider zůstává samostatně neověřený.
+P0.3 je uzavřené: oddělený runner pro linked databázové důkazy prošel skutečným
+read-only během 8/8 kontrol. Použil scoped identitu omezenou na jeden linked
+sandbox a přesně dvě oprávnění (`Database: Read` a `Data API Config: Read`);
+žádná migrace ani databázový zápis neproběhl. Aplikační sada nyní prochází
+376/376 testy v 90 souborech, databázová sada 183/183 testy, lint, typecheck a
+produkční build. Autentizovaný fallback průchod Team Leader → operátor → call →
+`no_answer` → reload → SQL read-back nyní prošel. Team Leader následně ověřil
+`/calendar` včetně reminder persistence po reloadu a read-only `/wallet` ledger.
+Operátorský callback dotaz a `/calendar` byly znovu ověřeny po nasazení post-call
+migrací. Živý Telnyx provider zůstává samostatně neověřený.
 
 ## Telefonie a AI
 
@@ -146,10 +150,9 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. P0.3 bezpečný vzdálený test runner je uzavřený skutečným linked sandbox
-   důkazem `8/8`; další položkou P0 je samostatné produkční Auth nastavení.
-   Funkční schema drift i advisor nálezy privilegovaných RPC a `pgtap` jsou
-   uzavřené a podložené read-backem.
+1. P0 pokračuje už jen produkčním Auth nastavením. Bezpečný linked runner,
+   schema drift, privilegované RPC a `pgtap` jsou uzavřené a podložené
+   read-backem; runner dokazuje pouze linked sandbox, ne produkční readiness.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
 3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.

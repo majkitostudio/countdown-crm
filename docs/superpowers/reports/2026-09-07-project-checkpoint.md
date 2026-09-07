@@ -177,3 +177,24 @@ se spolupracovníky vzniknou až nad touto hranicí.
 - `git diff --check`: PASS po odstranění formátovacího whitespace;
 - změny jsou pouze dokumentační; produktové soubory, migrace a runtime konfigurace
   zůstaly beze změny.
+
+## Dodatek po dokončení P0.3
+
+Tento dokument zachovává historický stav checkpointu před dokončením P0.3. Po
+sloučení PR [#82](https://github.com/majkitostudio/countdown-crm/pull/82) do
+`main` je bod „privilegovaný vzdálený runner“ uzavřený.
+
+- Runner provedl skutečný linked sandbox běh v režimu read-only a prošel 8/8
+  kontrolami.
+- Použitá identita byla oddělená, projektově omezená a měla pouze
+  `Database: Read` a `Data API Config: Read`.
+- Kontrola RPC používá přesné signatury; kontrola vystavení schématu `private`
+  čte autoritativní PostgREST konfiguraci.
+- Nebyla použita produkční databáze, migrace, reset ani SQL zápis. Token není
+  součástí repozitáře, image, bundlu, logu ani reportu.
+- Aktuální plná aplikační sada je 376/376 testů v 90 souborech a databázová sada
+  183/183 testů.
+
+Aktuální P0 pořadí tím zůstává zúžené na P0.4 — produkční Auth nastavení.
+Podrobný backlog a pravidla pro další práci jsou v
+[`docs/AKTUALNI_STAV_A_DESATERO.md`](../../AKTUALNI_STAV_A_DESATERO.md).

@@ -35,6 +35,13 @@ npm run build
 
 U UI změny ověř hlavní flow v browseru. U persistence ověř po reloadu skutečný záznam. U oprávnění ověř povolenou roli, nepovolenou roli a cizí workspace. U migrace ověř cílové schéma, RLS a migration history.
 
+U vzdáleného databázového bezpečnostního důkazu rozlišuj prostředí: lokální
+`npx supabase test db` dokazuje pouze lokální databázi, zatímco linked sandbox
+se ověřuje výhradně read-only runnerem popsaným v
+[P0_3_REMOTE_DB_RUNNER.md](P0_3_REMOTE_DB_RUNNER.md). Runner používá samostatnou
+identitu s minimálními oprávněními, nikdy produkci, migrace ani databázové zápisy;
+výstup musí být sanitizovaný.
+
 ## 4. Předání
 
 Před commitem zkontroluj diff, nezahrnuté lokální soubory a tajné hodnoty. Commit pojmenuj podle jedné tematické změny. Po pushi uveď, co bylo ověřeno a co zůstává blockerem.

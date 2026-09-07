@@ -4,7 +4,7 @@
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený implementační plán Team Leader Review → projektový checkpoint → P0
+**Stav:** dokončený implementační plán Team Leader Review → projektový checkpoint → P0.1–P0.3; aktivní zůstává P0.4
 
 ## Co je skutečně hotové
 
@@ -18,8 +18,11 @@
   skriptu, append-only revizemi hodnocení a auditem. Linked sandbox prošel
   autentizovaným smoke testem včetně cleanupu.
 - Osobní preference operátora jsou serverové, workspace-scoped a chráněné RLS.
-- Linked migration history je srovnaná 86/86. Aktuální P0.2 checkpoint prošel
-  351/351 aplikačními a 183/183 databázovými testy, lintem, typecheckem a buildem.
+- Linked migration history je srovnaná 86/86. P0.2 i P0.3 prošly 376/376
+  aplikačními a 183/183 databázovými testy, lintem, typecheckem a buildem.
+- P0.3 je skutečně uzavřené: linked runner provedl read-only ověření 8/8
+  databázových kontraktů. Použil oddělenou identitu s pouze `Database: Read` a
+  `Data API Config: Read`; produkce nebyla použita a žádný zápis neproběhl.
 
 Hotový bod se do priorit níže nevrací. Pokud se objeví regrese, zapisuje se jako
 nový konkrétní problém s vlastním důkazem.
@@ -57,12 +60,12 @@ akceptační kritéria a důkazní plán.
    Současný secret key zvládá Auth admin operace, ale Data API nemá grant na
    `public.workspaces`; lokální pgTAP proto není vzdálený důkaz. Široké granty se
    nesmějí přidat jen kvůli testu.
-   - Hotovo, když existuje oddělený, minimálně oprávněný a opakovatelný způsob
-     vzdáleného ověření, nebo výslovně schválená alternativa bez produkčního
-     rozšíření práv.
-   - Implementace read-only runneru a Docker obalu je hotová. Skutečný linked
-     běh proti sandboxu prošel `8/8` kontrolami; důkaz je uložený v
-     `docs/superpowers/reports/2026-09-07-p0-3-linked-run.md`.
+   - Dokončeno: runner v `scripts/p0-3-remote-db-evidence.mjs` používá
+     oddělený scoped token, read-only SQL endpoint a autoritativní PostgREST
+     config endpoint. Linked běh prokázal 8/8 kontraktů; sanitizovaný report je
+     v `docs/superpowers/reports/2026-09-07-p0-3-linked-run.md`.
+   - Runner se nepoužívá jako produkční readiness test a jeho token nesmí být
+     uložený v repozitáři, browseru, Docker image ani logu.
 4. **Uzavřít produkční Auth nastavení.**
    Před přístupem reálných uživatelů zapnout leaked-password protection a znovu
    projít auth smoke test. `NEXT_PUBLIC_ALLOW_DEMO_AUTH` zůstává pouze lokální.
