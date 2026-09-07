@@ -10,6 +10,7 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) | Krátký týmový checklist pro návrh, implementaci a ověření změn. |
 | [TELEPHONY_TELNYX_SETUP.md](TELEPHONY_TELNYX_SETUP.md) | Stav Telnyx vrstvy a dočasná validační cesta přes Docker SIP laboratoř. Neobsahuje tajné klíče. |
 | [superpowers/reports/2026-09-07-project-checkpoint.md](superpowers/reports/2026-09-07-project-checkpoint.md) | Celoprojektový checkpoint, důkazy, rizika a důvody priorit P0–P4. |
+| [superpowers/reports/2026-09-07-linked-function-drift.md](superpowers/reports/2026-09-07-linked-function-drift.md) | Root-cause důkaz, že raw function drift je CRLF/LF false positive, a nový sémantický verifier. |
 | [superpowers/specs/2026-09-07-project-checkpoint-design.md](superpowers/specs/2026-09-07-project-checkpoint-design.md) | Schválená hranice a prioritní model checkpointu. |
 | [superpowers/plans/2026-09-07-project-checkpoint.md](superpowers/plans/2026-09-07-project-checkpoint.md) | Provedený plán checkpointu a jeho ověřovací kroky. |
 | [superpowers/specs/2026-09-05-local-telephony-settings-design.md](superpowers/specs/2026-09-05-local-telephony-settings-design.md) | Schválená specifikace workspace adapteru, admin-only `/telephony` a lokální Asterisk laboratoře. |

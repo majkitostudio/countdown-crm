@@ -33,19 +33,20 @@ akceptační kritéria a důkazní plán.
 
 ### P0 — bezpečnost a shoda databáze před pilotem
 
-1. **Odstranit nevysvětlený drift linked veřejného schématu.**
-   Aktuální diff neobsahuje destruktivní operaci, ale ukazuje rozdílné definice
-   devíti starších funkcí. Každý rozdíl se porovná s migracemi a cílovým stavem;
-   bez hromadného „repair“ nebo přepsání historie.
-   - Hotovo, když `supabase db diff --linked --schema public` neobsahuje
-     nevysvětlenou změnu a migration history zůstává srovnaná.
+1. [x] **Vysvětlit linked drift projektových funkcí.** Přímé katalogové srovnání
+   prokázalo shodu všech 80 projektových funkcí po normalizaci pouze CRLF/LF,
+   včetně signatur, security režimu, konfigurace a ACL. Devět funkcí v raw public
+   diffu je známý Windows line-ending false positive Supabase enginů, ne logický
+   drift. Reprodukovatelný `npm run verify:linked-functions` nyní skutečný rozdíl
+   odmítne; žádný migration repair ani no-op migrace nevznikly.
 2. **Prověřit pět RPC funkcí typu `SECURITY DEFINER`, které může volat role
-   `authenticated`.**
+   `authenticated`, a umístění `pgtap`.**
    Jde o wallet a call-completion hranice označené linked Security Advisorem.
    Každá musí mít explicitní workspace/role kontrolu, minimální grant a negativní
    test; změna na invoker/revoke se provede jen podle skutečného kontraktu.
+   Extension `pgtap` se přesune mimo exponované `public` schéma bezpečným postupem.
    - Hotovo, když advisor nálezy mají odstraněnou příčinu nebo zdokumentované
-     bezpečné odůvodnění podložené testem.
+     bezpečné odůvodnění podložené testem a `pgtap` už není v `public`.
 3. **Definovat bezpečný privileged runner pro vzdálené databázové důkazy.**
    Současný secret key zvládá Auth admin operace, ale Data API nemá grant na
    `public.workspaces`; lokální pgTAP proto není vzdálený důkaz. Široké granty se
