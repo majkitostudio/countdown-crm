@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import process from "node:process";
 
 const PROJECT_REF_PATTERN = /^[a-z0-9]{20}$/;
@@ -15,6 +16,20 @@ export const EVIDENCE_CHECK_KEYS = new Set([
   "pgtap_not_public",
   "private_schema_not_exposed",
 ]);
+export const REQUIRED_EVIDENCE_CHECK_KEYS = [...EVIDENCE_CHECK_KEYS];
+const CHILD_ENV_NAMES = [
+  "PATH",
+  "Path",
+  "SystemRoot",
+  "TEMP",
+  "TMP",
+  "HOME",
+  "USERPROFILE",
+  "APPDATA",
+  "LOCALAPPDATA",
+  "CI",
+  "NO_COLOR",
+];
 
 const runnerError = (code) => {
   const error = new Error(code);
@@ -140,6 +155,68 @@ export function parseEvidencePayload(output) {
   }
 
   return { checks };
+}
+
+function childEnvironment(env) {
+  const result = { SUPABASE_ACCESS_TOKEN: env.SUPABASE_ACCESS_TOKEN.trim() };
+  for (const name of CHILD_ENV_NAMES) {
+    if (env[name]) result[name] = env[name];
+  }
+  return result;
+}
+
+export function runLinkedEvidence({
+  env = process.env,
+  paths = {},
+  sql,
+  sqlFile,
+  mode = "read-only",
+  spawn = spawnSync,
+}) {
+  let projectRef;
+  try {
+    if (mode !== "read-only") throw runnerError("WRITE_MODE_DISABLED");
+    const config = readRunnerConfig(env, paths);
+    projectRef = config.projectRef;
+    validateReadOnlySql(sql);
+
+    const invocation = buildLinkedQueryInvocation({
+      cliPath: config.cliPath,
+      projectRef: config.projectRef,
+      sqlFile,
+      workdir: config.workdir,
+    });
+    const result = spawn(invocation.command, invocation.args, {
+      encoding: "utf8",
+      shell: false,
+      env: childEnvironment(env),
+    });
+    if (result.status !== 0) throw runnerError("CLI_QUERY_FAILED");
+
+    const { checks } = parseEvidencePayload(result.stdout ?? "");
+    const failedChecks = REQUIRED_EVIDENCE_CHECK_KEYS.filter((key) => checks[key] !== true);
+    const report = {
+      status: failedChecks.length === 0 ? "passed" : "failed",
+      target: "linked-sandbox",
+      mode,
+      projectRefFingerprint: fingerprint(projectRef),
+      checks: {
+        total: REQUIRED_EVIDENCE_CHECK_KEYS.length,
+        passed: REQUIRED_EVIDENCE_CHECK_KEYS.length - failedChecks.length,
+        failed: failedChecks,
+      },
+    };
+    if (failedChecks.length > 0) {
+      return { exitCode: 1, report: { ...report, failureCode: "EVIDENCE_CHECK_FAILED" } };
+    }
+    return { exitCode: 0, report };
+  } catch (error) {
+    const failureCode = typeof error?.code === "string" ? error.code : "RUNNER_FAILED";
+    return {
+      exitCode: 1,
+      report: makeFailureReport({ failureCode, projectRef, mode }),
+    };
+  }
 }
 
 export function makeFailureReport({ failureCode, projectRef, mode = "read-only" }) {
