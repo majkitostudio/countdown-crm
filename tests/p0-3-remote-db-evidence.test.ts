@@ -21,6 +21,10 @@ const evidenceSqlPath = new URL(
   "../scripts/p0-3-remote-db-evidence.sql",
   import.meta.url,
 );
+const dockerfilePath = new URL(
+  "../docker/p0-3-runner/Dockerfile",
+  import.meta.url,
+);
 
 describe("P0.3 remote evidence runner configuration", () => {
   it("rejects a missing scoped access token without exposing a value", () => {
@@ -131,6 +135,17 @@ describe("P0.3 remote evidence runner configuration", () => {
     expect(sql).toContain("pg_extension");
     expect(sql).toContain("pgtap_not_public");
     expect(sql).not.toMatch(/\b(insert|update|delete|alter|drop|grant|revoke)\b/i);
+  });
+
+  it("keeps secrets out of the Docker image", () => {
+    const dockerfile = readFileSync(dockerfilePath, "utf8");
+
+    expect(dockerfile).toContain("npm ci --ignore-scripts");
+    expect(dockerfile).toContain("package-lock.json");
+    expect(dockerfile).not.toMatch(/COPY[^\n]*\.env/i);
+    expect(dockerfile).not.toMatch(/\bARG\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
+    expect(dockerfile).not.toMatch(/\bENV\s+[^\n]*(SUPABASE|TOKEN|SECRET|PASSWORD)/i);
+    expect(dockerfile).not.toContain("SERVICE_ROLE_KEY");
   });
 
   it("passes the scoped token only to the child process and returns a safe report", () => {
