@@ -97,11 +97,13 @@ prověřena přes skutečný Team Leader/operator Auth průchod s následným cl
 Raw veřejný schema diff nemá destruktivní změny. Devět vypsaných definic funkcí
 bylo katalogově prokázáno jako čistý CRLF/LF false positive; všech 80
 projektových funkcí se shoduje v těle po line-ending normalizaci i v security
-metadatech. Extension `pgtap` v public schématu zůstává samostatným P0 advisor
-bodem.
-Checkpointová lokální databázová sada prošla 154/154 a aplikační sada 345/345
-v 88 souborech;
-lint, typecheck i produkční build jsou zelené. Autentizovaný fallback průchod Team Leader → operátor →
+metadatech. Pro další P0 advisor bod je lokálně připravená změna: pět stabilních
+veřejných RPC signatur používá invoker wrappery, privilegovaná těla jsou v
+`private` a idempotentní migrace přesouvá `pgtap` z `public` do `extensions`.
+Čistý lokální reset a 183/183 databázových testů prošly; linked sandbox zatím
+zůstává na 84/84 migracích a bod není uzavřený bez nasazení a nového read-backu.
+Aktuální P0.2 větev navíc prošla aplikační sadou 351/351 v 89 souborech, lintem,
+typecheckem a produkčním buildem. Autentizovaný fallback průchod Team Leader → operátor →
 call → `no_answer` → reload → SQL read-back nyní prošel. Team Leader následně
 ověřil `/calendar` včetně reminder persistence po reloadu a read-only `/wallet`
 ledger. Operátorský callback dotaz a `/calendar` byly znovu ověřeny po nasazení
@@ -143,9 +145,10 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. P0 pokračuje auditem privilegovaných RPC/grants a `pgtap`, vzdáleným test
-   runnerem a produkčním Auth nastavením. Funkční schema drift je vysvětlený a
-   hlídaný samostatným sémantickým checkem.
+1. P0 dokončí linked nasazení a read-back lokálně připravené izolace
+   privilegovaných RPC a přesunu `pgtap`; potom pokračuje vzdáleným test runnerem
+   a produkčním Auth nastavením. Funkční schema drift je vysvětlený a hlídaný
+   samostatným sémantickým checkem.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
 3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
