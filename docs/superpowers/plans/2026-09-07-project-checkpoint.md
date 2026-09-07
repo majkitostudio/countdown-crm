@@ -77,7 +77,7 @@
 
 - [x] Run `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `npx supabase test db`, and `git diff --check`.
 - [x] Review the complete diff for unsupported claims and secret leakage.
-- [ ] Commit the documentation-only checkpoint, push the branch, and open a Pull Request against `main`.
+- [x] Commit the documentation-only checkpoint, push the branch, and open a Pull Request against `main`.
 
 ## Completion Definition
 
