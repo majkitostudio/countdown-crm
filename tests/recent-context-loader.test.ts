@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyRecentContextRefresh,
   canRetainRecentContext,
   loadRecentContext,
   shouldMarkRecentContextStale,
 } from "@/components/workspace/recentContextLoader";
+import { buildRecentContext, type RecentContextLoadResult } from "@/components/workspace/recentContext";
 import type { WorkspaceActivity } from "@/lib/domain";
-
-function dataAccessError(code: string, message: string): Error & { code: string } {
-  return Object.assign(new Error(message), { code });
-}
 
 const activities: WorkspaceActivity[] = [
   {
@@ -39,16 +37,54 @@ describe("recent context loader", () => {
   it("marks only retained partial or unavailable results as stale", () => {
     expect(shouldMarkRecentContextStale(false, "partial")).toBe(false);
     expect(shouldMarkRecentContextStale(true, "ready")).toBe(false);
-    expect(shouldMarkRecentContextStale(true, "partial")).toBe(true);
+    expect(shouldMarkRecentContextStale(true, "partial")).toBe(false);
     expect(shouldMarkRecentContextStale(true, "unavailable")).toBe(true);
+  });
+
+  it("retains only same-lead unavailable data and keeps fresh partial data non-stale", () => {
+    const previous = {
+      leadId: "lead-1",
+      data: buildRecentContext("lead-1", activities, callbackEntries),
+    };
+    const partial: RecentContextLoadResult = {
+      state: "partial",
+      isEmpty: false,
+      context: buildRecentContext("lead-1", [], callbackEntries),
+      unavailableSources: ["activities"],
+      messages: { activities: "Activities temporarily unavailable." },
+    };
+    const unavailable: RecentContextLoadResult = {
+      state: "unavailable",
+      isEmpty: false,
+      context: null,
+      unavailableSources: ["activities", "callbacks"],
+      messages: { activities: "Activities failed.", calendar: "Calendar failed." },
+    };
+
+    expect(applyRecentContextRefresh(previous, "lead-1", partial)).toEqual({
+      context: { leadId: "lead-1", data: partial.context },
+      isStale: false,
+    });
+    expect(applyRecentContextRefresh(previous, "lead-1", unavailable)).toEqual({
+      context: previous,
+      isStale: true,
+    });
+    expect(applyRecentContextRefresh(previous, "lead-2", unavailable)).toEqual({
+      context: null,
+      isStale: false,
+    });
   });
 
   it("keeps activities when the calendar database source is unavailable", async () => {
     const result = await loadRecentContext("lead-1", {
-      loadActivities: async () => activities,
-      loadCallbacks: async () => {
-        throw dataAccessError("DATABASE", "Calendar temporarily unavailable.");
-      },
+      loadSources: async () => ({
+        activities: { status: "ready", data: activities },
+        callbacks: {
+          status: "unavailable",
+          reason: "database",
+          message: "Calendar temporarily unavailable.",
+        },
+      }),
     });
 
     expect(result.state).toBe("partial");
@@ -58,10 +94,14 @@ describe("recent context loader", () => {
 
   it("keeps calendar callbacks when activities database source is unavailable", async () => {
     const result = await loadRecentContext("lead-1", {
-      loadActivities: async () => {
-        throw dataAccessError("DATABASE", "Activities temporarily unavailable.");
-      },
-      loadCallbacks: async () => callbackEntries,
+      loadSources: async () => ({
+        activities: {
+          status: "unavailable",
+          reason: "database",
+          message: "Activities temporarily unavailable.",
+        },
+        callbacks: { status: "ready", data: callbackEntries },
+      }),
     });
 
     expect(result.state).toBe("partial");
@@ -71,12 +111,18 @@ describe("recent context loader", () => {
 
   it("returns unavailable when both database sources fail", async () => {
     const result = await loadRecentContext("lead-1", {
-      loadActivities: async () => {
-        throw dataAccessError("DATABASE", "Activities failed.");
-      },
-      loadCallbacks: async () => {
-        throw dataAccessError("DATABASE", "Calendar failed.");
-      },
+      loadSources: async () => ({
+        activities: {
+          status: "unavailable",
+          reason: "database",
+          message: "Activities failed.",
+        },
+        callbacks: {
+          status: "unavailable",
+          reason: "database",
+          message: "Calendar failed.",
+        },
+      }),
     });
 
     expect(result.state).toBe("unavailable");
@@ -86,8 +132,10 @@ describe("recent context loader", () => {
 
   it("keeps verified empty data distinct from unavailable data", async () => {
     const result = await loadRecentContext("lead-empty", {
-      loadActivities: async () => [],
-      loadCallbacks: async () => [],
+      loadSources: async () => ({
+        activities: { status: "ready", data: [] },
+        callbacks: { status: "ready", data: [] },
+      }),
     });
 
     expect(result.state).toBe("ready");
@@ -95,24 +143,11 @@ describe("recent context loader", () => {
     expect(result.unavailableSources).toEqual([]);
   });
 
-  it.each(["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "VALIDATION", "CONFLICT"] as const)(
-    "rethrows %s instead of weakening it to a partial result",
-    async (code) => {
-      await expect(loadRecentContext("lead-1", {
-        loadActivities: async () => {
-          throw dataAccessError(code, `${code} failure`);
-        },
-        loadCallbacks: async () => callbackEntries,
-      })).rejects.toMatchObject({ code });
-    },
-  );
-
-  it("rethrows an unclassified error instead of treating it as a provider outage", async () => {
+  it("propagates a server boundary failure without client-side classification", async () => {
     const error = new Error("unexpected failure");
 
     await expect(loadRecentContext("lead-1", {
-      loadActivities: async () => activities,
-      loadCallbacks: async () => { throw error; },
+      loadSources: async () => { throw error; },
     })).rejects.toBe(error);
   });
 

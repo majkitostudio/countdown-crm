@@ -1,15 +1,13 @@
-import type { WorkspaceActivity } from "@/lib/domain";
+import type { RecentContextSourcesActionResult } from "@/app/actions/recentContext";
 import {
   buildRecentContextFromSources,
-  type RecentContextCallback,
+  type RecentContextData,
   type RecentContextLoadResult,
   type RecentContextLoadState,
-  type RecentContextSourceState,
 } from "./recentContext";
 
 export interface RecentContextLoaders {
-  loadActivities: () => Promise<WorkspaceActivity[]>;
-  loadCallbacks: () => Promise<RecentContextCallback[]>;
+  loadSources: () => Promise<RecentContextSourcesActionResult>;
 }
 
 export function canRetainRecentContext(
@@ -23,26 +21,31 @@ export function shouldMarkRecentContextStale(
   hadPreviousContext: boolean,
   state: RecentContextLoadState,
 ): boolean {
-  return hadPreviousContext && state !== "ready";
+  return hadPreviousContext && state === "unavailable";
 }
 
-function isDatabaseDataAccessError(error: unknown): error is { code: "DATABASE"; message: string } {
-  return Boolean(
-    error
-      && typeof error === "object"
-      && "code" in error
-      && error.code === "DATABASE"
-      && "message" in error
-      && typeof error.message === "string",
-  );
+export interface LoadedRecentContext {
+  leadId: string;
+  data: RecentContextData;
 }
 
-function unavailableFromRejection(error: unknown): RecentContextSourceState<never> {
-  if (isDatabaseDataAccessError(error)) {
-    return { status: "unavailable", reason: "database", message: error.message };
+export function applyRecentContextRefresh(
+  previous: LoadedRecentContext | null,
+  requestedLeadId: string,
+  result: RecentContextLoadResult,
+): { context: LoadedRecentContext | null; isStale: boolean } {
+  if (result.context) {
+    return {
+      context: { leadId: requestedLeadId, data: result.context },
+      isStale: false,
+    };
   }
 
-  throw error;
+  if (previous && canRetainRecentContext(previous.leadId, requestedLeadId) && result.state === "unavailable") {
+    return { context: previous, isStale: true };
+  }
+
+  return { context: null, isStale: false };
 }
 
 export async function loadRecentContext(
@@ -50,17 +53,7 @@ export async function loadRecentContext(
   loaders: RecentContextLoaders,
   now?: number,
 ): Promise<RecentContextLoadResult> {
-  const [activitiesResult, callbacksResult] = await Promise.allSettled([
-    loaders.loadActivities(),
-    loaders.loadCallbacks(),
-  ]);
+  const sources = await loaders.loadSources();
 
-  const activities: RecentContextSourceState<WorkspaceActivity[]> = activitiesResult.status === "fulfilled"
-    ? { status: "ready", data: activitiesResult.value }
-    : unavailableFromRejection(activitiesResult.reason);
-  const callbacks = callbacksResult.status === "fulfilled"
-    ? { status: "ready" as const, data: callbacksResult.value }
-    : unavailableFromRejection(callbacksResult.reason);
-
-  return buildRecentContextFromSources({ leadId, activities, callbacks, now });
+  return buildRecentContextFromSources({ ...sources, leadId, now });
 }
