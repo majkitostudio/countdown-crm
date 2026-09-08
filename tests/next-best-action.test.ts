@@ -59,32 +59,137 @@ describe("next best action", () => {
     expect(result.source_id).toBeNull();
   });
 
-  it("keeps the next-best-action card unavailable when the callback source is unavailable", () => {
+  it("shows an urgent reorder as partial when callback priority cannot be verified", () => {
+    const result = resolveNextBestActionState(
+      { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+      {
+        state: "available",
+        data: [{
+          id: "reorder-1",
+          lead_id: "lead-2",
+          lead_name: "Petr Svoboda",
+          product_title: "Test product",
+          days_remaining: 1,
+          urgency: "urgent",
+        }],
+      },
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "partial",
+      action: expect.objectContaining({ kind: "reorder", source_id: "reorder-1" }),
+      unavailableSources: ["callbacks"],
+      message: "Scheduled callbacks could not be loaded.",
+    });
+  });
+
+  it("shows a due callback as partial when reorder estimates are unavailable", () => {
     const result = resolveNextBestActionState(
       {
-        entries: [],
-        sources: {
-          callbacks: {
-            state: "unavailable",
-            message: "Scheduled callbacks could not be loaded.",
-          },
-          reminders: { state: "available" },
-        },
+        state: "available",
+        data: [{
+          id: "callback-1",
+          lead_id: "lead-1",
+          lead_name: "Jana Nováková",
+          scheduled_at: "2026-08-31T11:30:00.000Z",
+        }],
       },
-      [{
-        id: "reorder-1",
-        lead_id: "lead-2",
-        lead_name: "Petr Svoboda",
-        product_title: "Test product",
-        days_remaining: 1,
-        urgency: "urgent",
-      }],
+      { state: "unavailable", message: "Re-order estimates could not be loaded." },
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "partial",
+      action: expect.objectContaining({ kind: "callback", source_id: "callback-1" }),
+      unavailableSources: ["reorders"],
+      message: "Re-order estimates could not be loaded.",
+    });
+  });
+
+  it("does not fabricate a queue action when the reorder source is unavailable", () => {
+    const result = resolveNextBestActionState(
+      { state: "available", data: [] },
+      { state: "unavailable", message: "Re-order estimates could not be loaded." },
       now,
     );
 
     expect(result).toEqual({
       status: "unavailable",
+      unavailableSources: ["reorders"],
+      message: "Re-order estimates could not be loaded.",
+    });
+  });
+
+  it("does not fabricate a queue action when the callback source is unavailable", () => {
+    const result = resolveNextBestActionState(
+      { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+      { state: "available", data: [] },
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "unavailable",
+      unavailableSources: ["callbacks"],
       message: "Scheduled callbacks could not be loaded.",
+    });
+  });
+
+  it("uses the queue only when both sources are verified available and empty", () => {
+    const result = resolveNextBestActionState(
+      { state: "available", data: [] },
+      { state: "available", data: [] },
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "ready",
+      action: expect.objectContaining({ kind: "queue", source: "lead queue" }),
+    });
+  });
+
+  it("returns unavailable when both priority sources are unavailable", () => {
+    const result = resolveNextBestActionState(
+      { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+      { state: "unavailable", message: "Re-order estimates could not be loaded." },
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "unavailable",
+      unavailableSources: ["callbacks", "reorders"],
+      message: "Scheduled callbacks could not be loaded. Re-order estimates could not be loaded.",
+    });
+  });
+
+  it("uses an urgent reorder definitively when callbacks are available but only scheduled later", () => {
+    const result = resolveNextBestActionState(
+      {
+        state: "available",
+        data: [{
+          id: "callback-later",
+          lead_id: "lead-later",
+          lead_name: "Later customer",
+          scheduled_at: "2026-09-03T11:30:00.000Z",
+        }],
+      },
+      {
+        state: "available",
+        data: [{
+          id: "reorder-1",
+          lead_id: "lead-2",
+          lead_name: "Petr Svoboda",
+          product_title: "Test product",
+          days_remaining: 1,
+          urgency: "urgent",
+        }],
+      },
+      now,
+    );
+
+    expect(result).toEqual({
+      status: "ready",
+      action: expect.objectContaining({ kind: "reorder", source_id: "reorder-1" }),
     });
   });
 });
