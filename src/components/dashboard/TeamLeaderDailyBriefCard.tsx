@@ -98,16 +98,8 @@ export function TeamLeaderDailyBriefCard() {
           brief: buildTeamLeaderDailyBrief({
             daily: analyticsResult.data.daily,
             callbacks,
-            callbacksSource: calendarResult.status === "fulfilled"
-              ? calendarResult.value.sources.callbacks.state === "available"
-                ? { state: "available", data: callbacks }
-                : calendarResult.value.sources.callbacks
-              : { state: "unavailable", message: "Callbacky nejsou dostupné." },
             reminders,
             reorderOpportunities,
-            reordersSource: reorderResult.status === "fulfilled"
-              ? { state: "available", data: reorderOpportunities }
-              : { state: "unavailable", message: "Re-order odhady nejsou dostupné." },
             pendingReviews,
             wallet,
           }),
@@ -172,29 +164,6 @@ export function TeamLeaderDailyBriefCard() {
               <BriefDetail label="Team wallet" value={`${formatAmount(readyState.brief.teamWalletBalance, readyState.brief.walletCurrency || "CZK")} • ${readyState.brief.teamWalletTransactions} transactions`} href="/wallet" />
             )}
           </div>
-
-          {readyState.brief.nextActionState.status === "unavailable" ? (
-            <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">
-              Priorita není dostupná: {readyState.brief.nextActionState.message}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Priority</p>
-                <p className="mt-1 text-sm font-medium text-zinc-100">{readyState.brief.nextActionState.action.title}</p>
-                <p className="mt-1 text-xs text-zinc-400">{readyState.brief.nextActionState.action.description}</p>
-                <p className="mt-2 text-[10px] font-mono uppercase tracking-wider text-zinc-600">Source: {readyState.brief.nextActionState.action.source}</p>
-                {readyState.brief.nextActionState.status === "partial" ? (
-                  <p role="status" className="mt-2 text-[11px] text-amber-300/80">
-                    Částečné doporučení: {readyState.brief.nextActionState.message}
-                  </p>
-                ) : null}
-              </div>
-              <Link href={readyState.brief.nextActionState.action.href} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-white">
-                Open action <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </Link>
-            </div>
-          )}
 
           {readyState.warnings.length > 0 && <p role="status" className="text-[11px] text-amber-300/80">Částečný brief: {readyState.warnings.join(" ")}</p>}
         </>

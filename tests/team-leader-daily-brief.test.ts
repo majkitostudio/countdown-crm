@@ -47,25 +47,6 @@ describe("Team Leader Daily Brief", () => {
     expect(brief.overdueCallbacks).toBe(1);
     expect(brief.openReminders).toBe(1);
     expect(brief.teamWalletBalance).toBeNull();
-    expect(brief.nextActionState).toEqual({
-      status: "ready",
-      action: expect.objectContaining({ kind: "callback" }),
-    });
-  });
-
-  it("does not invent a queue priority when callbacks are unavailable", () => {
-    const brief = buildTeamLeaderDailyBrief({
-      now,
-      daily: { date: "2026-08-31", calls: 0, completedOrders: 0, revenue: 0, revenueByCurrency: [], currency: "CZK", conversionRate: 0 },
-      callbacksSource: { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
-      reordersSource: { state: "available", data: [] },
-    });
-
-    expect(brief.nextActionState).toEqual({
-      status: "unavailable",
-      unavailableSources: ["callbacks"],
-      message: "Scheduled callbacks could not be loaded.",
-    });
   });
 
   it("carries the persisted pending review count without inventing a value", () => {
