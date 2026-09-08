@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CalendarClock, CheckCircle2, PhoneCall, ShoppingBag } from "lucide-react";
-import { listCalendarEntriesAction } from "@/app/actions/calendar";
+import { listScheduledCallbacksAction } from "@/app/actions/calendar";
 import { getLeadActivities } from "@/lib/domainActivity";
 import { formatCurrencyAmount } from "@/lib/currency";
 import type { WorkspaceActivity } from "@/lib/domain";
 import type { RecentContextData, RecentContextLoadResult } from "./recentContext";
-import { loadRecentContext } from "./recentContextLoader";
+import { canRetainRecentContext, loadRecentContext, shouldMarkRecentContextStale } from "./recentContextLoader";
 
 interface RecentContextRowProps {
   leadId: string;
@@ -112,20 +112,24 @@ function renderSignal(
 }
 
 export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps) {
-  const [context, setContext] = useState<RecentContextData | null>(null);
+  const [loadedContext, setLoadedContext] = useState<{ leadId: string; data: RecentContextData } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [loadState, setLoadState] = useState<RecentContextLoadResult | null>(null);
+  const [loadedState, setLoadedState] = useState<{ leadId: string; result: RecentContextLoadResult } | null>(null);
   const [isStale, setIsStale] = useState(false);
-  const contextRef = useRef<RecentContextData | null>(null);
+  const loadedContextRef = useRef(loadedContext);
+  const context = loadedContext?.leadId === leadId ? loadedContext.data : null;
+  const loadState = loadedState?.leadId === leadId ? loadedState.result : null;
 
   useEffect(() => {
-    contextRef.current = context;
-  }, [context]);
+    loadedContextRef.current = loadedContext;
+  }, [loadedContext]);
 
   useEffect(() => {
     let cancelled = false;
-    const hadPreviousContext = contextRef.current !== null;
+    const hadPreviousContext = canRetainRecentContext(loadedContextRef.current?.leadId, leadId);
+    const from = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const to = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
     async function loadContext() {
       setIsLoading(true);
@@ -135,21 +139,28 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
       try {
         const recentContext = await loadRecentContext(leadId, {
           loadActivities: () => getLeadActivities(leadId),
-          loadCalendar: () => listCalendarEntriesAction(),
+          loadCallbacks: async () => {
+            const callbacks = await listScheduledCallbacksAction(from, to);
+            return callbacks.map((callback) => ({
+              id: callback.id,
+              lead_id: callback.lead_id,
+              scheduled_at: callback.scheduled_at,
+            }));
+          },
         });
         if (cancelled) return;
 
-        setLoadState(recentContext);
+        setLoadedState({ leadId, result: recentContext });
         if (recentContext.context) {
-          setContext(recentContext.context);
+          setLoadedContext({ leadId, data: recentContext.context });
         } else if (!hadPreviousContext) {
-          setContext(null);
+          setLoadedContext(null);
         }
-        setIsStale(recentContext.state !== "ready");
+        setIsStale(shouldMarkRecentContextStale(hadPreviousContext, recentContext.state));
       } catch (error) {
         if (!cancelled) {
-          setContext(null);
-          setLoadState(null);
+          setLoadedContext(null);
+          setLoadedState(null);
           setIsStale(false);
           setLoadError(error instanceof Error ? error.message : "Recent context could not be loaded.");
         }

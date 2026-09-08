@@ -1,7 +1,9 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { loadRecentContext, type RecentContextCalendarResult } from "@/components/workspace/recentContextLoader";
+import {
+  canRetainRecentContext,
+  loadRecentContext,
+  shouldMarkRecentContextStale,
+} from "@/components/workspace/recentContextLoader";
 import type { WorkspaceActivity } from "@/lib/domain";
 
 function dataAccessError(code: string, message: string): Error & { code: string } {
@@ -21,36 +23,30 @@ const activities: WorkspaceActivity[] = [
   },
 ];
 
-const calendarWithCallback = {
-  entries: [{
-    id: "callback-active",
-    type: "callback",
-    title: "Callback",
-    starts_at: "2026-09-01T10:00:00.000Z",
-    remind_at: null,
-    status: "scheduled",
-    lead: { id: "lead-1", full_name: "Lead One", phone: "+420000000000", email: null },
-    reminder: null,
-  }],
-  sources: {
-    callbacks: { state: "available" },
-    reminders: { state: "available" },
-  },
-} satisfies RecentContextCalendarResult;
-
-const emptyCalendar = {
-  entries: [],
-  sources: {
-    callbacks: { state: "available" },
-    reminders: { state: "available" },
-  },
-} satisfies RecentContextCalendarResult;
+const callbackEntries = [{
+  id: "callback-active",
+  lead_id: "lead-1",
+  scheduled_at: "2026-09-01T10:00:00.000Z",
+}];
 
 describe("recent context loader", () => {
+  it("retains stale context only for the same lead", () => {
+    expect(canRetainRecentContext("lead-1", "lead-1")).toBe(true);
+    expect(canRetainRecentContext("lead-1", "lead-2")).toBe(false);
+    expect(canRetainRecentContext(undefined, "lead-1")).toBe(false);
+  });
+
+  it("marks only retained partial or unavailable results as stale", () => {
+    expect(shouldMarkRecentContextStale(false, "partial")).toBe(false);
+    expect(shouldMarkRecentContextStale(true, "ready")).toBe(false);
+    expect(shouldMarkRecentContextStale(true, "partial")).toBe(true);
+    expect(shouldMarkRecentContextStale(true, "unavailable")).toBe(true);
+  });
+
   it("keeps activities when the calendar database source is unavailable", async () => {
     const result = await loadRecentContext("lead-1", {
       loadActivities: async () => activities,
-      loadCalendar: async () => {
+      loadCallbacks: async () => {
         throw dataAccessError("DATABASE", "Calendar temporarily unavailable.");
       },
     });
@@ -65,7 +61,7 @@ describe("recent context loader", () => {
       loadActivities: async () => {
         throw dataAccessError("DATABASE", "Activities temporarily unavailable.");
       },
-      loadCalendar: async () => calendarWithCallback,
+      loadCallbacks: async () => callbackEntries,
     });
 
     expect(result.state).toBe("partial");
@@ -78,7 +74,7 @@ describe("recent context loader", () => {
       loadActivities: async () => {
         throw dataAccessError("DATABASE", "Activities failed.");
       },
-      loadCalendar: async () => {
+      loadCallbacks: async () => {
         throw dataAccessError("DATABASE", "Calendar failed.");
       },
     });
@@ -91,7 +87,7 @@ describe("recent context loader", () => {
   it("keeps verified empty data distinct from unavailable data", async () => {
     const result = await loadRecentContext("lead-empty", {
       loadActivities: async () => [],
-      loadCalendar: async () => emptyCalendar,
+      loadCallbacks: async () => [],
     });
 
     expect(result.state).toBe("ready");
@@ -106,7 +102,7 @@ describe("recent context loader", () => {
         loadActivities: async () => {
           throw dataAccessError(code, `${code} failure`);
         },
-        loadCalendar: async () => calendarWithCallback,
+        loadCallbacks: async () => callbackEntries,
       })).rejects.toMatchObject({ code });
     },
   );
@@ -116,14 +112,8 @@ describe("recent context loader", () => {
 
     await expect(loadRecentContext("lead-1", {
       loadActivities: async () => activities,
-      loadCalendar: async () => { throw error; },
+      loadCallbacks: async () => { throw error; },
     })).rejects.toBe(error);
   });
 
-  it("keeps an explicit stale or unavailable marker in the row during refresh", () => {
-    const source = readFileSync(resolve(process.cwd(), "src/components/workspace/RecentContextRow.tsx"), "utf8");
-
-    expect(source).toContain("stale");
-    expect(source).toContain("Unavailable");
-  });
 });

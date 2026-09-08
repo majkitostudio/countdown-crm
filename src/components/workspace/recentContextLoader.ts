@@ -3,34 +3,28 @@ import {
   buildRecentContextFromSources,
   type RecentContextCallback,
   type RecentContextLoadResult,
+  type RecentContextLoadState,
   type RecentContextSourceState,
 } from "./recentContext";
 
 export interface RecentContextLoaders {
   loadActivities: () => Promise<WorkspaceActivity[]>;
-  loadCalendar: () => Promise<RecentContextCalendarResult>;
+  loadCallbacks: () => Promise<RecentContextCallback[]>;
 }
 
-export interface RecentContextCalendarResult {
-  entries: Array<{
-    id: string;
-    type: string;
-    title: string;
-    starts_at: string;
-    remind_at: string | null;
-    status: "scheduled" | "open" | "completed";
-    lead: { id: string; full_name: string; phone: string; email: string | null } | null;
-    reminder: unknown;
-  }>;
-  sources: {
-    callbacks: RecentContextCalendarSourceState;
-    reminders: RecentContextCalendarSourceState;
-  };
+export function canRetainRecentContext(
+  loadedLeadId: string | undefined,
+  requestedLeadId: string,
+): boolean {
+  return loadedLeadId === requestedLeadId;
 }
 
-type RecentContextCalendarSourceState =
-  | { state: "available" }
-  | { state: "unavailable"; message: string };
+export function shouldMarkRecentContextStale(
+  hadPreviousContext: boolean,
+  state: RecentContextLoadState,
+): boolean {
+  return hadPreviousContext && state !== "ready";
+}
 
 function isDatabaseDataAccessError(error: unknown): error is { code: "DATABASE"; message: string } {
   return Boolean(
@@ -51,43 +45,22 @@ function unavailableFromRejection(error: unknown): RecentContextSourceState<neve
   throw error;
 }
 
-function callbacksFromCalendar(calendar: RecentContextCalendarResult): RecentContextSourceState<RecentContextCallback[]> {
-  if (calendar.sources.callbacks.state === "unavailable") {
-    return {
-      status: "unavailable",
-      reason: "provider",
-      message: calendar.sources.callbacks.message,
-    };
-  }
-
-  return {
-    status: "ready",
-    data: calendar.entries
-      .filter((entry) => entry.type === "callback" && entry.lead)
-      .map((entry) => ({
-        id: entry.id,
-        lead_id: entry.lead!.id,
-        scheduled_at: entry.starts_at,
-      })),
-  };
-}
-
 export async function loadRecentContext(
   leadId: string,
   loaders: RecentContextLoaders,
   now?: number,
 ): Promise<RecentContextLoadResult> {
-  const [activitiesResult, calendarResult] = await Promise.allSettled([
+  const [activitiesResult, callbacksResult] = await Promise.allSettled([
     loaders.loadActivities(),
-    loaders.loadCalendar(),
+    loaders.loadCallbacks(),
   ]);
 
   const activities: RecentContextSourceState<WorkspaceActivity[]> = activitiesResult.status === "fulfilled"
     ? { status: "ready", data: activitiesResult.value }
     : unavailableFromRejection(activitiesResult.reason);
-  const callbacks = calendarResult.status === "fulfilled"
-    ? callbacksFromCalendar(calendarResult.value)
-    : unavailableFromRejection(calendarResult.reason);
+  const callbacks = callbacksResult.status === "fulfilled"
+    ? { status: "ready" as const, data: callbacksResult.value }
+    : unavailableFromRejection(callbacksResult.reason);
 
   return buildRecentContextFromSources({ leadId, activities, callbacks, now });
 }
