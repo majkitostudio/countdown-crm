@@ -150,9 +150,12 @@ editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
 Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 [docs/AKTUALNI_STAV_A_DESATERO.md](docs/AKTUALNI_STAV_A_DESATERO.md).
 
-1. P0 pokračuje už jen produkčním Auth nastavením. Bezpečný linked runner,
-   schema drift, privilegované RPC a `pgtap` jsou uzavřené a podložené
-   read-backem; runner dokazuje pouze linked sandbox, ne produkční readiness.
+1. P0.4 — produkční Auth hardening je vědomě odložený. Současný systém je
+   určený pro interní provoz jedné konkrétní firmy; leaked-password protection
+   zůstává vypnutá. Před expanzí na trh nebo externím pilotem se musí ochrana
+   zapnout a proběhnout Auth smoke test. Bezpečný linked runner, schema drift,
+   privilegované RPC a `pgtap` jsou uzavřené a podložené read-backem; runner
+   dokazuje pouze linked sandbox, ne produkční readiness.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
 3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
@@ -161,6 +164,15 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
 5. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
 6. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní
    telefonii. Široké moduly zůstávají do po-pilotního rozhodnutí zmrazené.
+
+### Provozní rozhodnutí k Auth (8. 9. 2026)
+
+Leaked-password protection zůstává vypnutá, protože Countdown CRM je nyní
+interní systém pro jednu konkrétní firmu. Toto je vědomé odložení hardeningu,
+nikoli tvrzení, že je ochrana zapnutá nebo že je produkční Auth obecně hotový.
+Rozhodnutí se přehodnotí při expanzi na trh; před externím pilotem se ochrana
+zapne a ověří autentizovaným smoke testem. `NEXT_PUBLIC_ALLOW_DEMO_AUTH` přitom
+zůstává povolené pouze pro lokální vývoj.
 
 Celoprojektový důkaz a důvody tohoto pořadí jsou v
 [checkpoint reportu](docs/superpowers/reports/2026-09-07-project-checkpoint.md).

@@ -195,6 +195,8 @@ sloučení PR [#82](https://github.com/majkitostudio/countdown-crm/pull/82) do
 - Aktuální plná aplikační sada je 376/376 testů v 90 souborech a databázová sada
   183/183 testů.
 
-Aktuální P0 pořadí tím zůstává zúžené na P0.4 — produkční Auth nastavení.
+Aktuální P0 pořadí tím zůstává zúžené na P0.4 — produkční Auth hardening před
+externí expanzí. Pro nynější interní provoz je tento bod vědomě odložený a
+leaked-password protection zůstává vypnutá podle rozhodnutí z 8. 9. 2026.
 Podrobný backlog a pravidla pro další práci jsou v
 [`docs/AKTUALNI_STAV_A_DESATERO.md`](../../AKTUALNI_STAV_A_DESATERO.md).

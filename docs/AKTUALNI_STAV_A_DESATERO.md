@@ -4,7 +4,7 @@
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený implementační plán Team Leader Review → projektový checkpoint → P0.1–P0.3; aktivní zůstává P0.4
+**Stav:** dokončený implementační plán Team Leader Review → projektový checkpoint → P0.1–P0.3; P0.4 je vědomě odložené pro interní provoz
 
 ## Co je skutečně hotové
 
@@ -23,6 +23,9 @@
 - P0.3 je skutečně uzavřené: linked runner provedl read-only ověření 8/8
   databázových kontraktů. Použil oddělenou identitu s pouze `Database: Read` a
   `Data API Config: Read`; produkce nebyla použita a žádný zápis neproběhl.
+- Aktuální nasazení je interní systém pro jednu konkrétní firmu. Leaked-password
+  protection zůstává vědomě vypnutá a zapne se před případnou expanzí na trh;
+  projekt se proto nyní nevydává za externě pilot-ready Auth.
 
 Hotový bod se do priorit níže nevrací. Pokud se objeví regrese, zapisuje se jako
 nový konkrétní problém s vlastním důkazem.
@@ -66,11 +69,13 @@ akceptační kritéria a důkazní plán.
      v `docs/superpowers/reports/2026-09-07-p0-3-linked-run.md`.
    - Runner se nepoužívá jako produkční readiness test a jeho token nesmí být
      uložený v repozitáři, browseru, Docker image ani logu.
-4. **Uzavřít produkční Auth nastavení.**
-   Před přístupem reálných uživatelů zapnout leaked-password protection a znovu
-   projít auth smoke test. `NEXT_PUBLIC_ALLOW_DEMO_AUTH` zůstává pouze lokální.
-   - Hotovo, když linked advisor už tuto ochranu nehlásí a demo vstup není v
-     pilotním prostředí dostupný.
+4. [ ] **Před externí expanzí uzavřít produkční Auth hardening.**
+   Pro současný interní provoz jedné konkrétní firmy je leaked-password
+   protection vědomě odložená a zůstává vypnutá. Při expanzi na trh nebo před
+   externím pilotem ji zapnout, znovu projít Auth smoke test a ověřit, že
+   `NEXT_PUBLIC_ALLOW_DEMO_AUTH` není v pilotním prostředí dostupné.
+   - Tento bod není technicky hotový; je pouze odložený podle aktuálního
+     produktového scope.
 
 ### P1 — stabilní a pravdivá hlavní pracovní smyčka
 
