@@ -15,6 +15,8 @@ import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 interface TeamQueuePanelProps {
   initialQueueItems: QueueItemDTO[];
   operators: WorkspaceMemberDTO[];
+  operatorsState: "available" | "unavailable";
+  operatorsUnavailableMessage?: string;
 }
 
 const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
@@ -32,7 +34,12 @@ function formatDate(value: string | null): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelProps) {
+export function TeamQueuePanel({
+  initialQueueItems,
+  operators,
+  operatorsState,
+  operatorsUnavailableMessage,
+}: TeamQueuePanelProps) {
   const [queueItems, setQueueItems] = useState(initialQueueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
@@ -59,6 +66,8 @@ export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelP
   };
 
   const reassign = (item: QueueItemDTO) => {
+    if (operatorsState === "unavailable") return;
+
     const operatorId = selectedOperators[item.id];
     if (!operatorId) {
       setErrorMessage("Vyberte cílového Operátora.");
@@ -91,6 +100,11 @@ export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelP
 
       {successMessage && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-300" role="status">{successMessage}</div>}
       {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
+      {operatorsState === "unavailable" && (
+        <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
+          {operatorsUnavailableMessage || "Workspace operators are unavailable."} Reassignment controls are disabled.
+        </div>
+      )}
 
       {queueItems.length === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-8 text-center text-xs text-zinc-500">
@@ -145,14 +159,14 @@ export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelP
                             <select
                               value={selectedOperators[item.id] || ""}
                               onChange={(event) => setSelectedOperators((current) => ({ ...current, [item.id]: event.target.value }))}
-                              disabled={isBusy || operators.length === 0}
+                              disabled={isBusy || operatorsState === "unavailable"}
                               className="min-w-[170px] rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-2 text-[11px] text-zinc-300 disabled:opacity-50"
                               aria-label={`Reassign ${item.lead.full_name}`}
                             >
                               <option value="">Reassign to…</option>
                               {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
                             </select>
-                            <button type="button" disabled={isBusy || !selectedOperators[item.id]} onClick={() => reassign(item)} className="rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
+                            <button type="button" disabled={isBusy || operatorsState === "unavailable" || !selectedOperators[item.id]} onClick={() => reassign(item)} className="rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
                           </div>
                         )}
                         <div className="flex flex-wrap justify-end gap-2">
