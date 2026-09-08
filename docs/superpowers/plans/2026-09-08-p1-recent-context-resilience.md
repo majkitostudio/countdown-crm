@@ -4,18 +4,18 @@
 
 **Goal:** Preserve every valid Recent Context signal when an independent activities or calendar source is unavailable, while keeping fatal workspace/auth/validation failures fatal and marking stale data honestly.
 
-**Architecture:** Keep the pure signal-selection logic in `recentContext.ts`, but introduce an explicit loader/source-state boundary instead of treating all loader failures as one `catch`. Activities and calendar are independent sources: a database/operational failure in one source yields a partial result, two verified empty results yield empty, and two operational failures yield unavailable. `RecentContextRow` renders source state and refresh staleness; it never converts a fatal `DataAccessError` into partial UI.
+**Architecture:** Keep the pure signal-selection logic in `recentContext.ts`, but introduce an explicit loader/source-state boundary instead of treating all loader failures as one `catch`. Activities and calendar callbacks are independent sources: a `ready` source may contain verified empty data, one `unavailable` source yields a partial result, and two unavailable sources yield unavailable. The empty state is a derived UI interpretation of ready sources with no signals; it is not a source status. `RecentContextRow` renders source state and refresh staleness; it never converts a fatal `DataAccessError` into partial UI.
 
 **Tech Stack:** Next.js App Router, React, TypeScript, Server Actions, Supabase DAL, Vitest.
 
-**Spec:** `docs/AKTUALNI_STAV_A_DESATERO.md` (P1.1, partial-failure truthfulness) plus the approved Sol source-state specification required by the execution request before implementation begins.
+**Spec:** `docs/superpowers/plans/2026-09-08-p1-source-and-role-contracts.md` at commit `55b96b67de4bf52a2f2a79ac5a2d3dd0cb329c4b`, plus `docs/AKTUALNI_STAV_A_DESATERO.md` (P1.1, partial-failure truthfulness).
 
 ## Global Constraints
 
-- Do not begin implementation until the path to Sol's approved shared P1 source-state specification is supplied and the source-state contract is explicitly approved.
+- Do not begin implementation until the exact Spec commit above is available in the execution context and its source-state contract is approved.
 - Do not modify `NextBestActionCard.tsx`, `nextBestAction.ts`, reorder DAL/helpers, shared navigation, Analytics, Team Queue, or any Sol-owned file.
-- Preserve server workspace/auth/validation guards; `FORBIDDEN`, `AUTH`, `WORKSPACE`, and `VALIDATION` errors remain fatal.
-- Never use `0`, `[]`, `null`, or a successful-looking empty state to represent an unavailable source.
+- Preserve server guards; `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, and `CONFLICT` errors remain fatal. Only `DATABASE`, or a provider failure explicitly classified by a provider adapter, may become source unavailable.
+- `0`, `[]`, and `null` represent verified domain values only; they never represent source failure. An empty UI result is derived only from ready source data.
 - A refresh may retain previously valid data only with an explicit stale/unavailable marker; it must not present retained data as fresh.
 - Do not add a generic data-loading framework.
 
@@ -28,33 +28,33 @@
 - Test: `src/components/workspace/recentContext.ts` via its exported pure functions
 
 **Interfaces:**
-- Consumes: `WorkspaceActivity[]`, `CalendarLoadResult`, `CalendarSourceState`, and the approved source-state classification from Sol's specification.
-- Produces: Executable examples for `buildRecentContextFromCalendar` and the new loader result shape that Task 2 must implement.
+- Consumes: `WorkspaceActivity[]`, `RecentContextCallback[]`, and the approved `SourceState<T>` vocabulary from the Spec.
+- Produces: Executable examples for `buildRecentContextFromCalendar` and one consistent `buildRecentContextFromSources(input)` contract that Task 2 must implement.
 
 - [ ] **Step 1: Write the failing tests**
 
-Add one test per contract state, using `DataAccessError` only for the fatal cases and plain rejected promises only for operational failures:
+Add one test per contract state, using explicit `SourceState` fixtures for operational availability and `DataAccessError` only at the loader boundary for fatal cases:
 
 ```ts
 it("keeps valid activities when the calendar source is unavailable", () => {
   const result = buildRecentContextFromSources({
-    activities: { state: "available", value: activities },
-    calendar: { state: "unavailable", message: "Calendar temporarily unavailable." },
     leadId: "lead-1",
+    activities: { status: "ready", data: activities },
+    callbacks: { status: "unavailable", reason: "database", message: "Calendar temporarily unavailable." },
     now: Date.parse("2026-08-31T00:00:00.000Z"),
   });
 
   expect(result.state).toBe("partial");
   expect(result.context.lastContact?.activity.id).toBe("call-latest");
-  expect(result.context.activeCallback).toBeNull();
-  expect(result.unavailableSources).toEqual(["calendar"]);
+    expect(result.context?.activeCallback).toBeNull();
+expect(result.unavailableSources).toEqual(["callbacks"]);
 });
 
 it("keeps valid calendar callbacks when activities are unavailable", () => {
   const result = buildRecentContextFromSources({
-    activities: { state: "unavailable", message: "Activities temporarily unavailable." },
-    calendar: { state: "available", entries: callbackEntries },
     leadId: "lead-1",
+    activities: { status: "unavailable", reason: "database", message: "Activities temporarily unavailable." },
+    callbacks: { status: "ready", data: callbackEntries },
     now: Date.parse("2026-08-31T00:00:00.000Z"),
   });
 
@@ -66,30 +66,31 @@ it("keeps valid calendar callbacks when activities are unavailable", () => {
 
 it("returns empty only when both sources are verified empty", () => {
   const result = buildRecentContextFromSources({
-    activities: { state: "empty", value: [] },
-    calendar: { state: "empty", entries: [] },
     leadId: "lead-empty",
+    activities: { status: "ready", data: [] },
+    callbacks: { status: "ready", data: [] },
   });
 
-  expect(result.state).toBe("empty");
+    expect(result.state).toBe("ready");
+    expect(result.isEmpty).toBe(true);
   expect(result.context).toEqual({ lastContact: null, lastCallResult: null, lastOrder: null, activeCallback: null });
   expect(result.unavailableSources).toEqual([]);
 });
 
 it("returns unavailable when both operational sources fail", () => {
   const result = buildRecentContextFromSources({
-    activities: { state: "unavailable", message: "Activities failed." },
-    calendar: { state: "unavailable", message: "Calendar failed." },
     leadId: "lead-1",
+    activities: { status: "unavailable", reason: "database", message: "Activities failed." },
+    callbacks: { status: "unavailable", reason: "database", message: "Calendar failed." },
   });
 
   expect(result.state).toBe("unavailable");
   expect(result.context).toBeNull();
-  expect(result.unavailableSources).toEqual(["activities", "calendar"]);
+expect(result.unavailableSources).toEqual(["activities", "callbacks"]);
 });
 ```
 
-Add fatal propagation tests that assert `DataAccessError("FORBIDDEN")` and `DataAccessError("VALIDATION")` are thrown rather than converted into `unavailable`.
+Add loader-boundary fatal propagation tests that assert `DataAccessError("UNAUTHORIZED")`, `DataAccessError("FORBIDDEN")`, `DataAccessError("NOT_FOUND")`, `DataAccessError("VALIDATION")`, and `DataAccessError("CONFLICT")` are thrown rather than converted into `unavailable`.
 
 - [ ] **Step 2: Run the focused test to verify it fails for the missing contract**
 
@@ -111,8 +112,8 @@ git commit -m "test: define recent context source states"
 - Modify: `tests/recent-context.test.ts`
 
 **Interfaces:**
-- Consumes: `RecentContextSource<T> = { state: "available" | "empty" | "unavailable"; value?: T; message?: string }` as approved by Sol; callback entries remain derived from `CalendarLoadResult.entries`.
-- Produces: `buildRecentContextFromSources(input): RecentContextLoadResult`, where `state` is `"fresh" | "partial" | "empty" | "unavailable"`, `context` is `RecentContextData | null`, `unavailableSources` is `("activities" | "calendar")[]`, and source messages are retained for UI.
+- Consumes: `SourceState<T> = { status: "ready"; data: T } | { status: "unavailable"; reason: "database" | "provider"; message: string }`; the calendar adapter converts verified callback entries into `RecentContextCallback[]` before calling the reducer.
+- Produces: `buildRecentContextFromSources(input: { leadId: string; activities: SourceState<WorkspaceActivity[]>; callbacks: SourceState<RecentContextCallback[]>; now?: number }): RecentContextLoadResult`, where `state` is `"ready" | "partial" | "unavailable"`, `isEmpty` is derived only when both sources are ready and no signal exists, `context` is `RecentContextData | null`, and source messages are retained for UI. The function must use only `input.activities` and `input.callbacks`; it must not also read an `input.sources` object.
 
 - [ ] **Step 1: Write the failing edge-case tests**
 
@@ -129,41 +130,42 @@ Expected: FAIL on the new state/metadata assertions, not on a test import or syn
 Implement only the reducer needed by the tests:
 
 ```ts
-export type RecentContextLoadState = "fresh" | "partial" | "empty" | "unavailable";
+export type RecentContextLoadState = "ready" | "partial" | "unavailable";
 
 export interface RecentContextLoadResult {
   state: RecentContextLoadState;
+  isEmpty: boolean;
   context: RecentContextData | null;
-  unavailableSources: Array<"activities" | "calendar">;
+  unavailableSources: Array<"activities" | "callbacks">;
   messages: Partial<Record<"activities" | "calendar", string>>;
 }
 
 export function buildRecentContextFromSources(input: RecentContextSourcesInput): RecentContextLoadResult {
-  const unavailableSources = (Object.entries(input.sources)
-    .filter(([, source]) => source.state === "unavailable")
-    .map(([name]) => name)) as Array<"activities" | "calendar">;
+  const unavailableSources = (["activities", "callbacks"] as const)
+    .filter((source) => input[source].status === "unavailable");
 
   if (unavailableSources.length === 2) {
-    return { state: "unavailable", context: null, unavailableSources, messages: collectMessages(input.sources) };
+    return { state: "unavailable", isEmpty: false, context: null, unavailableSources, messages: collectMessages(input) };
   }
 
   const context = buildRecentContext(
     input.leadId,
-    input.activities.state === "available" || input.activities.state === "empty" ? input.activities.value : [],
-    input.calendar.state === "available" || input.calendar.state === "empty" ? callbacksFromCalendar(input.calendar) : [],
+    input.activities.status === "ready" ? input.activities.data : [],
+    input.callbacks.status === "ready" ? input.callbacks.data : [],
     input.now,
   );
 
   return {
-    state: unavailableSources.length ? "partial" : hasAnySignal(context) ? "fresh" : "empty",
+    state: unavailableSources.length ? "partial" : "ready",
+    isEmpty: !unavailableSources.length && !hasAnySignal(context),
     context,
     unavailableSources,
-    messages: collectMessages(input.sources),
+    messages: collectMessages(input),
   };
 }
 ```
 
-The actual implementation must preserve the approved discriminated-union types and must rethrow auth/workspace/validation errors before the reducer is called. Do not add a catch-all here.
+The actual implementation must preserve the approved discriminated-union types and must rethrow `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, and `CONFLICT` before the reducer is called. Do not add a catch-all here.
 
 - [ ] **Step 4: Run the focused tests and the existing Recent Context suite**
 
@@ -207,7 +209,7 @@ it("keeps activities when calendar rejects operationally", async () => {
 
 it("rethrows forbidden and validation errors", async () => {
   await expect(loadRecentContext("lead-1", {
-    loadActivities: async () => { throw new DataAccessError("FORBIDDEN", "Forbidden"); },
+    loadActivities: async () => { throw new DataAccessError("UNAUTHORIZED", "Unauthorized"); },
     loadCalendar: async () => ({ entries: [], sources: { callbacks: { state: "available" }, reminders: { state: "available" } } }),
   })).rejects.toMatchObject({ code: "FORBIDDEN" });
 });
@@ -227,13 +229,13 @@ Expected: FAIL because the loader and explicit stale marker do not exist.
 
 - [ ] **Step 3: Implement the minimal loader and component state transitions**
 
-Use `Promise.allSettled` only around the two independent operational sources. For each rejected promise, rethrow `DataAccessError` codes `AUTH`, `FORBIDDEN`, `WORKSPACE`, and `VALIDATION`; classify only database/operational errors as `unavailable`. On refresh, retain the last valid `context` only while rendering `Refreshing…` or `Data may be stale` and the affected source message. A fatal error clears the partial surface and renders the existing alert boundary.
+Use `Promise.allSettled` only around the two independent source adapters. Each adapter must classify `DataAccessError("DATABASE")` as `{ status: "unavailable", reason: "database" }`; provider failures may be classified only by an explicit provider adapter. Rethrow `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, and `CONFLICT`. On refresh, retain the last valid `context` only while rendering `Refreshing…` or `Data may be stale` and the affected source message. A fatal error clears the partial surface and renders the existing alert boundary.
 
 - [ ] **Step 4: Run focused, full, and static checks**
 
 Run: `npm test -- tests/recent-context.test.ts tests/recent-context-loader.test.ts`
 
-Expected: PASS with the partial, empty, unavailable, fatal, and stale cases covered.
+Expected: PASS with the partial, ready-derived-empty, unavailable, fatal, and stale cases covered.
 
 - [ ] **Step 5: Commit the loader slice**
 
@@ -267,4 +269,3 @@ Expected: exit 0, with all named tests passing and no diff whitespace errors. Do
 git add src/components/workspace/RecentContextRow.tsx src/components/workspace/recentContext.ts tests/recent-context.test.ts tests/recent-context-loader.test.ts
 git commit -m "fix: stabilize recent context source failures"
 ```
-

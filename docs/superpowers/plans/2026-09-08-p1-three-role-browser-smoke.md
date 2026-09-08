@@ -6,13 +6,14 @@
 
 **Architecture:** Use three isolated browser contexts against the local app, one each for `operator`, `team_leader`, and `administrator`. Reuse the repository's existing local Auth/fixture setup and existing browser automation capability; keep local evidence separate from any linked-sandbox evidence. The smoke runner records sanitized steps and console/page errors, while the report records identities only by role and fixture IDs—not tokens, passwords, service-role values, or raw cookies.
 
-**Tech Stack:** Next.js local runtime, Supabase local Auth/database, existing Playwright/browser automation capability, TypeScript/JavaScript smoke runner, Markdown verification report, Vitest contract tests.
+**Tech Stack:** Next.js local runtime, Supabase local Auth/database, a browser runner explicitly confirmed by execution preflight (no repository Playwright dependency is assumed), TypeScript/JavaScript smoke runner, Markdown verification report, Vitest contract tests.
 
-**Spec:** `docs/AKTUALNI_STAV_A_DESATERO.md` (P1 browser smoke requirement), `docs/DEVELOPMENT_WORKFLOW.md`, and the role-aware home/navigation contracts in `tests/role-aware-home.test.ts`, `tests/role-aware-navigation.test.ts`, and `tests/role-aware-page-authorization.test.ts`.
+**Spec:** `docs/superpowers/plans/2026-09-08-p1-source-and-role-contracts.md` at commit `55b96b67de4bf52a2f2a79ac5a2d3dd0cb329c4b`, plus `docs/AKTUALNI_STAV_A_DESATERO.md` (P1 browser smoke requirement), `docs/DEVELOPMENT_WORKFLOW.md`, and the role-aware home/navigation contracts in `tests/role-aware-home.test.ts`, `tests/role-aware-navigation.test.ts`, and `tests/role-aware-page-authorization.test.ts`.
 
 ## Global Constraints
 
 - Do not run the final smoke until the Recent Context, Products, Call Logs, and all other P1 integration changes are present in the tested branch.
+- Before adding or running a smoke runner, prove that a browser automation runner is available and that disposable local role fixtures plus cleanup/read-back are available. Do not add a Playwright dependency merely to satisfy this plan; if the gate fails, stop and report the blocker.
 - Use separate browser contexts for operator, team leader, and administrator; never reuse cookies or storage state across roles.
 - Local mutations are allowed only in disposable local fixtures; linked-sandbox mutations require an explicit execution request and are out of scope by default.
 - Report local and linked evidence in separate sections and never imply that local evidence proves linked behavior.
@@ -26,13 +27,13 @@
 
 **Files:**
 - Create: `tests/p1-three-role-browser-smoke.test.ts`
-- Create: `scripts/p1-three-role-browser-smoke.mjs`
+- Create after the runner/fixture gate passes: `scripts/p1-three-role-browser-smoke.mjs`
 - Create: `docs/superpowers/reports/2026-09-08-p1-three-role-browser-smoke.md`
 - Read-only references: `src/lib/auth/roleHome.ts`, `src/components/layout/sidebarNavigation.ts`, `src/components/layout/headerNavigation.ts`, protected `src/app/*/page.tsx` boundaries
 
 **Interfaces:**
-- Consumes: role home map `operator → /workspace`, `team_leader → /exceptions`, `administrator → /readiness`; navigation functions; local fixture setup/cleanup commands.
-- Produces: `SMOKE_MATRIX` with role, home path, allowed paths, denied paths, mutation/read-back steps, and a sanitizer that rejects secret-shaped report content.
+- Consumes: role home map `operator → /workspace`, `team_leader → /exceptions`, `administrator → /readiness`; navigation functions; a preflight-confirmed browser runner; and local fixture setup/cleanup commands.
+- Produces: `SMOKE_MATRIX` with role, home path, allowed paths, denied paths, fixture-backed mutation/read-back steps, runner identity, and a sanitizer that rejects secret-shaped report content.
 
 - [ ] **Step 1: Write the failing contract tests**
 
@@ -46,6 +47,8 @@ expect(matrix.operator.denied).toEqual(expect.arrayContaining(["/exceptions", "/
 expect(matrix.team_leader.denied).toContain("/readiness");
 expect(matrix.administrator.allowed).toContain("/products");
 expect(matrix.operator.mutation.readBack).toBe("reload");
+expect(matrix.runner.preflightRequired).toBe(true);
+expect(matrix.administrator.mutation).toMatchObject({ fixtureBacked: true });
 expect(report).not.toMatch(/service_role|sb_secret|access_token|refresh_token|password|cookie/i);
 ```
 
@@ -64,27 +67,31 @@ git add tests/p1-three-role-browser-smoke.test.ts
 git commit -m "test: define three-role browser smoke matrix"
 ```
 
-### Task 2: Implement the local isolated-context smoke runner
+### Task 2: Gate and implement the local isolated-context smoke runner
 
 **Files:**
 - Modify: `scripts/p1-three-role-browser-smoke.mjs`
 - Modify: `tests/p1-three-role-browser-smoke.test.ts`
 
 **Interfaces:**
-- Consumes: local base URL, disposable fixture IDs, role-specific credentials supplied only through environment variables, and the browser automation API.
+- Consumes: a concrete preflight result naming the available browser runner and its capabilities, local base URL, disposable fixture IDs, role-specific credentials supplied only through environment variables, and the browser automation API.
 - Produces: sanitized JSON/Markdown events with `role`, `path`, `action`, `result`, `fixtureId`, `errors`, and `evidenceEnvironment: "local"`; it must never serialize credentials or browser storage.
 
-- [ ] **Step 1: Add a failing test for context isolation and error capture**
+- [ ] **Step 1: Complete the runner and fixture preflight before writing the runner**
+
+Run the environment-specific availability check for the browser runner selected by the execution host and prove that local operator, Team Leader, and Administrator fixtures can be created, read back, and cleaned up. Record the command, runner identity/version, fixture IDs, and cleanup result outside the report's secret-bearing environment. If no runner or safe disposable workflow is available, stop this plan with a concrete blocker; do not add `@playwright/test`, another browser dependency, or linked-sandbox mutations.
+
+- [ ] **Step 2: Add a failing test for context isolation and error capture**
 
 Assert that the runner creates three separate contexts, attaches `page.on("console")` and `page.on("pageerror")`, records each error with URL/role but not message payloads containing secrets, and closes every context in a `finally` block.
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [ ] **Step 3: Run the focused test and verify RED**
 
 Run: `npm test -- tests/p1-three-role-browser-smoke.test.ts`
 
 Expected: FAIL on missing context factory, listeners, and cleanup implementation.
 
-- [ ] **Step 3: Implement the minimal runner**
+- [ ] **Step 4: Implement the minimal runner**
 
 For each role:
 
@@ -93,7 +100,7 @@ For each role:
 3. Verify the role-specific home redirect and sidebar/command destinations.
 4. Navigate both through visible navigation and direct URLs.
 5. Verify allowed routes render and denied routes show the existing server permission boundary or redirect; do not accept a client-hidden button as denial evidence.
-6. Perform one relevant local mutation: operator creates/completes a calendar reminder and reloads it; Team Leader completes a call review and reloads the persisted revision; Administrator edits a disposable product and reloads the updated value.
+6. Perform one fixture-backed mutation for each role only after preflight proves that the action, fixture, role guard, cleanup, and read-back are safe. The operator and Team Leader examples may use the existing reminder and call-review flows; the Administrator action must be selected from an existing guarded admin flow during preflight and must not be assumed to be product edit.
 7. Exercise empty and partial-data fixtures for Recent Context and Products; assert unavailable is visible and not `0`/empty success.
 8. Log out through the UI, assert the protected URL redirects to `/login`, then prove a new role context does not inherit the previous session.
 9. Capture console/page errors and fail the run on unexpected errors, while allowing explicitly catalogued local runtime warnings.
@@ -101,13 +108,13 @@ For each role:
 
 Do not add linked-sandbox writes. If the runner is invoked with a linked target, exit before authentication/mutation and print a clear authorization-required result.
 
-- [ ] **Step 4: Run the runner contract tests**
+- [ ] **Step 5: Run the runner contract tests**
 
 Run: `npm test -- tests/p1-three-role-browser-smoke.test.ts`
 
 Expected: PASS for matrix, sanitizer, context isolation, listener registration, and cleanup structure.
 
-- [ ] **Step 5: Commit the runner**
+- [ ] **Step 6: Commit the runner**
 
 ```powershell
 git add scripts/p1-three-role-browser-smoke.mjs tests/p1-three-role-browser-smoke.test.ts
@@ -158,4 +165,3 @@ Expected: PASS and clean report formatting. The report must distinguish browser 
 git add scripts/p1-three-role-browser-smoke.mjs tests/p1-three-role-browser-smoke.test.ts docs/superpowers/reports/2026-09-08-p1-three-role-browser-smoke.md
 git commit -m "docs: record p1 three-role browser smoke"
 ```
-

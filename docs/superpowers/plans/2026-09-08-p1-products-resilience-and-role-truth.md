@@ -8,17 +8,17 @@
 
 **Tech Stack:** Next.js App Router, React, TypeScript, Tailwind CSS, Supabase Server Actions/DAL, Vitest.
 
-**Spec:** `docs/AKTUALNI_STAV_A_DESATERO.md` (P1.1 and P1.2) plus the approved Sol source-state and role contract required by the execution request.
+**Spec:** `docs/superpowers/plans/2026-09-08-p1-source-and-role-contracts.md` at commit `55b96b67de4bf52a2f2a79ac5a2d3dd0cb329c4b`, plus `docs/AKTUALNI_STAV_A_DESATERO.md` (P1.1 and P1.2).
 
 ## Global Constraints
 
-- Do not begin implementation until Sol approves the source-state and role contract and supplies its specification path.
+- Do not begin implementation until the exact Spec commit above is available in the execution context.
 - Do not modify DAL files unless a failing test proves a real server contract defect; stop and send Sol the exact evidence before doing so.
 - Product data is primary; objections and order counts are enrichment.
 - `unavailable` never renders as `0`, `[]`, or a successful catalog state.
 - Operators may read products and truthful enrichment states but must not see Add, Edit, Delete, Reassign, or New Objection affordances.
 - UI hiding is not authorization; existing server role/workspace guards remain authoritative.
-- Auth, forbidden, workspace, and validation errors remain fatal and are not downgraded to partial catalog UI.
+- `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, and `CONFLICT` errors remain fatal and are not downgraded to partial catalog UI. Only `DATABASE`, or an explicit provider adapter failure, may become source unavailable.
 - After a successful mutation, reload through the same safe loader; do not splice optimistic data into the catalog.
 
 ---
@@ -31,7 +31,7 @@
 - Read-only references: `src/app/products/page.tsx`, `src/components/products/ProductCard.tsx`, `src/lib/products.ts`
 
 **Interfaces:**
-- Consumes: `Product`, `WorkspaceRole`, `getProducts`, `listObjectionsAction`, and `listOrderProductCountsAction`.
+- Consumes: `Product`, `WorkspaceRole`, `getProducts`, `listObjectionsAction`, `listOrderProductCountsAction`, and the Spec's `SourceState<T>` vocabulary.
 - Produces: the exact `ProductCatalogLoadResult` state shape and `ProductCard` role prop expected by later tasks.
 
 - [ ] **Step 1: Write the failing primary/enrichment tests**
@@ -48,7 +48,7 @@ it("keeps products when objections enrichment fails", async () => {
 
   expect(result.state).toBe("partial");
   expect(result.products).toEqual([product]);
-  expect(result.enrichment.objections).toEqual({ state: "unavailable", message: "Objections unavailable" });
+  expect(result.enrichment.objections).toEqual({ status: "unavailable", reason: "database", message: "Objections unavailable" });
   expect(result.orderCounts[product.id]).toBe(3);
 });
 
@@ -59,8 +59,25 @@ it("does not turn unavailable order counts into zero", async () => {
     loadOrderCounts: async () => { throw new Error("Order counts unavailable"); },
   });
 
-  expect(result.orderCountsState).toEqual({ state: "unavailable", message: "Order counts unavailable" });
+  expect(result.orderCountsState).toEqual({ status: "unavailable", reason: "database", message: "Order counts unavailable" });
   expect(result.orderCounts[product.id]).toBeUndefined();
+});
+
+it("derives empty from a ready empty catalog and does not load enrichment", async () => {
+  const loadObjections = vi.fn(async () => []);
+  const loadOrderCounts = vi.fn(async () => ({}));
+  const result = await loadProductCatalog({
+    loadProducts: async () => [],
+    loadObjections,
+    loadOrderCounts,
+  });
+
+  expect(result.state).toBe("ready");
+  expect(result.isEmpty).toBe(true);
+  expect(result.enrichment.objections).toEqual({ requested: false, reason: "no_products" });
+  expect(result.enrichment.orderCounts).toEqual({ requested: false, reason: "no_products" });
+  expect(loadObjections).not.toHaveBeenCalled();
+  expect(loadOrderCounts).not.toHaveBeenCalled();
 });
 
 it("fails when the primary catalog fails", async () => {
@@ -119,11 +136,11 @@ git commit -m "test: define truthful product enrichment states"
 
 **Interfaces:**
 - Consumes: `getProducts()`, `listObjectionsAction()`, `listOrderProductCountsAction()`, and the approved fatal-error classifier.
-- Produces: `loadProductCatalog(loaders): Promise<ProductCatalogLoadResult>` with `products: Product[]`, `state: "fresh" | "partial" | "empty"`, `objections`, `orderCounts`, `orderCountsState`, and source messages. Fatal errors reject.
+- Produces: `loadProductCatalog(loaders): Promise<ProductCatalogLoadResult>` with `catalog: SourceState<Product[]>`, `state: "ready" | "partial" | "unavailable"`, `isEmpty` derived only from `catalog.status === "ready" && catalog.data.length === 0`, and enrichment values typed as `EnrichmentState<T> = { requested: false; reason: "no_products" } | { requested: true; source: SourceState<T> }`. Fatal errors reject.
 
 - [ ] **Step 1: Add one failing test for an empty primary catalog**
 
-Assert that `products: []` with available enrichment is `state: "empty"`, while an enrichment rejection remains `state: "partial"` and never sets a count to zero.
+Assert that a primary `[]` is `catalog.status === "ready"` with derived `isEmpty === true`, and that the loader short-circuits without calling enrichment loaders. For a non-empty ready catalog, an enrichment database rejection is `state: "partial"` and never sets a count to zero.
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
@@ -133,7 +150,7 @@ Expected: FAIL because `loadProductCatalog` does not exist.
 
 - [ ] **Step 3: Implement the minimal loader**
 
-Load the primary catalog first. Load objections and order counts independently; classify only operational/database failures as unavailable. Preserve source messages and omit unavailable order-count entries rather than inserting `0`. Re-throw `AUTH`, `FORBIDDEN`, `WORKSPACE`, and `VALIDATION` errors from any source. Map objection cards onto products only when the objections source is available.
+Load the primary catalog first. If it is ready with an empty array, do not call enrichment loaders; return `state: "ready"`, `isEmpty: true`, and `{ requested: false, reason: "no_products" }` metadata for each enrichment. If it is ready with products, load objections and order counts independently; classify only `DataAccessError("DATABASE")` or an explicit provider-adapter failure as unavailable. Preserve source messages and omit unavailable order-count entries rather than inserting `0`. Re-throw `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, and `CONFLICT` from any source. Map objection cards onto products only when the objections source is ready.
 
 - [ ] **Step 4: Run the focused tests and existing product contract tests**
 
@@ -213,4 +230,3 @@ Expected: exit 0 with the focused product tests passing. Do not claim browser or
 git add src/app/products/page.tsx src/app/products/ProductCatalogClient.tsx src/components/products/ProductCard.tsx src/lib/productCatalog.ts tests/products-resilience.test.ts tests/products-role-surface.test.ts
 git commit -m "fix: stabilize products partial data and role truth"
 ```
-
