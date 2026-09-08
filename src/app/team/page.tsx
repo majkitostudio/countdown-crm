@@ -1,6 +1,5 @@
 import { LockKeyhole, Users } from "lucide-react";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
-import { isDataAccessError } from "@/lib/dal/errors";
 import { TeamPageContent } from "@/components/team/TeamPageContent";
 import { loadTeamPageData } from "@/lib/dal/teamPage";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -16,26 +15,13 @@ function TeamUnavailable({ message }: { message: string }) {
 }
 
 export default async function TeamPage() {
-  let context: Awaited<ReturnType<typeof requireWorkspaceContext>>;
-  try {
-    context = await requireWorkspaceContext();
-  } catch (error) {
-    const message = isDataAccessError(error) && error.code === "FORBIDDEN"
-      ? "Queue operations are available to Team Leaders and Administrators only."
-      : "Team operations could not be loaded. No data was fabricated.";
-    return <TeamUnavailable message={message} />;
-  }
+  const context = await requireWorkspaceContext();
 
   if (context.role !== "team_leader" && context.role !== "administrator") {
     return <TeamUnavailable message="Queue operations are available to Team Leaders and Administrators only." />;
   }
 
-  let data: Awaited<ReturnType<typeof loadTeamPageData>>;
-  try {
-    data = await loadTeamPageData(context);
-  } catch {
-    return <TeamUnavailable message="Team operations could not be loaded. No data was fabricated." />;
-  }
+  const data = await loadTeamPageData(context);
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
