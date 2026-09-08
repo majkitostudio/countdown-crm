@@ -1,4 +1,10 @@
-import { getNextBestAction, type NextBestAction, type NextBestActionCallback, type NextBestActionReorderOpportunity } from "./nextBestAction";
+import {
+  resolveNextBestActionState,
+  type NextBestActionCallback,
+  type NextBestActionReorderOpportunity,
+  type NextBestActionSource,
+  type NextBestActionState,
+} from "./nextBestAction";
 import type { DailyTeamSummary } from "./dailyTeamSummary";
 
 export interface DailyBriefReminder {
@@ -25,14 +31,16 @@ export interface TeamLeaderDailyBrief {
   teamWalletBalance: number | null;
   teamWalletTransactions: number | null;
   walletCurrency: string | null;
-  nextAction: NextBestAction;
+  nextActionState: NextBestActionState;
 }
 
 export interface TeamLeaderDailyBriefInput {
   daily: DailyTeamSummary;
   callbacks?: NextBestActionCallback[];
+  callbacksSource?: NextBestActionSource<NextBestActionCallback[]>;
   reminders?: DailyBriefReminder[];
   reorderOpportunities?: NextBestActionReorderOpportunity[];
+  reordersSource?: NextBestActionSource<NextBestActionReorderOpportunity[]>;
   pendingReviews?: number | null;
   wallet?: DailyBriefWallet | null;
   now?: Date;
@@ -50,7 +58,11 @@ function isSameDay(value: string, now: Date): boolean {
 /** Builds the manager's daily snapshot from already authorized workspace data. */
 export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): TeamLeaderDailyBrief {
   const now = input.now ?? new Date();
-  const callbacks = (input.callbacks ?? []).filter((callback) => isValidDate(callback.scheduled_at));
+  const callbacksSource = input.callbacksSource ?? { state: "available", data: input.callbacks ?? [] };
+  const reordersSource = input.reordersSource ?? { state: "available", data: input.reorderOpportunities ?? [] };
+  const callbacks = (callbacksSource.state === "available" ? callbacksSource.data : [])
+    .filter((callback) => isValidDate(callback.scheduled_at));
+  const reorderOpportunities = reordersSource.state === "available" ? reordersSource.data : [];
   const reminders = input.reminders ?? [];
   const endOfDay = new Date(now);
   endOfDay.setHours(23, 59, 59, 999);
@@ -64,7 +76,7 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
     todayCallbacks: callbacks.filter((callback) => isSameDay(callback.scheduled_at, now)).length,
     overdueCallbacks,
     openReminders: reminders.filter((reminder) => reminder.status === "open" && isSameDay(reminder.starts_at, now)).length,
-    urgentReorders: (input.reorderOpportunities ?? []).filter(
+    urgentReorders: reorderOpportunities.filter(
       (opportunity) => opportunity.urgency === "urgent" || opportunity.urgency === "due_soon",
     ).length,
     pendingReviews: input.pendingReviews ?? null,
@@ -73,10 +85,10 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
       ? wallet.balances.reduce((sum, balance) => sum + Number(balance.transaction_count || 0), 0)
       : null,
     walletCurrency: wallet?.currency ?? null,
-    nextAction: getNextBestAction({
-      callbacks,
-      reorderOpportunities: input.reorderOpportunities,
+    nextActionState: resolveNextBestActionState(
+      callbacksSource.state === "available" ? { state: "available", data: callbacks } : callbacksSource,
+      reordersSource,
       now,
-    }),
+    ),
   };
 }
