@@ -54,8 +54,8 @@ async function loadMember(
   };
 }
 
-export async function listWorkspaceMembers(): Promise<WorkspaceMemberDTO[]> {
-  const context = await requireWorkspaceRole(["administrator"]);
+export async function listWorkspaceMembers(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
+  const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data: memberships, error } = await supabase
     .from("workspace_members")
@@ -74,8 +74,8 @@ export async function listWorkspaceMembers(): Promise<WorkspaceMemberDTO[]> {
   );
 }
 
-export async function listWorkspaceOperators(): Promise<WorkspaceMemberDTO[]> {
-  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+export async function listWorkspaceOperators(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data: memberships, error } = await supabase
     .from("workspace_members")

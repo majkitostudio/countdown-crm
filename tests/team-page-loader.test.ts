@@ -88,6 +88,14 @@ describe("loadTeamPageData", () => {
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
   });
 
+  it("passes the supplied workspace ID to every administrator source", async () => {
+    await loadTeamPageData(administratorContext);
+
+    expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("workspace-1");
+    expect(mocks.listWorkspaceOperators).toHaveBeenCalledWith("workspace-1");
+    expect(mocks.listWorkspaceMembers).toHaveBeenCalledWith("workspace-1");
+  });
+
   it.each([
     new DataAccessError("FORBIDDEN", "forbidden"),
     new DataAccessError("VALIDATION", "validation"),

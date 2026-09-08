@@ -36,8 +36,8 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
   if (context.role === "administrator") {
     const [queue, operators, members] = await Promise.allSettled([
       listQueueItemsForWorkspace(context.workspaceId),
-      listWorkspaceOperators(),
-      listWorkspaceMembers(),
+      listWorkspaceOperators(context.workspaceId),
+      listWorkspaceMembers(context.workspaceId),
     ]);
 
     return {
@@ -49,7 +49,7 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
 
   const [queue, operators] = await Promise.allSettled([
     listQueueItemsForWorkspace(context.workspaceId),
-    listWorkspaceOperators(),
+    listWorkspaceOperators(context.workspaceId),
   ]);
 
   return {
