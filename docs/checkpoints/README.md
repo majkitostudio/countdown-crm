@@ -7,8 +7,8 @@ se zpětně a nepřepisuje dnešní status.
 
 - Dnešní stav: [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md)
 - Pracovní proces: [`../WORKFLOW.md`](../WORKFLOW.md)
-- Architektonický kontrakt: [`../architecture.md`](../architecture.md)
-- Budoucí práce: [`../roadmap.md`](../roadmap.md)
+- Architektonický a produktový kontext: [`../../PROJECT.md`](../../PROJECT.md)
+- Budoucí práce: [`../AKTUALNI_STAV_A_DESATERO.md`](../AKTUALNI_STAV_A_DESATERO.md)
 
 ## Dostupné historické důkazy
 
@@ -21,7 +21,6 @@ se zpětně a nepřepisuje dnešní status.
 | [`../PROJECT_POLISH_CHECKPOINT_20260826.md`](../PROJECT_POLISH_CHECKPOINT_20260826.md) | širší audit polish slices a otevřených nálezů |
 | [`../AUDIT_CHECKPOINT_20260827.md`](../AUDIT_CHECKPOINT_20260827.md) | auditní a bezpečnostní kontrola z 27. 8. |
 | [`../AKTUALNI_STAV_A_DESATERO.md`](../AKTUALNI_STAV_A_DESATERO.md) | starší stavový snapshot; není dnešní source of truth |
-| [`../PRODUCT_STATUS.md`](../PRODUCT_STATUS.md) | starší auditní baseline; není dnešní source of truth |
 
 Historické dokumenty mohou obsahovat staré počty testů, commity nebo doporučení.
 Při konfliktu má přednost aktuální checkout, Git stav a `PROJECT_STATUS.md`.

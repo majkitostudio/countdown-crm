@@ -112,7 +112,7 @@ ne po každém drobném commitu.
 ## Zdrojová mapa
 
 - Proces práce: [`WORKFLOW.md`](WORKFLOW.md)
-- Aktuální architektura: [`architecture.md`](architecture.md)
-- Budoucí práce: [`roadmap.md`](roadmap.md)
+- Aktuální architektura a produktový kontext: [`../PROJECT.md`](../PROJECT.md)
+- Budoucí práce: [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md)
 - Historické checkpointy a důkazy: [`checkpoints/README.md`](checkpoints/README.md)
 - Dřívější snapshot s desaterem: [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md)

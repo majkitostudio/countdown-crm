@@ -10,8 +10,8 @@ kód, databázi, migrace, UI ani live prostředí.
 
 - [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md) — jediný aktuální status.
 - [`../WORKFLOW.md`](../WORKFLOW.md) — branch, worktree, commit, checkpoint a gate.
-- [`../architecture.md`](../architecture.md) — současný serverový a datový kontrakt.
-- [`../roadmap.md`](../roadmap.md) — pouze budoucí práce.
+- [`../../PROJECT.md`](../../PROJECT.md) — současný produktový a serverový kontext.
+- [`../AKTUALNI_STAV_A_DESATERO.md`](../AKTUALNI_STAV_A_DESATERO.md) — aktuální pořadí práce.
 - [`README.md`](../../README.md) — rozcestník dokumentace.
 
 ## Zachovaná historie

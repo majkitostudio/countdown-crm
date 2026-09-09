@@ -78,5 +78,6 @@ Fixture test je vždy označený jako lokální nebo rollback-scoped.
 ## Jak číst status
 
 Pro dnešní rozhodování začni v [`PROJECT_STATUS.md`](PROJECT_STATUS.md).
-Pro budoucí práci použij [`roadmap.md`](roadmap.md). Staré dokumenty a
-checkpointy slouží k dohledání historie, ne k přebírání starých slibů.
+Pro budoucí práci použij [`AKTUALNI_STAV_A_DESATERO.md`](AKTUALNI_STAV_A_DESATERO.md).
+Staré dokumenty a checkpointy slouží k dohledání historie, ne k přebírání
+starých slibů.
