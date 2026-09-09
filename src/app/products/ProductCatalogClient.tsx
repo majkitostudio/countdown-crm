@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ArrowRightLeft, DollarSign, Package, Plus, Search, ShieldAlert, Tag, Upload, X } from "lucide-react";
+import { ArrowRightLeft, Plus, Search, ShieldAlert, Upload, X } from "lucide-react";
 import { deleteProductAction } from "@/app/actions/products";
 import { reassignOrdersProductAction } from "@/app/actions/crm";
 import { loadProductCatalogAction } from "@/app/actions/productCatalog";
@@ -10,7 +10,7 @@ import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductModal } from "@/components/products/ProductModal";
 import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
-import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
+import { formatCurrencyAmount } from "@/lib/currency";
 import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
 import { resolveSelectedCatalogProduct } from "@/lib/productCatalogViewState";
 import type { ProductCatalogLoadResult } from "@/lib/dal/productCatalog";
@@ -81,19 +81,6 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
       && (!query || [product.title, product.description, product.category].some((value) => value.toLowerCase().includes(query)));
   });
 
-  const totalCatalogValue = products.reduce((amounts, product) => {
-    const current = amounts.find((amount) => amount.currency === product.currency.toUpperCase());
-    const value = product.price * (product.stock_count || 50);
-    if (current) current.amount += value;
-    else amounts.push({ currency: product.currency.toUpperCase(), amount: value });
-    return amounts;
-  }, [] as { currency: string; amount: number }[]);
-  const battleCardStat = !catalog.objections.requested && catalog.objections.reason === "no_products"
-    ? "Not applicable"
-    : objectionsAvailable
-      ? objectionCards.length
-      : "Unavailable";
-
   const reloadCatalog = async () => {
     try {
       setCatalog(await loadProductCatalogAction());
@@ -163,13 +150,6 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
           <button onClick={() => { setSelectedEditProduct(null); setIsProductModalOpen(true); }} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-medium text-zinc-950"><Plus className="h-4 w-4" />Add New Product</button>
         </div>}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <Stat icon={Package} label="Catalog Items" value={products.length} />
-        <Stat icon={Tag} label="In Stock Ratio" value={products.length > 0 ? `${Math.round((products.filter((product) => product.in_stock).length / products.length) * 100)}%` : "0%"} />
-        <Stat icon={ShieldAlert} label="Sales Battle-cards" value={battleCardStat} />
-        <Stat icon={DollarSign} label="Total Asset Value" value={products.length === 0 ? "0" : formatCurrencyAmounts(totalCatalogValue)} />
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
         <div className="flex gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1 text-xs">
           {["all", "supplements", "cosmetics", "electronics"].map((category) => <button key={category} onClick={() => setActiveCategory(category)} className={activeCategory === category ? "rounded-md bg-zinc-800 px-3 py-1 text-zinc-100" : "px-3 py-1 text-zinc-400"}>{category === "all" ? "All Categories" : category}</button>)}
@@ -190,8 +170,4 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
       {canManageProducts && reassignSourceProduct && <div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/70" onClick={() => setReassignSourceProduct(null)} /><div className="relative w-full max-w-lg space-y-5 rounded-2xl border border-zinc-800 bg-zinc-950 p-6"><div className="flex items-center justify-between border-b border-zinc-800 pb-3"><h3 className="flex items-center gap-2 text-base font-bold text-zinc-100"><ArrowRightLeft className="h-5 w-5" />Přesměrovat objednávky</h3><button type="button" onClick={() => setReassignSourceProduct(null)}><X className="h-4 w-4 text-zinc-400" /></button></div><p className="text-xs text-zinc-400">{orderCounts[reassignSourceProduct.id]} objednávek nyní odkazuje na <span className="font-medium text-zinc-200">{reassignSourceProduct.title}</span>.</p><label className="block space-y-1.5 text-xs"><span className="text-zinc-400">Nový produkt</span><select value={reassignTargetId} onChange={(event) => setReassignTargetId(event.target.value)} className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100"><option value="">Vyberte produkt...</option>{products.filter((product) => product.id !== reassignSourceProduct.id).map((product) => <option key={product.id} value={product.id}>{product.title} — {formatCurrencyAmount(product.price, product.currency)}</option>)}</select></label><div className="flex justify-end gap-2 border-t border-zinc-800 pt-3"><button type="button" onClick={() => setReassignSourceProduct(null)} className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs text-zinc-400">Zrušit</button><button type="button" onClick={() => void handleReassignOrders()} disabled={!reassignTargetId || isReassigning} className="rounded-xl bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 disabled:bg-zinc-800">{isReassigning ? "Ukládám..." : "Přesměrovat objednávky"}</button></div></div></div>}
     </div>
   );
-}
-
-function Stat({ icon: Icon, label, value }: { icon: typeof Package; label: string; value: React.ReactNode }) {
-  return <div className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"><div><span className="block text-xs text-zinc-400">{label}</span><span className="text-2xl font-semibold text-zinc-100">{value}</span></div><Icon className="h-4 w-4 text-zinc-400" /></div>;
 }

@@ -65,6 +65,17 @@ describe("ProductCatalogClient role surface", () => {
     expect(html).not.toContain("Synchronizovat hovory");
   });
 
+  it("prioritizes filters and products over summary dashboard metrics", () => {
+    const html = renderCatalog("operator");
+
+    expect(html).toContain("All Categories");
+    expect(html).toContain("Joint support");
+    expect(html).not.toContain("Catalog Items");
+    expect(html).not.toContain("In Stock Ratio");
+    expect(html).not.toContain("Sales Battle-cards");
+    expect(html).not.toContain("Total Asset Value");
+  });
+
   it("keeps management affordances for Team Leaders", () => {
     const html = renderCatalog("team_leader");
 
@@ -85,20 +96,6 @@ describe("ProductCatalogClient role surface", () => {
 
     expect(html).toContain("Battle-card data unavailable");
     expect(html).not.toContain("0 Battle-Card Rebuttals");
-  });
-
-  it("labels battle-cards as not applicable for a verified empty catalog", () => {
-    const html = renderCatalog("operator", {
-      ...readyCatalog,
-      catalog: { status: "ready", data: [] },
-      objections: { requested: false, reason: "no_products" },
-      orderCounts: { requested: false, reason: "no_products" },
-      state: "ready",
-      isEmpty: true,
-    });
-
-    expect(html).toContain("Not applicable");
-    expect(html).not.toContain("Unavailable");
   });
 
   it("labels unavailable order counts and omits reassignment", () => {
