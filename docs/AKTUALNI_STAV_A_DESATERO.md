@@ -103,6 +103,55 @@ akceptační kritéria a důkazní plán.
    - Hotovo, když existuje bezpečná aktualizační/mitigační cesta a čistý nebo
      výslovně akceptovaný audit před zapnutím živého provideru.
 
+### P1.5 — P2 onboarding trénažér (interní pilot)
+
+Trénažér je bezpečný nástroj pro operátora, který si před prvními ostrými
+hovory procvičí reálný P2 outbound/free-sample rozhovor s AI zákazníkem. Není
+to obecný AI simulátor, herní plocha ani náhrada živé telefonie. Vznikne až po
+uzavření P1: potřebuje pravdivý Call Log, ověřenou hranici zápisu hovoru,
+neměnný snapshot Product Scriptu a funkční Team Leader Review. Skutečné týmy
+nejsou pro první workspace-scoped pilot závislostí; týmové porovnávání výsledků
+se však odloží až za P2.
+
+1. **Použít pouze jeden až dva schválené P2 skripty.** Operátor vybírá skript a
+   obtížnost, ne katalog nesouvisejících produktů. Cvičení používá konkrétní
+   publikovanou verzi skriptu; jméno fiktivního zákazníka se do něj bezpečně
+   předvyplní.
+2. **Vést jeden přirozený cvičný hovor.** AI zákazník reaguje jako zákazník,
+   klade přirozené otázky a podle zvolené obtížnosti přidává námitky. Při
+   úspěšném průchodu může nabídku přijmout a předat výhradně fiktivní, ale
+   věrohodné doručovací údaje. Cvičení nikdy nevytváří objednávku, callback,
+   workflow událost ani zásah do skutečné fronty.
+3. **Uložit ho do Call Logu jako jasně oddělený tréninkový hovor.** Záznam
+   obsahuje přepis, použitý skript a automatické vyhodnocení. Je viditelně
+   označený jako trénink a nesmí zkreslovat ostré obchodní výsledky. Team
+   Leader jej kontroluje stejným review mechanismem jako reálný hovor; nevzniká
+   druhý paralelní systém hodnocení.
+4. **Compliance vyhodnocovat odděleně od chování zákazníka.** První závažné
+   zakázané tvrzení se okamžitě uloží do výsledku, ale AI zákazník běžně
+   pokračuje přirozeně. Teprve opakované nebo zvlášť závažné jednání může
+   důvěryhodně změnit jeho reakci. Závažná chyba neumožní označit cvičení za
+   splněné, ani kdyby zákazník simulovanou nabídku přijal. Výsledek musí uvést
+   přesnou větu, důvod a bezpečnější formulaci; lidský verdikt Team Leadera
+   zůstává oddělený od automatického pravidlového nálezu.
+5. **MVP neobsahuje nahrávku.** Zdroj důkazu je úplný chronologický přepis a
+   snapshot skriptu. Audio recording, retence a playback jsou samostatný
+   pozdější projekt a nesmějí se vydávat za součást tohoto pilotu.
+6. **Odstranit herní a technický šum.** Operátor nemá řídit fáze klikáním,
+   sledovat náladoměr/trpělivost ani řešit poskytovatele AI. Obrazovka ukáže
+   pouze účel cvičení, skript, přirozený průběh hovoru a po skončení konkrétní
+   zpětnou vazbu. Automatické pravidlo, AI odpověď a pozdější lidské hodnocení
+   budou vždy pravdivě rozlišené.
+7. **Před implementací vytvořit samostatný návrh a důkazní plán.** Musí
+   popsat hranici mezi tréninkovým a ostrým hovorem, idempotentní zápis,
+   autorizaci operátora/Team Leadera, fallback při nedostupné AI nebo mikrofonu
+   a kontrolní scénáře včetně compliance porušení.
+
+P1.5 je hotové, až nováček bezpečně dokončí jeden cvičný P2 hovor, v Call Logu
+vznikne jen správně označený tréninkový záznam bez obchodního side effectu,
+Team Leader otevře stejný důkazní podklad pro review a zásadní compliance
+chyba je přesně dohledatelná i v případě úspěšného konce simulace.
+
 ### P2 — skutečné týmy a oddělení
 
 Toto je produktový a bezpečnostní základ, ne kosmetický filtr. Dnes neexistují
@@ -174,7 +223,6 @@ provider vstup chybí, ostatní neblokované body pokračují podle priorit vý�
 
 - custom objects a blueprints,
 - rozšiřování Deals pipeline a obecného Dashboardu,
-- AI Training nad současný simulátor,
 - Wallet payout/commission engine nad současný read-only pilotní scope,
 - inbound telefonie a široké omnichannel integrace.
 
