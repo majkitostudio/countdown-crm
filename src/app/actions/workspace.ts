@@ -9,6 +9,7 @@ import {
 } from "@/lib/dal/memberships";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
+import { loadTeamPageData, type TeamPageData } from "@/lib/dal/teamPage";
 
 export async function getCurrentWorkspaceContextAction() {
   const context = await requireWorkspaceContext();
@@ -25,6 +26,11 @@ export async function listWorkspaceMembersAction(): Promise<WorkspaceMemberDTO[]
 
 export async function listWorkspaceOperatorsAction(): Promise<WorkspaceMemberDTO[]> {
   return listWorkspaceOperators();
+}
+
+export async function refreshTeamPageAction(): Promise<TeamPageData> {
+  const context = await requireWorkspaceContext();
+  return loadTeamPageData(context);
 }
 
 export async function updateWorkspaceMemberRoleAction(
