@@ -425,7 +425,7 @@ export class WebRtcSoftphoneController {
   public sendDtmf(digit: string) { if (this.isTelnyxActive() && this.telnyxCall) this.telnyxCall.dtmf(digit); else if (this.activeAdapter === "local_sip" && this.localSipAdapter) void this.localSipAdapter.sendDtmf(digit); else console.log(`[WebRtcSoftphone] Transmitting DTMF Tone: ${digit}`); }
 
   private scheduleReset() { const sessionId = this.currentSession.id; this.clearEndedResetTimer(); this.endedResetTimer = setTimeout(() => { if (this.currentSession.id === sessionId && ["ended", "failed"].includes(this.currentSession.state)) this.resetToIdle(); }, 2000); }
-  private startTimer() { this.stopTimer(); this.timerInterval = setInterval(() => { if (this.currentSession.state === "connected") { this.currentSession.durationSeconds += 1; this.notify(); } }, 1000); }
+  private startTimer() { this.stopTimer(); this.timerInterval = setInterval(() => { if (this.currentSession.state === "connected" || this.currentSession.state === "on_hold") { this.currentSession.durationSeconds += 1; this.notify(); } }, 1000); }
   private stopTimer() { if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; } }
 }
 

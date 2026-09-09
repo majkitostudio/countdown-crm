@@ -15,6 +15,7 @@ import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
 import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
+import { useCallSession } from "@/components/layout/CallSessionProvider";
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { getFailReasonLabel, type FailReason } from "@/lib/postCall";
@@ -37,7 +38,6 @@ import {
   completeLeadCallAction,
   endLeadCallAction,
   getCurrentLeadAction,
-  heartbeatLeadAssignmentAction,
   setOperatorPresenceAction,
   startLeadCallAction,
 } from "@/app/actions/leadQueue";
@@ -146,19 +146,25 @@ function WorkspaceContent() {
   const completionInFlightRef = React.useRef(false);
   const retryCompletionRef = React.useRef<(() => void) | null>(null);
   const completionExecutorRef = React.useRef<CompletionExecutor | null>(null);
-  const activeQueueItemIdRef = React.useRef<string | null>(null);
-  const identityRoleRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const {
     preferences: userPreferences,
     error: userPreferencesError,
     save: saveUserPreferences,
   } = useUserPreferences();
+  const {
+    serverContext: persistedCallContext,
+    setServerContext,
+  } = useCallSession();
+  const currentAssignmentState = persistedCallContext.assignmentState ?? assignmentState;
+  const currentRecoveryRequired = persistedCallContext.assignmentState !== null
+    ? persistedCallContext.recoveryRequired
+    : recoveryRequired;
   const activeLeadId = activeLead?.id;
 
   const isDialing = softphoneSession.state === "dialing" || softphoneSession.state === "ringing";
   const isCallActive = softphoneSession.state === "connected" || softphoneSession.state === "on_hold";
-  const isAwaitingOutcome = assignmentState === "awaiting_outcome";
+  const isAwaitingOutcome = currentAssignmentState === "awaiting_outcome";
   const callStartedAt = isCallActive && softphoneSession.startTime
     ? softphoneSession.startTime.toISOString()
     : null;
@@ -212,9 +218,13 @@ function WorkspaceContent() {
   }, [identity?.role, refreshCallbackInbox]);
 
   useEffect(() => {
-    activeQueueItemIdRef.current = activeQueueItemId;
-    identityRoleRef.current = identity?.role || null;
-  }, [activeQueueItemId, identity?.role]);
+    if (isIdentityLoading || isLoading) return;
+    setServerContext({
+      queueItemId: activeQueueItemId,
+      assignmentState,
+      recoveryRequired,
+    });
+  }, [activeQueueItemId, assignmentState, isIdentityLoading, isLoading, recoveryRequired, setServerContext]);
 
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
 
@@ -243,17 +253,9 @@ function WorkspaceContent() {
 
   useEffect(() => {
     return () => {
-      const currentSession = softphoneController.getSession();
-      if (currentSession.state === "dialing" || currentSession.state === "ringing") {
-        softphoneController.cancelDial();
-        const queueItemId = activeQueueItemIdRef.current;
-        if (identityRoleRef.current === "operator" && queueItemId) {
-          void abortLeadCallStartAction(queueItemId, "Operator workspace unmounted during call start").catch(() => {
-            // The lease recovery path remains the server-side fallback if the page is already gone.
-          });
-        }
-      } else if (currentSession.state !== "idle" && currentSession.state !== "ended") {
-        softphoneController.hangup();
+      if (stopAudioRef.current) {
+        stopAudioRef.current();
+        stopAudioRef.current = null;
       }
     };
   }, []);
@@ -322,20 +324,6 @@ function WorkspaceContent() {
       cancelled = true;
     };
   }, [activeLeadId, activityRefreshToken, assignmentState, identity?.role, recoveryRequired]);
-
-  useEffect(() => {
-    if (identity?.role !== "operator" || !activeQueueItemId) return;
-
-    const sendHeartbeat = () => {
-      void heartbeatLeadAssignmentAction(activeQueueItemId).catch((error) => {
-        setNotificationToast(error instanceof Error ? error.message : "Lead assignment heartbeat failed.");
-      });
-    };
-
-    sendHeartbeat();
-    const interval = window.setInterval(sendHeartbeat, 30_000);
-    return () => window.clearInterval(interval);
-  }, [activeQueueItemId, identity?.role]);
 
   useEffect(() => {
     if (isIdentityLoading) return;
@@ -932,7 +920,7 @@ function WorkspaceContent() {
             ? "callback_modal"
             : isCompletionPending
               ? "completion_pending"
-              : recoveryRequired
+              : currentRecoveryRequired
                 ? "recovery_required"
                 : isAwaitingOutcome
                   ? "awaiting_outcome"
@@ -1080,7 +1068,7 @@ function WorkspaceContent() {
             isStarting={isCallStartPending || isEndCallPending}
             telephonyAdapter={telephonyAdapter}
             isAwaitingOutcome={isAwaitingOutcome}
-            recoveryRequired={recoveryRequired}
+            recoveryRequired={currentRecoveryRequired}
             isCompletionPending={isCompletionPending}
             onToggleCall={handleToggleCall}
             onToggleMute={() => softphoneController.toggleMute()}
