@@ -1,4 +1,5 @@
-import { getLeadTimeline, TimelineActivityEntry } from "./timeline";
+import { getLeadTimeline, getLeadActivityPage, TimelineActivityEntry } from "./timeline";
+import type { CustomerActivityPageOptions } from "./customerActivity";
 import { WorkspaceActivity } from "./domain";
 
 function toWorkspaceActivity(entry: TimelineActivityEntry): WorkspaceActivity {
@@ -18,4 +19,9 @@ function toWorkspaceActivity(entry: TimelineActivityEntry): WorkspaceActivity {
 export async function getLeadActivities(leadId: string): Promise<WorkspaceActivity[]> {
   const entries = await getLeadTimeline(leadId);
   return entries.map(toWorkspaceActivity);
+}
+
+export async function getLeadActivitiesPage(leadId: string, options?: CustomerActivityPageOptions) {
+  const page = await getLeadActivityPage(leadId, options);
+  return { ...page, items: page.items.map(toWorkspaceActivity) };
 }
