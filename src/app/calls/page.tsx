@@ -105,7 +105,7 @@ export default function CallLogsPage() {
         icon={PhoneCall}
         title="Call Logs & Speech Transcripts"
         badge={{ label: `${totalCallsCount} Logged Calls`, tone: "neutral" }}
-        description="Real-time call history logs, AHT benchmarks, and full speech transcript protocols"
+        description="Call history, AHT benchmarks, and captured transcript availability"
         actions={
           <div className="flex items-center gap-2">
             {canReview && (
@@ -314,7 +314,9 @@ export default function CallLogsPage() {
                       className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium inline-flex items-center gap-1.5 border border-zinc-800 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Transcript</span>
+                      <span>
+                        {c.transcript.kind === "unavailable" ? "View call details" : "View transcript"}
+                      </span>
                     </button>
                   </td>
                 </tr>
