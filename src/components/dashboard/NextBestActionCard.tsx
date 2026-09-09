@@ -3,39 +3,66 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ListChecks, PhoneCall, RefreshCw } from "lucide-react";
-import { listCalendarEntriesAction } from "@/app/actions/calendar";
-import { getReorderOpportunities } from "@/lib/reorder";
-import { resolveNextBestActionState, type NextBestAction } from "@/lib/nextBestAction";
+import { loadNextBestActionAction } from "@/app/actions/nextBestAction";
+import type { NextBestActionState } from "@/lib/nextBestAction";
+
+export function NextBestActionContent({ state }: { state: NextBestActionState }) {
+  if (state.status === "unavailable") {
+    return (
+      <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">
+        Prioritní signály nejsou dostupné: {state.message}
+      </div>
+    );
+  }
+
+  const { action } = state;
+
+  return (
+    <div className="space-y-3">
+      {state.status === "partial" ? (
+        <div role="status" className="rounded-lg border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-xs text-amber-200">
+          Partial recommendation: {state.message}
+        </div>
+      ) : null}
+      <div className="flex flex-col gap-4 rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-zinc-100">{action.title}</p>
+          <p className="mt-1 text-xs text-zinc-400">{action.description}</p>
+          <p className="mt-2 text-[10px] font-mono uppercase tracking-wider text-zinc-600">Source: {action.source}</p>
+        </div>
+        <Link
+          href={action.href}
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-white"
+        >
+          <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
+          Open action
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export function NextBestActionCard() {
-  const [action, setAction] = useState<NextBestAction | null>(null);
+  const [state, setState] = useState<NextBestActionState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [unavailableMessage, setUnavailableMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadSignals() {
       try {
-        const [calendarResult, reorderOpportunities] = await Promise.all([
-          listCalendarEntriesAction(),
-          getReorderOpportunities(),
-        ]);
-
+        const nextState = await loadNextBestActionAction();
         if (!cancelled) {
-          const nextActionState = resolveNextBestActionState(calendarResult, reorderOpportunities);
-          if (nextActionState.status === "unavailable") {
-            setAction(null);
-            setUnavailableMessage(nextActionState.message);
-          } else {
-            setAction(nextActionState.action);
-            setUnavailableMessage(null);
-          }
+          setState(nextState);
         }
       } catch {
         if (!cancelled) {
-          setAction(null);
-          setUnavailableMessage("Prioritní signály nejsou dostupné. Data nebyla nahrazena syntetickou prioritou.");
+          setState({
+            status: "unavailable",
+            unavailableSources: ["callbacks", "reorders"],
+            message: "Data nebyla nahrazena syntetickou prioritou.",
+          });
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -48,6 +75,7 @@ export function NextBestActionCard() {
     };
   }, []);
 
+  const action = state && state.status !== "unavailable" ? state.action : null;
   const Icon = action?.kind === "callback"
     ? CalendarClock
     : action?.kind === "reorder"
@@ -73,27 +101,7 @@ export function NextBestActionCard() {
 
       {isLoading ? (
         <div className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Načítám priority…</div>
-      ) : unavailableMessage ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">
-          Prioritní signály nejsou dostupné: {unavailableMessage}
-        </div>
-      ) : action ? (
-        <div className="flex flex-col gap-4 rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-zinc-100">{action.title}</p>
-            <p className="mt-1 text-xs text-zinc-400">{action.description}</p>
-            <p className="mt-2 text-[10px] font-mono uppercase tracking-wider text-zinc-600">Source: {action.source}</p>
-          </div>
-          <Link
-            href={action.href}
-            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-white"
-          >
-            <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
-            Open action
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
-        </div>
-      ) : null}
+      ) : state ? <NextBestActionContent state={state} /> : null}
     </div>
   );
 }

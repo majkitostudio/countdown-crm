@@ -23,6 +23,27 @@ export interface RecentContextFromCalendarResult {
   callbackSource: CalendarSourceState;
 }
 
+export type RecentContextSourceState<T> =
+  | { status: "ready"; data: T }
+  | { status: "unavailable"; reason: "database" | "provider"; message: string };
+
+export type RecentContextLoadState = "ready" | "partial" | "unavailable";
+
+export interface RecentContextSourcesInput {
+  leadId: string;
+  activities: RecentContextSourceState<WorkspaceActivity[]>;
+  callbacks: RecentContextSourceState<RecentContextCallback[]>;
+  now?: number;
+}
+
+export interface RecentContextLoadResult {
+  state: RecentContextLoadState;
+  isEmpty: boolean;
+  context: RecentContextData | null;
+  unavailableSources: Array<"activities" | "callbacks">;
+  messages: Partial<Record<"activities" | "calendar", string>>;
+}
+
 function latestActivity(entries: WorkspaceActivity[], type: WorkspaceActivity["type"]): WorkspaceActivity | null {
   return entries
     .filter((entry) => entry.type === type)
@@ -36,6 +57,48 @@ function selectActiveCallback(callbacks: RecentContextCallback[], now: number): 
 
   const upcoming = matchingCallbacks.find((callback) => Date.parse(callback.scheduled_at) >= now);
   return upcoming || matchingCallbacks[matchingCallbacks.length - 1] || null;
+}
+
+function hasAnySignal(context: RecentContextData): boolean {
+  return Boolean(context.lastContact || context.lastCallResult || context.lastOrder || context.activeCallback);
+}
+
+function collectMessages(input: RecentContextSourcesInput): Partial<Record<"activities" | "calendar", string>> {
+  return {
+    ...(input.activities.status === "unavailable" ? { activities: input.activities.message } : {}),
+    ...(input.callbacks.status === "unavailable" ? { calendar: input.callbacks.message } : {}),
+  };
+}
+
+export function buildRecentContextFromSources(input: RecentContextSourcesInput): RecentContextLoadResult {
+  const unavailableSources = (["activities", "callbacks"] as const)
+    .filter((source) => input[source].status === "unavailable");
+  const messages = collectMessages(input);
+
+  if (unavailableSources.length === 2) {
+    return {
+      state: "unavailable",
+      isEmpty: false,
+      context: null,
+      unavailableSources,
+      messages,
+    };
+  }
+
+  const context = buildRecentContext(
+    input.leadId,
+    input.activities.status === "ready" ? input.activities.data : [],
+    input.callbacks.status === "ready" ? input.callbacks.data : [],
+    input.now,
+  );
+
+  return {
+    state: unavailableSources.length ? "partial" : "ready",
+    isEmpty: unavailableSources.length === 0 && !hasAnySignal(context),
+    context,
+    unavailableSources,
+    messages,
+  };
 }
 
 export function buildRecentContext(

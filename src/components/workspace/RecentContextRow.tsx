@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarClock, CheckCircle2, PhoneCall, ShoppingBag } from "lucide-react";
-import { listCalendarEntriesAction } from "@/app/actions/calendar";
-import { getLeadActivities } from "@/lib/domainActivity";
+import { loadRecentContextSourcesAction } from "@/app/actions/recentContext";
 import { formatCurrencyAmount } from "@/lib/currency";
 import type { WorkspaceActivity } from "@/lib/domain";
-import { buildRecentContextFromCalendar, type RecentContextData } from "./recentContext";
+import type { RecentContextData, RecentContextLoadResult } from "./recentContext";
+import {
+  applyRecentContextRefresh,
+  canRetainRecentContext,
+  loadRecentContext,
+  type LoadedRecentContext,
+} from "./recentContextLoader";
 
 interface RecentContextRowProps {
   leadId: string;
@@ -72,8 +77,19 @@ function Signal({
   );
 }
 
-function renderSignal(signal: RecentContextData["lastContact"], kind: "contact" | "result" | "order") {
+function renderSignal(
+  signal: RecentContextData["lastContact"],
+  kind: "contact" | "result" | "order",
+  unavailableMessage?: string,
+) {
   if (!signal) {
+    if (unavailableMessage) {
+      return {
+        value: "Unavailable",
+        detail: unavailableMessage,
+      };
+    }
+
     return {
       value: "No record",
       detail: "No data saved",
@@ -100,35 +116,43 @@ function renderSignal(signal: RecentContextData["lastContact"], kind: "contact" 
 }
 
 export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps) {
-  const [context, setContext] = useState<RecentContextData | null>(null);
+  const [loadedContext, setLoadedContext] = useState<LoadedRecentContext | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [callbackUnavailableMessage, setCallbackUnavailableMessage] = useState<string | null>(null);
+  const [loadedState, setLoadedState] = useState<{ leadId: string; result: RecentContextLoadResult } | null>(null);
+  const [isStale, setIsStale] = useState(false);
+  const loadedContextRef = useRef(loadedContext);
+  const context = loadedContext?.leadId === leadId ? loadedContext.data : null;
+  const loadState = loadedState?.leadId === leadId ? loadedState.result : null;
+
+  useEffect(() => {
+    loadedContextRef.current = loadedContext;
+  }, [loadedContext]);
 
   useEffect(() => {
     let cancelled = false;
+    const hadPreviousContext = canRetainRecentContext(loadedContextRef.current?.leadId, leadId);
 
     async function loadContext() {
       setIsLoading(true);
       setLoadError(null);
+      if (hadPreviousContext) setIsStale(true);
+
       try {
-        const [activities, calendarResult] = await Promise.all([
-          getLeadActivities(leadId),
-          listCalendarEntriesAction(),
-        ]);
+        const recentContext = await loadRecentContext(leadId, {
+          loadSources: () => loadRecentContextSourcesAction(leadId),
+        });
         if (cancelled) return;
 
-        const recentContext = buildRecentContextFromCalendar(leadId, activities, calendarResult);
-        setContext(recentContext.context);
-        setCallbackUnavailableMessage(
-          recentContext.callbackSource.state === "unavailable"
-            ? recentContext.callbackSource.message
-            : null,
-        );
+        setLoadedState({ leadId, result: recentContext });
+        const refreshed = applyRecentContextRefresh(loadedContextRef.current, leadId, recentContext);
+        setLoadedContext(refreshed.context);
+        setIsStale(refreshed.isStale);
       } catch (error) {
         if (!cancelled) {
-          setContext(null);
-          setCallbackUnavailableMessage(null);
+          setLoadedContext(null);
+          setLoadedState(null);
+          setIsStale(false);
           setLoadError(error instanceof Error ? error.message : "Recent context could not be loaded.");
         }
       } finally {
@@ -143,14 +167,18 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
   }, [leadId, refreshToken]);
 
   const emptySignal = { value: "No record", detail: "No data saved" };
-  const contact = renderSignal(context?.lastContact || null, "contact");
-  const result = renderSignal(context?.lastCallResult || null, "result");
-  const order = renderSignal(context?.lastOrder || null, "order");
-  const callback = callbackUnavailableMessage
-    ? { value: "Unavailable", detail: callbackUnavailableMessage }
+  const activitiesUnavailableMessage = loadState?.messages.activities;
+  const calendarUnavailableMessage = loadState?.messages.calendar;
+  const contact = renderSignal(context?.lastContact || null, "contact", activitiesUnavailableMessage);
+  const result = renderSignal(context?.lastCallResult || null, "result", activitiesUnavailableMessage);
+  const order = renderSignal(context?.lastOrder || null, "order", activitiesUnavailableMessage);
+  const callback = calendarUnavailableMessage
+    ? { value: "Unavailable", detail: calendarUnavailableMessage }
     : context?.activeCallback
       ? { value: formatDate(context.activeCallback.scheduled_at), detail: "Scheduled callback" }
       : emptySignal;
+  const sourceMessages = Object.values(loadState?.messages || {}).filter(Boolean).join(" ");
+  const operationalUnavailable = loadState?.state === "unavailable";
 
   return (
     <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3" data-testid="recent-context-row" aria-labelledby="recent-context-title">
@@ -159,20 +187,37 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
           <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Recent context</h3>
           <p className="mt-1 text-[11px] text-zinc-600">Four signals before the next action</p>
         </div>
-        {isLoading && <span className="text-[10px] font-mono text-zinc-600">Loading…</span>}
+        {isLoading && (
+          <span className="text-[10px] font-mono text-zinc-600">
+            {context ? "Refreshing…" : "Loading…"}
+          </span>
+        )}
+        {isStale && !isLoading && <span data-testid="recent-context-stale" className="text-[10px] font-mono text-amber-300">Data may be stale</span>}
       </div>
 
-      {loadError ? (
+      {loadError || (operationalUnavailable && !context) ? (
         <div role="alert" className="mt-3 rounded-lg border border-amber-900/60 bg-amber-950/20 p-2.5 text-[11px] text-amber-200">
-          Recent context unavailable: {loadError}
+          Recent context unavailable: {loadError || sourceMessages || "The sources could not be loaded."}
         </div>
       ) : (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-busy={isLoading}>
+        <>
+          {operationalUnavailable && context && (
+            <div role="status" className="mt-3 rounded-lg border border-amber-900/60 bg-amber-950/20 p-2.5 text-[11px] text-amber-200">
+              Showing retained data marked stale. {sourceMessages}
+            </div>
+          )}
+          {loadState?.state === "partial" && (
+            <div role="status" className="mt-3 rounded-lg border border-amber-900/60 bg-amber-950/20 p-2.5 text-[11px] text-amber-200">
+              Partial recent context. {sourceMessages}
+            </div>
+          )}
+          <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-busy={isLoading}>
           <Signal icon={PhoneCall} label="Last contact" value={isLoading ? "Loading…" : contact.value} detail={isLoading ? "" : contact.detail} />
           <Signal icon={CheckCircle2} label="Last result" value={isLoading ? "Loading…" : result.value} detail={isLoading ? "" : result.detail} />
           <Signal icon={ShoppingBag} label="Last order" value={isLoading ? "Loading…" : order.value} detail={isLoading ? "" : order.detail} />
-          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} tone={!callbackUnavailableMessage && context?.activeCallback ? "attention" : "default"} />
-        </div>
+          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} tone={!calendarUnavailableMessage && context?.activeCallback ? "attention" : "default"} />
+          </div>
+        </>
       )}
     </section>
   );
