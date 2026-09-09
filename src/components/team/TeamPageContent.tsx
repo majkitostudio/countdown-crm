@@ -1,3 +1,7 @@
+"use client";
+
+import { useCallback, useState } from "react";
+import { refreshTeamPageAction } from "@/app/actions/workspace";
 import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
 import { TeamQueuePanel } from "@/components/team/TeamQueuePanel";
 import type { WorkspaceRole } from "@/lib/auth/roles";
@@ -7,6 +11,29 @@ interface TeamPageContentProps {
   currentUserId: string;
   role: Extract<WorkspaceRole, "team_leader" | "administrator">;
   data: TeamPageData;
+}
+
+export type TeamMutationHandler = (mutation: () => Promise<unknown>) => Promise<void>;
+
+interface TeamPageClientState {
+  initialData: TeamPageData;
+  data: TeamPageData;
+}
+
+export function selectCurrentTeamPageData(
+  state: TeamPageClientState,
+  incomingData: TeamPageData,
+): TeamPageData {
+  return state.initialData === incomingData ? state.data : incomingData;
+}
+
+export async function runTeamMutationAndRefresh(
+  mutation: () => Promise<unknown>,
+  refresh: () => Promise<TeamPageData>,
+  replace: (data: TeamPageData) => void,
+): Promise<void> {
+  await mutation();
+  replace(await refresh());
 }
 
 function SourceUnavailablePanel({ title, message }: { title: string; message: string }) {
@@ -19,24 +46,35 @@ function SourceUnavailablePanel({ title, message }: { title: string; message: st
 }
 
 export function TeamPageContent({ currentUserId, role, data }: TeamPageContentProps) {
+  const [refreshedState, setRefreshedState] = useState({ initialData: data, data });
+  const currentData = selectCurrentTeamPageData(refreshedState, data);
+  const runMutation = useCallback<TeamMutationHandler>(
+    (mutation) => runTeamMutationAndRefresh(
+      mutation,
+      refreshTeamPageAction,
+      (nextData) => setRefreshedState({ initialData: data, data: nextData }),
+    ),
+    [data],
+  );
+
   return (
     <div className="space-y-8">
-      {data.queue.state === "available" ? (
+      {currentData.queue.status === "ready" ? (
         <TeamQueuePanel
-          initialQueueItems={data.queue.data}
-          operators={data.operators.state === "available" ? data.operators.data : []}
-          operatorsState={data.operators.state}
-          operatorsUnavailableMessage={data.operators.state === "unavailable" ? data.operators.message : undefined}
+          queueItems={currentData.queue.data}
+          operators={currentData.operators.status === "ready" ? currentData.operators.data : []}
+          operatorsState={currentData.operators.status}
+          onMutation={runMutation}
         />
       ) : (
-        <SourceUnavailablePanel title="Lead Queue Operations unavailable" message={data.queue.message} />
+        <SourceUnavailablePanel title="Lead Queue Operations unavailable" message="Lead queue is unavailable." />
       )}
 
-      {role === "administrator" && data.members?.state === "available" && (
-        <TeamMembersPanel initialMembers={data.members.data} currentUserId={currentUserId} />
+      {role === "administrator" && currentData.members?.status === "ready" && (
+        <TeamMembersPanel members={currentData.members.data} currentUserId={currentUserId} onMutation={runMutation} />
       )}
-      {role === "administrator" && data.members?.state === "unavailable" && (
-        <SourceUnavailablePanel title="Workspace Members unavailable" message={data.members.message} />
+      {role === "administrator" && currentData.members?.status === "unavailable" && (
+        <SourceUnavailablePanel title="Workspace Members unavailable" message="Workspace members are unavailable." />
       )}
     </div>
   );

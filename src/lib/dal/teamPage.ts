@@ -7,8 +7,8 @@ import { DataAccessError, isDataAccessError } from "@/lib/dal/errors";
 import type { WorkspaceContext } from "@/lib/dal/workspace";
 
 export type TeamSource<T> =
-  | { state: "available"; data: T }
-  | { state: "unavailable"; message: string };
+  | { status: "ready"; data: T }
+  | { status: "unavailable"; reason: "database" | "provider" };
 
 export interface TeamPageData {
   queue: TeamSource<QueueItemDTO[]>;
@@ -16,13 +16,13 @@ export interface TeamPageData {
   members: TeamSource<WorkspaceMemberDTO[]> | null;
 }
 
-function toTeamSource<T>(result: PromiseSettledResult<T>, unavailableMessage: string): TeamSource<T> {
+function toTeamSource<T>(result: PromiseSettledResult<T>): TeamSource<T> {
   if (result.status === "fulfilled") {
-    return { state: "available", data: result.value };
+    return { status: "ready", data: result.value };
   }
 
   if (isDataAccessError(result.reason) && result.reason.code === "DATABASE") {
-    return { state: "unavailable", message: unavailableMessage };
+    return { status: "unavailable", reason: "database" };
   }
 
   throw result.reason;
@@ -41,9 +41,9 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
     ]);
 
     return {
-      queue: toTeamSource(queue, "Lead queue is unavailable."),
-      operators: toTeamSource(operators, "Workspace operators are unavailable."),
-      members: toTeamSource(members, "Workspace members are unavailable."),
+      queue: toTeamSource(queue),
+      operators: toTeamSource(operators),
+      members: toTeamSource(members),
     };
   }
 
@@ -53,8 +53,8 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
   ]);
 
   return {
-    queue: toTeamSource(queue, "Lead queue is unavailable."),
-    operators: toTeamSource(operators, "Workspace operators are unavailable."),
+    queue: toTeamSource(queue),
+    operators: toTeamSource(operators),
     members: null,
   };
 }

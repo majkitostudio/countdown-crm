@@ -45,8 +45,8 @@ describe("loadTeamPageData", () => {
       ),
       context: teamLeaderContext,
       expected: {
-        queue: { state: "unavailable", message: "Lead queue is unavailable." },
-        operators: { state: "available", data: [] },
+        queue: { status: "unavailable", reason: "database" },
+        operators: { status: "ready", data: [] },
         members: null,
       },
     },
@@ -57,8 +57,8 @@ describe("loadTeamPageData", () => {
       ),
       context: teamLeaderContext,
       expected: {
-        queue: { state: "available", data: [] },
-        operators: { state: "unavailable", message: "Workspace operators are unavailable." },
+        queue: { status: "ready", data: [] },
+        operators: { status: "unavailable", reason: "database" },
         members: null,
       },
     },
@@ -69,15 +69,34 @@ describe("loadTeamPageData", () => {
       ),
       context: administratorContext,
       expected: {
-        queue: { state: "available", data: [] },
-        operators: { state: "available", data: [] },
-        members: { state: "unavailable", message: "Workspace members are unavailable." },
+        queue: { status: "ready", data: [] },
+        operators: { status: "ready", data: [] },
+        members: { status: "unavailable", reason: "database" },
       },
     },
   ])("$name", async ({ setup, context, expected }) => {
     setup();
 
     await expect(loadTeamPageData(context)).resolves.toEqual(expected);
+  });
+
+  it("reports queue and operators independently unavailable when both database reads fail", async () => {
+    mocks.listQueueItemsForWorkspace.mockRejectedValue(new DataAccessError("DATABASE", "queue failed"));
+    mocks.listWorkspaceOperators.mockRejectedValue(new DataAccessError("DATABASE", "operators failed"));
+
+    await expect(loadTeamPageData(administratorContext)).resolves.toEqual({
+      queue: { status: "unavailable", reason: "database" },
+      operators: { status: "unavailable", reason: "database" },
+      members: { status: "ready", data: [] },
+    });
+  });
+
+  it("preserves verified empty data as ready sources", async () => {
+    await expect(loadTeamPageData(administratorContext)).resolves.toEqual({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [] },
+      members: { status: "ready", data: [] },
+    });
   });
 
   it("does not request members for a team leader", async () => {
@@ -97,8 +116,11 @@ describe("loadTeamPageData", () => {
   });
 
   it.each([
+    new DataAccessError("UNAUTHORIZED", "unauthorized"),
     new DataAccessError("FORBIDDEN", "forbidden"),
+    new DataAccessError("NOT_FOUND", "not found"),
     new DataAccessError("VALIDATION", "validation"),
+    new DataAccessError("CONFLICT", "conflict"),
     new Error("unexpected source failure"),
   ])("preserves a non-database source rejection: %s", async (error) => {
     mocks.listQueueItemsForWorkspace.mockRejectedValue(error);

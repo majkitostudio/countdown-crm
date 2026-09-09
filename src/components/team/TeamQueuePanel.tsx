@@ -4,19 +4,19 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Eye, RotateCcw, Send, Unlock, XCircle } from "lucide-react";
 import {
-  listQueueItemsAction,
   reassignLeadAssignmentAction,
   releaseLeadAssignmentAction,
   reopenLeadAssignmentAction,
 } from "@/app/actions/leadQueue";
+import type { TeamMutationHandler } from "@/components/team/TeamPageContent";
 import type { QueueItemDTO } from "@/lib/dal/leadQueue";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 
 interface TeamQueuePanelProps {
-  initialQueueItems: QueueItemDTO[];
+  queueItems: QueueItemDTO[];
   operators: WorkspaceMemberDTO[];
-  operatorsState: "available" | "unavailable";
-  operatorsUnavailableMessage?: string;
+  operatorsState: "ready" | "unavailable";
+  onMutation: TeamMutationHandler;
 }
 
 const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
@@ -35,28 +35,22 @@ function formatDate(value: string | null): string {
 }
 
 export function TeamQueuePanel({
-  initialQueueItems,
+  queueItems,
   operators,
   operatorsState,
-  operatorsUnavailableMessage,
+  onMutation,
 }: TeamQueuePanelProps) {
-  const [queueItems, setQueueItems] = useState(initialQueueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const refreshQueue = async () => {
-    setQueueItems(await listQueueItemsAction());
-  };
 
   const runAction = async (itemId: string, action: () => Promise<unknown>, success: string) => {
     setBusyItemId(itemId);
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await action();
-      await refreshQueue();
+      await onMutation(action);
       setSuccessMessage(success);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Queue action could not be completed.");
@@ -69,7 +63,7 @@ export function TeamQueuePanel({
     if (operatorsState === "unavailable") return;
 
     const operatorId = selectedOperators[item.id];
-    if (!operatorId) {
+    if (!operatorId || !operators.some((operator) => operator.user_id === operatorId)) {
       setErrorMessage("Vyberte cílového Operátora.");
       return;
     }
@@ -102,7 +96,7 @@ export function TeamQueuePanel({
       {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
       {operatorsState === "unavailable" && (
         <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
-          {operatorsUnavailableMessage || "Workspace operators are unavailable."} Reassignment controls are disabled.
+          Workspace operators are unavailable. Reassignment controls are disabled.
         </div>
       )}
 
@@ -125,6 +119,9 @@ export function TeamQueuePanel({
             <tbody className="divide-y divide-zinc-800/70">
               {queueItems.map((item) => {
                 const isBusy = busyItemId === item.id;
+                const selectedOperatorId = operators.some((operator) => operator.user_id === selectedOperators[item.id])
+                  ? selectedOperators[item.id]
+                  : "";
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";
                 const canReopen = item.state === "closed";
@@ -157,7 +154,7 @@ export function TeamQueuePanel({
                         {canReassign && (
                           <div className="flex items-center gap-2">
                             <select
-                              value={selectedOperators[item.id] || ""}
+                              value={selectedOperatorId}
                               onChange={(event) => setSelectedOperators((current) => ({ ...current, [item.id]: event.target.value }))}
                               disabled={isBusy || operatorsState === "unavailable"}
                               className="min-w-[170px] rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-2 text-[11px] text-zinc-300 disabled:opacity-50"
@@ -166,7 +163,7 @@ export function TeamQueuePanel({
                               <option value="">Reassign to…</option>
                               {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
                             </select>
-                            <button type="button" disabled={isBusy || operatorsState === "unavailable" || !selectedOperators[item.id]} onClick={() => reassign(item)} className="rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
+                            <button type="button" disabled={isBusy || operatorsState === "unavailable" || !selectedOperatorId} onClick={() => reassign(item)} className="rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
                           </div>
                         )}
                         <div className="flex flex-wrap justify-end gap-2">

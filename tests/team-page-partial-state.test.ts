@@ -44,8 +44,8 @@ function render(data: TeamPageData, role: "team_leader" | "administrator" = "tea
 describe("TeamPageContent partial source states", () => {
   it("keeps available queue rows and disables reassignment when operators are unavailable", () => {
     const html = render({
-      queue: { state: "available", data: [queueItem] },
-      operators: { state: "unavailable", message: "Workspace operators are unavailable." },
+      queue: { status: "ready", data: [queueItem] },
+      operators: { status: "unavailable", reason: "database" },
       members: null,
     });
 
@@ -57,8 +57,8 @@ describe("TeamPageContent partial source states", () => {
 
   it("does not present an unavailable queue as a verified zero-item queue", () => {
     const html = render({
-      queue: { state: "unavailable", message: "Lead queue is unavailable." },
-      operators: { state: "available", data: [] },
+      queue: { status: "unavailable", reason: "database" },
+      operators: { status: "ready", data: [] },
       members: null,
     });
 
@@ -69,9 +69,9 @@ describe("TeamPageContent partial source states", () => {
 
   it("keeps the administrator queue visible when members are unavailable", () => {
     const html = render({
-      queue: { state: "available", data: [queueItem] },
-      operators: { state: "available", data: [] },
-      members: { state: "unavailable", message: "Workspace members are unavailable." },
+      queue: { status: "ready", data: [queueItem] },
+      operators: { status: "ready", data: [] },
+      members: { status: "unavailable", reason: "database" },
     }, "administrator");
 
     expect(html).toContain("Ada Lovelace");
@@ -80,8 +80,8 @@ describe("TeamPageContent partial source states", () => {
 
   it("renders the established empty state only for an available empty queue", () => {
     const html = render({
-      queue: { state: "available", data: [] },
-      operators: { state: "available", data: [] },
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [] },
       members: null,
     });
 
@@ -90,8 +90,8 @@ describe("TeamPageContent partial source states", () => {
 
   it("does not include membership management for a Team Leader", () => {
     const html = render({
-      queue: { state: "available", data: [] },
-      operators: { state: "available", data: [] },
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [] },
       members: null,
     });
 

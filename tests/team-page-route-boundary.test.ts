@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const mocks = vi.hoisted(() => ({
   requireWorkspaceContext: vi.fn(),
@@ -30,5 +31,19 @@ describe("TeamPage route boundary", () => {
     mocks.loadTeamPageData.mockRejectedValue(fatalError);
 
     await expect(TeamPage()).rejects.toBe(fatalError);
+  });
+
+  it("denies an operator at the actual route before the composite loader runs", async () => {
+    mocks.requireWorkspaceContext.mockResolvedValue({
+      userId: "operator-1",
+      workspaceId: "workspace-1",
+      role: "operator",
+    });
+
+    const html = renderToStaticMarkup(await TeamPage());
+
+    expect(html).toContain("Team operations unavailable");
+    expect(html).not.toContain("Lead Queue Operations");
+    expect(mocks.loadTeamPageData).not.toHaveBeenCalled();
   });
 });
