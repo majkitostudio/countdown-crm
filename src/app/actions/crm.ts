@@ -26,11 +26,21 @@ import {
   listWorkspaceOrders,
   listWorkspaceOrdersForLead,
   listWorkspaceLeadActivity,
+  listWorkspaceLeadActivityPage,
+  listWorkspaceLeadActivityEvents,
 } from "@/lib/dal/activity";
 import { listCallReviewStatuses, type CallReviewStatus } from "@/lib/dal/callReviews";
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { Database } from "@/lib/supabase/types";
+import type { CustomerActivityPageOptions } from "@/lib/customerActivity";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
+
+export async function listLeadActivityPageAction(leadId: string, options?: CustomerActivityPageOptions) {
+  return listWorkspaceLeadActivityPage(leadId, options);
+}
+export async function listLeadActivityEventsAction(leadId: string) {
+  return listWorkspaceLeadActivityEvents(leadId);
+}
 
 type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
 

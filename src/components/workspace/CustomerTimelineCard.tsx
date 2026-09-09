@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   History,
   PhoneCall,
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
-import { getLeadActivities } from "@/lib/domainActivity";
+import { getLeadActivitiesPage } from "@/lib/domainActivity";
 import { formatCurrencyAmount } from "@/lib/currency";
 
 interface CustomerTimelineCardProps {
@@ -23,7 +23,11 @@ interface CustomerTimelineCardProps {
   includeNotes?: boolean;
 }
 
-export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true }: CustomerTimelineCardProps) {
+export function CustomerTimelineCard(props: CustomerTimelineCardProps) {
+  return <CustomerTimelineContent key={props.leadId} {...props} />;
+}
+
+function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: CustomerTimelineCardProps) {
   const [entries, setEntries] = useState<WorkspaceActivity[]>([]);
   const [filterType, setFilterType] = useState<WorkspaceActivityType | "all">("all");
   const [newNoteText, setNewNoteText] = useState("");
@@ -31,31 +35,59 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const generation = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
+    const requestGeneration = ++generation.current;
 
     async function loadTimeline() {
       setIsLoading(true);
       setLoadError(null);
+      setNextCursor(null);
+      setIsLoadingMore(false);
       try {
-        const res = await getLeadActivities(leadId);
-        if (!cancelled) setEntries(res);
+        const res = await getLeadActivitiesPage(leadId);
+        if (!cancelled && generation.current === requestGeneration) {
+          setEntries(res.items);
+          setNextCursor(res.next_cursor);
+        }
       } catch (error) {
-        if (!cancelled) {
+        if (!cancelled && generation.current === requestGeneration) {
           setEntries([]);
           setLoadError(error instanceof Error ? error.message : "Timeline could not be loaded");
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled && generation.current === requestGeneration) setIsLoading(false);
       }
     }
 
     void loadTimeline();
+    const invalidateRequests = () => { generation.current++; };
     return () => {
       cancelled = true;
+      invalidateRequests();
     };
   }, [leadId, refreshToken]);
+
+  const handleLoadMore = async () => {
+    if (!nextCursor || isLoadingMore) return;
+    const currentGeneration = generation.current;
+    setIsLoadingMore(true);
+    setLoadError(null);
+    try {
+      const page = await getLeadActivitiesPage(leadId, { cursor: nextCursor });
+      if (generation.current !== currentGeneration) return;
+      setEntries((current) => [...new Map([...current, ...page.items].map((item) => [item.id, item])).values()]);
+      setNextCursor(page.next_cursor);
+    } catch (error) {
+      if (generation.current === currentGeneration) setLoadError(error instanceof Error ? error.message : "More activity could not be loaded");
+    } finally {
+      if (generation.current === currentGeneration) setIsLoadingMore(false);
+    }
+  };
 
   const handleAddNote = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,14 +95,20 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
     if (!body || isSavingNote) return;
 
     setIsSavingNote(true);
+    const currentGeneration = ++generation.current;
+    setIsLoading(false);
+    setIsLoadingMore(false);
     setLoadError(null);
     try {
       await createLeadNoteAction(leadId, body);
-      setEntries(await getLeadActivities(leadId));
+      const page = await getLeadActivitiesPage(leadId);
+      if (generation.current !== currentGeneration) return;
+      setEntries(page.items);
+      setNextCursor(page.next_cursor);
       setNewNoteText("");
       setIsAddingNote(false);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Note could not be saved");
+      if (generation.current === currentGeneration) setLoadError(error instanceof Error ? error.message : "Note could not be saved");
     } finally {
       setIsSavingNote(false);
     }
@@ -200,7 +238,7 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
           <div className="p-3 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-center text-zinc-500 text-xs font-mono">
             Loading timeline...
           </div>
-        ) : loadError ? null : filteredEntries.length === 0 ? (
+        ) : loadError && entries.length === 0 ? null : filteredEntries.length === 0 ? (
           <div className="p-3 bg-zinc-950/40 border border-zinc-800/60 rounded-xl text-center text-zinc-500 text-xs font-mono">
             No entries found for this filter.
           </div>
@@ -271,6 +309,12 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
           })
         )}
       </div>
+      {!isLoading && nextCursor && (
+        <button type="button" disabled={isLoadingMore || isSavingNote} onClick={() => void handleLoadMore()}
+          className="w-full rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 disabled:opacity-50">
+          {isLoadingMore ? "Loading more..." : "Load more activity"}
+        </button>
+      )}
     </div>
   );
 }
