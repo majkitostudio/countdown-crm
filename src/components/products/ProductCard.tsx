@@ -4,9 +4,13 @@ import React from "react";
 import { ShieldAlert, Edit3, Layers, ArrowRightLeft, Trash2, ImageOff } from "lucide-react";
 import { Product } from "@/lib/products";
 import { formatCurrencyAmount } from "@/lib/currency";
+import type { WorkspaceRole } from "@/lib/auth/roles";
 
 interface ProductCardProps {
   product: Product;
+  role: WorkspaceRole;
+  objectionsAvailable: boolean;
+  orderCountsAvailable: boolean;
   onOpenObjections: (product: Product) => void;
   onEditProduct: (product: Product) => void;
   orderCount: number;
@@ -16,12 +20,16 @@ interface ProductCardProps {
 
 export function ProductCard({
   product,
+  role,
+  objectionsAvailable,
+  orderCountsAvailable,
   onOpenObjections,
   onEditProduct,
   orderCount,
   onReassignOrders,
   onDeleteProduct,
 }: ProductCardProps) {
+  const canManageProducts = role === "team_leader" || role === "administrator";
   const objectionsCount = product.objections ? product.objections.length : 0;
   const crossSellCount = product.cross_sell_ids ? product.cross_sell_ids.length : 0;
 
@@ -95,7 +103,7 @@ export function ProductCard({
             className="flex items-center gap-1.5 text-zinc-300 hover:text-zinc-100 font-mono px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 transition-colors cursor-pointer"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{objectionsCount} Battle-Card Rebuttals</span>
+            <span>{objectionsAvailable ? `${objectionsCount} Battle-Card Rebuttals` : "Battle-card data unavailable"}</span>
           </button>
 
           {/* Cross Sell Count */}
@@ -117,15 +125,18 @@ export function ProductCard({
             <span>View Objections</span>
           </button>
 
-          <button
-            onClick={() => onEditProduct(product)}
-            className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors border border-zinc-700"
-            title="Edit Product"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-          </button>
+          {!orderCountsAvailable && <span className="text-[11px] text-zinc-500">Order counts unavailable</span>}
 
-          {orderCount > 0 && (
+          {canManageProducts && <>
+            <button
+              onClick={() => onEditProduct(product)}
+              className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors border border-zinc-700"
+              title="Edit Product"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+            </button>
+
+          {orderCountsAvailable && orderCount > 0 && (
             <button
               onClick={() => onReassignOrders(product)}
               className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors border border-zinc-700"
@@ -135,13 +146,14 @@ export function ProductCard({
             </button>
           )}
 
-          <button
-            onClick={() => onDeleteProduct(product)}
-            className="p-2 bg-zinc-800 hover:bg-rose-950 text-zinc-300 hover:text-rose-300 rounded-xl transition-colors border border-zinc-700"
-            title="Delete product"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+            <button
+              onClick={() => onDeleteProduct(product)}
+              className="p-2 bg-zinc-800 hover:bg-rose-950 text-zinc-300 hover:text-rose-300 rounded-xl transition-colors border border-zinc-700"
+              title="Delete product"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </>}
         </div>
 
       </div>

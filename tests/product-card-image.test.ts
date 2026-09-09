@@ -20,6 +20,9 @@ describe("ProductCard image fallback", () => {
   it("does not render an img element with an empty src", () => {
     const html = renderToStaticMarkup(React.createElement(ProductCard, {
       product,
+      role: "operator",
+      objectionsAvailable: true,
+      orderCountsAvailable: true,
       onOpenObjections: vi.fn(),
       onEditProduct: vi.fn(),
       orderCount: 0,
