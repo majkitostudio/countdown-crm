@@ -12,6 +12,7 @@ import { ProductModal } from "@/components/products/ProductModal";
 import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
 import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
 import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
+import { resolveSelectedCatalogProduct } from "@/lib/productCatalogViewState";
 import type { ProductCatalogLoadResult } from "@/lib/dal/productCatalog";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { ObjectionBattleCard } from "@/lib/objections";
@@ -26,7 +27,7 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
   const [catalog, setCatalog] = useState(initialCatalog);
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedObjectionProduct, setSelectedObjectionProduct] = useState<Product | null>(null);
+  const [selectedObjectionProductId, setSelectedObjectionProductId] = useState<string | null>(null);
   const [isObjectionDrawerOpen, setIsObjectionDrawerOpen] = useState(false);
   const [selectedEditProduct, setSelectedEditProduct] = useState<Product | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -69,6 +70,10 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
       })),
     }));
   }, [catalog, objectionCards]);
+  const selectedObjectionProduct = useMemo(
+    () => resolveSelectedCatalogProduct(products, selectedObjectionProductId),
+    [products, selectedObjectionProductId],
+  );
 
   const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase();
@@ -83,6 +88,11 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
     else amounts.push({ currency: product.currency.toUpperCase(), amount: value });
     return amounts;
   }, [] as { currency: string; amount: number }[]);
+  const battleCardStat = !catalog.objections.requested && catalog.objections.reason === "no_products"
+    ? "Not applicable"
+    : objectionsAvailable
+      ? objectionCards.length
+      : "Unavailable";
 
   const reloadCatalog = async () => {
     try {
@@ -156,8 +166,8 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <Stat icon={Package} label="Catalog Items" value={products.length} />
         <Stat icon={Tag} label="In Stock Ratio" value={products.length > 0 ? `${Math.round((products.filter((product) => product.in_stock).length / products.length) * 100)}%` : "0%"} />
-        <Stat icon={ShieldAlert} label="Sales Battle-cards" value={objectionsAvailable ? objectionCards.length : "Unavailable"} />
-        <Stat icon={DollarSign} label="Total Asset Value" value={formatCurrencyAmounts(totalCatalogValue)} />
+        <Stat icon={ShieldAlert} label="Sales Battle-cards" value={battleCardStat} />
+        <Stat icon={DollarSign} label="Total Asset Value" value={products.length === 0 ? "0" : formatCurrencyAmounts(totalCatalogValue)} />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
@@ -168,7 +178,7 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
       </div>
 
       {catalogActionError && <div role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 text-xs text-rose-300">{catalogActionError}</div>}
-      {filteredProducts.length === 0 ? <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-12 text-center text-xs text-zinc-500">No products found matching your active filter.</div> : <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredProducts.map((product) => <ProductCard key={product.id} product={product} role={role} objectionsAvailable={objectionsAvailable} orderCountsAvailable={orderCountsAvailable} onOpenObjections={(selected) => { setSelectedObjectionProduct(selected); setIsObjectionDrawerOpen(true); }} onEditProduct={(selected) => { setSelectedEditProduct(selected); setIsProductModalOpen(true); }} orderCount={orderCounts[product.id] || 0} onReassignOrders={handleOpenReassignOrders} onDeleteProduct={handleDeleteProduct} />)}</div>}
+      {filteredProducts.length === 0 ? <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-12 text-center text-xs text-zinc-500">No products found matching your active filter.</div> : <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredProducts.map((product) => <ProductCard key={product.id} product={product} role={role} objectionsAvailable={objectionsAvailable} orderCountsAvailable={orderCountsAvailable} onOpenObjections={(selected) => { setSelectedObjectionProductId(selected.id); setIsObjectionDrawerOpen(true); }} onEditProduct={(selected) => { setSelectedEditProduct(selected); setIsProductModalOpen(true); }} orderCount={orderCounts[product.id] || 0} onReassignOrders={handleOpenReassignOrders} onDeleteProduct={handleDeleteProduct} />)}</div>}
 
       <ObjectionDrawer product={selectedObjectionProduct} isOpen={isObjectionDrawerOpen} canManage={canManageProducts} objectionsAvailable={objectionsAvailable} onClose={() => setIsObjectionDrawerOpen(false)} onProductUpdated={reloadCatalog} onEditObjection={handleEditObjection} />
       {canManageProducts && <>

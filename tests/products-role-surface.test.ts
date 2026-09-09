@@ -87,6 +87,20 @@ describe("ProductCatalogClient role surface", () => {
     expect(html).not.toContain("0 Battle-Card Rebuttals");
   });
 
+  it("labels battle-cards as not applicable for a verified empty catalog", () => {
+    const html = renderCatalog("operator", {
+      ...readyCatalog,
+      catalog: { status: "ready", data: [] },
+      objections: { requested: false, reason: "no_products" },
+      orderCounts: { requested: false, reason: "no_products" },
+      state: "ready",
+      isEmpty: true,
+    });
+
+    expect(html).toContain("Not applicable");
+    expect(html).not.toContain("Unavailable");
+  });
+
   it("labels unavailable order counts and omits reassignment", () => {
     const html = renderCatalog("team_leader", {
       ...readyCatalog,
