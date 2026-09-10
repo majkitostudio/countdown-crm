@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import type { Database } from "@/lib/supabase/types";
 import { createDataClient } from "./db";
 import { DataAccessError } from "./errors";
@@ -166,6 +167,7 @@ export async function recordTrainingReviewRevision(input: { sessionId: string; e
 }
 
 export async function listTrainingCallLogRecords(): Promise<TrainingCallLogRecord[]> {
+  if (isDemoAuthEnabled()) return [];
   const context = await requireWorkspaceContext();
   const supabase = await createDataClient();
   const { data: sessions, error: sessionsError } = await supabase
