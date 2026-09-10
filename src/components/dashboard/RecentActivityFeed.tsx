@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Activity, ArrowUpRight, Clock, PhoneCall, ShoppingBag, User } from "lucide-react";
 import { getRecentActivityAction } from "@/app/actions/analytics";
-import type { AnalyticsActionResult, RecentActivityEntry } from "@/lib/analytics";
+import type { AnalyticsActionResult, RecentActivityResult } from "@/lib/analytics";
 import { formatCurrencyAmount } from "@/lib/currency";
 
 function formatDuration(seconds: number): string {
@@ -43,9 +43,9 @@ function getOrderOutcomeLabel(outcome: string): string {
 }
 
 export function RecentActivityFeed() {
-  const [activity, setActivity] = useState<RecentActivityEntry[]>([]);
+  const [activity, setActivity] = useState<RecentActivityResult>({ entries: [], sources: { calls: "ready", orders: "ready" } });
   const [isLoading, setIsLoading] = useState(true);
-  const [result, setResult] = useState<AnalyticsActionResult<RecentActivityEntry[]> | null>(null);
+  const [result, setResult] = useState<AnalyticsActionResult<RecentActivityResult> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,7 +60,7 @@ export function RecentActivityFeed() {
         }
       } catch (error) {
         if (!cancelled) {
-          setActivity([]);
+          setActivity({ entries: [], sources: { calls: "unavailable", orders: "unavailable" } });
           setResult({
             ok: false,
             code: "UNAVAILABLE",
@@ -115,16 +115,21 @@ export function RecentActivityFeed() {
           </p>
           <p className="text-[11px] leading-relaxed text-rose-300">{result.message}</p>
         </div>
-      ) : activity.length === 0 ? (
+      ) : activity.entries.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-zinc-200">No recent workspace activity</p>
+          <p className="text-xs font-medium text-zinc-200">{activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Recent activity is partially unavailable" : "No recent workspace activity"}</p>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            Persisted calls and orders will appear here after they are attributed to the active workspace.
+            {activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "The available source returned no recent records; the missing source is not being shown as empty." : "Persisted calls and orders will appear here after they are attributed to the active workspace."}
           </p>
         </div>
       ) : (
         <div className="space-y-2.5">
-          {activity.map((entry) => (
+          {(activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable") && (
+            <p role="status" className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200">
+              Partial activity: {activity.sources.calls === "unavailable" ? "calls" : ""}{activity.sources.calls === "unavailable" && activity.sources.orders === "unavailable" ? " and " : ""}{activity.sources.orders === "unavailable" ? "orders" : ""} are unavailable.
+            </p>
+          )}
+          {activity.entries.map((entry) => (
             <div
               key={entry.id}
               className="p-3.5 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-zinc-700/80 transition-all"

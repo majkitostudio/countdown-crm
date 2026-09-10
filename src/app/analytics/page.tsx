@@ -34,6 +34,7 @@ const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const emptyData: AnalyticsOverview = {
+    sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable" },
     totalRevenue: 0,
     revenueByCurrency: [],
     projectedRevenue: 0,
@@ -44,6 +45,7 @@ export default function AnalyticsPage() {
     currencies: [],
     totalCalls: 0,
     conversionRate: 0,
+    conversionAvailable: false,
     objectionResolutionRate: 0,
     objectionMetricsAvailable: false,
     weeklySales: [],
@@ -166,6 +168,12 @@ export default function AnalyticsPage() {
         </div>
       )}
 
+      {result?.ok && Object.values(result.data.sources).some((source) => source === "unavailable") && (
+        <div role="status" className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-sm text-amber-200">
+          Partial analytics: {result.data.sources.calls === "unavailable" ? "call data" : ""}{result.data.sources.calls === "unavailable" && result.data.sources.orders === "unavailable" ? " and " : ""}{result.data.sources.orders === "unavailable" ? "order data" : ""}{(result.data.sources.calls === "unavailable" || result.data.sources.orders === "unavailable") && result.data.sources.operators === "unavailable" ? " and " : ""}{result.data.sources.operators === "unavailable" ? "operator attribution" : ""} is unavailable. Remaining metrics are shown without estimates.
+        </div>
+      )}
+
       {result?.ok && <>
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -179,7 +187,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{formatCurrencyAmounts(data.revenueByCurrency)}</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.sources.orders === "ready" ? formatCurrencyAmounts(data.revenueByCurrency) : "—"}</span>
             <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono mt-1">
               <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
               <span>
@@ -200,7 +208,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{formatCurrencyAmounts(data.avgOrderValueByCurrency)}</span>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.sources.orders === "ready" ? formatCurrencyAmounts(data.avgOrderValueByCurrency) : "—"}</span>
             <p className="text-[11px] text-zinc-400 mt-1">Calculated from completed orders in the workspace</p>
           </div>
         </div>
@@ -214,8 +222,8 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{data.conversionRate}%</span>
-            <p className="text-[11px] text-zinc-400 mt-1">Based on {data.totalCalls} total calls</p>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.conversionAvailable ? `${data.conversionRate}%` : "—"}</span>
+            <p className="text-[11px] text-zinc-400 mt-1">{data.conversionAvailable ? `Based on ${data.totalCalls} total calls` : "Requires both call and order data"}</p>
           </div>
         </div>
 
@@ -269,7 +277,11 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {data.currencies.length > 1 ? (
+          {data.sources.orders === "unavailable" ? (
+            <div role="status" className="flex h-64 items-center justify-center rounded-xl border border-amber-900/50 bg-amber-950/20 p-6 text-center text-xs text-amber-200">
+              Weekly revenue is unavailable because completed-order data could not be loaded.
+            </div>
+          ) : data.currencies.length > 1 ? (
             <div role="status" className="flex h-64 items-center justify-center rounded-xl border border-amber-900/50 bg-amber-950/20 p-6 text-center text-xs text-amber-200">
               Weekly revenue chart is unavailable for mixed currencies. Amounts remain separated in the revenue breakdown.
             </div>
