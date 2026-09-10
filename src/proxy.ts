@@ -9,9 +9,15 @@ export async function proxy(request: NextRequest) {
   });
 
   const demoAuthEnabled = isDemoAuthEnabled();
-  const isWorkspaceMockup = request.nextUrl.pathname === "/workspace";
+  const isWorkspaceMockup = request.nextUrl.pathname === "/workspace" || request.nextUrl.pathname.startsWith("/workspace/");
+  const hasSupabaseConfig = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  );
 
-  if (demoAuthEnabled || isWorkspaceMockup) {
+  // The operator console is intentionally a UI-only mockup. Keep it and its
+  // nested preview assets independent from Supabase in local/v0 previews.
+  if (demoAuthEnabled || isWorkspaceMockup || (process.env.NODE_ENV !== "production" && !hasSupabaseConfig)) {
     return supabaseResponse;
   }
 
