@@ -9,8 +9,9 @@ export async function proxy(request: NextRequest) {
   });
 
   const demoAuthEnabled = isDemoAuthEnabled();
+  const isWorkspaceMockup = request.nextUrl.pathname === "/workspace";
 
-  if (demoAuthEnabled) {
+  if (demoAuthEnabled || isWorkspaceMockup) {
     return supabaseResponse;
   }
 
