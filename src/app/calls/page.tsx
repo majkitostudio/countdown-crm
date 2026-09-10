@@ -5,10 +5,9 @@ import Link from "next/link";
 import {
   PhoneCall,
   Clock,
-  DollarSign,
-  TrendingUp,
   Search,
   Eye,
+  FileText,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
@@ -31,13 +30,24 @@ export default function CallLogsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOutcomeFilterState, setSelectedOutcomeFilter] = useState<string>("all");
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const reviewQueryFilter = useReviewQueryFilter();
   const selectedOutcomeFilter = reviewQueryFilter === "unreviewed" ? "unreviewed" : selectedOutcomeFilterState;
 
   useEffect(() => {
     async function loadCalls() {
-      const data = await getCalls();
-      setCalls(data);
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const data = await getCalls();
+        setCalls(data);
+      } catch (error) {
+        setCalls([]);
+        setLoadError(error instanceof Error ? error.message : "Call records could not be loaded.");
+      } finally {
+        setIsLoading(false);
+      }
     }
     loadCalls();
   }, []);
@@ -84,13 +94,10 @@ export default function CallLogsPage() {
   };
 
   const totalCallsCount = calls.length;
-  const totalSalesVolume = calls.reduce((acc, c) => acc + c.order_value, 0);
   const avgDuration = totalCallsCount > 0
     ? Math.round(calls.reduce((acc, c) => acc + c.duration_seconds, 0) / totalCallsCount)
     : 0;
-
-  const salesCompletedCount = calls.filter((c) => c.outcome === "order_placed").length;
-  const conversionRate = totalCallsCount > 0 ? Math.round((salesCompletedCount / totalCallsCount) * 100) : 0;
+  const capturedTranscriptCount = calls.filter((call) => call.transcript.kind !== "unavailable").length;
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -103,9 +110,12 @@ export default function CallLogsPage() {
       
       <PageHeader
         icon={PhoneCall}
-        title="Call Logs & Speech Transcripts"
-        badge={{ label: `${totalCallsCount} Logged Calls`, tone: "neutral" }}
-        description="Call history, AHT benchmarks, and captured transcript availability"
+        title="Call History"
+        badge={{
+          label: isLoading ? "Loading records" : loadError ? "Unavailable" : `${totalCallsCount} recorded calls`,
+          tone: loadError ? "unavailable" : "neutral",
+        }}
+        description="Recorded call outcomes and any verified captured transcripts. A record may not include audio or a transcript."
         actions={
           <div className="flex items-center gap-2">
             {canReview && (
@@ -124,12 +134,18 @@ export default function CallLogsPage() {
         }
       />
 
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 text-sm text-rose-200">
+          Call history is unavailable: {loadError} No empty call list is being shown as a result.
+        </div>
+      )}
+
       {/* KPI Cards Header */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Total Logged Calls</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{totalCallsCount}</span>
+            <span className="text-xs font-medium text-zinc-400 block">Recorded Calls</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{isLoading || loadError ? "—" : totalCallsCount}</span>
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <PhoneCall className="w-4 h-4" />
@@ -138,8 +154,8 @@ export default function CallLogsPage() {
 
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Avg Handling Time (AHT)</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{formatDuration(avgDuration)}</span>
+            <span className="text-xs font-medium text-zinc-400 block">Average Recorded Duration</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{isLoading || loadError ? "—" : formatDuration(avgDuration)}</span>
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
             <Clock className="w-4 h-4" />
@@ -148,21 +164,11 @@ export default function CallLogsPage() {
 
         <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
           <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Call Revenue Volume</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">${totalSalesVolume.toFixed(2)}</span>
+            <span className="text-xs font-medium text-zinc-400 block">Captured Transcripts</span>
+            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{isLoading || loadError ? "—" : `${capturedTranscriptCount} / ${totalCallsCount}`}</span>
           </div>
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <DollarSign className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Call Conversion Rate</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{conversionRate}%</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <TrendingUp className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
           </div>
         </div>
       </div>
@@ -242,8 +248,8 @@ export default function CallLogsPage() {
                 <th className="px-5 py-3">Operator</th>
                 <th className="px-5 py-3">Duration</th>
                 <th className="px-5 py-3">Outcome</th>
-                <th className="px-5 py-3">Sentiment</th>
-                <th className="px-5 py-3">Revenue</th>
+                <th className="px-5 py-3">Recorded Sentiment</th>
+                <th className="px-5 py-3">Transcript</th>
                 {canReview && <th className="px-5 py-3">Review</th>}
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
@@ -253,12 +259,20 @@ export default function CallLogsPage() {
                 <tr>
                   <td colSpan={canReview ? 8 : 7} className="px-5 py-12 text-center">
                     <p className="text-sm font-semibold text-zinc-200">
-                      {selectedOutcomeFilter === "unreviewed"
+                      {loadError
+                        ? "Call history could not be loaded."
+                        : isLoading
+                          ? "Loading call history…"
+                          : selectedOutcomeFilter === "unreviewed"
                         ? "All available calls are reviewed."
                         : "No calls match the selected filters."}
                     </p>
                     <p className="mt-1 text-xs text-zinc-500">
-                      {selectedOutcomeFilter === "unreviewed"
+                      {loadError
+                        ? "The connection or workspace data needs attention before this list can be shown."
+                        : isLoading
+                          ? "No call count or empty state is inferred while records are loading."
+                          : selectedOutcomeFilter === "unreviewed"
                         ? "There is no remaining Team Leader coaching action in this list."
                         : "Try a different outcome or search term."}
                     </p>
@@ -282,8 +296,14 @@ export default function CallLogsPage() {
                   <td className="px-5 py-3">
                     <span className="text-zinc-300 font-mono">{c.sentiment}</span>
                   </td>
-                  <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
-                    ${c.order_value.toFixed(2)}
+                  <td className="px-5 py-3">
+                    <span className={`rounded-md border px-2.5 py-0.5 text-[11px] font-medium ${
+                      c.transcript.kind === "unavailable"
+                        ? "border-zinc-800 bg-zinc-950 text-zinc-500"
+                        : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"
+                    }`}>
+                      {c.transcript.kind === "unavailable" ? "Not captured" : "Captured"}
+                    </span>
                   </td>
                   {canReview && (
                     <td className="px-5 py-3">
@@ -314,9 +334,7 @@ export default function CallLogsPage() {
                       className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium inline-flex items-center gap-1.5 border border-zinc-800 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>
-                        {c.transcript.kind === "unavailable" ? "View call details" : "View transcript"}
-                      </span>
+                      <span>View record</span>
                     </button>
                   </td>
                 </tr>

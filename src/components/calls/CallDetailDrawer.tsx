@@ -7,7 +7,6 @@ import {
   PhoneCall,
   Clock,
   User,
-  DollarSign,
   FileText,
   TrendingUp,
   Volume2,
@@ -79,9 +78,9 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
           )}
           
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-3 gap-3 text-xs">
+          <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Call Duration</span>
+              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Recorded Duration</span>
               <span className="font-mono font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
                 <Clock className="w-4 h-4 text-zinc-400" />
                 {formatDuration(call.duration_seconds)}
@@ -89,15 +88,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
 
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Order Generated</span>
-              <span className="font-mono font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
-                <DollarSign className="w-4 h-4 text-zinc-400" />
-                ${call.order_value.toFixed(2)}
-              </span>
-            </div>
-
-            <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">AI Sentiment</span>
+              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Recorded Sentiment</span>
               <span className="font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5 font-mono">
                 <TrendingUp className="w-4 h-4 text-zinc-400" />
                 {call.sentiment}
@@ -122,19 +113,19 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-zinc-300 flex items-center gap-2">
                 <Volume2 className="w-4 h-4 text-zinc-400" />
-                Call recording
+                Audio recording
               </span>
-              <span className="font-mono text-amber-300 text-[11px]">Unavailable</span>
+              <span className="font-mono text-amber-300 text-[11px]">Not captured</span>
             </div>
-            <p className="text-xs leading-relaxed text-zinc-500">No verified audio recording is attached to this call.</p>
+            <p className="text-xs leading-relaxed text-zinc-500">Audio recordings are not stored in this pilot. No audio is attached to this call record.</p>
           </div>
 
-          {/* Full Speech Transcript Log */}
+          {/* Captured transcript evidence, when the call record includes it. */}
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs border-b border-zinc-800 pb-2">
               <h3 className="font-semibold text-zinc-200 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-zinc-400" />
-                Speech transcript {transcriptTurnCount === null ? "" : `(${transcriptTurnCount} turns)`}
+                Captured transcript {transcriptTurnCount === null ? "" : `(${transcriptTurnCount} turns)`}
               </h3>
               <span className="text-[11px] text-amber-300 font-mono">
                 {call.transcript.kind === "unavailable" ? "Unavailable" : "Captured"}
@@ -143,7 +134,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
 
             {call.transcript.kind === "unavailable" ? (
               <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-xs leading-relaxed text-amber-200">
-                No verified speech transcript was captured for this call. The CRM did not invent a transcript.
+                This call record does not include a verified speech transcript. The CRM did not invent one.
               </div>
             ) : call.transcript.kind === "plain_text" ? (
               <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
