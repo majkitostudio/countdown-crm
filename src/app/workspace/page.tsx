@@ -109,6 +109,7 @@ function WorkspaceContent() {
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productLoadError, setProductLoadError] = useState<string | null>(null);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
   const [assignmentState, setAssignmentState] = useState<LeadQueueSnapshot["assignment_state"] | null>(null);
@@ -337,7 +338,7 @@ function WorkspaceContent() {
         }
 
         if (identity.role === "operator") {
-          const fetchedProducts = await getProducts();
+          const productsRequest = getProducts();
           let currentAssignment = await getCurrentLeadAction();
 
           if (!currentAssignment) {
@@ -345,7 +346,6 @@ function WorkspaceContent() {
             currentAssignment = await claimNextLeadAction();
           }
 
-          setProducts(fetchedProducts);
           setLeads(currentAssignment ? [currentAssignment.lead] : []);
           setActiveLead(currentAssignment?.lead || null);
           setActiveQueueItemId(currentAssignment?.queue_item_id || null);
@@ -356,17 +356,32 @@ function WorkspaceContent() {
               ? Math.max(0, Math.round((Date.parse(currentAssignment.call_ended_at || new Date().toISOString()) - Date.parse(currentAssignment.call_started_at)) / 1000))
               : 0,
           );
+          try {
+            setProducts(await productsRequest);
+            setProductLoadError(null);
+          } catch (error) {
+            setProducts([]);
+            setProductLoadError(error instanceof Error ? error.message : "Product catalog could not be loaded.");
+          }
           setIsLoading(false);
           return;
         }
 
-        const [fetchedLeads, fetchedProducts] = await Promise.all([
+        const [leadsResult, productsResult] = await Promise.allSettled([
           getLeads(),
           getProducts(),
         ]);
+        if (leadsResult.status === "rejected") throw leadsResult.reason;
+        const fetchedLeads = leadsResult.value;
+        if (productsResult.status === "fulfilled") {
+          setProducts(productsResult.value);
+          setProductLoadError(null);
+        } else {
+          setProducts([]);
+          setProductLoadError(productsResult.reason instanceof Error ? productsResult.reason.message : "Product catalog could not be loaded.");
+        }
 
         setLeads(fetchedLeads);
-        setProducts(fetchedProducts);
         setActiveQueueItemId(null);
         if (leadIdParam) {
           const found = fetchedLeads.find((l) => l.id === leadIdParam);
@@ -1101,6 +1116,11 @@ function WorkspaceContent() {
           )}
 
           <div className="min-h-[34rem] min-w-0 flex-1">
+            {productLoadError && (
+              <p role="status" className="mb-3 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200">
+                Product catalog unavailable. Customer and call work remain available; approved product guidance cannot be loaded right now.
+              </p>
+            )}
             <ProductScriptPanel
               isCallActive={isCallActive}
               product={products[0]}

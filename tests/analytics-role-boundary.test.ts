@@ -135,8 +135,9 @@ describe("analytics server role boundary", () => {
 
     const result = await getRecentActivity(8, "workspace-1");
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({ id: "call-call-1", customerName: "Customer" });
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0]).toMatchObject({ id: "call-call-1", customerName: "Customer" });
+    expect(result.sources).toEqual({ calls: "ready", orders: "ready" });
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledOnce();
     expect(mocks.listWorkspaceCallsInContext).toHaveBeenCalledWith(workspaceContext, 8);
     expect(mocks.listWorkspaceOrdersInContext).toHaveBeenCalledWith(workspaceContext, 8);
