@@ -1376,6 +1376,8 @@ export interface Database {
           duration_seconds: number;
           ai_source: string | null;
           scorecard: Json;
+          completion_key: string | null;
+          script_snapshot: Json;
           started_at: string;
           completed_at: string | null;
           created_at: string;
@@ -1392,6 +1394,8 @@ export interface Database {
           duration_seconds?: number;
           ai_source?: string | null;
           scorecard?: Json;
+          completion_key?: string | null;
+          script_snapshot?: Json;
           started_at?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -1401,6 +1405,8 @@ export interface Database {
           duration_seconds?: number;
           ai_source?: string | null;
           scorecard?: Json;
+          completion_key?: string | null;
+          script_snapshot?: Json;
           completed_at?: string | null;
         };
         Relationships: [];
