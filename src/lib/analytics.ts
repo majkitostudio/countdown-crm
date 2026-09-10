@@ -290,7 +290,7 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
     weeklySales: getWeeklySales(completedOrders),
     objectionBreakdown: [],
     teamLeaderboard: getTeamLeaderboard(calls, orders, profiles),
-    conversionAvailable: callsAvailable && ordersAvailable,
+    conversionAvailable: callsAvailable && ordersAvailable && calls.length > 0,
     teamMetricsAvailable: callsAvailable && ordersAvailable && operatorsAvailable && agentIds.length > 0,
     daily: getDailyTeamSummary(calls, orders),
   };
