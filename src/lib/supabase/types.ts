@@ -1444,6 +1444,32 @@ export interface Database {
         };
         Relationships: [];
       };
+      training_review_revisions: {
+        Row: {
+          id: string;
+          session_id: string;
+          workspace_id: string;
+          reviewer_id: string;
+          revision_number: number;
+          verdict: string;
+          coaching_note: string;
+          correction_reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          workspace_id: string;
+          reviewer_id: string;
+          revision_number: number;
+          verdict: string;
+          coaching_note: string;
+          correction_reason?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       user_gamification: {
         Row: {
           user_id: string;

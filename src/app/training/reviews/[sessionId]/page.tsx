@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle2, ClipboardList, FileText, LockKeyhole, MessageS
 import { getTrainingSessionReview } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TrainingHumanReview } from "@/components/training/TrainingHumanReview";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -148,6 +149,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             {scriptSnapshot.sections?.length ? <div className="mt-3 space-y-3">{scriptSnapshot.sections.map((section, index) => <div key={`${section.title || "section"}-${index}`}><p className="text-xs font-semibold text-zinc-200">{section.title || "Část skriptu"}</p><p className="mt-1 text-xs leading-relaxed text-zinc-400">{section.text || "—"}</p></div>)}</div> : <p className="mt-3 text-xs leading-relaxed text-zinc-400">U staršího tréninku nebyl snapshot skriptu uložen.</p>}
           </div>
         </div>
+        <TrainingHumanReview sessionId={session.id} revisions={session.revisions} />
       </div>
   );
 }
