@@ -2,22 +2,22 @@
 
 import { GoogleGenAI } from "@google/genai";
 import OpenAI from "openai";
-import { TRAINING_SCENARIOS, TrainingScenario, TrainingMessage } from "@/lib/training";
+import { findComplianceFindings, getTrainingScenario, type TrainingDifficulty, type TrainingMessage, type TrainingScenario } from "@/lib/training";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
+
+export type TrainingTurnSource = "typed" | "browser_speech";
 
 export interface RoleplayAIResponse {
   text: string;
   sentiment: "positive" | "neutral" | "negative";
-  customerMood: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
-  patienceDelta: number; // e.g. -25 to +20
   aiSource: "gemini-flash" | "openai-responses" | "rule-engine";
   aiNotice?: string;
 }
 
-export type TrainingTurnSource = "typed" | "browser_speech";
-
 export type SubmitTrainingTurnInput = {
-  scenarioId: string;
+  scriptId: string;
+  difficulty: TrainingDifficulty;
+  personaId: string;
   history: TrainingMessage[];
   userMessage: string;
   source?: TrainingTurnSource;
@@ -25,29 +25,10 @@ export type SubmitTrainingTurnInput = {
 };
 
 export type SubmitTrainingTurnResult =
-  | {
-      ok: true;
-      operatorTurn: {
-        sequenceNumber: number;
-        text: string;
-        source: TrainingTurnSource;
-        confidence: number | null;
-      };
-      customerTurn: RoleplayAIResponse & { sequenceNumber: number };
-    }
-  | {
-      ok: false;
-      code: "VALIDATION" | "UNAVAILABLE" | "PROVIDER";
-      message: string;
-    };
+  | { ok: true; operatorTurn: { sequenceNumber: number; text: string; source: TrainingTurnSource; confidence: number | null }; customerTurn: RoleplayAIResponse & { sequenceNumber: number } }
+  | { ok: false; code: "VALIDATION" | "UNAVAILABLE" | "PROVIDER"; message: string };
 
-type ParsedTrainingResponse = {
-  text?: unknown;
-  sentiment?: unknown;
-  customerMood?: unknown;
-  patienceDelta?: unknown;
-};
-
+type ParsedTrainingResponse = { text?: unknown; sentiment?: unknown };
 const TRAINING_PROVIDER_TIMEOUT_MS = 12_000;
 
 async function withTrainingProviderTimeout<T>(promise: Promise<T>): Promise<T> {
@@ -55,7 +36,6 @@ async function withTrainingProviderTimeout<T>(promise: Promise<T>): Promise<T> {
   const timeout = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error("TRAINING_PROVIDER_TIMEOUT")), TRAINING_PROVIDER_TIMEOUT_MS);
   });
-
   try {
     return await Promise.race([promise, timeout]);
   } finally {
@@ -64,288 +44,112 @@ async function withTrainingProviderTimeout<T>(promise: Promise<T>): Promise<T> {
 }
 
 function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "gemini-flash" | "openai-responses"): RoleplayAIResponse {
-  const sentiments = ["positive", "neutral", "negative"] as const;
-  const moods = ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] as const;
-  const sentiment = sentiments.includes(parsed.sentiment as (typeof sentiments)[number]) ? parsed.sentiment as (typeof sentiments)[number] : "neutral";
-  const customerMood = moods.includes(parsed.customerMood as (typeof moods)[number]) ? parsed.customerMood as (typeof moods)[number] : "Skeptický";
-  const text = typeof parsed.text === "string" && parsed.text.trim() ? parsed.text.trim() : "Rozumím. Co přesně mi k tomu můžete ještě nabídnout?";
-  const patienceDelta = typeof parsed.patienceDelta === "number" ? Math.max(-30, Math.min(20, parsed.patienceDelta)) : 0;
-
-  return { text, sentiment, customerMood, patienceDelta, aiSource };
+  const sentiment = ["positive", "neutral", "negative"].includes(parsed.sentiment as string)
+    ? parsed.sentiment as RoleplayAIResponse["sentiment"]
+    : "neutral";
+  const text = typeof parsed.text === "string" && parsed.text.trim()
+    ? parsed.text.trim().slice(0, 1_200)
+    : "Rozumím. Můžete mi prosím říct ještě trochu víc?";
+  return { text, sentiment, aiSource };
 }
 
-function getProviderErrorNotice(provider: "gemini" | "openai", error: unknown): string {
-  if (error instanceof Error && error.message === "TRAINING_PROVIDER_TIMEOUT") {
-    return `${provider === "gemini" ? "Gemini" : "OpenAI"} response timed out. This turn used the local training engine.`;
-  }
-  const errorStatus = typeof error === "object" && error !== null && "status" in error ? error.status : undefined;
-  if (errorStatus === 429) return `${provider === "gemini" ? "Gemini" : "OpenAI"} quota is unavailable. This turn used the local training engine.`;
-  return `${provider === "gemini" ? "Gemini" : "OpenAI"} response was unavailable. This turn used the local training engine.`;
+function providerNotice(provider: "gemini" | "openai", error: unknown): string {
+  if (error instanceof Error && error.message === "TRAINING_PROVIDER_TIMEOUT") return "Odpověď AI zákazníka se opozdila; tento tah dokončil lokální tréninkový režim.";
+  const status = typeof error === "object" && error !== null && "status" in error ? error.status : undefined;
+  if (status === 429) return "AI zákazník je nyní vytížený; tento tah dokončil lokální tréninkový režim.";
+  return `${provider === "gemini" ? "Gemini" : "OpenAI"} není pro tento tah dostupný; pokračujeme bezpečným lokálním režimem.`;
 }
 
-export async function generateTrainingResponseAction(
-  scenario: TrainingScenario,
-  history: TrainingMessage[],
-  userMessage: string
-): Promise<RoleplayAIResponse> {
-  await requireAuthenticatedUser();
+function buildPrompt(scenario: TrainingScenario, history: TrainingMessage[], userMessage: string): string {
+  const findings = findComplianceFindings([...history, { id: "latest", sender: "user", text: userMessage, timestamp: "", source: "typed" }]);
+  const repeatedSeriousError = findings.some((finding) => finding.occurrences >= 2);
+  const historyFormatted = history.map((message) => `${message.sender === "user" ? "Operátor" : scenario.customer.name}: ${message.text}`).join("\n");
+  return `
+Jsi ${scenario.customer.name}, fiktivní český zákazník v interním P2 tréninku Countdown CRM.
+Profil zákazníka: ${scenario.customer.profile}
+Téma: ${scenario.productLabel}
+Obtížnost: ${scenario.difficulty === "easy" ? "snadná" : "standardní"}.
+Bezpečná fiktivní adresa, kterou sdělíš pouze po přirozeném souhlasu s nabídkou a dotazu na doručení: ${scenario.customer.deliveryAddress}.
 
-  if (
-    !scenario ||
-    typeof scenario !== "object" ||
-    typeof scenario.id !== "string" ||
-    typeof scenario.customerName !== "string" ||
-    typeof scenario.customerPersona !== "string" ||
-    typeof scenario.personalityType !== "string" ||
-    typeof scenario.targetProduct !== "string" ||
-    !Array.isArray(history)
-  ) {
-    throw new Error("Invalid training request");
-  }
+Pravidla chování:
+- Mluv přirozeně česky, vždy nejvýše dvě věty. Jsi zákazník, ne hodnotitel ani lékař.
+- Na jednoduché otázky o potížích odpovídej běžně a stručně. Nevyžaduj medicínské tvrzení.
+- Při snadné obtížnosti po slušném zjištění potřeb a vysvětlení nabídky postupně souhlas s bezplatným vzorkem.
+- Při standardní obtížnosti nejdřív jednou přirozeně zapochybuj nebo se zeptej na praktický detail, pak při férovém vysvětlení souhlas.
+- Jediná závažná chyba operátora (slib účinku, vydávání se za lékaře, garance) se NIKDY neprojeví ve tvé reakci. Je odděleně vyhodnocena systémem.
+- Teprve opakovaná závažná chyba může snížit důvěru. Aktuální opakovaná závažná chyba: ${repeatedSeriousError ? "ano" : "ne"}.
+- Nikdy nevytvářej objednávku, platbu, callback ani skutečný kontakt. Adresa je výhradně fiktivní.
 
-  const normalizedMessage = userMessage?.trim() ?? "";
-  if (normalizedMessage.length === 0 || normalizedMessage.length > 4_000) {
-    throw new Error("Training message is invalid or too long");
-  }
-
-  if (
-    history.length > 50 ||
-    history.some(
-      (message) =>
-        !message ||
-        typeof message !== "object" ||
-        !["user", "ai_customer"].includes(message.sender) ||
-        typeof message.text !== "string" ||
-        message.text.length > 4_000
-    )
-  ) {
-    throw new Error("Training history is invalid or too long");
-  }
-
-  const provider = process.env.TRAINING_AI_PROVIDER === "openai" ? "openai" : "gemini";
-  const historyFormatted = history
-    .map((m) => `${m.sender === "user" ? "Operátor" : scenario.customerName}: ${m.text}`)
-    .join("\n");
-  const prompt = `
-Jsi český zákazník v simulovaném prodejním hovoru s operátorem call centra.
-Tvoje jméno a profil: ${scenario.customerName} (${scenario.customerPersona})
-Tvoje osobnost: ${scenario.personalityType}
-Cílový produkt hovoru: ${scenario.targetProduct}
-
-Historie konverzace:
+Historie:
 ${historyFormatted}
 
-Poslední odpověď operátora:
-        "${normalizedMessage}"
+Poslední věta operátora:
+"${userMessage}"
 
-Tvůj úkol: Odpověz operátorovi přirozeným mluveným českým jazykem v délce 1 až 2 věty přesně podle tvé osobnosti (${scenario.personalityType}).
-Vyhodnoť také svoji aktuální náladu a změnu trpělivosti (patienceDelta od -30 do +20).
-Pokud operátor kvalitně vyřešil námitku nebo projevil empatii, zvyš trpělivost (+10 až +20) a nastav náladu na "Klidný" nebo "Nadšený".
-Pokud operátor kličkuje, ignoruje otázku nebo je agresivní, sniž trpělivost (-15 až -30) a nastav náladu na "Podrážděný" nebo "Naštvaný".
-
-Vrať ODPOVĚĎ v tomto JSON formátu:
-{
-  "text": "Tvoje česká odpověď zákazníka (max 2 věty)",
-  "sentiment": "positive" | "neutral" | "negative",
-  "customerMood": "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý",
-  "patienceDelta": číslo v rozmezí -30 až +20
+Vrať pouze validní JSON:
+{"text":"odpověď zákazníka", "sentiment":"positive"|"neutral"|"negative"}`;
 }
 
-Odpověz POUZE platným JSON objektem bez označení markdown kódu.
-`;
-  const providerOrder = provider === "gemini" ? ["gemini", "openai"] as const : ["openai", "gemini"] as const;
+async function generateTrainingResponseAction(scenario: TrainingScenario, history: TrainingMessage[], userMessage: string): Promise<RoleplayAIResponse> {
+  const prompt = buildPrompt(scenario, history, userMessage);
+  const primary = process.env.TRAINING_AI_PROVIDER === "openai" ? "openai" : "gemini";
+  const providers = primary === "openai" ? ["openai", "gemini"] as const : ["gemini", "openai"] as const;
   let aiNotice: string | undefined;
 
-  for (const currentProvider of providerOrder) {
+  for (const provider of providers) {
     try {
-      if (currentProvider === "gemini" && process.env.GEMINI_API_KEY) {
+      if (provider === "gemini" && process.env.GEMINI_API_KEY) {
         const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const response = await withTrainingProviderTimeout(client.interactions.create({
-          model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash",
-          input: prompt,
-          store: false,
-        }));
-        const cleanJson = (response.output_text || "").replace(/```json|```/g, "").trim();
-        return normalizeTrainingResponse(JSON.parse(cleanJson) as ParsedTrainingResponse, "gemini-flash");
+        const response = await withTrainingProviderTimeout(client.interactions.create({ model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash", input: prompt, store: false }));
+        return { ...normalizeTrainingResponse(JSON.parse((response.output_text || "").replace(/```json|```/g, "").trim()), "gemini-flash"), aiNotice };
       }
-
-      if (currentProvider === "openai" && process.env.OPENAI_API_KEY) {
+      if (provider === "openai" && process.env.OPENAI_API_KEY) {
         const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         const response = await withTrainingProviderTimeout(client.responses.create({
           model: process.env.OPENAI_TRAINING_MODEL || "gpt-5.4-mini",
           input: prompt,
-          text: {
-            format: {
-              type: "json_schema",
-              name: "training_customer_response",
-              strict: true,
-              schema: {
-                type: "object",
-                additionalProperties: false,
-                properties: {
-                  text: { type: "string" },
-                  sentiment: { type: "string", enum: ["positive", "neutral", "negative"] },
-                  customerMood: { type: "string", enum: ["Klidný", "Skeptický", "Podrážděný", "Nadšený", "Naštvaný", "Nedůvěřivý"] },
-                  patienceDelta: { type: "number", minimum: -30, maximum: 20 },
-                },
-                required: ["text", "sentiment", "customerMood", "patienceDelta"],
-              },
-            },
-          },
+          text: { format: { type: "json_schema", name: "p2_training_customer", strict: true, schema: { type: "object", additionalProperties: false, properties: { text: { type: "string" }, sentiment: { type: "string", enum: ["positive", "neutral", "negative"] } }, required: ["text", "sentiment"] } } },
         }));
-        return normalizeTrainingResponse(JSON.parse(response.output_text) as ParsedTrainingResponse, "openai-responses");
+        return { ...normalizeTrainingResponse(JSON.parse(response.output_text), "openai-responses"), aiNotice };
       }
     } catch (error) {
-      aiNotice = getProviderErrorNotice(currentProvider, error);
-      console.warn(`${currentProvider} training response failed; trying the next provider or local engine:`, error);
+      aiNotice = providerNotice(provider, error);
+      console.warn(`${provider} training response failed; continuing with the next safe option.`, error);
     }
   }
 
-  // Local fallback engine
-  const lowerUser = normalizedMessage.toLowerCase();
-  let text = "Rozumím. Co dalšího mi k tomu můžete říct?";
-  let sentiment: "positive" | "neutral" | "negative" = "neutral";
-  let customerMood: RoleplayAIResponse["customerMood"] = "Skeptický";
-  let patienceDelta = 0;
-
-  if (scenario.id === "supplements-skeptic") {
-    if (lowerUser.includes("hydrolyzovaný") || lowerUser.includes("vstřebatelnost") || lowerUser.includes("studie")) {
-      text = "Aha, vy říkáte, že hydrolyzovaný se vstřebává lépe? To zní rozumně. A za jak dlouho ucítím úlevu?";
-      sentiment = "positive";
-      customerMood = "Klidný";
-      patienceDelta = +15;
-    } else if (lowerUser.includes("trojbalení") || lowerUser.includes("sleva") || lowerUser.includes("akce")) {
-      text = "Když vezmu to trojbalení, mám dopravu zdarma? A co když mi to nepomůže?";
-      sentiment = "neutral";
-      customerMood = "Skeptický";
-      patienceDelta = +5;
-    } else if (lowerUser.includes("záruka") || lowerUser.includes("vrácení") || lowerUser.includes("14 dnů")) {
-      text = "Dobrá tedy, přesvědčil jste mě. Dáme to trojbalení s garancí. Kam mám poslat adresu?";
-      sentiment = "positive";
-      customerMood = "Nadšený";
-      patienceDelta = +20;
-    } else {
-      text = "No nevím... všichni tvrdíte to samé. Co je na tom vašem produktu konkrétně jiné než u těch z lékárny?";
-      sentiment = "negative";
-      customerMood = "Podrážděný";
-      patienceDelta = -15;
-    }
-  } else if (scenario.id === "cosmetics-price") {
-    if (lowerUser.includes("denně") || lowerUser.includes("korun") || lowerUser.includes("21")) {
-      text = "Když to přepočítáte na 20 korun denně, tak to zní stravitelněji... A opravdu k tomu dáváte tu masku zdarma?";
-      sentiment = "positive";
-      customerMood = "Nadšený";
-      patienceDelta = +15;
-    } else if (lowerUser.includes("dárek") || lowerUser.includes("maska") || lowerUser.includes("zdarma")) {
-      text = "To zní lákavě. Mám ráda dárky k nákupu. Platí se předem nebo na dobírku?";
-      sentiment = "positive";
-      customerMood = "Klidný";
-      patienceDelta = +10;
-    } else {
-      text = "Vnímám to, ale pořád je to dost peněz najednou. Máte k tomu nějaký vzorek nebo zvýhodnění?";
-      sentiment = "neutral";
-      customerMood = "Skeptický";
-      patienceDelta = -5;
-    }
-  } else if (scenario.id === "electronics-angry") {
-    if (lowerUser.includes("servis") || lowerUser.includes("záruka") || lowerUser.includes("lidar")) {
-      text = "Český servis s náhradním strojem při reklamaci? To u konkurence nedostanu. Jaká je doručovací lhůta?";
-      sentiment = "positive";
-      customerMood = "Klidný";
-      patienceDelta = +20;
-    } else if (lowerUser.includes("zítra") || lowerUser.includes("dnes") || lowerUser.includes("ihned")) {
-      text = "Pokud mi to doručíte zítra do dopoledne, tak to beru. Pošlete mi potvrzení do mailu.";
-      sentiment = "positive";
-      customerMood = "Nadšený";
-      patienceDelta = +20;
-    } else {
-      text = "Nekličkujte a pojďte k věci. Proč LiDAR a ne kamera?";
-      sentiment = "negative";
-      customerMood = "Naštvaný";
-      patienceDelta = -20;
-    }
-  } else if (scenario.id === "cosmetics-distrustful") {
-    if (lowerUser.includes("certifikát") || lowerUser.includes("iso") || lowerUser.includes("gmp") || lowerUser.includes("výroba") || lowerUser.includes("české")) {
-      text = "Česká šarže s ISO certifikátem? To už zní trochu důvěryhodněji. Můžete mi ten certifikát poslat do mailu?";
-      sentiment = "positive";
-      customerMood = "Klidný";
-      patienceDelta = +20;
-    } else if (lowerUser.includes("dobírka") || lowerUser.includes("platba při převzetí") || lowerUser.includes("kurýr")) {
-      text = "Když to můžu zaplatit až kurýrovi při převzetí na dobírku, tak je to v pořádku. Vezmu 2 balení pro mě i pro sestru!";
-      sentiment = "positive";
-      customerMood = "Nadšený";
-      patienceDelta = +25;
-    } else {
-      text = "Pořád se mi to nezdá. Kde mám jistotu, že to není z falšovaných surovin?";
-      sentiment = "negative";
-      customerMood = "Nedůvěřivý";
-      patienceDelta = -15;
-    }
-  }
-
-  return {
-    text,
-    sentiment,
-    customerMood,
-    patienceDelta,
-    aiSource: "rule-engine",
-    aiNotice,
-  };
+  const lower = userMessage.toLocaleLowerCase("cs-CZ");
+  const operatorTurns = history.filter((message) => message.sender === "user").length + 1;
+  const asksForAddress = /(adresa|doruč|kam.*poslat|bydliště)/.test(lower);
+  const presentsOffer = /(vzorek|nabíz|poslat|zdarma)/.test(lower);
+  const asksAboutNeeds = /(jak dlouho|omezuje|v čem|co by se změnilo)/.test(lower);
+  const response = asksForAddress
+    ? `Ano, můžete si poznamenat: ${scenario.customer.deliveryAddress}.`
+    : presentsOffer && (scenario.difficulty === "easy" || operatorTurns >= 3)
+      ? "Dobře, bezplatný vzorek bych ráda vyzkoušela. Co ode mě potřebujete pro doručení?"
+      : asksAboutNeeds
+        ? "Řeším to už nějakou dobu a při běžném pohybu mě to omezuje. Proto mě zajímá, jestli je vzorek opravdu jen na vyzkoušení."
+        : scenario.difficulty === "standard" && operatorTurns <= 2
+          ? "Rozumím, ale nechci žádné velké sliby. Jak to bude prakticky probíhat?"
+          : "Dobře, rozumím. Můžete pokračovat?";
+  return { text: response, sentiment: response.includes("Dobře") || response.includes("Ano") ? "positive" : "neutral", aiSource: "rule-engine", aiNotice };
 }
 
-/**
- * Submit one operator turn against a server-canonical training scenario.
- * This intentionally remains session-only: it does not create CRM or
- * training-session persistence records. Persistence remains an explicit
- * completion step until the live-turn contract is separately approved.
- */
-export async function submitTrainingTurnAction(
-  input: SubmitTrainingTurnInput
-): Promise<SubmitTrainingTurnResult> {
+export async function submitTrainingTurnAction(input: SubmitTrainingTurnInput): Promise<SubmitTrainingTurnResult> {
   await requireAuthenticatedUser();
-
-  if (
-    !input ||
-    typeof input.scenarioId !== "string" ||
-    !Array.isArray(input.history) ||
-    typeof input.userMessage !== "string" ||
-    (input.source !== undefined && !["typed", "browser_speech"].includes(input.source)) ||
-    (input.confidence !== undefined &&
-      input.confidence !== null &&
-      (typeof input.confidence !== "number" || input.confidence < 0 || input.confidence > 1))
-  ) {
-    return { ok: false, code: "VALIDATION", message: "Training turn data is invalid." };
+  if (!input || typeof input.scriptId !== "string" || typeof input.personaId !== "string" || !Array.isArray(input.history) || typeof input.userMessage !== "string" || !["easy", "standard"].includes(input.difficulty) || (input.source !== undefined && !["typed", "browser_speech"].includes(input.source)) || (input.confidence !== undefined && input.confidence !== null && (typeof input.confidence !== "number" || input.confidence < 0 || input.confidence > 1))) {
+    return { ok: false, code: "VALIDATION", message: "Údaje tréninkového tahu nejsou platné." };
   }
-
-  const scenario = TRAINING_SCENARIOS.find((candidate) => candidate.id === input.scenarioId);
-  if (!scenario) {
-    return { ok: false, code: "VALIDATION", message: "Training scenario is invalid." };
-  }
-
-  const source = input.source || "typed";
-  const confidence = input.confidence ?? null;
+  const scenario = getTrainingScenario(input.scriptId, input.difficulty, input.personaId);
   const userMessage = input.userMessage.trim();
-  if (!userMessage || userMessage.length > 4_000) {
-    return { ok: false, code: "VALIDATION", message: "Training message is invalid or too long." };
+  if (!scenario || !userMessage || userMessage.length > 4_000 || input.history.length > 50 || input.history.some((message) => !message || !["user", "ai_customer"].includes(message.sender) || typeof message.text !== "string" || message.text.length > 4_000)) {
+    return { ok: false, code: "VALIDATION", message: "Údaje tréninkového hovoru nejsou platné." };
   }
-
   try {
-    const customerResponse = await generateTrainingResponseAction(scenario, input.history, userMessage);
-    return {
-      ok: true,
-      operatorTurn: {
-        sequenceNumber: input.history.length,
-        text: userMessage,
-        source,
-        confidence,
-      },
-      customerTurn: {
-        ...customerResponse,
-        sequenceNumber: input.history.length + 1,
-      },
-    };
+    const customerTurn = await generateTrainingResponseAction(scenario, input.history, userMessage);
+    return { ok: true, operatorTurn: { sequenceNumber: input.history.length, text: userMessage, source: input.source || "typed", confidence: input.confidence ?? null }, customerTurn: { ...customerTurn, sequenceNumber: input.history.length + 1 } };
   } catch (error) {
     console.error("Training turn submission failed:", error);
-    return { ok: false, code: "PROVIDER", message: "Training customer response is unavailable." };
+    return { ok: false, code: "PROVIDER", message: "AI zákazník pro tento tah není dostupný." };
   }
 }

@@ -72,6 +72,7 @@ export default function CallLogsPage() {
       c.id.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedOutcomeFilter === "all") return matchesSearch;
+    if (selectedOutcomeFilter === "training") return matchesSearch && c.record_kind === "training";
     if (selectedOutcomeFilter === "unreviewed") {
       return matchesSearch && c.review_status === "not_reviewed";
     }
@@ -93,9 +94,11 @@ export default function CallLogsPage() {
     return null;
   };
 
-  const totalCallsCount = calls.length;
+  const productionCalls = calls.filter((call) => call.record_kind !== "training");
+  const totalCallsCount = productionCalls.length;
+  const trainingCallCount = calls.length - totalCallsCount;
   const avgDuration = totalCallsCount > 0
-    ? Math.round(calls.reduce((acc, c) => acc + c.duration_seconds, 0) / totalCallsCount)
+    ? Math.round(productionCalls.reduce((acc, c) => acc + c.duration_seconds, 0) / totalCallsCount)
     : 0;
   const capturedTranscriptCount = calls.filter((call) => call.transcript.kind !== "unavailable").length;
 
@@ -202,6 +205,16 @@ export default function CallLogsPage() {
               All Logs ({calls.length})
             </button>
             <button
+              onClick={() => selectOutcomeFilter("training")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                selectedOutcomeFilter === "training"
+                  ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
+                  : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
+              }`}
+            >
+              Training ({trainingCallCount})
+            </button>
+            <button
               onClick={() => selectOutcomeFilter("order_placed")}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "order_placed"
@@ -283,14 +296,15 @@ export default function CallLogsPage() {
                   <td className="px-5 py-3">
                     <div>
                       <p className="font-semibold text-zinc-100">{c.lead_name}</p>
+                      {c.record_kind === "training" && <span className="mt-1 inline-flex rounded border border-sky-900/70 bg-sky-950/30 px-1.5 py-0.5 text-[10px] font-medium text-sky-200">Training call</span>}
                       <p className="text-[11px] text-zinc-500 font-mono">#{c.id}</p>
                     </div>
                   </td>
                   <td className="px-5 py-3 text-zinc-300">{c.agent_name}</td>
                   <td className="px-5 py-3 font-mono text-zinc-300">{formatDuration(c.duration_seconds)}</td>
                   <td className="px-5 py-3">
-                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(c.outcome)}`}>
-                      {formatCallOutcome(c.outcome)}
+                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${c.record_kind === "training" ? "border-sky-900/70 bg-sky-950/30 text-sky-200" : getCallOutcomeClassName(c.outcome)}`}>
+                      {c.record_kind === "training" ? "Training complete" : formatCallOutcome(c.outcome)}
                     </span>
                   </td>
                   <td className="px-5 py-3">
