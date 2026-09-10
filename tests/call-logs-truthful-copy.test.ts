@@ -8,13 +8,15 @@ describe("Call Logs truthful transcript copy", () => {
   it("does not promise a full or real-time transcript for every call", () => {
     expect(source).not.toContain("full speech transcript protocols");
     expect(source).not.toContain("Real-time call history logs");
-    expect(source).toContain("captured transcript availability");
+    expect(source).toContain("any verified captured transcripts");
+    expect(source).toContain("A record may not include audio or a transcript.");
   });
 
-  it("labels the row action from the transcript evidence state", () => {
+  it("shows transcript evidence without making the row action promise a transcript", () => {
     expect(source).toContain('c.transcript.kind === "unavailable"');
-    expect(source).toContain("View call details");
-    expect(source).toContain("View transcript");
-    expect(source).not.toContain("<span>Transcript</span>");
+    expect(source).toContain("Not captured");
+    expect(source).toContain("Captured");
+    expect(source).toContain("View record");
+    expect(source).not.toContain("View transcript");
   });
 });
