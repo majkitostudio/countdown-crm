@@ -16,7 +16,7 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const isOperatorConsole = pathname === "/workspace";
 
-  if (pathname === "/login" || isOperatorConsole) {
+  if (pathname === "/login") {
     return <>{children}</>;
   }
 
