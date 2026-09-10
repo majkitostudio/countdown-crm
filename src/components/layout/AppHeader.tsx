@@ -9,15 +9,9 @@ import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { getOperatorInitials, getOperatorRoleLabel } from "@/lib/operatorIdentity";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/client";
+import { getHeaderSearchPlaceholder } from "./navigation";
 
-function getHeaderSearchPlaceholder(role: Parameters<typeof isTeamLeaderOrAdministrator>[0], isLoading: boolean): string {
-  if (isLoading) return "Open pages and commands... (Ctrl + K)";
-  return role === "operator"
-    ? "Search products or pages... (Ctrl + K)"
-    : "Search leads, products, or pages... (Ctrl + K)";
-}
-
-export { getHeaderSearchPlaceholder };
+export { getHeaderSearchPlaceholder } from "./navigation";
 
 export function AppHeader() {
   const router = useRouter();

@@ -2,7 +2,6 @@ import { LockKeyhole, Radio } from "lucide-react";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
-import TeamMonitorClient from "./TeamMonitorClient";
 
 export default async function TeamMonitorPage() {
   try {
@@ -32,5 +31,21 @@ export default async function TeamMonitorPage() {
     );
   }
 
-  return <TeamMonitorClient />;
+  return (
+    <div className="mx-auto max-w-screen-2xl space-y-6">
+      <PageHeader
+        icon={Radio}
+        title="Live Team Operator Monitor"
+        description="Live supervisor data is not connected in this pilot."
+        badge={{ label: "Unavailable in pilot", tone: "unavailable" }}
+      />
+      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+        <Radio className="mx-auto mb-4 h-8 w-8 text-zinc-500" aria-hidden="true" />
+        <h2 className="text-base font-semibold text-zinc-100">Live monitor is not available yet</h2>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
+          The pilot does not yet store operator presence or receive a live telephony stream. Counts, call durations, and listening controls are hidden until those sources are connected.
+        </p>
+      </div>
+    </div>
+  );
 }
