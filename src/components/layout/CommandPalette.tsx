@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -25,22 +25,71 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
   const router = useRouter();
   const { identity } = useOperatorIdentity();
+
+  const closePalette = useCallback(() => {
+    openerRef.current?.focus();
+    setIsOpen(false);
+    setQuery("");
+  }, []);
+
+  const openPalette = useCallback(() => {
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setIsOpen(true);
+  }, []);
 
   // Listen for Cmd+K / Ctrl+K keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        if (isOpen) {
+          closePalette();
+        } else {
+          openPalette();
+        }
       } else if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
+        e.preventDefault();
+        closePalette();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [closePalette, isOpen, openPalette]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    searchInputRef.current?.focus();
+
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )).filter((element) => element.getAttribute("aria-hidden") !== "true");
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", trapFocus);
+    return () => window.removeEventListener("keydown", trapFocus);
   }, [isOpen]);
 
   // Load search data on open
@@ -57,8 +106,7 @@ export function CommandPalette() {
 
   const navigateTo = (path: string) => {
     router.push(path);
-    setIsOpen(false);
-    setQuery("");
+    closePalette();
   };
 
   const q = query.toLowerCase().trim();
@@ -83,10 +131,10 @@ export function CommandPalette() {
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 pb-8 pt-24 backdrop-blur-md animate-in fade-in duration-150"
       role="presentation"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) setIsOpen(false);
+        if (event.target === event.currentTarget) closePalette();
       }}
     >
-      <div className="w-full max-w-2xl">
+      <div ref={dialogRef} className="w-full max-w-2xl">
       <Surface
         variant="overlay"
         className="w-full"
@@ -101,7 +149,7 @@ export function CommandPalette() {
           <Search className="w-5 h-5 text-zinc-400" />
           <input
             type="text"
-            autoFocus
+            ref={searchInputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={getCommandPalettePlaceholder(identity?.role)}

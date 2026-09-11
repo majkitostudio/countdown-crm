@@ -62,7 +62,7 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
               {activeLeadPhone && <span className="text-xs font-mono text-zinc-400 whitespace-nowrap">({activeLeadPhone})</span>}
             </div>
             {isDialing && <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5"><Radio className="w-3.5 h-3.5 animate-spin" />Dialing customer...</div>}
-            {isCallActive && !isDialing && <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" /></span><span>{telephonyLabel} ·</span><span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>{telephonyAdapter === "simulation" && <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>}</div>}
+            {isCallActive && !isDialing && <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5"><span className="inline-flex h-2 w-2 rounded-full bg-zinc-500" aria-hidden="true" /><span>{telephonyLabel} ·</span><span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>{telephonyAdapter === "simulation" && <span className="text-zinc-300" aria-label="Simulated audio activity">▮▮▮▮</span>}</div>}
             {!isCallActive && !isDialing && <span className="text-[11px] text-zinc-400 block">Ready to place a call</span>}
           </div>
         </div>

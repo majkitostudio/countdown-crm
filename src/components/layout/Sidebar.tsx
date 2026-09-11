@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -9,6 +9,7 @@ import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { CountdownMark } from "@/components/brand/CountdownMark";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { Button } from "@/components/ui/Button";
 import { getAllowedSidebarNavigationItems } from "./sidebarNavigation";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
@@ -19,7 +20,15 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [status, setStatus] = useState<OperatorStatus>("ready");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+  const statusToggleContainerRef = useRef<HTMLDivElement>(null);
+  const statusMenuRef = useRef<HTMLDivElement>(null);
+  const statusMenuId = useId();
   const isCompact = isCollapsed;
+
+  const closeStatusMenu = () => {
+    statusToggleContainerRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+    setStatusMenuOpen(false);
+  };
 
   useEffect(() => {
     const collapseForNarrowViewport = () => {
@@ -30,6 +39,22 @@ export function Sidebar() {
     window.addEventListener("resize", collapseForNarrowViewport);
     return () => window.removeEventListener("resize", collapseForNarrowViewport);
   }, []);
+
+  useEffect(() => {
+    if (!statusMenuOpen) return;
+
+    const firstMenuItem = statusMenuRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
+    firstMenuItem?.focus();
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closeStatusMenu();
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [statusMenuOpen]);
 
   const getStatusLabel = (s: OperatorStatus) => {
     switch (s) {
@@ -125,45 +150,52 @@ export function Sidebar() {
       {/* Operator Status Badge & Quick Control */}
       <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/50">
         <div className="relative">
-          <button
-            onClick={() => setStatusMenuOpen(!statusMenuOpen)}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 transition-colors text-left",
-              isCompact && "justify-center px-0"
-            )}
-          >
-            {!isCompact && (
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
-                  Status
-                </span>
-                <StatusBadge tone="neutral">
-                  {getStatusLabel(status)}
-                </StatusBadge>
-              </div>
-            )}
-            {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Status</StatusBadge>}
-          </button>
+          <div ref={statusToggleContainerRef}>
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => setStatusMenuOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-controls={statusMenuId}
+              aria-expanded={statusMenuOpen}
+              aria-label={`Operator status: ${getStatusLabel(status)}. Open status menu`}
+            >
+              <span className={cn("flex w-full items-center gap-3", isCompact && "justify-center")}>
+              {!isCompact && (
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
+                    Status
+                  </span>
+                  <StatusBadge tone="neutral">
+                    {getStatusLabel(status)}
+                  </StatusBadge>
+                </div>
+              )}
+              {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Status</StatusBadge>}
+              </span>
+            </Button>
+          </div>
 
           {/* Status Dropdown Menu */}
           {statusMenuOpen && (
             <div className="absolute bottom-full left-0 z-50 mb-2 w-48">
             <Surface variant="overlay" className="w-full">
-              <div className="space-y-1 p-1.5 text-xs">
+              <div ref={statusMenuRef} id={statusMenuId} role="menu" aria-label="Operator status" className="space-y-1 p-1.5 text-xs">
               {(["ready", "in_call", "break"] as OperatorStatus[]).map((s) => (
-                <button
+                <Button
                   key={s}
+                  variant={status === s ? "secondary" : "quiet"}
+                  className="w-full"
+                  role="menuitem"
                   onClick={() => {
                     setStatus(s);
-                    setStatusMenuOpen(false);
+                    closeStatusMenu();
                   }}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-zinc-800 transition-colors text-left",
-                    status === s ? "text-zinc-100 bg-zinc-800/50" : "text-zinc-400"
-                  )}
                 >
-                  <StatusBadge tone="neutral">{getStatusLabel(s)}</StatusBadge>
-                </button>
+                  <span className="flex w-full items-center gap-2 text-left">
+                    <StatusBadge tone="neutral">{getStatusLabel(s)}</StatusBadge>
+                  </span>
+                </Button>
               ))}
               </div>
             </Surface>

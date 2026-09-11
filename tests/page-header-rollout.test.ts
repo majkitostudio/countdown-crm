@@ -1,7 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import "./operator-console-reference-render.test.tsx";
 
 const projectRoot = path.resolve(__dirname, "..");
 
