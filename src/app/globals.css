@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
 @layer utilities {
+  .status-neutral {
+    @apply border-zinc-700 bg-zinc-900 text-zinc-300;
+  }
+
+  .status-success {
+    @apply border-emerald-800/50 bg-emerald-950/20 text-emerald-200;
+  }
+
+  .status-warning {
+    @apply border-amber-800/50 bg-amber-950/20 text-amber-200;
+  }
+
+  .status-danger {
+    @apply border-rose-800/50 bg-rose-950/20 text-rose-200;
+  }
+
   .glass-card {
     background: rgba(24, 24, 27, 0.6);
     backdrop-filter: blur(12px);

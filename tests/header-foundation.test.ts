@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import "./design-system-primitives.test.tsx";
 import { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "@/components/layout/headerNavigation";
 import { getPageHeaderBadgeClassName } from "@/components/layout/PageHeader";
 

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getMetricValueClassName } from "@/components/ui/MetricCard";
 
 function source(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -31,6 +32,7 @@ describe("CRM color hierarchy", () => {
     expect(drawer).toContain('border border-zinc-700 bg-zinc-900');
     expect(drawer).toContain('text-zinc-200 hover:bg-zinc-800');
     expect(review).toContain('border-zinc-800 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-300');
+    expect(getMetricValueClassName()).toBe("text-zinc-100");
   });
 
   it("keeps Call Outcome selection visually meaningful", () => {
