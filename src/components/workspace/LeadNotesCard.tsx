@@ -123,8 +123,8 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
       <div className="flex items-center gap-2">
         <FileText className="h-4 w-4 text-zinc-400" aria-hidden="true" />
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">Lead Notes</h2>
-          <p className="text-[11px] text-zinc-500">Shared consultation notes for this lead</p>
+          <h2 className="text-[15px] font-semibold tracking-tight text-white">Notes for this customer</h2>
+          <p className="mt-0.5 text-[11px] text-zinc-400">Shared with whoever gets this lead next</p>
         </div>
         <kbd className="ml-auto rounded border border-zinc-800 bg-zinc-950/70 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500" title="Focus note field">N</kbd>
       </div>
@@ -140,15 +140,14 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
             setDraftStatus(event.target.value.trim() ? "unsaved" : "empty");
           }}
           onKeyDown={handleNoteKeyDown}
-          placeholder="Add a note from the consultation..."
+          placeholder="What should the next operator know? (N)"
           maxLength={2000}
           aria-keyshortcuts="Control+Enter Meta+Enter"
           className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-700 focus:outline-none"
         />
         <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 text-[10px] text-zinc-600">
-            <span className="block">Visible to operators assigned to this lead</span>
-            <span role="status" aria-live="polite" className="text-zinc-500">{draftStatusLabel} · Ctrl/Cmd + Enter to save</span>
+          <div className="min-w-0 text-[10px] text-zinc-500">
+            <span role="status" aria-live="polite">{draftStatusLabel} · Ctrl/Cmd + Enter to save</span>
           </div>
           <button
             type="submit"

@@ -89,38 +89,38 @@ export function OperatorLeadHeader({
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Current Lead</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Assigned customer</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h2 id="operator-lead-title" className="text-xl font-semibold tracking-tight text-zinc-100">{activeLead.full_name}</h2>
-            <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+            <h2 id="operator-lead-title" className="text-2xl font-semibold tracking-tight text-white">{activeLead.full_name}</h2>
+            <span className="rounded-md border border-zinc-700 bg-zinc-950 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
               {activeLead.status || "New lead"}
             </span>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-zinc-400">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] font-medium text-zinc-200">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              <Phone className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+              <Phone className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
               {activeLead.phone}
             </span>
             {activeLead.email && (
               <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
-                <Mail className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
+                <Mail className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
                 <span className="truncate">{activeLead.email}</span>
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-normal text-zinc-400">
               <Tag className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-              Source unavailable
+              Source: not recorded
             </span>
           </div>
-          <p className="mt-3 font-mono text-[11px] text-zinc-500">Lead ID: {activeLead.id}</p>
+          <p className="mt-3 font-mono text-[10px] text-zinc-600">Lead ID: {activeLead.id}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           {isCallActive || isDialing ? (
             <>
               <div className="mr-1 text-right">
-                <p className="text-[10px] uppercase tracking-wider text-zinc-500">{isDialing ? "Dialing" : telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call"}</p>
-                <p className="font-mono text-xs text-zinc-200">{formatTimer(durationSeconds)}</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">{isDialing ? "Dialing…" : telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call"}</p>
+                <p className="font-mono text-sm font-semibold tabular-nums text-zinc-100">{formatTimer(durationSeconds)}</p>
               </div>
               <button
                 type="button"
@@ -158,8 +158,8 @@ export function OperatorLeadHeader({
             </div>
           ) : isAwaitingOutcome ? (
             <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-right">
-              <p className="text-[10px] uppercase tracking-wider text-amber-200">Outcome required</p>
-              <p className="mt-0.5 text-[10px] text-amber-300/80">Lead remains assigned</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Outcome required</p>
+              <p className="mt-0.5 text-[11px] text-amber-200/90">Lead stays with you until saved</p>
             </div>
           ) : (
             <>

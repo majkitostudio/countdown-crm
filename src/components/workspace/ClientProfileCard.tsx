@@ -66,11 +66,11 @@ function ProfileField({
 }) {
   return (
     <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-        <Icon className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" />
+      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+        <Icon className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
         <span>{label}</span>
       </div>
-      {children || <p className="mt-1.5 truncate text-sm text-zinc-200">{value}</p>}
+      {children || <p className="mt-1.5 truncate text-sm font-medium text-zinc-100">{value}</p>}
     </div>
   );
 }
@@ -97,9 +97,9 @@ export function ClientProfileCard({
             <UserRound className="h-5 w-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">Client Profile</p>
-            <h2 id="client-profile-card-title" className="mt-1 truncate text-base font-semibold text-zinc-100">
-              Everything currently known about this lead
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Client Profile</p>
+            <h2 id="client-profile-card-title" className="mt-1 truncate text-[15px] font-semibold tracking-tight text-white">
+              Contact details for this call
             </h2>
           </div>
         </div>
@@ -186,20 +186,20 @@ export function ClientProfileCard({
             <ProfileField icon={MapPin} label="Source" value="Unavailable" />
           </div>
 
-          <div className="mt-2 rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-              <FileText className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" />
+          <div className="mt-2 rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+              <FileText className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
               <span>Profile note</span>
             </div>
-            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-zinc-200">
               {displayValue(lead.notes, "No profile note saved.")}
             </p>
           </div>
         </>
       )}
 
-      <p className="mt-3 text-[10px] text-zinc-600">
-        Activity timeline, shared notes and order history remain in the supporting context rail.
+      <p className="mt-3 text-[10px] text-zinc-500">
+        Need more? Timeline, notes and orders are in Customer history on the right.
       </p>
     </section>
   );

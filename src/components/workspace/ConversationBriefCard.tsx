@@ -91,9 +91,9 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Before the call</p>
-          <h2 id="conversation-brief-title" className="mt-1 text-sm font-semibold text-zinc-100">Conversation Brief</h2>
-          <p className="mt-1 text-[11px] text-zinc-500">Recorded facts for {brief.lead.full_name}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Read before you dial</p>
+          <h2 id="conversation-brief-title" className="mt-1 text-[15px] font-semibold tracking-tight text-white">Conversation Brief</h2>
+          <p className="mt-0.5 text-xs text-zinc-400">Recorded facts · {brief.lead.full_name}</p>
         </div>
         <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-mono text-zinc-500">
           Server context
@@ -102,9 +102,9 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 p-3">
-          <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Customer focus</p>
-          <p className="mt-1.5 text-xs leading-relaxed text-zinc-200">{brief.lead.problem || "Not recorded"}</p>
-          {brief.queue_reason && <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">Routing context: {brief.queue_reason}</p>}
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">What matters to them</p>
+          <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-zinc-100">{brief.lead.problem || "Not recorded"}</p>
+          {brief.queue_reason && <p className="mt-2 text-[10px] leading-relaxed text-zinc-400">Why you got this lead: {brief.queue_reason}</p>}
           {brief.sources.queue_reason.state === "unavailable" && <p className="mt-2 text-[10px] text-amber-300">{brief.sources.queue_reason.message}</p>}
         </div>
 
@@ -112,68 +112,68 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           <div className="flex items-start gap-2">
             <BookOpenCheck className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Safe next step</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-zinc-100">{brief.next_safe_step.label}</p>
+              <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Safe next step</p>
+              <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-white">{brief.next_safe_step.label}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-          <PhoneCall className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Last contact</p>
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+          <PhoneCall className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Last contact</p>
           {callUnavailable ? (
             <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
           ) : brief.last_contact && brief.last_outcome ? (
             <>
-              <p className="mt-1 text-xs font-medium text-zinc-200">{outcomeLabel(brief.last_outcome.outcome)}</p>
-              <p className="mt-0.5 text-[10px] text-zinc-500">{formatDate(brief.last_contact.occurred_at)} · {formatDuration(brief.last_contact.duration_seconds)}</p>
+              <p className="mt-1 text-xs font-semibold text-zinc-100">{outcomeLabel(brief.last_outcome.outcome)}</p>
+              <p className="mt-0.5 text-[10px] tabular-nums text-zinc-400">{formatDate(brief.last_contact.occurred_at)} · {formatDuration(brief.last_contact.duration_seconds)}</p>
             </>
           ) : (
-            <p className="mt-1 text-[11px] text-zinc-500">No previous call recorded</p>
+            <p className="mt-1 text-[11px] text-zinc-400">No previous call — first touch</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-          <CalendarClock className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Callback promise</p>
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+          <CalendarClock className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Callback promise</p>
           {callbackUnavailable ? (
             <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
           ) : brief.callback ? (
-            <p className="mt-1 text-xs font-medium text-amber-200">{formatDate(brief.callback.scheduled_at)}</p>
+            <p className="mt-1 text-xs font-semibold tabular-nums text-amber-200">{formatDate(brief.callback.scheduled_at)}</p>
           ) : (
-            <p className="mt-1 text-[11px] text-zinc-500">No callback recorded</p>
+            <p className="mt-1 text-[11px] text-zinc-400">No callback promised</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-          <MessageSquareText className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Latest note</p>
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+          <MessageSquareText className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Latest note</p>
           {noteUnavailable ? (
             <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
           ) : brief.last_note ? (
             <>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-300">{brief.last_note.body}</p>
-              <p className="mt-1 text-[9px] text-zinc-600">{brief.last_note.author_name}</p>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-zinc-200">{brief.last_note.body}</p>
+              <p className="mt-1 text-[9px] text-zinc-500">{brief.last_note.author_name}</p>
             </>
           ) : (
-            <p className="mt-1 text-[11px] text-zinc-500">No note recorded</p>
+            <p className="mt-1 text-[11px] text-zinc-400">No note yet</p>
           )}
         </div>
 
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
-          <ShoppingBag className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Last order</p>
+        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+          <ShoppingBag className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+          <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Last order</p>
           {orderUnavailable ? (
             <p className="mt-1 text-[11px] text-amber-300">Unavailable</p>
           ) : brief.last_order ? (
             <>
-              <p className="mt-1 text-xs font-medium text-zinc-200">{brief.last_order.total_amount.toLocaleString("cs-CZ")} {brief.last_order.currency}</p>
-              <p className="mt-0.5 text-[10px] capitalize text-zinc-500">{brief.last_order.status}</p>
+              <p className="mt-1 text-xs font-semibold tabular-nums text-zinc-100">{brief.last_order.total_amount.toLocaleString("cs-CZ")} {brief.last_order.currency}</p>
+              <p className="mt-0.5 text-[10px] capitalize text-zinc-400">{brief.last_order.status}</p>
             </>
           ) : (
-            <p className="mt-1 text-[11px] text-zinc-500">No order recorded</p>
+            <p className="mt-1 text-[11px] text-zinc-400">No order yet</p>
           )}
         </div>
       </div>

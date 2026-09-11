@@ -116,8 +116,8 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <History className="w-3.5 h-3.5 text-zinc-400" />
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-            Lead Timeline ({filteredEntries.length})
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">
+            Timeline ({filteredEntries.length})
           </h3>
         </div>
 

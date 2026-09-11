@@ -93,9 +93,9 @@ export function OperatorNextActionPanel({
               <ActionIcon className="h-4 w-4" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Next action</p>
-              <h2 id="operator-next-action-title" className="mt-1 text-sm font-semibold text-zinc-100">{action.title}</h2>
-              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-400">{action.description}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Next action</p>
+              <h2 id="operator-next-action-title" className="mt-1 text-[15px] font-semibold tracking-tight text-white">{action.title}</h2>
+              <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-300">{action.description}</p>
             </div>
           </div>
           {showPrimaryAction && (
@@ -126,8 +126,8 @@ export function OperatorNextActionPanel({
           <div className="flex items-start gap-2.5">
             <CalendarClock className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
-              <h2 id="callback-recovery-inbox-title" className="text-xs font-semibold text-zinc-200">Callback recovery inbox</h2>
-              <p className="mt-1 text-[10px] leading-relaxed text-zinc-500">Due and upcoming callbacks assigned to you.</p>
+              <h2 id="callback-recovery-inbox-title" className="text-[13px] font-semibold text-zinc-100">Your callbacks</h2>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-400">Due first — server assigns, you just refresh.</p>
             </div>
           </div>
           <button
@@ -143,13 +143,13 @@ export function OperatorNextActionPanel({
         </div>
 
         {isCallbacksLoading ? (
-          <p className="mt-4 text-[11px] text-zinc-500">Loading callback inbox…</p>
+          <p className="mt-4 text-[11px] text-zinc-400">Loading your callbacks…</p>
         ) : callbackError ? (
           <p className="mt-4 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
-            Callback inbox unavailable. The operator queue remains available.
+            Callbacks unavailable right now. Your queue still works.
           </p>
         ) : callbacks.length === 0 ? (
-          <p className="mt-4 text-[11px] leading-relaxed text-zinc-500">No due or upcoming callbacks are assigned to you.</p>
+          <p className="mt-4 text-[11px] leading-relaxed text-zinc-400">Nothing due. When a callback matures, it appears here.</p>
         ) : (
           <ul className="mt-4 space-y-2">
             {callbacks.slice(0, 3).map((callback) => {
@@ -157,19 +157,19 @@ export function OperatorNextActionPanel({
               return (
                 <li key={callback.id} className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-3 py-2">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="min-w-0 truncate text-[11px] font-medium text-zinc-200">{callback.leadName}</p>
-                    <span className={`shrink-0 text-[10px] font-medium ${status.className}`}>{status.label}</span>
+                    <p className="min-w-0 truncate text-xs font-medium text-zinc-100">{callback.leadName}</p>
+                    <span className={`shrink-0 text-[10px] font-semibold ${status.className}`}>{status.label}</span>
                   </div>
-                  <p className="mt-1 text-[10px] text-zinc-500">{formatCallbackTime(callback.scheduledAt)}</p>
+                  <p className="mt-1 text-[10px] tabular-nums text-zinc-400">{formatCallbackTime(callback.scheduledAt)}</p>
                 </li>
               );
             })}
           </ul>
         )}
-        <p className="mt-3 text-[10px] leading-relaxed text-zinc-600">
+        <p className="mt-3 text-[10px] leading-relaxed text-zinc-500">
           {action.kind === "claim_callback"
             ? "No callable contact is currently assigned. Refresh the queue to claim the due callback when available."
-            : "Callback routing remains server-controlled; the inbox never exposes the full lead directory."}
+            : "Server-controlled routing — this inbox never shows the full lead directory."}
         </p>
       </section>
     </div>

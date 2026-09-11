@@ -62,12 +62,12 @@ function Signal({
 }) {
   return (
     <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-950/50 px-2.5 py-2.5">
-      <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-        <Icon className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" />
+      <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+        <Icon className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
         <span className="truncate">{label}</span>
       </div>
-      <p className={`mt-1.5 truncate text-xs font-medium ${tone === "attention" ? "text-amber-200" : "text-zinc-200"}`}>{value}</p>
-      <p className="mt-0.5 truncate text-[10px] text-zinc-600">{detail}</p>
+      <p className={`mt-1.5 truncate text-xs font-semibold ${tone === "attention" ? "text-amber-200" : "text-zinc-100"}`}>{value}</p>
+      <p className="mt-0.5 truncate text-[10px] tabular-nums text-zinc-500">{detail}</p>
     </div>
   );
 }
@@ -156,8 +156,8 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
     <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3" data-testid="recent-context-row" aria-labelledby="recent-context-title">
       <div className="flex items-center justify-between gap-3 px-1">
         <div>
-          <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Recent context</h3>
-          <p className="mt-1 text-[11px] text-zinc-600">Four signals before the next action</p>
+          <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Last signals</h3>
+          <p className="mt-1 text-[11px] text-zinc-500">Glance before you dial — details below</p>
         </div>
         {isLoading && <span className="text-[10px] font-mono text-zinc-600">Loading…</span>}
       </div>

@@ -79,7 +79,7 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
                 Continuous script
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400">{activeSnapshot?.productTitle || product?.title || "Select a product"} · approved text</p>
+            <p className="text-xs text-zinc-300">{activeSnapshot?.productTitle || product?.title || "Select a product"} · read top to bottom</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -101,9 +101,9 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
         <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[10px] leading-relaxed text-amber-200/80">No script was captured for this call.</p>
       )}
 
-      {scriptLoadError && <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[10px] leading-relaxed text-amber-200/80">{scriptLoadError}</p>}
-      {scriptStatus === "not_found" && <p className="rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-[10px] leading-relaxed text-zinc-500">No saved workspace script exists for this product. Showing the built-in pilot fallback.</p>}
-      {isLoadingScript && <p className="text-[10px] text-zinc-600">Checking for the latest approved script…</p>}
+      {scriptLoadError && <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] leading-relaxed text-amber-200">{scriptLoadError}</p>}
+      {scriptStatus === "not_found" && <p className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-[11px] leading-relaxed text-zinc-400">No saved script for this product — showing the built-in fallback.</p>}
+      {isLoadingScript && <p className="text-[11px] text-zinc-400">Checking for the latest approved script…</p>}
 
       {scriptStatus !== "error" && (
         <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-zinc-800/80 bg-zinc-950/40 [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
@@ -114,9 +114,9 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
         </div>
       )}
 
-      <div className="mt-auto flex items-center gap-1.5 border-t border-zinc-800/80 pt-3 text-[10px] text-zinc-500">
-        <ShieldCheck className="h-3.5 w-3.5" />
-        Use only the approved product information maintained in the script.
+      <div className="mt-auto flex items-center gap-1.5 border-t border-zinc-800/80 pt-3 text-[11px] text-zinc-400">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+        Stick to this approved wording — never diagnose or promise treatment.
       </div>
     </section>
   );

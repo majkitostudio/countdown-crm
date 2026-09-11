@@ -996,7 +996,7 @@ function WorkspaceContent() {
     <PageHeader
       icon={PhoneCall}
       title="Operator Console"
-      description="Server-routed customer calls and approved workspace guidance. Operators never browse or choose from the lead directory."
+      description="One assigned customer at a time — brief, approved script and outcome in one place. The queue assigns, you never browse."
       badge={pageHeaderBadge}
       className="p-4 sm:p-5"
     />
@@ -1124,10 +1124,10 @@ function WorkspaceContent() {
         <aside className="min-w-0 space-y-4 border-zinc-800/70 xl:border-l xl:pl-4" aria-label="Supporting customer context" data-testid="supporting-context-rail">
           <div className="flex items-start justify-between gap-3 px-1">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
-              <p className="mt-1 text-[11px] text-zinc-600">History, notes and discovery prompts</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Customer history</p>
+              <p className="mt-1 text-[11px] text-zinc-500">Timeline, notes and questions — glance only, nothing here blocks your call</p>
             </div>
-            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[9px] font-mono text-zinc-600">P2 / P3</span>
+            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[9px] font-mono text-zinc-500">History</span>
           </div>
           {activeLead && <RecentContextRow leadId={activeLead.id} refreshToken={activityRefreshToken} />}
           <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3 shadow-sm">
