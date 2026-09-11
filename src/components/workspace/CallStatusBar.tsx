@@ -4,6 +4,9 @@ import React from "react";
 import Link from "next/link";
 import { ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneOff, Play, Radio, Settings } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
+import { Button, getButtonClassName } from "@/components/ui/Button";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 import type { FailDetails } from "@/lib/postCall";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapter";
 
@@ -34,16 +37,15 @@ interface CallStatusBarProps {
 export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, showIncomingSimulator = true, isStarting = false, isAwaitingOutcome = false, telephonyAdapter = "simulation" }: CallStatusBarProps) {
   const formatTimer = (totalSeconds: number) => `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
   const statusLabel = status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break";
-  const statusColor = status === "ready" ? "bg-emerald-500" : status === "in_call" ? "bg-rose-500" : "bg-amber-500";
   const telephonyLabel = telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call";
 
   return (
-    <section className="p-5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-sm">
+    <Surface variant="page" className="w-full">
+    <section className="flex flex-col justify-between gap-5 p-5 lg:flex-row lg:items-center">
       <div className="flex items-center gap-5 min-w-0">
         <div className="relative shrink-0">
-          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs font-medium text-zinc-200">
-            <span className={`w-2.5 h-2.5 rounded-full ${statusColor}`} />
-            <span>{statusLabel}</span>
+          <div className="flex items-center gap-2">
+            <StatusBadge tone="neutral">{statusLabel}</StatusBadge>
             <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
             <select aria-label="Operator status" value={status} onChange={(event) => onStatusChange(event.target.value as OperatorStatus)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
               <option value="ready">Ready for Calls</option>
@@ -67,18 +69,19 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
       </div>
 
       <div className="flex flex-wrap items-center gap-2 justify-end">
-        <button type="button" onClick={onToggleCall} disabled={isStarting} aria-busy={isStarting} aria-label={isCallActive ? `End call with ${activeLeadName || "current lead"}` : isDialing ? "Cancel dialing" : "Call client"} title={isCallActive ? "End call" : isDialing ? "Cancel dialing" : "Call client"} className={`rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-sm ${isCallActive ? "p-2.5 bg-rose-900/80 border border-rose-800 text-rose-100 hover:bg-rose-900" : "px-5 py-2.5 bg-zinc-100 text-zinc-950 hover:bg-zinc-200"}`}>
+        <Button variant={isCallActive ? "danger" : "primary"} onClick={onToggleCall} disabled={isStarting} aria-busy={isStarting} aria-label={isCallActive ? `End call with ${activeLeadName || "current lead"}` : isDialing ? "Cancel dialing" : "Call client"} title={isCallActive ? "End call" : isDialing ? "Cancel dialing" : "Call client"}>
           {isCallActive ? <PhoneOff className="w-4 h-4" /> : <PhoneCall className="w-4 h-4 fill-current" />}
           <span className={isCallActive ? "sr-only" : ""}>{isStarting ? "Starting Call..." : isDialing ? "Cancel Dial" : isCallActive ? "End Call" : "Call Client"}</span>
-        </button>
+        </Button>
         {isCallActive && <>
-          <button type="button" onClick={onToggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} title={isMuted ? "Unmute microphone" : "Mute microphone"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</button>
-          <button type="button" onClick={onToggleHold} aria-label={isOnHold ? "Resume call" : "Put call on hold"} title={isOnHold ? "Resume call" : "Put call on hold"} className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200">{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</button>
-          <Link href="/settings" aria-label="Open settings" title="Open settings" className="p-2.5 rounded-xl border bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"><Settings className="w-4 h-4" /></Link>
+          <Button variant="secondary" onClick={onToggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} title={isMuted ? "Unmute microphone" : "Mute microphone"}>{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</Button>
+          <Button variant="secondary" onClick={onToggleHold} aria-label={isOnHold ? "Resume call" : "Put call on hold"} title={isOnHold ? "Resume call" : "Put call on hold"}>{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</Button>
+          <Link href="/settings" aria-label="Open settings" title="Open settings" className={getButtonClassName("secondary")}><Settings className="w-4 h-4" /></Link>
         </>}
-        {isAwaitingOutcome && <div className="text-xs text-amber-200">Post-call outcome required.</div>}
-        {!isCallActive && !isDialing && showIncomingSimulator && <button onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call" className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"><PhoneIncoming className="w-4 h-4" /></button>}
+        {isAwaitingOutcome && <StatusAlert tone="warning" className="w-full">Post-call outcome required.</StatusAlert>}
+        {!isCallActive && !isDialing && showIncomingSimulator && <Button variant="secondary" onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call"><PhoneIncoming className="w-4 h-4" /></Button>}
       </div>
     </section>
+    </Surface>
   );
 }

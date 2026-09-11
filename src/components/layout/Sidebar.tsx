@@ -7,6 +7,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { CountdownMark } from "@/components/brand/CountdownMark";
+import { StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 import { getAllowedSidebarNavigationItems } from "./sidebarNavigation";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
@@ -28,17 +30,6 @@ export function Sidebar() {
     window.addEventListener("resize", collapseForNarrowViewport);
     return () => window.removeEventListener("resize", collapseForNarrowViewport);
   }, []);
-
-  const getStatusColor = (s: OperatorStatus) => {
-    switch (s) {
-      case "ready":
-        return "bg-emerald-500";
-      case "in_call":
-        return "bg-rose-500";
-      case "break":
-        return "bg-amber-500";
-    }
-  };
 
   const getStatusLabel = (s: OperatorStatus) => {
     switch (s) {
@@ -141,27 +132,24 @@ export function Sidebar() {
               isCompact && "justify-center px-0"
             )}
           >
-            <span
-              className={cn(
-                "w-2.5 h-2.5 rounded-full shrink-0 transition-all",
-                getStatusColor(status)
-              )}
-            />
             {!isCompact && (
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
                   Status
                 </span>
-                <span className="text-xs font-medium text-zinc-200 truncate">
+                <StatusBadge tone="neutral">
                   {getStatusLabel(status)}
-                </span>
+                </StatusBadge>
               </div>
             )}
+            {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Status</StatusBadge>}
           </button>
 
           {/* Status Dropdown Menu */}
           {statusMenuOpen && (
-            <div className="absolute bottom-full left-0 mb-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl p-1.5 space-y-1 z-50 text-xs">
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-48">
+            <Surface variant="overlay" className="w-full">
+              <div className="space-y-1 p-1.5 text-xs">
               {(["ready", "in_call", "break"] as OperatorStatus[]).map((s) => (
                 <button
                   key={s}
@@ -174,15 +162,11 @@ export function Sidebar() {
                     status === s ? "text-zinc-100 bg-zinc-800/50" : "text-zinc-400"
                   )}
                 >
-                  <span
-                    className={cn(
-                      "w-2 h-2 rounded-full",
-                      getStatusColor(s)
-                    )}
-                  />
-                  <span>{getStatusLabel(s)}</span>
+                  <StatusBadge tone="neutral">{getStatusLabel(s)}</StatusBadge>
                 </button>
               ))}
+              </div>
+            </Surface>
             </div>
           )}
         </div>

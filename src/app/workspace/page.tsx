@@ -43,6 +43,9 @@ import {
 } from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 import { getOperatorKeyboardAction } from "@/components/workspace/operatorKeyboardShortcuts";
 import { ClientProfileCard } from "@/components/workspace/ClientProfileCard";
 import { RecentContextRow } from "@/components/workspace/RecentContextRow";
@@ -996,9 +999,8 @@ function WorkspaceContent() {
     <PageHeader
       icon={PhoneCall}
       title="Operator Console"
-      description="One assigned customer at a time — brief, approved script and outcome in one place. The queue assigns, you never browse."
+      description="Handle the assigned customer with the brief, approved script, and outcome in one place."
       badge={pageHeaderBadge}
-      className="p-4 sm:p-5"
     />
   );
 
@@ -1018,10 +1020,12 @@ function WorkspaceContent() {
     return (
       <div className="mx-auto max-w-none space-y-4">
         {pageHeader}
-        <div className="mx-auto max-w-xl rounded-xl border border-rose-900/60 bg-rose-950/30 p-6 text-sm text-rose-200">
-          <h2 className="font-semibold">Workspace data could not be loaded</h2>
-          <p className="mt-2 text-xs text-rose-300">{loadError}</p>
-        </div>
+        <StatusAlert tone="danger" className="w-full">
+          <div className="mx-auto max-w-xl text-sm text-rose-200">
+            <h2 className="font-semibold">Workspace data could not be loaded</h2>
+            <p className="mt-2 text-xs text-rose-300">{loadError}</p>
+          </div>
+        </StatusAlert>
       </div>
     );
   }
@@ -1042,10 +1046,12 @@ function WorkspaceContent() {
       
       {/* Toast Notification Banner */}
       {notificationToast && (
-        <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs font-semibold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2 duration-300" role="status" aria-live="polite">
+        <StatusAlert tone="neutral" className="w-full" role="status" aria-live="polite">
+          <div className="flex items-center justify-between text-xs font-semibold text-zinc-100">
           <span>{notificationToast}</span>
-          <button onClick={() => setNotificationToast(null)} aria-label="Dismiss notification" className="text-zinc-400 hover:text-zinc-200 text-xs">✕</button>
-        </div>
+          <Button variant="quiet" onClick={() => setNotificationToast(null)} aria-label="Dismiss notification">✕</Button>
+          </div>
+        </StatusAlert>
       )}
 
       {/* Post-Call Summary */}
@@ -1127,16 +1133,18 @@ function WorkspaceContent() {
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Customer history</p>
               <p className="mt-1 text-[11px] text-zinc-500">Timeline, notes and questions — glance only, nothing here blocks your call</p>
             </div>
-            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[9px] font-mono text-zinc-500">History</span>
+            <StatusBadge tone="neutral">History</StatusBadge>
           </div>
           {activeLead && <RecentContextRow leadId={activeLead.id} refreshToken={activityRefreshToken} />}
-          <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3 shadow-sm">
+          <Surface variant="inset" className="w-full">
+            <section className="p-3">
             {activeLead ? (
               <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />
             ) : (
               <p className="text-sm text-zinc-400">No active customer selected.</p>
             )}
-          </section>
+            </section>
+          </Surface>
           {activeLead && (
             <LeadNotesCard
               key={activeLead.id}

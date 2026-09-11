@@ -9,6 +9,8 @@ import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { getOperatorInitials, getOperatorRoleLabel } from "@/lib/operatorIdentity";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/client";
+import { Button, getButtonClassName } from "@/components/ui/Button";
+import { Surface } from "@/components/ui/Surface";
 
 function getHeaderSearchPlaceholder(role: Parameters<typeof isTeamLeaderOrAdministrator>[0], isLoading: boolean): string {
   if (isLoading) return "Open pages and commands... (Ctrl + K)";
@@ -93,31 +95,27 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-20 flex min-h-16 shrink-0 items-center justify-between gap-4 border-b border-zinc-800/80 bg-zinc-950/90 px-4 backdrop-blur-md sm:px-6 lg:px-8">
-      <button
-        type="button"
-        onClick={openCommandPalette}
-        className="group relative min-w-0 flex-1 max-w-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-        aria-label="Open command palette"
-      >
-        <span className="flex min-w-0 items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-400 transition-colors group-hover:border-zinc-700 group-hover:text-zinc-200">
+      <div className="min-w-0 flex-1 max-w-2xl">
+        <Button variant="secondary" onClick={openCommandPalette} className="w-full" aria-label="Open command palette">
+        <span className="flex min-w-0 flex-1 items-center gap-3 text-zinc-400">
           <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="min-w-0 flex-1 truncate">{getHeaderSearchPlaceholder(identity?.role, isIdentityLoading)}</span>
           <kbd className="hidden shrink-0 rounded border border-zinc-700 bg-zinc-800 px-1.5 py-0.5 text-[10px] font-mono text-zinc-400 sm:inline">Ctrl + K</kbd>
         </span>
-      </button>
+        </Button>
+      </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         {canManageBlueprints && (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() => setIsBlueprintModalOpen(true)}
-            className="inline-flex max-w-48 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-all hover:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 xl:max-w-none"
             title="Change CRM industry blueprint"
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
             <span className="hidden truncate whitespace-nowrap xl:inline">{activeBlueprintName}</span>
             <span className="sr-only xl:hidden">Change CRM industry blueprint</span>
-          </button>
+          </Button>
         )}
 
         <div className="relative" ref={userMenuRef}>
@@ -147,11 +145,9 @@ export function AppHeader() {
           </button>
 
           {isUserMenuOpen && (
-            <div
-              role="menu"
-              aria-label="User menu"
-              className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl"
-            >
+            <div className="absolute right-0 top-full z-50 mt-2 w-64">
+            <Surface variant="overlay" className="w-full" role="menu" aria-label="User menu">
+              <div className="p-2">
               <div className="rounded-lg bg-zinc-900/70 px-3 py-2.5" role="presentation">
                 <p className="truncate text-xs font-semibold text-zinc-100">{rawOperatorName}</p>
                 <p className="mt-0.5 truncate text-[11px] text-zinc-400">{identity?.email || (isIdentityLoading ? "Loading email" : "Email unavailable")}</p>
@@ -167,11 +163,13 @@ export function AppHeader() {
                 role="menuitem"
                 onClick={() => void handleSignOut()}
                 disabled={isSignOutPending}
-                className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:cursor-wait disabled:opacity-60"
+                className={`${getButtonClassName("quiet")} w-full`}
               >
                 <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
                 {isSignOutPending ? "Signing out..." : "Sign out"}
               </button>
+              </div>
+            </Surface>
             </div>
           )}
         </div>

@@ -6,6 +6,8 @@ import {
   ShoppingBag,
   TriangleAlert,
 } from "lucide-react";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 import type { ConversationBriefDTO } from "@/lib/dal/conversationBrief";
 
 interface ConversationBriefCardProps {
@@ -56,16 +58,18 @@ function unavailableMessages(brief: ConversationBriefDTO): string[] {
 export function ConversationBriefCard({ brief, isLoading, error }: ConversationBriefCardProps) {
   if (isLoading) {
     return (
-      <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4" aria-busy="true">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Conversation Brief</p>
-        <p className="mt-2 text-xs text-zinc-500">Loading recorded customer context…</p>
-      </section>
+      <Surface variant="page" aria-busy="true">
+        <div className="p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Conversation Brief</p>
+          <p className="mt-2 text-xs text-zinc-500">Loading recorded customer context…</p>
+        </div>
+      </Surface>
     );
   }
 
   if (error || !brief) {
     return (
-      <section className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4" role="alert">
+      <StatusAlert tone="warning">
         <div className="flex items-start gap-2">
           <TriangleAlert className="mt-0.5 h-4 w-4 text-amber-300" aria-hidden="true" />
           <div>
@@ -73,7 +77,7 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
             <p className="mt-1 text-xs text-amber-100/80">{error || "Recorded customer context could not be loaded."}</p>
           </div>
         </div>
-      </section>
+      </StatusAlert>
     );
   }
 
@@ -84,31 +88,35 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
   const orderUnavailable = brief.sources.order.state === "unavailable";
 
   return (
-    <section
-      className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 shadow-sm"
+    <Surface
+      variant="page"
       aria-labelledby="conversation-brief-title"
       data-testid="conversation-brief"
     >
+      <div className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Read before you dial</p>
           <h2 id="conversation-brief-title" className="mt-1 text-[15px] font-semibold tracking-tight text-white">Conversation Brief</h2>
           <p className="mt-0.5 text-xs text-zinc-400">Recorded facts · {brief.lead.full_name}</p>
         </div>
-        <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-mono text-zinc-500">
+        <StatusBadge tone="neutral">
           Server context
-        </span>
+        </StatusBadge>
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 p-3">
+        <Surface variant="inset">
+          <div className="p-3">
           <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-400">What matters to them</p>
           <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-zinc-100">{brief.lead.problem || "Not recorded"}</p>
           {brief.queue_reason && <p className="mt-2 text-[10px] leading-relaxed text-zinc-400">Why you got this lead: {brief.queue_reason}</p>}
           {brief.sources.queue_reason.state === "unavailable" && <p className="mt-2 text-[10px] text-amber-300">{brief.sources.queue_reason.message}</p>}
-        </div>
+          </div>
+        </Surface>
 
-        <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 p-3">
+        <Surface variant="inset">
+          <div className="p-3">
           <div className="flex items-start gap-2">
             <BookOpenCheck className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
@@ -116,11 +124,13 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
               <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-white">{brief.next_safe_step.label}</p>
             </div>
           </div>
-        </div>
+          </div>
+        </Surface>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+        <Surface variant="inset">
+          <div className="p-3">
           <PhoneCall className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
           <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Last contact</p>
           {callUnavailable ? (
@@ -133,9 +143,11 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           ) : (
             <p className="mt-1 text-[11px] text-zinc-400">No previous call — first touch</p>
           )}
-        </div>
+          </div>
+        </Surface>
 
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+        <Surface variant="inset">
+          <div className="p-3">
           <CalendarClock className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
           <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Callback promise</p>
           {callbackUnavailable ? (
@@ -145,9 +157,11 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           ) : (
             <p className="mt-1 text-[11px] text-zinc-400">No callback promised</p>
           )}
-        </div>
+          </div>
+        </Surface>
 
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+        <Surface variant="inset">
+          <div className="p-3">
           <MessageSquareText className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
           <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Latest note</p>
           {noteUnavailable ? (
@@ -160,9 +174,11 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           ) : (
             <p className="mt-1 text-[11px] text-zinc-400">No note yet</p>
           )}
-        </div>
+          </div>
+        </Surface>
 
-        <div className="rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-3">
+        <Surface variant="inset">
+          <div className="p-3">
           <ShoppingBag className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
           <p className="mt-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-400">Last order</p>
           {orderUnavailable ? (
@@ -175,14 +191,16 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           ) : (
             <p className="mt-1 text-[11px] text-zinc-400">No order yet</p>
           )}
-        </div>
+          </div>
+        </Surface>
       </div>
 
       {unavailable.length > 0 && (
-        <div className="mt-3 rounded-lg border border-amber-900/40 bg-amber-950/10 px-3 py-2 text-[10px] leading-relaxed text-amber-200/80">
+        <StatusAlert tone="warning" className="w-full">
           {unavailable.join(" ")}
-        </div>
+        </StatusAlert>
       )}
-    </section>
+      </div>
+    </Surface>
   );
 }

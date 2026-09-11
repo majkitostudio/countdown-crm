@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { getStatusClassName, type SemanticTone } from "@/components/ui/Status";
+import { getSurfaceClassName } from "@/components/ui/Surface";
 import { cn } from "@/lib/utils";
 
 export type PageHeaderBadgeTone = "neutral" | "success" | "warning" | "unavailable";
@@ -29,6 +30,10 @@ export function getPageHeaderBadgeClassName(tone: PageHeaderBadgeTone = "neutral
   return getStatusClassName(semanticTone);
 }
 
+export function getPageHeaderSurfaceClassName(): string {
+  return getSurfaceClassName("page");
+}
+
 export function PageHeader({
   icon: Icon,
   title,
@@ -41,7 +46,8 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex flex-col gap-5 rounded-2xl border border-zinc-800/80 border-t-white/5 bg-zinc-900/60 p-6 shadow-sm sm:p-8 md:flex-row md:items-center md:justify-between",
+        "flex flex-col gap-5 p-6 sm:p-8 md:flex-row md:items-center md:justify-between",
+        getPageHeaderSurfaceClassName(),
         className
       )}
     >

@@ -21,13 +21,13 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <OperatorIdentityProvider>
       <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
-      {/* Global Command K Palette */}
+      {/* Global command palette */}
       <CommandPalette />
 
-      {/* Postranní navigace */}
+      {/* Shared navigation */}
       <Sidebar />
 
-      {/* Hlavní obsahová část */}
+      {/* Shared application canvas */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <AppHeader />
         
@@ -37,17 +37,17 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </main>
 
-        {/* Footer status bar */}
+      {/* Shell status */}
         <footer className={`${isOperatorConsole ? "hidden" : "flex"} h-8 border-t border-zinc-800/80 bg-zinc-950 px-6 items-center justify-between text-[11px] text-zinc-400 select-none`}>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-              Workspace shell active
+              Workspace ready
             </span>
             <span>Live API latency unavailable</span>
           </div>
           <div>
-            <span>Countdown CRM v0.1.0 • Built for Performance</span>
+            <span>Countdown CRM</span>
           </div>
         </footer>
       </div>

@@ -7,6 +7,8 @@ import { getLeadActivities } from "@/lib/domainActivity";
 import { formatCurrencyAmount } from "@/lib/currency";
 import type { WorkspaceActivity } from "@/lib/domain";
 import { buildRecentContextFromCalendar, type RecentContextData } from "./recentContext";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface RecentContextRowProps {
   leadId: string;
@@ -52,23 +54,23 @@ function Signal({
   label,
   value,
   detail,
-  tone = "default",
 }: {
   icon: typeof PhoneCall;
   label: string;
   value: string;
   detail: string;
-  tone?: "default" | "attention";
 }) {
   return (
-    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-950/50 px-2.5 py-2.5">
+    <Surface variant="inset" className="w-full">
+      <div className="min-w-0 px-2.5 py-2.5">
       <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
         <Icon className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
         <span className="truncate">{label}</span>
       </div>
-      <p className={`mt-1.5 truncate text-xs font-semibold ${tone === "attention" ? "text-amber-200" : "text-zinc-100"}`}>{value}</p>
+      <p className="mt-1.5 truncate text-xs font-semibold text-zinc-100">{value}</p>
       <p className="mt-0.5 truncate text-[10px] tabular-nums text-zinc-500">{detail}</p>
-    </div>
+      </div>
+    </Surface>
   );
 }
 
@@ -153,27 +155,29 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
       : emptySignal;
 
   return (
-    <section className="rounded-xl border border-zinc-800/70 bg-zinc-950/20 p-3" data-testid="recent-context-row" aria-labelledby="recent-context-title">
+    <Surface variant="inset" className="w-full" data-testid="recent-context-row" aria-labelledby="recent-context-title">
+      <section className="p-3">
       <div className="flex items-center justify-between gap-3 px-1">
         <div>
           <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Last signals</h3>
           <p className="mt-1 text-[11px] text-zinc-500">Glance before you dial — details below</p>
         </div>
-        {isLoading && <span className="text-[10px] font-mono text-zinc-600">Loading…</span>}
+        {isLoading && <StatusBadge tone="neutral">Loading…</StatusBadge>}
       </div>
 
       {loadError ? (
-        <div role="alert" className="mt-3 rounded-lg border border-amber-900/60 bg-amber-950/20 p-2.5 text-[11px] text-amber-200">
+        <StatusAlert tone="warning" className="w-full">
           Recent context unavailable: {loadError}
-        </div>
+        </StatusAlert>
       ) : (
         <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-busy={isLoading}>
           <Signal icon={PhoneCall} label="Last contact" value={isLoading ? "Loading…" : contact.value} detail={isLoading ? "" : contact.detail} />
           <Signal icon={CheckCircle2} label="Last result" value={isLoading ? "Loading…" : result.value} detail={isLoading ? "" : result.detail} />
           <Signal icon={ShoppingBag} label="Last order" value={isLoading ? "Loading…" : order.value} detail={isLoading ? "" : order.detail} />
-          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} tone={!callbackUnavailableMessage && context?.activeCallback ? "attention" : "default"} />
+          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} />
         </div>
       )}
-    </section>
+      </section>
+    </Surface>
   );
 }

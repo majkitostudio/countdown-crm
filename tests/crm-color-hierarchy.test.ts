@@ -23,8 +23,9 @@ describe("CRM color hierarchy", () => {
     const review = source("src/components/calls/CallReviewWorkspace.tsx");
 
     expect(globalStyles).toContain("color: rgba(161, 161, 170, 0.85);");
-    expect(brief).toContain('className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 shadow-sm"');
-    expect(brief).toContain('className="rounded-lg border border-zinc-800/80 bg-zinc-950/50 p-3"');
+    expect(brief).toContain('import { Surface } from "@/components/ui/Surface"');
+    expect(brief).toContain('variant="page"');
+    expect(brief).toContain('variant="inset"');
     expect(profile).toContain('border border-zinc-800 bg-zinc-900 text-zinc-200');
     expect(profile).toContain('className="h-full rounded-full bg-zinc-500"');
     expect(callback).toContain('className="rounded-lg bg-zinc-900 p-2 text-zinc-300"');
