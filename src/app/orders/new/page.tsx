@@ -7,6 +7,7 @@ import { getCurrentLeadForWorkspace, getScopedLeadForWorkspace } from "@/lib/dal
 import { DataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 
 type SearchParams = Promise<{ leadId?: string | string[]; origin?: string | string[]; mode?: string | string[]; callSessionId?: string | string[] }>;
 type OrderFlow = "manual" | "call";
@@ -70,7 +71,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
     const requiresAssignedContact = result.error instanceof Error && result.error.message === "Operator order creation requires an assigned contact";
     const callNoLongerPending = result.error instanceof Error && result.error.message === "This call is no longer waiting for order completion";
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Order creation unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
@@ -86,7 +87,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Operator Console
         </Link>
-      </div>
+      </Surface>
     );
   }
 
@@ -100,7 +101,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
         backLink={{ href: origin === "workspace" ? "/workspace" : "/orders", label: origin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
         description={flow === "call"
           ? "Complete the current call by reviewing and placing the order."
-          : "Start the order in In-Progress and continue its delivery lifecycle from Orders."}
+          : "Create an order and continue its delivery lifecycle from Orders."}
       />
       <OrderCreateForm
         leads={leads}

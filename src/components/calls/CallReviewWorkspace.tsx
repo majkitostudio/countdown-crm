@@ -8,6 +8,8 @@ import type {
   CallReviewDTO,
   CallReviewRevisionDTO,
 } from "@/lib/dal/callReviews";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string | null): string {
   if (!value) return "Not recorded";
@@ -30,13 +32,15 @@ function humanize(value: string | null): string {
 
 function Section({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm">
+    <Surface variant="page">
+    <section className="p-5">
       <div className="mb-4 flex items-center gap-2 border-b border-zinc-800/80 pb-3">
         <span className="text-zinc-500" aria-hidden="true">{icon}</span>
         <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
       </div>
       {children}
     </section>
+    </Surface>
   );
 }
 
@@ -44,10 +48,10 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
   const transcript = review.transcript;
   if (transcript.kind === "unavailable") {
     return (
-      <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4">
+      <StatusAlert tone="warning">
         <p className="text-xs font-semibold text-amber-200">Transcript unavailable</p>
         <p className="mt-1 text-xs leading-relaxed text-amber-200/70">No verified transcript was captured. The CRM has not reconstructed or invented one.</p>
-      </div>
+      </StatusAlert>
     );
   }
 
@@ -83,19 +87,19 @@ function ScriptEvidence({ review }: { review: CallReviewDTO }) {
   const script = review.script;
   if (script.kind === "not_recorded") {
     return (
-      <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4">
+      <StatusAlert tone="warning">
         <p className="text-xs font-semibold text-amber-200">Script version was not recorded for this call</p>
         <p className="mt-1 text-xs leading-relaxed text-amber-200/70">This is an older or unlinked call. The CRM will not guess which script was used.</p>
-      </div>
+      </StatusAlert>
     );
   }
 
   if (script.kind === "unavailable") {
     return (
-      <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4">
+      <StatusAlert tone="warning">
         <p className="text-xs font-semibold text-amber-200">No script was available when this call started</p>
         <p className="mt-1 text-xs text-amber-200/70">This unavailable state was captured at {formatDate(script.capturedAt)}.</p>
-      </div>
+      </StatusAlert>
     );
   }
 
@@ -104,10 +108,10 @@ function ScriptEvidence({ review }: { review: CallReviewDTO }) {
     : "Built-in fallback captured for this call";
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-emerald-900/50 bg-emerald-950/20 px-4 py-3">
+      <StatusAlert tone="success" role="status">
         <p className="text-xs font-semibold text-emerald-200">{label}</p>
         <p className="mt-1 text-[11px] text-emerald-200/60">{script.productTitle} · captured {formatDate(script.capturedAt)}</p>
-      </div>
+      </StatusAlert>
       <div
         className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5 text-sm leading-7 text-zinc-300 [&_p]:mb-3 [&_p:last-child]:mb-0"
         dangerouslySetInnerHTML={{ __html: script.html }}
@@ -226,8 +230,8 @@ export function CallReviewForm({
           />
         </label>
       )}
-      {errorMessage && <p role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 px-3 py-2 text-xs text-rose-200">{errorMessage}</p>}
-      {successMessage && <p role="status" aria-live="polite" className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200">{successMessage}</p>}
+      {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
+      {successMessage && <StatusAlert tone="success" role="status" aria-live="polite">{successMessage}</StatusAlert>}
       <div className="flex flex-wrap gap-2">
         <button
           type="submit"

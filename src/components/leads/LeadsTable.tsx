@@ -15,6 +15,8 @@ import { AttributeDefinition } from "@/lib/schema/types";
 import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
 import { saveAttributeAction } from "@/app/actions/schema";
 import { AddCustomFieldModal } from "@/components/schema/AddCustomFieldModal";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -68,40 +70,23 @@ export function LeadsTable({
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
-  const getScoreBadge = (score: number) => {
-    let dotColor = "bg-zinc-400";
-    if (score >= 85) dotColor = "bg-emerald-500";
-    else if (score >= 70) dotColor = "bg-amber-500";
-    else if (score < 40) dotColor = "bg-rose-500";
-
-    return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-        <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-        <span>{score}/100</span>
-      </div>
-    );
-  };
+  const getScoreBadge = (score: number) => <StatusBadge tone="neutral">{score}/100</StatusBadge>;
 
   const getStatusBadge = (status: Lead["status"]) => {
-    const config: Record<Lead["status"], { label: string; dot: string }> = {
-      new: { label: "New Lead", dot: "bg-zinc-400" },
-      contacted: { label: "Contacted", dot: "bg-amber-500" },
-      qualified: { label: "Qualified", dot: "bg-emerald-500" },
-      customer: { label: "Customer", dot: "bg-emerald-500" },
-      unresponsive: { label: "Unresponsive", dot: "bg-rose-500" },
+    const config: Record<Lead["status"], { label: string }> = {
+      new: { label: "New" },
+      contacted: { label: "Contacted" },
+      qualified: { label: "Qualified" },
+      customer: { label: "Customer" },
+      unresponsive: { label: "Unresponsive" },
     };
 
     const current = config[status] || config.new;
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-        <span className={`w-1.5 h-1.5 rounded-full ${current.dot}`} />
-        {current.label}
-      </span>
-    );
+    return <StatusBadge tone="neutral">{current.label}</StatusBadge>;
   };
 
   return (
-    <div className="bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <Surface variant="table">
       
       {/* Controls Bar: Search, Filters & Import Button */}
       <div className="p-4 border-b border-zinc-800/80 flex flex-wrap items-center justify-between gap-4 bg-zinc-950/40">
@@ -184,11 +169,7 @@ export function LeadsTable({
         onAddField={handleAddField}
       />
 
-      {schemaError && (
-        <div className="border-b border-rose-900/60 bg-rose-950/30 px-4 py-2 text-xs text-rose-300" role="alert">
-          {schemaError}
-        </div>
-      )}
+      {schemaError && <StatusAlert tone="danger">{schemaError}</StatusAlert>}
 
       {isSchemaLoading && (
         <div className="border-b border-zinc-800/80 px-4 py-2 text-[11px] text-zinc-500" role="status">
@@ -196,11 +177,7 @@ export function LeadsTable({
         </div>
       )}
 
-      {!isSchemaLoading && !schema && (
-        <div className="border-b border-amber-900/60 bg-amber-950/20 px-4 py-2 text-xs text-amber-200" role="status">
-          Dynamická pole nejsou dostupná, protože workspace schéma nebylo načteno.
-        </div>
-      )}
+      {!isSchemaLoading && !schema && <StatusAlert tone="warning" role="status">Custom fields are unavailable because the workspace schema did not load.</StatusAlert>}
 
       {/* Table Body */}
       <div className="overflow-x-auto">
@@ -300,6 +277,6 @@ export function LeadsTable({
         <span className="text-zinc-500 text-[11px]">Powered by AI Propensity Scoring Engine</span>
       </div>
 
-    </div>
+    </Surface>
   );
 }

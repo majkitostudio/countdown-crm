@@ -4,6 +4,9 @@ import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { LeadDTO } from "@/lib/dal/leads";
 import { buildCustomer360Snapshot, type Customer360Snapshot } from "@/lib/customer360";
 import { formatCurrencyAmounts } from "@/lib/currency";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface Customer360RetentionCardProps {
   lead: LeadDTO;
@@ -29,17 +32,18 @@ export function Customer360RetentionCard({
     : buildCustomer360Snapshot(lead, activity);
 
   return (
-    <section id="customer-360" className="space-y-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6" data-testid="customer-360-retention">
+    <Surface variant="page">
+    <section id="customer-360" className="space-y-4 p-6" data-testid="customer-360-retention">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-zinc-100">Customer 360 · Retention playbook</h2>
           <p className="mt-1 text-xs text-zinc-500">Přehled skutečné historie zákazníka a další vysvětlitelný krok.</p>
         </div>
-        <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Persisted workspace data</span>
+        <StatusBadge tone="neutral">Persisted workspace data</StatusBadge>
       </div>
 
       {activityUnavailable ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Customer activity není dostupná. Retenční doporučení nebylo vytvořeno z náhradních dat.</div>
+        <StatusAlert tone="neutral" role="status">Customer activity is unavailable. No retention recommendation was created from substitute data.</StatusAlert>
       ) : snapshot ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -80,6 +84,7 @@ export function Customer360RetentionCard({
         </>
       ) : null}
     </section>
+    </Surface>
   );
 }
 
@@ -87,8 +92,6 @@ function SnapshotMetric({
   label,
   value,
   detail,
-  compact = false,
-  icon: Icon,
 }: {
   label: string;
   value: string;
@@ -97,10 +100,6 @@ function SnapshotMetric({
   icon: typeof PhoneCall;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
-      <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500"><span>{label}</span><Icon className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" /></div>
-      <p className={`${compact ? "text-xs leading-relaxed" : "text-xl"} mt-2 font-mono font-semibold text-zinc-100`}>{value}</p>
-      {detail && <p className="mt-1 text-[10px] text-zinc-500">{detail}</p>}
-    </div>
+    <MetricCard label={label} value={value} detail={detail} />
   );
 }

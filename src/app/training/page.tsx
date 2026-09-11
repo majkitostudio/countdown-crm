@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Status";
 
 import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
@@ -569,9 +570,9 @@ export default function TrainingPage() {
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={GraduationCap}
-        title="AI Call Roleplay Simulator"
-        badge={{ label: "Training Mode", tone: "neutral" }}
-        description="Practice simulated calls with AI customer personas without risking a real customer or order."
+        title="Training"
+        badge={{ label: "Simulation", tone: "neutral" }}
+        description="Practice a simulated call without changing customer or order data."
       />
 
       {!selectedScenario || (!isSimulating && !scorecard) ? (
@@ -593,17 +594,9 @@ export default function TrainingPage() {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-                      <span className={cn(
-                        "w-1.5 h-1.5 rounded-full",
-                        scenario.difficulty === "Snadná"
-                          ? "bg-emerald-500"
-                          : scenario.difficulty === "Střední"
-                          ? "bg-amber-500"
-                          : "bg-rose-500"
-                      )} />
+                    <StatusBadge tone="neutral">
                       {difficultyLabels[scenario.difficulty]}
-                    </span>
+                    </StatusBadge>
                     <span className="text-[11px] text-zinc-400 font-mono">
                       {personalityLabels[scenario.personalityType]}
                     </span>
@@ -1069,21 +1062,12 @@ export default function TrainingPage() {
             </div>
           </div>
 
-          <div className={cn(
-            "rounded-xl border px-4 py-3 text-xs",
-            transcriptSaveState === "saved"
-              ? "border-emerald-900/60 bg-emerald-950/20 text-emerald-300"
-              : transcriptSaveState === "saving"
-              ? "border-amber-900/60 bg-amber-950/20 text-amber-300"
-              : transcriptSaveState === "unavailable"
-              ? "border-zinc-700 bg-zinc-950 text-zinc-400"
-              : "border-rose-900/60 bg-rose-950/20 text-rose-300"
-          )}>
+          <StatusAlert tone={(transcriptSaveState === "saved" ? "success" : transcriptSaveState === "saving" ? "warning" : transcriptSaveState === "error" ? "danger" : "neutral") as SemanticTone} role="status">
             {transcriptSaveState === "saved" && "Training transcript saved for teamleader review."}
             {transcriptSaveState === "saving" && "Saving training transcript..."}
             {transcriptSaveState === "unavailable" && "Training transcript persistence is unavailable in demo mode; this session was not stored."}
             {transcriptSaveState === "error" && "Training transcript could not be saved. The scorecard remains available for this session only."}
-          </div>
+          </StatusAlert>
 
           <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-300 leading-relaxed">
             <strong className="text-zinc-200 font-semibold block mb-1">AI final assessment:</strong>

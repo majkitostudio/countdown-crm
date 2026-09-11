@@ -5,6 +5,7 @@ import { getWorkspaceOrder } from "@/lib/dal/activity";
 import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 
 type SearchParams = Promise<{ origin?: string | string[] }>;
 
@@ -52,7 +53,7 @@ export default async function OrderEditPage({
 
   if ("error" in result) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-rose-900/50 bg-rose-950/20 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-rose-400" />
         <h1 className="text-base font-semibold text-zinc-100">Order edit unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">The order could not be loaded from the active workspace.</p>
@@ -60,7 +61,7 @@ export default async function OrderEditPage({
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Orders
         </Link>
-      </div>
+      </Surface>
     );
   }
 
@@ -81,7 +82,7 @@ export default async function OrderEditPage({
 
   if (result.order.items.length === 0) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-amber-900/50 bg-amber-950/20 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-amber-300" />
         <h1 className="text-base font-semibold text-zinc-100">Legacy order is read-only</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-amber-100/70">
@@ -91,13 +92,13 @@ export default async function OrderEditPage({
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to order
         </Link>
-      </div>
+      </Surface>
     );
   }
 
   if (!result.canEdit) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-amber-900/50 bg-amber-950/20 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-amber-300" />
         <h1 className="text-base font-semibold text-zinc-100">Order details are read-only</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-amber-100/70">
@@ -107,7 +108,7 @@ export default async function OrderEditPage({
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to order
         </Link>
-      </div>
+      </Surface>
     );
   }
 

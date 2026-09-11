@@ -3,6 +3,7 @@ import { ArrowRight, ClipboardList, LockKeyhole, RefreshCw } from "lucide-react"
 import { getTrainingSessionReviews } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -49,14 +50,14 @@ export default async function TrainingReviewsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-8">
         <PageHeader
           icon={ClipboardList}
-          title="Teamleader Review"
+          title="Training reviews"
           badge={{ label: "Training only", tone: "neutral" }}
-          description="Review completed AI training sessions without opening production call records."
+          description="Review completed training sessions without opening production call records."
           actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} session{sessions.length === 1 ? "" : "s"}</span>}
         />
 
         {sessions.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-16 text-center">
+          <Surface variant="empty">
             <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
             <h2 className="text-sm font-semibold text-zinc-200">No training sessions yet</h2>
             <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Completed training sessions will appear here for Team Leader and Administrator review.</p>
@@ -64,9 +65,9 @@ export default async function TrainingReviewsPage() {
               Open AI Training
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          </div>
+          </Surface>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 shadow-sm">
+          <Surface variant="table">
             <div className="border-b border-zinc-800 px-6 py-4">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Recent training sessions</h2>
             </div>
@@ -117,7 +118,7 @@ export default async function TrainingReviewsPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </Surface>
         )}
       </div>
   );

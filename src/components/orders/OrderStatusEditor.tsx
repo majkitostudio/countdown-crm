@@ -4,6 +4,9 @@ import { FormEvent, useMemo, useState, useTransition } from "react";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updateOrderStatusAction } from "@/app/actions/crm";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 type OrderStatus = "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
 
@@ -63,7 +66,8 @@ export function OrderStatusEditor({ orderId, currentStatus, canEdit, isManager }
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+    <Surface variant="page">
+      <div className="p-6">
       <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
         <div>
           <h2 className="text-sm font-semibold text-zinc-100">Update status</h2>
@@ -99,19 +103,20 @@ export function OrderStatusEditor({ orderId, currentStatus, canEdit, isManager }
               className="mt-2 w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-xs text-zinc-200 outline-none placeholder:text-zinc-700 focus:border-zinc-600"
             />
           </label>
-          {errorMessage && <p role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/30 px-3 py-2 text-xs text-rose-300">{errorMessage}</p>}
-          <button
+          {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
+          <Button
             type="submit"
             disabled={isPending || selectedStatus === currentStatus}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full"
           >
             {isPending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
             {isPending ? "Saving…" : "Save status"}
-          </button>
+          </Button>
         </form>
       ) : (
         <p className="text-xs leading-relaxed text-zinc-500">{currentStatus === "sent" || currentStatus === "delivered" ? "Delivery and return states are controlled by the fulfillment system." : `There are no further status changes available from ${statusLabel(currentStatus).toLowerCase()}.`}</p>
       )}
-    </section>
+      </div>
+    </Surface>
   );
 }

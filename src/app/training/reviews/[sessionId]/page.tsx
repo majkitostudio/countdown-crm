@@ -3,6 +3,8 @@ import { ArrowLeft, CheckCircle2, ClipboardList, LockKeyhole, MessageSquare, Shi
 import { getTrainingSessionReview } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -84,14 +86,12 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             ["Compliance", typeof scorecard.complianceScore === "number" ? `${scorecard.complianceScore}%` : "—"],
             ["AI source", session.ai_source || "—"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-4">
-              <span className="block text-[10px] uppercase tracking-wider text-zinc-500">{label}</span>
-              <span className="mt-1 block truncate font-mono text-sm text-zinc-200">{value}</span>
-            </div>
+            <MetricCard key={label} label={label} value={value} />
           ))}
         </div>
 
-        <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+        <Surface variant="page">
+        <div className="p-6">
           <div className="mb-5 flex items-center justify-between border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-zinc-400" />
@@ -129,6 +129,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             </div>
           )}
         </div>
+        </Surface>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-5">

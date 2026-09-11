@@ -23,6 +23,9 @@ import {
   updateReminderAction,
 } from "@/app/actions/calendar";
 import type { CalendarEntryDTO, CalendarLoadResult } from "@/lib/dal/calendar";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 type CalendarFilter = "all" | "callback" | "reminder";
 
@@ -68,14 +71,14 @@ function isReminderDue(entry: CalendarEntryDTO): boolean {
   return entry.type === "reminder" && entry.status === "open" && Boolean(entry.remind_at) && Date.parse(entry.remind_at as string) <= Date.now();
 }
 
-function entryStatus(entry: CalendarEntryDTO): { label: string; className: string } {
+function entryStatus(entry: CalendarEntryDTO): { label: string; tone: SemanticTone } {
   if (entry.status === "completed") {
-    return { label: "Completed", className: "border-emerald-900/60 bg-emerald-950/20 text-emerald-300" };
+    return { label: "Completed", tone: "success" };
   }
   if (isDue(entry)) {
-    return { label: entry.type === "callback" ? "Due" : "Overdue", className: "border-amber-900/70 bg-amber-950/20 text-amber-300" };
+    return { label: entry.type === "callback" ? "Due" : "Overdue", tone: "warning" };
   }
-  return { label: entry.type === "callback" ? "Scheduled" : "Open", className: "border-zinc-700 bg-zinc-950 text-zinc-300" };
+  return { label: entry.type === "callback" ? "Scheduled" : "Open", tone: "neutral" };
 }
 
 function toIso(localValue: string, label: string): string {
@@ -196,25 +199,26 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
   };
 
   return (
-    <section className="space-y-5 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+    <Surface variant="page">
+    <section className="space-y-5 p-6">
       {dueReminders.length > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-900/70 bg-amber-950/20 p-4 text-amber-200" role="status">
+        <StatusAlert tone="warning" role="status">
           <Bell className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <div className="text-xs font-semibold">Připomínka je splatná</div>
             <div className="mt-1 text-xs text-amber-200/75">{dueReminders.map((entry) => entry.title).join(" · ")}</div>
           </div>
-        </div>
+        </StatusAlert>
       )}
 
       {unavailableSources.length > 0 && (
-        <div className="rounded-xl border border-amber-900/70 bg-amber-950/10 p-3 text-xs text-amber-200" role="status">
+        <StatusAlert tone="warning" role="status">
           {unavailableSources.map(({ sourceKey, source }) => (
             <p key={sourceKey}>
               {SOURCE_LABELS[sourceKey]} unavailable: {source.message}
             </p>
           ))}
-        </div>
+        </StatusAlert>
       )}
 
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
@@ -228,17 +232,17 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => void refresh()} disabled={isLoading} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50">
+          <Button type="button" variant="secondary" onClick={() => void refresh()} disabled={isLoading}>
             <RefreshCw className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} /> Refresh
-          </button>
-          <button type="button" onClick={openCreate} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-950 hover:bg-white">
+          </Button>
+          <Button type="button" onClick={openCreate}>
             <Plus className="h-3.5 w-3.5" /> New reminder
-          </button>
+          </Button>
         </div>
       </div>
 
-      {successMessage && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-300" role="status">{successMessage}</div>}
-      {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
+      {successMessage && <StatusAlert tone="success" role="status">{successMessage}</StatusAlert>}
+      {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
 
       <div className="flex flex-wrap gap-2">
         {(["all", "callback", "reminder"] as CalendarFilter[]).map((value) => (
@@ -256,16 +260,16 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
             const status = entryStatus(entry);
             const isBusy = busyId === entry.id;
             return (
-              <article key={`${entry.type}-${entry.id}`} className={`rounded-xl border p-4 ${isDue(entry) ? "border-amber-900/60 bg-amber-950/10" : "border-zinc-800 bg-zinc-950/50"}`}>
+              <article key={`${entry.type}-${entry.id}`} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
                 <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                   <div className="flex min-w-0 items-start gap-3">
-                    <div className={`mt-0.5 rounded-lg p-2 ${entry.type === "callback" ? "bg-sky-950/50 text-sky-300" : "bg-violet-950/50 text-violet-300"}`}>
+                    <div className="mt-0.5 rounded-lg bg-zinc-900 p-2 text-zinc-300">
                       {entry.type === "callback" ? <CalendarClock className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
                     </div>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-medium text-zinc-100">{entry.title}</h3>
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${status.className}`}>{status.label}</span>
+                        <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-400">
                         <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5 text-zinc-600" />{formatDate(entry.starts_at)}</span>
@@ -278,10 +282,10 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                     {entry.lead && <Link href={`/leads/${entry.lead.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"><ExternalLink className="h-3.5 w-3.5" /> Open lead</Link>}
                     {entry.type === "reminder" && entry.status === "open" && <>
                       <button type="button" onClick={() => openEdit(entry)} disabled={isBusy} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"><Pencil className="h-3.5 w-3.5" /> Edit</button>
-                      <button type="button" onClick={() => void runReminderAction(entry, () => completeReminderAction(entry.id), "Reminder byl dokončen.")} disabled={isBusy} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-900/60 px-2.5 py-2 text-[11px] text-emerald-300 hover:bg-emerald-950/30 disabled:opacity-50"><Check className="h-3.5 w-3.5" /> Complete</button>
+                      <Button type="button" variant="secondary" onClick={() => void runReminderAction(entry, () => completeReminderAction(entry.id), "Reminder byl dokončen.")} disabled={isBusy}><Check className="h-3.5 w-3.5" /> Complete</Button>
                       <button type="button" onClick={() => void runReminderAction(entry, () => cancelReminderAction(entry.id), "Reminder byl zrušen.")} disabled={isBusy} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-500 hover:text-zinc-300 disabled:opacity-50"><X className="h-3.5 w-3.5" /> Cancel</button>
                     </>}
-                    {entry.status === "completed" && <CheckCircle2 className="h-4 w-4 text-emerald-400" aria-label="Completed" />}
+                    {entry.status === "completed" && <CheckCircle2 className="h-4 w-4 text-zinc-400" aria-label="Completed" />}
                   </div>
                 </div>
               </article>
@@ -311,5 +315,6 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
         </div>
       )}
     </section>
+    </Surface>
   );
 }

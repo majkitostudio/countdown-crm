@@ -4,9 +4,6 @@ import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   PhoneCall,
-  Clock,
-  DollarSign,
-  TrendingUp,
   Search,
   Eye,
 } from "lucide-react";
@@ -14,6 +11,9 @@ import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 function useReviewQueryFilter() {
   return useSyncExternalStore(
@@ -103,15 +103,15 @@ export default function CallLogsPage() {
       
       <PageHeader
         icon={PhoneCall}
-        title="Call Logs & Speech Transcripts"
-        badge={{ label: `${totalCallsCount} Logged Calls`, tone: "neutral" }}
-        description="Real-time call history logs, AHT benchmarks, and full speech transcript protocols"
+        title="Calls"
+        badge={{ label: `${totalCallsCount} logged`, tone: "neutral" }}
+        description="Review call history, outcomes, and available transcripts."
         actions={
           <div className="flex items-center gap-2">
             {canReview && (
               <Link
                 href="/calls?review=unreviewed"
-                className="inline-flex items-center rounded-xl border border-amber-900/70 bg-amber-950/30 px-4 py-2.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-950/50"
+                className="inline-flex items-center rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-2.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-950/40"
               >
                 Needs review: {unreviewedCount}
               </Link>
@@ -125,46 +125,11 @@ export default function CallLogsPage() {
       />
 
       {/* KPI Cards Header */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Total Logged Calls</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{totalCallsCount}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <PhoneCall className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Avg Handling Time (AHT)</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{formatDuration(avgDuration)}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <Clock className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Call Revenue Volume</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">${totalSalesVolume.toFixed(2)}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <DollarSign className="w-4 h-4" />
-          </div>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Call Conversion Rate</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{conversionRate}%</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <TrendingUp className="w-4 h-4" />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricCard label="Logged calls" value={totalCallsCount} />
+        <MetricCard label="Average handling" value={formatDuration(avgDuration)} />
+        <MetricCard label="Revenue" value={`$${totalSalesVolume.toFixed(2)}`} />
+        <MetricCard label="Conversion" value={`${conversionRate}%`} />
       </div>
 
       {/* Filter and Search Bar */}
@@ -233,7 +198,7 @@ export default function CallLogsPage() {
       </div>
 
       {/* Call Logs Table */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl shadow-sm overflow-hidden">
+      <Surface variant="table">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-zinc-300">
             <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
@@ -288,15 +253,7 @@ export default function CallLogsPage() {
                   {canReview && (
                     <td className="px-5 py-3">
                       <div className="flex flex-col items-start gap-1.5">
-                        <span className={`rounded-md border px-2.5 py-0.5 text-[11px] font-medium ${
-                          c.review_status === "not_reviewed"
-                            ? "border-amber-900/70 bg-amber-950/30 text-amber-200"
-                            : c.review_status === "corrected"
-                              ? "border-sky-900/70 bg-sky-950/30 text-sky-200"
-                              : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"
-                        }`}>
-                          {reviewStatusLabel(c.review_status)}
-                        </span>
+                        <StatusBadge tone={c.review_status === "not_reviewed" ? "warning" : c.review_status === "corrected" ? "neutral" : "success"}>{reviewStatusLabel(c.review_status)}</StatusBadge>
                         {c.review_href && (
                           <Link
                             href={reviewHrefForCall(c) || "#"}
@@ -322,7 +279,7 @@ export default function CallLogsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Surface>
 
       {/* Call Detail Drawer */}
       <CallDetailDrawer

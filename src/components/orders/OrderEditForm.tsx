@@ -5,6 +5,7 @@ import { CheckCircle2, LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updateOrderDetailsAction } from "@/app/actions/crm";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
+import { StatusAlert } from "@/components/ui/Status";
 
 type OrderSource = WorkspaceOrderDTO["order_source"];
 type ProductOption = {
@@ -310,7 +311,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
           </section>
 
           {requiresReason && (
-            <section className="rounded-2xl border border-amber-800/70 bg-amber-950/20 p-6 shadow-sm">
+            <StatusAlert tone="warning">
               <h2 className="text-sm font-semibold text-amber-100">Administrator reason required</h2>
               <p className="mt-1 text-xs leading-relaxed text-amber-200/70">This order has already left the preparation stage. The reason is stored with the before/after change history and audit event.</p>
               <textarea
@@ -323,7 +324,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
                 className="mt-4 w-full resize-y rounded-xl border border-amber-900/80 bg-zinc-950/70 px-3.5 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-amber-700"
                 required
               />
-            </section>
+            </StatusAlert>
           )}
         </div>
 
@@ -343,12 +344,12 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
               <div className="flex justify-between gap-4 text-zinc-500"><span>Minimum reference total</span><span className="font-mono">{orderCurrency} {minimumOrderTotal.toFixed(2)}</span></div>
             </div>
             {isBelowMinimum && (
-              <div className="mt-5 rounded-xl border border-amber-800/70 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-200" role="status">
+              <StatusAlert tone="warning" role="status">
                 <p className="font-semibold">Order is below the minimum reference price.</p>
                 <p className="mt-1 text-amber-200/80">This is allowed, but the warning is retained for review.</p>
-              </div>
+              </StatusAlert>
             )}
-            {errorMessage && <p role="alert" className="mt-5 rounded-xl border border-rose-900/70 bg-rose-950/30 px-3 py-2 text-xs leading-relaxed text-rose-300">{errorMessage}</p>}
+            {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
             <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] leading-relaxed text-zinc-400">
               <CheckCircle2 className="mb-1.5 h-4 w-4 text-zinc-300" />
               A revision check prevents overwriting another operator&apos;s recent save.

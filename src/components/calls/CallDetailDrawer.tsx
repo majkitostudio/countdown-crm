@@ -15,6 +15,8 @@ import {
 import { CallRecord, formatCallOutcome } from "@/lib/calls";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface CallDetailDrawerProps {
   call: CallRecord | null;
@@ -38,7 +40,8 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-zinc-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-xl bg-zinc-950/90 backdrop-blur-xl border-l border-zinc-800/80 h-full flex flex-col shadow-2xl">
+      <Surface variant="overlay" className="w-full">
+      <div className="w-full max-w-xl h-full flex flex-col">
         
         {/* Header */}
         <div className="p-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
@@ -106,7 +109,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
           </div>
 
           {(call.fail_reason || call.operator_note) && (
-            <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 space-y-1.5">
+            <StatusAlert tone="danger">
               <span className="block text-[10px] font-semibold uppercase tracking-wider text-rose-300/80">Fail details</span>
               {call.fail_reason && (
                 <p className="text-sm font-semibold text-rose-100">
@@ -114,7 +117,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
                 </p>
               )}
               {call.operator_note && <p className="whitespace-pre-wrap text-xs leading-relaxed text-rose-200/80">{call.operator_note}</p>}
-            </div>
+            </StatusAlert>
           )}
 
           {/* Audio recording state */}
@@ -142,9 +145,9 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
 
             {call.transcript.kind === "unavailable" ? (
-              <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-xs leading-relaxed text-amber-200">
+              <StatusAlert tone="warning">
                 No verified speech transcript was captured for this call. The CRM did not invent a transcript.
-              </div>
+              </StatusAlert>
             ) : call.transcript.kind === "plain_text" ? (
               <div className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
@@ -181,6 +184,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
         </div>
 
       </div>
+      </Surface>
     </div>
   );
 }

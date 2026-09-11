@@ -3,6 +3,9 @@
 import { FormEvent, useState } from "react";
 import { X } from "lucide-react";
 import { createLeadAction } from "@/app/actions/crm";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface CreateLeadModalProps {
   isOpen: boolean;
@@ -50,7 +53,8 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl">
+      <Surface variant="overlay" className="w-full">
+      <div className="w-full max-w-lg p-6">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-base font-semibold text-zinc-100">Create Lead</h2>
@@ -67,9 +71,9 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
         </div>
 
         {errorMessage && (
-          <div className="mb-4 rounded-lg border border-rose-800/60 bg-rose-950/50 p-3 text-xs text-rose-300">
+          <StatusAlert tone="danger">
             {errorMessage}
-          </div>
+          </StatusAlert>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,23 +128,23 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
           </label>
 
           <div className="flex justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-zinc-800 px-4 py-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+              variant="secondary"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSaving}
-              className="rounded-lg bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Create Lead"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
+      </Surface>
     </div>
   );
 }

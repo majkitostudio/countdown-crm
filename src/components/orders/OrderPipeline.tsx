@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowRight, ClipboardList, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
+import { StatusBadge, type SemanticTone } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 type PipelineStatus = "all" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
 
@@ -20,13 +22,11 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-function statusClass(status: string): string {
-  if (status === "completed" || status === "delivered") return "border-emerald-900/60 bg-emerald-950/30 text-emerald-300";
-  if (status === "sent") return "border-sky-900/60 bg-sky-950/30 text-sky-300";
-  if (status === "in_progress") return "border-blue-900/60 bg-blue-950/30 text-blue-300";
-  if (status === "cancelled" || status === "returned") return "border-rose-900/60 bg-rose-950/30 text-rose-300";
-  if (status === "pending") return "border-amber-900/60 bg-amber-950/30 text-amber-300";
-  return "border-zinc-700 bg-zinc-900 text-zinc-400";
+export function getOrderStatusTone(status: string): SemanticTone {
+  if (status === "completed" || status === "delivered") return "success";
+  if (status === "cancelled" || status === "returned") return "danger";
+  if (status === "pending") return "warning";
+  return "neutral";
 }
 
 function statusLabel(status: string): string {
@@ -53,7 +53,7 @@ export function OrderPipeline({ orders }: { orders: WorkspaceOrderDTO[] }) {
   );
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 shadow-sm">
+    <Surface variant="table">
       <div className="flex flex-col gap-3 border-b border-zinc-800/80 p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
           {filters.map((filter) => {
@@ -118,7 +118,7 @@ export function OrderPipeline({ orders }: { orders: WorkspaceOrderDTO[] }) {
                     <span className="block text-zinc-300">{order.product_title}</span>
                     <span className="mt-1 block text-[10px] uppercase tracking-wider text-zinc-600">{order.order_source.replaceAll("_", " ")}</span>
                   </td>
-                  <td className="px-5 py-4"><span className={`rounded-md border px-2 py-1 text-[10px] font-medium ${statusClass(order.status)}`}>{statusLabel(order.status)}</span></td>
+                  <td className="px-5 py-4"><StatusBadge tone={getOrderStatusTone(order.status)}>{statusLabel(order.status)}</StatusBadge></td>
                   <td className="px-5 py-4 text-zinc-400">{order.agent_name}</td>
                   <td className="px-5 py-4 text-right font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</td>
                   <td className="px-5 py-4 text-right"><Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-200"><ArrowRight className="h-3.5 w-3.5" /></Link></td>
@@ -128,6 +128,6 @@ export function OrderPipeline({ orders }: { orders: WorkspaceOrderDTO[] }) {
           </table>
         </div>
       )}
-    </div>
+    </Surface>
   );
 }

@@ -14,6 +14,7 @@ import { createOrderAction } from "@/app/actions/crm";
 import { completeLeadCallAction } from "@/app/actions/leadQueue";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
+import { StatusAlert } from "@/components/ui/Status";
 
 type OrderSource = "previous_call" | "email" | "web_form" | "manual" | "other";
 type OrderOrigin = "workspace" | "orders";
@@ -222,12 +223,7 @@ export function OrderCreateForm({
   return (
     <form onSubmit={submit} className="space-y-6">
       {errorMessage && (
-        <div
-          className="rounded-xl border border-rose-800/60 bg-rose-950/30 p-4 text-xs text-rose-200"
-          role="alert"
-        >
-          {errorMessage}
-        </div>
+        <StatusAlert tone="danger">{errorMessage}</StatusAlert>
       )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -490,10 +486,10 @@ export function OrderCreateForm({
               </div>
             </div>
             {isBelowMinimum && (
-              <div className="mt-5 rounded-xl border border-amber-800/70 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-200" role="status">
+              <StatusAlert tone="warning" role="status" className="w-full">
                 <p className="font-semibold">Order is below the minimum reference price.</p>
                 <p className="mt-1 text-amber-200/80">Minimum reference total: {orderCurrency} {minimumOrderTotal.toFixed(2)}. You can still create this order.</p>
-              </div>
+              </StatusAlert>
             )}
               <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] leading-relaxed text-zinc-400">
                 <CheckCircle2 className="mb-1.5 h-4 w-4 text-zinc-300" />

@@ -4,6 +4,8 @@ import { getWorkspaceOrder } from "@/lib/dal/activity";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { OrderStatusEditor } from "@/components/orders/OrderStatusEditor";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -56,7 +58,7 @@ export default async function OrderDetailPage({
 
   if ("error" in result) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-rose-900/50 bg-rose-950/20 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-rose-400" />
         <h1 className="text-base font-semibold text-zinc-100">Order unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">The order could not be loaded from the active workspace.</p>
@@ -64,7 +66,7 @@ export default async function OrderDetailPage({
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Link>
-      </div>
+      </Surface>
     );
   }
 
@@ -72,7 +74,7 @@ export default async function OrderDetailPage({
 
   if (!order) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Order not found</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">This order does not exist in the active workspace or is no longer available.</p>
@@ -80,7 +82,7 @@ export default async function OrderDetailPage({
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Link>
-      </div>
+      </Surface>
     );
   }
 
@@ -94,7 +96,7 @@ export default async function OrderDetailPage({
       <PageHeader
         icon={ShoppingCart}
         title="Order detail"
-        badge={{ label: statusLabel(order.status), tone: order.status === "completed" || order.status === "delivered" ? "success" : order.status === "pending" || order.status === "in_progress" ? "warning" : order.status === "returned" || order.status === "cancelled" ? "unavailable" : "neutral" }}
+        badge={{ label: statusLabel(order.status), tone: order.status === "completed" || order.status === "delivered" ? "success" : order.status === "pending" ? "warning" : "neutral" }}
         backLink={{ href: backHref, label: requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
         description={`Order #${order.id} · Created ${formatDate(order.created_at)}`}
         actions={canEditDetails ? (
@@ -200,12 +202,12 @@ export default async function OrderDetailPage({
         <aside className="h-fit space-y-6 lg:sticky lg:top-0">
           <OrderStatusEditor orderId={order.id} currentStatus={order.status} canEdit={canEdit} isManager={isManager} />
           {!canEditDetails && order.items.length === 0 && (
-            <section className="rounded-2xl border border-amber-900/50 bg-amber-950/20 p-5">
+            <StatusAlert tone="warning">
               <p className="text-xs font-medium text-amber-100">Legacy order details are read-only</p>
               <p className="mt-2 text-xs leading-relaxed text-amber-100/70">
                 This historical order has no editable item snapshot. Its product and total above are preserved as read-only order history.
               </p>
-            </section>
+            </StatusAlert>
           )}
           {!canEditDetails && order.items.length > 0 && order.status !== "pending" && order.status !== "in_progress" && (
             <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
@@ -227,7 +229,7 @@ export default async function OrderDetailPage({
               {minimumOrderTotal !== null && <div className="flex justify-between gap-4"><dt className="text-zinc-500">Minimum reference total</dt><dd className="font-mono text-right text-zinc-300">{order.currency} {minimumOrderTotal.toFixed(2)}</dd></div>}
               <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3"><dt className="text-zinc-400">Total</dt><dd className="font-mono text-base font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
             </dl>
-            {isBelowMinimum && <div className="mt-5 rounded-xl border border-amber-800/70 bg-amber-950/30 p-3 text-[11px] leading-relaxed text-amber-200">This order is below the minimum reference price. It was still allowed to be created.</div>}
+            {isBelowMinimum && <StatusAlert tone="warning">This order is below the minimum reference price. It was still allowed to be created.</StatusAlert>}
           </section>
           <Link href={backHref} className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 px-4 py-3 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100">
             <ArrowLeft className="h-3.5 w-3.5" />

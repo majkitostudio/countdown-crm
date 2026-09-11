@@ -18,6 +18,9 @@ import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import { updateLeadStatusAction } from "@/app/actions/crm";
 import { WorkspaceActivity } from "@/lib/domain";
 import { getLeadActivities } from "@/lib/domainActivity";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -122,7 +125,8 @@ export function LeadDetailDrawer({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-xl bg-zinc-950/90 backdrop-blur-xl border-l border-zinc-800/80 text-zinc-100 flex flex-col shadow-2xl">
+        <Surface variant="overlay" className="w-full">
+        <div className="w-screen max-w-xl text-zinc-100 flex flex-col">
           
           {/* Header */}
           <div className="px-6 py-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">
@@ -185,9 +189,9 @@ export function LeadDetailDrawer({
                   <option value="unresponsive">Unresponsive</option>
                 </select>
                 {statusError && (
-                  <p className="mt-2 text-[11px] text-rose-300" role="alert">
+                  <StatusAlert tone="danger">
                     Status nebyl uložen: {statusError}
-                  </p>
+                  </StatusAlert>
                 )}
               </div>
 
@@ -195,13 +199,13 @@ export function LeadDetailDrawer({
 
             {/* Quick Action Button */}
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => onStartCall && onStartCall(currentLead)}
-                className="flex-1 py-2.5 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg text-sm flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                className="w-full"
               >
                 <PhoneCall className="w-4 h-4 fill-current" />
                 Start Virtual Call
-              </button>
+              </Button>
               
               <a
                 href={`mailto:${currentLead.email || ""}`}
@@ -338,6 +342,7 @@ export function LeadDetailDrawer({
           </div>
 
         </div>
+        </Surface>
       </div>
     </div>
   );

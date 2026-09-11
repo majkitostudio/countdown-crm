@@ -2,7 +2,7 @@
 
 import React, { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Users, Sparkles, UserCheck, UserPlus, RefreshCw, LockKeyhole } from "lucide-react";
+import { Users, UserPlus, RefreshCw, LockKeyhole } from "lucide-react";
 import { listLeadsAction } from "@/app/actions/crm";
 import { Lead } from "@/lib/leads";
 import { LeadsTable } from "@/components/leads/LeadsTable";
@@ -15,6 +15,10 @@ import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBa
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { canManageLeads } from "@/lib/auth/roles";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 function LeadsPageContent() {
   const router = useRouter();
@@ -73,14 +77,14 @@ function LeadsPageContent() {
 
   if (!canManageLeadRecords) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Lead management unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
           Operators do not receive a lead directory or manual lead creation and editing access.
           Assignment will become available after a real inbound or call-queue integration is connected.
         </p>
-      </div>
+      </Surface>
     );
   }
 
@@ -133,84 +137,48 @@ function LeadsPageContent() {
       
       <PageHeader
         icon={Users}
-        title="Leads & Contacts"
-        badge={{ label: `${totalLeads} Total Leads`, tone: "neutral" }}
-        description="Manage prospective customers, view AI propensity scoring, and import campaign leads."
+        title="Leads"
+        badge={{ label: `${totalLeads} contacts`, tone: "neutral" }}
+        description="Review contacts, assignments, and next actions."
         actions={
           <>
           {/* View Switcher (Table / Kanban) */}
           <ViewSwitcher mode={viewMode} onModeChange={setViewMode} />
 
-          <button
+          <Button
             onClick={loadLeads}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors"
+            variant="secondary"
             title="Refresh Leads Data"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={() => setIsCreateModalManuallyOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
             <span>Create Lead</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={() => setIsImportModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium text-xs hover:border-zinc-700 hover:text-zinc-100 transition-colors"
+            variant="secondary"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Import CSV Database</span>
-          </button>
+            <span>Import CSV</span>
+          </Button>
           </>
         }
       />
 
-      {loadError && (
-        <div className="rounded-xl border border-rose-800/60 bg-rose-950/40 p-4 text-xs text-rose-300">
-          {loadError}
-        </div>
-      )}
+      {loadError && <StatusAlert tone="danger">{loadError}</StatusAlert>}
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Total Leads Card */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Total Contacts</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{totalLeads}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <Users className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Qualified Leads Card */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Qualified Rate</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{qualifiedRatio}%</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <UserCheck className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Avg AI Propensity Score */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Avg. AI Score</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{avgScore}/100</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <Sparkles className="w-4 h-4" />
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <MetricCard label="Contacts" value={totalLeads} />
+        <MetricCard label="Qualified" value={`${qualifiedRatio}%`} />
+        <MetricCard label="Average score" value={`${avgScore}/100`} />
       </div>
 
       {/* Advanced Filter Engine & Saved Views Bar */}

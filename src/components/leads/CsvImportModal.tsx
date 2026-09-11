@@ -3,6 +3,8 @@
 import React, { useState, useRef } from "react";
 import { X, UploadCloud, FileSpreadsheet, Sparkles, ArrowRight, AlertCircle } from "lucide-react";
 import { Lead, addLeadsBatch, calculateAiLeadScore } from "@/lib/leads";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface CsvImportModalProps {
   isOpen: boolean;
@@ -173,7 +175,8 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-zinc-950/90 border border-zinc-800/80 backdrop-blur-xl text-zinc-100 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <Surface variant="overlay" className="w-full">
+      <div className="w-full max-w-2xl overflow-hidden text-zinc-100 flex flex-col">
         
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
@@ -197,10 +200,10 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
         {/* Modal Body */}
         <div className="p-6 space-y-6">
           {importError && (
-            <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300">
+            <StatusAlert tone="danger">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{importError}</span>
-            </div>
+            </StatusAlert>
           )}
           
           {/* File Upload Zone */}
@@ -209,7 +212,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-zinc-700 hover:border-emerald-500/50 bg-zinc-950/50 hover:bg-zinc-900/60 rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
+              className="border-2 border-dashed border-zinc-700 bg-zinc-950/50 hover:bg-zinc-900/60 rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
             >
               <input
                 type="file"
@@ -218,7 +221,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="w-12 h-12 rounded-full bg-zinc-800 group-hover:bg-emerald-500/20 text-zinc-400 group-hover:text-emerald-400 flex items-center justify-center transition-colors">
+              <div className="w-12 h-12 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center transition-colors">
                 <UploadCloud className="w-6 h-6" />
               </div>
               <div>
@@ -386,6 +389,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
         </div>
 
       </div>
+      </Surface>
     </div>
   );
 }
