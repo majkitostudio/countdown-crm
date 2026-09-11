@@ -4,8 +4,8 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 7. 9. 2026
-**Repo baseline:** post-call hranice, Conversation Brief, Exception Queue, server-side osobní preference a Team Leader Review reálného hovoru
+**Snapshot:** 11. 9. 2026
+**Repo baseline:** post-call hranice, Conversation Brief, Exception Queue, server-side osobní preference, Team Leader Review reálného hovoru a schválený P1 návrh Klientského profilu
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -27,14 +27,16 @@ rozhodnutí, ne odvádět pozornost administrací.
 - role `operator`, `team_leader` a `administrator`,
 - workspace-scoped serverové guardy a Supabase RLS.
 
-Operator Console už obsahuje plný i kompaktní režim Client Profile, recent
-context řádek, klávesové zkratky, přístupný callback modal, `Operator Next
-Action`, první slice `Callback Recovery Inbox` a serverový Conversation Brief
-se skutečnými údaji a bezpečným dalším krokem. Product Script zůstává
-souvislou osnovou bez pracovního Run mode a bez potvrzování jednotlivých
-kroků během hovoru; jeho text má statické orientační sekce pro rychlejší
-čtení. Deterministické Customer 360, Next Best Action a Team Leader Daily
-Brief nejsou live AI predikce.
+Operator Console dnes obsahuje Client Profile kartu s plným i kompaktním
+režimem, recent context řádek, klávesové zkratky, přístupný callback modal,
+`Operator Next Action`, první slice `Callback Recovery Inbox` a serverový
+Conversation Brief se skutečnými údaji a bezpečným dalším krokem. Schválený
+P1 krok tuto kartu nahradí krátkým souhrnem v hlavičce přiřazeného zákazníka,
+focus režimem Product Scriptu a čtecím Klientským profilem v nové kartě.
+Produktový skript zůstává souvislou osnovou bez potvrzování jednotlivých kroků
+během hovoru; jeho text má statické orientační sekce pro rychlejší čtení.
+Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou
+live AI predikce.
 
 Team Leader a administrátor mají na samostatné stránce `/exceptions` odvozený
 Exception Queue. Zobrazuje pouze problémy doložené současnými workspace daty,
@@ -42,10 +44,11 @@ umožňuje je s důvodem vyřešit nebo odložit a každou změnu zapisuje do au
 Operátor položku v navigaci nevidí a serverový role guard odmítne i přímou URL.
 
 Osobní preference operátorů jsou uložené v `workspace_user_preferences` podle
-kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění a hustotu
-karty Client Profile. Server odvozuje identitu z přihlášené session, RLS brání
-čtení či zápisu cizích hodnot a staré browserové hodnoty se případně importují
-jen jednou.
+kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění; hustota
+karty Client Profile je schválená k odstranění v P1, protože pracovní kontext
+nebude řešen osobním přepínačem. Server odvozuje identitu z přihlášené session,
+RLS brání čtení či zápisu cizích hodnot a staré browserové hodnoty se případně
+importují jen jednou.
 
 Team Leader Review reálného hovoru je nyní oddělený od `/training/reviews`.
 Manažer nebo administrátor otevře přesný uložený hovor, vidí jeho outcome,

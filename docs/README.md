@@ -15,6 +15,8 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [P0_3_REMOTE_DB_RUNNER.md](P0_3_REMOTE_DB_RUNNER.md) | Bezpečný read-only runner pro skutečný linked databázový důkaz. |
 | [superpowers/specs/2026-09-07-project-checkpoint-design.md](superpowers/specs/2026-09-07-project-checkpoint-design.md) | Schválená hranice a prioritní model checkpointu. |
 | [superpowers/plans/2026-09-07-project-checkpoint.md](superpowers/plans/2026-09-07-project-checkpoint.md) | Provedený plán checkpointu a jeho ověřovací kroky. |
+| [superpowers/specs/2026-09-11-operator-workspace-client-profile-design.md](superpowers/specs/2026-09-11-operator-workspace-client-profile-design.md) | Schválený P1 návrh Klientského profilu, focus režimu skriptu a ověřené doručovací adresy. |
+| [superpowers/plans/2026-09-11-operator-client-profile-and-verified-address.md](superpowers/plans/2026-09-11-operator-client-profile-and-verified-address.md) | Aktuální implementační plán schváleného P1 kroku pro Operator Console. |
 | [superpowers/specs/2026-09-05-local-telephony-settings-design.md](superpowers/specs/2026-09-05-local-telephony-settings-design.md) | Schválená specifikace workspace adapteru, admin-only `/telephony` a lokální Asterisk laboratoře. |
 | [superpowers/reports/2026-09-05-local-telephony-verification.md](superpowers/reports/2026-09-05-local-telephony-verification.md) | Důkazní report lokálního Docker/Asterisk stavu, automatických kontrol a otevřených browser blockerů. |
 | [superpowers/plans/2026-09-05-local-telephony-settings-and-console.md](superpowers/plans/2026-09-05-local-telephony-settings-and-console.md) | Implementační plán a stav jednotlivých kroků lokální telefonní laboratoře. |

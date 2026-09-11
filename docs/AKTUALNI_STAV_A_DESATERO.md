@@ -1,6 +1,6 @@
 # Aktuální stav, jednotné To-Do a Desatero
 
-**Snapshot:** 7. 9. 2026
+**Snapshot:** 11. 9. 2026
 
 **Detailní zdroj pořadí práce:** tento dokument
 
@@ -92,12 +92,23 @@ akceptační kritéria a důkazní plán.
 3. **Opravit zavádějící text Call Logs.** UI nyní slibuje „full speech transcript“,
    přestože starší ani běžné hovory přepis mít nemusí.
    - Hotovo, když copy přesně rozlišuje uložený transcript od nedostupného stavu.
-4. **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
+4. **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
+   Základní kontext přesunout do hlavičky přiřazeného zákazníka, odstranit
+   Compact / Extended režim, umožnit zvětšení Product Scriptu bez ztráty identity
+   klienta a otevřít read-only Klientský profil v nové kartě. Operátor smí pouze
+   přidávat sdílené poznámky. Nové objednávky musí v ručním i post-call toku
+   atomicky uložit validovaný snapshot doručovací adresy. „Poslední ověřená
+   doručovací adresa“ smí pocházet jen z nejnovější skutečně doručené objednávky;
+   historická data se nedoplňují.
+   - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
+     prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
+     výběr adresy a odmítnutí cizího assignmentu.
+5. **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
    operátor, Team Leader a administrátor, včetně reloadu, persistence, prázdných
    stavů a přímých URL.
    - Hotovo, když report obsahuje kroky, identity rolí bez tajných údajů, read-back
      a cleanup; unit/build test se za tento důkaz nevydává.
-5. **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
+6. **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
    moderate advisories přes starší `uuid`; automatický audit navrhuje nevhodný
    major downgrade. Současně je nutné posoudit tři blokované install skripty.
    - Hotovo, když existuje bezpečná aktualizační/mitigační cesta a čistý nebo
@@ -147,9 +158,9 @@ migrační i autentizované testy prokážou pozitivní i negativní scénáře.
 3. Přesunout saved views z browserového stavu na server podle uživatele/workspace.
 4. Rozšířit auditní kontext tam, kde dnes akce nejde bezpečně vysvětlit.
 5. Dokončit cílený responsive a locale/currency průchod.
-6. Před dalším růstem rozdělit přetíženou stránku Workspace (aktuálně přes
-   1 100 řádků) a další kritické soubory podle odpovědností; refaktor nesmí měnit
-   chování bez testu.
+6. Po dokončení P1 Klientského profilu a focus režimu dále rozdělit přetíženou
+   stránku Workspace (aktuálně přes 1 100 řádků) a další kritické soubory podle
+   odpovědností; refaktor nesmí měnit chování bez testu.
 
 ## Externě blokované
 
