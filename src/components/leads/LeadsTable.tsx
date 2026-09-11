@@ -15,6 +15,7 @@ import { AttributeDefinition } from "@/lib/schema/types";
 import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
 import { saveAttributeAction } from "@/app/actions/schema";
 import { AddCustomFieldModal } from "@/components/schema/AddCustomFieldModal";
+import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -89,7 +90,7 @@ export function LeadsTable({
     <Surface variant="table">
       
       {/* Controls Bar: Search, Filters & Import Button */}
-      <div className="p-4 border-b border-zinc-800/80 flex flex-wrap items-center justify-between gap-4 bg-zinc-950/40">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800/80 p-4">
         
         {/* Left Side: Search + Status Filter Pills */}
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[300px]">
@@ -106,27 +107,23 @@ export function LeadsTable({
           </div>
 
           {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs">
+          <Surface variant="inset"><div className="flex items-center gap-1 p-1 text-xs">
             {["all", "new", "contacted", "qualified", "customer"].map((st) => (
-              <button
+              <Button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1 rounded-lg capitalize font-medium transition-all ${
-                  statusFilter === st
-                    ? "bg-zinc-800 text-zinc-100 shadow-xs"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
+                variant={statusFilter === st ? "primary" : "quiet"}
               >
                 {st}
-              </button>
+              </Button>
             ))}
-          </div>
+          </div></Surface>
         </div>
 
         {/* Right Side: Sorting & Actions */}
         <div className="flex items-center gap-3">
           {/* Sort dropdown */}
-          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-300">
+          <Surface variant="inset"><div className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-300">
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-zinc-500">Sort:</span>
             <select
@@ -138,26 +135,25 @@ export function LeadsTable({
               <option value="newest" className="bg-zinc-900">Newest Created</option>
               <option value="name" className="bg-zinc-900">Name (A-Z)</option>
             </select>
-          </div>
+          </div></Surface>
 
           {/* Add Custom Field CTA (Attio Schema) */}
-          <button
+          <Button
             onClick={() => setIsAddCustomFieldOpen(true)}
-            className="py-2 px-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 font-medium rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            variant="secondary"
             title="Add dynamic custom attribute to schema"
           >
             <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
             <span>+ Custom Field</span>
-          </button>
+          </Button>
 
           {/* Import CSV CTA */}
-          <button
+          <Button
             onClick={onOpenImportModal}
-            className="py-2 px-4 bg-zinc-100 text-zinc-950 font-medium rounded-xl text-xs flex items-center gap-2 hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Import CSV</span>
-          </button>
+          </Button>
         </div>
 
       </div>
@@ -272,7 +268,7 @@ export function LeadsTable({
       </div>
 
       {/* Table Footer */}
-      <div className="p-3 border-t border-zinc-800 bg-zinc-950 text-xs text-zinc-400 flex items-center justify-between">
+      <div className="flex items-center justify-between border-t border-zinc-800 p-3 text-xs text-zinc-400">
         <span>Showing <strong className="text-zinc-200">{filteredLeads.length}</strong> of <strong className="text-zinc-200">{leads.length}</strong> total leads</span>
         <span className="text-zinc-500 text-[11px]">Powered by AI Propensity Scoring Engine</span>
       </div>

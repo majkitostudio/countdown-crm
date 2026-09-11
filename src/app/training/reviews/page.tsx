@@ -34,7 +34,8 @@ export default async function TrainingReviewsPage() {
       : "Training reviews could not be loaded. No data was fabricated.";
 
     return (
-      <div className="mx-auto max-w-2xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-2xl">
+      <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Teamleader Review unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
@@ -42,6 +43,7 @@ export default async function TrainingReviewsPage() {
           <RefreshCw className="h-3.5 w-3.5" />
           Return to AI Training
         </Link>
+      </Surface>
       </div>
     );
   }

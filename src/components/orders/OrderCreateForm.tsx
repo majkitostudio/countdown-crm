@@ -15,6 +15,7 @@ import { completeLeadCallAction } from "@/app/actions/leadQueue";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 type OrderSource = "previous_call" | "email" | "web_form" | "manual" | "other";
 type OrderOrigin = "workspace" | "orders";
@@ -228,7 +229,7 @@ export function OrderCreateForm({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          <Surface variant="page"><section className="p-6">
             <div className="mb-5 flex items-start justify-between gap-4 border-b border-zinc-800/80 pb-4">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-100">Customer</h2>
@@ -279,9 +280,9 @@ export function OrderCreateForm({
                 </div>
               </div>
             )}
-          </section>
+          </section></Surface>
 
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          <Surface variant="page"><section className="p-6">
             <div className="mb-5 border-b border-zinc-800/80 pb-4">
               <h2 className="text-sm font-semibold text-zinc-100">Order items</h2>
               <p className="mt-1 text-xs text-zinc-500">
@@ -384,9 +385,9 @@ export function OrderCreateForm({
                 ))}
               </div>
             )}
-          </section>
+          </section></Surface>
 
-          {!isCallFlow && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          {!isCallFlow && <Surface variant="page"><section className="p-6">
             <div className="mb-5 border-b border-zinc-800/80 pb-4">
               <h2 className="text-sm font-semibold text-zinc-100">Order note and source</h2>
               <p className="mt-1 text-xs text-zinc-500">
@@ -422,9 +423,9 @@ export function OrderCreateForm({
                 />
               </label>
             </div>
-          </section>}
+          </section></Surface>}
 
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          <Surface variant="page"><section className="p-6">
             <div className="mb-5 flex items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-100">Lead note history</h2>
@@ -449,11 +450,11 @@ export function OrderCreateForm({
                 ))}
               </div>
             )}
-          </section>
+          </section></Surface>
         </div>
 
         <aside className="h-fit xl:sticky xl:top-0">
-          <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-sm">
+          <Surface variant="page"><div className="p-6">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-100">Order summary</h2>
@@ -491,12 +492,12 @@ export function OrderCreateForm({
                 <p className="mt-1 text-amber-200/80">Minimum reference total: {orderCurrency} {minimumOrderTotal.toFixed(2)}. You can still create this order.</p>
               </StatusAlert>
             )}
-              <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 text-[11px] leading-relaxed text-zinc-400">
+              <Surface variant="inset"><div className="mt-5 p-3 text-[11px] leading-relaxed text-zinc-400">
                 <CheckCircle2 className="mb-1.5 h-4 w-4 text-zinc-300" />
               {isCallFlow
                 ? "The order and completed call are written atomically on the server."
                 : "The order is created as In-Progress. Items, total and the audit event are written atomically on the server."}
-            </div>
+              </div></Surface>
             <button
               type="submit"
               disabled={isPending || !selectedLead || resolvedItems.length === 0}
@@ -512,7 +513,7 @@ export function OrderCreateForm({
             >
               Cancel
             </button>
-          </div>
+          </div></Surface>
         </aside>
       </div>
     </form>

@@ -8,6 +8,7 @@ import type {
   CallReviewDTO,
   CallReviewRevisionDTO,
 } from "@/lib/dal/callReviews";
+import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -57,10 +58,10 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
 
   if (transcript.kind === "plain_text") {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+      <Surface variant="inset"><div className="p-4">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Legacy unstructured transcript</p>
         <p className="mt-3 whitespace-pre-wrap text-xs leading-6 text-zinc-300">{transcript.text}</p>
-      </div>
+      </div></Surface>
     );
   }
 
@@ -68,9 +69,9 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
     <div className="space-y-3">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Structured transcript</p>
       {transcript.entries.map((entry, index) => (
+        <Surface key={`${entry.timestamp}-${index}`} variant="inset" className="w-full">
         <article
-          key={`${entry.timestamp}-${index}`}
-          className={`rounded-xl border p-3 text-xs ${entry.speaker === "operator" ? "ml-6 border-zinc-800 bg-zinc-950/60" : "mr-6 border-zinc-700 bg-zinc-900"}`}
+          className={`p-3 text-xs ${entry.speaker === "operator" ? "ml-6" : "mr-6"}`}
         >
           <div className="mb-1 flex justify-between gap-3 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
             <span>{entry.speaker === "operator" ? review.operator?.name || "Operator name not recorded" : review.customer?.name || "Customer name not recorded"}</span>
@@ -78,6 +79,7 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
           </div>
           <p className="leading-5 text-zinc-300">{entry.text}</p>
         </article>
+        </Surface>
       ))}
     </div>
   );
@@ -112,10 +114,10 @@ function ScriptEvidence({ review }: { review: CallReviewDTO }) {
         <p className="text-xs font-semibold text-emerald-200">{label}</p>
         <p className="mt-1 text-[11px] text-emerald-200/60">{script.productTitle} · captured {formatDate(script.capturedAt)}</p>
       </StatusAlert>
-      <div
-        className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5 text-sm leading-7 text-zinc-300 [&_p]:mb-3 [&_p:last-child]:mb-0"
+      <Surface variant="inset"><div
+        className="p-5 text-sm leading-7 text-zinc-300 [&_p]:mb-3 [&_p:last-child]:mb-0"
         dangerouslySetInnerHTML={{ __html: script.html }}
-      />
+      /></Surface>
     </div>
   );
 }
@@ -182,9 +184,9 @@ export function CallReviewForm({
 
   return (
     <form className="space-y-4" onSubmit={submit}>
-      <p className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-300">
+      <Surface variant="inset"><p className="px-3 py-2 text-xs text-zinc-300">
         Human decision only. AI has not issued this verdict.
-      </p>
+      </p></Surface>
       <label className="block text-xs font-medium text-zinc-400">
         Verdict
         <input
@@ -233,21 +235,20 @@ export function CallReviewForm({
       {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
       {successMessage && <StatusAlert tone="success" role="status" aria-live="polite">{successMessage}</StatusAlert>}
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center justify-center rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending
             ? "Saving…"
             : isCorrectionMode
               ? `Save correction as revision ${expectedRevision + 1}`
               : "Complete human review"}
-        </button>
+        </Button>
         {isCorrectionMode && (
-          <button type="button" onClick={onCancel} disabled={isPending} className="rounded-xl border border-zinc-800 px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 disabled:opacity-50">
+          <Button type="button" onClick={onCancel} disabled={isPending} variant="secondary">
             Cancel correction
-          </button>
+          </Button>
         )}
       </div>
     </form>
@@ -303,14 +304,14 @@ export function CallReviewWorkspace({ initialReview }: { initialReview: CallRevi
           />
         ) : (
           <div className="space-y-3">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+            <Surface variant="inset"><div className="p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest verdict · revision {latestRevision.revisionNumber}</p>
               <p className="mt-2 text-sm font-semibold text-zinc-100">{latestRevision.verdict}</p>
               <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-zinc-300">{latestRevision.coachingNote}</p>
-            </div>
-            <button type="button" onClick={() => setIsCorrectionMode(true)} className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-800">
+            </div></Surface>
+            <Button type="button" onClick={() => setIsCorrectionMode(true)} variant="secondary">
               Correct completed review
-            </button>
+            </Button>
           </div>
         )}
       </Section>
@@ -321,7 +322,7 @@ export function CallReviewWorkspace({ initialReview }: { initialReview: CallRevi
         ) : (
           <ol className="space-y-4">
             {initialReview.revisions.map((revision) => (
-              <li key={revision.id} className="relative rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
+              <Surface key={revision.id} variant="inset" className="w-full"><li className="relative p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-xs font-semibold text-zinc-200">Revision {revision.revisionNumber}</p>
                   <p className="inline-flex items-center gap-1.5 text-[10px] text-zinc-500"><Clock3 className="h-3 w-3" />{formatDate(revision.createdAt)}</p>
@@ -330,7 +331,7 @@ export function CallReviewWorkspace({ initialReview }: { initialReview: CallRevi
                 <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-zinc-300">{revision.coachingNote}</p>
                 {revision.correctionReason && <p className="mt-3 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200/80"><strong>Correction reason:</strong> {revision.correctionReason}</p>}
                 <p className="mt-3 text-[10px] text-zinc-500">Reviewed by {revision.reviewer.name || "name not recorded"}</p>
-              </li>
+              </li></Surface>
             ))}
           </ol>
         )}

@@ -32,7 +32,8 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
       : "This training review could not be loaded. No data was fabricated.";
 
     return (
-      <div className="mx-auto max-w-2xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-2xl">
+      <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Review unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
@@ -40,13 +41,15 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to reviews
         </Link>
+      </Surface>
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-2xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-2xl">
+      <Surface variant="empty">
         <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
         <h1 className="text-base font-semibold text-zinc-100">Training session not found</h1>
         <p className="mt-2 text-xs text-zinc-500">The session does not exist in the current workspace or is no longer available.</p>
@@ -54,6 +57,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to reviews
         </Link>
+      </Surface>
       </div>
     );
   }
@@ -101,7 +105,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           </div>
 
           {session.turns.length === 0 ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-8 text-center text-xs text-zinc-500">This session has no transcript turns.</div>
+            <Surface variant="empty">This session has no transcript turns.</Surface>
           ) : (
             <div className="space-y-4">
               {session.turns.map((turn) => {
@@ -132,14 +136,14 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
         </Surface>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-5">
+          <Surface variant="inset"><div className="p-5">
             <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><ShieldCheck className="h-4 w-4 text-zinc-400" /> Score summary</h2>
             <p className="mt-3 text-xs leading-relaxed text-zinc-400">{scorecard.summaryFeedback || "No summary feedback was stored for this session."}</p>
-          </div>
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-5">
+          </div></Surface>
+          <Surface variant="inset"><div className="p-5">
             <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><LockKeyhole className="h-4 w-4 text-zinc-400" /> Access boundary</h2>
             <p className="mt-3 text-xs leading-relaxed text-zinc-400">This review is visible only to Team Leaders and Administrators who are members of the same workspace.</p>
-          </div>
+          </div></Surface>
         </div>
       </div>
   );

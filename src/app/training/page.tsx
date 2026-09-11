@@ -590,11 +590,9 @@ export default function TrainingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TRAINING_SCENARIOS.map((scenario) => (
-              <div
-                key={scenario.id}
-                className="group flex flex-col justify-between p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 hover:border-zinc-700/80 backdrop-blur-md transition-all shadow-sm"
-              >
-                <div className="space-y-3">
+              <Surface key={scenario.id} variant="inset" className="w-full">
+                <div className="group flex h-full flex-col justify-between p-5 transition-colors">
+                  <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <StatusBadge tone="neutral">
                       {difficultyLabels[scenario.difficulty]}
@@ -627,14 +625,15 @@ export default function TrainingPage() {
                   </div>
                 </div>
 
-                <Button
-                  onClick={() => handleStartScenario(scenario)}
-                  className="w-full"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  Start training
-                </Button>
-              </div>
+                  <Button
+                    onClick={() => handleStartScenario(scenario)}
+                    className="w-full"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    Start training
+                  </Button>
+                </div>
+              </Surface>
             ))}
           </div>
         </div>
@@ -642,7 +641,9 @@ export default function TrainingPage() {
         /* Active Roleplay Session */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left / Center Chat & Voice Box */}
-          <div className="lg:col-span-2 flex flex-col h-[650px] bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl shadow-sm overflow-hidden">
+          <div className="lg:col-span-2">
+          <Surface variant="page" className="w-full">
+          <div className="flex h-[650px] flex-col overflow-hidden">
             {/* Session Top Bar */}
             <div className="px-5 py-3.5 border-b border-zinc-800/80 bg-zinc-950/80 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -896,10 +897,12 @@ export default function TrainingPage() {
               </div>
             </div>
           </div>
+          </Surface>
+          </div>
 
           {/* Right Sidebar: Scenario Guidelines & Realtime Compliance Monitor */}
           <div className="space-y-5">
-            <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-4">
+            <Surface variant="page" className="w-full"><div className="space-y-4 p-5">
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                 <Target className="w-4 h-4 text-zinc-400" />
                 Scenario & call objectives
@@ -921,10 +924,10 @@ export default function TrainingPage() {
                   ))}
                 </div>
               </div>
-            </div>
+            </div></Surface>
 
             {/* Live Compliance Checker Alerts */}
-            <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-3">
+            <Surface variant="page" className="w-full"><div className="space-y-3 p-5">
               <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-zinc-400" />
                 Compliance monitor
@@ -954,12 +957,12 @@ export default function TrainingPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </div></Surface>
           </div>
         </div>
       ) : scorecard && selectedScenario ? (
         /* Evaluation Scorecard Results */
-        <div className="p-8 rounded-xl bg-zinc-900/60 border border-zinc-800/80 backdrop-blur-md space-y-8 max-w-4xl mx-auto">
+        <Surface variant="page" className="w-full"><div className="mx-auto max-w-4xl space-y-8 p-8">
           <div className="text-center space-y-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-300 mb-1">
               <Award className="w-6 h-6" />
@@ -968,26 +971,26 @@ export default function TrainingPage() {
             <p className="text-xs text-zinc-400">Scenario: {getScenarioUiCopy(selectedScenario).title}</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
+          <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-3">
+            <Surface variant="inset"><div className="space-y-1 p-4">
               <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.grade}</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Grade</span>
-            </div>
+            </div></Surface>
 
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
+            <Surface variant="inset"><div className="space-y-1 p-4">
               <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.overallScore}%</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Overall score</span>
-            </div>
+            </div></Surface>
 
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-1">
+            <Surface variant="inset"><div className="space-y-1 p-4">
               <span className="text-2xl font-bold font-mono text-zinc-100">{scorecard.complianceScore}%</span>
               <span className="text-[10px] block text-zinc-400 uppercase tracking-wider font-medium">Compliance</span>
-            </div>
+            </div></Surface>
 
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Surface variant="inset"><div className="space-y-3 p-5">
               <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-zinc-400" /> Strengths
               </h4>
@@ -999,9 +1002,9 @@ export default function TrainingPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div></Surface>
 
-            <div className="p-5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-3">
+            <Surface variant="inset"><div className="space-y-3 p-5">
               <h4 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-zinc-400" /> Improvement opportunities
               </h4>
@@ -1013,7 +1016,7 @@ export default function TrainingPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div></Surface>
           </div>
 
           <StatusAlert tone={(transcriptSaveState === "saved" ? "success" : transcriptSaveState === "saving" ? "warning" : transcriptSaveState === "error" ? "danger" : "neutral") as SemanticTone} role="status">
@@ -1023,10 +1026,10 @@ export default function TrainingPage() {
             {transcriptSaveState === "error" && "Training transcript could not be saved. The scorecard remains available for this session only."}
           </StatusAlert>
 
-          <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-300 leading-relaxed">
+          <Surface variant="inset"><div className="p-4 text-xs leading-relaxed text-zinc-300">
             <strong className="text-zinc-200 font-semibold block mb-1">AI final assessment:</strong>
             {scorecard.summaryFeedback}
-          </div>
+          </div></Surface>
 
           <div className="flex justify-center gap-4 pt-2">
             <button
@@ -1040,7 +1043,7 @@ export default function TrainingPage() {
               Choose another scenario
             </button>
           </div>
-        </div>
+        </div></Surface>
       ) : null}
     </div>
   );

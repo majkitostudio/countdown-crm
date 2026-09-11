@@ -31,7 +31,8 @@ describe("CRM color hierarchy", () => {
     expect(callback).toContain('className="rounded-lg bg-zinc-900 p-2 text-zinc-300"');
     expect(drawer).toContain('border border-zinc-700 bg-zinc-900');
     expect(drawer).toContain('text-zinc-200 hover:bg-zinc-800');
-    expect(review).toContain('border-zinc-800 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-300');
+    expect(review).toContain('import { Surface } from "@/components/ui/Surface"');
+    expect(review).toContain('<Surface variant="inset">');
     expect(getMetricValueClassName()).toBe("text-zinc-100");
   });
 
