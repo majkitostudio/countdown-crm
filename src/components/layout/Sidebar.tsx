@@ -46,8 +46,9 @@ export function Sidebar() {
     const getStatusMenuItems = () => Array.from(
       statusMenuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') ?? [],
     );
-    const firstMenuItem = getStatusMenuItems()[0];
-    firstMenuItem?.focus();
+    const statusMenuItems = getStatusMenuItems();
+    const selectedMenuItem = statusMenuItems.find((item) => item.getAttribute("aria-checked") === "true");
+    (selectedMenuItem ?? statusMenuItems[0])?.focus();
 
     const handleStatusMenuKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
