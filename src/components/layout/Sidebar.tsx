@@ -43,17 +43,37 @@ export function Sidebar() {
   useEffect(() => {
     if (!statusMenuOpen) return;
 
-    const firstMenuItem = statusMenuRef.current?.querySelector<HTMLElement>('[role="menuitem"]');
+    const getStatusMenuItems = () => Array.from(
+      statusMenuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') ?? [],
+    );
+    const firstMenuItem = getStatusMenuItems()[0];
     firstMenuItem?.focus();
 
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      closeStatusMenu();
+    const handleStatusMenuKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeStatusMenu();
+        return;
+      }
+
+      const items = getStatusMenuItems();
+      if (items.length === 0) return;
+
+      const currentIndex = Math.max(0, items.indexOf(document.activeElement as HTMLButtonElement));
+      let nextIndex: number | null = null;
+      if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % items.length;
+      if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + items.length) % items.length;
+      if (event.key === "Home") nextIndex = 0;
+      if (event.key === "End") nextIndex = items.length - 1;
+
+      if (nextIndex !== null) {
+        event.preventDefault();
+        items[nextIndex]?.focus();
+      }
     };
 
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", handleStatusMenuKeyDown);
+    return () => window.removeEventListener("keydown", handleStatusMenuKeyDown);
   }, [statusMenuOpen]);
 
   const getStatusLabel = (s: OperatorStatus) => {
@@ -186,7 +206,8 @@ export function Sidebar() {
                   key={s}
                   variant={status === s ? "secondary" : "quiet"}
                   className="w-full"
-                  role="menuitem"
+                  role="menuitemradio"
+                  aria-checked={status === s}
                   onClick={() => {
                     setStatus(s);
                     closeStatusMenu();

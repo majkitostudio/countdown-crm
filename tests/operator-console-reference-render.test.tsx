@@ -112,9 +112,12 @@ it("keeps an active simulated call visually neutral while preserving the destruc
     />,
   );
 
-  expect(markup).toContain("bg-zinc-500");
+  expect(markup).toContain('class="inline-flex h-2 w-2 rounded-full bg-zinc-500" aria-hidden="true"');
+  expect(markup).not.toContain("bg-rose-400");
+  expect(markup).not.toContain("bg-rose-500");
   expect(markup).toContain('class="text-zinc-300" aria-label="Simulated audio activity"');
-  expect(markup).toContain("bg-rose-950/20");
+  expect(markup).not.toContain("text-emerald-400");
+  expect(markup).toContain('class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 border border-rose-800/50 bg-rose-950/20 text-rose-200 hover:bg-rose-950/40" aria-busy="false" aria-label="End call with Alex Customer"');
 });
 
 it("restores focus to the command-palette opener after Escape and traps Tab within the dialog", () => {
@@ -158,7 +161,20 @@ describe("sidebar operator-status menu", () => {
     const menu = document.querySelector<HTMLElement>('[role="menu"][aria-label="Operator status"]');
     expect(menu).not.toBeNull();
     expect(toggle?.getAttribute("aria-expanded")).toBe("true");
-    expect(menu?.querySelectorAll('[role="menuitem"]')).toHaveLength(3);
+    const statusChoices = menu?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') ?? [];
+    expect(statusChoices).toHaveLength(3);
+    expect(statusChoices[0]?.getAttribute("aria-checked")).toBe("true");
+    expect(statusChoices[1]?.getAttribute("aria-checked")).toBe("false");
+    expect(document.activeElement).toBe(statusChoices[0]);
+
+    dispatchWindowKey("ArrowDown");
+    expect(document.activeElement).toBe(statusChoices[1]);
+
+    dispatchWindowKey("End");
+    expect(document.activeElement).toBe(statusChoices[2]);
+
+    dispatchWindowKey("Home");
+    expect(document.activeElement).toBe(statusChoices[0]);
 
     dispatchWindowKey("Escape");
     expect(document.querySelector('[role="menu"][aria-label="Operator status"]')).toBeNull();
