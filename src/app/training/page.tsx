@@ -32,7 +32,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
@@ -625,13 +627,13 @@ export default function TrainingPage() {
                   </div>
                 </div>
 
-                <button
+                <Button
                   onClick={() => handleStartScenario(scenario)}
-                  className="mt-5 w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+                  className="w-full"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
                   Start training
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -652,34 +654,10 @@ export default function TrainingPage() {
                     <h3 className="text-xs font-semibold text-zinc-200">{selectedScenario.customerName}</h3>
                     
                     {/* Audio Waveform Indicator */}
-                    {isAiSpeaking && (
-                      <div className="flex items-center gap-1 h-3 shrink-0 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/80">
-                        <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-2" />
-                        <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-3 delay-75" />
-                        <span className="w-1 bg-emerald-400 rounded-full animate-bounce h-1 delay-150" />
-                        <span className="text-[10px] text-emerald-400 font-mono font-medium ml-1">AI speaking</span>
-                      </div>
-                    )}
+                    {isAiSpeaking && <StatusBadge tone="neutral">AI speaking</StatusBadge>}
 
                     {/* Customer Mood Badge */}
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[10px] font-mono border flex items-center gap-1",
-                      customerMood === "Nadšený" || customerMood === "Klidný"
-                        ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
-                        : customerMood === "Skeptický" || customerMood === "Nedůvěřivý"
-                        ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
-                        : "bg-rose-950/60 text-rose-300 border-rose-800/60"
-                    )}>
-                      <span className={cn(
-                        "w-1.5 h-1.5 rounded-full",
-                        customerMood === "Nadšený" || customerMood === "Klidný"
-                          ? "bg-emerald-400"
-                          : customerMood === "Skeptický" || customerMood === "Nedůvěřivý"
-                          ? "bg-amber-400"
-                          : "bg-rose-400"
-                      )} />
-                      {moodLabels[customerMood] || customerMood}
-                    </span>
+                  <StatusBadge tone="neutral">{moodLabels[customerMood] || customerMood}</StatusBadge>
                   </div>
 
                   {/* Patience Gauge Progress Bar */}
@@ -689,7 +667,7 @@ export default function TrainingPage() {
                       <div
                         className={cn(
                           "h-full transition-all duration-300",
-                          patience > 60 ? "bg-emerald-500" : patience > 30 ? "bg-amber-500" : "bg-rose-500"
+                          "bg-zinc-400"
                         )}
                         style={{ width: `${patience}%` }}
                       />
@@ -700,42 +678,37 @@ export default function TrainingPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={() => {
                     if (isAiSpeaking) stopSpeaking();
                     setIsVoiceModeEnabled(!isVoiceModeEnabled);
                   }}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer",
-                    isVoiceModeEnabled
-                      ? "bg-zinc-900 text-zinc-200 border-zinc-800 hover:border-zinc-700"
-                      : "bg-zinc-950 text-zinc-500 border-zinc-900 hover:text-zinc-300"
-                  )}
+                  variant="secondary"
                   title={isVoiceModeEnabled ? "Turn off AI voice output" : "Turn on AI voice output"}
                 >
-                  {isVoiceModeEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5" />}
+                  {isVoiceModeEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                   <span>{isVoiceModeEnabled ? "Customer voice (TTS ON)" : "TTS OFF"}</span>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   disabled={isBotThinking}
                   onClick={() => {
                     stopSpeaking();
                     handleFinishTraining();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 text-xs font-semibold transition-colors shadow-sm cursor-pointer"
+                  variant="primary"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   Finish & evaluate
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Training Session Status Sub-Bar */}
             <div className="px-5 py-2 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center justify-between text-xs font-mono">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="flex items-center gap-1.5 text-zinc-300">
                   <PhoneCall className="w-3.5 h-3.5 animate-pulse" />
                   <span>Training session • Session-only</span>
                 </span>
@@ -745,52 +718,33 @@ export default function TrainingPage() {
                   <span>{formatDuration(callDurationSeconds)}</span>
                 </span>
                 <span className="text-zinc-700">|</span>
-                <span className={cn(
-                  "flex items-center gap-1.5",
-                  callState === "ai-speaking" ? "text-emerald-300" : callState === "processing" || callState === "endpointing" ? "text-amber-300" : "text-zinc-300"
-                )}>
-                  <span className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    callState === "ai-speaking" ? "bg-emerald-400 animate-pulse" : callState === "processing" || callState === "endpointing" ? "bg-amber-400 animate-pulse" : "bg-zinc-500"
-                  )} />
-                  <span>{callState === "ai-speaking" ? "AI speaking" : callState === "processing" ? "Processing" : callState === "endpointing" ? "Finishing turn" : isRecording ? "Listening" : "Ready"}</span>
-                </span>
+                <StatusBadge tone="neutral">{callState === "ai-speaking" ? "AI speaking" : callState === "processing" ? "Processing" : callState === "endpointing" ? "Finishing turn" : isRecording ? "Listening" : "Ready"}</StatusBadge>
               </div>
 
               <div className="flex items-center gap-3">
                 {/* Speech Rate Coach Badge */}
-                <span className={cn(
-                  "flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] border font-mono",
-                  calculateWpm().status === "optimal"
-                    ? "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
-                    : calculateWpm().status === "slow"
-                    ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
-                    : "bg-rose-950/60 text-rose-300 border-rose-800/60"
-                )}>
+                <StatusBadge tone="neutral">
                   <Gauge className="w-3 h-3" />
                   <span>{calculateWpm().label}</span>
-                </span>
+                </StatusBadge>
 
               </div>
             </div>
 
-            <div className={cn(
-              "px-5 py-2 border-b text-[10px] font-mono",
-              aiSource === "gemini-flash" || aiSource === "openai-responses"
-                ? "bg-emerald-950/30 border-emerald-900/50 text-emerald-300"
-                : "bg-amber-950/30 border-amber-900/50 text-amber-300"
-            )}>
+            <Surface variant="inset" className="w-full">
+              <div className="px-5 py-2 text-[10px] font-mono text-zinc-300">
               <span>{aiSource === "gemini-flash" ? "Gemini Flash" : aiSource === "openai-responses" ? "OpenAI Responses" : aiSource === "rule-engine" ? "Local training engine" : "AI source pending"}</span>
-              {aiNotice && <span className="ml-2 text-amber-200">• {aiNotice}</span>}
-            </div>
+              {aiNotice && <StatusAlert tone="warning" className="w-full">{aiNotice}</StatusAlert>}
+              </div>
+            </Surface>
 
             {/* Teleprompter / Live Sales Script Reader Widget */}
             {selectedScenario && (
               <div className="px-5 py-3 bg-zinc-950/90 border-b border-zinc-800/80 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1">
-                      <Radio className="w-3 h-3 animate-pulse text-emerald-400" />
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-semibold flex items-center gap-1">
+                      <Radio className="w-3 h-3 animate-pulse text-zinc-400" />
                       Teleprompter (live script reader)
                     </span>
                   </div>
@@ -809,7 +763,7 @@ export default function TrainingPage() {
                         className={cn(
                           "px-2 py-0.5 rounded transition-colors cursor-pointer",
                           activeScriptPhase === p.phase
-                            ? "bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold"
+                            ? "bg-zinc-800 text-zinc-100 border border-zinc-700 font-bold"
                             : "bg-zinc-900 text-zinc-500 hover:text-zinc-300"
                         )}
                       >
@@ -824,7 +778,7 @@ export default function TrainingPage() {
                     <span className="text-[9px] uppercase tracking-wider font-semibold text-zinc-500 block">
                       Recommended product script:
                     </span>
-                    <p className="italic text-emerald-200 text-xs">
+                    <p className="italic text-zinc-200 text-xs">
                       &ldquo;{getTeleprompterScript(selectedScenario.targetProduct, activeScriptPhase, selectedScenario.personalityType)}&rdquo;
                     </p>
                   </div>
@@ -897,9 +851,9 @@ export default function TrainingPage() {
             {/* Input Controls & Speech Recognition */}
             <div className="p-4 border-t border-zinc-800/80 bg-zinc-950/80 space-y-3">
               {liveTranscript && (
-                <div className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200">
-                  <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-emerald-400">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-200">
+                  <div className="mb-1 flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" />
                     <span>Operator transcript</span>
                   </div>
                   <p>{liveTranscript}</p>
@@ -978,7 +932,7 @@ export default function TrainingPage() {
 
               {activeViolations.length === 0 ? (
                 <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs flex items-center gap-2 font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                   <span>No compliance violations detected.</span>
                 </div>
               ) : (

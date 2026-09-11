@@ -55,7 +55,9 @@ describe("shared operator console design primitives", () => {
   it("keeps ordinary status and metric content neutral", () => {
     expect(getStatusClassName("neutral")).toContain("text-zinc-300");
     expect(renderToStaticMarkup(<StatusBadge tone="neutral">In progress</StatusBadge>)).not.toMatch(/emerald|amber|rose/);
-    expect(renderToStaticMarkup(<MetricCard label="Orders" value="24" />)).toContain("text-zinc-100");
+    const metricMarkup = renderToStaticMarkup(<MetricCard label="Orders" value="24" />);
+    expect(metricMarkup).toContain("text-zinc-100");
+    expect(metricMarkup).toMatch(/bg-zinc-950\/60"><div class="p-4">/);
   });
 
   it("gives every semantic state one shared recipe", () => {

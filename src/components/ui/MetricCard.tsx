@@ -24,10 +24,12 @@ export type MetricCardProps = {
 
 export function MetricCard({ label, value, valueTone = "neutral", detail, className }: MetricCardProps) {
   return (
-    <Surface variant="inset" className={["p-4", className].filter(Boolean).join(" ")}>
-      <p className="text-xs font-medium text-zinc-500">{label}</p>
-      <p className={["mt-2 text-2xl font-semibold tracking-tight", getMetricValueClassName(valueTone)].join(" ")}>{value}</p>
-      {detail ? <p className="mt-1 text-xs text-zinc-500">{detail}</p> : null}
+    <Surface variant="inset" className={className}>
+      <div className="p-4">
+        <p className="text-xs font-medium text-zinc-500">{label}</p>
+        <p className={["mt-2 text-2xl font-semibold tracking-tight", getMetricValueClassName(valueTone)].join(" ")}>{value}</p>
+        {detail ? <p className="mt-1 text-xs text-zinc-500">{detail}</p> : null}
+      </div>
     </Surface>
   );
 }

@@ -59,19 +59,19 @@ export function Customer360RetentionCard({
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
+            <Surface variant="inset"><div className="p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest order</p>
               <p className="mt-1 text-xs font-medium text-zinc-200">{snapshot.lastProduct || "No order yet"}</p>
               <p className="mt-1 text-[11px] text-zinc-500">{formatDate(snapshot.lastOrderAt)}</p>
-            </div>
-            <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
+            </div></Surface>
+            <Surface variant="inset"><div className="p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Last call outcome</p>
               <p className="mt-1 text-xs font-medium text-zinc-200">{snapshot.lastCallOutcome?.replaceAll("_", " ") || "No call yet"}</p>
               <p className="mt-1 text-[11px] text-zinc-500">{formatDate(snapshot.lastCallAt)}</p>
-            </div>
+            </div></Surface>
           </div>
 
-          <div className="flex flex-col gap-3 rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <Surface variant="inset"><div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Next retention action</p>
               <p className="mt-1 text-sm font-medium text-zinc-100">{snapshot.nextAction.title}</p>
@@ -80,7 +80,7 @@ export function Customer360RetentionCard({
             <Link href={snapshot.nextAction.href} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-white">
               Open action <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
-          </div>
+          </div></Surface>
         </>
       ) : null}
     </section>

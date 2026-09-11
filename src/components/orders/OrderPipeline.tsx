@@ -5,6 +5,7 @@ import { ArrowRight, ClipboardList, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
 import { StatusBadge, type SemanticTone } from "@/components/ui/Status";
+import { Button } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
 
 type PipelineStatus = "all" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
@@ -59,18 +60,14 @@ export function OrderPipeline({ orders }: { orders: WorkspaceOrderDTO[] }) {
           {filters.map((filter) => {
             const count = filter.value === "all" ? orders.length : orders.filter((order) => order.status === filter.value).length;
             return (
-              <button
+              <Button
                 key={filter.value}
                 type="button"
                 onClick={() => setActiveFilter(filter.value)}
-                className={`rounded-lg border px-3 py-2 text-[11px] transition-colors ${
-                  activeFilter === filter.value
-                    ? "border-zinc-500 bg-zinc-100 text-zinc-950"
-                    : "border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
-                }`}
+                variant={activeFilter === filter.value ? "primary" : "secondary"}
               >
                 {filter.label} <span className="ml-1 font-mono opacity-70">{count}</span>
-              </button>
+              </Button>
             );
           })}
         </div>

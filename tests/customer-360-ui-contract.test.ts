@@ -1,18 +1,19 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-
-const projectRoot = path.resolve(__dirname, "..");
+import { Customer360RetentionCard } from "@/components/leads/Customer360RetentionCard";
 
 describe("Customer 360 UI contract", () => {
-  it("mounts a truthful retention snapshot on the lead detail route", () => {
-    const page = readFileSync(path.join(projectRoot, "src", "app", "leads", "[leadId]", "page.tsx"), "utf8");
-    const card = readFileSync(path.join(projectRoot, "src", "components", "leads", "Customer360RetentionCard.tsx"), "utf8");
+  it("renders persisted activity without fabricating a retention action", () => {
+    const markup = renderToStaticMarkup(createElement(Customer360RetentionCard, {
+      lead: { id: "lead-1", full_name: "Customer One" } as never,
+      activity: { calls: [], orders: [] },
+      activityUnavailable: true,
+    }));
 
-    expect(page).toContain("<Customer360RetentionCard");
-    expect(page).toContain("listWorkspaceLeadActivity");
-    expect(card).toContain('data-testid="customer-360-retention"');
-    expect(card).toContain("Persisted workspace data");
-    expect(card).toContain("activityUnavailable");
+    expect(markup).toContain('data-testid="customer-360-retention"');
+    expect(markup).toContain("Persisted workspace data");
+    expect(markup).toContain("Customer activity is unavailable");
+    expect(markup).not.toContain("Next retention action");
   });
 });
