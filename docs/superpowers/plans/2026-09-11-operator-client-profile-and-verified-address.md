@@ -12,6 +12,8 @@
 
 **Approved design baseline:** `ae5c014` (`docs: define operator client profile`)
 
+**Required prerequisite:** Complete and verify `docs/superpowers/plans/2026-09-11-unified-operator-console-design-system.md` before starting Task 1.
+
 ## Global Constraints
 
 - Operátor v profilu pouze přidává append-only poznámku; žádný údaj klienta nemění.

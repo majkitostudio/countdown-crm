@@ -39,3 +39,8 @@ Pokud dokument odporuje kódu nebo ověřenému prostředí, dokument je zastara
 - commitové katalogy,
 - jednorázové auditní výpisy bez aktuálního účelu,
 - tajné klíče, tokeny, hesla nebo osobní údaje.
+
+# Unified Operator Console Design System
+
+- Approved specification: `superpowers/specs/2026-09-11-unified-operator-console-design-system.md`
+- Implementation plan: `superpowers/plans/2026-09-11-unified-operator-console-design-system.md`

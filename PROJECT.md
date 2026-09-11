@@ -35,6 +35,9 @@ P1 krok tuto kartu nahradí krátkým souhrnem v hlavičce přiřazeného zákaz
 focus režimem Product Scriptu a čtecím Klientským profilem v nové kartě.
 Schválená specifikace tohoto kroku je v commitu `ae5c014` a navazující
 implementační plán určuje jeho pořadí v jednotném backlogu.
+Před jeho implementací je povinné sjednotit vzhled všech CRM cest podle
+Operator Console: specifikace je v commitu `6c01c57` a pořadí provedení
+určuje `docs/superpowers/plans/2026-09-11-unified-operator-console-design-system.md`.
 Produktový skript zůstává souvislou osnovou bez potvrzování jednotlivých kroků
 během hovoru; jeho text má statické orientační sekce pro rychlejší čtení.
 Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou

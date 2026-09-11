@@ -92,7 +92,16 @@ akceptační kritéria a důkazní plán.
 3. **Opravit zavádějící text Call Logs.** UI nyní slibuje „full speech transcript“,
    přestože starší ani běžné hovory přepis mít nemusí.
    - Hotovo, když copy přesně rozlišuje uložený transcript od nedostupného stavu.
-4. **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
+4. **Sjednotit celý CRM vzhledem Operator Console.** Zavést společný systém
+   povrchů, tlačítek, stavových prvků a metrik; upravit stručnost textů a
+   nechat barvy výhradně pro potvrzený výsledek, nutnou pozornost a riziko.
+   Stejný prvek nesmí podle stránky měnit neprůhlednost, okraj, radius ani
+   význam barvy.
+   - Schválený návrh je commit `6c01c57`; provedení rozepisuje aktuální plán
+     `2026-09-11-unified-operator-console-design-system.md`.
+   - Hotovo, když všechny uživatelské CRM cesty projdou automatizovaným i
+     browser ověřením proti referenční Operator Console bez změny chování.
+5. **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
    Základní kontext přesunout do hlavičky přiřazeného zákazníka, odstranit
    Compact / Extended režim, umožnit zvětšení Product Scriptu bez ztráty identity
    klienta a otevřít read-only Klientský profil v nové kartě. Operátor smí pouze
@@ -105,12 +114,12 @@ akceptační kritéria a důkazní plán.
    - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
      prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
      výběr adresy a odmítnutí cizího assignmentu.
-5. **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
+6. **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
    operátor, Team Leader a administrátor, včetně reloadu, persistence, prázdných
    stavů a přímých URL.
    - Hotovo, když report obsahuje kroky, identity rolí bez tajných údajů, read-back
      a cleanup; unit/build test se za tento důkaz nevydává.
-6. **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
+7. **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
    moderate advisories přes starší `uuid`; automatický audit navrhuje nevhodný
    major downgrade. Současně je nutné posoudit tři blokované install skripty.
    - Hotovo, když existuje bezpečná aktualizační/mitigační cesta a čistý nebo
