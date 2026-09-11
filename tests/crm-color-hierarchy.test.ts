@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { getPageHeaderBadgeClassName } from "@/components/layout/PageHeader";
 import { getMetricValueClassName } from "@/components/ui/MetricCard";
 
 function source(path: string): string {
@@ -9,10 +10,8 @@ function source(path: string): string {
 
 describe("CRM color hierarchy", () => {
   it("uses subdued shared status badges instead of saturated card-like fills", () => {
-    const pageHeader = source("src/components/layout/PageHeader.tsx");
-
-    expect(pageHeader).toContain('success: "border-emerald-800/50 bg-emerald-950/20 text-emerald-200/90"');
-    expect(pageHeader).toContain('warning: "border-amber-800/50 bg-amber-950/20 text-amber-200/90"');
+    expect(getPageHeaderBadgeClassName("success")).toBe("border-emerald-800/50 bg-emerald-950/20 text-emerald-200");
+    expect(getPageHeaderBadgeClassName("warning")).toBe("border-amber-800/50 bg-amber-950/20 text-amber-200");
   });
 
   it("keeps ordinary workspace context neutral", () => {

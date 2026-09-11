@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import "./design-system-primitives.test.tsx";
 import { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "@/components/layout/headerNavigation";
 import { getPageHeaderBadgeClassName } from "@/components/layout/PageHeader";
+import { getStatusClassName } from "@/components/ui/Status";
 
 describe("unified authenticated header foundations", () => {
   it("keeps privileged command destinations out of the Operator palette", () => {
@@ -28,10 +29,11 @@ describe("unified authenticated header foundations", () => {
     expect(administratorPaths).toContain("/team");
   });
 
-  it("uses truthful role-aware search copy and non-color status classes", () => {
+  it("uses truthful role-aware search copy and canonical status recipes", () => {
     expect(getCommandPalettePlaceholder("operator")).toBe("Type a product or page...");
     expect(getCommandPalettePlaceholder("administrator")).toContain("lead name");
-    expect(getPageHeaderBadgeClassName("unavailable")).toContain("text-zinc-400");
-    expect(getPageHeaderBadgeClassName("success")).toContain("text-emerald-200/90");
+    expect(getPageHeaderBadgeClassName("unavailable")).toBe(getStatusClassName("neutral"));
+    expect(getPageHeaderBadgeClassName("success")).toBe(getStatusClassName("success"));
+    expect(getPageHeaderBadgeClassName("warning")).toBe(getStatusClassName("warning"));
   });
 });

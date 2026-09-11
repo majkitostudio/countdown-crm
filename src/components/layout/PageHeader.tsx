@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { getStatusClassName, type SemanticTone } from "@/components/ui/Status";
 import { cn } from "@/lib/utils";
 
 export type PageHeaderBadgeTone = "neutral" | "success" | "warning" | "unavailable";
@@ -23,15 +24,9 @@ export interface PageHeaderProps {
   className?: string;
 }
 
-const BADGE_TONE_CLASSES: Record<PageHeaderBadgeTone, string> = {
-  neutral: "border-zinc-700 bg-zinc-900 text-zinc-300",
-  success: "border-emerald-800/50 bg-emerald-950/20 text-emerald-200/90",
-  warning: "border-amber-800/50 bg-amber-950/20 text-amber-200/90",
-  unavailable: "border-zinc-700 bg-zinc-900 text-zinc-400",
-};
-
 export function getPageHeaderBadgeClassName(tone: PageHeaderBadgeTone = "neutral"): string {
-  return BADGE_TONE_CLASSES[tone];
+  const semanticTone: SemanticTone = tone === "unavailable" ? "neutral" : tone;
+  return getStatusClassName(semanticTone);
 }
 
 export function PageHeader({

@@ -16,10 +16,13 @@ export function getButtonClassName(variant: ButtonVariant): string {
   return `${BUTTON_BASE_CLASS_NAME} ${BUTTON_CLASS_NAMES[variant]}`;
 }
 
-export type ButtonProps = ComponentPropsWithoutRef<"button"> & {
+export type ButtonProps = Omit<ComponentPropsWithoutRef<"button">, "className" | "style"> & {
   variant?: ButtonVariant;
+  className?: string;
+  style?: never;
 };
 
-export function Button({ variant = "primary", className, type = "button", ...props }: ButtonProps) {
+export function Button({ variant = "primary", className, style: _style, type = "button", ...props }: ButtonProps) {
+  void _style;
   return <button type={type} className={[getButtonClassName(variant), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }

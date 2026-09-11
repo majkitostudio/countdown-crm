@@ -34,7 +34,15 @@ const METRIC_VALUE_RECIPES = [
   ["danger", "text-rose-200"],
 ] as const;
 
-const conflictingRouteClasses = "w-full bg-fuchsia-500 hover:bg-fuchsia-400 text-fuchsia-100 border-fuchsia-500 rounded-none opacity-0 shadow-none";
+const conflictingRouteClasses = "w-full !bg-fuchsia-500 [background-image:linear-gradient(fuchsia,black)] [border-top-color:fuchsia] hover:[color:fuchsia] [&>*]:bg-fuchsia-500";
+const hostileStyleProps = {
+  style: {
+    backgroundColor: "fuchsia",
+    borderTopColor: "fuchsia",
+    color: "fuchsia",
+    opacity: 0,
+  },
+} as unknown as Record<string, never>;
 
 describe("shared operator console design primitives", () => {
   it("uses one fixed page-surface recipe", () => {
@@ -96,16 +104,16 @@ describe("shared operator console design primitives", () => {
 
   it("retains safe layout classes while rejecting conflicting route classes from every primitive", () => {
     const markup = [
-      renderToStaticMarkup(<Surface variant="page" className={conflictingRouteClasses}>Orders</Surface>),
-      renderToStaticMarkup(<Button variant="danger" className={conflictingRouteClasses}>Delete</Button>),
-      renderToStaticMarkup(<StatusBadge tone="warning" className={conflictingRouteClasses}>Pending</StatusBadge>),
-      renderToStaticMarkup(<StatusAlert tone="danger" className={conflictingRouteClasses}>Blocked</StatusAlert>),
-      renderToStaticMarkup(<MetricCard label="Orders" value="24" valueTone="success" className={conflictingRouteClasses} />),
+      renderToStaticMarkup(<Surface {...hostileStyleProps} variant="page" className={conflictingRouteClasses}>Orders</Surface>),
+      renderToStaticMarkup(<Button {...hostileStyleProps} variant="danger" className={conflictingRouteClasses}>Delete</Button>),
+      renderToStaticMarkup(<StatusBadge {...hostileStyleProps} tone="warning" className={conflictingRouteClasses}>Pending</StatusBadge>),
+      renderToStaticMarkup(<StatusAlert {...hostileStyleProps} tone="danger" className={conflictingRouteClasses}>Blocked</StatusAlert>),
+      renderToStaticMarkup(<MetricCard {...hostileStyleProps} label="Orders" value="24" valueTone="success" className={conflictingRouteClasses} />),
     ];
 
     for (const renderedPrimitive of markup) {
       expect(renderedPrimitive).toContain("w-full");
-      expect(renderedPrimitive).not.toMatch(/fuchsia|rounded-none|opacity-0|shadow-none/);
+      expect(renderedPrimitive).not.toMatch(/fuchsia|background-image|border-top-color|style=/);
     }
 
     expect(markup[0]).toContain("rounded-2xl border border-zinc-800/80 border-t-white/5 bg-zinc-900/60 shadow-sm");

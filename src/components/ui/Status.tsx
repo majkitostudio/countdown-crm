@@ -14,18 +14,24 @@ export function getStatusClassName(tone: SemanticTone): string {
   return STATUS_CLASS_NAMES[tone];
 }
 
-export type StatusBadgeProps = ComponentPropsWithoutRef<"span"> & {
+export type StatusBadgeProps = Omit<ComponentPropsWithoutRef<"span">, "className" | "style"> & {
   tone?: SemanticTone;
+  className?: string;
+  style?: never;
 };
 
-export function StatusBadge({ tone = "neutral", className, ...props }: StatusBadgeProps) {
+export function StatusBadge({ tone = "neutral", className, style: _style, ...props }: StatusBadgeProps) {
+  void _style;
   return <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }
 
-export type StatusAlertProps = ComponentPropsWithoutRef<"div"> & {
+export type StatusAlertProps = Omit<ComponentPropsWithoutRef<"div">, "className" | "style"> & {
   tone?: SemanticTone;
+  className?: string;
+  style?: never;
 };
 
-export function StatusAlert({ tone = "neutral", className, role, ...props }: StatusAlertProps) {
+export function StatusAlert({ tone = "neutral", className, style: _style, role, ...props }: StatusAlertProps) {
+  void _style;
   return <div role={role ?? "alert"} className={["rounded-xl border p-4 text-sm", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }

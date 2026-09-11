@@ -19,6 +19,7 @@ export type MetricCardProps = {
   valueTone?: SemanticTone;
   detail?: ReactNode;
   className?: string;
+  style?: never;
 };
 
 export function MetricCard({ label, value, valueTone = "neutral", detail, className }: MetricCardProps) {
