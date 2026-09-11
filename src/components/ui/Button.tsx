@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef } from "react";
+import { getSafeLayoutClassName } from "@/components/ui/Surface";
 
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
 
@@ -19,6 +20,6 @@ export type ButtonProps = ComponentPropsWithoutRef<"button"> & {
   variant?: ButtonVariant;
 };
 
-export function Button({ variant = "primary", className, ...props }: ButtonProps) {
-  return <button className={[getButtonClassName(variant), className].filter(Boolean).join(" ")} {...props} />;
+export function Button({ variant = "primary", className, type = "button", ...props }: ButtonProps) {
+  return <button type={type} className={[getButtonClassName(variant), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }

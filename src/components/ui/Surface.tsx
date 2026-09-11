@@ -10,6 +10,19 @@ const SURFACE_CLASS_NAMES: Record<SurfaceVariant, string> = {
   overlay: "rounded-2xl border border-zinc-800/90 bg-zinc-950/95 shadow-2xl",
 };
 
+const PROTECTED_UTILITY_PATTERN = /^(?:bg|text|border|rounded|opacity|shadow|ring|outline|fill|stroke|decoration|accent|caret)(?:-|$)/;
+const PROTECTED_ARBITRARY_STYLE_PATTERN = /(?:^|:)!?\[(?:background(?:-color)?|color|border(?:-(?:color|radius|style|width))?|border-radius|opacity|box-shadow|outline(?:-color)?|fill|stroke):/;
+
+export function getSafeLayoutClassName(className?: string): string {
+  return (className ?? "")
+    .split(/\s+/)
+    .filter((token) => {
+      const utility = (token.split(":").at(-1) ?? "").replace(/^!/, "");
+      return !PROTECTED_UTILITY_PATTERN.test(utility) && !PROTECTED_ARBITRARY_STYLE_PATTERN.test(token);
+    })
+    .join(" ");
+}
+
 export function getSurfaceClassName(variant: SurfaceVariant): string {
   return SURFACE_CLASS_NAMES[variant];
 }
@@ -19,5 +32,5 @@ export type SurfaceProps = ComponentPropsWithoutRef<"div"> & {
 };
 
 export function Surface({ variant, className, ...props }: SurfaceProps) {
-  return <div className={[getSurfaceClassName(variant), className].filter(Boolean).join(" ")} {...props} />;
+  return <div className={[getSurfaceClassName(variant), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }

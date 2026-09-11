@@ -1,4 +1,5 @@
 import type { ComponentPropsWithoutRef } from "react";
+import { getSafeLayoutClassName } from "@/components/ui/Surface";
 
 export type SemanticTone = "neutral" | "success" | "warning" | "danger";
 
@@ -18,7 +19,7 @@ export type StatusBadgeProps = ComponentPropsWithoutRef<"span"> & {
 };
 
 export function StatusBadge({ tone = "neutral", className, ...props }: StatusBadgeProps) {
-  return <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium", getStatusClassName(tone), className].filter(Boolean).join(" ")} {...props} />;
+  return <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }
 
 export type StatusAlertProps = ComponentPropsWithoutRef<"div"> & {
@@ -26,5 +27,5 @@ export type StatusAlertProps = ComponentPropsWithoutRef<"div"> & {
 };
 
 export function StatusAlert({ tone = "neutral", className, role, ...props }: StatusAlertProps) {
-  return <div role={role ?? "alert"} className={["rounded-xl border p-4 text-sm", getStatusClassName(tone), className].filter(Boolean).join(" ")} {...props} />;
+  return <div role={role ?? "alert"} className={["rounded-xl border p-4 text-sm", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 }
