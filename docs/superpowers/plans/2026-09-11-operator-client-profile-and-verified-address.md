@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-11-operator-workspace-client-profile-design.md`
 
+**Approved design baseline:** `ae5c014` (`docs: define operator client profile`)
+
 ## Global Constraints
 
 - Operátor v profilu pouze přidává append-only poznámku; žádný údaj klienta nemění.

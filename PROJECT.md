@@ -33,6 +33,8 @@ režimem, recent context řádek, klávesové zkratky, přístupný callback mod
 Conversation Brief se skutečnými údaji a bezpečným dalším krokem. Schválený
 P1 krok tuto kartu nahradí krátkým souhrnem v hlavičce přiřazeného zákazníka,
 focus režimem Product Scriptu a čtecím Klientským profilem v nové kartě.
+Schválená specifikace tohoto kroku je v commitu `ae5c014` a navazující
+implementační plán určuje jeho pořadí v jednotném backlogu.
 Produktový skript zůstává souvislou osnovou bez potvrzování jednotlivých kroků
 během hovoru; jeho text má statické orientační sekce pro rychlejší čtení.
 Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou

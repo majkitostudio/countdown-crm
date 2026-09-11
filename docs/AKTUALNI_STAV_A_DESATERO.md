@@ -100,6 +100,8 @@ akceptační kritéria a důkazní plán.
    atomicky uložit validovaný snapshot doručovací adresy. „Poslední ověřená
    doručovací adresa“ smí pocházet jen z nejnovější skutečně doručené objednávky;
    historická data se nedoplňují.
+   - Schválený návrh je commit `ae5c014`; provedení rozepisuje aktuální plán
+     `2026-09-11-operator-client-profile-and-verified-address.md`.
    - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
      prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
      výběr adresy a odmítnutí cizího assignmentu.
