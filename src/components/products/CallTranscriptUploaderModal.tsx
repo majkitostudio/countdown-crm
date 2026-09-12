@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { X, Upload } from "lucide-react";
 import { addCallTranscripts } from "@/lib/callTranscriptsStore";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 type UploadedFile = File | null;
 type ParsedRecord = Record<string, unknown>;
@@ -80,13 +83,15 @@ export function CallTranscriptUploaderModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-zinc-950 border border-zinc-800 rounded-2xl w-full max-w-md p-6 space-y-4 text-zinc-100">
+      <div className="w-full max-w-md">
+      <Surface variant="overlay">
+        <div className="space-y-4 p-6 text-zinc-100">
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
           <h2 className="text-base font-bold">Nahrát transkripce hovorů (CSV/JSON)</h2>
-          <button onClick={onClose} className="p-1.5 rounded hover:bg-zinc-800 transition-colors">
+          <Button variant="quiet" onClick={onClose}>
             <X className="w-4 h-4 text-zinc-400" />
-          </button>
+          </Button>
         </div>
         {/* Body */}
         <div className="space-y-3">
@@ -96,25 +101,27 @@ export function CallTranscriptUploaderModal({
             onChange={handleFileChange}
             className="w-full text-xs text-zinc-200 file:mr-4 file:px-3 file:py-1 file:rounded-md file:border-0 file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700"
           />
-          {error && <p className="text-rose-400 text-xs">{error}</p>}
-          {success && <p className="text-emerald-400 text-xs">{success}</p>}
+          {error && <StatusAlert tone="danger">{error}</StatusAlert>}
+          {success && <StatusAlert tone="success">{success}</StatusAlert>}
         </div>
         {/* Footer */}
         <div className="flex justify-end space-x-2 pt-2 border-t border-zinc-800">
-          <button
+          <Button
+            variant="primary"
             onClick={handleUpload}
-            className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-xl text-xs font-semibold flex items-center gap-1"
           >
             <Upload className="w-4 h-4" />
             <span>Nahrát</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="quiet"
             onClick={onClose}
-            className="px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200"
           >
             Zrušit
-          </button>
+          </Button>
         </div>
+        </div>
+      </Surface>
       </div>
     </div>
   );
