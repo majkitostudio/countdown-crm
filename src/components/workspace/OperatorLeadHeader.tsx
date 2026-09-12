@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings, Tag } from "lucide-react";
+import { ExternalLink, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
@@ -86,6 +86,16 @@ export function OperatorLeadHeader({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Assigned customer</p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             <h2 id="operator-lead-title" className="text-2xl font-semibold tracking-tight text-white">{activeLead.full_name}</h2>
+            <Link
+              href={`/leads/${encodeURIComponent(activeLead.id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open read-only profile"
+              title="Open read-only profile"
+              className="inline-flex items-center gap-1 text-xs font-medium text-sky-300 underline-offset-4 hover:text-sky-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+            >
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
             <StatusBadge tone="neutral">
               {activeLead.status || "New lead"}
             </StatusBadge>
@@ -101,10 +111,6 @@ export function OperatorLeadHeader({
                 <span className="truncate">{activeLead.email}</span>
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-normal text-zinc-400">
-              <Tag className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-              Source: not recorded
-            </span>
           </div>
           <p className="mt-3 font-mono text-[10px] text-zinc-600">Lead ID: {activeLead.id}</p>
         </div>

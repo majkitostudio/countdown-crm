@@ -207,16 +207,14 @@ export default function CallLogsPage() {
                 <th className="px-5 py-3">Operator</th>
                 <th className="px-5 py-3">Duration</th>
                 <th className="px-5 py-3">Outcome</th>
-                <th className="px-5 py-3">Sentiment</th>
                 <th className="px-5 py-3">Revenue</th>
-                {canReview && <th className="px-5 py-3">Review</th>}
-                <th className="px-5 py-3 text-right">Actions</th>
+                <th className="px-5 py-3">Call review</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
               {filteredCalls.length === 0 ? (
                 <tr>
-                  <td colSpan={canReview ? 8 : 7} className="px-5 py-12 text-center">
+                  <td colSpan={6} className="px-5 py-12 text-center">
                     <p className="text-sm font-semibold text-zinc-200">
                       {selectedOutcomeFilter === "unreviewed"
                         ? "All available calls are reviewed."
@@ -244,23 +242,20 @@ export default function CallLogsPage() {
                       {formatCallOutcome(c.outcome)}
                     </span>
                   </td>
-                  <td className="px-5 py-3">
-                    <span className="text-zinc-300 font-mono">{c.sentiment}</span>
-                  </td>
                   <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
                     ${c.order_value.toFixed(2)}
                   </td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500">
-                      <span className={`h-1.5 w-1.5 rounded-full ${c.transcript.kind === "unavailable" ? "bg-zinc-600" : "bg-emerald-500"}`} />
-                      {c.transcript.kind === "unavailable" ? "Not captured" : "Captured"}
-                    </span>
-                  </td>
-                  {canReview && (
-                    <td className="px-5 py-3">
+                    <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-col items-start gap-1.5">
-                        <StatusBadge tone={c.review_status === "not_reviewed" ? "warning" : c.review_status === "corrected" ? "neutral" : "success"}>{reviewStatusLabel(c.review_status)}</StatusBadge>
-                        {c.review_href && (
+                        {canReview ? (
+                          <StatusBadge tone={c.review_status === "not_reviewed" ? "warning" : c.review_status === "corrected" ? "neutral" : "success"}>
+                            {reviewStatusLabel(c.review_status)}
+                          </StatusBadge>
+                        ) : (
+                          <span className="text-[11px] text-zinc-500">Not available</span>
+                        )}
+                        {canReview && c.review_href && (
                           <Link
                             href={reviewHrefForCall(c) || "#"}
                             className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
@@ -269,16 +264,15 @@ export default function CallLogsPage() {
                           </Link>
                         )}
                       </div>
-                    </td>
-                  )}
-                  <td className="px-5 py-4 text-right">
-                    <button
-                      onClick={() => setSelectedCall(c)}
-                      className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium inline-flex items-center gap-1.5 border border-zinc-800 transition-colors cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>View record</span>
-                    </button>
+                      <button
+                        onClick={() => setSelectedCall(c)}
+                        className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-800"
+                        aria-label={`View record for ${c.lead_name}`}
+                        title="View record"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-zinc-400" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -16,18 +16,18 @@ Make the Operator Console a focused call workspace while moving long-lived custo
 
 ## Workspace Experience
 
-The Workspace retains only the call-critical customer summary within the assigned-customer header:
+The normal Workspace keeps the approved visual language while prioritising the active call:
 
-- customer name and the profile link;
-- phone and email;
-- lead status and score;
-- last call outcome and timestamp;
-- promised callback, when present;
-- last verified delivery address, when present.
+- the assigned-customer header with name, phone, email, status, and the profile link;
+- a compact recorded call context strip with only the customer's need, routing reason, and safe next step;
+- the approved Product Script with discovery questions inside the script surface;
+- shared operator notes immediately beside the script in normal mode and directly below it in focus mode;
+- callback, recent signals, and Timeline below the note surface.
 
-The full ClientProfileCard and its density toggle are removed from the primary call flow. The customer header links to the long-lived profile rather than duplicating every customer field in the console.
+The assigned-customer header links to the long-lived profile through an icon-only action in a new browser tab with a safe read-only boundary. The duplicate ClientProfileCard is removed from both normal and focus Workspace modes; the full customer profile remains available at `/leads/[leadId]`. Source and lead-score fields are not shown in the operator Workspace because they do not help the active call. The only operator write surface for client context remains append-only shared notes.
 
-The Product Script panel receives a client-side **Expand script** toggle. In the expanded state, the script becomes the dominant Workspace region and retains its own scroll position. On desktop, a narrow sticky customer-summary rail remains visible with the name, phone, current call status, last outcome, callback, and verified address. The expanded state is not a modal: call controls and the customer identity remain available. On narrower viewports, the summary is rendered above the script so content reflows without horizontal scrolling.
+The Product Script panel receives a client-side **Expand script** action. Downloading or exporting script content is intentionally not available for security reasons. Expand is the reversible focus mode: the script becomes the dominant Workspace region, while the existing conversation brief, ClientProfileCard, Recent Context, Timeline, shared note history, and discovery questions move below it in the same page. No customer information is removed or duplicated; the operator reaches the detail context by vertical scrolling. The expanded state is not a modal: call controls and the customer identity remain available in the header. On narrower viewports, all sections reflow into one column without horizontal scrolling. Collapse restores the normal approved composition.
+The Product Script panel receives a client-side **Expand script** action. Downloading or exporting script content is intentionally not available for security reasons. Expand is the reversible focus mode: the assigned-customer header, compact call context, script, and discovery questions remain the primary flow; notes follow immediately, then callback signals and Timeline. The expanded state is not a modal: call controls and customer identity remain available in the header. On narrower viewports, all sections reflow into one column without horizontal scrolling. Collapse restores the normal composition.
 
 ## Client Profile Experience
 
@@ -86,7 +86,7 @@ Out of scope:
 
 ## Verification
 
-- Workspace tests prove that Compact / Extended controls are absent, the profile link opens safely in a new tab, and expanded script mode keeps the required customer summary available.
+- Workspace tests prove that Compact / Extended controls are absent, the normal composition remains available, the profile link opens safely in a new tab, and expanded script mode moves the same customer context below the script without removing Timeline or shared notes.
 - Profile tests prove that operators can add a note but cannot edit customer fields, and that an unassigned customer's profile remains inaccessible.
 - Order tests cover address validation and atomic persistence for both manual and post-call order creation.
 - Data tests prove that only the most recent delivered order with an address produces the verified-address view; cancelled, returned, and legacy orders do not.

@@ -9,7 +9,7 @@ import {
   User,
   DollarSign,
   FileText,
-  TrendingUp,
+  ClipboardCheck,
   Volume2,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome } from "@/lib/calls";
@@ -17,6 +17,13 @@ import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+
+function reviewStatusLabel(status: CallRecord["review_status"]): string {
+  if (status === "not_reviewed") return "Not reviewed";
+  if (status === "reviewed") return "Reviewed";
+  if (status === "corrected") return "Corrected";
+  return "Not available";
+}
 
 interface CallDetailDrawerProps {
   call: CallRecord | null;
@@ -100,10 +107,10 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
 
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">AI Sentiment</span>
+              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Call review</span>
               <span className="font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5 font-mono">
-                <TrendingUp className="w-4 h-4 text-zinc-400" />
-                {call.sentiment}
+                <ClipboardCheck className="w-4 h-4 text-zinc-400" />
+                {reviewStatusLabel(call.review_status)}
               </span>
             </div>
           </div>
@@ -127,7 +134,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
                 <Volume2 className="w-4 h-4 text-zinc-400" />
                 Call recording
               </span>
-              <span className="font-mono text-amber-300 text-[11px]">Unavailable</span>
+              <span className="font-mono text-zinc-400 text-[11px]">Unavailable</span>
             </div>
             <p className="text-xs leading-relaxed text-zinc-500">No verified audio recording is attached to this call.</p>
           </div>
@@ -139,13 +146,13 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
                 <FileText className="w-4 h-4 text-zinc-400" />
                 Speech transcript {transcriptTurnCount === null ? "" : `(${transcriptTurnCount} turns)`}
               </h3>
-              <span className="text-[11px] text-amber-300 font-mono">
+              <span className="text-[11px] text-zinc-400 font-mono">
                 {call.transcript.kind === "unavailable" ? "Unavailable" : "Captured"}
               </span>
             </div>
 
             {call.transcript.kind === "unavailable" ? (
-              <StatusAlert tone="warning">
+              <StatusAlert tone="neutral">
                 No verified speech transcript was captured for this call. The CRM did not invent a transcript.
               </StatusAlert>
             ) : call.transcript.kind === "plain_text" ? (

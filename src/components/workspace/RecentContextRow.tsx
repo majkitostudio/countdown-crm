@@ -32,7 +32,7 @@ function outcomeLabel(value: string | undefined): string {
     case "order_placed":
       return "Order placed";
     case "followup_scheduled":
-      return "Follow-up scheduled";
+      return "Callback set";
     case "no_answer":
       return "No answer";
     case "objection":
@@ -77,8 +77,8 @@ function Signal({
 function renderSignal(signal: RecentContextData["lastContact"], kind: "contact" | "result" | "order") {
   if (!signal) {
     return {
-      value: "No record",
-      detail: "No data saved",
+      value: kind === "order" ? "Never" : "No record",
+      detail: kind === "order" ? "No order recorded" : "No data saved",
     };
   }
 
@@ -174,7 +174,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
           <Signal icon={PhoneCall} label="Last contact" value={isLoading ? "Loading…" : contact.value} detail={isLoading ? "" : contact.detail} />
           <Signal icon={CheckCircle2} label="Last result" value={isLoading ? "Loading…" : result.value} detail={isLoading ? "" : result.detail} />
           <Signal icon={ShoppingBag} label="Last order" value={isLoading ? "Loading…" : order.value} detail={isLoading ? "" : order.detail} />
-          <Signal icon={CalendarClock} label="Active callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} />
+          <Signal icon={CalendarClock} label="Callback" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} />
         </div>
       )}
       </section>

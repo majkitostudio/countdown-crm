@@ -22,11 +22,25 @@ describe("workspace readiness UI contract", () => {
     const panel = readFileSync(panelPath, "utf8");
 
     expect(panel).toContain("Workspace Readiness");
-    expect(panel).toContain("Needs attention");
+    expect(panel).toContain("Attention");
     expect(panel).toContain("Blocked");
     expect(panel).toContain("<details");
     expect(panel).toContain("getWorkspaceReadinessAction");
     expect(panel).toContain("actionHref");
     expect(panel).toContain("checkedAt");
+  });
+
+  it("uses concise status copy and keeps the status icon only in the right badge", () => {
+    expect(existsSync(panelPath)).toBe(true);
+    if (!existsSync(panelPath)) return;
+    const panel = readFileSync(panelPath, "utf8");
+    const summary = panel.slice(panel.indexOf("<summary"), panel.indexOf("</summary>"));
+
+    expect(panel).toContain('label: "Attention"');
+    expect(panel).not.toContain('label: "Needs attention"');
+    expect(panel).toContain('<MetricCard label="Attention"');
+    expect(panel).toContain('<SharedStatusBadge tone={tone} className="gap-1.5">');
+    expect(summary).not.toContain("<StatusIcon status={check.status} />");
+    expect(summary).toContain("<ReadinessStatusBadge status={check.status} />");
   });
 });

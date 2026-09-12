@@ -28,7 +28,7 @@ const STATUS_COPY: Record<ReadinessStatus, { label: string; className: string }>
     className: "border-emerald-800/70 bg-emerald-950/50 text-emerald-300",
   },
   needs_attention: {
-    label: "Needs attention",
+    label: "Attention",
     className: "border-amber-800/70 bg-amber-950/50 text-amber-300",
   },
   blocked: {
@@ -47,7 +47,7 @@ function ReadinessStatusBadge({ status }: { status: ReadinessStatus }) {
   const copy = STATUS_COPY[status];
   const tone: SemanticTone = status === "ready" ? "success" : status === "blocked" ? "danger" : "warning";
   return (
-    <SharedStatusBadge tone={tone}>
+    <SharedStatusBadge tone={tone} className="gap-1.5">
       <StatusIcon status={status} />
       {copy.label}
     </SharedStatusBadge>
@@ -69,7 +69,6 @@ function ReadinessCard({ check }: { check: WorkspaceReadinessCheck }) {
       <details className="group">
         <summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
           <div className="flex min-w-0 items-start gap-3">
-            <StatusIcon status={check.status} />
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-zinc-100">{check.label}</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-400">{check.summary}</p>
@@ -146,7 +145,7 @@ export function WorkspaceReadinessPanel({ initialData }: { initialData: Workspac
 
       <section aria-label="Readiness summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <MetricCard label="Ready" value={readyCount} valueTone="success" />
-        <MetricCard label="Needs attention" value={attentionCount} valueTone="warning" />
+        <MetricCard label="Attention" value={attentionCount} valueTone="warning" />
         <MetricCard label="Blocked" value={blockedCount} valueTone="danger" />
       </section>
 

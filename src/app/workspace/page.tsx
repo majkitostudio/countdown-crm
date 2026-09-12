@@ -7,7 +7,6 @@ import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { getProductScript } from "@/lib/productScripts";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
-import { AdditionalQuestionsCard } from "@/components/workspace/AdditionalQuestionsCard";
 import { CustomerTimelineCard } from "@/components/workspace/CustomerTimelineCard";
 import { LeadNotesCard } from "@/components/workspace/LeadNotesCard";
 import { OperatorLeadHeader } from "@/components/workspace/OperatorLeadHeader";
@@ -47,7 +46,6 @@ import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getOperatorKeyboardAction } from "@/components/workspace/operatorKeyboardShortcuts";
-import { ClientProfileCard } from "@/components/workspace/ClientProfileCard";
 import { RecentContextRow } from "@/components/workspace/RecentContextRow";
 import { ConversationBriefCard } from "@/components/workspace/ConversationBriefCard";
 import {
@@ -139,6 +137,7 @@ function WorkspaceContent() {
   const [isCallStartPending, setIsCallStartPending] = useState(false);
   const [isEndCallPending, setIsEndCallPending] = useState(false);
   const [isCompletionPending, setIsCompletionPending] = useState(false);
+  const [isScriptExpanded, setIsScriptExpanded] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const [telephonyAdapter, setTelephonyAdapter] = useState<TelephonyAdapter>("simulation");
   const stopAudioRef = React.useRef<(() => void) | null>(null);
@@ -980,12 +979,101 @@ function WorkspaceContent() {
     />
   ) : null;
 
+  const operatorLeadHeader = (
+    <OperatorLeadHeader
+      activeLead={activeLead}
+      isCallActive={isCallActive}
+      isDialing={isDialing}
+      isMuted={softphoneSession.isMuted}
+      durationSeconds={softphoneSession.durationSeconds}
+      callFailureMessage={softphoneSession.errorMessage}
+      isStarting={isCallStartPending || isEndCallPending}
+      telephonyAdapter={telephonyAdapter}
+      isAwaitingOutcome={isAwaitingOutcome}
+      recoveryRequired={recoveryRequired}
+      isCompletionPending={isCompletionPending}
+      onToggleCall={handleToggleCall}
+      onToggleMute={() => softphoneController.toggleMute()}
+      onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
+      onScheduleCallback={identity?.role === "operator" ? () => {
+        setCallbackScheduleError(null);
+        setIsCallbackScheduleOpen(true);
+      } : undefined}
+      onCreateOrder={identity?.role === "operator" ? undefined : () => {
+        if (isCallActive || isDialing) {
+          setNotificationToast("Finish the active call before opening order creation.");
+          return;
+        }
+        if (!activeLead) return;
+        setNotificationToast(null);
+        router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace`);
+      }}
+      onSimulateIncoming={handleSimulateIncoming}
+      showIncomingSimulator={identity?.role !== "operator"}
+    />
+  );
+
+  const conversationBriefCard = identity?.role === "operator" && activeLead ? (
+    <ConversationBriefCard
+      brief={conversationBrief}
+      isLoading={isConversationBriefLoading || (!conversationBrief && !conversationBriefError)}
+      error={conversationBriefError}
+    />
+  ) : null;
+
+  const productScriptPanel = (
+    <div className="min-h-[34rem] min-w-0 flex-1">
+      <ProductScriptPanel
+        isCallActive={isCallActive}
+        product={products[0]}
+        activeSnapshot={softphoneSession.scriptSnapshot}
+        isExpanded={isScriptExpanded}
+        onToggleExpand={() => setIsScriptExpanded((current) => !current)}
+        discoveryQuestions={getProductScript(products[0]).discoveryQuestions}
+      />
+    </div>
+  );
+
+  const supportingContextRail = (
+    <aside className="min-w-0 space-y-4 border-zinc-800/70 xl:border-l xl:pl-4" aria-label="Supporting customer context" data-testid="supporting-context-rail">
+      <div className="flex items-start justify-between gap-3 px-1">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Customer history</p>
+          <p className="mt-1 text-[11px] text-zinc-500">Timeline, notes and questions — glance only, nothing here blocks your call</p>
+        </div>
+        <StatusBadge tone="neutral">History</StatusBadge>
+      </div>
+      {activeLead && (
+        <LeadNotesCard
+          key={activeLead.id}
+          leadId={activeLead.id}
+          notes={leadNotes}
+          onNotesChange={(notes) => {
+            setLeadNotes(notes);
+            setActivityRefreshToken((current) => current + 1);
+          }}
+        />
+      )}
+      {activeLead && <RecentContextRow leadId={activeLead.id} refreshToken={activityRefreshToken} />}
+      <Surface variant="inset" className="w-full">
+        <section className="p-3">
+        {activeLead ? (
+          <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />
+        ) : (
+          <p className="text-sm text-zinc-400">No active customer selected.</p>
+        )}
+        </section>
+      </Surface>
+    </aside>
+  );
+
   const pageHeader = (
     <PageHeader
       icon={PhoneCall}
       title="Operator Console"
       description="Handle the assigned customer with the brief, approved script, and outcome in one place."
       badge={pageHeaderBadge}
+      actions={operatorNextActionPanel}
     />
   );
 
@@ -1019,15 +1107,13 @@ function WorkspaceContent() {
     return (
       <div className="mx-auto max-w-none space-y-4">
         {pageHeader}
-        {operatorNextActionPanel}
       </div>
     );
   }
 
   return (
-    <div className="mx-auto min-w-0 max-w-none space-y-4 px-3 sm:px-4" data-testid="operator-console" data-state={operatorConsoleState}>
+      <div className="mx-auto min-w-0 max-w-none space-y-4 px-3 sm:px-4" data-testid="operator-console" data-state={operatorConsoleState}>
       {pageHeader}
-      {operatorNextActionPanel}
       
       {/* Toast Notification Banner */}
       {notificationToast && (
@@ -1051,95 +1137,27 @@ function WorkspaceContent() {
       )}
 
       {/* Operator Console hierarchy: P0/P1 lead action first, P2 script second, P3 support in the right rail. */}
-      <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
-          {identity?.role === "operator" && activeLead && (
-            <ConversationBriefCard
-              brief={conversationBrief}
-              isLoading={isConversationBriefLoading || (!conversationBrief && !conversationBriefError)}
-              error={conversationBriefError}
-            />
-          )}
-
-          <OperatorLeadHeader
-            activeLead={activeLead}
-            isCallActive={isCallActive}
-            isDialing={isDialing}
-            isMuted={softphoneSession.isMuted}
-            durationSeconds={softphoneSession.durationSeconds}
-            callFailureMessage={softphoneSession.errorMessage}
-            isStarting={isCallStartPending || isEndCallPending}
-            telephonyAdapter={telephonyAdapter}
-            isAwaitingOutcome={isAwaitingOutcome}
-            recoveryRequired={recoveryRequired}
-            isCompletionPending={isCompletionPending}
-            onToggleCall={handleToggleCall}
-            onToggleMute={() => softphoneController.toggleMute()}
-            onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
-            onScheduleCallback={identity?.role === "operator" ? () => {
-              setCallbackScheduleError(null);
-              setIsCallbackScheduleOpen(true);
-            } : undefined}
-            onCreateOrder={identity?.role === "operator" ? undefined : () => {
-              if (isCallActive || isDialing) {
-                setNotificationToast("Finish the active call before opening order creation.");
-                return;
-              }
-              if (!activeLead) return;
-              setNotificationToast(null);
-              router.push(`/orders/new?leadId=${encodeURIComponent(activeLead.id)}&origin=workspace`);
-            }}
-            onSimulateIncoming={handleSimulateIncoming}
-            showIncomingSimulator={identity?.role !== "operator"}
-          />
-
-          {activeLead && (
-            <ClientProfileCard
-              lead={activeLead}
-            />
-          )}
-
-          <div className="min-h-[34rem] min-w-0 flex-1">
-            <ProductScriptPanel
-              isCallActive={isCallActive}
-              product={products[0]}
-              activeSnapshot={softphoneSession.scriptSnapshot}
-            />
+      {isScriptExpanded ? (
+        <div className="space-y-4" data-testid="operator-focus-workspace">
+          <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Focused operator work area">
+            {operatorLeadHeader}
+            {conversationBriefCard}
+            {productScriptPanel}
+          </section>
+          <div className="min-w-0" data-testid="focus-client-details">
+            {supportingContextRail}
           </div>
-        </section>
-
-        <aside className="min-w-0 space-y-4 border-zinc-800/70 xl:border-l xl:pl-4" aria-label="Supporting customer context" data-testid="supporting-context-rail">
-          <div className="flex items-start justify-between gap-3 px-1">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Customer history</p>
-              <p className="mt-1 text-[11px] text-zinc-500">Timeline, notes and questions — glance only, nothing here blocks your call</p>
-            </div>
-            <StatusBadge tone="neutral">History</StatusBadge>
-          </div>
-          {activeLead && <RecentContextRow leadId={activeLead.id} refreshToken={activityRefreshToken} />}
-          <Surface variant="inset" className="w-full">
-            <section className="p-3">
-            {activeLead ? (
-              <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />
-            ) : (
-              <p className="text-sm text-zinc-400">No active customer selected.</p>
-            )}
-            </section>
-          </Surface>
-          {activeLead && (
-            <LeadNotesCard
-              key={activeLead.id}
-              leadId={activeLead.id}
-              notes={leadNotes}
-              onNotesChange={(notes) => {
-                setLeadNotes(notes);
-                setActivityRefreshToken((current) => current + 1);
-              }}
-            />
-          )}
-          <AdditionalQuestionsCard questions={getProductScript(products[0]).discoveryQuestions} />
-        </aside>
-      </div>
+        </div>
+      ) : (
+        <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
+            {operatorLeadHeader}
+            {conversationBriefCard}
+            {productScriptPanel}
+          </section>
+          {supportingContextRail}
+        </div>
+      )}
 
       {/* Incoming Call Simulation Modal */}
       <IncomingCallModal

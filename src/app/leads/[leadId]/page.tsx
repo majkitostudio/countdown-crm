@@ -4,8 +4,10 @@ import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Customer360RetentionCard } from "@/components/leads/Customer360RetentionCard";
+import { LeadNotesSection } from "@/components/workspace/LeadNotesSection";
 import { listWorkspaceLeadActivity } from "@/lib/dal/activity";
-import { StatusBadge } from "@/components/ui/Status";
+import { listLeadNotesForWorkspace } from "@/lib/dal/leadNotes";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string): string {
@@ -50,6 +52,14 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
     activityUnavailable = true;
   }
 
+  let notes: Awaited<ReturnType<typeof listLeadNotesForWorkspace>> = [];
+  let notesUnavailable = false;
+  try {
+    notes = await listLeadNotesForWorkspace(lead.id);
+  } catch {
+    notesUnavailable = true;
+  }
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <PageHeader
@@ -89,6 +99,11 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
       </div>
 
       <Customer360RetentionCard lead={lead} activity={activity} activityUnavailable={activityUnavailable} />
+      {notesUnavailable ? (
+        <StatusAlert tone="warning">Shared notes are currently unavailable. No note history was hidden or fabricated.</StatusAlert>
+      ) : (
+        <LeadNotesSection leadId={lead.id} initialNotes={notes} />
+      )}
     </div>
   );
 }

@@ -277,9 +277,8 @@ describe("operator Conversation Brief", () => {
       }),
     );
 
-    expect(html).toContain("Conversation Brief");
+    expect(html).toContain("Call context");
     expect(html).toContain("Hledá šetrné řešení pro bolest kloubů.");
-    expect(html).toContain("Follow-up scheduled");
     expect(html).toContain("Customer notes are unavailable.");
     expect(html).toContain("Review the approved script, then start the call.");
     expect(html).not.toMatch(/\bAI\b|predicted|recommended by model|invented urgency/i);

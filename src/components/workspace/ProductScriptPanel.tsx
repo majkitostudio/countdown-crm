@@ -1,21 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ShieldCheck, Type } from "lucide-react";
+import { ChevronRight, CircleHelp, Maximize2, Minimize2, ShieldCheck, Type } from "lucide-react";
 import { getProductScriptAction } from "@/app/actions/productScripts";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Product } from "@/lib/products";
 import { buildDefaultScriptHtml } from "@/lib/scriptContent";
 import type { ScriptSnapshotDTO } from "@/lib/dal/productScripts";
+import { Button } from "@/components/ui/Button";
 
 interface ProductScriptPanelProps {
   product?: Product;
   isCallActive: boolean;
   activeSnapshot?: ScriptSnapshotDTO | null;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  discoveryQuestions?: string[];
 }
 
-export function ProductScriptPanel({ product, isCallActive, activeSnapshot = null }: ProductScriptPanelProps) {
+export function ProductScriptPanel({ product, isCallActive, activeSnapshot = null, isExpanded = false, onToggleExpand, discoveryQuestions = [] }: ProductScriptPanelProps) {
   const [scriptResource, setScriptResource] = useState<{
     productId: string | null;
     html: string | null;
@@ -30,6 +34,7 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
   const scriptLoadError = activeSnapshot ? null : hasCurrentScriptResource ? scriptResource.error : null;
   const isLoadingScript = Boolean(currentProductId) && scriptStatus === "loading";
   const scriptHtml = activeSnapshot?.html || persistedHtml || (scriptStatus === "not_found" ? fallbackHtml : "");
+  const scriptTitle = activeSnapshot?.productTitle || product?.title || "Product Script";
   useEffect(() => {
     let cancelled = false;
     if (activeSnapshot) return () => {
@@ -82,13 +87,24 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
                 Continuous script
               </StatusBadge>
             </div>
-            <p className="text-xs text-zinc-300">{activeSnapshot?.productTitle || product?.title || "Select a product"} · read top to bottom</p>
+            <p className="text-xs text-zinc-300">{scriptTitle} · read top to bottom</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge tone="neutral">
             {isCallActive ? "Active" : "Ready"}
           </StatusBadge>
+          {onToggleExpand && (
+            <Button
+              variant="secondary"
+              onClick={onToggleExpand}
+              aria-label={isExpanded ? "Collapse script" : "Expand script"}
+              title={isExpanded ? "Collapse script" : "Expand script"}
+            >
+              {isExpanded ? <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" /> : <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />}
+              {isExpanded ? "Collapse" : "Expand"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -117,6 +133,26 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
           />
           </div>
         </Surface>
+      )}
+
+      {discoveryQuestions.length > 0 && (
+        <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-3" data-testid="script-discovery-questions">
+          <div className="flex items-center gap-2">
+            <CircleHelp className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
+            <div>
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Discovery questions</h3>
+              <p className="mt-0.5 text-[10px] text-zinc-500">Ask while you listen — in this order</p>
+            </div>
+          </div>
+          <ol className="mt-2 space-y-1.5">
+            {discoveryQuestions.map((question) => (
+              <li key={question} className="flex items-start gap-2 text-[11px] leading-relaxed text-zinc-300">
+                <ChevronRight className="mt-0.5 h-3 w-3 shrink-0 text-zinc-500" aria-hidden="true" />
+                <span>{question}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
 
       <div className="mt-auto flex items-center gap-1.5 border-t border-zinc-800/80 pt-3 text-[11px] text-zinc-400">

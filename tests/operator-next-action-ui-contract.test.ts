@@ -20,6 +20,8 @@ describe("operator next action UI contract", () => {
     expect(workspacePage).toContain("listScheduledCallbacksAction");
     expect(nextActionPanel).toContain('data-testid="operator-next-action"');
     expect(nextActionPanel).toContain('data-testid="callback-recovery-inbox"');
-    expect(nextActionPanel).toContain("No callable contact is currently assigned");
+    expect(nextActionPanel).toContain("Ready to call");
+    expect(nextActionPanel).toContain("flex flex-wrap items-center justify-end gap-2");
+    expect(nextActionPanel).not.toContain("grid gap-4 xl:grid-cols");
   });
 });
