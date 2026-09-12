@@ -43,4 +43,13 @@ describe("management route visual contract", () => {
       expect(panel).toContain('import { Surface } from "@/components/ui/Surface"');
     }
   });
+
+  it("keeps telephony administration on the shared metric, surface, action, and feedback recipes", () => {
+    const telephony = source("src/components/telephony/TelephonyAdminPanel.tsx");
+
+    expect(telephony).toContain('import { Button } from "@/components/ui/Button"');
+    expect(telephony).toContain('import { MetricCard } from "@/components/ui/MetricCard"');
+    expect(telephony).toContain('import { StatusAlert } from "@/components/ui/Status"');
+    expect(telephony).toContain('import { Surface } from "@/components/ui/Surface"');
+  });
 });

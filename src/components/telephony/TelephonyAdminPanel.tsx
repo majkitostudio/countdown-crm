@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import type { WorkspaceTelephonySettings } from "@/lib/dal/telephonySettings";
 import { LocalSipAdapter, type LocalSipState } from "@/lib/telephony/localSipAdapter";
 import { prepareLocalSipTestCall } from "@/lib/telephony/localSipTestCallClient";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface LocalTelephonyStatus {
   activeAdapter: WorkspaceTelephonySettings["active_adapter"];
@@ -147,26 +151,16 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500">Active adapter</p>
-          <p className="mt-2 text-sm font-semibold text-zinc-100">{settings.active_adapter === "local_sip" ? "Local SIP" : "Simulation"}</p>
-        </div>
-        <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500">Asterisk status</p>
-          <p className="mt-2 text-sm font-semibold text-zinc-100">{status?.asterisk || "Checking..."}</p>
-        </div>
-        <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500">Internal extensions</p>
-          <p className="mt-2 text-sm font-semibold text-zinc-100">1001 / 1002</p>
-          <div className="mt-3 space-y-1 text-xs text-zinc-400">
-            {(status?.extensionRegistration || [{ extension: "1001", status: "checking" }, { extension: "1002", status: "checking" }]).map((item) => (
-              <p key={item.extension}>{item.extension}: {item.status}</p>
-            ))}
-          </div>
-        </div>
+        <MetricCard label="Active adapter" value={settings.active_adapter === "local_sip" ? "Local SIP" : "Simulation"} />
+        <MetricCard label="Asterisk status" value={status?.asterisk || "Checking..."} valueTone={status?.asterisk === "Available" ? "success" : "neutral"} />
+        <MetricCard
+          label="Internal extensions"
+          value="1001 / 1002"
+          detail={(status?.extensionRegistration || [{ extension: "1001", status: "checking" }, { extension: "1002", status: "checking" }]).map((item) => `${item.extension}: ${item.status}`).join(" · ")}
+        />
       </section>
 
-      <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
+      <Surface variant="page"><div className="p-5">
         <h2 className="text-sm font-semibold text-zinc-100">Local SIP boundaries</h2>
         <div className="mt-4 grid gap-3 text-xs text-zinc-300 sm:grid-cols-2">
           <p>Local only</p>
@@ -174,29 +168,29 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
           <p>Recording disabled</p>
           <p>Telnyx blocked</p>
         </div>
-      </section>
+      </div></Surface>
 
-      <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
+      <Surface variant="page"><div className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">Internal test call</h2>
             <p className="mt-2 text-xs text-zinc-400">Browser audio test between local extensions 1001 and 1002. No public number is used.</p>
           </div>
           {testCallActive ? (
-            <button type="button" onClick={() => void finishTestCall()} disabled={isTestCallPending} className="rounded-xl border border-rose-800 bg-rose-950/40 px-4 py-2.5 text-xs font-semibold text-rose-100 disabled:opacity-50">
+            <Button variant="danger" onClick={() => void finishTestCall()} disabled={isTestCallPending}>
               {isTestCallPending ? "Ending…" : "End test call"}
-            </button>
+            </Button>
           ) : (
-            <button type="button" onClick={() => void startTestCall()} disabled={isTestCallPending || status?.asterisk !== "Available"} className="rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50">
+            <Button onClick={() => void startTestCall()} disabled={isTestCallPending || status?.asterisk !== "Available"}>
               {isTestCallPending ? "Starting…" : "Call 1002 from 1001"}
-            </button>
+            </Button>
           )}
         </div>
         <p className="mt-3 text-xs text-zinc-400">State: <span className="font-mono text-zinc-200">{testCallState}</span></p>
-        {testCallError && <p role="alert" className="mt-2 text-xs text-rose-300">{testCallError}</p>}
-      </section>
+        {testCallError && <StatusAlert tone="danger" className="w-full">{testCallError}</StatusAlert>}
+      </div></Surface>
 
-      <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
+      <Surface variant="page"><div className="p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-zinc-100">Active calls</h2>
           <span className="text-xs text-zinc-500">{status?.activeCalls.length ?? 0}</span>
@@ -214,9 +208,9 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
             ))}
           </div>
         )}
-      </section>
+      </div></Surface>
 
-      <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
+      <Surface variant="page"><div className="p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-zinc-100">Recent events</h2>
           <span className="text-xs text-zinc-500">{status?.recentEvents.length ?? 0}</span>
@@ -234,7 +228,7 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
             ))}
           </div>
         )}
-      </section>
+      </div></Surface>
     </div>
   );
 }
