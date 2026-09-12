@@ -16,6 +16,7 @@ import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
 import { getLeadActivities } from "@/lib/domainActivity";
 import { formatCurrencyAmount } from "@/lib/currency";
+import { StatusAlert } from "@/components/ui/Status";
 
 interface CustomerTimelineCardProps {
   leadId: string;
@@ -134,9 +135,9 @@ export function CustomerTimelineCard({ leadId, refreshToken, includeNotes = true
       </div>
 
       {loadError && (
-        <div role="alert" className="p-3 bg-red-950/30 border border-red-900/60 rounded-xl text-xs text-red-300">
+        <StatusAlert tone="danger">
           Timeline unavailable: {loadError}
-        </div>
+        </StatusAlert>
       )}
 
       {includeNotes && isAddingNote && (

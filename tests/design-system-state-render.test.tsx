@@ -30,10 +30,15 @@ describe("entry and workspace state contract", () => {
     for (const path of [
       "src/components/workspace/CallbackScheduleModal.tsx",
       "src/components/workspace/IncomingCallModal.tsx",
+      "src/components/workspace/CustomerTimelineCard.tsx",
     ]) {
       const content = source(path);
-      expect(content).toContain('variant="overlay"');
-      expect(content).toMatch(/overflow-y-auto|max-h-/);
+      if (path.includes("Modal")) {
+        expect(content).toContain('variant="overlay"');
+        expect(content).toMatch(/overflow-y-auto|max-h-/);
+      } else {
+        expect(content).toContain('tone="danger"');
+      }
     }
   });
 });
