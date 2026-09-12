@@ -17,6 +17,8 @@ import {
   Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
+import { Surface } from "@/components/ui/Surface";
 import {
   TriggerType,
   ActionType,
@@ -180,7 +182,8 @@ export function RuleBuilderModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl mx-4 bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative mx-4 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <Surface variant="overlay">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
@@ -317,13 +320,13 @@ export function RuleBuilderModal({
                     Volitelné. Pokud je necháte prázdné, pravidlo se spustí vždy.
                   </p>
                 </div>
-                <button
+                <Button
+                  variant="secondary"
                   onClick={addCondition}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-900 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Přidat podmínku
-                </button>
+                </Button>
               </div>
 
               {conditions.length === 0 ? (
@@ -524,44 +527,35 @@ export function RuleBuilderModal({
 
         {/* Footer Navigation */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/80 bg-zinc-950/50">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               if (step === 1) onClose();
               else setStep((step - 1) as 1 | 2 | 3);
             }}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-lg hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             {step === 1 ? "Zrušit" : "← Zpět"}
-          </button>
+          </Button>
 
           {step < 3 ? (
-            <button
+            <Button
+              variant="primary"
               onClick={() => setStep((step + 1) as 1 | 2 | 3)}
               disabled={step === 1 && !canProceedStep1}
-              className={cn(
-                "px-4 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer",
-                step === 1 && !canProceedStep1
-                  ? "bg-zinc-900 text-zinc-600 cursor-not-allowed border border-zinc-800"
-                  : "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
-              )}
             >
               Další →
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="primary"
               onClick={handleSave}
               disabled={!canSave}
-              className={cn(
-                "px-5 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer",
-                canSave
-                  ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200 shadow-sm"
-                  : "bg-zinc-900 text-zinc-600 cursor-not-allowed border border-zinc-800"
-              )}
             >
               {editingRule ? "Uložit změny" : "Vytvořit pravidlo"} ✓
-            </button>
+            </Button>
           )}
         </div>
+      </Surface>
       </div>
     </div>
   );

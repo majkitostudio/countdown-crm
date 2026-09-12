@@ -17,6 +17,10 @@ import type {
   WorkspaceReadinessDTO,
 } from "@/lib/dal/workspaceReadiness";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert, StatusBadge as SharedStatusBadge, type SemanticTone } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 const STATUS_COPY: Record<ReadinessStatus, { label: string; className: string }> = {
   ready: {
@@ -39,13 +43,14 @@ function StatusIcon({ status }: { status: ReadinessStatus }) {
   return <AlertTriangle className="h-4 w-4 text-amber-400" aria-hidden="true" />;
 }
 
-function StatusBadge({ status }: { status: ReadinessStatus }) {
+function ReadinessStatusBadge({ status }: { status: ReadinessStatus }) {
   const copy = STATUS_COPY[status];
+  const tone: SemanticTone = status === "ready" ? "success" : status === "blocked" ? "danger" : "warning";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-mono ${copy.className}`}>
+    <SharedStatusBadge tone={tone}>
       <StatusIcon status={status} />
       {copy.label}
-    </span>
+    </SharedStatusBadge>
   );
 }
 
@@ -60,35 +65,37 @@ function formatCheckedAt(value: string): string {
 
 function ReadinessCard({ check }: { check: WorkspaceReadinessCheck }) {
   return (
-    <details className="group rounded-2xl border border-zinc-800/80 bg-zinc-900/40 shadow-sm">
-      <summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
-        <div className="flex min-w-0 items-start gap-3">
-          <StatusIcon status={check.status} />
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-100">{check.label}</h2>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-400">{check.summary}</p>
+    <Surface variant="page">
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-5 [&::-webkit-details-marker]:hidden">
+          <div className="flex min-w-0 items-start gap-3">
+            <StatusIcon status={check.status} />
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-zinc-100">{check.label}</h2>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400">{check.summary}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
+            <ReadinessStatusBadge status={check.status} />
+            <ChevronDown className="h-4 w-4 text-zinc-500 transition-transform group-open:rotate-180" aria-hidden="true" />
+          </div>
+        </summary>
+        <div className="space-y-3 border-t border-zinc-800/80 px-5 pb-5 pt-4 text-xs">
+          <p className="leading-relaxed text-zinc-400">{check.details}</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="font-mono text-[10px] text-zinc-600">Evidence checked: {formatCheckedAt(check.checkedAt)}</span>
+            {check.actionHref ? (
+              <Link
+                href={check.actionHref}
+                className="inline-flex items-center rounded-lg border border-zinc-800 px-3 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+              >
+                Open related area
+              </Link>
+            ) : null}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <StatusBadge status={check.status} />
-          <ChevronDown className="h-4 w-4 text-zinc-500 transition-transform group-open:rotate-180" aria-hidden="true" />
-        </div>
-      </summary>
-      <div className="space-y-3 border-t border-zinc-800/80 px-5 pb-5 pt-4 text-xs">
-        <p className="leading-relaxed text-zinc-400">{check.details}</p>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="font-mono text-[10px] text-zinc-600">Evidence checked: {formatCheckedAt(check.checkedAt)}</span>
-          {check.actionHref ? (
-            <Link
-              href={check.actionHref}
-              className="inline-flex items-center rounded-lg border border-zinc-800 px-3 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
-            >
-              Open related area
-            </Link>
-          ) : null}
-        </div>
-      </div>
-    </details>
+      </details>
+    </Surface>
   );
 }
 
@@ -120,37 +127,27 @@ export function WorkspaceReadinessPanel({ initialData }: { initialData: Workspac
         badge={{ label: STATUS_COPY[data.overallStatus].label, tone: data.overallStatus === "ready" ? "success" : "unavailable" }}
         description="A truthful operational checklist. Missing evidence is shown as attention or blocked, never as a fake Ready state."
         actions={
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() => void refresh()}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} aria-hidden="true" />
             {isRefreshing ? "Refreshing..." : "Refresh checks"}
-          </button>
+          </Button>
         }
       />
 
       {refreshError ? (
-        <p role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/40 px-4 py-3 text-xs text-rose-300">
+        <StatusAlert tone="danger">
           {refreshError}
-        </p>
+        </StatusAlert>
       ) : null}
 
       <section aria-label="Readiness summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-900/60 bg-emerald-950/20 p-5">
-          <p className="text-xs text-zinc-400">Ready</p>
-          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-300">{readyCount}</p>
-        </div>
-        <div className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-5">
-          <p className="text-xs text-zinc-400">Needs attention</p>
-          <p className="mt-2 font-mono text-2xl font-semibold text-amber-300">{attentionCount}</p>
-        </div>
-        <div className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-5">
-          <p className="text-xs text-zinc-400">Blocked</p>
-          <p className="mt-2 font-mono text-2xl font-semibold text-rose-300">{blockedCount}</p>
-        </div>
+        <MetricCard label="Ready" value={readyCount} valueTone="success" />
+        <MetricCard label="Needs attention" value={attentionCount} valueTone="warning" />
+        <MetricCard label="Blocked" value={blockedCount} valueTone="danger" />
       </section>
 
       <section aria-label="Workspace readiness checks" className="space-y-3">

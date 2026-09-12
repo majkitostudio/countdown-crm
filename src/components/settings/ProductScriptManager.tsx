@@ -25,6 +25,9 @@ import {
 import type { ProductScriptDTO, ProductScriptVersionDTO } from "@/lib/dal/productScripts";
 import type { Product } from "@/lib/products";
 import { buildDefaultScriptHtml, sanitizeScriptHtml } from "@/lib/scriptContent";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface ProductScriptManagerProps {
   products: Product[];
@@ -264,7 +267,8 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
 
   if (!selectedProduct) {
     return (
-      <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-3xl">
+        <Surface variant="empty">
         <FileText className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h2 className="text-base font-semibold text-zinc-100">No products available</h2>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
@@ -277,6 +281,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Settings
         </a>
+        </Surface>
       </div>
     );
   }
@@ -284,7 +289,9 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
   return (
     <div className="mx-auto max-w-screen-2xl space-y-6">
       <div className="grid min-h-[620px] gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm xl:sticky xl:top-0">
+        <aside className="h-fit xl:sticky xl:top-0">
+          <Surface variant="page">
+          <div className="p-4">
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">Products</h2>
@@ -320,20 +327,23 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
               );
             })}
           </div>
+          </div>
+          </Surface>
         </aside>
 
-        <section className="min-w-0 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm md:p-7">
+        <Surface variant="page">
+        <section className="min-w-0 p-5 md:p-7">
           <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
                 <span>Product Script</span>
-                <span className="rounded-full border border-zinc-800 px-2 py-0.5 normal-case tracking-normal text-zinc-400">
+                <StatusBadge tone="neutral">
                   {activeVersion
                     ? `${getVersionStatusLabel(activeVersion.status)} · v${activeVersion.version_number}`
                     : hasSavedScript
                       ? "Published"
                       : "Fallback preview"}
-                </span>
+                </StatusBadge>
               </div>
               <h2 className="truncate text-lg font-semibold text-zinc-100">{selectedProduct.title}</h2>
               <p className="mt-1 text-xs text-zinc-500">
@@ -341,32 +351,29 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
                 onClick={() => setIsPreview((current) => !current)}
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
               >
                 {isPreview ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 {isPreview ? "Edit" : "Preview"}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={resetToDefault}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 Reset fallback
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="primary"
                 onClick={publish}
                 disabled={isPending || isPreview || hasChanges || activeVersion?.status !== "draft"}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-900/70 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200 transition-colors hover:border-emerald-800 hover:bg-emerald-950/40 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Send className="h-3.5 w-3.5" />
                 Publish version
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -448,17 +455,10 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
           )}
 
           {feedback && (
-            <div
-              className={`mt-4 flex items-center gap-2 rounded-xl border p-3 text-xs ${
-                feedback.tone === "success"
-                  ? "border-emerald-900/60 bg-emerald-950/20 text-emerald-200"
-                  : "border-rose-900/60 bg-rose-950/20 text-rose-200"
-              }`}
-              role={feedback.tone === "error" ? "alert" : "status"}
-            >
+            <StatusAlert tone={feedback.tone === "success" ? "success" : "danger"} role={feedback.tone === "error" ? "alert" : "status"}>
               {feedback.tone === "success" && <CheckCircle2 className="h-4 w-4 shrink-0" />}
               {feedback.message}
-            </div>
+            </StatusAlert>
           )}
 
           {isPreview ? (
@@ -481,17 +481,17 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
             <p className="text-[11px] leading-relaxed text-zinc-500">
               {hasChanges ? "Unsaved changes" : "No unsaved changes"}. Save creates a draft; publishing updates the operator-facing script. HTML is reduced to safe text formatting before it is stored.
             </p>
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={save}
               disabled={isPending || isPreview || !hasChanges}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {isPending ? "Saving…" : "Save draft"}
-            </button>
+            </Button>
           </div>
         </section>
+        </Surface>
       </div>
     </div>
   );
