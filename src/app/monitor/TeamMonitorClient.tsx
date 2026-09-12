@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { LiveOperatorState, getLiveOperators } from "@/lib/monitor";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 export default function TeamMonitorClient() {
   const [operators, setOperators] = useState<LiveOperatorState[]>([]);
@@ -49,21 +52,25 @@ export default function TeamMonitorClient() {
       case "in_call":
         return {
           label: "IN CALL",
+          tone: "danger" as const,
           dotColor: "bg-rose-500 animate-pulse",
         };
       case "ready":
         return {
           label: "READY FOR CALLS",
+          tone: "success" as const,
           dotColor: "bg-emerald-500",
         };
       case "break":
         return {
           label: "ON BREAK",
+          tone: "warning" as const,
           dotColor: "bg-amber-500",
         };
       default:
         return {
           label: "WRAP UP",
+          tone: "neutral" as const,
           dotColor: "bg-zinc-500",
         };
     }
@@ -81,15 +88,15 @@ export default function TeamMonitorClient() {
         description="Real-time supervisor data is unavailable until presence and telephony integrations are connected."
         actions={
           <div className="flex flex-wrap items-center gap-3 text-xs font-medium">
-          <div className="px-3.5 py-2 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-xl flex items-center gap-2 font-mono">
+          <StatusBadge tone="danger">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <span>{activeCallsCount} Active Calls</span>
-          </div>
+          </StatusBadge>
 
-          <div className="px-3.5 py-2 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-xl flex items-center gap-2 font-mono">
+          <StatusBadge tone="success">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>{readyOperatorsCount} Ready</span>
-          </div>
+          </StatusBadge>
           </div>
         }
       />
@@ -97,24 +104,21 @@ export default function TeamMonitorClient() {
       {/* Live Operator Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
         {operators.length === 0 ? (
-          <div className="md:col-span-2 p-8 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 text-center">
+          <Surface variant="empty" className="w-full">
             <p className="text-sm font-medium text-zinc-300">Live operator data unavailable</p>
             <p className="mt-2 text-xs text-zinc-500">
               This pilot has no persisted presence or telephony stream yet. No operator activity is being fabricated.
             </p>
-          </div>
+          </Surface>
         ) : operators.map((op) => {
           const badge = getStatusBadge(op.status);
 
           return (
-            <div
+            <Surface
               key={op.id}
-              className={`bg-zinc-900/40 border border-t border-white/5 rounded-2xl p-6 shadow-sm space-y-5 backdrop-blur-md transition-all ${
-                op.status === "in_call"
-                  ? "border-zinc-700"
-                  : "border-zinc-800/80"
-              }`}
+              variant="page"
             >
+              <div className="space-y-5 p-6">
               {/* Operator Profile & Status */}
               <div className="flex items-start justify-between pb-3 border-b border-zinc-800/80">
                 <div className="flex items-center gap-3">
@@ -127,10 +131,10 @@ export default function TeamMonitorClient() {
                   </div>
                 </div>
 
-                <div className="px-2.5 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center gap-1.5">
+                <StatusBadge tone={badge.tone}>
                   <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`} />
                   <span>{badge.label}</span>
-                </div>
+                </StatusBadge>
               </div>
 
               {/* Active Call Details (If in call) */}
@@ -168,15 +172,16 @@ export default function TeamMonitorClient() {
                   )}
 
                   {/* Audit Button */}
-                  <button
+                  <Button
                     onClick={() => {
                       setActiveAuditOperator(op);
                     }}
-                    className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border border-zinc-800 transition-colors cursor-pointer"
+                    variant="secondary"
+                    className="w-full"
                   >
                     <Volume2 className="w-4 h-4 text-zinc-400" />
                     <span>Supervisor Audio Audit (Live Listen)</span>
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="p-4 bg-zinc-950/40 border border-zinc-800/60 rounded-lg text-center text-zinc-500 text-xs font-mono">
@@ -190,7 +195,8 @@ export default function TeamMonitorClient() {
                 <span className="text-zinc-100 font-mono font-semibold">Sales: ${op.salesToday.toFixed(2)}</span>
               </div>
 
-            </div>
+              </div>
+            </Surface>
           );
         })}
       </div>
@@ -198,7 +204,9 @@ export default function TeamMonitorClient() {
       {/* Supervisor Audio Audit remains unavailable until a real stream exists. */}
       {activeAuditOperator && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-xs p-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200 text-zinc-100">
+          <div className="w-full max-w-md">
+          <Surface variant="overlay" className="w-full">
+            <div className="max-w-md space-y-4 p-5 text-zinc-100">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-zinc-900 text-zinc-300 rounded-xl border border-zinc-800">
@@ -209,14 +217,15 @@ export default function TeamMonitorClient() {
                   <p className="text-[11px] text-zinc-400">No live stream is connected for {activeAuditOperator.agentName}</p>
                 </div>
               </div>
-              <button
+              <Button
                 onClick={() => {
                   setActiveAuditOperator(null);
                 }}
-                className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg cursor-pointer"
+                variant="quiet"
+                aria-label="Close audio audit"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
 
             <div className="bg-zinc-900/60 p-4 rounded-xl border border-zinc-800 space-y-3">
@@ -245,14 +254,16 @@ export default function TeamMonitorClient() {
               </div>
             </div>
 
-            <button
+            <Button
               onClick={() => {
                 setActiveAuditOperator(null);
               }}
-              className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
+              className="w-full"
             >
               Close Audit Session
-            </button>
+            </Button>
+            </div>
+          </Surface>
           </div>
         </div>
       )}

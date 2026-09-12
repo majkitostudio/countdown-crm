@@ -3,14 +3,9 @@
 import React, { useState, useEffect } from "react";
 import {
   BarChart3,
-  TrendingUp,
-  DollarSign,
-  ShoppingCart,
-  ShieldCheck,
   Download,
   Users,
   Sparkles,
-  ArrowUpRight,
   PieChart as PieIcon,
 } from "lucide-react";
 import {
@@ -28,6 +23,10 @@ import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 import { exportAnalyticsDataAction, getAnalyticsDataAction } from "@/app/actions/analytics";
 import { exportAnalyticsToCSV } from "@/lib/analyticsExport";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
@@ -130,40 +129,36 @@ export default function AnalyticsPage() {
         description="Workspace-scoped revenue and call metrics. Forecasts and attribution require additional persisted sources."
         actions={
           result?.ok ? (
-            <button
+            <Button
               onClick={() => void handleExport()}
               disabled={isExporting}
-              className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 shadow-sm transition-colors hover:border-zinc-700 hover:text-zinc-100"
+              variant="secondary"
             >
               <Download className="h-4 w-4 text-zinc-400" aria-hidden="true" />
               <span>{isExporting ? "Exporting CSV..." : "Export workspace CSV"}</span>
-            </button>
+            </Button>
           ) : undefined
         }
       />
 
       {result === null && (
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 text-sm text-zinc-400">
-          Loading workspace analytics...
-        </div>
+        <StatusAlert tone="neutral">Loading workspace analytics...</StatusAlert>
       )}
 
       {result && !result.ok && (
-        <div role="alert" className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-sm text-rose-300">
+        <StatusAlert tone="danger">
           {result.code === "FORBIDDEN" ? "Analytics forbidden: " : "Analytics unavailable: "}{result.message}
-        </div>
+        </StatusAlert>
       )}
 
       {exportError && (
-        <div role="alert" className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/60 text-sm text-rose-300">
+        <StatusAlert tone="danger">
           Analytics export unavailable: {exportError}
-        </div>
+        </StatusAlert>
       )}
 
       {result?.ok && isEmptySuccess && (
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 text-sm text-zinc-300">
-          No persisted calls or completed-order activity is available for this workspace yet.
-        </div>
+        <StatusAlert tone="neutral">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>
       )}
 
       {result?.ok && <>
@@ -171,86 +166,37 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Total Revenue & AI Forecast */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Total Sales Volume</span>
-            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{formatCurrencyAmounts(data.revenueByCurrency)}</span>
-            <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono mt-1">
-              <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
-              <span>
-                {data.forecastAvailable
-                  ? `+${data.forecastGrowthPercent}% AI Forecast (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
-                  : "AI Forecast unavailable"}
-              </span>
-            </div>
-          </div>
-        </div>
+        <MetricCard
+          label="Total Sales Volume"
+          value={formatCurrencyAmounts(data.revenueByCurrency)}
+          detail={data.forecastAvailable
+            ? `+${data.forecastGrowthPercent}% AI Forecast (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
+            : "AI Forecast unavailable"}
+        />
 
         {/* Average Order Value AOV */}
-        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Average Order Value (AOV)</span>
-            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-              <ShoppingCart className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{formatCurrencyAmounts(data.avgOrderValueByCurrency)}</span>
-            <p className="text-[11px] text-zinc-400 mt-1">Calculated from completed orders in the workspace</p>
-          </div>
-        </div>
+        <MetricCard label="Average Order Value (AOV)" value={formatCurrencyAmounts(data.avgOrderValueByCurrency)} detail="Calculated from completed orders in the workspace" />
 
         {/* Conversion Rate */}
-        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Call Conversion Rate</span>
-            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-              <TrendingUp className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{data.conversionRate}%</span>
-            <p className="text-[11px] text-zinc-400 mt-1">Based on {data.totalCalls} total calls</p>
-          </div>
-        </div>
+        <MetricCard label="Call Conversion Rate" value={`${data.conversionRate}%`} detail={`Based on ${data.totalCalls} total calls`} />
 
         {/* Objection Resolution Rate */}
-        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-400">Objection Overcome %</span>
-            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <span className="text-2xl font-bold font-mono text-zinc-100">
-              {data.objectionMetricsAvailable && data.objectionResolutionRate !== null
-                ? `${data.objectionResolutionRate}%`
-                : "—"}
-            </span>
-            <p className="text-[11px] text-zinc-400 mt-1">No persisted objection outcome metric</p>
-          </div>
-        </div>
+        <MetricCard label="Objection Overcome %" value={data.objectionMetricsAvailable && data.objectionResolutionRate !== null ? `${data.objectionResolutionRate}%` : "—"} detail="No persisted objection outcome metric" />
 
       </div>
 
-      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 shadow-sm">
+      <Surface variant="page"><div className="p-6">
         <h2 className="text-base font-semibold text-zinc-100">AI Predictive Revenue Forecasting</h2>
         <p className="text-xs text-zinc-500 mt-2">
           Forecast unavailable: no persisted forecasting model or pipeline probability source is connected to this pilot.
         </p>
-      </div>
+      </div></Surface>
 
       {/* Charts Section: Weekly Sales Forecast & Objection Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Weekly Revenue & AI Forecast Area Chart */}
-        <div className="lg:col-span-2 bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-4">
+        <Surface variant="page"><div className="p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
             <div>
               <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
@@ -270,9 +216,9 @@ export default function AnalyticsPage() {
           </div>
 
           {data.currencies.length > 1 ? (
-            <div role="status" className="flex h-64 items-center justify-center rounded-xl border border-amber-900/50 bg-amber-950/20 p-6 text-center text-xs text-amber-200">
+            <StatusAlert tone="warning" role="status" className="w-full">
               Weekly revenue chart is unavailable for mixed currencies. Amounts remain separated in the revenue breakdown.
-            </div>
+            </StatusAlert>
           ) : <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data.weeklySales}>
@@ -296,10 +242,10 @@ export default function AnalyticsPage() {
               </AreaChart>
             </ResponsiveContainer>
           </div>}
-        </div>
+        </div></Surface>
 
         {/* Customer Objection Distribution Pie Chart */}
-        <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-4">
+        <Surface variant="page"><div className="p-5 space-y-4">
           <div className="border-b border-zinc-800/80 pb-3">
             <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-zinc-400" />
@@ -349,12 +295,12 @@ export default function AnalyticsPage() {
               </div>
             ))}
           </div>
-        </div>
+        </div></Surface>
 
       </div>
 
       {/* Team Leaderboard Table */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl shadow-sm overflow-hidden space-y-3 p-5">
+      <Surface variant="table"><div className="space-y-3 p-5">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
@@ -401,12 +347,12 @@ export default function AnalyticsPage() {
             </tbody>
           </table>
         </div> : <p className="text-xs text-zinc-500 py-6">Team leaderboard unavailable: no persisted operator attribution data.</p>}
-      </div>
+      </div></Surface>
 
-      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 shadow-sm">
+      <Surface variant="page"><div className="p-6">
         <h2 className="text-base font-semibold text-zinc-100">AI Operator Coaching</h2>
         <p className="text-xs text-zinc-500 mt-2">Coaching benchmarks unavailable until operator-attributed call outcomes are persisted.</p>
-      </div>
+      </div></Surface>
 
       </>}
     </div>

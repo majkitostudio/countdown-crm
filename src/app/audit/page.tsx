@@ -5,10 +5,6 @@ import {
   ShieldAlert,
   Search,
   Download,
-  AlertTriangle,
-  UserCheck,
-  FileSpreadsheet,
-  Terminal,
   Activity,
   Filter,
   RefreshCw
@@ -21,8 +17,11 @@ import {
   parseCallReviewAuditDetails,
   type CallReviewAuditState,
 } from "@/lib/audit";
-import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 function ReviewAuditState({ label, state }: { label: string; state: CallReviewAuditState | null }) {
   if (!state) {
@@ -119,81 +118,46 @@ export default function AuditPage() {
         description="Kompletní protokol bezpečnostních událostí, exportů dat, změn v CRM a aktivních relací operátorů."
         actions={
           <>
-            <button
+            <Button
               onClick={handleRefresh}
               aria-label="Obnovit auditní log"
-              className="inline-flex items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 p-2.5 text-zinc-400 transition-colors hover:text-zinc-200"
+              variant="secondary"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={handleExport}
               disabled={isExporting}
-              className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200"
             >
               <Download className="h-4 w-4 text-zinc-950" aria-hidden="true" />
               <span>{isExporting ? "Exportuji CSV..." : "Exportovat Audit Log (CSV)"}</span>
-            </button>
+            </Button>
           </>
         }
       />
 
       {loadError ? (
-        <p role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/40 px-4 py-3 text-xs text-rose-300">
-          {loadError}
-        </p>
+        <StatusAlert tone="danger">{loadError}</StatusAlert>
       ) : null}
 
       {/* Stats Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Total Events */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Celkem událostí</span>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{logs.length}</span>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <Terminal className="w-4 h-4" />
-          </div>
-        </div>
+        <MetricCard label="Celkem událostí" value={logs.length} />
 
         {/* Critical Alerts */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Kritická Varování</span>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{criticalCount}</span>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
-          </div>
-        </div>
+        <MetricCard label="Kritická varování" value={criticalCount} valueTone={criticalCount > 0 ? "danger" : "neutral"} />
 
         {/* Data Exports */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Exporty Dat (24h)</span>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{exportCount}</span>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <FileSpreadsheet className="w-4 h-4 text-zinc-300" />
-          </div>
-        </div>
+        <MetricCard label="Exporty dat (24 h)" value={exportCount} />
 
         {/* Active Operators */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Sledovaní Operátoři</span>
-            <span className="text-2xl font-bold font-mono text-zinc-100">{activeOperatorsCount}</span>
-          </div>
-          <div className="w-9 h-9 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <UserCheck className="w-4 h-4 text-emerald-400" />
-          </div>
-        </div>
+        <MetricCard label="Sledovaní operátoři" value={activeOperatorsCount} />
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md space-y-4 shadow-sm">
+      <Surface variant="page"><div className="space-y-4 p-5">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -219,25 +183,20 @@ export default function AuditPage() {
               { id: "medium", label: "Střední" },
               { id: "low", label: "Nízká" },
             ].map((sev) => (
-              <button
+              <Button
                 key={sev.id}
                 onClick={() => setSelectedSeverity(sev.id)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer",
-                  selectedSeverity === sev.id
-                    ? "bg-zinc-100 text-zinc-950 font-semibold"
-                    : "bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
-                )}
+                variant={selectedSeverity === sev.id ? "primary" : "secondary"}
               >
                 {sev.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
-      </div>
+      </div></Surface>
 
       {/* Audit Logs Table */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden space-y-3 p-6">
+      <Surface variant="table"><div className="space-y-3 p-6">
         <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider font-mono flex items-center gap-2">
             <Activity className="w-4 h-4 text-zinc-400" />
@@ -274,30 +233,9 @@ export default function AuditPage() {
                       </span>
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1",
-                          log.severity === "critical"
-                            ? "bg-rose-950/80 text-rose-300 border-rose-800/80"
-                            : log.severity === "high"
-                            ? "bg-amber-950/80 text-amber-300 border-amber-800/80"
-                            : log.severity === "medium"
-                            ? "bg-zinc-900 text-zinc-300 border-zinc-800"
-                            : "bg-zinc-950 text-zinc-400 border-zinc-800"
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "w-1.5 h-1.5 rounded-full",
-                            log.severity === "critical"
-                              ? "bg-rose-400"
-                              : log.severity === "high"
-                              ? "bg-amber-400"
-                              : "bg-zinc-500"
-                          )}
-                        />
+                      <StatusBadge tone={log.severity === "critical" ? "danger" : log.severity === "high" ? "warning" : "neutral"}>
                         {log.severity.toUpperCase()}
-                      </span>
+                      </StatusBadge>
                     </td>
                     <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">{log.ipAddress}</td>
                     <td className="py-3 px-3 text-zinc-300 text-[11px] max-w-xl"><AuditDetailCell log={log} /></td>
@@ -307,7 +245,7 @@ export default function AuditPage() {
             </table>
           </div>
         )}
-      </div>
+      </div></Surface>
     </div>
   );
 }

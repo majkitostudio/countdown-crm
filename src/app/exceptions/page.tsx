@@ -1,6 +1,7 @@
 import { LockKeyhole, ShieldAlert } from "lucide-react";
 import { ExceptionQueue } from "@/components/exceptions/ExceptionQueue";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { listTeamLeaderExceptions } from "@/lib/dal/exceptionQueue";
 
@@ -22,7 +23,8 @@ export default async function ExceptionsPage() {
   if ("error" in result) {
     const forbidden = isDataAccessError(result.error) && result.error.code === "FORBIDDEN";
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-xl">
+      <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" aria-hidden="true" />
         <h1 className="text-base font-semibold text-zinc-100">Exception Queue unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
@@ -30,6 +32,7 @@ export default async function ExceptionsPage() {
             ? "This workspace queue is available to Team Leaders and Administrators only."
             : "Exception data could not be loaded. No placeholder problem was created."}
         </p>
+      </Surface>
       </div>
     );
   }

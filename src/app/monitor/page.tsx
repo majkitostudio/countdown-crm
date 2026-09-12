@@ -2,6 +2,7 @@ import { LockKeyhole, Radio } from "lucide-react";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 import TeamMonitorClient from "./TeamMonitorClient";
 
 export default async function TeamMonitorPage() {
@@ -17,7 +18,8 @@ export default async function TeamMonitorPage() {
           description="Live team monitoring is restricted to authorized workspace roles."
           badge={{ label: "Unavailable", tone: "unavailable" }}
         />
-        <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+        <div className="mx-auto max-w-xl">
+        <Surface variant="empty" className="w-full">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
           <h2 className="text-base font-semibold text-zinc-100">
             Live monitor unavailable
@@ -27,6 +29,7 @@ export default async function TeamMonitorPage() {
               ? "Live team monitoring is available to Team Leaders and Administrators only."
               : "Live team monitoring could not be loaded from the active workspace. No operator activity was shown."}
           </p>
+        </Surface>
         </div>
       </div>
     );
