@@ -329,19 +329,20 @@ export default function ProductsPage() {
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setReassignSourceProduct(null)}
           />
-          <div className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-5">
+          <Surface variant="overlay" className="w-full">
+            <div className="space-y-5 p-6">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div className="flex items-center gap-2">
                 <ArrowRightLeft className="w-5 h-5 text-zinc-300" />
                 <h3 className="text-base font-bold text-zinc-100">Přesměrovat objednávky</h3>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => setReassignSourceProduct(null)}
-                className="p-1 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                variant="quiet"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
 
             <p className="text-xs text-zinc-400">
@@ -369,23 +370,23 @@ export default function ProductsPage() {
             </label>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-zinc-800">
-              <button
+              <Button
                 type="button"
                 onClick={() => setReassignSourceProduct(null)}
-                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium rounded-xl border border-zinc-800 cursor-pointer"
+                variant="secondary"
               >
                 Zrušit
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => void handleReassignOrders()}
                 disabled={!reassignTargetId || isReassigning}
-                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 disabled:cursor-not-allowed text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 {isReassigning ? "Ukládám..." : "Přesměrovat objednávky"}
-              </button>
+              </Button>
             </div>
-          </div>
+            </div>
+          </Surface>
         </div>
       )}
 
