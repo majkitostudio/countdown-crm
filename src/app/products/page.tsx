@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Package, Search, Plus, ShieldAlert, Tag, DollarSign, Upload, ArrowRightLeft, X } from "lucide-react";
+import { Package, Search, Plus, ShieldAlert, Upload, ArrowRightLeft, X } from "lucide-react";
 import { Product, getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
@@ -16,6 +16,10 @@ import { CallTranscriptUploaderModal } from "@/components/products/CallTranscrip
 import type { ObjectionDTO } from "@/lib/dal/objections";
 import type { ObjectionBattleCard } from "@/lib/objections";
 import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -180,29 +184,26 @@ export default function ProductsPage() {
         description="Manage multi-category inventory, sales battle-cards, and cross-sell rules for call center operators."
         actions={
           <>
-          <button
+          <Button variant="secondary"
             onClick={() => setIsTranscriptModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors cursor-pointer"
           >
             <Upload className="w-4 h-4 text-zinc-400" />
             <span>Synchronizovat hovory</span>
-          </button>
+          </Button>
 
-          <button
+          <Button variant="secondary"
             onClick={handleAddObjectionScript}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors cursor-pointer"
           >
             <ShieldAlert className="w-4 h-4 text-zinc-400" />
             <span>+ New Objection Script</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={handleAddProduct}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 text-zinc-950 font-medium text-xs hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4 text-zinc-950" />
             <span>Add New Product</span>
-          </button>
+          </Button>
           </>
         }
       />
@@ -211,55 +212,21 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         
         {/* Total Products */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Catalog Items</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-sans">{totalProducts}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <Package className="w-4 h-4" />
-          </div>
-        </div>
+        <MetricCard label="Catalog items" value={totalProducts} />
 
         {/* Stock Availability */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">In Stock Ratio</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">
-              {totalProducts > 0 ? Math.round((inStockCount / totalProducts) * 100) : 0}%
-            </span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <Tag className="w-4 h-4" />
-          </div>
-        </div>
+        <MetricCard label="In-stock ratio" value={`${totalProducts > 0 ? Math.round((inStockCount / totalProducts) * 100) : 0}%`} />
 
         {/* Objections Registered */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Sales Battle-cards</span>
-            <span className="text-2xl font-bold text-zinc-100 tracking-tight font-mono">{totalObjectionsCount}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
-            <ShieldAlert className="w-4 h-4" />
-          </div>
-        </div>
+        <MetricCard label="Sales battle-cards" value={totalObjectionsCount} />
 
         {/* Total Catalog Value */}
-        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md flex items-center justify-between shadow-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-zinc-400 block">Total Asset Value</span>
-            <span className="text-2xl font-semibold text-zinc-100 tracking-tight font-mono">{formatCurrencyAmounts(totalCatalogValue)}</span>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
-            <DollarSign className="w-4 h-4" />
-          </div>
-        </div>
+        <MetricCard label="Total asset value" value={formatCurrencyAmounts(totalCatalogValue)} />
 
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl flex flex-wrap items-center justify-between gap-4">
+      <Surface variant="page"><div className="flex flex-wrap items-center justify-between gap-4 p-4">
         
         {/* Category Tabs */}
         <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800 text-xs">
@@ -295,19 +262,19 @@ export default function ProductsPage() {
           />
         </div>
 
-      </div>
+      </div></Surface>
 
       {catalogActionError && (
-        <div className="p-4 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300" role="alert">
+        <StatusAlert tone="danger">
           {catalogActionError}
-        </div>
+        </StatusAlert>
       )}
 
       {/* Product Cards Grid */}
       {filteredProducts.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center text-zinc-500 text-xs">
+        <Surface variant="empty">
           No products found matching your active filter.
-        </div>
+        </Surface>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((prod) => (

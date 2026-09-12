@@ -52,4 +52,13 @@ describe("management route visual contract", () => {
     expect(telephony).toContain('import { StatusAlert } from "@/components/ui/Status"');
     expect(telephony).toContain('import { Surface } from "@/components/ui/Surface"');
   });
+
+  it("keeps the product catalog on shared action, metric, surface, and feedback recipes", () => {
+    const products = source("src/app/products/page.tsx");
+
+    expect(products).toContain('import { Button } from "@/components/ui/Button"');
+    expect(products).toContain('import { MetricCard } from "@/components/ui/MetricCard"');
+    expect(products).toContain('import { StatusAlert } from "@/components/ui/Status"');
+    expect(products).toContain('import { Surface } from "@/components/ui/Surface"');
+  });
 });
