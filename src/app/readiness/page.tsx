@@ -28,17 +28,17 @@ export default async function WorkspaceReadinessPage() {
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <PageHeader
           icon={ClipboardCheck}
-          title="Workspace Readiness"
+          title="Control Checkpoint"
           description="A truthful operational checklist for the active workspace."
           badge={{ label: "Unavailable", tone: "unavailable" }}
         />
         <div className="mx-auto max-w-xl">
         <Surface variant="empty">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h1 className="text-base font-semibold text-zinc-100">Workspace Readiness unavailable</h1>
+          <h1 className="text-base font-semibold text-zinc-100">Control Checkpoint unavailable</h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
             {isForbidden
-              ? "Workspace Readiness is available to Administrators only."
+              ? "Control Checkpoint is available to Administrators only."
               : "The readiness checks could not be loaded from the active workspace."}
           </p>
           <Link

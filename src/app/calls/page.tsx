@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
+  ClipboardCheck,
   PhoneCall,
   Search,
   Eye,
@@ -12,7 +13,6 @@ import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
 function useReviewQueryFilter() {
@@ -111,9 +111,9 @@ export default function CallLogsPage() {
             {canReview && (
               <Link
                 href="/calls?review=unreviewed"
-                className="inline-flex items-center rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-2.5 text-xs font-semibold text-amber-200 transition-colors hover:bg-amber-950/40"
+                className="inline-flex items-center rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
               >
-                Needs review: {unreviewedCount}
+                Unreviewed: {unreviewedCount}
               </Link>
             )}
             <Link href="/workspace" className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200">
@@ -246,21 +246,19 @@ export default function CallLogsPage() {
                     ${c.order_value.toFixed(2)}
                   </td>
                   <td className="px-5 py-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex flex-col items-start gap-1.5">
-                        {canReview ? (
-                          <StatusBadge tone={c.review_status === "not_reviewed" ? "warning" : c.review_status === "corrected" ? "neutral" : "success"}>
-                            {reviewStatusLabel(c.review_status)}
-                          </StatusBadge>
-                        ) : (
-                          <span className="text-[11px] text-zinc-500">Not available</span>
-                        )}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-zinc-500">
+                        {canReview ? reviewStatusLabel(c.review_status) || "Not available" : "Not available"}
+                      </span>
+                      <div className="flex shrink-0 items-center gap-1.5">
                         {canReview && c.review_href && (
                           <Link
                             href={reviewHrefForCall(c) || "#"}
-                            className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                            className="inline-flex rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+                            aria-label={`Open review for ${c.lead_name}`}
+                            title="Open review"
                           >
-                            Open review
+                            <ClipboardCheck className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
                           </Link>
                         )}
                       </div>

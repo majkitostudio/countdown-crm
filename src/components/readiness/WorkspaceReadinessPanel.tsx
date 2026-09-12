@@ -47,7 +47,7 @@ function ReadinessStatusBadge({ status }: { status: ReadinessStatus }) {
   const copy = STATUS_COPY[status];
   const tone: SemanticTone = status === "ready" ? "success" : status === "blocked" ? "danger" : "warning";
   return (
-    <SharedStatusBadge tone={tone} className="gap-1.5">
+    <SharedStatusBadge tone={tone} className="gap-2.5">
       <StatusIcon status={status} />
       {copy.label}
     </SharedStatusBadge>
@@ -122,7 +122,7 @@ export function WorkspaceReadinessPanel({ initialData }: { initialData: Workspac
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={ClipboardCheck}
-        title="Workspace Readiness"
+        title="Control Checkpoint"
         badge={{ label: STATUS_COPY[data.overallStatus].label, tone: data.overallStatus === "ready" ? "success" : "unavailable" }}
         description="A truthful operational checklist. Missing evidence is shown as attention or blocked, never as a fake Ready state."
         actions={

@@ -3,11 +3,11 @@ import { getCallOutcomeButtonClassName } from "@/components/workspace/OperatorCa
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 
 describe("call outcome color hierarchy", () => {
-  it("uses restrained semantic colors for important outcomes", () => {
+  it("uses color only for a confirmed result or real failure", () => {
     expect(getCallOutcomeClassName("order_placed")).toContain("text-emerald-200");
     expect(getCallOutcomeClassName("completed")).toContain("text-emerald-200");
     expect(getCallOutcomeClassName("followup_scheduled")).toContain("text-zinc-300");
-    expect(getCallOutcomeClassName("no_answer")).toContain("text-amber-200");
+    expect(getCallOutcomeClassName("no_answer")).toContain("text-zinc-300");
     expect(getCallOutcomeClassName("objection")).toContain("text-rose-200");
   });
 

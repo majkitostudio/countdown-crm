@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const pagePath = resolve(process.cwd(), "src/app/readiness/page.tsx");
 const panelPath = resolve(process.cwd(), "src/components/readiness/WorkspaceReadinessPanel.tsx");
+const navigationPath = resolve(process.cwd(), "src/components/layout/navigation.ts");
 
 describe("workspace readiness UI contract", () => {
   it("keeps the page administrator-only and server-rendered", () => {
@@ -21,7 +22,7 @@ describe("workspace readiness UI contract", () => {
     if (!existsSync(panelPath)) return;
     const panel = readFileSync(panelPath, "utf8");
 
-    expect(panel).toContain("Workspace Readiness");
+    expect(panel).toContain('title="Control Checkpoint"');
     expect(panel).toContain("Attention");
     expect(panel).toContain("Blocked");
     expect(panel).toContain("<details");
@@ -39,8 +40,18 @@ describe("workspace readiness UI contract", () => {
     expect(panel).toContain('label: "Attention"');
     expect(panel).not.toContain('label: "Needs attention"');
     expect(panel).toContain('<MetricCard label="Attention"');
-    expect(panel).toContain('<SharedStatusBadge tone={tone} className="gap-1.5">');
+    expect(panel).toContain('<SharedStatusBadge tone={tone} className="gap-2.5">');
     expect(summary).not.toContain("<StatusIcon status={check.status} />");
     expect(summary).toContain("<ReadinessStatusBadge status={check.status} />");
+  });
+
+  it("names the administrative surface Control Checkpoint everywhere it is displayed", () => {
+    const page = readFileSync(pagePath, "utf8");
+    const navigation = readFileSync(navigationPath, "utf8");
+
+    expect(page).toContain('title="Control Checkpoint"');
+    expect(page).toContain("Control Checkpoint unavailable");
+    expect(navigation).toContain('label: "Control Checkpoint"');
+    expect(navigation).not.toContain('label: "Workspace Readiness"');
   });
 });

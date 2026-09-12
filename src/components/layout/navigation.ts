@@ -50,7 +50,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Workflows", href: "/workflows", icon: Workflow, roles: ["team_leader", "administrator"] },
   { label: "Analytics", href: "/analytics", icon: BarChart3, roles: ["team_leader", "administrator"] },
   { label: "Security Audit Log", href: "/audit", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
-  { label: "Workspace Readiness", href: "/readiness", icon: ClipboardCheck, roles: ["administrator"] },
+  { label: "Control Checkpoint", href: "/readiness", icon: ClipboardCheck, roles: ["administrator"] },
   { label: "Settings", href: "/settings", icon: Settings },
   { label: "Workspace Members", href: "/team", icon: UserCog, roles: ["administrator"] },
 ];
