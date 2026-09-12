@@ -52,6 +52,11 @@ export interface AgentLeaderboardPoint {
 }
 
 export interface AnalyticsOverview {
+  sources: {
+    calls: "ready" | "unavailable";
+    orders: "ready" | "unavailable";
+    operators: "ready" | "unavailable";
+  };
   totalRevenue: number;
   revenueByCurrency: CurrencyAmount[];
   projectedRevenue: number;
@@ -62,6 +67,7 @@ export interface AnalyticsOverview {
   currencies: string[];
   totalCalls: number;
   conversionRate: number;
+  conversionAvailable: boolean;
   objectionResolutionRate: number | null;
   objectionMetricsAvailable: boolean;
   weeklySales: WeeklySalesPoint[];
@@ -83,6 +89,11 @@ export interface RecentActivityEntry {
   productName?: string;
   amount?: number;
   currency?: string;
+}
+
+export interface RecentActivityResult {
+  entries: RecentActivityEntry[];
+  sources: { calls: "ready" | "unavailable"; orders: "ready" | "unavailable" };
 }
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -180,15 +191,17 @@ function getTeamLeaderboard(
 }
 
 /** Retrieves recent workspace activity with real customer and operator attribution. */
-export async function getRecentActivity(limit = 8, requestedWorkspaceId?: string): Promise<RecentActivityEntry[]> {
+export async function getRecentActivity(limit = 8, requestedWorkspaceId?: string): Promise<RecentActivityResult> {
   const context = await requireWorkspaceRole(ANALYTICS_ALLOWED_ROLES, requestedWorkspaceId);
   const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
-  const [calls, orders] = await Promise.all([
+  const [callsResult, ordersResult] = await Promise.allSettled([
     listWorkspaceCallsInContext(context, safeLimit),
     listWorkspaceOrdersInContext(context, safeLimit),
   ]);
 
-  const activity: RecentActivityEntry[] = [
+  const calls = callsResult.status === "fulfilled" ? callsResult.value : [];
+  const orders = ordersResult.status === "fulfilled" ? ordersResult.value : [];
+  const entries: RecentActivityEntry[] = [
     ...calls.map((call) => ({
       id: `call-${call.id}`,
       type: "call" as const,
@@ -212,9 +225,10 @@ export async function getRecentActivity(limit = 8, requestedWorkspaceId?: string
     })),
   ];
 
-  return activity
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, safeLimit);
+  return {
+    entries: entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, safeLimit),
+    sources: { calls: callsResult.status === "fulfilled" ? "ready" : "unavailable", orders: ordersResult.status === "fulfilled" ? "ready" : "unavailable" },
+  };
 }
 
 /** Retrieves Team Leader analytics computed from workspace-scoped Supabase data. */
@@ -227,10 +241,10 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
     supabase.from("calls").select("*").eq("workspace_id", context.workspaceId),
   ]);
 
-  if (ordersRes.error || callsRes.error) throw new Error("Analytics query failed");
-
-  const orders = (ordersRes.data || []) as OrderRow[];
-  const calls = (callsRes.data || []) as CallRow[];
+  const ordersAvailable = !ordersRes.error;
+  const callsAvailable = !callsRes.error;
+  const orders = ordersAvailable ? (ordersRes.data || []) as OrderRow[] : [];
+  const calls = callsAvailable ? (callsRes.data || []) as CallRow[] : [];
   const agentIds = Array.from(
     new Set(
       [...calls, ...orders]
@@ -242,9 +256,8 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
     ? await supabase.from("profiles").select("id, full_name, email, role, status, avatar_url, created_at, updated_at").in("id", agentIds)
     : { data: [], error: null };
 
-  if (profilesError) throw new Error("Analytics operator lookup failed");
-
-  const profiles = profileRows as ProfileRow[];
+  const operatorsAvailable = !profilesError;
+  const profiles = operatorsAvailable ? profileRows as ProfileRow[] : [];
   const completedOrders = orders.filter((order) => order.status === "completed");
   const revenueByCurrency = aggregateCurrencyAmounts(
     completedOrders,
@@ -261,6 +274,7 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
   const conversionRate = calls.length > 0 ? (completedOrders.length / calls.length) * 100 : 0;
 
   return {
+    sources: { calls: callsAvailable ? "ready" : "unavailable", orders: ordersAvailable ? "ready" : "unavailable", operators: operatorsAvailable ? "ready" : "unavailable" },
     totalRevenue: Math.round(totalRevenue * 100) / 100,
     revenueByCurrency,
     projectedRevenue: 0,
@@ -276,7 +290,8 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
     weeklySales: getWeeklySales(completedOrders),
     objectionBreakdown: [],
     teamLeaderboard: getTeamLeaderboard(calls, orders, profiles),
-    teamMetricsAvailable: agentIds.length > 0,
+    conversionAvailable: callsAvailable && ordersAvailable && calls.length > 0,
+    teamMetricsAvailable: callsAvailable && ordersAvailable && operatorsAvailable && agentIds.length > 0,
     daily: getDailyTeamSummary(calls, orders),
   };
 }

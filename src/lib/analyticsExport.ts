@@ -19,7 +19,7 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
     ["Revenue by currency", formatCurrencyAmounts(data.revenueByCurrency)],
     ["AI Forecast Revenue (Next 30d)", "Unavailable"],
     ["Average Order Value by currency", formatCurrencyAmounts(data.avgOrderValueByCurrency)],
-    ["Conversion Rate", `${data.conversionRate}%`],
+    ["Conversion Rate", data.conversionAvailable ? `${data.conversionRate}%` : "Unavailable"],
     [
       "Objection Resolution Rate",
       data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`,

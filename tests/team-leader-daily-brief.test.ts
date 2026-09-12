@@ -47,7 +47,6 @@ describe("Team Leader Daily Brief", () => {
     expect(brief.overdueCallbacks).toBe(1);
     expect(brief.openReminders).toBe(1);
     expect(brief.teamWalletBalance).toBeNull();
-    expect(brief.nextAction.kind).toBe("callback");
   });
 
   it("carries the persisted pending review count without inventing a value", () => {

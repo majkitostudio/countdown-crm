@@ -4,19 +4,25 @@ import React, { useState } from "react";
 import { X, ShieldAlert, Sparkles, Plus, MessageSquareQuote, Pencil } from "lucide-react";
 import { createObjectionAction } from "@/app/actions/objections";
 import { Product, Objection } from "@/lib/products";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+=======
+import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
+>>>>>>> origin/main
 
 interface ObjectionDrawerProps {
   product: Product | null;
   isOpen: boolean;
+  canManage: boolean;
+  objectionsAvailable: boolean;
   onClose: () => void;
-  onProductUpdated: () => void;
+  onProductUpdated: () => Promise<void>;
   onEditObjection: (id: string) => void;
 }
 
-export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, onEditObjection }: ObjectionDrawerProps) {
+export function ObjectionDrawer({ product, isOpen, canManage, objectionsAvailable, onClose, onProductUpdated, onEditObjection }: ObjectionDrawerProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -48,19 +54,14 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const created = await createObjectionAction({
-        product_id: product.id,
-        objection_title: newTitle.trim(),
-        rebuttal_args: argsList,
-      });
-      const newObj: Objection = {
-        id: created.id,
-        product_id: created.product_id || undefined,
-        objection_title: created.objection_title,
-        rebuttal_args: created.rebuttal_args,
-      };
-      setObjections((current) => [...current, newObj]);
-      onProductUpdated();
+      await refreshProductCatalogAfterMutation(
+        () => createObjectionAction({
+          product_id: product.id,
+          objection_title: newTitle.trim(),
+          rebuttal_args: argsList,
+        }),
+        onProductUpdated,
+      );
       setNewTitle("");
       setNewArgs("");
       setShowAddForm(false);
@@ -119,9 +120,10 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Known Customer Objections ({objections.length})
+                  Known Customer Objections ({objectionsAvailable ? objections.length : "unavailable"})
                 </h3>
 
+<<<<<<< HEAD
                 <Button
                   variant="secondary"
                   onClick={() => setShowAddForm(!showAddForm)}
@@ -135,6 +137,20 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
               {showAddForm && (
                 <Surface variant="inset">
                   <div className="animate-in space-y-3 p-4 fade-in duration-200">
+=======
+                {canManage && <button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    className="text-xs font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Objection
+                  </button>}
+              </div>
+
+              {/* Add Objection Inline Form */}
+              {canManage && showAddForm && (
+                <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3 animate-in fade-in duration-200">
+>>>>>>> origin/main
                   <h4 className="text-xs font-semibold text-zinc-200">New Objection Template</h4>
                   <div>
                     <label className="text-[11px] text-zinc-400 block mb-1">Customer Objection Title</label>
@@ -176,9 +192,18 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
               )}
 
               {/* List of Objections Cards */}
+<<<<<<< HEAD
               {objections.length === 0 ? (
                 <Surface variant="inset">
                   <div className="p-8 text-center font-mono text-xs text-zinc-500">
+=======
+              {!objectionsAvailable ? (
+                <div className="p-8 text-center bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-500 font-mono">
+                  Battle-card data unavailable.
+                </div>
+              ) : objections.length === 0 ? (
+                <div className="p-8 text-center bg-zinc-950/40 border border-zinc-800 rounded-xl text-xs text-zinc-500 font-mono">
+>>>>>>> origin/main
                   No objections registered yet for this product.
                   </div>
                 </Surface>
@@ -198,14 +223,22 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
                         </span>
                       </div>
 
+<<<<<<< HEAD
                       <Button
                         variant="quiet"
+=======
+                      {canManage && <button
+>>>>>>> origin/main
                         type="button"
                         onClick={() => onEditObjection(obj.id)}
                         title="Upravit námitku"
                       >
                         <Pencil className="w-3.5 h-3.5" />
+<<<<<<< HEAD
                       </Button>
+=======
+                      </button>}
+>>>>>>> origin/main
 
                     </div>
 

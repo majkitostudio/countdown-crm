@@ -7,6 +7,10 @@ import { createDataClient } from "./db";
 import { requireWorkspaceRole } from "./workspace";
 
 type MembershipRow = Database["public"]["Tables"]["workspace_members"]["Row"];
+type ProfileRow = Pick<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  "id" | "full_name" | "email" | "avatar_url"
+>;
 
 export interface WorkspaceMemberDTO {
   workspace_id: string;
@@ -17,6 +21,43 @@ export interface WorkspaceMemberDTO {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export function mergeMembershipProfiles(
+  memberships: MembershipRow[],
+  profiles: ProfileRow[],
+): WorkspaceMemberDTO[] {
+  const profilesById = new Map(profiles.map((profile) => [profile.id, profile]));
+
+  return memberships.map((membership) => {
+    const profile = profilesById.get(membership.user_id);
+
+    return {
+      ...membership,
+      role: membership.role as WorkspaceRole,
+      full_name: profile?.full_name?.trim() || "Unknown operator",
+      email: profile?.email?.trim() || "",
+      avatar_url: profile?.avatar_url || null,
+    };
+  });
+}
+
+async function loadMembershipProfiles(
+  memberships: MembershipRow[],
+  supabase: Awaited<ReturnType<typeof createDataClient>>,
+): Promise<WorkspaceMemberDTO[]> {
+  if (memberships.length === 0) return [];
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, avatar_url")
+    .in("id", memberships.map((membership) => membership.user_id));
+
+  if (profileError) {
+    throw new DataAccessError("DATABASE", "Workspace member profiles could not be loaded");
+  }
+
+  return mergeMembershipProfiles(memberships, (profiles || []) as ProfileRow[]);
 }
 
 async function loadMember(
@@ -54,8 +95,8 @@ async function loadMember(
   };
 }
 
-export async function listWorkspaceMembers(): Promise<WorkspaceMemberDTO[]> {
-  const context = await requireWorkspaceRole(["administrator"]);
+export async function listWorkspaceMembers(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
+  const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data: memberships, error } = await supabase
     .from("workspace_members")
@@ -67,15 +108,11 @@ export async function listWorkspaceMembers(): Promise<WorkspaceMemberDTO[]> {
     throw new DataAccessError("DATABASE", "Workspace members could not be loaded");
   }
 
-  return Promise.all(
-    ((memberships || []) as MembershipRow[]).map((membership) =>
-      loadMember(context.workspaceId, membership.user_id, supabase),
-    ),
-  );
+  return loadMembershipProfiles((memberships || []) as MembershipRow[], supabase);
 }
 
-export async function listWorkspaceOperators(): Promise<WorkspaceMemberDTO[]> {
-  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+export async function listWorkspaceOperators(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data: memberships, error } = await supabase
     .from("workspace_members")
@@ -88,11 +125,7 @@ export async function listWorkspaceOperators(): Promise<WorkspaceMemberDTO[]> {
     throw new DataAccessError("DATABASE", "Workspace operators could not be loaded");
   }
 
-  return Promise.all(
-    ((memberships || []) as MembershipRow[]).map((membership) =>
-      loadMember(context.workspaceId, membership.user_id, supabase),
-    ),
-  );
+  return loadMembershipProfiles((memberships || []) as MembershipRow[], supabase);
 }
 
 export async function updateWorkspaceMemberRole(

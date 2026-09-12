@@ -6,6 +6,7 @@ import {
   removeWorkspaceMemberAction,
   updateWorkspaceMemberRoleAction,
 } from "@/app/actions/workspace";
+import type { TeamMutationHandler } from "@/components/team/TeamPageContent";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
@@ -14,14 +15,14 @@ import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
 interface TeamMembersPanelProps {
-  initialMembers: WorkspaceMemberDTO[];
+  members: WorkspaceMemberDTO[];
   currentUserId: string;
+  onMutation: TeamMutationHandler;
 }
 
 const ROLE_OPTIONS: WorkspaceRole[] = ["operator", "team_leader", "administrator"];
 
-export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersPanelProps) {
-  const [members, setMembers] = useState(initialMembers);
+export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMembersPanelProps) {
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -31,8 +32,7 @@ export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersP
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      const updated = await updateWorkspaceMemberRoleAction(userId, role);
-      setMembers((current) => current.map((member) => member.user_id === userId ? updated : member));
+      await onMutation(() => updateWorkspaceMemberRoleAction(userId, role));
       setSuccessMessage("Role byla uložena.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Role se nepodařilo uložit.");
@@ -48,8 +48,7 @@ export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersP
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await removeWorkspaceMemberAction(member.user_id);
-      setMembers((current) => current.filter((item) => item.user_id !== member.user_id));
+      await onMutation(() => removeWorkspaceMemberAction(member.user_id));
       setSuccessMessage("Člen workspace byl odebrán.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Člena workspace se nepodařilo odebrat.");

@@ -1376,6 +1376,8 @@ export interface Database {
           duration_seconds: number;
           ai_source: string | null;
           scorecard: Json;
+          completion_key: string | null;
+          script_snapshot: Json;
           started_at: string;
           completed_at: string | null;
           created_at: string;
@@ -1392,6 +1394,8 @@ export interface Database {
           duration_seconds?: number;
           ai_source?: string | null;
           scorecard?: Json;
+          completion_key?: string | null;
+          script_snapshot?: Json;
           started_at?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -1401,6 +1405,8 @@ export interface Database {
           duration_seconds?: number;
           ai_source?: string | null;
           scorecard?: Json;
+          completion_key?: string | null;
+          script_snapshot?: Json;
           completed_at?: string | null;
         };
         Relationships: [];
@@ -1436,6 +1442,32 @@ export interface Database {
           occurred_at?: string;
           confidence?: number | null;
         };
+        Relationships: [];
+      };
+      training_review_revisions: {
+        Row: {
+          id: string;
+          session_id: string;
+          workspace_id: string;
+          reviewer_id: string;
+          revision_number: number;
+          verdict: string;
+          coaching_note: string;
+          correction_reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          workspace_id: string;
+          reviewer_id: string;
+          revision_number: number;
+          verdict: string;
+          coaching_note: string;
+          correction_reason?: string | null;
+          created_at?: string;
+        };
+        Update: never;
         Relationships: [];
       };
       user_gamification: {

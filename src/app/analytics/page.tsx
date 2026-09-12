@@ -33,6 +33,7 @@ const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const emptyData: AnalyticsOverview = {
+    sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable" },
     totalRevenue: 0,
     revenueByCurrency: [],
     projectedRevenue: 0,
@@ -43,6 +44,7 @@ export default function AnalyticsPage() {
     currencies: [],
     totalCalls: 0,
     conversionRate: 0,
+    conversionAvailable: false,
     objectionResolutionRate: 0,
     objectionMetricsAvailable: false,
     weeklySales: [],
@@ -161,11 +163,18 @@ export default function AnalyticsPage() {
         <StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>
       )}
 
+      {result?.ok && Object.values(result.data.sources).some((source) => source === "unavailable") && (
+        <div role="status" className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-sm text-amber-200">
+          Partial analytics: {result.data.sources.calls === "unavailable" ? "call data" : ""}{result.data.sources.calls === "unavailable" && result.data.sources.orders === "unavailable" ? " and " : ""}{result.data.sources.orders === "unavailable" ? "order data" : ""}{(result.data.sources.calls === "unavailable" || result.data.sources.orders === "unavailable") && result.data.sources.operators === "unavailable" ? " and " : ""}{result.data.sources.operators === "unavailable" ? "operator attribution" : ""} is unavailable. Remaining metrics are shown without estimates.
+        </div>
+      )}
+
       {result?.ok && <>
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Total Revenue & AI Forecast */}
+<<<<<<< HEAD
         <MetricCard
           label="Total Sales Volume"
           value={formatCurrencyAmounts(data.revenueByCurrency)}
@@ -179,6 +188,55 @@ export default function AnalyticsPage() {
 
         {/* Conversion Rate */}
         <MetricCard label="Call Conversion Rate" value={`${data.conversionRate}%`} detail={`Based on ${data.totalCalls} total calls`} />
+=======
+        <div className="p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-400">Total Sales Volume</span>
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.sources.orders === "ready" ? formatCurrencyAmounts(data.revenueByCurrency) : "—"}</span>
+            <div className="flex items-center gap-1.5 text-xs text-zinc-400 font-mono mt-1">
+              <ArrowUpRight className="w-3.5 h-3.5 text-zinc-400" />
+              <span>
+                {data.forecastAvailable
+                  ? `+${data.forecastGrowthPercent}% AI Forecast (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
+                  : "AI Forecast unavailable"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Average Order Value AOV */}
+        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-400">Average Order Value (AOV)</span>
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
+              <ShoppingCart className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.sources.orders === "ready" ? formatCurrencyAmounts(data.avgOrderValueByCurrency) : "—"}</span>
+            <p className="text-[11px] text-zinc-400 mt-1">Calculated from completed orders in the workspace</p>
+          </div>
+        </div>
+
+        {/* Conversion Rate */}
+        <div className="p-5 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-400">Call Conversion Rate</span>
+            <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl font-bold font-mono text-zinc-100">{data.conversionAvailable ? `${data.conversionRate}%` : "—"}</span>
+            <p className="text-[11px] text-zinc-400 mt-1">{data.conversionAvailable ? `Based on ${data.totalCalls} total calls` : "Requires both call and order data"}</p>
+          </div>
+        </div>
+>>>>>>> origin/main
 
         {/* Objection Resolution Rate */}
         <MetricCard label="Objection Overcome %" value={data.objectionMetricsAvailable && data.objectionResolutionRate !== null ? `${data.objectionResolutionRate}%` : "—"} detail="No persisted objection outcome metric" />
@@ -215,8 +273,17 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
+<<<<<<< HEAD
           {data.currencies.length > 1 ? (
             <StatusAlert tone="warning" role="status" className="w-full">
+=======
+          {data.sources.orders === "unavailable" ? (
+            <div role="status" className="flex h-64 items-center justify-center rounded-xl border border-amber-900/50 bg-amber-950/20 p-6 text-center text-xs text-amber-200">
+              Weekly revenue is unavailable because completed-order data could not be loaded.
+            </div>
+          ) : data.currencies.length > 1 ? (
+            <div role="status" className="flex h-64 items-center justify-center rounded-xl border border-amber-900/50 bg-amber-950/20 p-6 text-center text-xs text-amber-200">
+>>>>>>> origin/main
               Weekly revenue chart is unavailable for mixed currencies. Amounts remain separated in the revenue breakdown.
             </StatusAlert>
           ) : <div className="h-64 w-full">

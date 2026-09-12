@@ -26,11 +26,22 @@ import {
   listWorkspaceOrders,
   listWorkspaceOrdersForLead,
   listWorkspaceLeadActivity,
+  listWorkspaceLeadActivityPage,
+  listWorkspaceLeadActivityEvents,
 } from "@/lib/dal/activity";
 import { listCallReviewStatuses, type CallReviewStatus } from "@/lib/dal/callReviews";
 import type { WorkspaceCallDTO, WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { Database } from "@/lib/supabase/types";
+import type { CustomerActivityPageOptions } from "@/lib/customerActivity";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { listTrainingCallLogRecords } from "@/lib/dal/trainingSessions";
+
+export async function listLeadActivityPageAction(leadId: string, options?: CustomerActivityPageOptions) {
+  return listWorkspaceLeadActivityPage(leadId, options);
+}
+export async function listLeadActivityEventsAction(leadId: string) {
+  return listWorkspaceLeadActivityEvents(leadId);
+}
 
 type LeadStatus = Database["public"]["Tables"]["leads"]["Row"]["status"];
 
@@ -122,6 +133,10 @@ export async function listCallsAction(workspaceId?: string): Promise<WorkspaceCa
     review_href: canReview ? `/calls/${call.id}/review` : null,
     review_status: canReview ? reviewStatuses.get(call.id) || "not_reviewed" : null,
   }));
+}
+
+export async function listTrainingCallLogRecordsAction() {
+  return listTrainingCallLogRecords();
 }
 
 export async function getCallAction(

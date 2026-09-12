@@ -1,5 +1,3 @@
-import type { CalendarLoadResult } from "@/lib/dal/calendar";
-
 export interface NextBestActionCallback {
   id: string;
   lead_id: string;
@@ -31,9 +29,25 @@ export interface NextBestActionInput {
   now?: Date;
 }
 
+export type NextBestActionSource<T> =
+  | { state: "available"; data: T }
+  | { state: "unavailable"; message: string };
+
+export type NextBestActionSourceName = "callbacks" | "reorders";
+
 export type NextBestActionState =
   | { status: "ready"; action: NextBestAction }
-  | { status: "unavailable"; message: string };
+  | {
+      status: "partial";
+      action: NextBestAction;
+      unavailableSources: NextBestActionSourceName[];
+      message: string;
+    }
+  | {
+      status: "unavailable";
+      unavailableSources: NextBestActionSourceName[];
+      message: string;
+    };
 
 function isValidDate(value: string): boolean {
   return Number.isFinite(Date.parse(value));
@@ -94,28 +108,44 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
 }
 
 export function resolveNextBestActionState(
-  calendarResult: Pick<CalendarLoadResult, "entries" | "sources">,
-  reorderOpportunities: NextBestActionReorderOpportunity[] = [],
+  callbacksSource: NextBestActionSource<NextBestActionCallback[]>,
+  reordersSource: NextBestActionSource<NextBestActionReorderOpportunity[]>,
   now?: Date,
 ): NextBestActionState {
-  if (calendarResult.sources.callbacks.state === "unavailable") {
-    return {
-      status: "unavailable",
-      message: calendarResult.sources.callbacks.message,
-    };
+  const unavailableSources: NextBestActionSourceName[] = [];
+  const unavailableMessages: string[] = [];
+
+  if (callbacksSource.state === "unavailable") {
+    unavailableSources.push("callbacks");
+    unavailableMessages.push(callbacksSource.message);
+  }
+  if (reordersSource.state === "unavailable") {
+    unavailableSources.push("reorders");
+    unavailableMessages.push(reordersSource.message);
   }
 
-  const callbacks = calendarResult.entries
-    .filter((entry) => entry.type === "callback" && entry.lead)
-    .map((entry) => ({
-      id: entry.id,
-      lead_id: entry.lead!.id,
-      lead_name: entry.lead!.full_name,
-      scheduled_at: entry.starts_at,
-    }));
+  const action = getNextBestAction({
+    callbacks: callbacksSource.state === "available" ? callbacksSource.data : [],
+    reorderOpportunities: reordersSource.state === "available" ? reordersSource.data : [],
+    now,
+  });
+
+  if (unavailableSources.length === 0) {
+    return { status: "ready", action };
+  }
+
+  const message = unavailableMessages.join(" ");
+  const actionIsSupportedByAvailableSource =
+    (action.kind === "callback" && callbacksSource.state === "available")
+    || (action.kind === "reorder" && reordersSource.state === "available");
+
+  if (actionIsSupportedByAvailableSource) {
+    return { status: "partial", action, unavailableSources, message };
+  }
 
   return {
-    status: "ready",
-    action: getNextBestAction({ callbacks, reorderOpportunities, now }),
+    status: "unavailable",
+    unavailableSources,
+    message,
   };
 }

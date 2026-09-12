@@ -1,4 +1,4 @@
-import { getNextBestAction, type NextBestAction, type NextBestActionCallback, type NextBestActionReorderOpportunity } from "./nextBestAction";
+import type { NextBestActionCallback, NextBestActionReorderOpportunity } from "./nextBestAction";
 import type { DailyTeamSummary } from "./dailyTeamSummary";
 
 export interface DailyBriefReminder {
@@ -25,7 +25,6 @@ export interface TeamLeaderDailyBrief {
   teamWalletBalance: number | null;
   teamWalletTransactions: number | null;
   walletCurrency: string | null;
-  nextAction: NextBestAction;
 }
 
 export interface TeamLeaderDailyBriefInput {
@@ -73,10 +72,5 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
       ? wallet.balances.reduce((sum, balance) => sum + Number(balance.transaction_count || 0), 0)
       : null,
     walletCurrency: wallet?.currency ?? null,
-    nextAction: getNextBestAction({
-      callbacks,
-      reorderOpportunities: input.reorderOpportunities,
-      now,
-    }),
   };
 }

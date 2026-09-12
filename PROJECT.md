@@ -170,11 +170,14 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    dokazuje pouze linked sandbox, ne produkční readiness.
 2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
    pravdivé UI, full-shift smoke test a dependency gate.
-3. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
+3. P1.5 po uzavření P1 přidá úzce vymezený P2 onboarding trénažér: jeden až dva
+   schválené skripty, bezpečný AI nácvik, compliance zpětnou vazbu a jasně
+   označené tréninkové záznamy v Call Logu bez obchodního side effectu.
+4. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
    Teprve nad tímto základem vzniknou operátorské Results a týmová srovnání.
-4. P3 propojí presence, směny, Live Monitor a role-aware Settings.
-5. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
-6. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní
+5. P3 propojí presence, směny, Live Monitor a role-aware Settings.
+6. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
+7. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní
    telefonii. Široké moduly zůstávají do po-pilotního rozhodnutí zmrazené.
 
 ### Provozní rozhodnutí k Auth (8. 9. 2026)

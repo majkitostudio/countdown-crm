@@ -1,24 +1,6 @@
-export type CustomerPersonalityType =
-  | "Skeptický"
-  | "Cenově citlivý"
-  | "Netrpělivý"
-  | "Náročný / Cholerický"
-  | "Nedůvěřivý";
+export type TrainingDifficulty = "easy" | "standard";
 
-export interface TrainingScenario {
-  id: string;
-  title: string;
-  category?: "food_supplements" | "cosmetics" | "electronics";
-  difficulty: "Snadná" | "Střední" | "Těžká";
-  customerName: string;
-  customerPersona: string;
-  personalityType: CustomerPersonalityType;
-  targetProduct: string;
-  initialMessage: string;
-  goals: string[];
-}
-
-export interface TrainingMessage {
+export type TrainingMessage = {
   id: string;
   sender: "user" | "ai_customer";
   text: string;
@@ -27,142 +9,160 @@ export interface TrainingMessage {
   source?: "typed" | "browser_speech" | "ai_customer" | "scenario";
   confidence?: number | null;
   sentiment?: "positive" | "neutral" | "negative";
-  customerMood?: "Klidný" | "Skeptický" | "Podrážděný" | "Nadšený" | "Naštvaný" | "Nedůvěřivý";
-  patienceGauge?: number; // 0 - 100
-}
+};
 
-export interface TrainingScorecard {
-  overallScore: number; // 0 - 100
-  grade: "A+" | "A" | "B" | "C" | "D";
-  empathyScore: number;
-  objectionHandlingScore: number;
-  complianceScore: number;
+export type TrainingPersona = {
+  id: string;
+  name: string;
+  profile: string;
+  deliveryAddress: string;
+};
+
+export type TrainingScriptSection = { title: string; text: string };
+
+export type TrainingScript = {
+  id: string;
+  title: string;
+  productLabel: string;
+  purpose: string;
+  opening: string;
+  sections: TrainingScriptSection[];
+};
+
+export type TrainingScenario = TrainingScript & {
+  difficulty: TrainingDifficulty;
+  customer: TrainingPersona;
+  initialMessage: string;
+};
+
+export type ComplianceFinding = {
+  phrase: string;
+  reason: string;
+  saferAlternative: string;
+  severity: "serious";
+  occurrences: number;
+};
+
+export type TrainingScorecard = {
+  overallScore: number;
+  grade: "A" | "B" | "C" | "D";
+  passed: boolean;
+  discoveryScore: number;
+  scriptScore: number;
+  offerScore: number;
   closingScore: number;
+  complianceScore: number;
+  complianceFindings: ComplianceFinding[];
   strengths: string[];
   improvements: string[];
   summaryFeedback: string;
-}
+};
 
-export const TRAINING_SCENARIOS: TrainingScenario[] = [
+export const P2_TRAINING_SCRIPTS: TrainingScript[] = [
   {
-    id: "supplements-skeptic",
-    title: "Skeptický zákazník u Doplňků stravy",
-    category: "food_supplements",
-    difficulty: "Střední",
-    customerName: "Karel Svoboda (54 let)",
-    customerPersona: "Měl špatnou zkušenost s levnými kloubními preparáty. Nevěří, že tento kolagen funguje.",
-    personalityType: "Skeptický",
-    targetProduct: "FlexiJoint Ultra Collagen",
-    initialMessage: "Dobrý den, já těmhle zázračným pilulkám moc nevěřím. Už jsem vyzkoušel tři různé značky a klouby mě bolí pořád stejně.",
-    goals: [
-      "Vysvětlit rozdíl hydrolyzovaného kolagenu typu I a II",
-      "Překonat námitku ohledně předchozí špatné zkušenosti",
-      "Uzavřít prodej zvýhodněného trojbalení",
+    id: "p2-joints-free-sample",
+    title: "P2 · Klouby · první kontakt",
+    productLabel: "Kloubní program – bezplatný vzorek",
+    purpose: "První bezpečný nácvik P2 odchozího hovoru: zjištění potíží, nabídka vzorku a dokončení údajů.",
+    opening: "Dobrý den, tady [vaše jméno] z Countdown. Mluvím prosím s {{customer_name}}? Volám krátce k vašemu zájmu o vzorek pro podporu kloubů. Hodí se vám teď minuta?",
+    sections: [
+      { title: "Zjištění situace", text: "Zeptej se, jak dlouho obtíže trvají, v čem zákazníka omezují a co by pro něj znamenala změna. Naslouchej; nediagnostikuj." },
+      { title: "Představení nabídky", text: "Drž se schválených informací. Nabídni bezplatný vzorek jako možnost vyzkoušení, bez slibování konkrétního účinku nebo výsledku." },
+      { title: "Závěr hovoru", text: "Po souhlasu ověř jméno a doručovací adresu. Poděkuj, shrň domluvu a přirozeně se rozluč." },
     ],
   },
   {
-    id: "cosmetics-price",
-    title: "Cenově citlivá zákaznice u Omlazujícího séra",
-    category: "cosmetics",
-    difficulty: "Snadná",
-    customerName: "Eva Horáková (42 let)",
-    customerPersona: "Zajímá ji péče o pleť, ale 1 890 Kč za séry se jí zdá moc.",
-    personalityType: "Cenově citlivý",
-    targetProduct: "Lumière Bio-Retinol Elixir",
-    initialMessage: "Halo? Sérum zní zajímavě, ale skoro dvě tisícovky za lahvičku? To si nemůžu dovolit.",
-    goals: [
-      "Přepočítat cenu na denní náklady (pouze 21 Kč/den)",
-      "Nabídnout dárek zdarma (hydrogelová maska)",
-      "Získat objednávku",
-    ],
-  },
-  {
-    id: "electronics-angry",
-    title: "Impulzivní zákazník u Robotického vysavače",
-    category: "electronics",
-    difficulty: "Těžká",
-    customerName: "Martin Růžička (36 let)",
-    customerPersona: "Chce rychlé odpovědi, nesnáší omáčky a porovnává parametry s čínskou konkurencí.",
-    personalityType: "Náročný / Cholerický",
-    targetProduct: "RoboClean Pro LiDAR V8",
-    initialMessage: "Poslechněte, nemám moc času. Proč bych měl dát 12 tisíc za váš vysavač, když na internetu je Xiaomi za půlku?",
-    goals: [
-      "Udržet klidný a profesionální tón",
-      "Vypíchnout LiDAR navigaci + český servis a 3letou záruku",
-      "Udržet hovor pod 3 minuty a dokončit prodej",
-    ],
-  },
-  {
-    id: "cosmetics-distrustful",
-    title: "Nedůvěřivý zákazník u Výživových doplňků a Kosmetiky",
-    category: "cosmetics",
-    difficulty: "Těžká",
-    customerName: "Lenka Novotná (49 let)",
-    customerPersona: "Bojí se podvodných e-shopů a neověřených přísad. Požaduje garanci původu a certifikáty.",
-    personalityType: "Nedůvěřivý",
-    targetProduct: "Lumière Bio-Retinol Elixir",
-    initialMessage: "Dobrý den, předem říkám, že na internetu je plno šmejdů. Jak mám vědět, že nejste další pochybná firma z Číny s falešným certifikátem?",
-    goals: [
-      "Poskytnout ověřitelné informace o české výrovbě a certifikaci ISO/GMP",
-      "Vysvětlit 30denní garanci vrácení peněz bez rizika",
-      "Získat objednávku s dobírkou nebo platbou po doručení",
+    id: "p2-vitality-free-sample",
+    title: "P2 · Vitalita · první kontakt",
+    productLabel: "Program vitality – bezplatný vzorek",
+    purpose: "Nácvik citlivého, věcného P2 rozhovoru bez medicínských slibů a bez tlaku na zákazníka.",
+    opening: "Dobrý den, tady [vaše jméno] z Countdown. Mluvím prosím s {{customer_name}}? Volám krátce k vašemu zájmu o vzorek programu vitality. Hodí se vám teď minuta?",
+    sections: [
+      { title: "Zjištění situace", text: "Ptej se citlivě, jak dlouho zákazník řeší svůj komfort, v čem jej omezuje a co by chtěl ve svém běžném dni zlepšit. Netlač na odpověď." },
+      { title: "Představení nabídky", text: "Používej pouze schválený popis programu. Nevydávej se za lékaře, nedávej zdravotní doporučení a negarantuj výsledek." },
+      { title: "Závěr hovoru", text: "Po souhlasu ověř jméno a doručovací adresu. Poděkuj, shrň domluvu a přirozeně se rozluč." },
     ],
   },
 ];
 
-export function evaluateTrainingSession(
-  scenario: TrainingScenario,
-  history: TrainingMessage[]
-): TrainingScorecard {
-  const userMessages = history.filter((m) => m.sender === "user");
-  const totalUserWords = userMessages.reduce((acc, m) => acc + m.text.split(" ").length, 0);
+export const TRAINING_PERSONAS: TrainingPersona[] = [
+  { id: "marie-kralova", name: "Marie Králová", profile: "Má občasné potíže s koleny při delší chůzi. Chce si nejdřív v klidu zjistit, co přesně jí nabízíte.", deliveryAddress: "Jabloňová 18, 779 00 Olomouc" },
+  { id: "petr-sedlacek", name: "Petr Sedláček", profile: "Dlouhodobě řeší únavu a nechce naletět marketingovým slibům. Ocení stručné, normální vysvětlení.", deliveryAddress: "Křižíkova 42, 301 00 Plzeň" },
+  { id: "jana-dvorakova", name: "Jana Dvořáková", profile: "Zajímá ji, zda jde vzorek doručit bez složitého objednávání. Potřebuje mít jistotu, že na ni nikdo netlačí.", deliveryAddress: "Na Výsluní 7, 460 01 Liberec" },
+];
 
-  const objectionHandlingScore = 80;
-  let empathyScore = 85;
-  let complianceScore = 100;
-  let closingScore = 75;
+const seriousComplianceRules: Array<Omit<ComplianceFinding, "phrase" | "occurrences"> & { patterns: RegExp[] }> = [
+  {
+    patterns: [/jsem (váš |)lékař/i, /jako lékař/i, /doktor vám to doporuč/i],
+    reason: "Operátor se nesmí vydávat za lékaře ani vytvářet dojem odborné zdravotní autority.",
+    saferAlternative: "Mohu vám popsat schválené informace o programu; zdravotní otázky prosím konzultujte s lékařem.",
+    severity: "serious",
+  },
+  {
+    patterns: [/garantuji.{0,40}(výsledek|účinek|zlepšení|uzdravení)/i, /(určitě|stoprocentně|na 100 ?%).{0,40}(pomůže|zabere|vyléčí)/i],
+    reason: "Nesmí se garantovat účinek, výsledek ani uzdravení.",
+    saferAlternative: "Nemohu slíbit konkrétní výsledek. Mohu vysvětlit, jak je program popsaný ve schválených materiálech.",
+    severity: "serious",
+  },
+  {
+    patterns: [/(vyléčí|uzdraví|léčí).{0,40}(kloub|bolest|erekci|problém)/i],
+    reason: "Program se nesmí prezentovat jako léčba nebo náhrada zdravotní péče.",
+    saferAlternative: "Nejde o léčebné tvrzení. Mohu nabídnout vzorek a držet se schváleného popisu programu.",
+    severity: "serious",
+  },
+];
 
-  // Analyze messages
-  const fullText = userMessages.map((m) => m.text.toLowerCase()).join(" ");
+export function getTrainingScenario(scriptId: string, difficulty: TrainingDifficulty, personaId: string): TrainingScenario | null {
+  const script = P2_TRAINING_SCRIPTS.find((candidate) => candidate.id === scriptId);
+  const customer = TRAINING_PERSONAS.find((candidate) => candidate.id === personaId);
+  if (!script || !customer || !["easy", "standard"].includes(difficulty)) return null;
+  const initialMessage = difficulty === "easy"
+    ? `Dobrý den, tady ${customer.name}. Ano, vzorek mě zaujal. Můžete mi stručně říct, jak to funguje?`
+    : `Dobrý den, tady ${customer.name}. Vzorek mě sice zaujal, ale podobným nabídkám moc nevěřím. Co přesně ode mě potřebujete?`;
+  return { ...script, difficulty, customer, initialMessage };
+}
 
-  if (fullText.includes("vyléčí") || fullText.includes("garantuji uzdravení")) {
-    complianceScore -= 40;
-  }
-  if (fullText.includes("rozumím") || fullText.includes("chápu") || fullText.includes("přesně")) {
-    empathyScore += 10;
-  }
-  if (fullText.includes("doprava") || fullText.includes("objednávka") || fullText.includes("adresa")) {
-    closingScore += 20;
-  }
+export function personaliseTrainingScript(scenario: TrainingScenario): TrainingScriptSection[] {
+  return [{ title: "Začátek hovoru", text: scenario.opening.replace("{{customer_name}}", scenario.customer.name) }, ...scenario.sections];
+}
 
-  const overallScore = Math.round((objectionHandlingScore + empathyScore + complianceScore + closingScore) / 4);
+export function findComplianceFindings(messages: TrainingMessage[]): ComplianceFinding[] {
+  const operatorText = messages.filter((message) => message.sender === "user").map((message) => message.text).join("\n");
+  return seriousComplianceRules.flatMap((rule) => {
+    const matches = rule.patterns.flatMap((pattern) => Array.from(operatorText.matchAll(new RegExp(pattern.source, `${pattern.flags}g`))));
+    if (matches.length === 0) return [];
+    return [{ phrase: matches[0][0], reason: rule.reason, saferAlternative: rule.saferAlternative, severity: rule.severity, occurrences: matches.length }];
+  });
+}
 
-  let grade: TrainingScorecard["grade"] = "B";
-  if (overallScore >= 95) grade = "A+";
-  else if (overallScore >= 85) grade = "A";
-  else if (overallScore >= 75) grade = "B";
-  else if (overallScore >= 60) grade = "C";
-  else grade = "D";
+function includesAny(text: string, terms: string[]): boolean {
+  return terms.some((term) => text.includes(term));
+}
 
-  const strengths = [];
-  if (empathyScore >= 85) strengths.push("Vynikající projev empatie a zklidnění zákazníka");
-  if (complianceScore >= 95) strengths.push("Perfektní dodržení právních a etických standardů (100% compliance)");
-  if (closingScore >= 85) strengths.push("Silná argumentace vedoucí k úspěšnému uzavření prodeje");
-
-  const improvements = [];
-  if (complianceScore < 90) improvements.push("Pozor na zakázaná absolutní či lékopisná tvrzení");
-  if (closingScore < 80) improvements.push("Zkus aktivněji navrhnout konkrétní kroky k dokončení objednávky");
-  if (totalUserWords < 40) improvements.push("Odpovědi byly příliš stručné, neboj se více vysvětlit užitek produktu");
-
+export function evaluateTrainingSession(scenario: TrainingScenario, history: TrainingMessage[]): TrainingScorecard {
+  const operatorText = history.filter((message) => message.sender === "user").map((message) => message.text.toLocaleLowerCase("cs-CZ")).join(" ");
+  const findings = findComplianceFindings(history);
+  const discoveryScore = includesAny(operatorText, ["jak dlouho", "omezuje", "co by se změnilo", "v čem"]) ? 100 : 55;
+  const scriptScore = includesAny(operatorText, ["vzorek", "program", "nabíd"]) ? 90 : 55;
+  const offerScore = includesAny(operatorText, ["zdarma", "nabíz", "mohu vám poslat"]) ? 90 : 60;
+  const closingScore = includesAny(operatorText, ["adresa", "doruč", "děkuji", "rozlou"]) ? 100 : 45;
+  const complianceScore = findings.length === 0 ? 100 : Math.max(0, 45 - findings.reduce((total, finding) => total + Math.max(0, finding.occurrences - 1) * 15, 0));
+  const overallScore = Math.round((discoveryScore + scriptScore + offerScore + closingScore + complianceScore) / 5);
+  const passed = findings.length === 0 && overallScore >= 70;
+  const grade: TrainingScorecard["grade"] = overallScore >= 85 ? "A" : overallScore >= 70 ? "B" : overallScore >= 55 ? "C" : "D";
+  const strengths: string[] = [];
+  if (discoveryScore >= 90) strengths.push("Položil/a jste otázku, která pomáhá pochopit situaci zákazníka.");
+  if (closingScore >= 90) strengths.push("Hovor jste přirozeně dovedl/a k ověření doručovacích údajů.");
+  if (findings.length === 0) strengths.push("Nevyskytlo se žádné závažné zakázané tvrzení.");
+  const improvements: string[] = [];
+  if (discoveryScore < 90) improvements.push("Nejdřív zjistěte, jak situace zákazníka vypadá a co pro něj změna znamená.");
+  if (closingScore < 90) improvements.push("Po souhlasu nezapomeňte nabídku uzavřít ověřením adresy a poděkováním.");
+  if (findings.length > 0) improvements.push("Závažné právní tvrzení musí příště nahradit bezpečná formulace uvedená níže.");
   return {
-    overallScore,
-    grade,
-    empathyScore,
-    objectionHandlingScore,
-    complianceScore,
-    closingScore,
-    strengths,
-    improvements,
-    summaryFeedback: `Skvělá práce v simulovaném hovoru! Udržel jsi profesionální tón a dobře jsi reagoval na osobnostního typu "${scenario.personalityType}".`,
+    overallScore, grade, passed, discoveryScore, scriptScore, offerScore, closingScore, complianceScore,
+    complianceFindings: findings, strengths, improvements,
+    summaryFeedback: passed
+      ? `Cvičný P2 hovor se zákazníkem ${scenario.customer.name} je splněn. Výsledek je tréninkový; nevznikla objednávka ani úkol pro ostrý provoz.`
+      : "Cvičení je zaznamenáno, ale ještě není splněno. Projděte konkrétní zpětnou vazbu a zkuste jej znovu.",
   };
 }

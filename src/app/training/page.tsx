@@ -1,574 +1,129 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import {
-  TRAINING_SCENARIOS,
-  TrainingScenario,
-  TrainingMessage,
-  TrainingScorecard,
-  CustomerPersonalityType,
-  evaluateTrainingSession,
-} from "@/lib/training";
-import { checkCompliance, ComplianceViolation } from "@/lib/compliance";
-import {
-  GraduationCap,
-  Play,
-  Send,
-  Mic,
-  MicOff,
-  Bot,
-  User,
-  Sparkles,
-  CheckCircle2,
-  AlertTriangle,
-  Award,
-  RotateCcw,
-  ShieldAlert,
-  Target,
-  TrendingUp,
-  Clock,
-  PhoneCall,
-  Gauge,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, ClipboardList, FileText, PhoneOff, PhoneOutgoing, Play, Send, ShieldAlert, Volume2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
+=======
+>>>>>>> origin/main
 import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
-import { speakText, stopSpeaking, getPersonaVoiceSettings } from "@/lib/speechSynthesis";
-import { Volume2, VolumeX, Radio } from "lucide-react";
+import { listTrainingCallLogRecordsAction } from "@/app/actions/crm";
+import { P2_TRAINING_SCRIPTS, TRAINING_PERSONAS, evaluateTrainingSession, getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingScorecard } from "@/lib/training";
+import { speakText, stopSpeaking } from "@/lib/speechSynthesis";
 
-type TrainingCallState = "idle" | "listening" | "endpointing" | "processing" | "ai-speaking";
+function timeLabel(value: string): string {
+  return new Intl.DateTimeFormat("cs-CZ", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+}
 
-type SpeechRecognitionResultLike = {
-  isFinal: boolean;
-  0: { transcript: string; confidence?: number };
-};
+function durationLabel(seconds: number): string {
+  return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
+}
 
-type SpeechRecognitionEventLike = {
-  results: ArrayLike<SpeechRecognitionResultLike>;
-};
-
-type SpeechRecognitionLike = {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onstart: (() => void) | null;
-  onend: (() => void) | null;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: { error?: string }) => void) | null;
-  start: () => void;
-  stop: () => void;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
-type SpeechRecognitionWindow = Window & {
-  SpeechRecognition?: SpeechRecognitionConstructor;
-  webkitSpeechRecognition?: SpeechRecognitionConstructor;
-};
-
-const scenarioUiCopy: Record<string, { title: string; persona: string; goals: string[] }> = {
-  "supplements-skeptic": {
-    title: "Skeptical supplement customer",
-    persona: "Had a bad experience with low-cost joint products and does not trust that this collagen will work.",
-    goals: [
-      "Explain the difference between hydrolyzed type I and type II collagen",
-      "Address the objection based on the customer's previous experience",
-      "Close the sale of the discounted three-pack",
-    ],
-  },
-  "cosmetics-price": {
-    title: "Price-sensitive skincare customer",
-    persona: "Interested in skincare, but considers 1,890 CZK for the serum too expensive.",
-    goals: [
-      "Translate the price into a daily cost of 21 CZK",
-      "Offer the complimentary hydrogel mask",
-      "Secure the order",
-    ],
-  },
-  "electronics-angry": {
-    title: "Impatient robot vacuum customer",
-    persona: "Wants short answers, dislikes filler and compares the product with cheaper Chinese alternatives.",
-    goals: [
-      "Keep a calm and professional tone",
-      "Highlight LiDAR navigation, Czech service and the three-year warranty",
-      "Keep the call under three minutes and close the sale",
-    ],
-  },
-  "cosmetics-distrustful": {
-    title: "Distrustful supplements and cosmetics customer",
-    persona: "Worries about fraudulent e-shops and unverified ingredients, and asks for origin guarantees and certificates.",
-    goals: [
-      "Provide verifiable information about Czech production and ISO/GMP certification",
-      "Explain the 30-day money-back guarantee without risk",
-      "Secure an order with cash on delivery or payment on receipt",
-    ],
-  },
-};
-
-const difficultyLabels: Record<TrainingScenario["difficulty"], string> = {
-  "Snadná": "Easy",
-  "Střední": "Medium",
-  "Těžká": "Hard",
-};
-
-const personalityLabels: Record<CustomerPersonalityType, string> = {
-  "Skeptický": "Skeptical",
-  "Cenově citlivý": "Price-sensitive",
-  "Netrpělivý": "Impatient",
-  "Náročný / Cholerický": "Demanding / hot-tempered",
-  "Nedůvěřivý": "Distrustful",
-};
-
-const moodLabels: Record<string, string> = {
-  "Klidný": "Calm",
-  "Skeptický": "Skeptical",
-  "Podrážděný": "Irritated",
-  "Nadšený": "Enthusiastic",
-  "Naštvaný": "Angry",
-  "Nedůvěřivý": "Distrustful",
-};
-
-function getScenarioUiCopy(scenario: TrainingScenario) {
-  return scenarioUiCopy[scenario.id] || {
-    title: scenario.title,
-    persona: scenario.customerPersona,
-    goals: scenario.goals,
-  };
+function newId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export default function TrainingPage() {
-  const [selectedScenario, setSelectedScenario] = useState<TrainingScenario | null>(null);
+  const [scriptId, setScriptId] = useState(P2_TRAINING_SCRIPTS[0].id);
+  const [difficulty, setDifficulty] = useState<TrainingDifficulty>("easy");
+  const [personaId, setPersonaId] = useState(TRAINING_PERSONAS[0].id);
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [completionKey, setCompletionKey] = useState<string | null>(null);
   const [messages, setMessages] = useState<TrainingMessage[]>([]);
-  const [inputText, setInputText] = useState("");
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [isBotThinking, setIsBotThinking] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isVoiceModeEnabled, setIsVoiceModeEnabled] = useState(true);
-  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
-  const [callState, setCallState] = useState<TrainingCallState>("idle");
-  const [liveTranscript, setLiveTranscript] = useState("");
-  const [patience, setPatience] = useState<number>(75);
-  const [customerMood, setCustomerMood] = useState<string>("Skeptický");
-  const [isHungUp, setIsHungUp] = useState<boolean>(false);
-  const [scorecard, setScorecard] = useState<TrainingScorecard | null>(null);
-  const [activeViolations, setActiveViolations] = useState<ComplianceViolation[]>([]);
-  const [callDurationSeconds, setCallDurationSeconds] = useState<number>(0);
+  const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const [aiSource, setAiSource] = useState<"gemini-flash" | "openai-responses" | "rule-engine" | null>(null);
-  const [aiNotice, setAiNotice] = useState<string | null>(null);
-  const [transcriptSaveState, setTranscriptSaveState] = useState<"idle" | "saving" | "saved" | "unavailable" | "error">("idle");
-  const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [result, setResult] = useState<TrainingScorecard | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error" | "unavailable">("idle");
+  const [history, setHistory] = useState<Array<{ sessionId: string; customerName: string; durationSeconds: number; createdAt: string; scorecard: unknown }>>([]);
+  const [historyUnavailable, setHistoryUnavailable] = useState(false);
+  const elapsedRef = useRef(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  const [activeScriptPhase, setActiveScriptPhase] = useState<number>(1);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<{ stop: () => void } | null>(null);
-  const shouldSubmitRecognitionRef = useRef(false);
-  const sessionActiveRef = useRef(false);
-  const handsFreeVoiceRef = useRef(false);
-  const startListeningRef = useRef<() => void>(() => undefined);
-  const speechGenerationRef = useRef(0);
-  const turnRequestRef = useRef(0);
-  const endpointTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const messageSequenceRef = useRef(0);
+  const scenario = useMemo(() => getTrainingScenario(scriptId, difficulty, personaId), [scriptId, difficulty, personaId]);
+  const isActive = Boolean(startedAt && !result);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isBotThinking]);
+    void listTrainingCallLogRecordsAction()
+      .then((records) => setHistory(records.map((record) => ({ sessionId: record.sessionId, customerName: record.customerName, durationSeconds: record.durationSeconds, createdAt: record.createdAt, scorecard: record.scorecard }))))
+      .catch(() => setHistoryUnavailable(true));
+  }, []);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isSimulating && !isHungUp) {
-      interval = setInterval(() => {
-        setCallDurationSeconds((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isSimulating, isHungUp]);
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const calculateWpm = (): { wpm: number; status: "optimal" | "slow" | "fast"; label: string } => {
-    const userMessages = messages.filter((m) => m.sender === "user");
-    const totalWords = userMessages.reduce((acc, m) => acc + m.text.split(/\s+/).filter(Boolean).length, 0);
-    if (callDurationSeconds === 0 || totalWords === 0) {
-      return { wpm: 140, status: "optimal", label: "140 WPM (Optimal)" };
-    }
-    const wpm = Math.round((totalWords / callDurationSeconds) * 60);
-    if (wpm < 115) {
-      return { wpm, status: "slow", label: `${wpm} WPM (Slow)` };
-    } else if (wpm > 165) {
-      return { wpm, status: "fast", label: `${wpm} WPM (Fast!)` };
-    }
-    return { wpm, status: "optimal", label: `${wpm} WPM (Optimal)` };
-  };
-
-  const playAiAudio = (text: string, scenario: TrainingScenario) => {
-    const speechGeneration = ++speechGenerationRef.current;
-    if (!isVoiceModeEnabled) {
-      setCallState("listening");
-      return;
-    }
-    const voiceSettings = getPersonaVoiceSettings(scenario.personalityType);
-    speakText(text, {
-      ...voiceSettings,
-      onStart: () => {
-        if (speechGeneration !== speechGenerationRef.current) return;
-        setIsAiSpeaking(true);
-        setCallState("ai-speaking");
-      },
-      onEnd: () => {
-        if (speechGeneration !== speechGenerationRef.current) return;
-        setIsAiSpeaking(false);
-        if (sessionActiveRef.current && handsFreeVoiceRef.current) {
-          startListeningRef.current();
-        } else {
-          setCallState("listening");
-        }
-      },
-      onError: () => {
-        if (speechGeneration !== speechGenerationRef.current) return;
-        setIsAiSpeaking(false);
-        if (sessionActiveRef.current && handsFreeVoiceRef.current) {
-          startListeningRef.current();
-        } else {
-          setCallState("listening");
-        }
-      },
-    });
-  };
-
-  const nextMessageId = (prefix: string) => `${prefix}_${messageSequenceRef.current++}`;
-
-  const getInitialCustomerMood = (personality: CustomerPersonalityType): NonNullable<TrainingMessage["customerMood"]> => {
-    if (personality === "Nedůvěřivý") return "Nedůvěřivý";
-    if (personality === "Skeptický" || personality === "Cenově citlivý") return "Skeptický";
-    if (personality === "Netrpělivý" || personality === "Náročný / Cholerický") return "Podrážděný";
-    return "Klidný";
-  };
-
-  const handleStartScenario = (scenario: TrainingScenario) => {
-    setSelectedScenario(scenario);
-    setScorecard(null);
-    setActiveViolations([]);
-    setPatience(75);
-    setCustomerMood(scenario.personalityType);
-    setIsHungUp(false);
-    sessionActiveRef.current = true;
-    handsFreeVoiceRef.current = false;
-    setCallDurationSeconds(0);
-    setCallState("listening");
-    setLiveTranscript("");
-    setAiSource(null);
-    setAiNotice(null);
-    setTranscriptSaveState("idle");
-    const startedAt = new Date().toISOString();
-    setSessionStartedAt(startedAt);
-
-    const initialMsg: TrainingMessage = {
-      id: "msg_init",
-      sender: "ai_customer",
-      text: scenario.initialMessage,
-      timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
-      occurredAt: new Date().toISOString(),
-      source: "scenario",
-      sentiment: "neutral",
-      customerMood: getInitialCustomerMood(scenario.personalityType),
-      patienceGauge: 75,
-    };
-
-    setMessages([initialMsg]);
-    setIsSimulating(true);
-    playAiAudio(scenario.initialMessage, scenario);
-  };
-
-  const handleFinishTraining = async () => {
-    if (!selectedScenario || isBotThinking || !sessionStartedAt) return;
-
-    const evaluation = evaluateTrainingSession(selectedScenario, messages);
-    setScorecard(evaluation);
-    setIsSimulating(false);
-    sessionActiveRef.current = false;
-    handsFreeVoiceRef.current = false;
-    turnRequestRef.current += 1;
-    speechGenerationRef.current += 1;
-    setCallState("idle");
-    shouldSubmitRecognitionRef.current = false;
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    if (endpointTimerRef.current) {
-      clearTimeout(endpointTimerRef.current);
-      endpointTimerRef.current = null;
-    }
+  function startTraining() {
+    if (!scenario) return;
     stopSpeaking();
-    setIsAiSpeaking(false);
+    const now = new Date().toISOString();
+    const initial: TrainingMessage = { id: newId("customer"), sender: "ai_customer", text: scenario.initialMessage, timestamp: timeLabel(now), occurredAt: now, source: "scenario", sentiment: "neutral" };
+    setStartedAt(now);
+    setCompletionKey(crypto.randomUUID());
+    elapsedRef.current = 0;
+    setElapsedSeconds(0);
+    setMessages([initial]);
+    setResult(null);
+    setSaveState("idle");
+    setNotice("Jde o tréninkový hovor. Nevznikne objednávka, callback ani zásah do ostré fronty.");
+    speakText(initial.text);
+  }
 
-    setTranscriptSaveState("saving");
-    const saveResult = await saveTrainingSessionAction({
-      scenario: selectedScenario,
-      messages,
-      scorecard: evaluation,
-      durationSeconds: callDurationSeconds,
-      aiSource,
-      startedAt: sessionStartedAt,
-    });
-    setTranscriptSaveState(saveResult.ok ? "saved" : saveResult.code === "UNAVAILABLE" ? "unavailable" : "error");
-  };
-
-  const handleSendMessage = async (
-    messageOverride?: string,
-    source: "typed" | "browser_speech" = "typed",
-    confidence: number | null = null
-  ) => {
-    const userText = (messageOverride ?? inputText).trim();
-    if (!userText || !selectedScenario || isBotThinking || isHungUp) return;
-
-    setInputText("");
-    setLiveTranscript("");
-    setCallState("processing");
-
-    // Check compliance
-    const violations = checkCompliance(userText, selectedScenario.category);
-    if (violations.length > 0) {
-      setActiveViolations((prev) => [...violations, ...prev]);
-    }
-
-    const userMsg: TrainingMessage = {
-      id: nextMessageId("user"),
-      sender: "user",
-      text: userText,
-      timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
-      occurredAt: new Date().toISOString(),
-      source,
-    };
-
-    const newHistory = [...messages, userMsg];
-    setMessages(newHistory);
-    setIsBotThinking(true);
-    const requestId = ++turnRequestRef.current;
-
+  async function sendTurn() {
+    if (!scenario || !isActive || isSending || !input.trim()) return;
+    const text = input.trim();
+    setInput("");
+    setIsSending(true);
+    setNotice(null);
     try {
-      const turnResult = await submitTrainingTurnAction({
-        scenarioId: selectedScenario.id,
-        history: messages,
-        userMessage: userText,
-        source,
-        confidence,
-      });
-
-      if (requestId !== turnRequestRef.current) return;
-      if (!turnResult.ok) {
-        setAiNotice(turnResult.message);
-        setCallState("listening");
+      const response = await submitTrainingTurnAction({ scriptId, difficulty, personaId, history: messages, userMessage: text, source: "typed" });
+      if (!response.ok) {
+        setNotice(response.message);
+        setInput(text);
         return;
       }
-
-      const aiResponse = turnResult.customerTurn;
-      setAiSource(aiResponse.aiSource);
-      setAiNotice(aiResponse.aiNotice || null);
-
-      const newPatience = Math.max(0, Math.min(100, patience + (aiResponse.patienceDelta || 0)));
-      setPatience(newPatience);
-      if (aiResponse.customerMood) {
-        setCustomerMood(aiResponse.customerMood);
-      }
-
-      const botMsg: TrainingMessage = {
-        id: nextMessageId("ai"),
-        sender: "ai_customer",
-        text: aiResponse.text,
-        timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
-        occurredAt: new Date().toISOString(),
-        source: "ai_customer",
-        sentiment: aiResponse.sentiment,
-        customerMood: aiResponse.customerMood,
-        patienceGauge: newPatience,
-      };
-
-      if (newPatience <= 0) {
-        setIsHungUp(true);
-        setCallState("idle");
-        const hangUpMsg: TrainingMessage = {
-          id: nextMessageId("hangup"),
-          sender: "ai_customer",
-          text: "❌ The customer ran out of patience and ended the call (hang-up).",
-          timestamp: new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" }),
-          occurredAt: new Date().toISOString(),
-          source: "ai_customer",
-          sentiment: "negative",
-        };
-        setMessages((prev) => [...prev, botMsg, hangUpMsg]);
-        playAiAudio("Už na to nemám čas ani nervy, na shledanou!", selectedScenario);
-        setTimeout(() => {
-          handleFinishTraining();
-        }, 2500);
-        return;
-      }
-
-      setMessages((prev) => [...prev, botMsg]);
-      playAiAudio(aiResponse.text, selectedScenario);
-    } catch (err) {
-      console.error(err);
-      setAiNotice("The AI response failed. You can retry this turn; no customer response was fabricated.");
-      setCallState("listening");
+      const now = new Date().toISOString();
+      const operator: TrainingMessage = { id: newId("operator"), sender: "user", text: response.operatorTurn.text, timestamp: timeLabel(now), occurredAt: now, source: response.operatorTurn.source, confidence: response.operatorTurn.confidence };
+      const customerAt = new Date().toISOString();
+      const customer: TrainingMessage = { id: newId("customer"), sender: "ai_customer", text: response.customerTurn.text, timestamp: timeLabel(customerAt), occurredAt: customerAt, source: "ai_customer", sentiment: response.customerTurn.sentiment };
+      elapsedRef.current += 25;
+      setElapsedSeconds(elapsedRef.current);
+      setMessages((current) => [...current, operator, customer]);
+      setAiSource(response.customerTurn.aiSource);
+      setNotice(response.customerTurn.aiNotice || null);
+      speakText(customer.text);
     } finally {
-      setIsBotThinking(false);
+      setIsSending(false);
     }
-  };
+  }
 
-  const getTeleprompterScript = (productName: string, phase: number, personality: CustomerPersonalityType) => {
-    switch (phase) {
-      case 1:
-        return `Dobrý den, u telefonu [Vaše Jméno] z Countdown CRM. Volám ohledně vaší poptávky na ${productName}. Máte minutku na krátké ujasnění?`;
-      case 2:
-        return `Děkuji. Jaké máte současné zkušenosti s tímto typem produktů a co je pro vás při výběru klíčové?`;
-      case 3:
-        return `Náš ${productName} vyniká špičkovou kvalitou složení, okamžitým účinkem a garantovanou liposomální vstřebatelností.`;
-      case 4:
-        return personality === "Cenově citlivý"
-          ? `Rozumím vaší obavě z ceny. Při výhodném 3měsíčním balíčku získáte slevu 25 % a dopravu zcela zdarma.`
-          : personality === "Nedůvěřivý"
-          ? `Chápu vaši opatrnost. Na produkt máme oficiální certifikáty kvality a nabízíme 30denní garanci vrácení peněz bez rizika.`
-          : `Rozumím vám. Nabízíme 30denní garanci spokojenosti s bezplatnou možností vrácení peněz.`;
-      case 5:
-        return `Můžeme zásilku ${productName} zarezervovat s doručením na zítřejší dopoledne s platbou na dobírku?`;
-      default:
-        return ``;
+  async function finishTraining() {
+    if (!scenario || !startedAt || !completionKey || isSending) return;
+    stopSpeaking();
+    const scorecard = evaluateTrainingSession(scenario, messages);
+    setResult(scorecard);
+    setSaveState("saving");
+    const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, scorecard, durationSeconds: elapsedRef.current, aiSource, startedAt, completionKey });
+    setSaveState(save.ok ? "saved" : save.code === "UNAVAILABLE" ? "unavailable" : "error");
+    if (save.ok) {
+      setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: elapsedRef.current, createdAt: new Date().toISOString(), scorecard }, ...current]);
     }
-  };
+  }
 
-  const startRecognition = () => {
-    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      setAiNotice("Browser voice recognition is unavailable. Use the typed reply instead.");
-      setCallState("listening");
-      return;
-    }
-
-    try {
-      if (isAiSpeaking) {
-        speechGenerationRef.current += 1;
-        stopSpeaking();
-        setIsAiSpeaking(false);
-      }
-
-      const speechWindow = window as SpeechRecognitionWindow;
-      const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        setAiNotice("Browser voice recognition is unavailable. Use the typed reply instead.");
-        setCallState("listening");
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = "cs-CZ";
-      recognition.continuous = false;
-      recognition.interimResults = true;
-
-      let finalTranscript = "";
-      let finalConfidence: number | null = null;
-      shouldSubmitRecognitionRef.current = true;
-      recognitionRef.current = recognition;
-
-      recognition.onstart = () => {
-        if (endpointTimerRef.current) {
-          clearTimeout(endpointTimerRef.current);
-          endpointTimerRef.current = null;
-        }
-        setAiNotice(null);
-        setIsRecording(true);
-        setCallState("listening");
-      };
-      recognition.onerror = (event) => {
-        shouldSubmitRecognitionRef.current = false;
-        setIsRecording(false);
-        recognitionRef.current = null;
-        setCallState("listening");
-        setAiNotice(
-          event.error === "not-allowed" || event.error === "service-not-allowed"
-            ? "Microphone permission was denied. Use the typed reply instead."
-            : "Browser voice recognition failed. Use the typed reply instead."
-        );
-      };
-      recognition.onend = () => {
-        setIsRecording(false);
-        recognitionRef.current = null;
-        const transcriptToSubmit = finalTranscript.trim();
-        setLiveTranscript("");
-        setCallState("endpointing");
-        endpointTimerRef.current = setTimeout(() => {
-          endpointTimerRef.current = null;
-          if (shouldSubmitRecognitionRef.current && transcriptToSubmit) {
-            void handleSendMessage(transcriptToSubmit, "browser_speech", finalConfidence);
-          } else {
-            setCallState("listening");
-          }
-          shouldSubmitRecognitionRef.current = false;
-        }, 180);
-      };
-
-      recognition.onresult = (event: SpeechRecognitionEventLike) => {
-        let interimTranscript = "";
-        finalTranscript = "";
-        for (let index = 0; index < event.results.length; index += 1) {
-          const transcript = event.results[index][0].transcript;
-          if (event.results[index].isFinal) {
-            finalTranscript += transcript;
-            const confidence = event.results[index][0].confidence;
-            if (typeof confidence === "number") {
-              finalConfidence = confidence;
-            } else {
-              finalConfidence = null;
-            }
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        const visibleTranscript = `${finalTranscript} ${interimTranscript}`.trim();
-        setLiveTranscript(visibleTranscript);
-        setInputText(finalTranscript);
-      };
-
-      recognition.start();
-    } catch {
-      recognitionRef.current = null;
-      setIsRecording(false);
-      setCallState("listening");
-      setAiNotice("Browser voice recognition could not be started. Use the typed reply instead.");
-    }
-  };
-
-  useEffect(() => {
-    startListeningRef.current = startRecognition;
-  });
-
-  const handleToggleMic = () => {
-    if (isRecording) {
-      handsFreeVoiceRef.current = false;
-      shouldSubmitRecognitionRef.current = false;
-      if (endpointTimerRef.current) {
-        clearTimeout(endpointTimerRef.current);
-        endpointTimerRef.current = null;
-      }
-      recognitionRef.current?.stop();
-      recognitionRef.current = null;
-      setIsRecording(false);
-      setCallState("listening");
-      return;
-    }
-
-    handsFreeVoiceRef.current = true;
-    startRecognition();
-  };
+  function resetTraining() {
+    stopSpeaking();
+    setStartedAt(null);
+    setMessages([]);
+    setResult(null);
+    setNotice(null);
+    setSaveState("idle");
+    setInput("");
+  }
 
   return (
+<<<<<<< HEAD
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={GraduationCap}
@@ -576,17 +131,20 @@ export default function TrainingPage() {
         badge={{ label: "Simulation", tone: "neutral" }}
         description="Practice a simulated call without changing customer or order data."
       />
+=======
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader icon={PhoneOutgoing} title="Trenažér P2" badge={{ label: "Interní pilot", tone: "neutral" }} description="Bezpečný nácvik prvního P2 hovoru s AI zákazníkem. Trénink nikdy nevytváří objednávku ani ostrý pracovní úkol." />
+>>>>>>> origin/main
 
-      {!selectedScenario || (!isSimulating && !scorecard) ? (
-        /* Scenario Selection */
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-              <Target className="w-4 h-4 text-zinc-400" />
-              Choose a preset scenario
-            </h2>
-            <span className="text-xs text-zinc-500 font-mono">{TRAINING_SCENARIOS.length} scenarios available</span>
+      {!isActive && !result && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Moje poslední tréninky</h2><p className="mt-1 text-xs text-zinc-500">Pouze vaše cvičné hovory. Obchodní výsledky ani ostré hovory se sem nemíchají.</p></div><ClipboardList className="h-5 w-5 text-zinc-500" /></div>{historyUnavailable ? <p className="mt-4 text-xs text-zinc-500">Historii tréninků se nyní nepodařilo načíst.</p> : history.length === 0 ? <p className="mt-4 text-xs text-zinc-500">Zatím jste neměl/a žádný dokončený trénink.</p> : <div className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950">{history.slice(0, 5).map((entry) => { const score = entry.scorecard && typeof entry.scorecard === "object" ? entry.scorecard as { overallScore?: number; passed?: boolean; complianceScore?: number } : {}; return <div key={entry.sessionId} className="grid gap-2 px-4 py-3 text-xs sm:grid-cols-[1fr_auto_auto]"><div><p className="font-medium text-zinc-200">{entry.customerName}</p><p className="mt-1 text-zinc-500">{new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(entry.createdAt))} · {durationLabel(entry.durationSeconds)}</p></div><span className={`self-center rounded border px-2 py-1 text-[11px] ${score.passed ? "border-emerald-900/70 bg-emerald-950/30 text-emerald-200" : "border-amber-900/70 bg-amber-950/30 text-amber-200"}`}>{score.passed ? "Splněno" : "K opravě"}</span><span className="self-center font-mono text-zinc-300">{typeof score.overallScore === "number" ? `${score.overallScore}%` : "—"}<span className="ml-2 text-zinc-500">Compliance {typeof score.complianceScore === "number" ? `${score.complianceScore}%` : "—"}</span></span></div>})}</div>}</section>}
+
+      {!isActive && !result && (
+        <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          <div className="max-w-2xl space-y-2">
+            <h2 className="text-base font-semibold text-zinc-100">Vyberte cvičení</h2>
+            <p className="text-sm leading-relaxed text-zinc-400">Vyberte jeden schválený P2 rozhovor a náročnost. Jméno zákazníka se bezpečně doplní do skriptu; adresu sdělí až na konci pouze jako fiktivní údaj.</p>
           </div>
+<<<<<<< HEAD
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TRAINING_SCENARIOS.map((scenario) => (
@@ -634,9 +192,50 @@ export default function TrainingPage() {
                   </Button>
                 </div>
               </Surface>
+=======
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {P2_TRAINING_SCRIPTS.map((script) => (
+              <button key={script.id} type="button" onClick={() => setScriptId(script.id)} className={`rounded-xl border p-5 text-left transition-colors ${scriptId === script.id ? "border-sky-700 bg-sky-950/20" : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"}`}>
+                <span className="text-xs font-semibold text-zinc-100">{script.title}</span>
+                <span className="mt-1 block text-xs text-zinc-400">{script.productLabel}</span>
+                <span className="mt-3 block text-xs leading-relaxed text-zinc-500">{script.purpose}</span>
+              </button>
+>>>>>>> origin/main
             ))}
           </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 text-xs font-medium text-zinc-300">Náročnost
+              <select value={difficulty} onChange={(event) => setDifficulty(event.target.value as TrainingDifficulty)} className="block w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-zinc-600">
+                <option value="easy">Snadná · zákazník vede k nabídce</option>
+                <option value="standard">Standardní · jedna přirozená otázka navíc</option>
+              </select>
+            </label>
+            <label className="space-y-2 text-xs font-medium text-zinc-300">Fiktivní zákazník
+              <select value={personaId} onChange={(event) => setPersonaId(event.target.value)} className="block w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-zinc-600">
+                {TRAINING_PERSONAS.map((persona) => <option key={persona.id} value={persona.id}>{persona.name}</option>)}
+              </select>
+            </label>
+          </div>
+          <button type="button" onClick={startTraining} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><Play className="h-4 w-4 fill-current" />Spustit cvičný hovor</button>
+        </section>
+      )}
+
+      {isActive && scenario && (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <section className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40">
+            <div className="flex items-center justify-between border-b border-zinc-800 p-5">
+              <div><h2 className="font-semibold text-zinc-100">Hovor s: {scenario.customer.name}</h2><p className="mt-1 text-xs text-zinc-500">{scenario.title} · {difficulty === "easy" ? "snadná" : "standardní"} obtížnost</p></div>
+              <span className="font-mono text-sm text-zinc-400">{durationLabel(elapsedSeconds)}</span>
+            </div>
+            <div className="min-h-[420px] space-y-4 p-5">
+              {messages.map((message) => <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-xl border p-3 ${message.sender === "user" ? "border-sky-900/70 bg-sky-950/30 text-sky-50" : "border-zinc-800 bg-zinc-950 text-zinc-200"}`}><div className="mb-1 flex gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>{message.sender === "user" ? "Operátor" : scenario.customer.name}</span><span>{message.timestamp}</span>{message.sender === "ai_customer" && <button type="button" onClick={() => speakText(message.text)} className="ml-auto text-zinc-400 hover:text-zinc-100" aria-label="Přečíst odpověď"><Volume2 className="h-3.5 w-3.5" /></button>}</div><p className="text-sm leading-relaxed">{message.text}</p></div></div>)}
+              {isSending && <p className="text-xs text-zinc-500">AI zákazník odpovídá…</p>}
+            </div>
+            <div className="border-t border-zinc-800 p-4"><div className="flex gap-3"><textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendTurn(); } }} placeholder="Napište, co byste zákazníkovi řekl/a…" className="min-h-20 flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-zinc-600" /><button type="button" onClick={() => void sendTurn()} disabled={isSending || !input.trim()} className="inline-flex self-end items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" />Odeslat</button></div><div className="mt-3 flex items-center justify-between"><span className="text-[11px] text-zinc-500">Enter odešle · Shift+Enter nový řádek</span><button type="button" onClick={() => void finishTraining()} disabled={isSending || messages.length < 3} className="inline-flex items-center gap-2 text-xs font-medium text-zinc-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><PhoneOff className="h-4 w-4" />Ukončit a vyhodnotit</button></div></div>
+          </section>
+          <aside className="space-y-4"><section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-zinc-400" /><h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Skript pro tento hovor</h2></div><div className="mt-4 space-y-4">{personaliseTrainingScript(scenario).map((section) => <div key={section.title}><h3 className="text-xs font-semibold text-zinc-200">{section.title}</h3><p className="mt-1 text-xs leading-relaxed text-zinc-400">{section.text}</p></div>)}</div></section><section className="rounded-2xl border border-amber-900/50 bg-amber-950/10 p-5"><div className="flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-amber-300" /><h2 className="text-xs font-semibold text-amber-200">Bezpečná hranice</h2></div><p className="mt-2 text-xs leading-relaxed text-amber-100/70">Neslibujte účinek, negarantujte výsledek a nevydávejte se za lékaře. Jedna chyba nezmění reakci zákazníka, ale objeví se ve výsledku hovoru.</p></section>{notice && <p className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs leading-relaxed text-zinc-400">{notice}</p>}</aside>
         </div>
+<<<<<<< HEAD
       ) : isSimulating && selectedScenario ? (
         /* Active Roleplay Session */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1045,6 +644,11 @@ export default function TrainingPage() {
           </div>
         </div></Surface>
       ) : null}
+=======
+      )}
+
+      {result && scenario && <section className="mx-auto max-w-4xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6"><div className="text-center"><div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl ${result.passed ? "bg-emerald-950/40 text-emerald-300" : "bg-amber-950/40 text-amber-300"}`}>{result.passed ? <CheckCircle2 className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}</div><h2 className="mt-3 text-lg font-semibold text-zinc-100">{result.passed ? "Cvičení splněno" : "Cvičení potřebuje opravu"}</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">{result.summaryFeedback}</p></div><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">{[["Celkem", result.overallScore], ["Zjištění", result.discoveryScore], ["Nabídka", result.offerScore], ["Závěr", result.closingScore], ["Compliance", result.complianceScore]].map(([label, score]) => <div key={String(label)} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-center"><span className="block font-mono text-lg text-zinc-100">{score}%</span><span className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</span></div>)}</div>{result.complianceFindings.length > 0 && <div className="mt-6 space-y-3 rounded-xl border border-rose-900/60 bg-rose-950/20 p-5"><h3 className="flex items-center gap-2 text-sm font-semibold text-rose-100"><ShieldAlert className="h-4 w-4" />Závažné právní chyby</h3>{result.complianceFindings.map((finding) => <div key={`${finding.phrase}-${finding.reason}`} className="text-xs leading-relaxed text-rose-100/80"><p><strong>Řečená věta:</strong> „{finding.phrase}“{finding.occurrences > 1 ? ` · ${finding.occurrences}×` : ""}</p><p className="mt-1"><strong>Proč:</strong> {finding.reason}</p><p className="mt-1"><strong>Bezpečněji:</strong> {finding.saferAlternative}</p></div>)}</div>}<div className="mt-6 grid gap-4 md:grid-cols-2"><div><h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Co se povedlo</h3><ul className="mt-3 space-y-2 text-sm text-zinc-400">{result.strengths.map((item) => <li key={item}>• {item}</li>)}</ul></div><div><h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Další pokus zlepší</h3><ul className="mt-3 space-y-2 text-sm text-zinc-400">{result.improvements.map((item) => <li key={item}>• {item}</li>)}</ul></div></div><p className="mt-6 text-center text-xs text-zinc-500">{saveState === "saving" && "Ukládám přepis pro kontrolu vedoucího…"}{saveState === "saved" && "Tréninkový přepis byl uložen do historie jako jasně označený tréninkový záznam."}{saveState === "unavailable" && "V demo režimu se přepis neukládá."}{saveState === "error" && "Výsledek zůstal zobrazený, ale přepis se nepodařilo uložit."}</p><div className="mt-6 flex justify-center"><button type="button" onClick={resetTraining} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><ClipboardList className="h-4 w-4" />Vybrat další cvičení</button></div></section>}
+>>>>>>> origin/main
     </div>
   );
 }

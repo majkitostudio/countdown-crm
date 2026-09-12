@@ -3,15 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { X, Package, Check } from "lucide-react";
 import { Product, ProductCategory, createProduct, updateProduct } from "@/lib/products";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+=======
+import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
+>>>>>>> origin/main
 
 interface ProductModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: () => Promise<void>;
 }
 
 export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModalProps) {
@@ -72,13 +76,10 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
     };
 
     try {
-      if (product) {
-        await updateProduct(product.id, dataPayload);
-      } else {
-        await createProduct(dataPayload);
-      }
-
-      onSaved();
+      await refreshProductCatalogAfterMutation(
+        () => product ? updateProduct(product.id, dataPayload) : createProduct(dataPayload),
+        onSaved,
+      );
       onClose();
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Product could not be saved.");

@@ -5,16 +5,20 @@ import { ArrowRight, Check, Eye, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { createObjectionAction, deleteObjectionAction, updateObjectionAction } from "@/app/actions/objections";
 import { Product } from "@/lib/products";
 import { ObjectionBattleCard } from "@/lib/objections";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+=======
+import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
+>>>>>>> origin/main
 
 interface ObjectionEditorModalProps {
   initialCard?: ObjectionBattleCard | null;
   products: Product[];
   isOpen: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: () => Promise<void>;
 }
 
 export function ObjectionEditorModal({
@@ -81,13 +85,10 @@ export function ObjectionEditorModal({
         rebuttal_args: validRebuttals,
       };
 
-      if (initialCard) {
-        await updateObjectionAction(initialCard.id, input);
-      } else {
-        await createObjectionAction(input);
-      }
-
-      onSaved();
+      await refreshProductCatalogAfterMutation(
+        () => initialCard ? updateObjectionAction(initialCard.id, input) : createObjectionAction(input),
+        onSaved,
+      );
       onClose();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Námitku se nepodařilo uložit.");
@@ -102,8 +103,7 @@ export function ObjectionEditorModal({
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      await deleteObjectionAction(initialCard.id);
-      onSaved();
+      await refreshProductCatalogAfterMutation(() => deleteObjectionAction(initialCard.id), onSaved);
       onClose();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Námitku se nepodařilo smazat.");

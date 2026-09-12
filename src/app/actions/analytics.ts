@@ -4,7 +4,7 @@ import { getAnalyticsData, getRecentActivity } from "@/lib/analytics";
 import type {
   AnalyticsActionResult,
   AnalyticsOverview,
-  RecentActivityEntry,
+  RecentActivityResult,
 } from "@/lib/analytics";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { isUnauthorizedError } from "@/lib/training/http";
@@ -75,7 +75,7 @@ export async function exportAnalyticsDataAction(
 export async function getRecentActivityAction(
   limit = 8,
   requestedWorkspaceId?: string
-): Promise<AnalyticsActionResult<RecentActivityEntry[]>> {
+): Promise<AnalyticsActionResult<RecentActivityResult>> {
   try {
     return { ok: true, data: await getRecentActivity(limit, requestedWorkspaceId) };
   } catch (error) {

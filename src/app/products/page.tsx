@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -5,12 +6,15 @@ import { Package, Search, Plus, ShieldAlert, Upload, ArrowRightLeft, X } from "l
 import { Product, getProducts } from "@/lib/products";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
+=======
+import { ProductCatalogClient } from "@/app/products/ProductCatalogClient";
+>>>>>>> origin/main
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ProductModal } from "@/components/products/ProductModal";
-import { listObjectionsAction } from "@/app/actions/objections";
-import { deleteProductAction } from "@/app/actions/products";
-import { listOrderProductCountsAction, reassignOrdersProductAction } from "@/app/actions/crm";
+import { loadProductCatalog } from "@/lib/dal/productCatalog";
+import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { Package } from "lucide-react";
 
+<<<<<<< HEAD
 import { ObjectionEditorModal } from "@/components/products/ObjectionEditorModal";
 import { CallTranscriptUploaderModal } from "@/components/products/CallTranscriptUploaderModal";
 import type { ObjectionDTO } from "@/lib/dal/objections";
@@ -20,168 +24,24 @@ import { Button } from "@/components/ui/Button";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+=======
+export default async function ProductsPage() {
+  const context = await requireWorkspaceContext();
+  const initialCatalog = await loadProductCatalog(context);
+>>>>>>> origin/main
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [orderCounts, setOrderCounts] = useState<Record<string, number>>({});
-  const [objectionCards, setObjectionCards] = useState<ObjectionDTO[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedObjectionProduct, setSelectedObjectionProduct] = useState<Product | null>(null);
-  const [isObjectionDrawerOpen, setIsObjectionDrawerOpen] = useState<boolean>(false);
-  const [selectedEditProduct, setSelectedEditProduct] = useState<Product | null>(null);
-  const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
-  const [isObjectionEditorOpen, setIsObjectionEditorOpen] = useState<boolean>(false);
-  const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState<boolean>(false);
-  const [selectedObjectionCard, setSelectedObjectionCard] = useState<ObjectionBattleCard | null>(null);
-  const [reassignSourceProduct, setReassignSourceProduct] = useState<Product | null>(null);
-  const [reassignTargetId, setReassignTargetId] = useState("");
-  const [isReassigning, setIsReassigning] = useState(false);
-  const [catalogActionError, setCatalogActionError] = useState<string | null>(null);
-
-  const loadProducts = async () => {
-    try {
-      const [data, cards, nextOrderCounts] = await Promise.all([
-        getProducts(),
-        listObjectionsAction(),
-        listOrderProductCountsAction(),
-      ]);
-      setOrderCounts(nextOrderCounts);
-    setObjectionCards(cards);
-    const objectionsByProduct = new Map<string, typeof cards>();
-    for (const card of cards) {
-      if (card.product_id) {
-        objectionsByProduct.set(card.product_id, [
-          ...(objectionsByProduct.get(card.product_id) || []),
-          card,
-        ]);
-      }
-    }
-
-      setProducts(data.map((product) => ({
-        ...product,
-        objections: (objectionsByProduct.get(product.id) || []).map((card) => ({
-          id: card.id,
-          product_id: card.product_id,
-          objection_title: card.objection_title,
-          rebuttal_args: card.rebuttal_args,
-        })),
-      })));
-    } catch (error) {
-      setCatalogActionError(error instanceof Error ? error.message : "Katalog se nepodařilo načíst.");
-    }
-  };
-
-  useEffect(() => {
-    async function loadInitialProducts() {
-      await loadProducts();
-    }
-
-    void loadInitialProducts();
-  }, []);
-
-  const handleOpenObjections = (prod: Product) => {
-    setSelectedObjectionProduct(prod);
-    setIsObjectionDrawerOpen(true);
-  };
-
-  const handleEditProduct = (prod: Product) => {
-    setSelectedEditProduct(prod);
-    setIsProductModalOpen(true);
-  };
-
-  const handleAddProduct = () => {
-    setSelectedEditProduct(null);
-    setIsProductModalOpen(true);
-  };
-
-  const handleOpenReassignOrders = (product: Product) => {
-    const firstTarget = products.find((candidate) => candidate.id !== product.id);
-    setReassignSourceProduct(product);
-    setReassignTargetId(firstTarget?.id || "");
-    setCatalogActionError(null);
-  };
-
-  const handleReassignOrders = async () => {
-    if (!reassignSourceProduct || !reassignTargetId) return;
-
-    setIsReassigning(true);
-    setCatalogActionError(null);
-    try {
-      await reassignOrdersProductAction(reassignSourceProduct.id, reassignTargetId);
-      setReassignSourceProduct(null);
-      await loadProducts();
-    } catch (error) {
-      setCatalogActionError(error instanceof Error ? error.message : "Objednávky se nepodařilo upravit.");
-    } finally {
-      setIsReassigning(false);
-    }
-  };
-
-  const handleDeleteProduct = async (product: Product) => {
-    if (!window.confirm(`Opravdu odstranit produkt „${product.title}“?`)) return;
-
-    setCatalogActionError(null);
-    try {
-      await deleteProductAction(product.id);
-      await loadProducts();
-    } catch (error) {
-      setCatalogActionError(error instanceof Error ? error.message : "Produkt se nepodařilo odstranit.");
-    }
-  };
-
-  const handleAddObjectionScript = () => {
-    setSelectedObjectionCard(null);
-    setIsObjectionEditorOpen(true);
-  };
-
-  const handleEditObjection = (id: string) => {
-    const card = objectionCards.find((candidate) => candidate.id === id);
-    if (!card) return;
-
-    setSelectedObjectionCard({
-      id: card.id,
-      product_id: card.product_id,
-      objection_title: card.objection_title,
-      rebuttal_arguments: card.rebuttal_args,
-      created_at: card.created_at,
-    });
-    setIsObjectionDrawerOpen(false);
-    setIsObjectionEditorOpen(true);
-  };
-
-  // Filter products
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = activeCategory === "all" || p.category === activeCategory;
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      !searchQuery ||
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.category.toLowerCase().includes(q);
-
-    return matchesCategory && matchesSearch;
-  });
-
-  // Calculate Metrics
-  const totalProducts = products.length;
-  const inStockCount = products.filter((p) => p.in_stock).length;
-  const totalObjectionsCount = objectionCards.length;
-  const totalCatalogValue = products.reduce((acc, p) => {
-    const current = acc.find((entry) => entry.currency === p.currency.toUpperCase());
-    if (current) current.amount += p.price * (p.stock_count || 50);
-    else acc.push({ currency: p.currency.toUpperCase(), amount: p.price * (p.stock_count || 50) });
-    return acc;
-  }, [] as { currency: string; amount: number }[]);
+  const badge = initialCatalog.catalog.status === "ready"
+    ? { label: `${initialCatalog.catalog.data.length} Products`, tone: "neutral" as const }
+    : { label: "Catalog unavailable", tone: "unavailable" as const };
 
   return (
-    <div className="space-y-8 max-w-screen-2xl mx-auto">
-      
+    <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={Package}
         title="Product Catalog & Objection Engine"
-        badge={{ label: `${totalProducts} Products`, tone: "neutral" }}
+        badge={badge}
         description="Manage multi-category inventory, sales battle-cards, and cross-sell rules for call center operators."
+<<<<<<< HEAD
         actions={
           <>
           <Button variant="secondary"
@@ -390,6 +250,10 @@ export default function ProductsPage() {
         </div>
       )}
 
+=======
+      />
+      <ProductCatalogClient role={context.role} initialCatalog={initialCatalog} />
+>>>>>>> origin/main
     </div>
   );
 }
