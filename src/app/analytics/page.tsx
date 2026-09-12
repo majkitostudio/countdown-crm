@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
       />
 
       {result === null && (
-        <StatusAlert tone="neutral">Loading workspace analytics...</StatusAlert>
+        <StatusAlert tone="neutral" role="status">Loading workspace analytics...</StatusAlert>
       )}
 
       {result && !result.ok && (
@@ -158,7 +158,7 @@ export default function AnalyticsPage() {
       )}
 
       {result?.ok && isEmptySuccess && (
-        <StatusAlert tone="neutral">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>
+        <StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>
       )}
 
       {result?.ok && <>

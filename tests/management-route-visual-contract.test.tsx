@@ -51,6 +51,14 @@ describe("management route visual contract", () => {
     expect(telephony).toContain('import { MetricCard } from "@/components/ui/MetricCard"');
     expect(telephony).toContain('import { StatusAlert } from "@/components/ui/Status"');
     expect(telephony).toContain('import { Surface } from "@/components/ui/Surface"');
+    expect(telephony).toContain('status?.asterisk === "Unavailable" ? "danger" : "neutral"');
+  });
+
+  it("announces neutral analytics loading and empty states without interrupting assistive technology", () => {
+    const analytics = source("src/app/analytics/page.tsx");
+
+    expect(analytics).toContain('<StatusAlert tone="neutral" role="status">Loading workspace analytics...</StatusAlert>');
+    expect(analytics).toContain('<StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>');
   });
 
   it("keeps the product catalog on shared action, metric, surface, and feedback recipes", () => {

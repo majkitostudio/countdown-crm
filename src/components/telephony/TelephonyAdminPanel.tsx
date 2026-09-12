@@ -152,7 +152,11 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-3">
         <MetricCard label="Active adapter" value={settings.active_adapter === "local_sip" ? "Local SIP" : "Simulation"} />
-        <MetricCard label="Asterisk status" value={status?.asterisk || "Checking..."} valueTone={status?.asterisk === "Available" ? "success" : "neutral"} />
+        <MetricCard
+          label="Asterisk status"
+          value={status?.asterisk || "Checking..."}
+          valueTone={status?.asterisk === "Available" ? "success" : status?.asterisk === "Unavailable" ? "danger" : "neutral"}
+        />
         <MetricCard
           label="Internal extensions"
           value="1001 / 1002"
