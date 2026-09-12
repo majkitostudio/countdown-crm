@@ -4,8 +4,8 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 11. 9. 2026
-**Repo baseline:** post-call hranice, Conversation Brief, Exception Queue, server-side osobní preference, Team Leader Review reálného hovoru a schválený P1 návrh Klientského profilu
+**Snapshot:** 12. 9. 2026
+**Repo baseline:** stabilní P1 pracovní smyčka, sjednocený UI systém podle Operator Console, ověřený admin smoke a schválený P1 návrh Klientského profilu
 **Produktový stav:** stabilizace před interním pilotem
 
 ## Produkt
@@ -35,13 +35,13 @@ P1 krok tuto kartu nahradí krátkým souhrnem v hlavičce přiřazeného zákaz
 focus režimem Product Scriptu a čtecím Klientským profilem v nové kartě.
 Schválená specifikace tohoto kroku je v commitu `ae5c014` a navazující
 implementační plán určuje jeho pořadí v jednotném backlogu.
-Před jeho implementací je povinné sjednotit vzhled všech CRM cest podle
-Operator Console: specifikace je v commitu `6c01c57` a pořadí provedení
-určuje `docs/superpowers/plans/2026-09-11-unified-operator-console-design-system.md`.
-Aktuální vlna pro Login, Dashboard a Workspace stavové plochy má schválenou
-[specifikaci](docs/superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md),
+Vzhled všech CRM cest je už sjednocený podle Operator Console, včetně Login,
+Dashboardu, Workspace stavů, modálů a úzkých viewportů. Jejich
+[specifikace](docs/superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md),
 [implementační plán](docs/superpowers/plans/2026-09-12-entry-workspace-state-completeness.md)
-a [ověřovací report](docs/superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md).
+a [ověřovací report](docs/superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md)
+popisují provedenou vlnu; souhrnný důkaz je v
+[reportu sjednoceného designu](docs/superpowers/reports/2026-09-12-unified-operator-console-design-system-verification.md).
 Produktový skript zůstává souvislou osnovou bez potvrzování jednotlivých kroků
 během hovoru; jeho text má statické orientační sekce pro rychlejší čtení.
 Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou
@@ -168,8 +168,10 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    zapnout a proběhnout Auth smoke test. Bezpečný linked runner, schema drift,
    privilegované RPC a `pgtap` jsou uzavřené a podložené read-backem; runner
    dokazuje pouze linked sandbox, ne produkční readiness.
-2. P1 stabilizuje hlavní pracovní smyčku: dílčí selhání, role-aware navigaci,
-   pravdivé UI, full-shift smoke test a dependency gate.
+2. P1 nyní dokončí Klientský profil a ověřenou doručovací adresu. Teprve poté
+   následuje třírolový full-shift smoke test a dependency gate telefonie;
+   dílčí selhání, role-aware navigace, pravdivé Call Logs a sjednocený vzhled
+   jsou už implementované a testované.
 3. P1.5 po uzavření P1 přidá úzce vymezený P2 onboarding trénažér: jeden až dva
    schválené skripty, bezpečný AI nácvik, compliance zpětnou vazbu a jasně
    označené tréninkové záznamy v Call Logu bez obchodního side effectu.

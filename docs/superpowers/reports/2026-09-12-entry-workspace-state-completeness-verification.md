@@ -4,7 +4,7 @@ Date: 12. 9. 2026
 
 ## Automated verification
 
-- `npm test` — PASS, 98 test files / 420 tests.
+- `npm test` — PASS, 115 test files / 532 tests.
 - `npm run lint` — PASS.
 - `npm run typecheck` — PASS.
 - `npm run build` — PASS; Next.js generated all 38 application routes.
@@ -15,7 +15,8 @@ Date: 12. 9. 2026
 Local server: `http://localhost:3000`.
 
 - `/login` was inspected at the default desktop viewport and at 390×844. The form card, labels, action, and error surface fit without visible clipping. Screenshots were captured in `output/playwright/login-desktop.png` and `output/playwright/login-narrow.png`.
-- `/dashboard` and `/workspace` were requested at the local server. Both correctly redirected unauthenticated access to `/login`, confirming the route guard. An authenticated visual inspection could not be completed because no test credentials were supplied to the browser session.
+- `/dashboard` and `/workspace` were requested at the local server. Both correctly redirected unauthenticated access to `/login`, confirming the route guard.
+- Later on 12. 9. an authenticated Administrator session inspected Dashboard and Workspace with real local Docker/Supabase data. Workspace was also checked at 390×844; the complete Operator Console rendered without clipping and browser console errors remained at zero.
 - No persistence-changing action was triggered.
 
 ## Delivered scope
@@ -24,4 +25,6 @@ Login, Dashboard, Workspace support cards and modal overlays now use the shared 
 
 ## Remaining follow-up
 
-The authenticated desktop and narrow browser review of Dashboard and Workspace should be repeated once a safe test session is available. This is a verification limitation, not a claim that those authenticated states were visually proven here.
+The authenticated Administrator review is complete. A separate full-shift smoke
+through Operator, Team Leader and Administrator remains an explicit P1 gate; it
+must use isolated identities, persistence read-back and cleanup.

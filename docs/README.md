@@ -17,9 +17,12 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [superpowers/plans/2026-09-07-project-checkpoint.md](superpowers/plans/2026-09-07-project-checkpoint.md) | Provedený plán checkpointu a jeho ověřovací kroky. |
 | [superpowers/specs/2026-09-11-operator-workspace-client-profile-design.md](superpowers/specs/2026-09-11-operator-workspace-client-profile-design.md) | Schválený P1 návrh Klientského profilu, focus režimu skriptu a ověřené doručovací adresy. |
 | [superpowers/plans/2026-09-11-operator-client-profile-and-verified-address.md](superpowers/plans/2026-09-11-operator-client-profile-and-verified-address.md) | Aktuální implementační plán schváleného P1 kroku pro Operator Console. |
+| [superpowers/specs/2026-09-11-unified-operator-console-design-system.md](superpowers/specs/2026-09-11-unified-operator-console-design-system.md) | Schválený systém sjednocení všech CRM ploch podle Operator Console. |
+| [superpowers/plans/2026-09-11-unified-operator-console-design-system.md](superpowers/plans/2026-09-11-unified-operator-console-design-system.md) | Provedený plán sjednocení shellu, denních i administračních cest. |
+| [superpowers/reports/2026-09-12-unified-operator-console-design-system-verification.md](superpowers/reports/2026-09-12-unified-operator-console-design-system-verification.md) | Aktuální automatizovaný a admin browser důkaz sjednoceného vzhledu. |
 | [superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md](superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md) | Schválený návrh jednotných Login, Dashboard, Workspace a systémových stavů. |
 | [superpowers/plans/2026-09-12-entry-workspace-state-completeness.md](superpowers/plans/2026-09-12-entry-workspace-state-completeness.md) | Implementační plán vstupní a stavové vlny. |
-| [superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md](superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md) | Automatické a dostupné browser ověření vstupní a Workspace vlny. |
+| [superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md](superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md) | Automatické a autentizované admin browser ověření vstupní a Workspace vlny. |
 | [superpowers/specs/2026-09-05-local-telephony-settings-design.md](superpowers/specs/2026-09-05-local-telephony-settings-design.md) | Schválená specifikace workspace adapteru, admin-only `/telephony` a lokální Asterisk laboratoře. |
 | [superpowers/reports/2026-09-05-local-telephony-verification.md](superpowers/reports/2026-09-05-local-telephony-verification.md) | Důkazní report lokálního Docker/Asterisk stavu, automatických kontrol a otevřených browser blockerů. |
 | [superpowers/plans/2026-09-05-local-telephony-settings-and-console.md](superpowers/plans/2026-09-05-local-telephony-settings-and-console.md) | Implementační plán a stav jednotlivých kroků lokální telefonní laboratoře. |
@@ -42,8 +45,3 @@ Pokud dokument odporuje kódu nebo ověřenému prostředí, dokument je zastara
 - commitové katalogy,
 - jednorázové auditní výpisy bez aktuálního účelu,
 - tajné klíče, tokeny, hesla nebo osobní údaje.
-
-# Unified Operator Console Design System
-
-- Approved specification: `superpowers/specs/2026-09-11-unified-operator-console-design-system.md`
-- Implementation plan: `superpowers/plans/2026-09-11-unified-operator-console-design-system.md`

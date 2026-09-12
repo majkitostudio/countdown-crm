@@ -1,10 +1,10 @@
 # Aktuální stav, jednotné To-Do a Desatero
 
-**Snapshot:** 11. 9. 2026
+**Snapshot:** 12. 9. 2026
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený implementační plán Team Leader Review → projektový checkpoint → P0.1–P0.3; P0.4 je vědomě odložené pro interní provoz
+**Stav:** dokončený checkpoint P0.1–P0.3 a P1 stabilizační/UI vlna; P0.4 je vědomě odložené pro interní provoz. Nejbližší otevřený P1 krok je Klientský profil a ověřená doručovací adresa.
 
 ## Co je skutečně hotové
 
@@ -26,6 +26,13 @@
 - Aktuální nasazení je interní systém pro jednu konkrétní firmu. Leaked-password
   protection zůstává vědomě vypnutá a zapne se před případnou expanzí na trh;
   projekt se proto nyní nevydává za externě pilot-ready Auth.
+- Dílčí výpadky zdrojů, role-aware navigace a pravdivý stav Call Logs mají
+  samostatné kontrakty v aplikačních testech. Jeden nedostupný zdroj se nevydává
+  za ověřenou nulu ani neskrývá nezávislá dostupná data.
+- Všechny CRM cesty používají společný Operator Console designový systém.
+  Admin browser smoke ověřil Dashboard, Workspace, Products, Calls, Team,
+  Monitor a Training; Workspace prošel i na šířce 390 px bez browser chyb.
+  Tento důkaz nenahrazuje samostatný průchod operátora a Team Leadera.
 
 Hotový bod se do priorit níže nevrací. Pokud se objeví regrese, zapisuje se jako
 nový konkrétní problém s vlastním důkazem.
@@ -79,36 +86,38 @@ akceptační kritéria a důkazní plán.
 
 ### P1 — stabilní a pravdivá hlavní pracovní smyčka
 
-1. **Izolovat dílčí selhání dat.** Jeden nefunkční zdroj nesmí skrýt nezávislý
+1. [x] **Izolovat dílčí selhání dat.** Jeden nefunkční zdroj nesmí skrýt nezávislý
    užitečný výsledek. Prioritně: Next Best Action, Recent Context, Products,
    Team queue a Analytics; současné `Promise.all` kontrakty se posoudí jednotlivě.
    - Hotovo, když chování při každém relevantním dílčím výpadku pokrývá test a UI
      rozliší částečná data od úplného selhání.
-2. **Sjednotit role-aware navigaci a pravdivost ploch.** Sidebar, hlavička a
+2. [x] **Sjednotit role-aware navigaci a pravdivost ploch.** Sidebar, hlavička a
    command palette mají používat jeden zdroj pravidel. Team Leader musí vidět
    svou frontu; operátor nesmí dostávat manažerské nebo nepoužitelné cíle.
    Neaktivní Live Monitor a zmrazené plochy se skryjí nebo přesně označí.
    - Hotovo, když matice tří rolí souhlasí se server guardy a má navigační testy.
-3. **Opravit zavádějící text Call Logs.** UI nyní slibuje „full speech transcript“,
-   přestože starší ani běžné hovory přepis mít nemusí.
+3. [x] **Opravit zavádějící text Call Logs.** UI nyní rozlišuje ověřený zachycený
+   přepis od nedostupného stavu; nezaručuje zvuk ani přepis pro každý hovor.
    - Hotovo, když copy přesně rozlišuje uložený transcript od nedostupného stavu.
-4. **Sjednotit celý CRM vzhledem Operator Console.** Zavést společný systém
+4. [x] **Sjednotit celý CRM vzhledem Operator Console.** Zavést společný systém
    povrchů, tlačítek, stavových prvků a metrik; upravit stručnost textů a
    nechat barvy výhradně pro potvrzený výsledek, nutnou pozornost a riziko.
    Stejný prvek nesmí podle stránky měnit neprůhlednost, okraj, radius ani
    význam barvy.
    - Schválený návrh je commit `6c01c57`; provedení rozepisuje aktuální plán
      `2026-09-11-unified-operator-console-design-system.md`.
-   - Hotovo, když všechny uživatelské CRM cesty projdou automatizovaným i
-     browser ověřením proti referenční Operator Console bez změny chování.
-5. **Dokončit Entry, Dashboard a Workspace state completeness.** Sjednotit
+    - Dokončeno: společné primitivy, shell, denní i administrační cesty prošly
+      automatizovanou sadou a autentizovaným admin browser smokem. Zbývající
+      role-specific průchod je veden samostatně v bodu 7.
+5. [x] **Dokončit Entry, Dashboard a Workspace state completeness.** Sjednotit
    Login, Dashboard, Workspace, loading/empty/unavailable/error/success stavy,
    modaly a úzké viewporty podle stejných pravidel Operator Console.
    - Specifikace: `superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md`.
    - Plán: `superpowers/plans/2026-09-12-entry-workspace-state-completeness.md`.
    - Ověření: `superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md`.
-   - Hotovo, když proběhne i autentizovaný browser průchod Dashboardu a Workspace.
-6. **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
+    - Dokončeno: Dashboard a Workspace prošly autentizovaným admin průchodem;
+      Workspace byl ověřen i v úzkém viewportu a bez browser chyb.
+6. [ ] **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
    Základní kontext přesunout do hlavičky přiřazeného zákazníka, odstranit
    Compact / Extended režim, umožnit zvětšení Product Scriptu bez ztráty identity
    klienta a otevřít read-only Klientský profil v nové kartě. Operátor smí pouze
@@ -121,12 +130,12 @@ akceptační kritéria a důkazní plán.
    - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
      prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
      výběr adresy a odmítnutí cizího assignmentu.
-6. **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
+7. [ ] **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
    operátor, Team Leader a administrátor, včetně reloadu, persistence, prázdných
    stavů a přímých URL.
    - Hotovo, když report obsahuje kroky, identity rolí bez tajných údajů, read-back
      a cleanup; unit/build test se za tento důkaz nevydává.
-7. **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
+8. [ ] **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
    moderate advisories přes starší `uuid`; automatický audit navrhuje nevhodný
    major downgrade. Současně je nutné posoudit tři blokované install skripty.
    - Hotovo, když existuje bezpečná aktualizační/mitigační cesta a čistý nebo
