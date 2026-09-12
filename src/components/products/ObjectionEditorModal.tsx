@@ -5,13 +5,7 @@ import { ArrowRight, Check, Eye, Plus, Sparkles, Trash2, X } from "lucide-react"
 import { createObjectionAction, deleteObjectionAction, updateObjectionAction } from "@/app/actions/objections";
 import { Product } from "@/lib/products";
 import { ObjectionBattleCard } from "@/lib/objections";
-<<<<<<< HEAD
-import { Button } from "@/components/ui/Button";
-import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
-=======
 import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
->>>>>>> origin/main
 
 interface ObjectionEditorModalProps {
   initialCard?: ObjectionBattleCard | null;
@@ -117,9 +111,7 @@ export function ObjectionEditorModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-4xl">
-      <Surface variant="overlay">
-        <div className="max-h-[90vh] space-y-6 overflow-y-auto p-6 text-zinc-100">
+      <div className="bg-zinc-950 border border-zinc-800 rounded-2xl max-w-4xl w-full p-6 space-y-6 shadow-2xl relative text-zinc-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
@@ -134,9 +126,9 @@ export function ObjectionEditorModal({
               </p>
             </div>
           </div>
-          <Button variant="quiet" onClick={onClose}>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition-colors cursor-pointer">
             <X className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -163,16 +155,16 @@ export function ObjectionEditorModal({
             <div className="space-y-2 pt-2 border-t border-zinc-800">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Ověřené reakce operátora</label>
-                <Button variant="secondary" type="button" onClick={handleAddRebuttal}>
+                <button type="button" onClick={handleAddRebuttal} className="text-[11px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-1 rounded-md border border-zinc-800 transition-colors cursor-pointer">
                   <Plus className="w-3 h-3" /> Přidat argument
-                </Button>
+                </button>
               </div>
               <div className="space-y-2">
                 {rebuttals.map((rebuttal, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono text-[10px] flex items-center justify-center shrink-0">{idx + 1}</span>
                     <input type="text" value={rebuttal} onChange={(event) => handleRebuttalChange(idx, event.target.value)} placeholder={`Argument #${idx + 1}...`} className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700" />
-                    {rebuttals.length > 1 && <Button variant="danger" type="button" onClick={() => handleRemoveRebuttal(idx)}><Trash2 className="w-3.5 h-3.5" /></Button>}
+                    {rebuttals.length > 1 && <button type="button" onClick={() => handleRemoveRebuttal(idx)} className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>}
                   </div>
                 ))}
               </div>
@@ -181,8 +173,7 @@ export function ObjectionEditorModal({
 
           <div className="lg:col-span-5 space-y-2">
             <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400"><Eye className="w-3.5 h-3.5" /> Náhled pro operátora</div>
-            <Surface variant="inset">
-              <div className="space-y-3 p-4">
+            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-3">
               <div className="text-xs pb-2 border-b border-zinc-800"><span className="font-semibold text-zinc-200">{selectedProduct?.title || "Globální námitka"}</span></div>
               <div className="space-y-1">
                 <span className="text-[10px] font-medium text-zinc-500 uppercase">Námitka:</span>
@@ -196,22 +187,19 @@ export function ObjectionEditorModal({
                   ))}
                 </div>
               </div>
-              </div>
-            </Surface>
+            </div>
           </div>
         </div>
 
-        {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
+        {errorMessage && <div role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">{errorMessage}</div>}
 
         <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-          {initialCard ? <Button variant="danger" type="button" onClick={handleDelete} disabled={isSaving}><Trash2 className="w-3.5 h-3.5" /> Smazat kartu</Button> : <div />}
+          {initialCard ? <button type="button" onClick={handleDelete} disabled={isSaving} className="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 disabled:opacity-50 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"><Trash2 className="w-3.5 h-3.5" /> Smazat kartu</button> : <div />}
           <div className="flex items-center gap-2">
-            <Button variant="quiet" type="button" onClick={onClose}>Zrušit</Button>
-            <Button variant="primary" type="button" onClick={handleSave} disabled={isSaving || !objectionTitle.trim() || visibleRebuttals.length === 0}><Check className="w-4 h-4" /> {isSaving ? "Ukládám…" : "Uložit kartu"}</Button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">Zrušit</button>
+            <button type="button" onClick={handleSave} disabled={isSaving || !objectionTitle.trim() || visibleRebuttals.length === 0} className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"><Check className="w-4 h-4" /> {isSaving ? "Ukládám…" : "Uložit kartu"}</button>
           </div>
         </div>
-        </div>
-      </Surface>
       </div>
     </div>
   );

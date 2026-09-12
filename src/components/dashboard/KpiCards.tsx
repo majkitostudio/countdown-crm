@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DollarSign, PhoneCall, TrendingUp, Users } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 import { formatCurrencyAmounts } from "@/lib/currency";
-import { MetricCard } from "@/components/ui/MetricCard";
-import { StatusAlert } from "@/components/ui/Status";
 
 export function KpiCards({ compact = false }: { compact?: boolean }) {
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
@@ -40,24 +39,17 @@ export function KpiCards({ compact = false }: { compact?: boolean }) {
   return (
     <div className="space-y-3">
       {result && !result.ok && (
-        <StatusAlert tone="danger">
+        <div role="alert" className="rounded-xl border border-rose-900/70 bg-rose-950/30 px-4 py-3 text-xs text-rose-200">
           {result.code === "FORBIDDEN" ? "Analytics forbidden: " : "Analytics unavailable: "}{result.message}
-        </StatusAlert>
+        </div>
       )}
       {result === null ? (
-        <StatusAlert tone="neutral" role="status">
+        <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 px-4 py-3 text-xs text-zinc-400">
           Loading workspace analytics...
-        </StatusAlert>
+        </div>
       ) : result.ok ? (
       <div className={`grid grid-cols-2 gap-3 ${compact ? "" : "sm:grid-cols-2 lg:grid-cols-4 sm:gap-6"}`}>
         {[
-<<<<<<< HEAD
-          { id: "calls", label: "Team Calls", value: String(result.data.totalCalls), detail: "all workspace calls" },
-          { id: "conversion", label: "Team Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, detail: "team orders / calls" },
-          { id: "revenue", label: "Team Revenue", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: "team completed orders; currencies separate" },
-          { id: "operators", label: "Operators in Workspace", value: "—", detail: "team presence unavailable" },
-        ].map((kpi) => <MetricCard key={kpi.id} label={kpi.label} value={kpi.value} detail={kpi.detail} />)}
-=======
           { id: "calls", label: "Team Calls", value: String(result.data.totalCalls), trend: "—", subtext: "all workspace calls", icon: PhoneCall },
           { id: "conversion", label: "Team Conversion Rate", value: result.data.conversionAvailable ? `${result.data.conversionRate.toFixed(1)}%` : "—", trend: "—", subtext: result.data.conversionAvailable ? "team orders / calls" : "call or order data unavailable", icon: TrendingUp },
           { id: "revenue", label: "Team Revenue", value: result.data.sources.orders === "ready" ? formatCurrencyAmounts(result.data.revenueByCurrency) : "—", trend: "—", subtext: result.data.sources.orders === "ready" ? "team completed orders; currencies separate" : "order data unavailable", icon: DollarSign },
@@ -85,7 +77,6 @@ export function KpiCards({ compact = false }: { compact?: boolean }) {
             </div>
           );
         })}
->>>>>>> origin/main
       </div>
       ) : null}
     </div>

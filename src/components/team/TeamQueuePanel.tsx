@@ -11,9 +11,6 @@ import {
 import type { TeamMutationHandler } from "@/components/team/TeamPageContent";
 import type { QueueItemDTO } from "@/lib/dal/leadQueue";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
-import { Button } from "@/components/ui/Button";
-import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 interface TeamQueuePanelProps {
   queueItems: QueueItemDTO[];
@@ -79,8 +76,7 @@ export function TeamQueuePanel({
   };
 
   return (
-    <Surface variant="page">
-      <div className="space-y-4 p-6">
+    <section className="space-y-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
           <div className="flex items-center gap-3">
@@ -96,10 +92,6 @@ export function TeamQueuePanel({
         </span>
       </div>
 
-<<<<<<< HEAD
-      {successMessage && <StatusAlert tone="success" role="status">{successMessage}</StatusAlert>}
-      {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
-=======
       {successMessage && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-300" role="status">{successMessage}</div>}
       {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
       {operatorsState === "unavailable" && (
@@ -107,7 +99,6 @@ export function TeamQueuePanel({
           Workspace operators are unavailable. Reassignment controls are disabled.
         </div>
       )}
->>>>>>> origin/main
 
       {queueItems.length === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-8 text-center text-xs text-zinc-500">
@@ -172,16 +163,12 @@ export function TeamQueuePanel({
                               <option value="">Reassign to…</option>
                               {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
                             </select>
-<<<<<<< HEAD
-                            <Button variant="secondary" disabled={isBusy || !selectedOperators[item.id]} onClick={() => reassign(item)}>Assign</Button>
-=======
                             <button type="button" disabled={isBusy || operatorsState === "unavailable" || !selectedOperatorId} onClick={() => reassign(item)} className="rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
->>>>>>> origin/main
                           </div>
                         )}
                         <div className="flex flex-wrap justify-end gap-2">
-                          {canRelease && <Button variant="secondary" disabled={isBusy} onClick={() => void runAction(item.id, () => releaseLeadAssignmentAction(item.id, "Team Leader release"), "Assignment byl uvolněn do available pool.")}><Unlock className="h-3.5 w-3.5" /> Release</Button>}
-                          {canReopen && <Button variant="secondary" disabled={isBusy} onClick={() => void runAction(item.id, () => reopenLeadAssignmentAction(item.id, "Team Leader reopen"), "Closed lead byl znovu otevřen ve frontě.")}><RotateCcw className="h-3.5 w-3.5" /> Reopen</Button>}
+                          {canRelease && <button type="button" disabled={isBusy} onClick={() => void runAction(item.id, () => releaseLeadAssignmentAction(item.id, "Team Leader release"), "Assignment byl uvolněn do available pool.")} className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"><Unlock className="h-3.5 w-3.5" /> Release</button>}
+                          {canReopen && <button type="button" disabled={isBusy} onClick={() => void runAction(item.id, () => reopenLeadAssignmentAction(item.id, "Team Leader reopen"), "Closed lead byl znovu otevřen ve frontě.")} className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"><RotateCcw className="h-3.5 w-3.5" /> Reopen</button>}
                           {item.state === "in_progress" && <span className="inline-flex items-center gap-1 rounded-lg border border-rose-900/50 px-2.5 py-2 text-[11px] text-rose-300"><XCircle className="h-3.5 w-3.5" /> Active call locked</span>}
                           {item.state === "awaiting_outcome" && <span className="inline-flex items-center gap-1 rounded-lg border border-amber-900/50 px-2.5 py-2 text-[11px] text-amber-300"><XCircle className="h-3.5 w-3.5" /> Recovery / outcome pending</span>}
                         </div>
@@ -194,7 +181,6 @@ export function TeamQueuePanel({
           </table>
         </div>
       )}
-      </div>
-    </Surface>
+    </section>
   );
 }

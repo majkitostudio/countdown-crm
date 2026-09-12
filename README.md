@@ -51,23 +51,12 @@ Vytvoř `.env.local` podle [`.env.example`](.env.example). Tajné klíče patř�
 
 ## Dokumentace
 
-<<<<<<< HEAD
-- [PROJECT.md](PROJECT.md) — kanonický projektový kontext a hranice scope,
-- [Aktuální stav a To-Do](docs/AKTUALNI_STAV_A_DESATERO.md) — hotové části, otevřené kroky a release checklist,
-- [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) — stručný týmový postup pro změny,
-- [Telnyx setup](docs/TELEPHONY_TELNYX_SETUP.md) — konfigurace telefonní vrstvy bez tajných hodnot,
-- [Dokumentační index](docs/README.md) — vysvětlení, co do nové `/docs` patří.
-- [Entry, Dashboard a Workspace state completeness — specifikace](docs/superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md)
-- [Entry, Dashboard a Workspace state completeness — plán](docs/superpowers/plans/2026-09-12-entry-workspace-state-completeness.md)
-- [Entry, Dashboard a Workspace state completeness — ověření](docs/superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md)
-=======
 - [Projektový kontext](PROJECT.md)
 - [Aktuální stav a pořadí práce](docs/AKTUALNI_STAV_A_DESATERO.md)
 - [Dokumentační index](docs/README.md)
 - [Pracovní postup týmu](docs/DEVELOPMENT_WORKFLOW.md)
 - [Historický checkpoint dokumentace](docs/checkpoints/2026-09-01-documentation-consolidation.md)
 - [Kontrakt historie zákazníka](docs/CUSTOMER_ACTIVITY_CONTRACT_20260901.md)
->>>>>>> origin/main
 
 ## Kontroly před předáním změny
 
