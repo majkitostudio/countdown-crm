@@ -7,7 +7,6 @@ import { listCalendarEntriesAction } from "@/app/actions/calendar";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import { listCallsAction } from "@/app/actions/crm";
 import { getWalletOverviewAction } from "@/app/actions/wallet";
-import { getReorderOpportunities } from "@/lib/reorder";
 import { buildTeamLeaderDailyBrief, type TeamLeaderDailyBrief } from "@/lib/teamLeaderDailyBrief";
 import { formatCurrencyAmounts } from "@/lib/currency";
 
@@ -48,10 +47,9 @@ export function TeamLeaderDailyBriefCard() {
           return;
         }
 
-        const [calendarResult, walletResult, reorderResult, callsResult] = await Promise.allSettled([
+        const [calendarResult, walletResult, callsResult] = await Promise.allSettled([
           listCalendarEntriesAction(),
           getWalletOverviewAction(),
-          getReorderOpportunities(),
           listCallsAction(),
         ]);
         if (cancelled) return;
@@ -68,7 +66,6 @@ export function TeamLeaderDailyBriefCard() {
           }
         }
         if (walletResult.status === "rejected") warnings.push("Wallet souhrn není dostupný.");
-        if (reorderResult.status === "rejected") warnings.push("Re-order odhady nejsou dostupné.");
         if (callsResult.status === "rejected") warnings.push("Review fronta není dostupná.");
 
         const callbacks = calendarEntries
@@ -88,7 +85,6 @@ export function TeamLeaderDailyBriefCard() {
               balances: walletResult.value.balances,
             }
           : null;
-        const reorderOpportunities = reorderResult.status === "fulfilled" ? reorderResult.value : [];
         const pendingReviews = callsResult.status === "fulfilled"
           ? callsResult.value.filter((call) => call.review_status === "not_reviewed").length
           : null;
@@ -99,7 +95,6 @@ export function TeamLeaderDailyBriefCard() {
             daily: analyticsResult.data.daily,
             callbacks,
             reminders,
-            reorderOpportunities,
             pendingReviews,
             wallet,
           }),
@@ -186,7 +181,7 @@ function BriefMetric({
   return (
     <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
       <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500"><span>{label}</span><Icon className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" /></div>
-      <p className="mt-2 font-mono text-xl font-semibold text-zinc-100">{value}</p>
+      <p className="mt-2 font-mono text-lg font-semibold text-zinc-100">{value}</p>
       {detail && <p className="mt-1 text-[10px] text-zinc-500">{detail}</p>}
     </div>
   );

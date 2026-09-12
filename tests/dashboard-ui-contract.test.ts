@@ -28,6 +28,8 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(dailyBrief).toContain("Needs review");
     expect(dailyBrief).toContain('href="/calls?review=unreviewed"');
     expect(dailyBrief).toContain("getWalletOverviewAction");
+    expect(dailyBrief).not.toContain("getReorderOpportunities");
+    expect(dailyBrief).toContain('font-mono text-lg font-semibold text-zinc-100');
     expect(kpis).toContain('label: "Team Calls"');
     expect(kpis).toContain('label: "Team Conversion Rate"');
     expect(kpis).toContain('label: "Team Revenue"');
