@@ -16,6 +16,11 @@ import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import {
+  DeliveryAddressFields,
+  EMPTY_DELIVERY_ADDRESS_DRAFT,
+  toDeliveryAddressSnapshot,
+} from "@/components/orders/DeliveryAddressFields";
 
 type OrderSource = "previous_call" | "email" | "web_form" | "manual" | "other";
 type OrderOrigin = "workspace" | "orders";
@@ -86,6 +91,7 @@ export function OrderCreateForm({
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
   const [leadNotesError, setLeadNotesError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_DELIVERY_ADDRESS_DRAFT);
 
   const selectedLead = useMemo(
     () => leads.find((lead) => lead.id === leadId) || null,
@@ -171,6 +177,11 @@ export function OrderCreateForm({
       setErrorMessage("Select a customer and at least one product before creating the order.");
       return;
     }
+    const deliveryAddressSnapshot = toDeliveryAddressSnapshot(deliveryAddress);
+    if (!deliveryAddressSnapshot) {
+      setErrorMessage("Enter a complete delivery address before creating the order.");
+      return;
+    }
 
     setErrorMessage(null);
     startTransition(async () => {
@@ -196,6 +207,7 @@ export function OrderCreateForm({
             outcome: "order_placed",
             ai_sentiment: "Positive",
             order_items: items,
+            delivery_address_snapshot: deliveryAddressSnapshot,
             transcript: null,
           });
           if (!completion.order_id) {
@@ -211,6 +223,7 @@ export function OrderCreateForm({
           order_source: orderSource,
           source_note: sourceNote.trim() || null,
           status: "in_progress",
+          delivery_address_snapshot: deliveryAddressSnapshot,
         });
         router.push(`/orders/${order.id}?origin=${initialOrigin}`);
       } catch (error) {
@@ -280,6 +293,15 @@ export function OrderCreateForm({
                 </div>
               </div>
             )}
+          </section></Surface>
+
+          <Surface variant="page"><section className="p-6">
+            <DeliveryAddressFields
+              value={deliveryAddress}
+              onChange={setDeliveryAddress}
+              disabled={isPending}
+              idPrefix="order-delivery-address"
+            />
           </section></Surface>
 
           <Surface variant="page"><section className="p-6">

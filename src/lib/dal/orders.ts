@@ -6,6 +6,7 @@ import { getScopedLeadForWorkspace } from "./leadQueue";
 import { requireWorkspaceContext } from "./workspace";
 import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
+import { parseDeliveryAddressSnapshot, type DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
@@ -25,6 +26,7 @@ export interface CreateOrderInput {
   order_source: OrderSource;
   source_note?: string | null;
   status?: OrderStatus;
+  delivery_address_snapshot: DeliveryAddressSnapshot;
 }
 
 export interface UpdateOrderStatusInput {
@@ -69,6 +71,10 @@ export async function createOrderForWorkspace(
   if (input.source_note && input.source_note.trim().length > 1000) {
     throw new DataAccessError("VALIDATION", "Order source note is too long");
   }
+  const deliveryAddress = parseDeliveryAddressSnapshot(input.delivery_address_snapshot);
+  if (!deliveryAddress) {
+    throw new DataAccessError("VALIDATION", "A complete delivery address is required.");
+  }
 
   const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
@@ -90,6 +96,7 @@ export async function createOrderForWorkspace(
     p_order_source: input.order_source,
     p_source_note: input.source_note?.trim() || null,
     p_status: input.status || "completed",
+    p_delivery_address_snapshot: deliveryAddress,
   } as never);
 
   const row = Array.isArray(data) ? data[0] : data;

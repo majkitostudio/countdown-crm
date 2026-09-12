@@ -36,6 +36,13 @@ const workspaceContext = {
 };
 
 const callSessionId = "11111111-1111-4111-8111-111111111111";
+const deliveryAddress = {
+  recipient_name: "Test Lead",
+  line1: "Main 1",
+  city: "Prague",
+  postal_code: "110 00",
+  country: "CZ",
+};
 
 const queueSnapshot = {
   queue_item_id: "queue-1",
@@ -147,6 +154,7 @@ describe("lead queue server contract", () => {
       call_transcript: "Follow up next week",
       call_ai_sentiment: "Positive",
       order_items: null,
+      delivery_address_snapshot: null,
       callback_scheduled_at: "2026-09-01T09:00:00.000Z",
       call_note: null,
       call_fail_reason: null,
@@ -169,6 +177,7 @@ describe("lead queue server contract", () => {
         duration_seconds: 42,
         outcome: "order_placed",
         order_items: orderItems,
+        delivery_address_snapshot: deliveryAddress,
       }),
     ).resolves.toMatchObject(completion);
 
@@ -181,6 +190,7 @@ describe("lead queue server contract", () => {
       call_transcript: null,
       call_ai_sentiment: "Neutral",
       order_items: orderItems,
+      delivery_address_snapshot: deliveryAddress,
       callback_scheduled_at: null,
       call_note: null,
       call_fail_reason: null,

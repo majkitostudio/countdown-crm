@@ -13,6 +13,14 @@ export interface VerifiedDeliveryAddress {
   deliveredAt: string;
 }
 
+export interface DeliveryAddressSnapshotCandidate {
+  id: string;
+  status: string;
+  delivered_at: string | null;
+  created_at: string;
+  delivery_address_snapshot: unknown;
+}
+
 function parseRequiredText(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
@@ -41,4 +49,20 @@ export function parseDeliveryAddressSnapshot(value: unknown): DeliveryAddressSna
     postal_code: postalCode,
     country,
   };
+}
+
+/** Returns an address only when the newest valid snapshot belongs to a delivered order. */
+export function findLatestVerifiedDeliveryAddress(
+  orders: DeliveryAddressSnapshotCandidate[],
+): VerifiedDeliveryAddress | null {
+  const delivered = orders
+    .filter((order) => order.status === "delivered" && Boolean(order.delivered_at))
+    .sort((left, right) => Date.parse(right.delivered_at!) - Date.parse(left.delivered_at!));
+
+  for (const order of delivered) {
+    const address = parseDeliveryAddressSnapshot(order.delivery_address_snapshot);
+    if (address) return { orderId: order.id, address, deliveredAt: order.delivered_at! };
+  }
+
+  return null;
 }

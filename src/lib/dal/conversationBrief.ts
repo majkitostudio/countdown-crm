@@ -38,6 +38,8 @@ export interface ConversationBriefOrderSource {
   total_amount: number;
   currency: string;
   status: OrderRow["status"];
+  delivery_address_snapshot: OrderRow["delivery_address_snapshot"];
+  delivered_at: string | null;
   created_at: string;
 }
 
@@ -99,7 +101,7 @@ export interface ConversationBriefDTO {
 }
 
 const CALL_FIELDS = "id, created_at, duration_seconds, outcome, fail_reason, operator_note, callback_scheduled_at";
-const ORDER_FIELDS = "id, total_amount, currency, status, created_at";
+const ORDER_FIELDS = "id, total_amount, currency, status, delivery_address_snapshot, delivered_at, created_at";
 
 function cleanOptionalText(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;

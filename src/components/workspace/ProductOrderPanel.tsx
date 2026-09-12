@@ -16,6 +16,12 @@ import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { formatCurrencyAmount } from "@/lib/currency";
+import {
+  DeliveryAddressFields,
+  EMPTY_DELIVERY_ADDRESS_DRAFT,
+  toDeliveryAddressSnapshot,
+} from "@/components/orders/DeliveryAddressFields";
+import type { DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 
 export interface OrderPlacementResult {
   orderId: string;
@@ -35,6 +41,7 @@ interface ProductOrderPanelProps {
       items: CallOrderItemInput[];
       orderSource?: OrderSource;
       sourceNote?: string | null;
+      deliveryAddressSnapshot: DeliveryAddressSnapshot;
     },
   ) => Promise<OrderPlacementResult | null>;
 }
@@ -60,6 +67,7 @@ export function ProductOrderPanel({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_DELIVERY_ADDRESS_DRAFT);
   const leadNotesInitializedRef = React.useRef(false);
 
   const formattedLeadNotes = leadNotes
@@ -93,6 +101,7 @@ export function ProductOrderPanel({
   const rawSubtotal = primarySubtotal + bundleSubtotal;
   const discountAmount = (rawSubtotal * discountPercent) / 100;
   const grandTotal = Math.max(0, rawSubtotal - discountAmount);
+  const deliveryAddressSnapshot = toDeliveryAddressSnapshot(deliveryAddress);
 
   const handleAddBundleItem = (rec: Recommendation) => {
     setBundleProduct(rec.recommendedProduct);
@@ -101,6 +110,10 @@ export function ProductOrderPanel({
 
   const handlePlaceOrder = async () => {
     if (!selectedProduct || !activeLead || isSubmitting) return;
+    if (!deliveryAddressSnapshot) {
+      setOrderError("Enter a complete delivery address before placing the order.");
+      return;
+    }
 
     setOrderError(null);
     setIsSubmitting(true);
@@ -119,6 +132,7 @@ export function ProductOrderPanel({
         items,
         orderSource: orderMode === "call" ? "previous_call" : orderSource,
         sourceNote: orderMode === "manual" ? sourceNote.trim() || null : null,
+        deliveryAddressSnapshot,
       });
       if (!result) {
         setOrderError("Order was not created. Check the error above and try again.");
@@ -186,6 +200,13 @@ export function ProductOrderPanel({
           {orderError}
         </div>
       )}
+
+      <DeliveryAddressFields
+        value={deliveryAddress}
+        onChange={setDeliveryAddress}
+        disabled={isSubmitting}
+        idPrefix="workspace-delivery-address"
+      />
 
       {/* Primary Product Selector */}
       <div className="space-y-2">
@@ -345,7 +366,7 @@ export function ProductOrderPanel({
           <button
             type="button"
             onClick={handlePlaceOrder}
-            disabled={!selectedProduct || !activeLead || isSubmitting}
+            disabled={!selectedProduct || !activeLead || isSubmitting || !deliveryAddressSnapshot}
             aria-busy={isSubmitting}
             className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >

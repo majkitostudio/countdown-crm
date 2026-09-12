@@ -59,6 +59,7 @@ describe("post-call completion runtime contract", () => {
       call_transcript: null,
       call_ai_sentiment: "Neutral",
       order_items: null,
+      delivery_address_snapshot: null,
       callback_scheduled_at: "2026-09-06T10:00:00.000Z",
       call_note: "Call back tomorrow.",
       call_fail_reason: null,

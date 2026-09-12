@@ -19,8 +19,8 @@ select is(
       )
       and not procedure.prosecdef
   ),
-  5,
-  'all five public RPC boundaries execute as invokers'
+  6,
+  'all six public RPC boundaries execute as invokers'
 );
 
 select is(
@@ -58,6 +58,13 @@ select is(
           'jsonb'
         ),
         (
+          'complete_lead_call_with_order_items_idempotent',
+          'uuid, uuid, uuid, integer, text, text, text, jsonb, timestamp with time zone, text, text, jsonb',
+          array['completion_key', 'target_queue_item_id', 'call_session_id', 'call_duration_seconds', 'call_outcome', 'call_transcript', 'call_ai_sentiment', 'order_items', 'callback_scheduled_at', 'call_note', 'call_fail_reason', 'delivery_address_snapshot']::text[],
+          0,
+          'jsonb'
+        ),
+        (
           'update_wallet_settings',
           'uuid, text, numeric',
           array['p_workspace_id', 'p_currency', 'p_monthly_commission_rate']::text[],
@@ -76,8 +83,8 @@ select is(
     join pg_namespace as namespace on namespace.oid = procedure.pronamespace
     where namespace.nspname = 'public'
   ),
-  5,
-  'all five public RPCs preserve exact input names, types, defaults and return shapes'
+  6,
+  'all six public RPCs preserve exact input names, types, defaults and return shapes'
 );
 
 select is(
@@ -95,8 +102,8 @@ select is(
       )
       and procedure.prosecdef
   ),
-  5,
-  'the five privileged implementations live in private as definers'
+  6,
+  'the six privileged implementations live in private as definers'
 );
 
 select is(
@@ -114,8 +121,8 @@ select is(
       )
       and procedure.proconfig @> array['search_path=""']::text[]
   ),
-  5,
-  'all five private privileged implementations use an empty search path'
+  6,
+  'all six private privileged implementations use an empty search path'
 );
 
 select ok(
@@ -175,8 +182,8 @@ select is(
       )
       and has_function_privilege('authenticated', procedure.oid, 'EXECUTE')
   ),
-  5,
-  'authenticated can execute all five public RPC boundaries'
+  6,
+  'authenticated can execute all six public RPC boundaries'
 );
 
 select ok(
@@ -236,7 +243,7 @@ select is(
       )
       and has_function_privilege('authenticated', procedure.oid, 'EXECUTE')
   ),
-  5,
+  6,
   'authenticated reaches each private implementation only through an explicit grant'
 );
 
@@ -255,7 +262,7 @@ select is(
       )
       and procedure.proconfig @> array['search_path=""']::text[]
   ),
-  5,
+  6,
   'public invoker wrappers use an empty search path'
 );
 

@@ -53,6 +53,8 @@ export type WorkspaceOrderDTO = {
   status: OrderRow["status"];
   order_source: OrderRow["order_source"];
   source_note: string | null;
+  delivery_address_snapshot: OrderRow["delivery_address_snapshot"];
+  delivered_at: string | null;
   status_history: WorkspaceOrderStatusHistoryDTO[];
   revision: number;
   created_at: string;
@@ -369,6 +371,8 @@ function toWorkspaceOrderDTO(
     status: order.status,
     order_source: order.order_source,
     source_note: order.source_note,
+    delivery_address_snapshot: order.delivery_address_snapshot,
+    delivered_at: order.delivered_at,
     status_history: statusHistory.map((entry) => ({
       id: entry.id,
       from_status: entry.from_status,

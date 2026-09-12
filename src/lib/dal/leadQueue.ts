@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
+import { parseDeliveryAddressSnapshot, type DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import type { LeadDTO } from "./leads";
@@ -91,6 +92,7 @@ export interface CompleteLeadCallInput {
   order_items?: CallOrderItemInput[] | null;
   order_product_id?: string | null;
   order_total_amount?: number | null;
+  delivery_address_snapshot?: DeliveryAddressSnapshot | null;
   callback_scheduled_at?: string | null;
   operator_note?: string | null;
   fail_reason?: FailReason | null;
@@ -173,6 +175,13 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
   }
   if (input.outcome !== "order_placed" && hasOrder) {
     throw new DataAccessError("VALIDATION", "Order items require an order call outcome");
+  }
+  const deliveryAddress = parseDeliveryAddressSnapshot(input.delivery_address_snapshot);
+  if (hasOrder && !deliveryAddress) {
+    throw new DataAccessError("VALIDATION", "A complete delivery address is required for an order call.");
+  }
+  if (!hasOrder && input.delivery_address_snapshot != null) {
+    throw new DataAccessError("VALIDATION", "A delivery address is only valid for an order call.");
   }
   if (orderItems.length > 50) {
     throw new DataAccessError("VALIDATION", "An order may contain at most 50 items");
@@ -298,6 +307,9 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       : []
   );
   const hasOrder = orderItems.length > 0;
+  const deliveryAddress = hasOrder
+    ? parseDeliveryAddressSnapshot(input.delivery_address_snapshot)
+    : null;
   await requireWorkspaceRole(["operator"]);
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call_with_order_items_idempotent", {
@@ -309,6 +321,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     call_transcript: typeof input.transcript === "string" ? input.transcript.trim() || null : null,
     call_ai_sentiment: typeof input.ai_sentiment === "string" ? input.ai_sentiment.trim() || "Neutral" : "Neutral",
     order_items: hasOrder ? orderItems : null,
+    delivery_address_snapshot: deliveryAddress,
     callback_scheduled_at: input.callback_scheduled_at || null,
     call_note: operatorNote || null,
     call_fail_reason: input.fail_reason && isFailReason(input.fail_reason) ? input.fail_reason : null,

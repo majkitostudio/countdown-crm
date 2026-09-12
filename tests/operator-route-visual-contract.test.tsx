@@ -17,6 +17,8 @@ const baseOrder = {
   items: [],
   order_source: "manual",
   source_note: null,
+  delivery_address_snapshot: null,
+  delivered_at: null,
   status_history: [],
   revision: 1,
   created_at: "2026-09-12T08:00:00.000Z",

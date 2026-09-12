@@ -4,6 +4,7 @@ import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext } from "./workspace";
+import { getScopedLeadForWorkspace } from "./leadQueue";
 
 type LeadNoteRow = Database["public"]["Tables"]["lead_notes"]["Row"];
 
@@ -83,6 +84,16 @@ export async function createLeadNoteForWorkspace(
 ): Promise<LeadNoteDTO> {
   const normalizedBody = validateBody(body);
   const context = await requireWorkspaceContext(requestedWorkspaceId);
+
+  if (context.role === "operator") {
+    try {
+      await getScopedLeadForWorkspace(leadId, context.workspaceId);
+    } catch (error) {
+      if (error instanceof DataAccessError && error.code === "DATABASE") throw error;
+      throw new DataAccessError("FORBIDDEN", "Contact is not available in the current assignment.");
+    }
+  }
+
   const supabase = await createDataClient();
 
   const { data: lead, error: leadError } = await supabase

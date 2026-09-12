@@ -98,6 +98,8 @@ const sources: ConversationBriefSourcesInput = {
       total_amount: 1290,
       currency: "CZK",
       status: "delivered",
+      delivery_address_snapshot: null,
+      delivered_at: "2026-08-20T10:00:00.000Z",
       created_at: "2026-08-20T10:00:00.000Z",
     },
   },
