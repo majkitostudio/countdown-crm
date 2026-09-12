@@ -4,6 +4,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 import { getWorkspaceReadinessForWorkspace, type WorkspaceReadinessDTO } from "@/lib/dal/workspaceReadiness";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { WorkspaceReadinessPanel } from "@/components/readiness/WorkspaceReadinessPanel";
+import { Surface } from "@/components/ui/Surface";
 
 type ReadinessPageLoadResult =
   | { data: WorkspaceReadinessDTO }
@@ -31,7 +32,8 @@ export default async function WorkspaceReadinessPage() {
           description="A truthful operational checklist for the active workspace."
           badge={{ label: "Unavailable", tone: "unavailable" }}
         />
-        <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+        <div className="mx-auto max-w-xl">
+        <Surface variant="empty">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
           <h1 className="text-base font-semibold text-zinc-100">Workspace Readiness unavailable</h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
@@ -46,6 +48,7 @@ export default async function WorkspaceReadinessPage() {
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to Settings
           </Link>
+        </Surface>
         </div>
       </div>
     );

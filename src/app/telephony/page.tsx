@@ -5,6 +5,7 @@ import { getWorkspaceTelephonySettings } from "@/lib/dal/telephonySettings";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { TelephonyAdminPanel } from "@/components/telephony/TelephonyAdminPanel";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 
 type TelephonyPageLoadResult =
   | { settings: Awaited<ReturnType<typeof getWorkspaceTelephonySettings>> }
@@ -25,23 +26,27 @@ export default async function TelephonyPage() {
   if ("error" in result) {
     const forbidden = result.error instanceof DataAccessError && result.error.code === "FORBIDDEN";
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-xl">
+      <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Telephony administration unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{forbidden ? "Only a workspace Administrator can access Local SIP administration." : "Telephony status could not be loaded."}</p>
+      </Surface>
       </div>
     );
   }
 
   if (result.settings.active_adapter !== "local_sip") {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-xl">
+      <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Local SIP is not active.</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Enable Local SIP in Admin Settings to use this page.</p>
         <Link href="/settings#telephony-adapter" className="mt-5 inline-flex rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 hover:border-zinc-700 hover:text-zinc-100">
           Open Telephony adapter settings
         </Link>
+      </Surface>
       </div>
     );
   }

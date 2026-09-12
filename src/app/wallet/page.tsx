@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { ArrowDownLeft, ArrowUpRight, LockKeyhole, WalletCards } from "lucide-react";
+import { LockKeyhole, WalletCards } from "lucide-react";
 import { getWalletOverview } from "@/lib/dal/wallet";
 import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 import type { WalletSectionState } from "@/lib/dal/wallet";
 
 function formatDate(value: string): string {
@@ -39,10 +42,10 @@ function SectionWarning({ title, state }: { title: string; state: WalletSectionS
   }
 
   return (
-    <div className="rounded-2xl border border-amber-700/40 bg-amber-950/20 p-4 text-amber-100">
+    <StatusAlert tone="warning">
       <h2 className="text-sm font-semibold">{title}</h2>
       <p className="mt-1 text-xs text-amber-200/80">{state.message}</p>
-    </div>
+    </StatusAlert>
   );
 }
 
@@ -51,10 +54,12 @@ export default async function WalletPage() {
 
   if ("error" in result) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-xl">
+      <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Wallet unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">The wallet could not be loaded from the active workspace.</p>
+      </Surface>
       </div>
     );
   }
@@ -95,9 +100,9 @@ export default async function WalletPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm"><p className="text-[11px] uppercase tracking-wider text-zinc-500">{data.canManage ? "Team balance" : "Current balance"}</p><p className="mt-3 font-mono text-3xl font-semibold text-zinc-100">{visibleBalance === null ? "Unavailable" : formatAmount(visibleBalance, presentationCurrency)}</p><p className="mt-2 text-[11px] text-zinc-500">Derived from posted ledger transactions</p></section>
-        <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm"><div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-zinc-500"><ArrowUpRight className="h-3.5 w-3.5 text-emerald-400" />Credits</div><p className="mt-3 font-mono text-2xl font-semibold text-emerald-300">{totalCredits === null ? "Unavailable" : formatAmount(totalCredits, presentationCurrency)}</p><p className="mt-2 text-[11px] text-zinc-500">Bonuses and finalized commissions</p></section>
-        <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 shadow-sm"><div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-zinc-500"><ArrowDownLeft className="h-3.5 w-3.5 text-rose-400" />Debits</div><p className="mt-3 font-mono text-2xl font-semibold text-rose-300">{totalDebits === null ? "Unavailable" : formatAmount(totalDebits, presentationCurrency)}</p><p className="mt-2 text-[11px] text-zinc-500">Penalties, corrections and returns</p></section>
+        <MetricCard label={data.canManage ? "Team balance" : "Current balance"} value={visibleBalance === null ? "Unavailable" : formatAmount(visibleBalance, presentationCurrency)} detail="Derived from posted ledger transactions" />
+        <MetricCard label="Credits" value={totalCredits === null ? "Unavailable" : formatAmount(totalCredits, presentationCurrency)} valueTone="success" detail="Bonuses and finalized commissions" />
+        <MetricCard label="Debits" value={totalDebits === null ? "Unavailable" : formatAmount(totalDebits, presentationCurrency)} valueTone="danger" detail="Penalties, corrections and returns" />
       </div>
 
       <SectionWarning title="Balance summary unavailable" state={data.sections.balances} />

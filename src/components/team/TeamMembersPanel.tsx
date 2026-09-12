@@ -9,6 +9,9 @@ import {
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface TeamMembersPanelProps {
   initialMembers: WorkspaceMemberDTO[];
@@ -57,7 +60,8 @@ export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersP
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-7">
+      <Surface variant="page">
+        <div className="p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
@@ -75,12 +79,13 @@ export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersP
           </div>
           <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-mono text-zinc-300">Administrator only</span>
         </div>
-      </div>
+        </div>
+      </Surface>
 
-      {successMessage && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-300" role="status">{successMessage}</div>}
-      {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
+      {successMessage && <StatusAlert tone="success">{successMessage}</StatusAlert>}
+      {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
 
-      <div className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40">
+      <Surface variant="table">
         <div className="border-b border-zinc-800/80 px-6 py-4">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Current workspace members</h2>
         </div>
@@ -110,22 +115,21 @@ export function TeamMembersPanel({ initialMembers, currentUserId }: TeamMembersP
                   >
                     {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{getWorkspaceRoleLabel(role)}</option>)}
                   </select>
-                  <button
-                    type="button"
+                  <Button
+                    variant="danger"
                     disabled={isBusy || isCurrentUser}
                     onClick={() => void removeMember(member)}
-                    className="rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors hover:border-rose-900/70 hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-40"
                     title={isCurrentUser ? "You cannot remove yourself" : "Remove member"}
                     aria-label={isCurrentUser ? "You cannot remove yourself" : `Remove ${member.full_name || member.email}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </Surface>
     </div>
   );
 }
