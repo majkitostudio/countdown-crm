@@ -5,6 +5,7 @@ import { Trophy } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import type { AgentLeaderboardPoint, AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 import { formatCurrencyAmounts } from "@/lib/currency";
+import { StatusAlert } from "@/components/ui/Status";
 
 export function TopPerformers() {
   const [leaderboard, setLeaderboard] = useState<AgentLeaderboardPoint[]>([]);
@@ -44,6 +45,8 @@ export function TopPerformers() {
     };
   }, []);
 
+  const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";
+
   return (
     <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 flex flex-col justify-between space-y-4">
       {/* Header */}
@@ -64,12 +67,12 @@ export function TopPerformers() {
           Loading workspace leaderboard...
         </div>
       ) : result && !result.ok ? (
-        <div role="alert" className="rounded-lg bg-rose-950/20 border border-rose-900/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-rose-200">
-            {result.code === "FORBIDDEN" ? "Leaderboard forbidden" : "Leaderboard unavailable"}
+        <StatusAlert tone={feedbackTone}>
+          <p className="text-xs font-medium">
+            {result.code === "FORBIDDEN" ? "Leaderboard access is restricted" : "Leaderboard unavailable"}
           </p>
-          <p className="text-[11px] leading-relaxed text-rose-300">{result.message}</p>
-        </div>
+          <p className="mt-1 text-[11px] leading-relaxed">{result.message}</p>
+        </StatusAlert>
       ) : leaderboard.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
           <p className="text-xs font-medium text-zinc-200">No attributed activity yet</p>

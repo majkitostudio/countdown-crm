@@ -87,6 +87,8 @@ export default async function WalletPage() {
     ? data.balances.reduce((sum, balance) => sum + balance.total_debits, 0)
     : currentBalance?.total_debits ?? null
     : null;
+  const creditsTone = totalCredits === null ? "neutral" : "success";
+  const debitsTone = totalDebits === null ? "neutral" : "danger";
   const presentationCurrency = data.settings?.currency || data.transactions[0]?.currency || "CZK";
 
   return (
@@ -101,8 +103,8 @@ export default async function WalletPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard label={data.canManage ? "Team balance" : "Current balance"} value={visibleBalance === null ? "Unavailable" : formatAmount(visibleBalance, presentationCurrency)} detail="Derived from posted ledger transactions" />
-        <MetricCard label="Credits" value={totalCredits === null ? "Unavailable" : formatAmount(totalCredits, presentationCurrency)} valueTone="success" detail="Bonuses and finalized commissions" />
-        <MetricCard label="Debits" value={totalDebits === null ? "Unavailable" : formatAmount(totalDebits, presentationCurrency)} valueTone="danger" detail="Penalties, corrections and returns" />
+        <MetricCard label="Credits" value={totalCredits === null ? "Unavailable" : formatAmount(totalCredits, presentationCurrency)} valueTone={creditsTone} detail="Bonuses and finalized commissions" />
+        <MetricCard label="Debits" value={totalDebits === null ? "Unavailable" : formatAmount(totalDebits, presentationCurrency)} valueTone={debitsTone} detail="Penalties, corrections and returns" />
       </div>
 
       <SectionWarning title="Balance summary unavailable" state={data.sections.balances} />

@@ -37,11 +37,13 @@ export function KpiCards({ compact = false }: { compact?: boolean }) {
     };
   }, []);
 
+  const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";
+
   return (
     <div className="space-y-3">
       {result && !result.ok && (
-        <StatusAlert tone="danger">
-          {result.code === "FORBIDDEN" ? "Analytics forbidden: " : "Analytics unavailable: "}{result.message}
+        <StatusAlert tone={feedbackTone}>
+          {result.code === "FORBIDDEN" ? "Analytics access is restricted: " : "Analytics unavailable: "}{result.message}
         </StatusAlert>
       )}
       {result === null ? (

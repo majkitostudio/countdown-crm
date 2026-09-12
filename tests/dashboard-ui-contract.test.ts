@@ -8,6 +8,8 @@ describe("Dashboard team hierarchy UI contract", () => {
   it("keeps workspace-level team context explicit", () => {
     const dashboard = readFileSync(path.join(projectRoot, "src", "app", "dashboard", "page.tsx"), "utf8");
     const kpis = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "KpiCards.tsx"), "utf8");
+    const topPerformers = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "TopPerformers.tsx"), "utf8");
+    const recentActivity = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "RecentActivityFeed.tsx"), "utf8");
     const nextBestAction = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "NextBestActionCard.tsx"), "utf8");
     const dailyBrief = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "TeamLeaderDailyBriefCard.tsx"), "utf8");
 
@@ -32,5 +34,9 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(kpis).toContain('label: "Operators in Workspace"');
     expect(kpis).toContain("compact = false");
     expect(kpis).not.toContain('label: "My Calls"');
+    for (const component of [kpis, topPerformers, recentActivity]) {
+      expect(component).toContain('const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";');
+      expect(component).toContain("access is restricted");
+    }
   });
 });

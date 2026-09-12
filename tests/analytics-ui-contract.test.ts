@@ -9,8 +9,10 @@ describe("analytics UI authorization states", () => {
     const source = readFileSync(path.join(projectRoot, "src", "app", "analytics", "page.tsx"), "utf8");
 
     expect(source).toContain('status === "forbidden"');
+    expect(source).toContain('? "Restricted"');
     expect(source).toContain('status === "empty" ? "No activity"');
-    expect(source).toContain("Analytics forbidden:");
+    expect(source).toContain('const resultTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";');
+    expect(source).toContain("Analytics access is restricted:");
     expect(source).toContain("exportAnalyticsDataAction");
     expect(source).toContain("result?.ok && <>");
   });

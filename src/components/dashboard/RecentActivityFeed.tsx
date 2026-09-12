@@ -5,6 +5,7 @@ import { Activity, ArrowUpRight, Clock, PhoneCall, ShoppingBag, User } from "luc
 import { getRecentActivityAction } from "@/app/actions/analytics";
 import type { AnalyticsActionResult, RecentActivityResult } from "@/lib/analytics";
 import { formatCurrencyAmount } from "@/lib/currency";
+import { StatusAlert } from "@/components/ui/Status";
 
 function formatDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -79,6 +80,8 @@ export function RecentActivityFeed() {
     };
   }, []);
 
+  const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";
+
   return (
     <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 space-y-4">
       {/* Header */}
@@ -109,12 +112,12 @@ export function RecentActivityFeed() {
           Loading recent workspace activity...
         </div>
       ) : result && !result.ok ? (
-        <div role="alert" className="rounded-lg bg-rose-950/20 border border-rose-900/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-rose-200">
-            {result.code === "FORBIDDEN" ? "Recent activity forbidden" : "Recent activity unavailable"}
+        <StatusAlert tone={feedbackTone}>
+          <p className="text-xs font-medium">
+            {result.code === "FORBIDDEN" ? "Recent activity access is restricted" : "Recent activity unavailable"}
           </p>
-          <p className="text-[11px] leading-relaxed text-rose-300">{result.message}</p>
-        </div>
+          <p className="mt-1 text-[11px] leading-relaxed">{result.message}</p>
+        </StatusAlert>
       ) : activity.entries.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
           <p className="text-xs font-medium text-zinc-200">{activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Recent activity is partially unavailable" : "No recent workspace activity"}</p>

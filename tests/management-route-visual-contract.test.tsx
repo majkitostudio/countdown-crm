@@ -32,6 +32,15 @@ describe("management route visual contract", () => {
     expect(wallet).toContain('import { StatusAlert } from "@/components/ui/Status"');
   });
 
+  it("keeps unavailable wallet amounts neutral instead of implying a financial outcome", () => {
+    const wallet = source("src/app/wallet/page.tsx");
+
+    expect(wallet).toContain('const creditsTone = totalCredits === null ? "neutral" : "success";');
+    expect(wallet).toContain('const debitsTone = totalDebits === null ? "neutral" : "danger";');
+    expect(wallet).toContain('valueTone={creditsTone}');
+    expect(wallet).toContain('valueTone={debitsTone}');
+  });
+
   it("uses the common action and feedback recipes inside administrative panels", () => {
     const members = source("src/components/team/TeamMembersPanel.tsx");
     const queue = source("src/components/team/TeamQueuePanel.tsx");
@@ -59,6 +68,7 @@ describe("management route visual contract", () => {
 
     expect(analytics).toContain('<StatusAlert tone="neutral" role="status">Loading workspace analytics...</StatusAlert>');
     expect(analytics).toContain('<StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>');
+    expect(analytics).toContain('const resultTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";');
   });
 
   it("keeps the product catalog on shared action, metric, surface, and feedback recipes", () => {

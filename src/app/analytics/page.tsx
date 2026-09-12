@@ -75,6 +75,7 @@ export default function AnalyticsPage() {
     : result.ok
       ? isEmptySuccess ? "empty" : "success"
       : result.code === "FORBIDDEN" ? "forbidden" : "unavailable";
+  const resultTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";
 
   useEffect(() => {
     async function loadData() {
@@ -122,7 +123,7 @@ export default function AnalyticsPage() {
           label: status === "loading"
             ? "Loading"
             : status === "forbidden"
-              ? "Forbidden"
+              ? "Restricted"
               : status === "unavailable"
                 ? "Unavailable"
                 : status === "empty" ? "No activity" : "Workspace DB",
@@ -148,8 +149,8 @@ export default function AnalyticsPage() {
       )}
 
       {result && !result.ok && (
-        <StatusAlert tone="danger">
-          {result.code === "FORBIDDEN" ? "Analytics forbidden: " : "Analytics unavailable: "}{result.message}
+        <StatusAlert tone={resultTone}>
+          {result.code === "FORBIDDEN" ? "Analytics access is restricted: " : "Analytics unavailable: "}{result.message}
         </StatusAlert>
       )}
 
