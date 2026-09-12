@@ -20,6 +20,8 @@ import {
   ACTION_REGISTRY,
   WorkflowDispatchResult,
 } from "@/lib/workflows/types";
+import { Button } from "@/components/ui/Button";
+import { Surface } from "@/components/ui/Surface";
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -79,7 +81,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
     : "No automation triggered";
 
   return (
-    <section className="space-y-3 rounded-xl border border-zinc-600/90 bg-zinc-900/90 p-4 shadow-xl ring-1 ring-emerald-300/10 backdrop-blur-sm animate-in fade-in slide-in-from-top-3 duration-400" data-testid="post-call-summary" role="region" aria-labelledby="post-call-summary-title">
+    <Surface variant="page"><section className="space-y-3 p-4" data-testid="post-call-summary" role="region" aria-labelledby="post-call-summary-title">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -275,11 +277,11 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           <a href="/workflows" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors">
             View automations →
           </a>
-          <button onClick={onNextLead} className="rounded-lg bg-zinc-100 px-3 py-2 text-[11px] font-semibold text-zinc-950 hover:bg-white">
+          <Button onClick={onNextLead}>
             Continue to next lead
-          </button>
+          </Button>
         </div>
       </div>
-    </section>
+    </section></Surface>
   );
 }

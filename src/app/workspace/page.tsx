@@ -1040,7 +1040,7 @@ function WorkspaceContent() {
   }
 
   return (
-    <div className="mx-auto max-w-none space-y-4" data-testid="operator-console" data-state={operatorConsoleState}>
+    <div className="mx-auto min-w-0 max-w-none space-y-4 px-3 sm:px-4" data-testid="operator-console" data-state={operatorConsoleState}>
       {pageHeader}
       {operatorNextActionPanel}
       

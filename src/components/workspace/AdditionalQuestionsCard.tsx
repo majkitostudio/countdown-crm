@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ChevronRight, ChevronUp, CircleHelp } from "lucide-react";
+import { Surface } from "@/components/ui/Surface";
 
 interface AdditionalQuestionsCardProps {
   questions: string[];
@@ -9,7 +10,7 @@ interface AdditionalQuestionsCardProps {
 
 export function AdditionalQuestionsCard({ questions }: AdditionalQuestionsCardProps) {
   return (
-    <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm">
+    <Surface variant="page"><section className="p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-[13px] font-semibold text-zinc-100">Discovery questions</h2>
@@ -26,6 +27,6 @@ export function AdditionalQuestionsCard({ questions }: AdditionalQuestionsCardPr
           </div>
         ))}
       </div>
-    </section>
+    </section></Surface>
   );
 }
