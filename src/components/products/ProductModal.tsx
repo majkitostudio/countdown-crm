@@ -3,13 +3,15 @@
 import React, { useState, useEffect } from "react";
 import { X, Package, Check } from "lucide-react";
 import { Product, ProductCategory, createProduct, updateProduct } from "@/lib/products";
-import { refreshProductCatalogAfterMutation } from "@/lib/productCatalogMutation";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface ProductModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onSaved: () => Promise<void>;
+  onSaved: () => void;
 }
 
 export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModalProps) {
@@ -70,10 +72,13 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
     };
 
     try {
-      await refreshProductCatalogAfterMutation(
-        () => product ? updateProduct(product.id, dataPayload) : createProduct(dataPayload),
-        onSaved,
-      );
+      if (product) {
+        await updateProduct(product.id, dataPayload);
+      } else {
+        await createProduct(dataPayload);
+      }
+
+      onSaved();
       onClose();
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Product could not be saved.");
@@ -84,7 +89,8 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-zinc-950/90 border border-zinc-800/80 backdrop-blur-xl text-zinc-100 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-lg">
+      <Surface variant="overlay">
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
@@ -96,12 +102,12 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
               {product ? "Edit Product" : "Add New Product"}
             </h2>
           </div>
-          <button
+          <Button
+            variant="quiet"
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Form Body */}
@@ -203,32 +209,33 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
 
           {/* Form Actions */}
           {saveError ? (
-            <p role="alert" className="rounded-lg border border-red-900/70 bg-red-950/40 px-3 py-2 text-xs text-red-300">
+            <StatusAlert tone="danger">
               {saveError}
-            </p>
+            </StatusAlert>
           ) : null}
 
           <div className="px-6 py-4 -mx-6 -mb-6 mt-6 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
-            <button
+            <Button
+              variant="quiet"
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
             >
               Cancel
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="primary"
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-semibold rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>{isSaving ? "Saving..." : product ? "Update Product" : "Create Product"}</span>
-            </button>
+            </Button>
           </div>
 
         </form>
 
+      </Surface>
       </div>
     </div>
   );

@@ -4,19 +4,20 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Eye, RotateCcw, Send, Unlock, XCircle } from "lucide-react";
 import {
+  listQueueItemsAction,
   reassignLeadAssignmentAction,
   releaseLeadAssignmentAction,
   reopenLeadAssignmentAction,
 } from "@/app/actions/leadQueue";
-import type { TeamMutationHandler } from "@/components/team/TeamPageContent";
 import type { QueueItemDTO } from "@/lib/dal/leadQueue";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface TeamQueuePanelProps {
-  queueItems: QueueItemDTO[];
+  initialQueueItems: QueueItemDTO[];
   operators: WorkspaceMemberDTO[];
-  operatorsState: "ready" | "unavailable";
-  onMutation: TeamMutationHandler;
 }
 
 const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
@@ -34,23 +35,24 @@ function formatDate(value: string | null): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-export function TeamQueuePanel({
-  queueItems,
-  operators,
-  operatorsState,
-  onMutation,
-}: TeamQueuePanelProps) {
+export function TeamQueuePanel({ initialQueueItems, operators }: TeamQueuePanelProps) {
+  const [queueItems, setQueueItems] = useState(initialQueueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const refreshQueue = async () => {
+    setQueueItems(await listQueueItemsAction());
+  };
 
   const runAction = async (itemId: string, action: () => Promise<unknown>, success: string) => {
     setBusyItemId(itemId);
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await onMutation(action);
+      await action();
+      await refreshQueue();
       setSuccessMessage(success);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Queue action could not be completed.");
@@ -60,10 +62,8 @@ export function TeamQueuePanel({
   };
 
   const reassign = (item: QueueItemDTO) => {
-    if (operatorsState === "unavailable") return;
-
     const operatorId = selectedOperators[item.id];
-    if (!operatorId || !operators.some((operator) => operator.user_id === operatorId)) {
+    if (!operatorId) {
       setErrorMessage("Vyberte cílového Operátora.");
       return;
     }
@@ -76,7 +76,8 @@ export function TeamQueuePanel({
   };
 
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+    <Surface variant="page">
+      <div className="space-y-4 p-6">
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
           <div className="flex items-center gap-3">
@@ -92,13 +93,8 @@ export function TeamQueuePanel({
         </span>
       </div>
 
-      {successMessage && <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-300" role="status">{successMessage}</div>}
-      {errorMessage && <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300" role="alert">{errorMessage}</div>}
-      {operatorsState === "unavailable" && (
-        <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
-          Workspace operators are unavailable. Reassignment controls are disabled.
-        </div>
-      )}
+      {successMessage && <StatusAlert tone="success" role="status">{successMessage}</StatusAlert>}
+      {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
 
       {queueItems.length === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-8 text-center text-xs text-zinc-500">
@@ -119,9 +115,6 @@ export function TeamQueuePanel({
             <tbody className="divide-y divide-zinc-800/70">
               {queueItems.map((item) => {
                 const isBusy = busyItemId === item.id;
-                const selectedOperatorId = operators.some((operator) => operator.user_id === selectedOperators[item.id])
-                  ? selectedOperators[item.id]
-                  : "";
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";
                 const canReopen = item.state === "closed";
@@ -154,21 +147,21 @@ export function TeamQueuePanel({
                         {canReassign && (
                           <div className="flex items-center gap-2">
                             <select
-                              value={selectedOperatorId}
+                              value={selectedOperators[item.id] || ""}
                               onChange={(event) => setSelectedOperators((current) => ({ ...current, [item.id]: event.target.value }))}
-                              disabled={isBusy || operatorsState === "unavailable"}
+                              disabled={isBusy || operators.length === 0}
                               className="min-w-[170px] rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-2 text-[11px] text-zinc-300 disabled:opacity-50"
                               aria-label={`Reassign ${item.lead.full_name}`}
                             >
                               <option value="">Reassign to…</option>
                               {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
                             </select>
-                            <button type="button" disabled={isBusy || operatorsState === "unavailable" || !selectedOperatorId} onClick={() => reassign(item)} className="rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-300 hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-40">Assign</button>
+                            <Button variant="secondary" disabled={isBusy || !selectedOperators[item.id]} onClick={() => reassign(item)}>Assign</Button>
                           </div>
                         )}
                         <div className="flex flex-wrap justify-end gap-2">
-                          {canRelease && <button type="button" disabled={isBusy} onClick={() => void runAction(item.id, () => releaseLeadAssignmentAction(item.id, "Team Leader release"), "Assignment byl uvolněn do available pool.")} className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"><Unlock className="h-3.5 w-3.5" /> Release</button>}
-                          {canReopen && <button type="button" disabled={isBusy} onClick={() => void runAction(item.id, () => reopenLeadAssignmentAction(item.id, "Team Leader reopen"), "Closed lead byl znovu otevřen ve frontě.")} className="inline-flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 text-[11px] text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-40"><RotateCcw className="h-3.5 w-3.5" /> Reopen</button>}
+                          {canRelease && <Button variant="secondary" disabled={isBusy} onClick={() => void runAction(item.id, () => releaseLeadAssignmentAction(item.id, "Team Leader release"), "Assignment byl uvolněn do available pool.")}><Unlock className="h-3.5 w-3.5" /> Release</Button>}
+                          {canReopen && <Button variant="secondary" disabled={isBusy} onClick={() => void runAction(item.id, () => reopenLeadAssignmentAction(item.id, "Team Leader reopen"), "Closed lead byl znovu otevřen ve frontě.")}><RotateCcw className="h-3.5 w-3.5" /> Reopen</Button>}
                           {item.state === "in_progress" && <span className="inline-flex items-center gap-1 rounded-lg border border-rose-900/50 px-2.5 py-2 text-[11px] text-rose-300"><XCircle className="h-3.5 w-3.5" /> Active call locked</span>}
                           {item.state === "awaiting_outcome" && <span className="inline-flex items-center gap-1 rounded-lg border border-amber-900/50 px-2.5 py-2 text-[11px] text-amber-300"><XCircle className="h-3.5 w-3.5" /> Recovery / outcome pending</span>}
                         </div>
@@ -181,6 +174,7 @@ export function TeamQueuePanel({
           </table>
         </div>
       )}
-    </section>
+      </div>
+    </Surface>
   );
 }

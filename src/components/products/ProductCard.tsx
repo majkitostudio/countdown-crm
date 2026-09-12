@@ -4,13 +4,12 @@ import React from "react";
 import { ShieldAlert, Edit3, Layers, ArrowRightLeft, Trash2, ImageOff } from "lucide-react";
 import { Product } from "@/lib/products";
 import { formatCurrencyAmount } from "@/lib/currency";
-import type { WorkspaceRole } from "@/lib/auth/roles";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface ProductCardProps {
   product: Product;
-  role: WorkspaceRole;
-  objectionsAvailable: boolean;
-  orderCountsAvailable: boolean;
   onOpenObjections: (product: Product) => void;
   onEditProduct: (product: Product) => void;
   orderCount: number;
@@ -20,21 +19,18 @@ interface ProductCardProps {
 
 export function ProductCard({
   product,
-  role,
-  objectionsAvailable,
-  orderCountsAvailable,
   onOpenObjections,
   onEditProduct,
   orderCount,
   onReassignOrders,
   onDeleteProduct,
 }: ProductCardProps) {
-  const canManageProducts = role === "team_leader" || role === "administrator";
   const objectionsCount = product.objections ? product.objections.length : 0;
   const crossSellCount = product.cross_sell_ids ? product.cross_sell_ids.length : 0;
 
   return (
-    <div className="bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 hover:border-zinc-700/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-sm transition-all flex flex-col group">
+    <Surface variant="page">
+      <div className="group flex h-full flex-col overflow-hidden transition-colors hover:bg-zinc-900/40">
       
       {/* Product Image Box */}
       <div className="relative h-48 w-full bg-zinc-950 overflow-hidden">
@@ -63,15 +59,13 @@ export function ProductCard({
         {/* Stock Badge Top Right */}
         <div className="absolute top-3 right-3">
           {product.in_stock ? (
-            <span className="px-2.5 py-0.5 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-md text-xs font-mono flex items-center gap-1.5 backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <StatusBadge tone="success">
               In Stock ({product.stock_count ?? 50})
-            </span>
+            </StatusBadge>
           ) : (
-            <span className="px-2.5 py-0.5 bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-md text-xs font-mono flex items-center gap-1.5 backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <StatusBadge tone="danger">
               Out of Stock
-            </span>
+            </StatusBadge>
           )}
         </div>
 
@@ -98,13 +92,13 @@ export function ProductCard({
         <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs">
           
           {/* Objections Counter Badge */}
-          <button
+          <Button
+            variant="secondary"
             onClick={() => onOpenObjections(product)}
-            className="flex items-center gap-1.5 text-zinc-300 hover:text-zinc-100 font-mono px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 transition-colors cursor-pointer"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{objectionsAvailable ? `${objectionsCount} Battle-Card Rebuttals` : "Battle-card data unavailable"}</span>
-          </button>
+            <span>{objectionsCount} Battle-Card Rebuttals</span>
+          </Button>
 
           {/* Cross Sell Count */}
           {crossSellCount > 0 && (
@@ -117,47 +111,45 @@ export function ProductCard({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 pt-1">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => onOpenObjections(product)}
-            className="flex-1 py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-medium rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors border border-zinc-800 cursor-pointer"
+            className="w-full"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
             <span>View Objections</span>
-          </button>
+          </Button>
 
-          {!orderCountsAvailable && <span className="text-[11px] text-zinc-500">Order counts unavailable</span>}
+          <Button
+            variant="secondary"
+            onClick={() => onEditProduct(product)}
+            title="Edit Product"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+          </Button>
 
-          {canManageProducts && <>
-            <button
-              onClick={() => onEditProduct(product)}
-              className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors border border-zinc-700"
-              title="Edit Product"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-            </button>
-
-          {orderCountsAvailable && orderCount > 0 && (
-            <button
+          {orderCount > 0 && (
+            <Button
+              variant="secondary"
               onClick={() => onReassignOrders(product)}
-              className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition-colors border border-zinc-700"
               title={`Reassign ${orderCount} order(s)`}
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           )}
 
-            <button
-              onClick={() => onDeleteProduct(product)}
-              className="p-2 bg-zinc-800 hover:bg-rose-950 text-zinc-300 hover:text-rose-300 rounded-xl transition-colors border border-zinc-700"
-              title="Delete product"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </>}
+          <Button
+            variant="danger"
+            onClick={() => onDeleteProduct(product)}
+            title="Delete product"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
         </div>
 
       </div>
 
-    </div>
+      </div>
+    </Surface>
   );
 }

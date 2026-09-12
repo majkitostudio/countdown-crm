@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ClipboardList, FileText, LockKeyhole, MessageSquare, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ClipboardList, LockKeyhole, MessageSquare, ShieldCheck } from "lucide-react";
 import { getTrainingSessionReview } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { TrainingHumanReview } from "@/components/training/TrainingHumanReview";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -31,7 +32,8 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
       : "This training review could not be loaded. No data was fabricated.";
 
     return (
-      <div className="mx-auto max-w-2xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-2xl">
+      <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Review unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
@@ -39,13 +41,15 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to reviews
         </Link>
+      </Surface>
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-2xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <div className="mx-auto max-w-2xl">
+      <Surface variant="empty">
         <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
         <h1 className="text-base font-semibold text-zinc-100">Training session not found</h1>
         <p className="mt-2 text-xs text-zinc-500">The session does not exist in the current workspace or is no longer available.</p>
@@ -53,15 +57,13 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to reviews
         </Link>
+      </Surface>
       </div>
     );
   }
 
   const scorecard = session.scorecard && typeof session.scorecard === "object" && !Array.isArray(session.scorecard)
-    ? session.scorecard as { grade?: string; overallScore?: number; complianceScore?: number; summaryFeedback?: string; complianceFindings?: Array<{ phrase?: string; reason?: string; saferAlternative?: string; occurrences?: number }> }
-    : {};
-  const scriptSnapshot = session.script_snapshot && typeof session.script_snapshot === "object" && !Array.isArray(session.script_snapshot)
-    ? session.script_snapshot as { sections?: Array<{ title?: string; text?: string }> }
+    ? session.scorecard as { grade?: string; overallScore?: number; complianceScore?: number; summaryFeedback?: string }
     : {};
 
   return (
@@ -88,14 +90,12 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             ["Compliance", typeof scorecard.complianceScore === "number" ? `${scorecard.complianceScore}%` : "—"],
             ["AI source", session.ai_source || "—"],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-4">
-              <span className="block text-[10px] uppercase tracking-wider text-zinc-500">{label}</span>
-              <span className="mt-1 block truncate font-mono text-sm text-zinc-200">{value}</span>
-            </div>
+            <MetricCard key={label} label={label} value={value} />
           ))}
         </div>
 
-        <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+        <Surface variant="page">
+        <div className="p-6">
           <div className="mb-5 flex items-center justify-between border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-zinc-400" />
@@ -105,7 +105,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
           </div>
 
           {session.turns.length === 0 ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-8 text-center text-xs text-zinc-500">This session has no transcript turns.</div>
+            <Surface variant="empty">This session has no transcript turns.</Surface>
           ) : (
             <div className="space-y-4">
               {session.turns.map((turn) => {
@@ -133,23 +133,18 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             </div>
           )}
         </div>
+        </Surface>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-5">
+          <Surface variant="inset"><div className="p-5">
             <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><ShieldCheck className="h-4 w-4 text-zinc-400" /> Score summary</h2>
             <p className="mt-3 text-xs leading-relaxed text-zinc-400">{scorecard.summaryFeedback || "No summary feedback was stored for this session."}</p>
-            {scorecard.complianceFindings?.length ? (
-              <div className="mt-4 space-y-3 rounded-lg border border-rose-900/60 bg-rose-950/20 p-3 text-xs leading-relaxed text-rose-100/80">
-                {scorecard.complianceFindings.map((finding, index) => <div key={`${finding.phrase || "finding"}-${index}`}><p><strong>Řečená věta:</strong> „{finding.phrase || "—"}“{finding.occurrences && finding.occurrences > 1 ? ` · ${finding.occurrences}×` : ""}</p><p className="mt-1"><strong>Proč:</strong> {finding.reason || "—"}</p><p className="mt-1"><strong>Bezpečněji:</strong> {finding.saferAlternative || "—"}</p></div>)}
-              </div>
-            ) : <p className="mt-4 text-xs text-emerald-300">Nebyla uložena žádná závažná právní chyba.</p>}
-          </div>
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-950 p-5">
-            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><FileText className="h-4 w-4 text-zinc-400" /> Použitý skript</h2>
-            {scriptSnapshot.sections?.length ? <div className="mt-3 space-y-3">{scriptSnapshot.sections.map((section, index) => <div key={`${section.title || "section"}-${index}`}><p className="text-xs font-semibold text-zinc-200">{section.title || "Část skriptu"}</p><p className="mt-1 text-xs leading-relaxed text-zinc-400">{section.text || "—"}</p></div>)}</div> : <p className="mt-3 text-xs leading-relaxed text-zinc-400">U staršího tréninku nebyl snapshot skriptu uložen.</p>}
-          </div>
+          </div></Surface>
+          <Surface variant="inset"><div className="p-5">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><LockKeyhole className="h-4 w-4 text-zinc-400" /> Access boundary</h2>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-400">This review is visible only to Team Leaders and Administrators who are members of the same workspace.</p>
+          </div></Surface>
         </div>
-        <TrainingHumanReview sessionId={session.id} revisions={session.revisions} />
       </div>
   );
 }
