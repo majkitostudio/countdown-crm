@@ -4,12 +4,16 @@ import React from "react";
 import { ShieldAlert, Edit3, Layers, ArrowRightLeft, Trash2, ImageOff } from "lucide-react";
 import { Product } from "@/lib/products";
 import { formatCurrencyAmount } from "@/lib/currency";
+import type { WorkspaceRole } from "@/lib/auth/roles";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
 interface ProductCardProps {
   product: Product;
+  role: WorkspaceRole;
+  objectionsAvailable: boolean;
+  orderCountsAvailable: boolean;
   onOpenObjections: (product: Product) => void;
   onEditProduct: (product: Product) => void;
   orderCount: number;
@@ -19,12 +23,16 @@ interface ProductCardProps {
 
 export function ProductCard({
   product,
+  role,
+  objectionsAvailable,
+  orderCountsAvailable,
   onOpenObjections,
   onEditProduct,
   orderCount,
   onReassignOrders,
   onDeleteProduct,
 }: ProductCardProps) {
+  const canManageProducts = role === "team_leader" || role === "administrator";
   const objectionsCount = product.objections ? product.objections.length : 0;
   const crossSellCount = product.cross_sell_ids ? product.cross_sell_ids.length : 0;
 
@@ -97,7 +105,7 @@ export function ProductCard({
             onClick={() => onOpenObjections(product)}
           >
             <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{objectionsCount} Battle-Card Rebuttals</span>
+            <span>{objectionsAvailable ? `${objectionsCount} Battle-Card Rebuttals` : "Battle-card data unavailable"}</span>
           </Button>
 
           {/* Cross Sell Count */}
@@ -120,31 +128,20 @@ export function ProductCard({
             <span>View Objections</span>
           </Button>
 
-          <Button
-            variant="secondary"
-            onClick={() => onEditProduct(product)}
-            title="Edit Product"
-          >
-            <Edit3 className="w-3.5 h-3.5" />
-          </Button>
-
-          {orderCount > 0 && (
-            <Button
-              variant="secondary"
-              onClick={() => onReassignOrders(product)}
-              title={`Reassign ${orderCount} order(s)`}
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5" />
+          {!orderCountsAvailable && <span className="text-[11px] text-zinc-500">Order counts unavailable</span>}
+          {canManageProducts && <>
+            <Button variant="secondary" onClick={() => onEditProduct(product)} title="Edit Product">
+              <Edit3 className="w-3.5 h-3.5" />
             </Button>
-          )}
-
-          <Button
-            variant="danger"
-            onClick={() => onDeleteProduct(product)}
-            title="Delete product"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
+            {orderCountsAvailable && orderCount > 0 && (
+              <Button variant="secondary" onClick={() => onReassignOrders(product)} title={`Reassign ${orderCount} order(s)`}>
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            <Button variant="danger" onClick={() => onDeleteProduct(product)} title="Delete product">
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </>}
         </div>
 
       </div>

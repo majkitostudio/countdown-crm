@@ -11,12 +11,14 @@ import { Surface } from "@/components/ui/Surface";
 interface ObjectionDrawerProps {
   product: Product | null;
   isOpen: boolean;
+  canManage?: boolean;
+  objectionsAvailable?: boolean;
   onClose: () => void;
   onProductUpdated: () => void;
   onEditObjection: (id: string) => void;
 }
 
-export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, onEditObjection }: ObjectionDrawerProps) {
+export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsAvailable = true, onClose, onProductUpdated, onEditObjection }: ObjectionDrawerProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -119,20 +121,20 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Known Customer Objections ({objections.length})
+                  Known Customer Objections ({objectionsAvailable ? objections.length : "unavailable"})
                 </h3>
 
-                <Button
+                {canManage && <Button
                   variant="secondary"
                   onClick={() => setShowAddForm(!showAddForm)}
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add Objection
-                </Button>
+                </Button>}
               </div>
 
               {/* Add Objection Inline Form */}
-              {showAddForm && (
+              {canManage && showAddForm && (
                 <Surface variant="inset">
                   <div className="animate-in space-y-3 p-4 fade-in duration-200">
                   <h4 className="text-xs font-semibold text-zinc-200">New Objection Template</h4>
@@ -176,7 +178,11 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
               )}
 
               {/* List of Objections Cards */}
-              {objections.length === 0 ? (
+              {!objectionsAvailable ? (
+                <Surface variant="inset">
+                  <div className="p-8 text-center font-mono text-xs text-zinc-500">Battle-card data unavailable.</div>
+                </Surface>
+              ) : objections.length === 0 ? (
                 <Surface variant="inset">
                   <div className="p-8 text-center font-mono text-xs text-zinc-500">
                   No objections registered yet for this product.
@@ -198,14 +204,14 @@ export function ObjectionDrawer({ product, isOpen, onClose, onProductUpdated, on
                         </span>
                       </div>
 
-                      <Button
+                      {canManage && <Button
                         variant="quiet"
                         type="button"
                         onClick={() => onEditObjection(obj.id)}
                         title="Upravit námitku"
                       >
                         <Pencil className="w-3.5 h-3.5" />
-                      </Button>
+                      </Button>}
 
                     </div>
 

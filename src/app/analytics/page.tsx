@@ -33,6 +33,7 @@ const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const emptyData: AnalyticsOverview = {
+    sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable" },
     totalRevenue: 0,
     revenueByCurrency: [],
     projectedRevenue: 0,
@@ -43,6 +44,7 @@ export default function AnalyticsPage() {
     currencies: [],
     totalCalls: 0,
     conversionRate: 0,
+    conversionAvailable: false,
     objectionResolutionRate: 0,
     objectionMetricsAvailable: false,
     weeklySales: [],

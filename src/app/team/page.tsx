@@ -1,53 +1,26 @@
 import { LockKeyhole, Users } from "lucide-react";
-import { listWorkspaceMembers, listWorkspaceOperators } from "@/lib/dal/memberships";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
-import { isDataAccessError } from "@/lib/dal/errors";
-import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
-import { TeamQueuePanel } from "@/components/team/TeamQueuePanel";
-import { listQueueItemsForWorkspace } from "@/lib/dal/leadQueue";
-import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
+import { TeamPageContent } from "@/components/team/TeamPageContent";
+import { loadTeamPageData } from "@/lib/dal/teamPage";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 
 export default async function TeamPage() {
-  let context: Awaited<ReturnType<typeof requireWorkspaceContext>> | null = null;
-  let members: Awaited<ReturnType<typeof listWorkspaceMembers>> = [];
-  let operators: Awaited<ReturnType<typeof listWorkspaceOperators>> = [];
-  let queueItems: Awaited<ReturnType<typeof listQueueItemsForWorkspace>> = [];
-  let loadError: unknown = null;
+  const context = await requireWorkspaceContext();
 
-  try {
-    context = await requireWorkspaceContext();
-    if (isTeamLeaderOrAdministrator(context.role)) {
-      [queueItems, operators] = await Promise.all([
-        listQueueItemsForWorkspace(context.workspaceId),
-        listWorkspaceOperators(),
-      ]);
-      if (context.role === "administrator") {
-        members = await listWorkspaceMembers();
-      }
-    }
-  } catch (error) {
-    loadError = error;
-  }
-
-  if (loadError || !context || !isTeamLeaderOrAdministrator(context.role)) {
-    const message = !context || !isTeamLeaderOrAdministrator(context?.role)
-      ? "Queue operations are available to Team Leaders and Administrators only."
-      : isDataAccessError(loadError) && loadError.code === "FORBIDDEN"
-        ? "Queue operations are available to Team Leaders and Administrators only."
-        : "Team operations could not be loaded. No data was fabricated.";
-
+  if (context.role !== "team_leader" && context.role !== "administrator") {
     return (
       <div className="mx-auto max-w-xl">
-      <Surface variant="empty">
-        <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Team operations unavailable</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
-      </Surface>
+        <Surface variant="empty">
+          <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
+          <h1 className="text-base font-semibold text-zinc-100">Team operations unavailable</h1>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Queue operations are available to Team Leaders and Administrators only.</p>
+        </Surface>
       </div>
     );
   }
+
+  const data = await loadTeamPageData(context);
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
@@ -57,8 +30,7 @@ export default async function TeamPage() {
         description="Manage workspace queue operations and membership access for the current workspace."
         badge={{ label: context.role === "administrator" ? "Administrator access" : "Team Leader access", tone: "neutral" }}
       />
-      <TeamQueuePanel initialQueueItems={queueItems} operators={operators} />
-      {context.role === "administrator" && <TeamMembersPanel initialMembers={members} currentUserId={context.userId} />}
+      <TeamPageContent currentUserId={context.userId} role={context.role} data={data} />
     </div>
   );
 }

@@ -105,7 +105,7 @@ export default function CallLogsPage() {
         icon={PhoneCall}
         title="Calls"
         badge={{ label: `${totalCallsCount} logged`, tone: "neutral" }}
-        description="Review call history, outcomes, and available transcripts."
+        description="Recorded call outcomes and any verified captured transcripts. A record may not include audio or a transcript."
         actions={
           <div className="flex items-center gap-2">
             {canReview && (
@@ -250,6 +250,12 @@ export default function CallLogsPage() {
                   <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
                     ${c.order_value.toFixed(2)}
                   </td>
+                  <td className="px-5 py-3">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500">
+                      <span className={`h-1.5 w-1.5 rounded-full ${c.transcript.kind === "unavailable" ? "bg-zinc-600" : "bg-emerald-500"}`} />
+                      {c.transcript.kind === "unavailable" ? "Not captured" : "Captured"}
+                    </span>
+                  </td>
                   {canReview && (
                     <td className="px-5 py-3">
                       <div className="flex flex-col items-start gap-1.5">
@@ -271,7 +277,7 @@ export default function CallLogsPage() {
                       className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium inline-flex items-center gap-1.5 border border-zinc-800 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Transcript</span>
+                      <span>View record</span>
                     </button>
                   </td>
                 </tr>
