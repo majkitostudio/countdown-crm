@@ -9,9 +9,11 @@ import {
   Check,
   Layers,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { saveSchemaAction } from "@/app/actions/schema";
 import { AttributeDefinition, AttributeType, ObjectSchema } from "@/lib/schema/types";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface ObjectBuilderModalProps {
   isOpen: boolean;
@@ -109,7 +111,8 @@ export function ObjectBuilderModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200">
+      <Surface variant="overlay" className="w-full">
+        <div className="relative mx-auto flex w-full max-w-2xl flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-950">
           <div className="flex items-center gap-3">
@@ -125,12 +128,13 @@ export function ObjectBuilderModal({
               </p>
             </div>
           </div>
-          <button
+          <Button
+            variant="quiet"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors cursor-pointer"
+            aria-label="Close object builder"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Content Body */}
@@ -184,13 +188,12 @@ export function ObjectBuilderModal({
                 <Layers className="w-3.5 h-3.5 text-zinc-400" />
                 EAV Atributy objektu ({attributes.length})
               </span>
-              <button
+              <Button variant="secondary"
                 onClick={addAttribute}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-200 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Přidat pole
-              </button>
+              </Button>
             </div>
 
             {/* List of Fields */}
@@ -230,12 +233,13 @@ export function ObjectBuilderModal({
                   </select>
 
                   {attributes.length > 1 && (
-                    <button
+                    <Button
+                      variant="danger"
                       onClick={() => removeAttribute(idx)}
-                      className="p-1 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                      aria-label={`Remove ${attr.name}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   )}
                 </div>
               ))}
@@ -246,33 +250,26 @@ export function ObjectBuilderModal({
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/80 bg-zinc-950">
           {saveError ? (
-            <p className="max-w-sm text-[11px] text-rose-400" role="alert">
-              {saveError}
-            </p>
+            <StatusAlert tone="danger" role="alert">{saveError}</StatusAlert>
           ) : (
             <span />
           )}
-          <button
+          <Button variant="secondary"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             Zrušit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleSave}
             disabled={!name.trim() || !slug.trim() || isSaving}
-            className={cn(
-              "px-4 py-2 text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer",
-              name.trim() && slug.trim() && !isSaving
-                ? "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
-                : "bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed"
-            )}
           >
             <Check className="w-4 h-4" />
             {isSaving ? "Ukládám..." : "Vytvořit objekt"}
-          </button>
+          </Button>
         </div>
-      </div>
+        </div>
+      </Surface>
     </div>
   );
 }

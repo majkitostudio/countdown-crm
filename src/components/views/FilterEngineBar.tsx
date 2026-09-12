@@ -12,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import { AttributeDefinition } from "@/lib/schema/types";
 import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 export interface ActiveFilter {
   id: string;
@@ -179,13 +181,14 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
   };
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800/80 rounded-xl p-3 shadow-sm space-y-3">
+    <Surface variant="inset">
+      <div className="space-y-3 p-3">
       {(isSchemaLoading || schemaError || availableAttributes.length === 0) && (
-        <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200" role="status">
+        <StatusAlert tone="warning" role="status">
           {isSchemaLoading
             ? "Načítám workspace schéma pro filtry…"
             : schemaError || "Filtry dynamických polí nejsou dostupné, protože workspace schéma nebylo načteno."}
-        </div>
+        </StatusAlert>
       )}
 
       {/* Top Row: Saved Views Presets */}
@@ -359,6 +362,7 @@ export function FilterEngineBar({ onFiltersChange }: FilterEngineBarProps) {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </Surface>
   );
 }

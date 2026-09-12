@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { X, Plus, Sliders } from "lucide-react";
 import { AttributeDefinition, AttributeType } from "@/lib/schema/types";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface AddCustomFieldModalProps {
   isOpen: boolean;
@@ -50,7 +53,8 @@ export function AddCustomFieldModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-zinc-950 border border-zinc-800/90 rounded-2xl p-6 shadow-2xl space-y-6">
+      <Surface variant="overlay" className="w-full">
+        <div className="mx-auto w-full max-w-md space-y-6 p-6">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
@@ -63,9 +67,9 @@ export function AddCustomFieldModal({
               <p className="text-xs text-zinc-400">Create custom dynamic attribute (Attio Schema)</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 text-xs">
+          <Button variant="quiet" onClick={onClose} aria-label="Close custom field dialog">
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Form */}
@@ -97,33 +101,33 @@ export function AddCustomFieldModal({
           </div>
 
           {saveError && (
-            <div className="rounded-lg border border-rose-900/60 bg-rose-950/30 p-3 text-xs text-rose-300" role="alert">
+            <StatusAlert tone="danger">
               {saveError}
-            </div>
+            </StatusAlert>
           )}
 
           {/* Footer Actions */}
           <div className="flex justify-end gap-3 pt-3 border-t border-zinc-800">
-            <button
+            <Button
+              variant="secondary"
               type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 rounded-xl bg-zinc-100 text-zinc-950 text-xs font-semibold hover:bg-zinc-200 transition-colors flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               {isSaving ? "Saving…" : "Add Field"}
-            </button>
+            </Button>
           </div>
         </form>
 
-      </div>
+        </div>
+      </Surface>
     </div>
   );
 }

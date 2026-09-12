@@ -17,6 +17,10 @@ import {
   snoozeExceptionAction,
 } from "@/app/actions/exceptionQueue";
 import type { ExceptionQueueDTO, ExceptionQueueItemDTO } from "@/lib/dal/exceptionQueue";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 type QueueView = "open" | "handled";
 type EditorMode = "resolve" | "snooze";
@@ -38,12 +42,6 @@ const PRIORITY_LABELS = {
   critical: "Critical",
   high: "High",
   medium: "Medium",
-} as const;
-
-const PRIORITY_CLASSES = {
-  critical: "border-rose-800/70 bg-rose-950/30 text-rose-200",
-  high: "border-amber-800/70 bg-amber-950/25 text-amber-200",
-  medium: "border-sky-900/70 bg-sky-950/20 text-sky-200",
 } as const;
 
 function formatDate(value: string | null): string {
@@ -133,24 +131,24 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
       </div>
 
       {sourceWarnings.length > 0 && (
-        <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 p-4 text-xs text-amber-200" role="status">
+        <StatusAlert tone="warning" role="status">
           <p className="font-medium">Exception Queue is only partially available.</p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-200/80">
             {sourceWarnings.map((warning) => <li key={warning.message}>{warning.message}</li>)}
           </ul>
-        </div>
+        </StatusAlert>
       )}
 
       {message && (
-        <div
-          className={`rounded-xl border p-3 text-xs ${message.tone === "success" ? "border-emerald-900/60 bg-emerald-950/20 text-emerald-200" : "border-rose-900/60 bg-rose-950/20 text-rose-200"}`}
+        <StatusAlert
+          tone={message.tone === "success" ? "success" : "danger"}
           role={message.tone === "error" ? "alert" : "status"}
         >
           {message.text}
-        </div>
+        </StatusAlert>
       )}
 
-      <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 shadow-sm">
+      <Surface variant="table">
         <div className="flex flex-col gap-4 border-b border-zinc-800/80 p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-2.5">
@@ -190,15 +188,14 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
               <option value="all">All types</option>
               {Object.entries(TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => void refresh()}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-300 hover:border-zinc-700 disabled:opacity-50"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${busy === "refresh" ? "animate-spin" : ""}`} aria-hidden="true" />
               Refresh
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -218,9 +215,9 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${PRIORITY_CLASSES[item.priority]}`}>
+                        <StatusBadge tone={item.priority === "critical" ? "danger" : item.priority === "high" ? "warning" : "neutral"}>
                           {PRIORITY_LABELS[item.priority]}
-                        </span>
+                        </StatusBadge>
                         <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1 text-[10px] text-zinc-300">
                           {TYPE_LABELS[item.type]}
                         </span>
@@ -264,8 +261,8 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                       </Link>
                       {!historical && (
                         <>
-                          <button type="button" onClick={() => openEditor(item.id, "resolve")} className="rounded-lg border border-emerald-900/70 px-3 py-2 text-xs text-emerald-200 hover:bg-emerald-950/30">Mark handled</button>
-                          <button type="button" onClick={() => openEditor(item.id, "snooze")} className="rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800/60">Snooze</button>
+                          <Button variant="secondary" onClick={() => openEditor(item.id, "resolve")}>Mark handled</Button>
+                          <Button variant="secondary" onClick={() => openEditor(item.id, "snooze")}>Snooze</Button>
                         </>
                       )}
                     </div>
@@ -305,19 +302,13 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
             })}
           </div>
         )}
-      </div>
+      </Surface>
     </section>
   );
 }
 
 function SummaryCard({ label, value, icon: Icon }: { label: string; value: number; icon: typeof ShieldAlert }) {
   return (
-    <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4">
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-zinc-500">
-        <span>{label}</span>
-        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-      </div>
-      <p className="mt-2 font-mono text-2xl font-semibold text-zinc-100">{value}</p>
-    </div>
+    <MetricCard label={<span className="inline-flex items-center gap-2">{label}<Icon className="h-3.5 w-3.5" aria-hidden="true" /></span>} value={value} />
   );
 }

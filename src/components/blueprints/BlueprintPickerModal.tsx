@@ -18,6 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 import { blueprintEngine } from "@/lib/blueprints/engine";
 import { IndustryCategory, IndustryBlueprint } from "@/lib/blueprints/types";
+import { Button } from "@/components/ui/Button";
+import { Surface } from "@/components/ui/Surface";
 
 interface BlueprintPickerModalProps {
   isOpen: boolean;
@@ -95,7 +97,8 @@ export function BlueprintPickerModal({
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-4xl bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+      <Surface variant="overlay" className="w-full">
+      <div className="relative mx-auto flex w-full max-w-4xl flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-950">
           <div className="flex items-center gap-3">
@@ -116,12 +119,12 @@ export function BlueprintPickerModal({
               </p>
             </div>
           </div>
-          <button
+          <Button variant="quiet"
             onClick={onClose}
-            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            aria-label="Close blueprint picker"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Result Notification Banner */}
@@ -309,20 +312,16 @@ export function BlueprintPickerModal({
 
         {/* Footer Controls */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800/80 bg-zinc-950">
-          <button
+          <Button variant="secondary"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
           >
             Zavřít
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="primary"
             onClick={handleApply}
             disabled={isApplying}
-            className={cn(
-              "px-5 py-2.5 text-xs font-bold rounded-xl transition-all shadow-lg flex items-center gap-2 cursor-pointer",
-              selectedTheme.btn
-            )}
           >
             <span>
               {isApplying
@@ -330,9 +329,10 @@ export function BlueprintPickerModal({
                 : `Aplikovat šablonu: ${selectedBlueprint.name}`}
             </span>
             <ArrowRight className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       </div>
+      </Surface>
     </div>
   );
 }

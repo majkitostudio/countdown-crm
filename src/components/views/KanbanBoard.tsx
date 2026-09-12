@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Sparkles, PhoneCall, ChevronRight, ChevronLeft, Layers, Database } from "lucide-react";
 import { Lead, updateLead } from "@/lib/leads";
 import { blueprintEngine } from "@/lib/blueprints/engine";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface KanbanBoardProps {
   leads: Lead[];
@@ -48,12 +50,13 @@ export function KanbanBoard({
   return (
     <div className="space-y-4">
       {updateError && (
-        <div className="rounded-xl border border-rose-900/80 bg-rose-950/30 px-4 py-3 text-sm text-rose-200" role="alert">
+        <StatusAlert tone="danger">
           Status leadu nebyl uložen: {updateError}
-        </div>
+        </StatusAlert>
       )}
       {/* Active Industry Blueprint Header Pill */}
-      <div className="flex items-center justify-between px-4 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-xs">
+      <Surface variant="inset">
+      <div className="flex items-center justify-between px-4 py-2 text-xs">
         <div className="flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-zinc-400" />
           <span className="text-zinc-400">Aktivní šablona:</span>
@@ -67,6 +70,7 @@ export function KanbanBoard({
           <span>{activeBlueprint.customAttributes.length} EAV polí aktivních</span>
         </div>
       </div>
+      </Surface>
 
       {/* 5-Column Kanban Grid */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 min-h-[640px] items-start">
