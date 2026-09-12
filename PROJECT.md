@@ -27,10 +27,12 @@ rozhodnutí, ne odvádět pozornost administrací.
 - role `operator`, `team_leader` a `administrator`,
 - workspace-scoped serverové guardy a Supabase RLS.
 
-Operator Console dnes obsahuje Client Profile kartu s plným i kompaktním
-režimem, recent context řádek, klávesové zkratky, přístupný callback modal,
-`Operator Next Action`, první slice `Callback Recovery Inbox` a serverový
-Conversation Brief se skutečnými údaji a bezpečným dalším krokem. Schválený
+Operator Console dnes drží přiřazeného zákazníka v hlavičce, otevírá jeho
+read-only Klientský profil bezpečně v nové kartě, má rozbalitelný Product Script
+a sdílené append-only poznámky přímo u skriptu. Doplňují je recent context
+řádek, klávesové zkratky, přístupný callback modal, `Operator Next Action`,
+první slice `Callback Recovery Inbox` a serverový Conversation Brief se
+skutečnými údaji a bezpečným dalším krokem. Schválený
 P1 krok tuto kartu nahradí krátkým souhrnem v hlavičce přiřazeného zákazníka,
 focus režimem Product Scriptu a čtecím Klientským profilem v nové kartě.
 Schválená specifikace tohoto kroku je v commitu `ae5c014` a navazující
@@ -53,11 +55,11 @@ umožňuje je s důvodem vyřešit nebo odložit a každou změnu zapisuje do au
 Operátor položku v navigaci nevidí a serverový role guard odmítne i přímou URL.
 
 Osobní preference operátorů jsou uložené v `workspace_user_preferences` podle
-kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění; hustota
-karty Client Profile je schválená k odstranění v P1, protože pracovní kontext
-nebude řešen osobním přepínačem. Server odvozuje identitu z přihlášené session,
-RLS brání čtení či zápisu cizích hodnot a staré browserové hodnoty se případně
-importují jen jednou.
+kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění;
+Compact/Extended hustota Klientského profilu byla z preference i UI odstraněna,
+protože pracovní kontext není osobní přepínač. Server odvozuje identitu z
+přihlášené session, RLS brání čtení či zápisu cizích hodnot a staré browserové
+hodnoty se případně importují jen jednou.
 
 Team Leader Review reálného hovoru je nyní oddělený od `/training/reviews`.
 Manažer nebo administrátor otevře přesný uložený hovor, vidí jeho outcome,
@@ -168,8 +170,9 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    zapnout a proběhnout Auth smoke test. Bezpečný linked runner, schema drift,
    privilegované RPC a `pgtap` jsou uzavřené a podložené read-backem; runner
    dokazuje pouze linked sandbox, ne produkční readiness.
-2. P1 nyní dokončí Klientský profil a ověřenou doručovací adresu. Teprve poté
-   následuje třírolový full-shift smoke test a dependency gate telefonie;
+2. P1 má implementovaný Klientský profil a ověřenou doručovací adresu. Ještě
+   před třírolovým full-shift smokem zbývá autentizovaný browser důkaz aktivního
+   assignmentu, obou objednávkových toků, reloadu a foreign-assignment denial;
    dílčí selhání, role-aware navigace, pravdivé Call Logs a sjednocený vzhled
    jsou už implementované a testované.
 3. P1.5 po uzavření P1 přidá úzce vymezený P2 onboarding trénažér: jeden až dva

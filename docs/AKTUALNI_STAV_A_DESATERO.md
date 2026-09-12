@@ -4,7 +4,7 @@
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený checkpoint P0.1–P0.3 a P1 stabilizační/UI vlna; P0.4 je vědomě odložené pro interní provoz. Nejbližší otevřený P1 krok je Klientský profil a ověřená doručovací adresa.
+**Stav:** dokončený checkpoint P0.1–P0.3 a P1 stabilizační/UI vlna; P0.4 je vědomě odložené pro interní provoz. Nejbližší otevřený P1 krok je autentizovaný browser důkaz Klientského profilu a ověřené doručovací adresy.
 
 ## Co je skutečně hotové
 
@@ -127,6 +127,13 @@ akceptační kritéria a důkazní plán.
    historická data se nedoplňují.
    - Schválený návrh je commit `ae5c014`; provedení rozepisuje aktuální plán
      `2026-09-11-operator-client-profile-and-verified-address.md`.
+   - Implementace datového modelu, obou atomických objednávkových toků a UI je
+     na `main` v commitech `a165a69`, `a402129` a `e4b7f5a`. Automatické
+     kontroly prošly (545 aplikačních a 188 databázových testů), ale existující
+     autentizovaný Operator neměl aktivní assignment. Dokud neprojde reálný
+     browser důkaz profilu, poznámky, obou adresních toků, reloadu a odmítnutí
+     cizího assignmentu, bod zůstává otevřený. Sanitizovaný report:
+     `superpowers/reports/2026-09-12-operator-client-profile-verification.md`.
    - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
      prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
      výběr adresy a odmítnutí cizího assignmentu.

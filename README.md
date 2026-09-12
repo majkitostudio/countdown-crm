@@ -8,7 +8,7 @@ Projekt je ve stabilizaci před interním pilotem. Aktuální rozsah a otevřen�
 
 - workspace-scoped leady, zákaznický profil, timeline a produkty,
 - serverem řízená fronta leadů, assignment, callback a recovery,
-- Operator Console s Customer Profile kartou, kompaktním režimem, recent context řádkem, `Operator Next Action` a callback recovery inboxem,
+- Operator Console s read-only Klientským profilem v nové kartě, rozbalitelným Product Scriptem, sdílenými poznámkami u skriptu, recent context řádkem, `Operator Next Action` a callback recovery inboxem,
 - call outcome workflow, objednávky, callbacky a auditní stopa,
 - Product Scripts a objection cards,
 - role `operator`, `team_leader` a `administrator`,
