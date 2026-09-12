@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { FileText, Send } from "lucide-react";
 import { createLeadNoteAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface LeadNotesCardProps {
   leadId: string;
@@ -119,7 +122,7 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
             : "No draft";
 
   return (
-    <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 shadow-sm">
+    <Surface variant="page"><section className="space-y-0 p-4">
       <div className="flex items-center gap-2">
         <FileText className="h-4 w-4 text-zinc-400" aria-hidden="true" />
         <div>
@@ -149,21 +152,20 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
           <div className="min-w-0 text-[10px] text-zinc-500">
             <span role="status" aria-live="polite">{draftStatusLabel} · Ctrl/Cmd + Enter to save</span>
           </div>
-          <button
+          <Button
             type="submit"
             disabled={isSaving || !body.trim()}
-            className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-[11px] font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send className="h-3 w-3" aria-hidden="true" />
             {isSaving ? "Saving..." : "Save Note"}
-          </button>
+          </Button>
         </div>
       </form>
 
       {errorMessage && (
-        <div role="alert" className="mt-3 rounded-lg border border-rose-900/60 bg-rose-950/30 p-2.5 text-xs text-rose-300">
+        <StatusAlert tone="danger" className="mt-3">
           {errorMessage}
-        </div>
+        </StatusAlert>
       )}
 
       <div className="mt-4 space-y-2 border-t border-zinc-800 pt-3">
@@ -187,6 +189,6 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
           ))
         )}
       </div>
-    </section>
+    </section></Surface>
   );
 }
