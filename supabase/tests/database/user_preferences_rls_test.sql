@@ -63,12 +63,11 @@ select set_config('request.jwt.claims', '{"role":"authenticated","sub":"61111111
 
 select lives_ok(
   $$insert into public.workspace_user_preferences (
-      workspace_id, user_id, ringtone_volume, client_profile_density
+      workspace_id, user_id, ringtone_volume
     ) values (
       '6aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
       '61111111-1111-4111-8111-111111111111',
-      25,
-      'compact'
+      25
     )$$,
   'user inserts own preferences in a workspace membership'
 );
@@ -96,12 +95,11 @@ select is(
 
 select throws_ok(
   $$insert into public.workspace_user_preferences (
-      workspace_id, user_id, ringtone_volume, client_profile_density
+      workspace_id, user_id, ringtone_volume
     ) values (
       '6aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
       '62222222-2222-4222-8222-222222222222',
-      50,
-      'full'
+      50
     )$$,
   '42501',
   'new row violates row-level security policy for table "workspace_user_preferences"',
@@ -110,12 +108,11 @@ select throws_ok(
 
 select lives_ok(
   $$insert into public.workspace_user_preferences (
-      workspace_id, user_id, ringtone_volume, client_profile_density
+      workspace_id, user_id, ringtone_volume
     ) values (
       '6bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01',
       '61111111-1111-4111-8111-111111111111',
-      60,
-      'full'
+      60
     )$$,
   'same user can keep separate preferences in another own workspace'
 );

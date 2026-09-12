@@ -15,7 +15,7 @@ export interface UserPreferencesDTO extends UserSettings {
   updated_at: string | null;
 }
 
-const PREFERENCES_SELECT = "workspace_id, user_id, ringtone_volume, client_profile_density, updated_at";
+const PREFERENCES_SELECT = "workspace_id, user_id, ringtone_volume, updated_at";
 
 function validatePreferences(input: UserSettings): void {
   if (
@@ -24,7 +24,6 @@ function validatePreferences(input: UserSettings): void {
     || !Number.isInteger(input.ringtone_volume)
     || input.ringtone_volume < 0
     || input.ringtone_volume > 100
-    || (input.client_profile_density !== "full" && input.client_profile_density !== "compact")
   ) {
     throw new DataAccessError("VALIDATION", "Invalid user preferences.");
   }
@@ -35,7 +34,6 @@ function mapPreferences(row: PreferencesRow): UserPreferencesDTO {
     workspace_id: row.workspace_id,
     user_id: row.user_id,
     ringtone_volume: row.ringtone_volume,
-    client_profile_density: row.client_profile_density,
     persisted: true,
     updated_at: row.updated_at,
   };
@@ -81,7 +79,6 @@ export async function updateUserPreferencesForWorkspace(
       workspace_id: context.workspaceId,
       user_id: context.userId,
       ringtone_volume: input.ringtone_volume,
-      client_profile_density: input.client_profile_density,
     }, { onConflict: "workspace_id,user_id" })
     .select(PREFERENCES_SELECT)
     .single();

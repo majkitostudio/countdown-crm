@@ -53,7 +53,6 @@ const persistedRow = {
   workspace_id: "workspace-1",
   user_id: "user-1",
   ringtone_volume: 35,
-  client_profile_density: "compact",
   created_at: "2026-09-06T15:00:00.000Z",
   updated_at: "2026-09-06T15:05:00.000Z",
 };
@@ -76,7 +75,6 @@ describe("server-side user preferences", () => {
       workspace_id: "workspace-1",
       user_id: "user-1",
       ringtone_volume: 80,
-      client_profile_density: "full",
       persisted: false,
       updated_at: null,
     });
@@ -90,7 +88,6 @@ describe("server-side user preferences", () => {
       workspace_id: "workspace-1",
       user_id: "user-1",
       ringtone_volume: 35,
-      client_profile_density: "compact",
       persisted: true,
       updated_at: "2026-09-06T15:05:00.000Z",
     });
@@ -102,22 +99,19 @@ describe("server-side user preferences", () => {
 
     await expect(updateUserPreferencesForWorkspace({
       ringtone_volume: 35,
-      client_profile_density: "compact",
-    })).resolves.toMatchObject({ persisted: true, ringtone_volume: 35, client_profile_density: "compact" });
+    })).resolves.toMatchObject({ persisted: true, ringtone_volume: 35 });
 
     expect(writeQuery.upsert).toHaveBeenCalledWith({
       workspace_id: "workspace-1",
       user_id: "user-1",
       ringtone_volume: 35,
-      client_profile_density: "compact",
     }, { onConflict: "workspace_id,user_id" });
   });
 
   it.each([
-    { ringtone_volume: -1, client_profile_density: "full" },
-    { ringtone_volume: 101, client_profile_density: "full" },
-    { ringtone_volume: Number.NaN, client_profile_density: "full" },
-    { ringtone_volume: 50, client_profile_density: "dense" },
+    { ringtone_volume: -1 },
+    { ringtone_volume: 101 },
+    { ringtone_volume: Number.NaN },
   ])("rejects malformed preferences before authorization or database access: %j", async (input) => {
     await expect(updateUserPreferencesForWorkspace(input as never)).rejects.toEqual(
       expect.objectContaining({ code: "VALIDATION" } satisfies Partial<DataAccessError>),

@@ -57,7 +57,6 @@ import type {
   OperatorCallbackSignal,
   OperatorNextActionState,
 } from "@/components/workspace/operatorNextAction";
-import type { ClientProfileDensity } from "@/components/workspace/clientProfileDensity";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 
 interface PostCallSummary {
@@ -142,7 +141,6 @@ function WorkspaceContent() {
   const [isCompletionPending, setIsCompletionPending] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const [telephonyAdapter, setTelephonyAdapter] = useState<TelephonyAdapter>("simulation");
-  const [isProfilePreferenceSaving, setIsProfilePreferenceSaving] = useState(false);
   const stopAudioRef = React.useRef<(() => void) | null>(null);
   const callStartPendingRef = React.useRef(false);
   const callStartRecoveryRef = React.useRef(false);
@@ -154,8 +152,6 @@ function WorkspaceContent() {
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const {
     preferences: userPreferences,
-    error: userPreferencesError,
-    save: saveUserPreferences,
   } = useUserPreferences();
   const activeLeadId = activeLead?.id;
 
@@ -776,17 +772,6 @@ function WorkspaceContent() {
     stopAudioRef.current = stopRingtone;
   };
 
-  const handleProfileDensityChange = useCallback(async (density: ClientProfileDensity) => {
-    setIsProfilePreferenceSaving(true);
-    try {
-      await saveUserPreferences({ ...userPreferences, client_profile_density: density });
-    } catch {
-      // The shared preference hook exposes the save error beside the control.
-    } finally {
-      setIsProfilePreferenceSaving(false);
-    }
-  }, [saveUserPreferences, userPreferences]);
-
   const handleAcceptIncomingCall = () => {
     if (stopAudioRef.current) {
       stopAudioRef.current();
@@ -1111,10 +1096,6 @@ function WorkspaceContent() {
           {activeLead && (
             <ClientProfileCard
               lead={activeLead}
-              density={userPreferences.client_profile_density}
-              isPreferenceSaving={isProfilePreferenceSaving}
-              preferenceError={userPreferencesError}
-              onDensityChange={(density) => void handleProfileDensityChange(density)}
             />
           )}
 

@@ -32,7 +32,6 @@ export function useUserPreferences(): UserPreferencesState {
       .then(async (serverPreferences) => {
         let resolved: UserSettings = {
           ringtone_volume: serverPreferences.ringtone_volume,
-          client_profile_density: serverPreferences.client_profile_density,
         };
 
         if (!serverPreferences.persisted) {
@@ -41,7 +40,6 @@ export function useUserPreferences(): UserPreferencesState {
             const migrated = await updateUserPreferencesAction({ ...resolved, ...legacy });
             resolved = {
               ringtone_volume: migrated.ringtone_volume,
-              client_profile_density: migrated.client_profile_density,
             };
             clearLegacyUserPreferences();
           }
@@ -71,7 +69,6 @@ export function useUserPreferences(): UserPreferencesState {
       const saved = await updateUserPreferencesAction(nextPreferences);
       const resolved = {
         ringtone_volume: saved.ringtone_volume,
-        client_profile_density: saved.client_profile_density,
       };
       setPreferences(resolved);
       setError(null);

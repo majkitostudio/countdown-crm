@@ -100,7 +100,6 @@ export interface Database {
           workspace_id: string;
           user_id: string;
           ringtone_volume: number;
-          client_profile_density: "full" | "compact";
           created_at: string;
           updated_at: string;
         };
@@ -108,13 +107,11 @@ export interface Database {
           workspace_id: string;
           user_id: string;
           ringtone_volume?: number;
-          client_profile_density?: "full" | "compact";
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           ringtone_volume?: number;
-          client_profile_density?: "full" | "compact";
           updated_at?: string;
         };
         Relationships: [
@@ -924,6 +921,7 @@ export interface Database {
           order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note: string | null;
           revision: number;
+          delivery_address_snapshot: Json | null;
           delivered_at: string | null;
           returned_at: string | null;
           fulfillment_event_id: string | null;
@@ -941,6 +939,7 @@ export interface Database {
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
           revision?: number;
+          delivery_address_snapshot?: Json | null;
           delivered_at?: string | null;
           returned_at?: string | null;
           fulfillment_event_id?: string | null;
@@ -956,6 +955,7 @@ export interface Database {
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
           revision?: number;
+          delivery_address_snapshot?: Json | null;
           delivered_at?: string | null;
           returned_at?: string | null;
           fulfillment_event_id?: string | null;
