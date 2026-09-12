@@ -80,5 +80,8 @@ Pro databázovou změnu navíc ověř migration history, cílové schéma, RLS a
 - [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) — stručný týmový postup pro změny,
 - [Telnyx setup](docs/TELEPHONY_TELNYX_SETUP.md) — konfigurace telefonní vrstvy bez tajných hodnot,
 - [Dokumentační index](docs/README.md) — vysvětlení, co do nové `/docs` patří.
+- [Entry, Dashboard a Workspace state completeness — specifikace](docs/superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md)
+- [Entry, Dashboard a Workspace state completeness — plán](docs/superpowers/plans/2026-09-12-entry-workspace-state-completeness.md)
+- [Entry, Dashboard a Workspace state completeness — ověření](docs/superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md)
 
 Historické Codex postupy, staré roadmapy, auditní protokoly a jednorázové handoffy nejsou součástí nové aktivní `/docs`. Pokud bude potřeba obnovit konkrétní důkaz, přidá se jako samostatný, aktuální dokument s jasným datem a účelem.

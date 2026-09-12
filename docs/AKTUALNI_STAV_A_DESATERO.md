@@ -101,7 +101,14 @@ akceptační kritéria a důkazní plán.
      `2026-09-11-unified-operator-console-design-system.md`.
    - Hotovo, když všechny uživatelské CRM cesty projdou automatizovaným i
      browser ověřením proti referenční Operator Console bez změny chování.
-5. **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
+5. **Dokončit Entry, Dashboard a Workspace state completeness.** Sjednotit
+   Login, Dashboard, Workspace, loading/empty/unavailable/error/success stavy,
+   modaly a úzké viewporty podle stejných pravidel Operator Console.
+   - Specifikace: `superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md`.
+   - Plán: `superpowers/plans/2026-09-12-entry-workspace-state-completeness.md`.
+   - Ověření: `superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md`.
+   - Hotovo, když proběhne i autentizovaný browser průchod Dashboardu a Workspace.
+6. **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
    Základní kontext přesunout do hlavičky přiřazeného zákazníka, odstranit
    Compact / Extended režim, umožnit zvětšení Product Scriptu bez ztráty identity
    klienta a otevřít read-only Klientský profil v nové kartě. Operátor smí pouze

@@ -38,6 +38,10 @@ implementační plán určuje jeho pořadí v jednotném backlogu.
 Před jeho implementací je povinné sjednotit vzhled všech CRM cest podle
 Operator Console: specifikace je v commitu `6c01c57` a pořadí provedení
 určuje `docs/superpowers/plans/2026-09-11-unified-operator-console-design-system.md`.
+Aktuální vlna pro Login, Dashboard a Workspace stavové plochy má schválenou
+[specifikaci](docs/superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md),
+[implementační plán](docs/superpowers/plans/2026-09-12-entry-workspace-state-completeness.md)
+a [ověřovací report](docs/superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md).
 Produktový skript zůstává souvislou osnovou bez potvrzování jednotlivých kroků
 během hovoru; jeho text má statické orientační sekce pro rychlejší čtení.
 Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou
