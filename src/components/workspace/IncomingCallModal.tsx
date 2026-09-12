@@ -3,6 +3,8 @@
 import React from "react";
 import { Phone, PhoneOff, MapPin, X } from "lucide-react";
 import { Lead } from "@/lib/leads";
+import { Button } from "@/components/ui/Button";
+import { Surface } from "@/components/ui/Surface";
 
 interface IncomingCallModalProps {
   lead: Lead | null;
@@ -15,8 +17,9 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
   if (!isOpen || !lead) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 duration-300">
-      <div className="bg-zinc-950/90 border border-zinc-800/80 backdrop-blur-xl text-zinc-100 p-5 rounded-xl shadow-2xl w-80 space-y-4 relative overflow-hidden">
+    <div className="fixed inset-x-3 bottom-3 z-50 animate-in slide-in-from-bottom-5 duration-300 sm:inset-x-auto sm:bottom-6 sm:right-6">
+      <Surface variant="overlay" className="w-full sm:w-80">
+      <div className="relative max-h-[calc(100vh-1.5rem)] space-y-4 overflow-y-auto p-5 text-zinc-100">
         
         {/* Top Header */}
         <div className="flex items-center justify-between">
@@ -30,12 +33,12 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
             </span>
           </div>
 
-          <button
+          <Button
+            variant="quiet"
             onClick={onDecline}
-            className="text-zinc-500 hover:text-zinc-300 p-1"
           >
             <X className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Customer Avatar & Details */}
@@ -57,24 +60,24 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
 
         {/* Call Controls: Accept / Decline */}
         <div className="grid grid-cols-2 gap-2.5 pt-1">
-          <button
+          <Button
+            variant="secondary"
             onClick={onDecline}
-            className="py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <PhoneOff className="w-3.5 h-3.5" />
             Decline
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={onAccept}
-            className="py-2 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <Phone className="w-3.5 h-3.5 fill-current" />
             Accept Call
-          </button>
+          </Button>
         </div>
 
       </div>
+      </Surface>
     </div>
   );
 }

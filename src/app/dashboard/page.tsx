@@ -12,6 +12,8 @@ import { TeamLeaderDailyBriefCard } from "@/components/dashboard/TeamLeaderDaily
 import { getRoleHomePath } from "@/lib/auth/roleHome";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { getButtonClassName } from "@/components/ui/Button";
+import { Surface } from "@/components/ui/Surface";
 
 export default async function DashboardPage() {
   const context = await requireWorkspaceContext();
@@ -20,7 +22,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-screen-2xl space-y-6" data-testid="dashboard" data-scope="workspace">
+    <div className="mx-auto min-w-0 max-w-screen-2xl space-y-6 px-4 sm:px-6" data-testid="dashboard" data-scope="workspace">
       <PageHeader
         icon={LayoutDashboard}
         title="Dashboard Overview"
@@ -28,11 +30,11 @@ export default async function DashboardPage() {
         badge={{ label: "Workspace data", tone: "neutral" }}
         actions={
           <>
-            <Link href="/leads?create=1" className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+            <Link href="/leads?create=1" className={getButtonClassName("secondary")}>
               <Plus className="h-4 w-4" aria-hidden="true" />
               Add Lead
             </Link>
-            <Link href="/workspace" className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-medium text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200">
+            <Link href="/workspace" className={getButtonClassName("primary")}>
               <PhoneCall className="h-4 w-4" aria-hidden="true" />
               Launch Operator Console
             </Link>
@@ -43,7 +45,7 @@ export default async function DashboardPage() {
       <TeamLeaderDailyBriefCard />
 
       <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,.85fr)]">
-        <section className="space-y-3" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
+        <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
           <div className="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team attention</p>
@@ -53,9 +55,9 @@ export default async function DashboardPage() {
           </div>
           <ReorderWidget />
           <NextBestActionCard />
-        </section>
+        </section></Surface>
 
-        <section className="space-y-3" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
+        <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
           <div className="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team activity</p>
@@ -64,10 +66,10 @@ export default async function DashboardPage() {
             <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">Workspace-scoped</span>
           </div>
           <KpiCards compact />
-        </section>
+        </section></Surface>
       </div>
 
-      <section className="space-y-3" aria-labelledby="dashboard-supporting-title" data-testid="dashboard-supporting-analytics">
+      <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-supporting-title" data-testid="dashboard-supporting-analytics">
         <div className="flex items-end justify-between gap-3 px-1">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
@@ -83,7 +85,7 @@ export default async function DashboardPage() {
             <CallActivityChart />
           </div>
         </div>
-      </section>
+      </section></Surface>
 
       <section aria-labelledby="dashboard-recent-activity-title" data-testid="dashboard-recent-activity">
         <h2 id="dashboard-recent-activity-title" className="sr-only">Recent workspace activity</h2>

@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CountdownMark } from "@/components/brand/CountdownMark";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,7 +44,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-zinc-100 font-sans select-none">
+    <div className="min-h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center px-4 py-6 sm:px-6 text-zinc-100 font-sans select-none">
       {/* Container Card */}
       <div className="w-full max-w-md space-y-6">
         {/* Brand Logo */}
@@ -58,7 +61,8 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form Card */}
-        <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md shadow-2xl space-y-5">
+        <Surface variant="page">
+          <div className="space-y-5 p-6">
           <div className="space-y-1">
             <h2 className="text-sm font-semibold text-zinc-200">
               Sign In to Your Workspace
@@ -68,12 +72,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {errorMsg && (
-            <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
+          {errorMsg && <StatusAlert tone="danger">{errorMsg}</StatusAlert>}
 
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Email Input */}
@@ -114,14 +113,14 @@ export default function LoginPage() {
             </div>
 
             {/* Submit Button */}
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 rounded-lg bg-zinc-100 text-zinc-950 hover:bg-zinc-200 font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+              className="w-full"
             >
               <span>{loading ? "Signing In..." : "Sign In to Workspace"}</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Button>
           </form>
 
           <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400">
@@ -131,7 +130,8 @@ export default function LoginPage() {
             </span>
             <span className="font-mono">v0.1.0</span>
           </div>
-        </div>
+          </div>
+        </Surface>
       </div>
     </div>
   );

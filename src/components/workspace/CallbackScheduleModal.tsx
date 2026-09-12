@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CalendarClock, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 interface CallbackScheduleModalProps {
   isOpen: boolean;
@@ -86,7 +89,8 @@ export function CallbackScheduleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="callback-dialog-title">
-      <form onSubmit={submit} className="w-full max-w-md space-y-5 rounded-2xl border border-zinc-700/80 bg-zinc-900 p-6 shadow-2xl">
+      <Surface variant="overlay" className="w-full">
+      <form onSubmit={submit} className="mx-auto max-h-[calc(100vh-2rem)] w-full max-w-md space-y-5 overflow-y-auto p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="rounded-lg bg-zinc-900 p-2 text-zinc-300"><CalendarClock className="h-4 w-4" /></div>
@@ -95,7 +99,7 @@ export function CallbackScheduleModal({
               <p className="mt-1 text-xs text-zinc-500">{leadName || "Current lead"}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200" aria-label="Close"><X className="h-4 w-4" /></button>
+          <Button type="button" variant="quiet" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></Button>
         </div>
 
         <label className="block space-y-1.5">
@@ -104,13 +108,14 @@ export function CallbackScheduleModal({
           <span className="block text-[11px] text-zinc-600">Časová zóna browseru: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
         </label>
 
-        {(validationError || errorMessage) && <div ref={errorRef} role="alert" tabIndex={-1} className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3 text-xs text-rose-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">{validationError || errorMessage}</div>}
+        {(validationError || errorMessage) && <StatusAlert ref={errorRef} tone="danger" tabIndex={-1}>{validationError || errorMessage}</StatusAlert>}
 
         <div className="flex justify-end gap-2 border-t border-zinc-800 pt-4">
-          <button type="button" onClick={onClose} className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200">Cancel</button>
-          <button type="submit" disabled={isSubmitting} className="rounded-lg bg-zinc-100 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-white disabled:opacity-50">{isSubmitting ? "Scheduling…" : "Schedule callback"}</button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Scheduling…" : "Schedule callback"}</Button>
         </div>
       </form>
+      </Surface>
     </div>
   );
 }

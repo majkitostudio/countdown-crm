@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from "react";
+import { forwardRef, type ComponentPropsWithoutRef } from "react";
 import { getSafeLayoutClassName } from "@/components/ui/Surface";
 
 export type SemanticTone = "neutral" | "success" | "warning" | "danger";
@@ -31,7 +31,7 @@ export type StatusAlertProps = Omit<ComponentPropsWithoutRef<"div">, "className"
   style?: never;
 };
 
-export function StatusAlert({ tone = "neutral", className, style: _style, role, ...props }: StatusAlertProps) {
+export const StatusAlert = forwardRef<HTMLDivElement, StatusAlertProps>(function StatusAlert({ tone = "neutral", className, style: _style, role, ...props }, ref) {
   void _style;
-  return <div role={role ?? "alert"} className={["rounded-xl border p-4 text-sm", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
-}
+  return <div ref={ref} role={role ?? "alert"} className={["rounded-xl border p-4 text-sm", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
+});
