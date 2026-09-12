@@ -25,6 +25,9 @@ import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
 import type { WalletOverviewDTO } from "@/lib/dal/wallet";
 import { TelephonyAdapterSettings } from "@/components/settings/TelephonyAdapterSettings";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 export default function SettingsPage() {
   const [isSavedAlert, setIsSavedAlert] = useState(false);
@@ -164,14 +167,13 @@ export default function SettingsPage() {
             </Link>
           )}
           {canManageWorkspaceSchema && (
-            <button
+            <Button
               type="button"
               onClick={() => setIsObjectBuilderOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-all hover:bg-zinc-200"
             >
               <Plus className="w-4 h-4" />
               <span>Vytvořit Custom Object</span>
-            </button>
+            </Button>
           )}
           </>
         }
@@ -179,37 +181,39 @@ export default function SettingsPage() {
 
       {/* Success Notification Alert */}
       {isSavedAlert && (
-        <div className="bg-zinc-900 border border-zinc-800 text-zinc-300 p-4 rounded-xl text-xs flex items-center gap-3 font-mono animate-in fade-in duration-200">
+        <StatusAlert tone="success">
+          <div className="flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <div>
             <p className="font-semibold text-zinc-100">Preferences saved successfully!</p>
             <p className="text-[11px] text-zinc-400">Your preferences are saved to your account.</p>
           </div>
-        </div>
+          </div>
+        </StatusAlert>
       )}
 
       {preferencesError && (
-        <div role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 text-xs text-rose-300">
+        <StatusAlert tone="danger">
           Preferences unavailable: {preferencesError}
-        </div>
+        </StatusAlert>
       )}
 
       {canManageWorkspaceSchema && (
         <section data-testid="wallet-settings-boundary" className="space-y-4">
           {walletOverview === null && !walletError ? (
-            <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5 text-xs text-zinc-400">Loading workspace wallet settings...</div>
+            <Surface variant="inset"><div className="p-5 text-xs text-zinc-400">Loading workspace wallet settings...</div></Surface>
           ) : walletError ? (
-            <div role="alert" className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-5 text-xs text-rose-300">Wallet settings unavailable: {walletError}</div>
+            <StatusAlert tone="danger">Wallet settings unavailable: {walletError}</StatusAlert>
           ) : walletOverview && !walletSettingsAvailable ? (
-            <div role="alert" className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-5 text-xs text-rose-300">
+            <StatusAlert tone="danger">
               Wallet settings unavailable: {walletOverview.sections.settings.state === "unavailable" ? walletOverview.sections.settings.message : "Wallet settings are not available."}
-            </div>
+            </StatusAlert>
           ) : walletOverview?.settings ? (
             <>
               {!walletRulesAvailable && (
-                <div role="alert" className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-5 text-xs text-amber-300">
+                <StatusAlert tone="warning">
                   Wallet bonus rules unavailable: {walletOverview.sections.rules.state === "unavailable" ? walletOverview.sections.rules.message : "Wallet bonus rules are not available."}
-                </div>
+                </StatusAlert>
               )}
               <WalletManagerPanel mode="settings" settings={walletOverview.settings} rules={walletOverview.rules} members={[]} rulesAvailable={walletRulesAvailable} />
             </>
@@ -221,7 +225,8 @@ export default function SettingsPage() {
 
       {/* Section: Custom Schema & Objects (Attio Engine) */}
       {canManageWorkspaceSchema && (
-      <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-5">
+      <Surface variant="page">
+        <div className="space-y-5 p-7">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
@@ -234,30 +239,29 @@ export default function SettingsPage() {
           </div>
 
           {canManageWorkspaceSchema && (
-            <button
+            <Button
+              variant="secondary"
               type="button"
               onClick={() => setIsObjectBuilderOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-medium rounded-lg border border-zinc-800 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 text-zinc-400" />
               <span>Nové Schema</span>
-            </button>
+            </Button>
           )}
         </div>
 
         {/* Registered Objects Grid */}
         {schemaError ? (
-          <div className="p-4 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300" role="alert">
+          <StatusAlert tone="danger">
             Schémata se nepodařilo načíst: {schemaError}
-          </div>
+          </StatusAlert>
         ) : isSchemasLoading ? (
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/40 text-xs text-zinc-500">
-            Načítám schémata z workspace...
-          </div>
+          <Surface variant="inset"><div className="p-4 text-xs text-zinc-500">Načítám schémata z workspace...</div></Surface>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {schemas.map((s) => (
-              <div key={s.id} className="p-4 bg-zinc-950/60 border border-zinc-800/80 rounded-xl space-y-2">
+              <Surface key={s.id} variant="inset">
+                <div className="space-y-2 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-zinc-400" />
@@ -271,32 +275,35 @@ export default function SettingsPage() {
                 <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[10px] text-zinc-500">
                   <span className="font-mono">{s.attributes.length} EAV atributů</span>
                   {!["leads", "products", "deals"].includes(s.slug) && canManageWorkspaceSchema ? (
-                    <button
+                    <Button
+                      variant="danger"
                       type="button"
                       onClick={() => void handleDeleteSchema(s.slug, s.name)}
-                      className="text-rose-400 hover:text-rose-300 font-mono cursor-pointer"
                     >
                       Odstranit
-                    </button>
+                    </Button>
                   ) : (
                     <span className="text-zinc-400 font-mono">Built-in schema</span>
                   )}
                 </div>
-              </div>
+                </div>
+              </Surface>
             ))}
           </div>
         )}
         {schemaActionError && (
-          <div className="p-3 rounded-xl border border-rose-900/60 bg-rose-950/20 text-xs text-rose-300" role="alert">
+          <StatusAlert tone="danger">
             {schemaActionError}
-          </div>
+          </StatusAlert>
         )}
-      </div>
+        </div>
+      </Surface>
       )}
 
       <form onSubmit={handleSave} className="space-y-8">
         {/* Section 1: Operator Profile */}
-        <div className="bg-zinc-900/40 border border-zinc-800/80 border-t border-white/5 backdrop-blur-md rounded-2xl p-7 shadow-sm space-y-6">
+        <Surface variant="page">
+          <div className="space-y-6 p-7">
           <div className="flex items-center gap-3 pb-4 border-b border-zinc-800/80">
             <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <User className="w-4 h-4" />
@@ -339,17 +346,18 @@ export default function SettingsPage() {
                   value={getOperatorRoleLabel(identity?.role || null)}
                   className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-500 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono"
                 />
-                <span className="px-3 py-2 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-mono rounded-lg flex items-center gap-1.5 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <StatusBadge tone="success">
                   Active Member
-                </span>
+                </StatusBadge>
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </Surface>
 
         {/* Audio Effects & Ringtone Controls */}
-        <div className="bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-md rounded-xl p-5 shadow-sm space-y-4">
+        <Surface variant="page">
+          <div className="space-y-4 p-5">
           <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-800/80">
             <div className="w-7 h-7 rounded-md bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-300">
               <Volume2 className="w-3.5 h-3.5" />
@@ -377,29 +385,30 @@ export default function SettingsPage() {
 
             <div className="space-y-1.5">
               <label className="text-zinc-400 font-medium block">Audio Feedback Test</label>
-              <button
+              <Button
+                variant="secondary"
                 type="button"
                 onClick={handleTestAudio}
                 disabled={isPlayingTestSound}
-                className="w-full py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs font-medium flex items-center justify-center gap-2 border border-zinc-800 transition-colors cursor-pointer"
+                className="w-full"
               >
                 <Play className={`w-3.5 h-3.5 text-zinc-400 ${isPlayingTestSound ? "animate-spin" : ""}`} />
                 <span>{isPlayingTestSound ? "Playing Ringtone..." : "Test Ringtone Sound"}</span>
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+          </div>
+        </Surface>
 
         {/* Save Changes CTA Button */}
         <div className="flex justify-end pt-2">
-          <button
+          <Button
             type="submit"
             disabled={isPreferencesLoading || isSavingPreferences}
-            className="px-5 py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-2 transition-colors shadow-sm cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{isSavingPreferences ? "Saving..." : isPreferencesLoading ? "Loading..." : "Save Preferences"}</span>
-          </button>
+          </Button>
         </div>
       </form>
 

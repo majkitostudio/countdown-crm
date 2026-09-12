@@ -2,6 +2,7 @@ import { LockKeyhole, Zap } from "lucide-react";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 import WorkflowsManagementClient from "./WorkflowsManagementClient";
 
 export default async function WorkflowsPage() {
@@ -17,7 +18,8 @@ export default async function WorkflowsPage() {
           description="Workflow management is restricted to authorized workspace roles."
           badge={{ label: "Unavailable", tone: "unavailable" }}
         />
-        <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+        <div className="mx-auto max-w-xl">
+          <Surface variant="empty">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
           <h2 className="text-base font-semibold text-zinc-100">
             {isForbidden ? "Workflow management unavailable" : "Workflows unavailable"}
@@ -27,6 +29,7 @@ export default async function WorkflowsPage() {
               ? "Workflow rules and execution data are available to Team Leaders and Administrators only."
               : "Workflow management could not be loaded from the active workspace. No workflow data or controls were shown."}
           </p>
+          </Surface>
         </div>
       </div>
     );

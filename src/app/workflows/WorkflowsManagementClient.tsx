@@ -39,6 +39,10 @@ import {
   simulateWorkflowEventAction,
 } from "@/app/actions/workflows";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { StatusAlert, StatusBadge as SharedStatusBadge } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 // ─── Icon Maps ──────────────────────────────────────────────────────────────
 
@@ -72,32 +76,29 @@ function getActionIcon(type: ActionType) {
 function StatusBadge({ status }: { status: ExecutionLogEntry["status"] }) {
   const config = {
     success: {
-      dot: "bg-emerald-500",
+      tone: "success" as const,
       label: "Úspěch",
     },
     failure: {
-      dot: "bg-rose-500",
+      tone: "danger" as const,
       label: "Chyba",
     },
     skipped: {
-      dot: "bg-zinc-500",
+      tone: "neutral" as const,
       label: "Přeskočeno",
     },
     simulation: {
-      dot: "bg-sky-500",
+      tone: "neutral" as const,
       label: "Simulace",
     },
     unavailable: {
-      dot: "bg-amber-500",
+      tone: "warning" as const,
       label: "Nedostupné",
     },
   }[status];
 
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
-      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-      {config.label}
-    </span>
+    <SharedStatusBadge tone={config.tone}>{config.label}</SharedStatusBadge>
   );
 }
 
@@ -206,33 +207,32 @@ export default function WorkflowsPage() {
         description="Automatizujte opakující se procesy pomocí událostních pravidlových sekvencí"
         actions={
           <>
-          <button
+          <Button
+            variant="secondary"
             onClick={handleTestEmit}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium text-zinc-300 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 hover:text-zinc-100 transition-colors cursor-pointer"
           >
             <Activity className="w-3.5 h-3.5 text-zinc-400" />
             Test-only simulation: Call Ended
-          </button>
+          </Button>
 
           {/* Add Rule Button */}
-          <button
+          <Button
             onClick={() => {
               setEditingRule(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-zinc-950 bg-zinc-100 rounded-xl hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nové pravidlo
-          </button>
+          </Button>
           </>
         }
       />
 
       {testMessage && (
-        <div className="rounded-xl border border-sky-900/60 bg-sky-950/20 px-4 py-3 text-xs text-sky-200" role="status">
+        <StatusAlert tone="neutral" role="status">
           {testMessage} No production webhook, provider, or business mutation was invoked.
-        </div>
+        </StatusAlert>
       )}
 
       {/* Stats Bar */}
@@ -254,19 +254,12 @@ export default function WorkflowsPage() {
             total: executionLog.length,
           },
         ].map((stat) => (
-          <div
+          <MetricCard
             key={stat.label}
-            className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl"
-          >
-            <p className="text-xs text-zinc-400 font-medium">{stat.label}</p>
-            <p className="text-2xl font-bold font-mono text-zinc-100 mt-1">
-              {stat.value}
-              <span className="text-sm font-normal text-zinc-500">
-                {" "}
-                / {stat.total}
-              </span>
-            </p>
-          </div>
+            label={stat.label}
+            value={<>{stat.value}<span className="text-sm font-normal text-zinc-500"> / {stat.total}</span></>}
+            valueTone={stat.label === "Selhání" ? "danger" : "neutral"}
+          />
         ))}
       </div>
 
@@ -306,13 +299,13 @@ export default function WorkflowsPage() {
       {activeTab === "rules" && (
         <div className="space-y-3">
           {rules.length === 0 ? (
-            <div className="text-center py-16 text-zinc-600 font-mono">
+            <Surface variant="empty">
               <Zap className="w-10 h-10 mx-auto mb-3 opacity-30 text-zinc-500" />
               <p className="text-sm">Zatím nemáte žádná automatizační pravidla.</p>
               <p className="text-xs mt-1 text-zinc-500">
                 Klikněte na &quot;Nové pravidlo&quot; a vytvořte své první workflow.
               </p>
-            </div>
+            </Surface>
           ) : (
             rules.map((rule) => {
               const TrigIcon = getTriggerIcon(rule.trigger);
@@ -321,16 +314,11 @@ export default function WorkflowsPage() {
               );
 
               return (
-                <div
+                <Surface
                   key={rule.id}
-                  className={cn(
-                    "p-4 bg-zinc-900/40 border rounded-xl transition-all group",
-                    rule.enabled
-                      ? "border-zinc-800/80 hover:border-zinc-700"
-                      : "border-zinc-800/40 opacity-60"
-                  )}
+                  variant="page"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className={cn("flex items-start justify-between p-4 group", !rule.enabled && "opacity-60")}>
                     {/* Left: Info */}
                     <div className="flex items-start gap-3 min-w-0 flex-1">
                       <div
@@ -391,15 +379,15 @@ export default function WorkflowsPage() {
 
                     {/* Right: Controls */}
                     <div className="flex items-center gap-2 shrink-0 ml-4">
-                      <button
+                      <Button
+                        variant="quiet"
                         onClick={() => handleEdit(rule)}
-                        className="px-2.5 py-1 text-[10px] font-medium text-zinc-400 bg-zinc-900 border border-zinc-800 rounded-md hover:bg-zinc-800 hover:text-zinc-200 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                       >
                         Upravit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="quiet"
                         onClick={() => handleToggle(rule.id)}
-                        className="p-1 transition-colors cursor-pointer"
                         title={rule.enabled ? "Deaktivovat" : "Aktivovat"}
                       >
                         {rule.enabled ? (
@@ -407,17 +395,17 @@ export default function WorkflowsPage() {
                         ) : (
                           <ToggleLeft className="w-6 h-6 text-zinc-600" />
                         )}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
                         onClick={() => handleDelete(rule.id)}
-                        className="p-1 text-zinc-600 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                         title="Smazat"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
-                </div>
+                </Surface>
               );
             })
           )}
@@ -428,20 +416,20 @@ export default function WorkflowsPage() {
       {activeTab === "log" && (
         <div className="space-y-2">
           {executionLog.length === 0 ? (
-            <div className="text-center py-16 text-zinc-600">
+            <Surface variant="empty">
               <Clock className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">Zatím žádné záznamy o spuštění.</p>
               <p className="text-xs mt-1">
                 Použijte tlačítko &quot;Test-only simulation: Call Ended&quot; bez produkčního side effectu.
               </p>
-            </div>
+            </Surface>
           ) : (
             executionLog.map((entry) => {
               const isExpanded = expandedLog === entry.id;
               return (
-                <div
+                <Surface
                   key={entry.id}
-                  className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl overflow-hidden"
+                  variant="table"
                 >
                   <button
                     onClick={() =>
@@ -492,14 +480,9 @@ export default function WorkflowsPage() {
                         </div>
                       </div>
                       {entry.errorMessage && (
-                        <div className={cn(
-                          "p-2 rounded text-xs",
-                          entry.status === "failure"
-                            ? "bg-rose-500/10 border border-rose-500/20 text-rose-300"
-                            : "bg-amber-500/10 border border-amber-500/20 text-amber-300",
-                        )}>
+                        <StatusAlert tone={entry.status === "failure" ? "danger" : "warning"}>
                           {entry.errorMessage}
-                        </div>
+                        </StatusAlert>
                       )}
                       {entry.actionResults.length > 0 && (
                         <div className="space-y-1 text-[11px]">
@@ -521,7 +504,7 @@ export default function WorkflowsPage() {
                       </details>
                     </div>
                   )}
-                </div>
+                </Surface>
               );
             })
           )}

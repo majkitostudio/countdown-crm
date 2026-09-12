@@ -9,6 +9,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Surface } from "@/components/ui/Surface";
 
 type ProductScriptsLoadResult =
   | {
@@ -67,7 +68,8 @@ export default async function ProductScriptsPage() {
 
   const isForbidden = result.error instanceof DataAccessError && result.error.code === "FORBIDDEN";
   return (
-    <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+    <div className="mx-auto max-w-xl">
+      <Surface variant="empty">
       {isForbidden ? (
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
       ) : (
@@ -81,11 +83,12 @@ export default async function ProductScriptsPage() {
       </p>
       <Link
         href="/settings"
-        className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+        className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to Settings
       </Link>
+      </Surface>
     </div>
   );
 }
