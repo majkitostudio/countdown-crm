@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = resolve(process.cwd());
 const recentContext = readFileSync(resolve(root, "src/components/workspace/RecentContextRow.tsx"), "utf8");
 const brief = readFileSync(resolve(root, "src/components/workspace/ConversationBriefCard.tsx"), "utf8");
-const outcomeStyles = readFileSync(resolve(root, "src/lib/callOutcomeStyles.ts"), "utf8");
+const outcomeStyles = readFileSync(resolve(root, "src/lib/callOutcomeStyles.ts"), "utf8").replace(/\r\n/g, "\n");
 const drawer = readFileSync(resolve(root, "src/components/calls/CallDetailDrawer.tsx"), "utf8");
 
 describe("workspace and call context copy", () => {
