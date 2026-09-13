@@ -149,6 +149,9 @@ akceptační kritéria a důkazní plán.
    major downgrade. Současně je nutné posoudit tři blokované install skripty.
    - Hotovo, když existuje bezpečná aktualizační/mitigační cesta a čistý nebo
      výslovně akceptovaný audit před zapnutím živého provideru.
+   - Audit a patch aktualizace: `superpowers/reports/2026-09-14-p1-8-runtime-dependency-audit.md`.
+     Next.js critical advisory je opravený na `16.3.5`; Telnyx/uuid větev
+     zůstává otevřená do kompatibilitního rozhodnutí.
 
 ### P1.5 — P2 onboarding trénažér (interní pilot)
 
