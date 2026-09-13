@@ -4,8 +4,9 @@ import { FormEvent, useState } from "react";
 import { X } from "lucide-react";
 import { createLeadAction } from "@/app/actions/crm";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, TextAreaField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 interface CreateLeadModalProps {
   isOpen: boolean;
@@ -52,12 +53,11 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm">
-      <Surface variant="overlay" className="w-full">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="create-lead-dialog-title">
       <div className="w-full max-w-lg p-6">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-zinc-100">Create Lead</h2>
+            <h2 id="create-lead-dialog-title" className="text-base font-semibold text-zinc-100">Create Lead</h2>
             <p className="mt-1 text-xs text-zinc-400">Uloží se přímo do aktivního workspace.</p>
           </div>
           <button
@@ -77,55 +77,55 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block text-xs text-zinc-300">
+          <FieldLabel htmlFor="lead-full-name">
             Full name <span className="text-rose-400">*</span>
-            <input
+            <TextField
+              id="lead-full-name"
               required
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-500"
             />
-          </label>
+          </FieldLabel>
 
-          <label className="block text-xs text-zinc-300">
+          <FieldLabel htmlFor="lead-phone">
             Phone <span className="text-rose-400">*</span>
-            <input
+            <TextField
+              id="lead-phone"
               required
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-500"
             />
-          </label>
+          </FieldLabel>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block text-xs text-zinc-300">
+            <FieldLabel htmlFor="lead-email">
               Email
-              <input
+              <TextField
+                id="lead-email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-500"
               />
-            </label>
-            <label className="block text-xs text-zinc-300">
+            </FieldLabel>
+            <FieldLabel htmlFor="lead-city">
               City
-              <input
+              <TextField
+                id="lead-city"
                 value={city}
                 onChange={(event) => setCity(event.target.value)}
-                className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-500"
               />
-            </label>
+            </FieldLabel>
           </div>
 
-          <label className="block text-xs text-zinc-300">
+          <FieldLabel htmlFor="lead-notes">
             Notes
-            <textarea
+            <TextAreaField
+              id="lead-notes"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               rows={3}
-              className="mt-1.5 w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-500"
             />
-          </label>
+          </FieldLabel>
 
           <div className="flex justify-end gap-3 pt-2">
             <Button
@@ -144,7 +144,6 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
           </div>
         </form>
       </div>
-      </Surface>
-    </div>
+    </Dialog>
   );
 }

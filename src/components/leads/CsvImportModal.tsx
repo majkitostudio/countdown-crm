@@ -3,8 +3,10 @@
 import React, { useState, useRef } from "react";
 import { X, UploadCloud, FileSpreadsheet, Sparkles, ArrowRight, AlertCircle } from "lucide-react";
 import { Lead, addLeadsBatch, calculateAiLeadScore } from "@/lib/leads";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 interface CsvImportModalProps {
   isOpen: boolean;
@@ -174,9 +176,8 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
   const previewItems = getMappedLeadsPreview();
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <Surface variant="overlay" className="w-full">
-      <div className="w-full max-w-2xl overflow-hidden text-zinc-100 flex flex-col">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="csv-import-dialog-title" size="lg">
+      <div className="w-full overflow-hidden text-zinc-100 flex flex-col">
         
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
@@ -185,16 +186,17 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-zinc-100">Import Leads from CSV</h2>
+              <h2 id="csv-import-dialog-title" className="text-base font-semibold text-zinc-100">Import Leads from CSV</h2>
               <p className="text-xs text-zinc-400">Upload CSV file and map fields with auto AI propensity scoring</p>
             </div>
           </div>
-          <button
+          <Button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-zinc-800 transition-colors"
+            variant="quiet"
+            aria-label="Close CSV import"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Modal Body */}
@@ -214,12 +216,11 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               onClick={() => fileInputRef.current?.click()}
               className="border-2 border-dashed border-zinc-700 bg-zinc-950/50 hover:bg-zinc-900/60 rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
             >
-              <input
+              <TextField
                 type="file"
                 ref={fileInputRef}
                 accept=".csv"
                 onChange={handleFileSelect}
-                className="hidden"
               />
               <div className="w-12 h-12 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center transition-colors">
                 <UploadCloud className="w-6 h-6" />
@@ -363,18 +364,17 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
 
         {/* Modal Footer */}
         <div className="px-6 py-4 border-t border-zinc-800 bg-zinc-950 flex items-center justify-between">
-          <button
+          <Button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+            variant="secondary"
           >
             Cancel
-          </button>
+          </Button>
 
           {file && (
-            <button
+            <Button
               onClick={handleExecuteImport}
               disabled={isImporting || rawRows.length === 0}
-              className="px-5 py-2 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-semibold rounded-lg text-xs flex items-center gap-2 transition-all shadow-md cursor-pointer"
             >
               {isImporting ? (
                 <span>Importing...</span>
@@ -384,12 +384,11 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}
-            </button>
+            </Button>
           )}
         </div>
 
       </div>
-      </Surface>
-    </div>
+    </Dialog>
   );
 }

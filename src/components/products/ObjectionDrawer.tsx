@@ -5,6 +5,8 @@ import { X, ShieldAlert, Sparkles, Plus, MessageSquareQuote, Pencil } from "luci
 import { createObjectionAction } from "@/app/actions/objections";
 import { Product, Objection } from "@/lib/products";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, TextAreaField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -74,10 +76,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-lg">
-        <Surface variant="overlay">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="objection-drawer-title" placement="right" size="lg">
           <div className="flex h-full flex-col text-zinc-100">
           
           {/* Header */}
@@ -87,7 +86,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-zinc-100">
+                <h2 id="objection-drawer-title" className="text-base font-semibold text-zinc-100">
                   Sales Objection Battle-Card
                 </h2>
                 <p className="text-xs text-zinc-400 font-mono">
@@ -139,23 +138,23 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                   <div className="animate-in space-y-3 p-4 fade-in duration-200">
                   <h4 className="text-xs font-semibold text-zinc-200">New Objection Template</h4>
                   <div>
-                    <label className="text-[11px] text-zinc-400 block mb-1">Customer Objection Title</label>
-                    <input
+                    <FieldLabel htmlFor="new-objection-title">Customer Objection Title</FieldLabel>
+                    <TextField
+                      id="new-objection-title"
                       type="text"
                       placeholder="e.g. Price is too high / Shipping takes too long"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-zinc-400 block mb-1">Rebuttal Arguments (One per line)</label>
-                    <textarea
+                    <FieldLabel htmlFor="new-objection-arguments">Rebuttal Arguments (One per line)</FieldLabel>
+                    <TextAreaField
+                      id="new-objection-arguments"
                       rows={3}
                       placeholder="Enter talking point 1...&#10;Enter talking point 2..."
                       value={newArgs}
                       onChange={(e) => setNewArgs(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
@@ -246,11 +245,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
             </div>
 
           </div>
-
           </div>
-        </Surface>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

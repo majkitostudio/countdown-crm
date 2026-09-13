@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CalendarClock, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 interface CallbackScheduleModalProps {
   isOpen: boolean;
@@ -32,40 +33,6 @@ export function CallbackScheduleModal({
   const [validationError, setValidationError] = useState<string | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      const focusFrame = window.requestAnimationFrame(() => dateInputRef.current?.focus());
-      return () => window.cancelAnimationFrame(focusFrame);
-    }
-
-    const previousFocus = previousFocusRef.current;
-    previousFocusRef.current = null;
-    if (!previousFocus) return;
-
-    const restoreFrame = window.requestAnimationFrame(() => {
-      if (document.contains(previousFocus)) previousFocus.focus();
-    });
-    return () => window.cancelAnimationFrame(restoreFrame);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isSubmitting) {
-        event.preventDefault();
-        setValidationError(null);
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isSubmitting, onClose]);
-
   useEffect(() => {
     const visibleError = validationError || errorMessage;
     if (!isOpen || !visibleError) return;
@@ -88,8 +55,7 @@ export function CallbackScheduleModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="callback-dialog-title">
-      <Surface variant="overlay" className="w-full">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="callback-dialog-title" initialFocusRef={dateInputRef}>
       <form onSubmit={submit} className="mx-auto max-h-[calc(100vh-2rem)] w-full max-w-md space-y-5 overflow-y-auto p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -102,11 +68,11 @@ export function CallbackScheduleModal({
           <Button type="button" variant="quiet" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></Button>
         </div>
 
-        <label className="block space-y-1.5">
+        <FieldLabel htmlFor="callback-scheduled-at">
           <span className="text-xs font-medium text-zinc-300">Callback date and time</span>
-          <input ref={dateInputRef} type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600" />
+          <TextField id="callback-scheduled-at" ref={dateInputRef} type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required />
           <span className="block text-[11px] text-zinc-600">Časová zóna browseru: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
-        </label>
+        </FieldLabel>
 
         {(validationError || errorMessage) && <StatusAlert ref={errorRef} tone="danger" tabIndex={-1}>{validationError || errorMessage}</StatusAlert>}
 
@@ -115,7 +81,6 @@ export function CallbackScheduleModal({
           <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Scheduling…" : "Schedule callback"}</Button>
         </div>
       </form>
-      </Surface>
-    </div>
+    </Dialog>
   );
 }

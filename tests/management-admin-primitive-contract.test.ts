@@ -22,7 +22,7 @@ describe("management admin primitive contract", () => {
     expect(scripts).toContain('from "@/components/ui/Status"');
     expect(telephony).toContain('from "@/components/ui/Surface"');
     expect(telephony).toContain('from "@/components/ui/Status"');
-    expect(ruleBuilder).toContain('from "@/components/ui/Surface"');
+    expect(ruleBuilder).toContain('from "@/components/ui/Dialog"');
     expect(ruleBuilder).toContain('from "@/components/ui/Button"');
   });
 });

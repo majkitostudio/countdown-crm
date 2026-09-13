@@ -6,6 +6,8 @@ import { createObjectionAction, deleteObjectionAction, updateObjectionAction } f
 import { Product } from "@/lib/products";
 import { ObjectionBattleCard } from "@/lib/objections";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -116,9 +118,7 @@ export function ObjectionEditorModal({
   const visibleRebuttals = rebuttals.filter((rebuttal) => rebuttal.trim());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-4xl">
-      <Surface variant="overlay">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="objection-editor-dialog-title" size="xl">
         <div className="max-h-[90vh] space-y-6 overflow-y-auto p-6 text-zinc-100">
         <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export function ObjectionEditorModal({
               <Sparkles className="w-4 h-4 text-zinc-300" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-zinc-100">
+              <h2 id="objection-editor-dialog-title" className="text-base font-bold text-zinc-100">
                 {initialCard ? "Upravit námitkovou kartu" : "Vytvořit námitkovou kartu"}
               </h2>
               <p className="text-xs text-zinc-400">
@@ -142,22 +142,22 @@ export function ObjectionEditorModal({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7 space-y-4 text-xs">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
+              <FieldLabel htmlFor="objection-product">
                 Přiřazený produkt
-              </label>
-              <select value={productId} onChange={(event) => setProductId(event.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700">
+              </FieldLabel>
+              <SelectField id="objection-product" value={productId} onChange={(event) => setProductId(event.target.value)}>
                 <option value="">Všechny produkty (globální námitka)</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>{product.title}</option>
                 ))}
-              </select>
+              </SelectField>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block">
+              <FieldLabel htmlFor="objection-title">
                 Název námitky nebo detekční fráze
-              </label>
-              <textarea rows={2} value={objectionTitle} onChange={(event) => setObjectionTitle(event.target.value)} placeholder="např. Cena je příliš vysoká" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700" />
+              </FieldLabel>
+              <TextAreaField id="objection-title" rows={2} value={objectionTitle} onChange={(event) => setObjectionTitle(event.target.value)} placeholder="např. Cena je příliš vysoká" />
             </div>
 
             <div className="space-y-2 pt-2 border-t border-zinc-800">
@@ -171,7 +171,7 @@ export function ObjectionEditorModal({
                 {rebuttals.map((rebuttal, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-mono text-[10px] flex items-center justify-center shrink-0">{idx + 1}</span>
-                    <input type="text" value={rebuttal} onChange={(event) => handleRebuttalChange(idx, event.target.value)} placeholder={`Argument #${idx + 1}...`} className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700" />
+                    <div className="flex-1"><TextField type="text" value={rebuttal} onChange={(event) => handleRebuttalChange(idx, event.target.value)} placeholder={`Argument #${idx + 1}...`} /></div>
                     {rebuttals.length > 1 && <Button variant="danger" type="button" onClick={() => handleRemoveRebuttal(idx)}><Trash2 className="w-3.5 h-3.5" /></Button>}
                   </div>
                 ))}
@@ -211,8 +211,6 @@ export function ObjectionEditorModal({
           </div>
         </div>
         </div>
-      </Surface>
-      </div>
-    </div>
+    </Dialog>
   );
 }

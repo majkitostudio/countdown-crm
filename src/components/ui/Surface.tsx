@@ -10,7 +10,7 @@ const SURFACE_CLASS_NAMES: Record<SurfaceVariant, string> = {
   overlay: "rounded-overlay border border-border-default bg-surface-overlay shadow-overlay",
 };
 
-const SAFE_LAYOUT_CLASS_NAMES = new Set(["w-full"]);
+const SAFE_LAYOUT_CLASS_NAMES = new Set(["w-full", "h-full"]);
 
 export function getSafeLayoutClassName(className?: string): string {
   return (className ?? "")

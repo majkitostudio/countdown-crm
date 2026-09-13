@@ -15,8 +15,9 @@ import {
 import { CallRecord, formatCallOutcome } from "@/lib/calls";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 function reviewStatusLabel(status: CallRecord["review_status"]): string {
   if (status === "not_reviewed") return "Not reviewed";
@@ -46,9 +47,8 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-zinc-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <Surface variant="overlay" className="w-full">
-      <div className="w-full max-w-xl h-full flex flex-col">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="call-detail-dialog-title" placement="right" size="lg">
+      <div className="w-full h-full flex flex-col">
         
         {/* Header */}
         <div className="p-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
@@ -58,7 +58,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-semibold text-zinc-100 font-mono">Call Record #{call.id}</h2>
+                <h2 id="call-detail-dialog-title" className="text-base font-semibold text-zinc-100 font-mono">Call Record #{call.id}</h2>
                 <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(call.outcome)}`}>
                   {formatCallOutcome(call.outcome)}
                 </span>
@@ -72,12 +72,13 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
           </div>
 
-          <button
+          <Button
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+            variant="quiet"
+            aria-label="Close call detail"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Content Scrollable Body */}
@@ -191,7 +192,6 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
         </div>
 
       </div>
-      </Surface>
-    </div>
+    </Dialog>
   );
 }

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { blueprintEngine } from "@/lib/blueprints/engine";
 import { IndustryCategory, IndustryBlueprint } from "@/lib/blueprints/types";
 import { Button } from "@/components/ui/Button";
-import { Surface } from "@/components/ui/Surface";
+import { Dialog } from "@/components/ui/Dialog";
 
 interface BlueprintPickerModalProps {
   isOpen: boolean;
@@ -89,16 +89,8 @@ export function BlueprintPickerModal({
   const selectedTheme = getThemeColor();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-md"
-        onClick={onClose}
-      />
-
-      {/* Modal Card */}
-      <Surface variant="overlay" className="w-full">
-      <div className="relative mx-auto flex w-full max-w-4xl flex-col overflow-hidden max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="blueprint-dialog-title" size="xl">
+      <div className="relative mx-auto flex w-full flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-950">
           <div className="flex items-center gap-3">
@@ -107,7 +99,7 @@ export function BlueprintPickerModal({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-zinc-100">
+                <h2 id="blueprint-dialog-title" className="text-base font-bold text-zinc-100">
                   Oborové Balíčky & Šablony (Industry Blueprints)
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
@@ -332,7 +324,6 @@ export function BlueprintPickerModal({
           </Button>
         </div>
       </div>
-      </Surface>
-    </div>
+    </Dialog>
   );
 }

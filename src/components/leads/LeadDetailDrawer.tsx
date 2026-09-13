@@ -19,8 +19,9 @@ import { updateLeadStatusAction } from "@/app/actions/crm";
 import { WorkspaceActivity } from "@/lib/domain";
 import { getLeadActivities } from "@/lib/domainActivity";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, SelectField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -123,10 +124,8 @@ export function LeadDetailDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <Surface variant="overlay" className="w-full">
-        <div className="w-screen max-w-xl text-zinc-100 flex flex-col">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="lead-detail-dialog-title" placement="right" size="lg">
+        <div className="w-full h-full text-zinc-100 flex flex-col">
           
           {/* Header */}
           <div className="px-6 py-5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80 backdrop-blur-md sticky top-0 z-10">
@@ -135,7 +134,7 @@ export function LeadDetailDrawer({
                 {currentLead.full_name.charAt(0)}
               </div>
               <div>
-                <h2 className="text-lg font-semibold tracking-tight text-zinc-100">
+                <h2 id="lead-detail-dialog-title" className="text-lg font-semibold tracking-tight text-zinc-100">
                   {currentLead.full_name}
                 </h2>
                 <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
@@ -148,12 +147,13 @@ export function LeadDetailDrawer({
               </div>
             </div>
             
-            <button
+            <Button
               onClick={onClose}
-              className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+              variant="quiet"
+              aria-label="Close lead detail"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
 
           {/* Drawer Content Body */}
@@ -176,18 +176,18 @@ export function LeadDetailDrawer({
 
               {/* Status Select Box */}
               <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl flex flex-col justify-center">
-                <label className="text-xs text-zinc-400 mb-1 font-medium">Status</label>
-                <select
+                <FieldLabel htmlFor="lead-status">Status</FieldLabel>
+                <SelectField
+                  id="lead-status"
                   value={currentLead.status}
                   onChange={(e) => handleStatusChange(e.target.value as Lead["status"])}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-md text-xs font-mono px-2 py-1.5 text-zinc-200 focus:outline-none focus:border-zinc-500"
                 >
                   <option value="new">New</option>
                   <option value="contacted">Contacted</option>
                   <option value="qualified">Qualified</option>
                   <option value="customer">Customer</option>
                   <option value="unresponsive">Unresponsive</option>
-                </select>
+                </SelectField>
                 {statusError && (
                   <StatusAlert tone="danger">
                     Status nebyl uložen: {statusError}
@@ -262,11 +262,12 @@ export function LeadDetailDrawer({
 
             {/* Add New Note */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400 block">
+              <FieldLabel htmlFor="lead-note">
                 Add Call Note
-              </label>
+              </FieldLabel>
               <div className="flex gap-2">
-                <input
+                <TextField
+                  id="lead-note"
                   type="text"
                   value={newNote}
                   onChange={(event) => setNewNote(event.target.value)}
@@ -275,17 +276,16 @@ export function LeadDetailDrawer({
                   onKeyDown={(event) => {
                     if (event.key === "Enter") void handleAddNote();
                   }}
-                  className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => void handleAddNote()}
                   disabled={isSavingNote || !newNote.trim()}
-                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-200 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors border border-zinc-700 cursor-pointer"
+                  variant="secondary"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   {isSavingNote ? "Saving..." : "Add"}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -342,8 +342,6 @@ export function LeadDetailDrawer({
           </div>
 
         </div>
-        </Surface>
-      </div>
-    </div>
+    </Dialog>
   );
 }

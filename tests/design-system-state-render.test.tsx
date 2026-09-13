@@ -34,7 +34,7 @@ describe("entry and workspace state contract", () => {
     ]) {
       const content = source(path);
       if (path.includes("Modal")) {
-        expect(content).toContain('variant="overlay"');
+        expect(content).toMatch(/variant="overlay"|<Dialog/);
         expect(content).toMatch(/overflow-y-auto|max-h-/);
       } else {
         expect(content).toContain('tone="danger"');

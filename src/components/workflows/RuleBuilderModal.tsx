@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { Surface } from "@/components/ui/Surface";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, SelectField, TextField } from "@/components/ui/Field";
 import {
   TriggerType,
   ActionType,
@@ -174,16 +175,8 @@ export function RuleBuilderModal({
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Modal */}
-      <div className="relative mx-4 w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-      <Surface variant="overlay">
+    <Dialog isOpen aria-labelledby="rule-builder-dialog-title" onClose={onClose} size="lg">
+      <div className="relative mx-auto w-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80">
           <div className="flex items-center gap-3">
@@ -191,7 +184,7 @@ export function RuleBuilderModal({
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-zinc-100">
+                <h2 id="rule-builder-dialog-title" className="text-base font-semibold text-zinc-100">
                 {editingRule ? "Edit Automation Rule" : "New Automation Rule"}
               </h2>
               <p className="text-xs text-zinc-500 font-mono">
@@ -484,16 +477,15 @@ export function RuleBuilderModal({
                           {/* Config Fields */}
                           {def.configFields?.map((field) => (
                             <div key={field.key} className="space-y-1">
-                              <label className="text-[11px] text-zinc-500">
+                              <FieldLabel>
                                 {field.label}
-                              </label>
+                              </FieldLabel>
                               {field.type === "select" ? (
-                                <select
+                                <SelectField
                                   value={action.config[field.key] ?? ""}
                                   onChange={(e) =>
                                     updateActionConfig(i, field.key, e.target.value)
                                   }
-                                  className="w-full px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 focus:outline-none"
                                 >
                                   <option value="">Vyberte...</option>
                                   {field.options?.map((opt) => (
@@ -501,16 +493,15 @@ export function RuleBuilderModal({
                                       {opt.label}
                                     </option>
                                   ))}
-                                </select>
+                                </SelectField>
                               ) : (
-                                <input
+                                <TextField
                                   type="text"
                                   value={action.config[field.key] ?? ""}
                                   onChange={(e) =>
                                     updateActionConfig(i, field.key, e.target.value)
                                   }
                                   placeholder={field.placeholder}
-                                  className="w-full px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none"
                                 />
                               )}
                             </div>
@@ -555,8 +546,7 @@ export function RuleBuilderModal({
             </Button>
           )}
         </div>
-      </Surface>
       </div>
-    </div>
+    </Dialog>
   );
 }
