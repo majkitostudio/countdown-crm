@@ -66,4 +66,12 @@ describe("call session script snapshot contract", () => {
 
     expect(route).toMatch(/return NextResponse\.json\(\{[^}]*?(?:\.\.\.session|scriptSnapshot:\s*session\.scriptSnapshot)/);
   });
+
+  it.each(sessionRoutes)("checks the current assignment instead of opening the lead directory in %s", (relativePath) => {
+    const route = readSource(relativePath);
+
+    expect(route).toContain("getScopedLeadForWorkspace");
+    expect(route).toContain("getScopedLeadForWorkspace(body.leadId)");
+    expect(route).not.toContain('.from("leads")');
+  });
 });

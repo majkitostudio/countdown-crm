@@ -6,6 +6,7 @@ import { createTelephonySession } from "@/lib/dal/telephonySessions";
 import { normalizePhoneNumber } from "@/lib/telephony/phoneNumber";
 import { canTransitionCallStatus, type TelephonyCallStatus } from "@/lib/telephony/telnyxLifecycle";
 import { getAllowedPreviousStatuses, isSessionStatus } from "@/lib/telephony/sessionTransitions";
+import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 
 export const runtime = "nodejs";
 
@@ -25,13 +26,7 @@ export async function POST(request: Request) {
     if (!body.leadId || !toNumber) return NextResponse.json({ error: "A valid lead and E.164 phone number are required." }, { status: 400 });
 
     const dataClient = await createDataClient();
-    const { data: lead, error: leadError } = await dataClient
-      .from("leads")
-      .select("id")
-      .eq("id", body.leadId)
-      .eq("workspace_id", context.workspaceId)
-      .maybeSingle();
-    if (leadError || !lead) return NextResponse.json({ error: "Lead is not available in this workspace." }, { status: 404 });
+    await getScopedLeadForWorkspace(body.leadId);
 
     if (body.queueItemId) {
       const { data: queueItem, error: queueError } = await dataClient

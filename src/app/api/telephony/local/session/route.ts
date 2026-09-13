@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
-import { createDataClient } from "@/lib/dal/db";
 import { DataAccessError } from "@/lib/dal/errors";
 import { createTelephonySession, transitionTelephonySession } from "@/lib/dal/telephonySessions";
 import { recordTelephonyEvent } from "@/lib/dal/telephonyEvents";
 import { getActiveTelephonyAdapter } from "@/lib/dal/telephonySettings";
+import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isSessionStatus } from "@/lib/telephony/sessionTransitions";
 
 export const runtime = "nodejs";
@@ -33,14 +33,7 @@ export async function POST(request: Request) {
       : null;
     if (!body.leadId || !toNumber) return NextResponse.json({ error: "Local SIP calls are limited to internal extensions 1001 and 1002." }, { status: 400 });
 
-    const dataClient = await createDataClient();
-    const { data: lead, error: leadError } = await dataClient
-      .from("leads")
-      .select("id")
-      .eq("id", body.leadId)
-      .eq("workspace_id", context.workspaceId)
-      .maybeSingle();
-    if (leadError || !lead) return NextResponse.json({ error: "Lead is not available in this workspace." }, { status: 404 });
+    await getScopedLeadForWorkspace(body.leadId);
 
     const session = await createTelephonySession({
       workspaceId: context.workspaceId,

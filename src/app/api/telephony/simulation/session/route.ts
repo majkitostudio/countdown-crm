@@ -5,6 +5,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 import { createTelephonySession, transitionTelephonySession } from "@/lib/dal/telephonySessions";
 import { recordTelephonyEvent } from "@/lib/dal/telephonyEvents";
 import { getActiveTelephonyAdapter } from "@/lib/dal/telephonySettings";
+import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isSessionStatus } from "@/lib/telephony/sessionTransitions";
 
 export const runtime = "nodejs";
@@ -33,13 +34,7 @@ export async function POST(request: Request) {
     }
     const queueItemId = typeof body.queueItemId === "string" && body.queueItemId.trim() ? body.queueItemId : null;
     const dataClient = await createDataClient();
-    const { data: lead, error: leadError } = await dataClient
-      .from("leads")
-      .select("id")
-      .eq("id", body.leadId)
-      .eq("workspace_id", context.workspaceId)
-      .maybeSingle();
-    if (leadError || !lead) return NextResponse.json({ error: "Lead is not available in this workspace." }, { status: 404 });
+    await getScopedLeadForWorkspace(body.leadId);
 
     if (queueItemId) {
       const { data: queueItem, error: queueError } = await dataClient
