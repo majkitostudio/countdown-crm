@@ -18,10 +18,17 @@ const DIALOG_PLACEMENT_CLASS_NAMES: Record<DialogPlacement, string> = {
   right: "flex justify-end",
 };
 
+const RIGHT_DIALOG_WIDTH_CLASS_NAMES: Record<DialogSize, string> = {
+  sm: "md:max-w-sm",
+  md: "md:max-w-md",
+  lg: "md:max-w-2xl",
+  xl: "md:max-w-4xl",
+};
+
 export function getDialogPanelClassName(size: DialogSize, placement: DialogPlacement = "center"): string {
   if (placement === "center") return DIALOG_PANEL_CLASS_NAMES[size];
 
-  return `${DIALOG_PANEL_CLASS_NAMES[size]} h-full max-h-screen rounded-none md:max-w-2xl`;
+  return `${DIALOG_PANEL_CLASS_NAMES[size]} h-full max-h-screen rounded-none ${RIGHT_DIALOG_WIDTH_CLASS_NAMES[size]}`;
 }
 
 interface DialogProps {
@@ -29,6 +36,7 @@ interface DialogProps {
   children: ReactNode;
   isOpen: boolean;
   onClose: () => void;
+  closeOnEscape?: boolean;
   placement?: DialogPlacement;
   size?: DialogSize;
   initialFocusRef?: RefObject<HTMLElement | null>;
@@ -46,16 +54,22 @@ export function Dialog({
   onClose,
   placement = "center",
   size = "md",
+  closeOnEscape = true,
   initialFocusRef,
   "aria-labelledby": ariaLabelledby,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+  const closeOnEscapeRef = useRef(closeOnEscape);
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    closeOnEscapeRef.current = closeOnEscape;
+  }, [closeOnEscape]);
 
   useEffect(() => {
     if (isOpen) {
@@ -66,7 +80,7 @@ export function Dialog({
       });
 
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
+        if (event.key === "Escape" && closeOnEscapeRef.current) {
           event.preventDefault();
           onCloseRef.current();
           return;

@@ -55,7 +55,7 @@ export function CallbackScheduleModal({
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="callback-dialog-title" initialFocusRef={dateInputRef}>
+    <Dialog isOpen={isOpen} onClose={onClose} closeOnEscape={!isSubmitting} aria-labelledby="callback-dialog-title" initialFocusRef={dateInputRef}>
       <form onSubmit={submit} className="mx-auto max-h-[calc(100vh-2rem)] w-full max-w-md space-y-5 overflow-y-auto p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
