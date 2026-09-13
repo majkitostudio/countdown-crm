@@ -18,7 +18,8 @@ describe("product component visual contract", () => {
     expect(productCard).toContain('import { Surface } from "@/components/ui/Surface"');
     expect(productCard).toContain('import { StatusBadge } from "@/components/ui/Status"');
     expect(productModal).toContain('import { Button } from "@/components/ui/Button"');
-    expect(productModal).toContain('import { Surface } from "@/components/ui/Surface"');
+    expect(productModal).toContain('import { Dialog } from "@/components/ui/Dialog"');
+    expect(productModal).toContain('import { FieldLabel, SelectField, TextAreaField, TextField } from "@/components/ui/Field"');
     expect(productModal).toContain('import { StatusAlert } from "@/components/ui/Status"');
     expect(objectionDrawer).toContain('import { Button } from "@/components/ui/Button"');
     expect(objectionDrawer).toContain('import { Surface } from "@/components/ui/Surface"');

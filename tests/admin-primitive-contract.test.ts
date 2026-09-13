@@ -28,4 +28,11 @@ describe("admin primitive contract", () => {
     expect(source).toContain('import { Dialog } from "@/components/ui/Dialog"');
     expect(source).toContain('<Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="custom-field-dialog-title">');
   });
+
+  it("uses the shared dialog and field primitives for product administration", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/components/products/ProductModal.tsx"), "utf8");
+    expect(source).toContain('import { Dialog } from "@/components/ui/Dialog"');
+    expect(source).toContain('import { FieldLabel, SelectField, TextAreaField, TextField } from "@/components/ui/Field"');
+    expect(source).toContain('<Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="product-dialog-title" size="lg">');
+  });
 });

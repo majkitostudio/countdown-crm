@@ -5,7 +5,8 @@ import { X, Package, Check } from "lucide-react";
 import { Product, ProductCategory, createProduct, updateProduct } from "@/lib/products";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
+import { Dialog } from "@/components/ui/Dialog";
+import { FieldLabel, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
 
 interface ProductModalProps {
   product: Product | null;
@@ -53,8 +54,6 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
     return () => clearTimeout(timer);
   }, [product, isOpen]);
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -88,9 +87,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg">
-      <Surface variant="overlay">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="product-dialog-title" size="lg">
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-950/80">
@@ -98,7 +95,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
             <div className="p-2 bg-zinc-900 text-zinc-300 rounded-lg border border-zinc-800">
               <Package className="w-5 h-5" />
             </div>
-            <h2 className="text-base font-semibold text-zinc-100">
+            <h2 id="product-dialog-title" className="text-base font-semibold text-zinc-100">
               {product ? "Edit Product" : "Add New Product"}
             </h2>
           </div>
@@ -115,81 +112,78 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
           
           {/* Title Input */}
           <div>
-            <label className="text-zinc-400 block mb-1 font-medium">Product Title *</label>
-            <input
+            <FieldLabel htmlFor="product-title">Product Title *</FieldLabel>
+            <TextField
+              id="product-title"
               type="text"
               required
               placeholder="e.g. Bio-Boost Anti-Aging Stack"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
             />
           </div>
 
           {/* Category & Price Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-zinc-400 block mb-1 font-medium">Category *</label>
-              <select
+              <FieldLabel htmlFor="product-category">Category *</FieldLabel>
+              <SelectField
+                id="product-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ProductCategory)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-zinc-700"
               >
                 <option value="supplements">Supplements</option>
                 <option value="cosmetics">Cosmetics</option>
                 <option value="electronics">Electronics</option>
-              </select>
+              </SelectField>
             </div>
 
             <div>
-              <label className="text-zinc-400 block mb-1 font-medium">Price (USD) *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 font-mono">$</span>
-                <input
+              <FieldLabel htmlFor="product-price">Price (USD) *</FieldLabel>
+                <TextField
+                  id="product-price"
                   type="number"
                   step="0.01"
                   required
                   value={price}
                   onChange={(e) => setPrice(Number(e.target.value))}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-7 pr-3 py-2 text-zinc-200 focus:outline-none focus:border-zinc-700 font-mono"
                 />
-              </div>
             </div>
           </div>
 
           {/* Image URL Input */}
           <div>
-            <label className="text-zinc-400 block mb-1 font-medium">Product Image URL</label>
-            <input
+            <FieldLabel htmlFor="product-image-url">Product Image URL</FieldLabel>
+            <TextField
+              id="product-image-url"
               type="url"
               placeholder="https://images.unsplash.com/..."
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-zinc-400 block mb-1 font-medium">Description & Benefits</label>
-            <textarea
+            <FieldLabel htmlFor="product-description">Description & Benefits</FieldLabel>
+            <TextAreaField
+              id="product-description"
               rows={3}
               placeholder="Describe key ingredients, usage instructions, and value proposition..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
             />
           </div>
 
           {/* Stock Count & Availability */}
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-800">
             <div>
-              <label className="text-zinc-400 block mb-1 font-medium">Stock Quantity</label>
-              <input
+              <FieldLabel htmlFor="product-stock-count">Stock Quantity</FieldLabel>
+              <TextField
+                id="product-stock-count"
                 type="number"
                 value={stockCount}
                 onChange={(e) => setStockCount(Number(e.target.value))}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-zinc-700 font-mono"
               />
             </div>
 
@@ -235,8 +229,6 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
 
         </form>
 
-      </Surface>
-      </div>
-    </div>
+    </Dialog>
   );
 }

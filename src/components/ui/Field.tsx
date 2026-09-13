@@ -33,5 +33,5 @@ export type FieldLabelProps = Omit<ComponentPropsWithoutRef<"label">, "className
 
 export function FieldLabel({ style: _style, ...props }: FieldLabelProps) {
   void _style;
-  return <label className="block text-xs font-medium text-text-secondary" {...props} />;
+  return <label className="mb-1.5 block text-xs font-medium text-text-secondary" {...props} />;
 }
