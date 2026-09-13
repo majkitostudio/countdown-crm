@@ -221,29 +221,29 @@ export function RuleBuilderModal({
             <>
               {/* Rule Name */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                <FieldLabel htmlFor="rule-name">
                   Název pravidla
-                </label>
-                <input
+                </FieldLabel>
+                <TextField
+                  id="rule-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Např. AI Summary po úspěšném hovoru"
-                  className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition-colors"
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+                <FieldLabel htmlFor="rule-description">
                   Popis (volitelný)
-                </label>
-                <input
+                </FieldLabel>
+                <TextField
+                  id="rule-description"
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Stručný popis co pravidlo dělá..."
-                  className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 transition-colors"
                 />
               </div>
 
@@ -334,42 +334,42 @@ export function RuleBuilderModal({
                       className="flex items-center gap-2 p-3 bg-zinc-900/60 border border-zinc-800 rounded-lg"
                     >
                       {/* Field */}
-                      <select
+                      <SelectField
                         value={cond.field}
                         onChange={(e) => updateCondition(i, { field: e.target.value })}
-                        className="flex-1 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 focus:outline-none"
+                        className="flex-1"
                       >
                         {CONDITION_FIELDS[trigger].map((f) => (
                           <option key={f.value} value={f.value}>
                             {f.label}
                           </option>
                         ))}
-                      </select>
+                      </SelectField>
 
                       {/* Operator */}
-                      <select
+                      <SelectField
                         value={cond.operator}
                         onChange={(e) =>
                           updateCondition(i, {
                             operator: e.target.value as TriggerCondition["operator"],
                           })
                         }
-                        className="w-28 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 focus:outline-none font-mono"
+                        className="w-28"
                       >
                         <option value="equals">rovná se</option>
                         <option value="not_equals">nerovná se</option>
                         <option value="contains">obsahuje</option>
                         <option value="greater_than">větší než</option>
                         <option value="less_than">menší než</option>
-                      </select>
+                      </SelectField>
 
                       {/* Value */}
-                      <input
+                      <TextField
                         type="text"
                         value={cond.value}
                         onChange={(e) => updateCondition(i, { value: e.target.value })}
                         placeholder="hodnota..."
-                        className="flex-1 px-2 py-1.5 bg-zinc-800 border border-zinc-700 rounded text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none"
+                        className="flex-1"
                       />
 
                       {/* Remove */}

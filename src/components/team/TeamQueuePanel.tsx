@@ -12,6 +12,7 @@ import type { QueueItemDTO } from "@/lib/dal/leadQueue";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import type { TeamMutationHandler } from "@/components/team/TeamPageContent";
 import { Button } from "@/components/ui/Button";
+import { SelectField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -144,16 +145,16 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                       <div className="flex flex-col items-stretch gap-2">
                         {canReassign && (
                           <div className="flex items-center gap-2">
-                            <select
+                            <SelectField
                               value={selectedOperators[item.id] || ""}
                               onChange={(event) => setSelectedOperators((current) => ({ ...current, [item.id]: event.target.value }))}
                               disabled={isBusy || operatorsState === "unavailable" || operators.length === 0}
-                              className="min-w-[170px] rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-2 text-[11px] text-zinc-300 disabled:opacity-50"
+                              className="w-full"
                               aria-label={`Reassign ${item.lead.full_name}`}
                             >
                               <option value="">Reassign to…</option>
                               {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
-                            </select>
+                            </SelectField>
                             <Button variant="secondary" disabled={isBusy || !selectedOperators[item.id]} onClick={() => reassign(item)}>Assign</Button>
                           </div>
                         )}

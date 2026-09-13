@@ -18,6 +18,14 @@ const DIALOG_OVERLAYS = [
   "src/components/products/CallTranscriptUploaderModal.tsx",
   "src/components/workspace/CallbackScheduleModal.tsx",
   "src/components/calls/CallDetailDrawer.tsx",
+  "src/components/calendar/OperatorCalendar.tsx",
+] as const;
+
+const ADMIN_FORMS = [
+  "src/components/exceptions/ExceptionQueue.tsx",
+  "src/components/team/TeamMembersPanel.tsx",
+  "src/components/team/TeamQueuePanel.tsx",
+  "src/components/wallet/WalletManagerPanel.tsx",
 ] as const;
 
 describe("admin overlay migration contract", () => {
@@ -37,6 +45,14 @@ describe("admin overlay migration contract", () => {
         expect(content, path).toContain('from "@/components/ui/Field"');
         expect(content, path).toMatch(/<(TextField|SelectField|TextAreaField)/);
       }
+    }
+  });
+
+  it("uses shared field primitives in administrative panels", () => {
+    for (const path of ADMIN_FORMS) {
+      const content = source(path);
+      expect(content, path).toContain('from "@/components/ui/Field"');
+      expect(content, path).toMatch(/<(TextField|SelectField|TextAreaField)/);
     }
   });
 });

@@ -10,6 +10,7 @@ import {
 } from "@/app/actions/wallet";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import { Button } from "@/components/ui/Button";
+import { FieldLabel, SelectField, TextAreaField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -138,18 +139,18 @@ export function WalletManagerPanel({
       <div className={`grid gap-5 ${showSettings && showRules && showAdjustment ? "lg:grid-cols-3" : "lg:grid-cols-1"}`}>
         {showSettings && <form onSubmit={submitSettings} className="space-y-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
           <h3 className="text-xs font-semibold text-zinc-200">Commission settings</h3>
-          <label className="block text-[11px] text-zinc-500">
+          <FieldLabel htmlFor="wallet-currency">
             Wallet currency
-            <select value={currency} onChange={(event) => setCurrency(event.target.value as WalletCurrency)} disabled={isPending} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600">
+            <SelectField id="wallet-currency" value={currency} onChange={(event) => setCurrency(event.target.value as WalletCurrency)} disabled={isPending}>
               <option value="CZK">CZK</option>
               <option value="EUR">EUR</option>
               <option value="PLN">PLN</option>
-            </select>
-          </label>
-          <label className="block text-[11px] text-zinc-500">
+            </SelectField>
+          </FieldLabel>
+          <FieldLabel htmlFor="wallet-rate">
             Monthly commission rate (%)
-            <input type="number" min="0" max="100" step="0.01" value={rate} onChange={(event) => setRate(event.target.value)} disabled={isPending} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600" />
-          </label>
+            <TextField id="wallet-rate" type="number" min="0" max="100" step="0.01" value={rate} onChange={(event) => setRate(event.target.value)} disabled={isPending} />
+          </FieldLabel>
           <Button type="submit" disabled={isPending} className="w-full">
             {isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
             Save settings
@@ -160,10 +161,10 @@ export function WalletManagerPanel({
           <h3 className="text-xs font-semibold text-zinc-200">Add bonus threshold</h3>
           <p className="text-[11px] leading-relaxed text-zinc-500">The highest threshold at or below an order total wins.</p>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-[11px] text-zinc-500">Order from<input type="number" min="0.01" step="0.01" value={threshold} onChange={(event) => setThreshold(event.target.value)} disabled={isPending} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600" /></label>
-            <label className="block text-[11px] text-zinc-500">Bonus<input type="number" min="0.01" step="0.01" value={bonus} onChange={(event) => setBonus(event.target.value)} disabled={isPending} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600" /></label>
+            <FieldLabel htmlFor="wallet-threshold">Order from<TextField id="wallet-threshold" type="number" min="0.01" step="0.01" value={threshold} onChange={(event) => setThreshold(event.target.value)} disabled={isPending} /></FieldLabel>
+            <FieldLabel htmlFor="wallet-bonus">Bonus<TextField id="wallet-bonus" type="number" min="0.01" step="0.01" value={bonus} onChange={(event) => setBonus(event.target.value)} disabled={isPending} /></FieldLabel>
           </div>
-          <label className="block text-[11px] text-zinc-500">Effective from<input type="date" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} disabled={isPending} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600" /></label>
+          <FieldLabel htmlFor="wallet-effective-from">Effective from<TextField id="wallet-effective-from" type="date" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} disabled={isPending} /></FieldLabel>
           <Button type="submit" variant="secondary" disabled={isPending} className="w-full">
             {isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
             Add rule in {currency}
@@ -172,9 +173,9 @@ export function WalletManagerPanel({
 
         {showAdjustment && <form onSubmit={submitAdjustment} className="space-y-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
           <h3 className="text-xs font-semibold text-zinc-200">Manual adjustment</h3>
-          <label className="block text-[11px] text-zinc-500">Member<select value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)} disabled={isPending || members.length === 0} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600"><option value="">Select member</option>{members.map((member) => <option key={member.user_id} value={member.user_id}>{member.full_name}</option>)}</select></label>
-          <label className="block text-[11px] text-zinc-500">Amount (+ / - {currency})<input type="number" step="0.01" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} disabled={isPending} className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600" /></label>
-          <label className="block text-[11px] text-zinc-500">Reason<textarea maxLength={500} rows={2} value={reason} onChange={(event) => setReason(event.target.value)} disabled={isPending} className="mt-2 w-full resize-none rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600" /></label>
+          <FieldLabel htmlFor="wallet-member">Member<SelectField id="wallet-member" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)} disabled={isPending || members.length === 0}><option value="">Select member</option>{members.map((member) => <option key={member.user_id} value={member.user_id}>{member.full_name}</option>)}</SelectField></FieldLabel>
+          <FieldLabel htmlFor="wallet-adjustment">Amount (+ / - {currency})<TextField id="wallet-adjustment" type="number" step="0.01" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} disabled={isPending} /></FieldLabel>
+          <FieldLabel htmlFor="wallet-reason">Reason<TextAreaField id="wallet-reason" maxLength={500} rows={2} value={reason} onChange={(event) => setReason(event.target.value)} disabled={isPending} /></FieldLabel>
           <Button type="submit" variant="secondary" disabled={isPending || !targetUserId} className="w-full">
             {isPending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
             Save audited adjustment

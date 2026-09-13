@@ -5,7 +5,7 @@ import { X, UploadCloud, FileSpreadsheet, Sparkles, ArrowRight, AlertCircle } fr
 import { Lead, addLeadsBatch, calculateAiLeadScore } from "@/lib/leads";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
-import { TextField } from "@/components/ui/Field";
+import { SelectField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 
 interface CsvImportModalProps {
@@ -268,56 +268,52 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                 <div className="grid grid-cols-2 gap-3 bg-zinc-950/40 p-4 border border-zinc-800 rounded-xl text-xs">
                   <div>
                     <label className="text-zinc-400 block mb-1">Full Name *</label>
-                    <select
+                    <SelectField
                       value={columnMapping.full_name}
                       onChange={(e) => setColumnMapping({ ...columnMapping, full_name: e.target.value })}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded p-1.5 text-zinc-200"
                     >
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div>
                     <label className="text-zinc-400 block mb-1">Phone Number *</label>
-                    <select
+                    <SelectField
                       value={columnMapping.phone}
                       onChange={(e) => setColumnMapping({ ...columnMapping, phone: e.target.value })}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded p-1.5 text-zinc-200"
                     >
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div>
                     <label className="text-zinc-400 block mb-1">Email Address</label>
-                    <select
+                    <SelectField
                       value={columnMapping.email}
                       onChange={(e) => setColumnMapping({ ...columnMapping, email: e.target.value })}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded p-1.5 text-zinc-200"
                     >
                       <option value="">-- None --</option>
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
-                    </select>
+                    </SelectField>
                   </div>
 
                   <div>
                     <label className="text-zinc-400 block mb-1">City / Region</label>
-                    <select
+                    <SelectField
                       value={columnMapping.city}
                       onChange={(e) => setColumnMapping({ ...columnMapping, city: e.target.value })}
-                      className="w-full bg-zinc-900 border border-zinc-700 rounded p-1.5 text-zinc-200"
                     >
                       <option value="">-- None --</option>
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
-                    </select>
+                    </SelectField>
                   </div>
                 </div>
               </div>

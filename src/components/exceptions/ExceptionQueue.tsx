@@ -18,6 +18,7 @@ import {
 } from "@/app/actions/exceptionQueue";
 import type { ExceptionQueueDTO, ExceptionQueueItemDTO } from "@/lib/dal/exceptionQueue";
 import { Button } from "@/components/ui/Button";
+import { SelectField, TextAreaField } from "@/components/ui/Field";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
@@ -159,35 +160,32 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <select
+            <SelectField
               value={view}
               onChange={(event) => setView(event.target.value as QueueView)}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-300"
               aria-label="Exception status"
             >
               <option value="open">Open ({data.items.length})</option>
               <option value="handled">Handled / snoozed ({data.history.length})</option>
-            </select>
-            <select
+            </SelectField>
+            <SelectField
               value={priority}
               onChange={(event) => setPriority(event.target.value)}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-300"
               aria-label="Exception priority"
             >
               <option value="all">All priorities</option>
               <option value="critical">Critical</option>
               <option value="high">High</option>
               <option value="medium">Medium</option>
-            </select>
-            <select
+            </SelectField>
+            <SelectField
               value={type}
               onChange={(event) => setType(event.target.value)}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-300"
               aria-label="Exception type"
             >
               <option value="all">All types</option>
               {Object.entries(TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
+            </SelectField>
             <Button variant="secondary"
               type="button"
               onClick={() => void refresh()}
@@ -273,22 +271,21 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                       <label className="block text-xs font-medium text-zinc-300" htmlFor={`exception-reason-${item.id}`}>
                         {editor.mode === "resolve" ? "What was done?" : "Why should this wait?"}
                       </label>
-                      <textarea
+                      <TextAreaField
                         id={`exception-reason-${item.id}`}
                         value={reason}
                         onChange={(event) => setReason(event.target.value)}
                         rows={3}
                         maxLength={2000}
-                        className="mt-2 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-600"
                       />
                       <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                         {editor.mode === "snooze" && (
-                          <select value={snoozeHours} onChange={(event) => setSnoozeHours(event.target.value)} className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-300" aria-label="Snooze duration">
+                          <SelectField value={snoozeHours} onChange={(event) => setSnoozeHours(event.target.value)} aria-label="Snooze duration">
                             <option value="1">1 hour</option>
                             <option value="4">4 hours</option>
                             <option value="24">1 day</option>
                             <option value="168">1 week</option>
-                          </select>
+                          </SelectField>
                         )}
                         <button type="button" onClick={() => setEditor(null)} disabled={busy === item.id} className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400 disabled:opacity-50">Cancel</button>
                         <button type="button" onClick={() => void submitEditor()} disabled={busy === item.id} className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 disabled:opacity-50">

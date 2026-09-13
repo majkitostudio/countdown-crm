@@ -11,6 +11,7 @@ import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
 import { Button } from "@/components/ui/Button";
+import { SelectField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -105,15 +106,15 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
                 </div>
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="hidden h-4 w-4 text-zinc-500 sm:block" />
-                  <select
+                  <SelectField
                     value={member.role}
                     disabled={isBusy || isCurrentUser}
                     onChange={(event) => void changeRole(member.user_id, event.target.value as WorkspaceRole)}
-                    className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-32"
                     aria-label={`Role for ${member.full_name || member.email}`}
                   >
                     {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{getWorkspaceRoleLabel(role)}</option>)}
-                  </select>
+                  </SelectField>
                   <Button
                     variant="danger"
                     disabled={isBusy || isCurrentUser}
