@@ -19,6 +19,7 @@ const DIALOG_OVERLAYS = [
   "src/components/workspace/CallbackScheduleModal.tsx",
   "src/components/calls/CallDetailDrawer.tsx",
   "src/components/calendar/OperatorCalendar.tsx",
+  "src/components/layout/CommandPalette.tsx",
 ] as const;
 
 const ADMIN_FORMS = [

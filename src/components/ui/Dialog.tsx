@@ -74,10 +74,8 @@ export function Dialog({
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      const focusFrame = window.requestAnimationFrame(() => {
-        const firstFocusable = initialFocusRef?.current ?? getFocusableElements(dialogRef.current ?? document.body)[0];
-        (firstFocusable ?? dialogRef.current)?.focus();
-      });
+      const firstFocusable = initialFocusRef?.current ?? getFocusableElements(dialogRef.current ?? document.body)[0];
+      (firstFocusable ?? dialogRef.current)?.focus();
 
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === "Escape" && closeOnEscapeRef.current) {
@@ -106,21 +104,16 @@ export function Dialog({
         }
       };
 
-      document.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("keydown", handleKeyDown);
       return () => {
-        window.cancelAnimationFrame(focusFrame);
-        document.removeEventListener("keydown", handleKeyDown);
+        window.removeEventListener("keydown", handleKeyDown);
       };
     }
 
     const previousFocus = previousFocusRef.current;
     previousFocusRef.current = null;
     if (!previousFocus) return;
-
-    const restoreFrame = window.requestAnimationFrame(() => {
-      if (document.contains(previousFocus)) previousFocus.focus();
-    });
-    return () => window.cancelAnimationFrame(restoreFrame);
+    if (document.contains(previousFocus)) previousFocus.focus();
   }, [initialFocusRef, isOpen]);
 
   if (!isOpen) return null;

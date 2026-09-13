@@ -15,8 +15,9 @@ import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { canManageLeads } from "@/lib/auth/roles";
 import { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "./headerNavigation";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { TextField } from "@/components/ui/Field";
 import { StatusBadge } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 export { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "./headerNavigation";
 
@@ -25,7 +26,6 @@ export function CommandPalette() {
   const [query, setQuery] = useState("");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const router = useRouter();
@@ -52,45 +52,12 @@ export function CommandPalette() {
         } else {
           openPalette();
         }
-      } else if (e.key === "Escape" && isOpen) {
-        e.preventDefault();
-        closePalette();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePalette, isOpen, openPalette]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    searchInputRef.current?.focus();
-
-    const trapFocus = (event: KeyboardEvent) => {
-      if (event.key !== "Tab" || !dialogRef.current) return;
-
-      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      )).filter((element) => element.getAttribute("aria-hidden") !== "true");
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const activeElement = document.activeElement;
-
-      if (event.shiftKey && activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.addEventListener("keydown", trapFocus);
-    return () => window.removeEventListener("keydown", trapFocus);
-  }, [isOpen]);
 
   // Load search data on open
   useEffect(() => {
@@ -127,34 +94,21 @@ export function CommandPalette() {
   );
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 pb-8 pt-24 backdrop-blur-md animate-in fade-in duration-150"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) closePalette();
-      }}
-    >
-      <div ref={dialogRef} className="w-full max-w-2xl">
-      <Surface
-        variant="overlay"
-        className="w-full"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="command-palette-title"
-      >
+    <Dialog isOpen={isOpen} onClose={closePalette} aria-labelledby="command-palette-title" size="lg" initialFocusRef={searchInputRef}>
+      <div className="w-full pt-20">
         <h2 id="command-palette-title" className="sr-only">Command palette</h2>
         
         {/* Search Input Bar */}
         <div className="p-4 border-b border-zinc-800/80 flex items-center gap-3">
           <Search className="w-5 h-5 text-zinc-400" />
-          <input
+          <TextField
             type="text"
             ref={searchInputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={getCommandPalettePlaceholder(identity?.role)}
             aria-label="Search commands and available records"
-            className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 focus:outline-none"
+            className="flex-1"
           />
           <kbd className="px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-[10px] font-mono text-zinc-400">
             ESC
@@ -268,8 +222,7 @@ export function CommandPalette() {
           </span>
         </div>
 
-      </Surface>
       </div>
-    </div>
+    </Dialog>
   );
 }
