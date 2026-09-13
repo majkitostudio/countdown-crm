@@ -11,10 +11,16 @@ import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/Button";
 import { getAllowedSidebarNavigationItems } from "./sidebarNavigation";
+import { getSidebarClassName } from "./sidebarLayout";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onMobileOpenChange: (open: boolean) => void;
+}
+
+export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
   const pathname = usePathname();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -29,16 +35,6 @@ export function Sidebar() {
     statusToggleContainerRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
     setStatusMenuOpen(false);
   };
-
-  useEffect(() => {
-    const collapseForNarrowViewport = () => {
-      if (window.innerWidth < 768) setIsCollapsed(true);
-    };
-
-    collapseForNarrowViewport();
-    window.addEventListener("resize", collapseForNarrowViewport);
-    return () => window.removeEventListener("resize", collapseForNarrowViewport);
-  }, []);
 
   useEffect(() => {
     if (!statusMenuOpen) return;
@@ -90,10 +86,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={cn(
-        "relative flex shrink-0 flex-col h-screen bg-zinc-950/90 backdrop-blur-md border-r border-zinc-800/80 transition-all duration-300 z-30 select-none",
-        isCompact ? "w-18" : "w-64"
-      )}
+      className={getSidebarClassName(isCompact, mobileOpen)}
     >
       {/* Brand Logo Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/80">
@@ -115,7 +108,7 @@ export function Sidebar() {
         {!isCollapsed && (
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+            className="hidden rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? (
@@ -128,7 +121,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav id="primary-navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Primary navigation">
         {getAllowedSidebarNavigationItems(isIdentityLoading ? null : identity?.role).map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -140,6 +133,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => onMobileOpenChange(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
                 isActive

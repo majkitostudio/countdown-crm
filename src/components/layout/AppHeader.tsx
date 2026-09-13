@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Layers, LogOut, Search, ShieldCheck } from "lucide-react";
+import { ChevronDown, Layers, LogOut, Menu, Search, ShieldCheck } from "lucide-react";
 import { blueprintEngine } from "@/lib/blueprints/engine";
 import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerModal";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
@@ -21,7 +21,7 @@ function getHeaderSearchPlaceholder(role: Parameters<typeof isTeamLeaderOrAdmini
 
 export { getHeaderSearchPlaceholder };
 
-export function AppHeader() {
+export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }) {
   const router = useRouter();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
@@ -95,6 +95,9 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-20 flex min-h-16 shrink-0 items-center justify-between gap-4 border-b border-zinc-800/80 bg-zinc-950/90 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+      <Button variant="quiet" className="md:hidden" onClick={onOpenNavigation} aria-label="Open navigation" aria-controls="primary-navigation">
+        <Menu className="h-5 w-5" aria-hidden="true" />
+      </Button>
       <div className="min-w-0 flex-1 max-w-2xl">
         <Button variant="secondary" onClick={openCommandPalette} className="w-full" aria-label="Open command palette">
         <span className="flex min-w-0 flex-1 items-center gap-3 text-zinc-400">
