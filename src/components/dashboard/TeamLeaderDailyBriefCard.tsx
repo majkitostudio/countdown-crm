@@ -3,17 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarClock, CheckCircle2, ClipboardList, Coins, PhoneCall } from "lucide-react";
-import { listCalendarEntriesAction } from "@/app/actions/calendar";
-import { getAnalyticsDataAction } from "@/app/actions/analytics";
-import { listCallsAction } from "@/app/actions/crm";
-import { getWalletOverviewAction } from "@/app/actions/wallet";
-import { buildTeamLeaderDailyBrief, type TeamLeaderDailyBrief } from "@/lib/teamLeaderDailyBrief";
+import { loadDashboardDailyBriefAction, type DashboardDailyBriefActionResult } from "@/app/actions/dashboard";
 import { formatCurrencyAmounts } from "@/lib/currency";
 
-type BriefState =
-  | { status: "loading" }
-  | { status: "forbidden" | "unavailable"; message: string }
-  | { status: "ready"; brief: TeamLeaderDailyBrief; warnings: string[] };
+type BriefState = DashboardDailyBriefActionResult | { status: "loading" };
 
 function formatAmount(amount: number, currency: string): string {
   try {
@@ -36,69 +29,9 @@ export function TeamLeaderDailyBriefCard() {
 
     async function loadBrief() {
       try {
-        const analyticsResult = await getAnalyticsDataAction();
-        if (!analyticsResult.ok) {
-          if (!cancelled) {
-            setState({
-              status: analyticsResult.code === "FORBIDDEN" ? "forbidden" : "unavailable",
-              message: analyticsResult.message,
-            });
-          }
-          return;
-        }
-
-        const [calendarResult, walletResult, callsResult] = await Promise.allSettled([
-          listCalendarEntriesAction(),
-          getWalletOverviewAction(),
-          listCallsAction(),
-        ]);
-        if (cancelled) return;
-
-        const warnings: string[] = [];
-        const calendarEntries = calendarResult.status === "fulfilled" ? calendarResult.value.entries : [];
-        if (calendarResult.status === "rejected") warnings.push("Callbacky a reminders nejsou dostupné.");
-        if (calendarResult.status === "fulfilled") {
-          if (calendarResult.value.sources.callbacks.state === "unavailable") {
-            warnings.push(`Callbacky nejsou dostupné: ${calendarResult.value.sources.callbacks.message}`);
-          }
-          if (calendarResult.value.sources.reminders.state === "unavailable") {
-            warnings.push(`Reminders nejsou dostupné: ${calendarResult.value.sources.reminders.message}`);
-          }
-        }
-        if (walletResult.status === "rejected") warnings.push("Wallet souhrn není dostupný.");
-        if (callsResult.status === "rejected") warnings.push("Review fronta není dostupná.");
-
-        const callbacks = calendarEntries
-          .filter((entry) => entry.type === "callback" && entry.lead)
-          .map((entry) => ({
-            id: entry.id,
-            lead_id: entry.lead!.id,
-            lead_name: entry.lead!.full_name,
-            scheduled_at: entry.starts_at,
-          }));
-        const reminders = calendarEntries
-          .filter((entry) => entry.type === "reminder")
-          .map((entry) => ({ starts_at: entry.starts_at, status: entry.status }));
-        const wallet = walletResult.status === "fulfilled"
-          ? {
-              currency: walletResult.value.settings?.currency || "CZK",
-              balances: walletResult.value.balances,
-            }
-          : null;
-        const pendingReviews = callsResult.status === "fulfilled"
-          ? callsResult.value.filter((call) => call.review_status === "not_reviewed").length
-          : null;
-
+        const result = await loadDashboardDailyBriefAction();
         setState({
-          status: "ready",
-          brief: buildTeamLeaderDailyBrief({
-            daily: analyticsResult.data.daily,
-            callbacks,
-            reminders,
-            pendingReviews,
-            wallet,
-          }),
-          warnings,
+          ...result,
         });
       } catch {
         if (!cancelled) setState({ status: "unavailable", message: "Daily Brief není momentálně dostupný." });

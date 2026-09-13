@@ -89,8 +89,31 @@ export function OrderPipeline({ orders }: { orders: WorkspaceOrderDTO[] }) {
           <h2 className="text-sm font-semibold text-zinc-200">No matching orders</h2>
           <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-500">Try another status or search term.</p>
         </div>
-      ) : (
-        <div className="overflow-x-auto">
+       ) : (
+        <>
+          <div className="divide-y divide-zinc-800/60 md:hidden">
+            {visibleOrders.map((order) => (
+              <article key={order.id} className="space-y-3 p-4" data-testid="mobile-order-card">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Link href={`/orders/${order.id}?origin=orders`} className="block truncate font-mono text-xs text-zinc-200 hover:text-white">#{order.id}</Link>
+                    <span className="mt-1 block text-[11px] text-zinc-500">{formatDate(order.created_at)}</span>
+                  </div>
+                  <Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex shrink-0 rounded-lg border border-zinc-800 p-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                  <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Customer</dt><dd className="mt-1 truncate font-medium text-zinc-200">{order.lead_name}</dd></div>
+                  <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Product</dt><dd className="mt-1 truncate text-zinc-300">{order.product_title}</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Status</dt><dd className="mt-1"><StatusBadge tone={getOrderStatusTone(order.status)}>{statusLabel(order.status)}</StatusBadge></dd></div>
+                  <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Operator</dt><dd className="mt-1 truncate text-zinc-400">{order.agent_name}</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Total</dt><dd className="mt-1 font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[760px] text-left text-xs text-zinc-300">
             <thead className="border-b border-zinc-800/80 bg-zinc-950/80 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
               <tr>
@@ -123,7 +146,8 @@ export function OrderPipeline({ orders }: { orders: WorkspaceOrderDTO[] }) {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </Surface>
   );

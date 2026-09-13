@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RefreshCw, PhoneCall, Sparkles, ArrowRight } from "lucide-react";
-import { getReorderOpportunities, ReorderOpportunity } from "@/lib/reorder";
+import { loadReorderOpportunitiesAction } from "@/app/actions/dashboard";
+import type { ReorderOpportunity } from "@/lib/reorder";
 
 export function ReorderWidget() {
   const [opportunities, setOpportunities] = useState<ReorderOpportunity[]>([]);
@@ -14,7 +15,13 @@ export function ReorderWidget() {
     async function load() {
       try {
         setLoadError(null);
-        setOpportunities(await getReorderOpportunities());
+        const result = await loadReorderOpportunitiesAction();
+        if (!result.ok) {
+          setOpportunities([]);
+          setLoadError(result.message);
+          return;
+        }
+        setOpportunities(result.data);
       } catch (error) {
         setOpportunities([]);
         setLoadError(error instanceof Error ? error.message : "Re-order data could not be loaded.");
