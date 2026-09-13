@@ -3,12 +3,12 @@ import { Surface } from "@/components/ui/Surface";
 import type { SemanticTone } from "@/components/ui/Status";
 
 const METRIC_VALUE_CLASS_NAMES: Record<SemanticTone, string> = {
-  neutral: "text-zinc-100",
-  info: "text-sky-200",
-  success: "text-emerald-200",
-  warning: "text-amber-200",
-  danger: "text-rose-200",
-  blocked: "text-rose-100",
+  neutral: "text-text-primary",
+  info: "text-status-info-text",
+  success: "text-status-success-text",
+  warning: "text-status-warning-text",
+  danger: "text-status-danger-text",
+  blocked: "text-status-blocked-text",
 };
 
 export function getMetricValueClassName(tone: SemanticTone = "neutral"): string {

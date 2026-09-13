@@ -36,7 +36,7 @@ describe("Customer 360 UI contract", () => {
     expect(markup).toContain("Calls");
     expect(markup).toContain("1/1");
     expect(markup).toContain("Next retention action");
-    expect(markup).toContain("bg-zinc-950/60");
+    expect(markup).toContain("bg-surface-inset");
     expect(markup).toContain('<div class="p-4">');
   });
 });

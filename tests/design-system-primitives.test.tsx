@@ -6,32 +6,32 @@ import { StatusAlert, StatusBadge, getStatusClassName, type SemanticTone } from 
 import { MetricCard, getMetricValueClassName } from "@/components/ui/MetricCard";
 
 const STATUS_RECIPES = [
-  ["neutral", "border-zinc-700 bg-zinc-900 text-zinc-300"],
-  ["success", "border-emerald-800/50 bg-emerald-950/20 text-emerald-200"],
-  ["warning", "border-amber-800/50 bg-amber-950/20 text-amber-200"],
-  ["danger", "border-rose-800/50 bg-rose-950/20 text-rose-200"],
+  ["neutral", "border-status-neutral-border bg-status-neutral text-status-neutral-text"],
+  ["success", "border-status-success-border bg-status-success text-status-success-text"],
+  ["warning", "border-status-warning-border bg-status-warning text-status-warning-text"],
+  ["danger", "border-status-danger-border bg-status-danger text-status-danger-text"],
 ] as const;
 
 const SURFACE_RECIPES = [
-  ["page", "rounded-2xl border border-zinc-800/80 border-t-white/5 bg-zinc-900/60 shadow-sm"],
-  ["inset", "rounded-xl border border-zinc-800/80 bg-zinc-950/60"],
-  ["table", "overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-sm"],
-  ["empty", "rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-12 text-center shadow-sm"],
-  ["overlay", "rounded-2xl border border-zinc-800/90 bg-zinc-950/95 shadow-2xl"],
+  ["page", "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm"],
+  ["inset", "rounded-control border border-border-default bg-surface-inset"],
+  ["table", "overflow-hidden rounded-surface border border-border-default bg-surface-page shadow-sm"],
+  ["empty", "rounded-surface border border-border-default bg-surface-page p-12 text-center shadow-sm"],
+  ["overlay", "rounded-overlay border border-border-default bg-surface-overlay shadow-overlay"],
 ] as const;
 
 const BUTTON_RECIPES = [
-  ["primary", "bg-zinc-100 text-zinc-950 hover:bg-white"],
-  ["secondary", "border border-zinc-800 bg-zinc-900 text-zinc-200 hover:border-zinc-700 hover:bg-zinc-800"],
-  ["quiet", "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"],
-  ["danger", "border border-rose-800/50 bg-rose-950/20 text-rose-200 hover:bg-rose-950/40"],
+  ["primary", "bg-action-primary text-text-inverse hover:bg-action-primary-hover"],
+  ["secondary", "border border-border-default bg-action-secondary text-text-secondary hover:border-border-strong hover:bg-action-secondary-hover"],
+  ["quiet", "text-text-muted hover:bg-action-secondary-hover hover:text-text-secondary"],
+  ["danger", "border border-status-danger-border bg-action-danger text-status-danger-text hover:bg-action-danger-hover"],
 ] as const;
 
 const METRIC_VALUE_RECIPES = [
-  ["neutral", "text-zinc-100"],
-  ["success", "text-emerald-200"],
-  ["warning", "text-amber-200"],
-  ["danger", "text-rose-200"],
+  ["neutral", "text-text-primary"],
+  ["success", "text-status-success-text"],
+  ["warning", "text-status-warning-text"],
+  ["danger", "text-status-danger-text"],
 ] as const;
 
 const conflictingRouteClasses = "w-full !bg-fuchsia-500 [background-image:linear-gradient(fuchsia,black)] [border-top-color:fuchsia] hover:[color:fuchsia] [&>*]:bg-fuchsia-500";
@@ -47,30 +47,30 @@ const hostileStyleProps = {
 describe("shared operator console design primitives", () => {
   it("uses one fixed page-surface recipe", () => {
     expect(getSurfaceClassName("page")).toBe(
-      "rounded-2xl border border-zinc-800/80 border-t-white/5 bg-zinc-900/60 shadow-sm"
+      "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm"
     );
-    expect(renderToStaticMarkup(<Surface variant="page">Orders</Surface>)).toContain("bg-zinc-900/60");
+    expect(renderToStaticMarkup(<Surface variant="page">Orders</Surface>)).toContain("bg-surface-page");
   });
 
   it("keeps ordinary status and metric content neutral", () => {
-    expect(getStatusClassName("neutral")).toContain("text-zinc-300");
+    expect(getStatusClassName("neutral")).toContain("text-status-neutral-text");
     expect(renderToStaticMarkup(<StatusBadge tone="neutral">In progress</StatusBadge>)).not.toMatch(/emerald|amber|rose/);
     const metricMarkup = renderToStaticMarkup(<MetricCard label="Orders" value="24" />);
-    expect(metricMarkup).toContain("text-zinc-100");
-    expect(metricMarkup).toMatch(/bg-zinc-950\/60"><div class="p-4">/);
+    expect(metricMarkup).toContain("text-text-primary");
+    expect(metricMarkup).toMatch(/bg-surface-inset"><div class="p-4">/);
   });
 
   it("gives every semantic state one shared recipe", () => {
-    expect(getStatusClassName("success")).toBe("border-emerald-800/50 bg-emerald-950/20 text-emerald-200");
-    expect(getStatusClassName("warning")).toBe("border-amber-800/50 bg-amber-950/20 text-amber-200");
-    expect(getStatusClassName("danger")).toBe("border-rose-800/50 bg-rose-950/20 text-rose-200");
+    expect(getStatusClassName("success")).toBe("border-status-success-border bg-status-success text-status-success-text");
+    expect(getStatusClassName("warning")).toBe("border-status-warning-border bg-status-warning text-status-warning-text");
+    expect(getStatusClassName("danger")).toBe("border-status-danger-border bg-status-danger text-status-danger-text");
   });
 
   it("defines shared informational and blocked state recipes", () => {
-    expect(getStatusClassName("info" as SemanticTone)).toBe("border-sky-800/50 bg-sky-950/20 text-sky-200");
-    expect(getStatusClassName("blocked" as SemanticTone)).toBe("border-rose-900/70 bg-rose-950/30 text-rose-100");
-    expect(renderToStaticMarkup(<StatusBadge tone={"info" as SemanticTone}>Details available</StatusBadge>)).toContain("text-sky-200");
-    expect(renderToStaticMarkup(<StatusAlert tone={"blocked" as SemanticTone}>Action is blocked</StatusAlert>)).toContain("text-rose-100");
+    expect(getStatusClassName("info" as SemanticTone)).toBe("border-status-info-border bg-status-info text-status-info-text");
+    expect(getStatusClassName("blocked" as SemanticTone)).toBe("border-status-blocked-border bg-status-blocked text-status-blocked-text");
+    expect(renderToStaticMarkup(<StatusBadge tone={"info" as SemanticTone}>Details available</StatusBadge>)).toContain("text-status-info-text");
+    expect(renderToStaticMarkup(<StatusAlert tone={"blocked" as SemanticTone}>Action is blocked</StatusAlert>)).toContain("text-status-blocked-text");
   });
 
   it.each(SURFACE_RECIPES)("renders the fixed %s surface recipe", (variant, recipe) => {
@@ -108,7 +108,7 @@ describe("shared operator console design primitives", () => {
     expect(markup).toContain(recipe);
     expect(markup).toContain("Orders");
     expect(markup).toContain("Today");
-    expect(markup).toContain("bg-zinc-950/60");
+    expect(markup).toContain("bg-surface-inset");
   });
 
   it("retains safe layout classes while rejecting conflicting route classes from every primitive", () => {
@@ -125,11 +125,11 @@ describe("shared operator console design primitives", () => {
       expect(renderedPrimitive).not.toMatch(/fuchsia|background-image|border-top-color|style=/);
     }
 
-    expect(markup[0]).toContain("rounded-2xl border border-zinc-800/80 border-t-white/5 bg-zinc-900/60 shadow-sm");
-    expect(markup[1]).toContain("border border-rose-800/50 bg-rose-950/20 text-rose-200");
-    expect(markup[2]).toContain("border-amber-800/50 bg-amber-950/20 text-amber-200");
-    expect(markup[3]).toContain("border-rose-800/50 bg-rose-950/20 text-rose-200");
-    expect(markup[4]).toContain("bg-zinc-950/60");
-    expect(markup[4]).toContain("text-emerald-200");
+    expect(markup[0]).toContain("rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm");
+    expect(markup[1]).toContain("border border-status-danger-border bg-action-danger text-status-danger-text");
+    expect(markup[2]).toContain("border-status-warning-border bg-status-warning text-status-warning-text");
+    expect(markup[3]).toContain("border-status-danger-border bg-status-danger text-status-danger-text");
+    expect(markup[4]).toContain("bg-surface-inset");
+    expect(markup[4]).toContain("text-status-success-text");
   });
 });

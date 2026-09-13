@@ -3,11 +3,11 @@ import type { ComponentPropsWithoutRef } from "react";
 export type SurfaceVariant = "page" | "inset" | "table" | "empty" | "overlay";
 
 const SURFACE_CLASS_NAMES: Record<SurfaceVariant, string> = {
-  page: "rounded-2xl border border-zinc-800/80 border-t-white/5 bg-zinc-900/60 shadow-sm",
-  inset: "rounded-xl border border-zinc-800/80 bg-zinc-950/60",
-  table: "overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/60 shadow-sm",
-  empty: "rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-12 text-center shadow-sm",
-  overlay: "rounded-2xl border border-zinc-800/90 bg-zinc-950/95 shadow-2xl",
+  page: "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm",
+  inset: "rounded-control border border-border-default bg-surface-inset",
+  table: "overflow-hidden rounded-surface border border-border-default bg-surface-page shadow-sm",
+  empty: "rounded-surface border border-border-default bg-surface-page p-12 text-center shadow-sm",
+  overlay: "rounded-overlay border border-border-default bg-surface-overlay shadow-overlay",
 };
 
 const SAFE_LAYOUT_CLASS_NAMES = new Set(["w-full"]);

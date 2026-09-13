@@ -10,10 +10,10 @@ function source(path: string): string {
 
 describe("management route visual contract", () => {
   it("keeps default metrics neutral and destructive controls on the shared danger recipe", () => {
-    expect(getMetricValueClassName("neutral")).toBe("text-zinc-100");
-    expect(getMetricValueClassName("success")).toBe("text-emerald-200");
-    expect(getButtonClassName("danger")).toContain("bg-rose-950/20");
-    expect(getButtonClassName("danger")).toContain("text-rose-200");
+    expect(getMetricValueClassName("neutral")).toBe("text-text-primary");
+    expect(getMetricValueClassName("success")).toBe("text-status-success-text");
+    expect(getButtonClassName("danger")).toContain("bg-action-danger");
+    expect(getButtonClassName("danger")).toContain("text-status-danger-text");
   });
 
   it("uses shared surfaces for management unavailable states and wallet metrics", () => {

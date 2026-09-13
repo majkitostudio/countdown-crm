@@ -84,7 +84,7 @@ it("renders the canonical page header with the shared page surface", () => {
 
   expect(getPageHeaderSurfaceClassName()).toBe(getSurfaceClassName("page"));
   expect(markup).toContain(getPageHeaderSurfaceClassName());
-  expect(markup).toContain("rounded-2xl");
+  expect(markup).toContain("rounded-surface");
 });
 
 it("supports stacked actions for dense workspace header controls", () => {
@@ -135,7 +135,7 @@ it("keeps an active simulated call visually neutral while preserving the destruc
   const renderedCall = document.createElement("div");
   renderedCall.innerHTML = markup;
   const dangerControls = Array.from(renderedCall.querySelectorAll<HTMLElement>("[class]")).filter((element) => (
-    element.getAttribute("class")?.includes("border-rose-800/50")
+    element.getAttribute("class")?.includes("border-status-danger-border")
   ));
   expect(dangerControls).toHaveLength(1);
   expect(dangerControls[0]?.getAttribute("aria-label")).toBe("End call with Alex Customer");

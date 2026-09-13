@@ -10,8 +10,8 @@ function source(path: string): string {
 
 describe("CRM color hierarchy", () => {
   it("uses subdued shared status badges instead of saturated card-like fills", () => {
-    expect(getPageHeaderBadgeClassName("success")).toBe("border-emerald-800/50 bg-emerald-950/20 text-emerald-200");
-    expect(getPageHeaderBadgeClassName("warning")).toBe("border-amber-800/50 bg-amber-950/20 text-amber-200");
+    expect(getPageHeaderBadgeClassName("success")).toBe("border-status-success-border bg-status-success text-status-success-text");
+    expect(getPageHeaderBadgeClassName("warning")).toBe("border-status-warning-border bg-status-warning text-status-warning-text");
   });
 
   it("keeps ordinary workspace context neutral", () => {
@@ -33,7 +33,7 @@ describe("CRM color hierarchy", () => {
     expect(drawer).toContain('text-zinc-200 hover:bg-zinc-800');
     expect(review).toContain('import { Surface } from "@/components/ui/Surface"');
     expect(review).toContain('<Surface variant="inset">');
-    expect(getMetricValueClassName()).toBe("text-zinc-100");
+    expect(getMetricValueClassName()).toBe("text-text-primary");
   });
 
   it("keeps Call Outcome selection visually meaningful", () => {

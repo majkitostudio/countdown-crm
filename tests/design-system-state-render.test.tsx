@@ -16,8 +16,8 @@ describe("entry and workspace state contract", () => {
 
   it("keeps semantic state opacity fixed", () => {
     const warning = renderToStaticMarkup(<StatusAlert tone="warning">Callback is due</StatusAlert>);
-    expect(warning).toContain("bg-amber-950/20");
-    expect(warning).not.toContain("bg-amber-950/30");
+    expect(warning).toContain("bg-status-warning");
+    expect(warning).not.toContain("bg-status-danger");
   });
 
   it("requires shared primitives and narrow-layout protection on entry and workspace surfaces", () => {

@@ -29,7 +29,7 @@ describe("daily operator route rendering", () => {
     const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} />);
 
     expect(markup).toContain("In-Progress");
-    expect(markup).toContain("border-zinc-700 bg-zinc-900 text-zinc-300");
+    expect(markup).toContain("border-status-neutral-border bg-status-neutral text-status-neutral-text");
     expect(markup).toContain("focus-visible:ring-2");
     expect(getOrderStatusTone("in_progress")).toBe("neutral");
     expect(renderToStaticMarkup(<StatusBadge tone="neutral">In progress</StatusBadge>)).not.toMatch(/emerald|amber|rose/);
@@ -39,7 +39,7 @@ describe("daily operator route rendering", () => {
     const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "delivered" } as WorkspaceOrderDTO]} />);
 
     expect(markup).toContain("Delivered");
-    expect(markup).toContain("border-emerald-800/50 bg-emerald-950/20 text-emerald-200");
+    expect(markup).toContain("border-status-success-border bg-status-success text-status-success-text");
     expect(getOrderStatusTone("delivered")).toBe("success");
   });
 });

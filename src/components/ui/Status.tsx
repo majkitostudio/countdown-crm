@@ -4,12 +4,12 @@ import { getSafeLayoutClassName } from "@/components/ui/Surface";
 export type SemanticTone = "neutral" | "info" | "success" | "warning" | "danger" | "blocked";
 
 const STATUS_CLASS_NAMES: Record<SemanticTone, string> = {
-  neutral: "border-zinc-700 bg-zinc-900 text-zinc-300",
-  info: "border-sky-800/50 bg-sky-950/20 text-sky-200",
-  success: "border-emerald-800/50 bg-emerald-950/20 text-emerald-200",
-  warning: "border-amber-800/50 bg-amber-950/20 text-amber-200",
-  danger: "border-rose-800/50 bg-rose-950/20 text-rose-200",
-  blocked: "border-rose-900/70 bg-rose-950/30 text-rose-100",
+  neutral: "border-status-neutral-border bg-status-neutral text-status-neutral-text",
+  info: "border-status-info-border bg-status-info text-status-info-text",
+  success: "border-status-success-border bg-status-success text-status-success-text",
+  warning: "border-status-warning-border bg-status-warning text-status-warning-text",
+  danger: "border-status-danger-border bg-status-danger text-status-danger-text",
+  blocked: "border-status-blocked-border bg-status-blocked text-status-blocked-text",
 };
 
 export function getStatusClassName(tone: SemanticTone): string {
