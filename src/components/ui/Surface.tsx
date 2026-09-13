@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from "react";
+import { forwardRef, type ComponentPropsWithoutRef } from "react";
 
 export type SurfaceVariant = "page" | "inset" | "table" | "empty" | "overlay";
 
@@ -29,7 +29,7 @@ export type SurfaceProps = Omit<ComponentPropsWithoutRef<"div">, "className" | "
   style?: never;
 };
 
-export function Surface({ variant, className, style: _style, ...props }: SurfaceProps) {
+export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(function Surface({ variant, className, style: _style, ...props }, ref) {
   void _style;
-  return <div className={[getSurfaceClassName(variant), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
-}
+  return <div ref={ref} className={[getSurfaceClassName(variant), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
+});

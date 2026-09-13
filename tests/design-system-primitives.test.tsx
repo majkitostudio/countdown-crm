@@ -5,6 +5,7 @@ import { Surface, getSurfaceClassName } from "@/components/ui/Surface";
 import { StatusAlert, StatusBadge, getStatusClassName, type SemanticTone } from "@/components/ui/Status";
 import { MetricCard, getMetricValueClassName } from "@/components/ui/MetricCard";
 import { FieldLabel, SelectField, TextAreaField, TextField, getFieldClassName } from "@/components/ui/Field";
+import { Dialog, getDialogPanelClassName } from "@/components/ui/Dialog";
 
 const STATUS_RECIPES = [
   ["neutral", "border-status-neutral-border bg-status-neutral text-status-neutral-text"],
@@ -107,6 +108,21 @@ describe("shared operator console design primitives", () => {
     }
 
     expect(renderToStaticMarkup(<FieldLabel htmlFor="name">Name</FieldLabel>)).toContain("text-text-secondary");
+  });
+
+  it("uses one responsive dialog shell for admin overlays", () => {
+    expect(getDialogPanelClassName("md")).toBe("relative z-10 w-full max-h-[90vh] overflow-y-auto md:max-w-md");
+    const markup = renderToStaticMarkup(
+      <Dialog isOpen onClose={() => undefined} aria-labelledby="dialog-title">
+        <h2 id="dialog-title">Edit field</h2>
+      </Dialog>,
+    );
+
+    expect(markup).toContain('role="dialog"');
+    expect(markup).toContain('aria-modal="true"');
+    expect(markup).toContain("items-end");
+    expect(markup).toContain("md:items-center");
+    expect(markup).toContain("bg-surface-overlay");
   });
 
   it.each(STATUS_RECIPES)("keeps the %s status recipe in badge and alert renderings", (tone, recipe) => {

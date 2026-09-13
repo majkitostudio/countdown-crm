@@ -25,5 +25,7 @@ describe("admin primitive contract", () => {
     expect(source).toContain('import { FieldLabel, SelectField, TextField } from "@/components/ui/Field"');
     expect(source).toContain("<TextField");
     expect(source).toContain("<SelectField");
+    expect(source).toContain('import { Dialog } from "@/components/ui/Dialog"');
+    expect(source).toContain('<Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="custom-field-dialog-title">');
   });
 });

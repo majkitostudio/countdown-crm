@@ -5,8 +5,8 @@ import { X, Plus, Sliders } from "lucide-react";
 import { AttributeDefinition, AttributeType } from "@/lib/schema/types";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 import { FieldLabel, SelectField, TextField } from "@/components/ui/Field";
+import { Dialog } from "@/components/ui/Dialog";
 
 interface AddCustomFieldModalProps {
   isOpen: boolean;
@@ -23,8 +23,6 @@ export function AddCustomFieldModal({
   const [type, setType] = useState<AttributeType>("text");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,9 +51,8 @@ export function AddCustomFieldModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <Surface variant="overlay" className="w-full">
-        <div className="mx-auto w-full max-w-md space-y-6 p-6">
+    <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="custom-field-dialog-title">
+        <div className="space-y-6 p-6">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
@@ -64,7 +61,7 @@ export function AddCustomFieldModal({
               <Sliders className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-zinc-100">Add Custom Field</h3>
+              <h3 id="custom-field-dialog-title" className="text-base font-semibold text-zinc-100">Add Custom Field</h3>
               <p className="text-xs text-zinc-400">Create custom dynamic attribute (Attio Schema)</p>
             </div>
           </div>
@@ -128,7 +125,6 @@ export function AddCustomFieldModal({
         </form>
 
         </div>
-      </Surface>
-    </div>
+    </Dialog>
   );
 }
