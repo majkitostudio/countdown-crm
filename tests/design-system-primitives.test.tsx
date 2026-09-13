@@ -4,6 +4,7 @@ import { Button, getButtonClassName } from "@/components/ui/Button";
 import { Surface, getSurfaceClassName } from "@/components/ui/Surface";
 import { StatusAlert, StatusBadge, getStatusClassName, type SemanticTone } from "@/components/ui/Status";
 import { MetricCard, getMetricValueClassName } from "@/components/ui/MetricCard";
+import { FieldLabel, SelectField, TextAreaField, TextField, getFieldClassName } from "@/components/ui/Field";
 
 const STATUS_RECIPES = [
   ["neutral", "border-status-neutral-border bg-status-neutral text-status-neutral-text"],
@@ -90,6 +91,22 @@ describe("shared operator console design primitives", () => {
   it("uses a safe non-submit button type unless explicitly submitted", () => {
     expect(renderToStaticMarkup(<Button>Save</Button>)).toContain('type="button"');
     expect(renderToStaticMarkup(<Button type="submit">Save</Button>)).toContain('type="submit"');
+  });
+
+  it("gives text, select, and multiline fields one semantic control recipe", () => {
+    const recipe = "w-full rounded-control border border-border-default bg-surface-inset px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-50";
+    expect(getFieldClassName()).toBe(recipe);
+
+    for (const renderedField of [
+      renderToStaticMarkup(<TextField placeholder="Name" />),
+      renderToStaticMarkup(<SelectField><option>Choose</option></SelectField>),
+      renderToStaticMarkup(<TextAreaField placeholder="Note" />),
+    ]) {
+      expect(renderedField).toContain(recipe);
+      expect(renderedField).not.toMatch(/zinc-|style=/);
+    }
+
+    expect(renderToStaticMarkup(<FieldLabel htmlFor="name">Name</FieldLabel>)).toContain("text-text-secondary");
   });
 
   it.each(STATUS_RECIPES)("keeps the %s status recipe in badge and alert renderings", (tone, recipe) => {

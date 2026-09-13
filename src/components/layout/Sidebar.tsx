@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/Button";
 import { getAllowedSidebarNavigationItems } from "./sidebarNavigation";
-import { getSidebarClassName } from "./sidebarLayout";
+import { getSidebarAccessibilityProps, getSidebarClassName } from "./sidebarLayout";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
 
@@ -24,12 +24,23 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
   const pathname = usePathname();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [status, setStatus] = useState<OperatorStatus>("ready");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const statusToggleContainerRef = useRef<HTMLDivElement>(null);
   const statusMenuRef = useRef<HTMLDivElement>(null);
   const statusMenuId = useId();
   const isCompact = isCollapsed;
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   const closeStatusMenu = () => {
     statusToggleContainerRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
@@ -87,6 +98,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
   return (
     <aside
       className={getSidebarClassName(isCompact, mobileOpen)}
+      {...getSidebarAccessibilityProps(isMobileViewport, mobileOpen)}
     >
       {/* Brand Logo Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/80">

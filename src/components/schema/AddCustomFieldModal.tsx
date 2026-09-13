@@ -6,6 +6,7 @@ import { AttributeDefinition, AttributeType } from "@/lib/schema/types";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { FieldLabel, SelectField, TextField } from "@/components/ui/Field";
 
 interface AddCustomFieldModalProps {
   isOpen: boolean;
@@ -75,29 +76,29 @@ export function AddCustomFieldModal({
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-medium text-zinc-400 block mb-1">Field Name</label>
-            <input
+            <FieldLabel htmlFor="custom-field-name">Field Name</FieldLabel>
+            <TextField
+              id="custom-field-name"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Contract Renewal Date, Deal Priority"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-zinc-400 block mb-1">Attribute Type</label>
-            <select
+            <FieldLabel htmlFor="custom-field-type">Attribute Type</FieldLabel>
+            <SelectField
+              id="custom-field-type"
               value={type}
               onChange={(e) => setType(e.target.value as AttributeType)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
             >
               <option value="text">Text (String)</option>
               <option value="number">Number (Currency / Integer)</option>
               <option value="select">Select (Dropdown Options)</option>
               <option value="boolean">Boolean (Yes / No)</option>
-            </select>
+            </SelectField>
           </div>
 
           {saveError && (

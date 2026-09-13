@@ -19,4 +19,11 @@ describe("admin primitive contract", () => {
       expect(source).toMatch(/@\/components\/ui\/(Surface|Button|Status|MetricCard)/);
     }
   });
+
+  it("uses shared field primitives in the custom-field dialog", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/components/schema/AddCustomFieldModal.tsx"), "utf8");
+    expect(source).toContain('import { FieldLabel, SelectField, TextField } from "@/components/ui/Field"');
+    expect(source).toContain("<TextField");
+    expect(source).toContain("<SelectField");
+  });
 });

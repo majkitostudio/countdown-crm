@@ -6,3 +6,14 @@ export function getSidebarClassName(isCollapsed: boolean, isMobileOpen: boolean)
     isMobileOpen && "max-md:translate-x-0",
   ].filter(Boolean).join(" ");
 }
+
+export function getSidebarAccessibilityProps(isMobileViewport: boolean, isMobileOpen: boolean) {
+  if (isMobileViewport && !isMobileOpen) {
+    return {
+      "aria-hidden": true,
+      inert: true,
+    };
+  }
+
+  return {};
+}

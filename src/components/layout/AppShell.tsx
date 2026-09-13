@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { AppHeader } from "./AppHeader";
@@ -8,6 +8,7 @@ import { CommandPalette } from "./CommandPalette";
 import { OperatorIdentityProvider } from "./OperatorIdentityProvider";
 import { CallSessionProvider } from "./CallSessionProvider";
 import { FloatingCallController } from "@/components/workspace/FloatingCallController";
+import { shouldCloseMobileNavigationOnKey } from "./mobileNavigation";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -17,6 +18,28 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const isOperatorConsole = pathname === "/workspace";
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (shouldCloseMobileNavigationOnKey(event.key, isMobileViewport, isMobileNavigationOpen)) {
+        setIsMobileNavigationOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isMobileNavigationOpen, isMobileViewport]);
 
   if (pathname === "/login") {
     return <>{children}</>;
