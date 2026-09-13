@@ -5,6 +5,7 @@ import { getWorkspaceReadinessForWorkspace, type WorkspaceReadinessDTO } from "@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { WorkspaceReadinessPanel } from "@/components/readiness/WorkspaceReadinessPanel";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 type ReadinessPageLoadResult =
   | { data: WorkspaceReadinessDTO }
@@ -43,7 +44,7 @@ export default async function WorkspaceReadinessPage() {
           </p>
           <Link
             href="/settings"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+            className={getButtonClassName("secondary")}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to Settings

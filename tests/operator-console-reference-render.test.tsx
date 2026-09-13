@@ -87,6 +87,21 @@ it("renders the canonical page header with the shared page surface", () => {
   expect(markup).toContain("rounded-2xl");
 });
 
+it("supports stacked actions for dense workspace header controls", () => {
+  const markup = renderToStaticMarkup(
+    <PageHeader
+      icon={PhoneCall}
+      title="Operator Console"
+      description="Handle the assigned customer."
+      actionsLayout="stacked"
+      actions={<div data-testid="dense-actions">Next action and callbacks</div>}
+    />,
+  );
+
+  expect(markup).not.toContain("md:flex-row");
+  expect(markup).toContain('data-testid="dense-actions"');
+});
+
 it("maps unavailable and ordinary header badges to neutral", () => {
   expect(getPageHeaderBadgeClassName("neutral")).toBe(getStatusClassName("neutral"));
   expect(getPageHeaderBadgeClassName("unavailable")).toBe(getStatusClassName("neutral"));

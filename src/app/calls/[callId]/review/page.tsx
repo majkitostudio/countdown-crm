@@ -7,6 +7,7 @@ import { getCallReview } from "@/lib/dal/callReviews";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 async function loadCallReview(callId: string) {
   try {
@@ -42,7 +43,7 @@ export default async function CallReviewPage({
           </p>
           <Link
             href={returnToCallsHref}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+            className={getButtonClassName("secondary")}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to calls
@@ -63,7 +64,10 @@ export default async function CallReviewPage({
         description={`Review recorded evidence for call #${review.call.id}.`}
         badge={{ label: "Real call evidence", tone: "neutral" }}
         actions={
-          <Link href={returnToCallsHref} className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-800">
+          <Link
+            href={returnToCallsHref}
+            className={getButtonClassName("secondary")}
+          >
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />Back to calls
           </Link>
         }

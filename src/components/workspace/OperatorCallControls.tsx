@@ -16,6 +16,9 @@ import {
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, validateFailDetails } from "@/lib/postCall";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
+import { Button } from "@/components/ui/Button";
+import { StatusAlert } from "@/components/ui/Status";
+import { Surface } from "@/components/ui/Surface";
 
 const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   value: CallOutcome;
@@ -113,8 +116,9 @@ export function CallOutcomePanel({
   };
 
   return (
-    <section
-      className="mt-4 rounded-xl border border-amber-900/60 bg-amber-950/20 p-3"
+    <Surface
+      variant="page"
+      className="p-3"
       data-testid="call-outcome-panel"
       aria-labelledby="call-outcome-panel-title"
     >
@@ -129,8 +133,8 @@ export function CallOutcomePanel({
           {isCompletionPending
             ? "Saving outcome…"
             : selectedOutcome
-              ? `${CALL_OUTCOME_OPTIONS.find((option) => option.value === selectedOutcome)?.label} selected locally — not saved yet.`
-              : "No outcome selected yet."}
+            ? `${CALL_OUTCOME_OPTIONS.find((option) => option.value === selectedOutcome)?.label} selected locally — not saved yet.`
+            : "No outcome selected yet."}
         </span>
       </div>
       <p className="mt-2 text-[11px] text-zinc-500" id="call-outcome-panel-help">
@@ -140,7 +144,7 @@ export function CallOutcomePanel({
         {CALL_OUTCOME_OPTIONS.map(({ value, label, icon: Icon, shortcut }) => {
           const isSelected = selectedOutcome === value;
           return (
-            <button
+            <Button
               key={value}
               id={value === "fail" ? "call-outcome-fail" : undefined}
               type="button"
@@ -151,18 +155,19 @@ export function CallOutcomePanel({
               aria-keyshortcuts={shortcut}
               data-selected={isSelected ? "true" : "false"}
               onClick={() => handleOutcomeSelect(value)}
-              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11px] transition-[border-color,background-color,box-shadow,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 ${getCallOutcomeButtonClassName(isSelected)} ${value === "order" ? "font-semibold" : ""}`}
+              variant={isSelected ? "primary" : "secondary"}
+              className={`min-h-10 gap-1.5 ${value === "order" ? "font-semibold" : ""}`}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               <kbd className="rounded border border-zinc-700/80 bg-zinc-950/70 px-1 font-mono text-[10px] text-zinc-500">{shortcut}</kbd>
               <span>{label}</span>
               {isSelected && <span className="sr-only">Selected</span>}
-            </button>
+            </Button>
           );
         })}
       </div>
       {selectedOutcome === "fail" && (
-        <div className="mt-3 space-y-3 rounded-lg border border-rose-900/60 bg-rose-950/20 p-3" data-testid="fail-details-panel">
+        <Surface variant="inset" className="mt-3 p-3" data-testid="fail-details-panel">
           <div>
             <label htmlFor="fail-reason" className="text-[11px] font-semibold text-rose-100">Fail reason</label>
             <select
@@ -193,20 +198,21 @@ export function CallOutcomePanel({
               className="mt-1.5 w-full resize-y rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
             />
           </div>
-          {failValidationError && <p role="alert" className="text-[11px] text-rose-300">{failValidationError}</p>}
+          {failValidationError && <StatusAlert tone="danger" className="text-[11px]">{failValidationError}</StatusAlert>}
           <div className="flex justify-end">
-            <button
+            <Button
               type="button"
               onClick={handleFailSubmit}
               disabled={isCompletionPending}
-              className="rounded-lg bg-rose-200 px-3 py-2 text-[11px] font-semibold text-rose-950 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+              variant="danger"
+              className="text-[11px] py-2"
             >
               Save Fail
-            </button>
+            </Button>
           </div>
-        </div>
+        </Surface>
       )}
-    </section>
+    </Surface>
   );
 }
 
@@ -255,41 +261,39 @@ export function OperatorCallControls({
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={onToggleCall}
             disabled={isStarting}
             aria-busy={isStarting}
-            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              isCallActive
-                ? "border border-rose-800 bg-rose-950/40 text-rose-200 hover:bg-rose-950/70"
-                : "bg-zinc-100 text-zinc-950 hover:bg-zinc-200"
-            }`}
+            variant={isCallActive ? "danger" : "primary"}
           >
             {isCallActive ? <PhoneOff className="h-3.5 w-3.5" /> : <PhoneCall className="h-3.5 w-3.5" />}
             {isStarting ? "Starting…" : isDialing ? "Cancel dial" : isCallActive ? "End call" : "Call client"}
-          </button>
+          </Button>
           {isCallActive && (
-            <button
+            <Button
               type="button"
               onClick={onToggleMute}
               aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
               title={isMuted ? "Unmute microphone" : "Mute microphone"}
-              className={`rounded-lg border p-2 transition-colors ${isMuted ? "border-amber-800 bg-amber-950/30 text-amber-200" : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-zinc-100"}`}
+              variant={isMuted ? "secondary" : "quiet"}
+              className="p-2"
             >
               {isMuted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-            </button>
+            </Button>
           )}
           {!isCallActive && !isDialing && onSimulateIncoming && (
-            <button
+            <Button
               type="button"
               onClick={onSimulateIncoming}
               aria-label="Simulate an incoming call"
               title="Simulate an incoming call"
-              className="rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-500 transition-colors hover:text-zinc-100"
+              variant="quiet"
+              className="p-2"
             >
               <PhoneIncoming className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

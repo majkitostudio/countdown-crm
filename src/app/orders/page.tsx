@@ -5,6 +5,7 @@ import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { OrderPipeline } from "@/components/orders/OrderPipeline";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 type OrdersLoadResult =
   | { orders: Awaited<ReturnType<typeof listWorkspaceOrders>>; role: Awaited<ReturnType<typeof requireWorkspaceContext>>["role"] }
@@ -47,7 +48,10 @@ export default async function OrdersPage() {
             ? "Track assigned orders and next delivery steps."
             : "Review workspace orders and operator ownership."}
           actions={
-            <Link href="/orders/new" className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200">
+            <Link
+              href="/orders/new"
+              className={getButtonClassName("primary")}
+            >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Create Order
             </Link>

@@ -30,9 +30,11 @@
   samostatné kontrakty v aplikačních testech. Jeden nedostupný zdroj se nevydává
   za ověřenou nulu ani neskrývá nezávislá dostupná data.
 - Všechny CRM cesty používají společný Operator Console designový systém.
+  Kompletní migrace ověřena: `docs/superpowers/reports/2026-09-13-unified-design-system-complete-verification.md`.
   Admin browser smoke ověřil Dashboard, Workspace, Products, Calls, Team,
-  Monitor a Training; Workspace prošel i na šířce 390 px bez browser chyb.
-  Tento důkaz nenahrazuje samostatný průchod operátora a Team Leadera.
+  Monitor, Training, Wallet, Readiness, Telephony, Settings, Exceptions,
+  Analytics, Objects; Workspace prošel i na šířce 390 px bez browser chyb.
+  Tento důkaz nenahrazuje samostatný průchod operátora a Team Leadera (bod 7).
 
 Hotový bod se do priorit níže nevrací. Pokud se objeví regrese, zapisuje se jako
 nový konkrétní problém s vlastním důkazem.
@@ -100,23 +102,22 @@ akceptační kritéria a důkazní plán.
    přepis od nedostupného stavu; nezaručuje zvuk ani přepis pro každý hovor.
    - Hotovo, když copy přesně rozlišuje uložený transcript od nedostupného stavu.
 4. [x] **Sjednotit celý CRM vzhledem Operator Console.** Zavést společný systém
-   povrchů, tlačítek, stavových prvků a metrik; upravit stručnost textů a
-   nechat barvy výhradně pro potvrzený výsledek, nutnou pozornost a riziko.
-   Stejný prvek nesmí podle stránky měnit neprůhlednost, okraj, radius ani
-   význam barvy.
-   - Schválený návrh je commit `6c01c57`; provedení rozepisuje aktuální plán
-     `2026-09-11-unified-operator-console-design-system.md`.
-    - Dokončeno: společné primitivy, shell, denní i administrační cesty prošly
-      automatizovanou sadou a autentizovaným admin browser smokem. Zbývající
-      role-specific průchod je veden samostatně v bodu 7.
+    povrchů, tlačítek, stavových prvků a metrik; upravit stručnost textů a
+    nechat barvy výhradně pro potvrzený výsledek, nutnou pozornost a riziko.
+    Stejný prvek nesmí podle stránky měnit neprůhlednost, okraj, radius ani
+    význam barvy.
+    - Schválený návrh: `docs/superpowers/specs/2026-09-11-unified-operator-console-design-system.md`
+    - Plán: `docs/superpowers/plans/2026-09-11-unified-operator-console-design-system.md`
+    - Důkaz dokončení: `docs/superpowers/reports/2026-09-13-unified-design-system-complete-verification.md`
+    - Dokončeno: **všechny 19 CRM cest** (12 opravených + 7 už kompatibilních) používají sdílené primitivy `Button`, `Surface`, `Status`, `MetricCard`, `PageHeader`. 3 workspace komponenty (`ConversationBriefCard`, `ClientProfileCard`, `OperatorCallControls`/`CallOutcomePanel`) migrovány. Barevná politika dodržena: zinc default, barvy pouze pro sémantické stavy. 548 testů, lint, typecheck, build — PASS.
 5. [x] **Dokončit Entry, Dashboard a Workspace state completeness.** Sjednotit
-   Login, Dashboard, Workspace, loading/empty/unavailable/error/success stavy,
-   modaly a úzké viewporty podle stejných pravidel Operator Console.
-   - Specifikace: `superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md`.
-   - Plán: `superpowers/plans/2026-09-12-entry-workspace-state-completeness.md`.
-   - Ověření: `superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md`.
-    - Dokončeno: Dashboard a Workspace prošly autentizovaným admin průchodem;
-      Workspace byl ověřen i v úzkém viewportu a bez browser chyb.
+    Login, Dashboard, Workspace, loading/empty/unavailable/error/success stavy,
+    modaly a úzké viewporty podle stejných pravidel Operator Console.
+    - Specifikace: `superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md`
+    - Plán: `superpowers/plans/2026-09-12-entry-workspace-state-completeness.md`
+    - Ověření: `superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md`
+    - Doplňkové ověření: `superpowers/reports/2026-09-13-unified-design-system-complete-verification.md`
+     - Dokončeno: Login, Dashboard, Workspace včetně modulů a úzkého viewportu (390px) dodržují designový systém. Všechny entry/workspace stavy používají sdílené primitivy.
 6. [ ] **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
    Základní kontext přesunout do hlavičky přiřazeného zákazníka, odstranit
    Compact / Extended režim, umožnit zvětšení Product Scriptu bez ztráty identity

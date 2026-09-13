@@ -22,6 +22,7 @@ export interface PageHeaderProps {
     label: string;
   };
   actions?: ReactNode;
+  actionsLayout?: "inline" | "stacked";
   className?: string;
 }
 
@@ -41,12 +42,14 @@ export function PageHeader({
   badge,
   backLink,
   actions,
+  actionsLayout = "inline",
   className,
 }: PageHeaderProps) {
   return (
     <header
       className={cn(
-        "flex flex-col gap-5 p-6 sm:p-8 md:flex-row md:items-center md:justify-between",
+        "flex flex-col gap-5 p-6 sm:p-8",
+        actionsLayout === "inline" && "md:flex-row md:items-center md:justify-between",
         getPageHeaderSurfaceClassName(),
         className
       )}
@@ -80,7 +83,16 @@ export function PageHeader({
         {description && <p className="max-w-3xl text-xs leading-relaxed text-zinc-400">{description}</p>}
       </div>
 
-      {actions && <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">{actions}</div>}
+      {actions && (
+        <div
+          className={cn(
+            "flex w-full flex-wrap items-center gap-2",
+            actionsLayout === "inline" ? "md:w-auto md:justify-end" : "justify-start",
+          )}
+        >
+          {actions}
+        </div>
+      )}
     </header>
   );
 }

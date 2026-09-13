@@ -8,6 +8,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 type SearchParams = Promise<{ leadId?: string | string[]; origin?: string | string[]; mode?: string | string[]; callSessionId?: string | string[] }>;
 type OrderFlow = "manual" | "call";
@@ -83,7 +84,10 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
                 ? "The call outcome is no longer waiting for order completion. Return to the Operator Console and verify the current assignment."
             : "The create order workspace data could not be loaded."}
         </p>
-        <Link href="/workspace" className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+        <Link
+          href="/workspace"
+          className={getButtonClassName("secondary")}
+        >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Operator Console
         </Link>

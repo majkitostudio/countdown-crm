@@ -6,6 +6,7 @@ import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { TelephonyAdminPanel } from "@/components/telephony/TelephonyAdminPanel";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 type TelephonyPageLoadResult =
   | { settings: Awaited<ReturnType<typeof getWorkspaceTelephonySettings>> }
@@ -43,7 +44,10 @@ export default async function TelephonyPage() {
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Local SIP is not active.</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Enable Local SIP in Admin Settings to use this page.</p>
-        <Link href="/settings#telephony-adapter" className="mt-5 inline-flex rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 hover:border-zinc-700 hover:text-zinc-100">
+        <Link
+          href="/settings#telephony-adapter"
+          className={getButtonClassName("secondary")}
+        >
           Open Telephony adapter settings
         </Link>
       </Surface>

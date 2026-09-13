@@ -10,6 +10,7 @@ import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 type ProductScriptsLoadResult =
   | {
@@ -81,13 +82,13 @@ export default async function ProductScriptsPage() {
           ? "Only a workspace Administrator can edit approved product scripts."
           : "The approved product scripts could not be loaded right now."}
       </p>
-      <Link
-        href="/settings"
-        className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-700 hover:bg-zinc-800"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to Settings
-      </Link>
+<Link
+          href="/settings"
+          className={getButtonClassName("secondary")}
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to Settings
+        </Link>
       </Surface>
     </div>
   );

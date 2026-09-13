@@ -1073,6 +1073,7 @@ function WorkspaceContent() {
       title="Operator Console"
       description="Handle the assigned customer with the brief, approved script, and outcome in one place."
       badge={pageHeaderBadge}
+      actionsLayout="stacked"
       actions={operatorNextActionPanel}
     />
   );

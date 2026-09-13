@@ -9,6 +9,7 @@ import { listWorkspaceLeadActivity } from "@/lib/dal/activity";
 import { listLeadNotesForWorkspace } from "@/lib/dal/leadNotes";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -37,7 +38,10 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Contact unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
-        <Link href="/workspace" className="mt-5 inline-flex items-center gap-2 rounded-lg border border-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 hover:border-zinc-700 hover:text-zinc-100">
+        <Link
+          href="/workspace"
+          className={getButtonClassName("secondary")}
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Operator Console
         </Link>
       </Surface>

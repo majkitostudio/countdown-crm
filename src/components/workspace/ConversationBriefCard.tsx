@@ -62,11 +62,11 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 p-2.5">
+          <Surface variant="inset" className="p-2.5">
             <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Why this lead</p>
             <p className="mt-1 text-[11px] leading-relaxed text-zinc-300">{brief.queue_reason || "Routing reason not recorded"}</p>
-          </div>
-          <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 p-2.5">
+          </Surface>
+          <Surface variant="inset" className="p-2.5">
             <div className="flex items-start gap-2">
               <BookOpenCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
               <div>
@@ -74,7 +74,7 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
                 <p className="mt-1 text-[11px] leading-relaxed text-zinc-200">{brief.next_safe_step.label}</p>
               </div>
             </div>
-          </div>
+          </Surface>
         </div>
 
         {unavailable.length > 0 && (

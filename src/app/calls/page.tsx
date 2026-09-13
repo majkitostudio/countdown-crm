@@ -14,6 +14,7 @@ import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 function useReviewQueryFilter() {
   return useSyncExternalStore(
@@ -106,17 +107,20 @@ export default function CallLogsPage() {
         title="Calls"
         badge={{ label: `${totalCallsCount} logged`, tone: "neutral" }}
         description="Recorded call outcomes and any verified captured transcripts. A record may not include audio or a transcript."
-        actions={
+actions={
           <div className="flex items-center gap-2">
             {canReview && (
               <Link
                 href="/calls?review=unreviewed"
-                className="inline-flex items-center rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+                className={getButtonClassName("secondary")}
               >
                 Unreviewed: {unreviewedCount}
               </Link>
             )}
-            <Link href="/workspace" className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 shadow-sm transition-colors hover:bg-zinc-200">
+            <Link
+              href="/workspace"
+              className={getButtonClassName("primary")}
+            >
               <PhoneCall className="h-4 w-4" aria-hidden="true" />
               <span>Launch Operator Console</span>
             </Link>

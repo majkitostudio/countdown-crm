@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-11
 
-**Status:** Approved design — awaiting written-spec review
+**Status:** ✅ Implemented — all routes migrated to shared primitives
 
 ## Goal
 
@@ -121,3 +121,49 @@ material, typography, actions, and status language as Operator Console. A
 coloured element communicates a real outcome, required attention, or risk;
 ordinary data is deliberately neutral. No feature behavior changes as a side
 effect of this redesign.
+
+## Implementation Completion (13. 9. 2026)
+
+All conversion waves completed:
+
+### 1. Foundation ✅
+- Global tokens, app shell, navigation, app header, page header, shared primitives
+- `Button` (primary, secondary, quiet, danger), `Surface` (page, inset, table, empty, overlay), `StatusBadge`/`StatusAlert`, `MetricCard`, `PageHeader`
+
+### 2. Operator routes ✅
+- **Calls** (`/calls`) — Launch Operator Console button → `Button`
+- **Orders** (`/orders`, `/orders/new`, `/orders/[id]`, `/orders/[id]/edit`) — All action buttons → `Button`; custom surfaces → `Surface`
+- **Leads** (`/leads/[id]`) — Back button → `Button`
+- **Calendar** — Already compliant
+- **Training** (`/training/reviews`, `/training/reviews/[id]`) — Action buttons → `Button`
+
+### 3. Management routes ✅
+- **Wallet** (`/wallet`) — View orders button → `Button`; team balances & transaction ledger → `Surface`
+- **Readiness** (`/readiness`) — Back button → `Button`
+- **Telephony** (`/telephony`) — Settings link → `Button`
+- **Settings/Scripts** (`/settings/scripts`) — Back buttons → `Button`
+- **Products** — Already compliant
+- **Team** — Already compliant
+- **Monitor** — Already compliant
+- **Analytics** — Already compliant
+- **Exceptions** — Already compliant
+- **Workflows** — Already compliant
+- **Audit** — Already compliant
+- **Custom Objects** (`/objects/[slug]`) — Already compliant
+
+### 4. State completeness ✅
+- Login, Dashboard, Workspace loading/empty/unavailable/error/success states
+- Modal overlays (CallbackScheduleModal, IncomingCallModal) use `Surface variant="overlay"`
+- Narrow viewport (390px) verified on Workspace
+
+### 5. Workspace components ✅
+- `ConversationBriefCard` — custom surfaces → `Surface variant="inset"`
+- `ClientProfileCard` — custom surfaces → `Surface variant="page"/"inset"`
+- `OperatorCallControls` + `CallOutcomePanel` — custom buttons/surfaces → `Button` + `Surface`
+
+### Verification Results
+- **548 testů** — PASS (120 test files)
+- **Lint** — PASS (0 chyb, 0 varování)
+- **Typecheck** — PASS
+- **Build** — PASS (produkční build)
+- **Git diff check** — PASS

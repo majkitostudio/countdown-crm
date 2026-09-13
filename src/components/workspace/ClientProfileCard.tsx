@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Lead } from "@/lib/leads";
+import { Surface } from "@/components/ui/Surface";
 
 interface ClientProfileCardProps {
   lead: Lead;
@@ -48,13 +49,13 @@ function ProfileField({
   children?: ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-950/40 p-3">
+    <Surface variant="inset" className="p-3">
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
         <Icon className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
         <span>{label}</span>
       </div>
       {children || <p className="mt-1.5 truncate text-sm font-medium text-zinc-100">{value}</p>}
-    </div>
+    </Surface>
   );
 }
 
@@ -63,8 +64,9 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
   const score = Math.min(100, Math.max(0, lead.ai_score));
 
   return (
-    <section
-      className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 shadow-sm"
+    <Surface
+      variant="page"
+      className="p-4"
       data-testid="client-profile-card"
       aria-labelledby="client-profile-card-title"
     >
@@ -114,6 +116,6 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
       <p className="mt-3 text-[10px] text-zinc-500">
         Full customer history, notes and verified delivery address will be available in Client Profile.
       </p>
-    </section>
+    </Surface>
   );
 }

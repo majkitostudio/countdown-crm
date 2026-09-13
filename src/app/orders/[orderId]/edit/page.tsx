@@ -6,6 +6,7 @@ import { listProductsForWorkspace } from "@/lib/dal/products";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 type SearchParams = Promise<{ origin?: string | string[] }>;
 
@@ -68,15 +69,18 @@ export default async function OrderEditPage({
   const backHref = result.origin === "workspace" ? "/workspace" : `/orders/${orderId}`;
   if (!result.order) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-12 text-center">
+      <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Order not found</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">This order does not exist in the active workspace or is no longer available.</p>
-        <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+<Link
+          href={backHref}
+          className={getButtonClassName("secondary")}
+        >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back
+          Back to order
         </Link>
-      </div>
+      </Surface>
     );
   }
 

@@ -6,6 +6,7 @@ import { OrderStatusEditor } from "@/components/orders/OrderStatusEditor";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { getButtonClassName } from "@/components/ui/Button";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -102,7 +103,7 @@ export default async function OrderDetailPage({
         actions={canEditDetails ? (
           <Link
             href={`/orders/${order.id}/edit${requestedOrigin === "workspace" ? "?origin=workspace" : ""}`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white"
+            className={getButtonClassName("secondary")}
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
             Edit details
@@ -111,8 +112,8 @@ export default async function OrderDetailPage({
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+<div className="space-y-6">
+          <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-100">Customer</h2>
@@ -125,11 +126,11 @@ export default async function OrderDetailPage({
                 <p className="text-base font-semibold text-zinc-100">{order.lead_name}</p>
                 <p className="mt-1 text-xs text-zinc-500">Lead ID <span className="font-mono text-zinc-400">{order.lead_id || "unavailable"}</span></p>
               </div>
-              {order.lead_id && <Link href={`/workspace?leadId=${order.lead_id}`} className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">Open in Console <ExternalLink className="h-3.5 w-3.5" /></Link>}
+              {order.lead_id && <Link href={`/workspace?leadId=${order.lead_id}`} className={getButtonClassName("secondary")}>Open in Console <ExternalLink className="h-3.5 w-3.5" /></Link>}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-100">Order item</h2>
@@ -140,7 +141,7 @@ export default async function OrderDetailPage({
             {order.items.length > 0 ? (
               <div className="space-y-2">
                 {order.items.map((item) => (
-                  <div key={item.id} className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4">
+                  <Surface key={item.id} variant="inset" className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-100">{item.product_title}</p>
@@ -149,28 +150,30 @@ export default async function OrderDetailPage({
                       <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{item.currency} {item.line_total.toFixed(2)}</span>
                     </div>
                     {item.unit_price < item.minimum_unit_price && <p className="mt-2 text-[10px] text-amber-300">Below minimum reference price of {item.currency} {item.minimum_unit_price.toFixed(2)} per piece</p>}
-                  </div>
+                  </Surface>
                 ))}
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-4 rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-zinc-100">{order.product_title}</p>
-                  <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">Product ID {order.product_id || "unavailable"}</p>
+              <Surface variant="inset" className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-zinc-100">{order.product_title}</p>
+                    <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">Product ID {order.product_id || "unavailable"}</p>
+                  </div>
+                  <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</span>
                 </div>
-                <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</span>
-              </div>
+              </Surface>
             )}
           </section>
 
           {order.source_note && (
-            <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+            <Surface variant="page" className="p-6">
               <h2 className="text-sm font-semibold text-zinc-100">Source note</h2>
               <p className="mt-3 whitespace-pre-wrap rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4 text-xs leading-relaxed text-zinc-300">{order.source_note}</p>
-            </section>
+            </Surface>
           )}
 
-          <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
+          <Surface variant="page" className="p-6">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
                 <h2 className="text-sm font-semibold text-zinc-100">Status history</h2>
@@ -181,7 +184,7 @@ export default async function OrderDetailPage({
             {order.status_history.length > 0 ? (
               <div className="space-y-3">
                 {order.status_history.map((entry) => (
-                  <div key={entry.id} className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4">
+                  <Surface key={entry.id} variant="inset" className="p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs font-medium text-zinc-200">
                         {entry.from_status ? `${statusLabel(entry.from_status)} → ` : "Created as "}{statusLabel(entry.to_status)}
@@ -190,13 +193,13 @@ export default async function OrderDetailPage({
                     </div>
                     <p className="mt-1 text-[10px] text-zinc-500">{entry.actor_name}</p>
                     {entry.note && <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-zinc-400">{entry.note}</p>}
-                  </div>
+                  </Surface>
                 ))}
               </div>
             ) : (
               <p className="text-xs text-zinc-500">No status history is available for this order.</p>
             )}
-          </section>
+          </Surface>
         </div>
 
         <aside className="h-fit space-y-6 lg:sticky lg:top-0">
@@ -231,7 +234,10 @@ export default async function OrderDetailPage({
             </dl>
             {isBelowMinimum && <StatusAlert tone="warning">This order is below the minimum reference price. It was still allowed to be created.</StatusAlert>}
           </section>
-          <Link href={backHref} className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 px-4 py-3 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+          <Link
+            href={backHref}
+            className={getButtonClassName("secondary")}
+          >
             <ArrowLeft className="h-3.5 w-3.5" />
             {requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders"}
           </Link>
