@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Button, getButtonClassName } from "@/components/ui/Button";
 import { Surface, getSurfaceClassName } from "@/components/ui/Surface";
-import { StatusAlert, StatusBadge, getStatusClassName } from "@/components/ui/Status";
+import { StatusAlert, StatusBadge, getStatusClassName, type SemanticTone } from "@/components/ui/Status";
 import { MetricCard, getMetricValueClassName } from "@/components/ui/MetricCard";
 
 const STATUS_RECIPES = [
@@ -64,6 +64,13 @@ describe("shared operator console design primitives", () => {
     expect(getStatusClassName("success")).toBe("border-emerald-800/50 bg-emerald-950/20 text-emerald-200");
     expect(getStatusClassName("warning")).toBe("border-amber-800/50 bg-amber-950/20 text-amber-200");
     expect(getStatusClassName("danger")).toBe("border-rose-800/50 bg-rose-950/20 text-rose-200");
+  });
+
+  it("defines shared informational and blocked state recipes", () => {
+    expect(getStatusClassName("info" as SemanticTone)).toBe("border-sky-800/50 bg-sky-950/20 text-sky-200");
+    expect(getStatusClassName("blocked" as SemanticTone)).toBe("border-rose-900/70 bg-rose-950/30 text-rose-100");
+    expect(renderToStaticMarkup(<StatusBadge tone={"info" as SemanticTone}>Details available</StatusBadge>)).toContain("text-sky-200");
+    expect(renderToStaticMarkup(<StatusAlert tone={"blocked" as SemanticTone}>Action is blocked</StatusAlert>)).toContain("text-rose-100");
   });
 
   it.each(SURFACE_RECIPES)("renders the fixed %s surface recipe", (variant, recipe) => {
