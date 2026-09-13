@@ -4,9 +4,9 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 12. 9. 2026
-**Repo baseline:** stabilní P1 pracovní smyčka, sjednocený UI systém podle Operator Console, ověřený admin smoke a schválený P1 návrh Klientského profilu
-**Produktový stav:** stabilizace před interním pilotem
+**Snapshot:** 14. 9. 2026
+**Repo baseline:** stabilní P1 pracovní smyčka, ověřený třírolový smoke, sjednocený UI systém podle Operator Console a připravená runtime závislostní vrstva
+**Produktový stav:** stabilizace před interním pilotem; Telnyx živý provider čeká na číslo
 
 ## Produkt
 

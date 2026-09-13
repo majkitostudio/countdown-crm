@@ -129,29 +129,40 @@ akceptační kritéria a důkazní plán.
    - Schválený návrh je commit `ae5c014`; provedení rozepisuje aktuální plán
      `2026-09-11-operator-client-profile-and-verified-address.md`.
    - Implementace datového modelu, obou atomických objednávkových toků a UI je
-     na `main` v commitech `a165a69`, `a402129` a `e4b7f5a`. Automatické
-     kontroly prošly (545 aplikačních a 188 databázových testů), ale existující
-     autentizovaný Operator neměl aktivní assignment. Dokud neprojde reálný
-     browser důkaz profilu, poznámky, obou adresních toků, reloadu a odmítnutí
-     cizího assignmentu, bod zůstává otevřený. Sanitizovaný report:
-     `superpowers/reports/2026-09-12-operator-client-profile-verification.md`.
-   - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
-     prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
-     výběr adresy a odmítnutí cizího assignmentu.
+     na `main` v commitech `a165a69`, `a402129` a `e4b7f5a`. Následný
+     autentizovaný P1.7 smoke s izolovanými testovacími účty prokázal kartu,
+     poznámku, reload a odmítnutí cizího assignmentu. Oprava autorizační
+     hranice poznámek je v `e7c731d`.
+   - Zbývá browser důkaz ručního i post-call objednávkového toku s uložením a
+     read-backem validované adresy. Důkaz: `superpowers/reports/2026-09-14-p1-7-full-shift-smoke.md`.
 7. [x] **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
    operátor, Team Leader a administrátor, včetně reloadu, persistence, prázdných
    stavů a přímých URL.
    - Hotovo, když report obsahuje kroky, identity rolí bez tajných údajů, read-back
      a cleanup; unit/build test se za tento důkaz nevydává.
    - Dokončeno v linked sandboxu: `superpowers/reports/2026-09-14-p1-7-full-shift-smoke.md`.
-8. [ ] **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
-   moderate advisories přes starší `uuid`; automatický audit navrhuje nevhodný
-   major downgrade. Současně je nutné posoudit tři blokované install skripty.
-   - Hotovo, když existuje bezpečná aktualizační/mitigační cesta a čistý nebo
-     výslovně akceptovaný audit před zapnutím živého provideru.
-   - Audit a patch aktualizace: `superpowers/reports/2026-09-14-p1-8-runtime-dependency-audit.md`.
-     Next.js critical advisory je opravený na `16.3.5`; Telnyx/uuid větev
-     zůstává otevřená do kompatibilitního rozhodnutí.
+8. [ ] **Prověřit runtime závislosti telefonie.** Bezpečné patch aktualizace
+   proběhly, ale Telnyx/uuid větev a posouzení install skriptů zůstávají otevřené.
+   Automatický audit navrhuje nevhodný major downgrade Telnyx SDK, který se bez
+   kompatibilitního testu nepoužije. Živý provider navíc čeká na dostupné číslo.
+   - Část hotová: Next.js critical advisory je opravený na `16.3.5`; po patchi
+     zůstaly pouze tři moderate nálezy v Telnyx/uuid řetězci.
+   - Záměrné rozhodnutí: dokud není číslo a stabilní telefonní návrh, nepřidáváme
+     novou pre-call UI diagnostiku ani neměníme telefonní adapter.
+   - Důkaz a zbývající kroky: `superpowers/reports/2026-09-14-p1-8-runtime-dependency-audit.md`.
+
+### P1.9 — Přechod na další neblokovanou práci
+
+P1.8 je rozdělené na dvě oddělené části: bezpečné patch aktualizace jsou hotové,
+zatímco kompatibilita Telnyx/uuid a živý provider zůstávají externě blokované.
+P1.9 proto nepřidává telefonní funkcionalitu ani dočasnou
+diagnostickou obrazovku, která by se mohla změnit spolu s providerem.
+
+Další práce může pokračovat pouze nad neblokovanou částí roadmapy. Nejbližší
+stabilní krok je návrh týmového základu P2 (`teams`, členství, Team Leader
+scope, správa a RLS); před implementací musí vzniknout samostatná specifikace,
+akceptační kritéria a důkazní plán. Telnyx se vrátí do práce až s číslem,
+ověřenou konfigurací a rozhodnutím k `uuid` větvi.
 
 ### P1.5 — P2 onboarding trénažér (interní pilot)
 
