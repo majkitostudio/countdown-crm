@@ -138,11 +138,12 @@ akceptační kritéria a důkazní plán.
    - Hotovo, když UI, server, migrace, RLS, databázové testy a browser průchod
      prokáží novou kartu, append-only poznámku, oba objednávkové toky, delivered-only
      výběr adresy a odmítnutí cizího assignmentu.
-7. [ ] **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
+7. [x] **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
    operátor, Team Leader a administrátor, včetně reloadu, persistence, prázdných
    stavů a přímých URL.
    - Hotovo, když report obsahuje kroky, identity rolí bez tajných údajů, read-back
      a cleanup; unit/build test se za tento důkaz nevydává.
+   - Dokončeno v linked sandboxu: `superpowers/reports/2026-09-14-p1-7-full-shift-smoke.md`.
 8. [ ] **Prověřit runtime závislosti telefonie.** `@telnyx/webrtc` dnes přináší tři
    moderate advisories přes starší `uuid`; automatický audit navrhuje nevhodný
    major downgrade. Současně je nutné posoudit tři blokované install skripty.

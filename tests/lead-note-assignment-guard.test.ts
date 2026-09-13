@@ -34,4 +34,40 @@ describe("operator lead-note assignment guard", () => {
     expect(mocks.getScopedLeadForWorkspace).toHaveBeenCalledWith("foreign-lead", "workspace-1");
     expect(mocks.createDataClient).not.toHaveBeenCalled();
   });
+
+  it("writes a note for the currently assigned operator contact without opening the lead directory", async () => {
+    mocks.getScopedLeadForWorkspace.mockResolvedValue({ id: "assigned-lead" });
+    const from = vi.fn((table: string) => {
+      if (table === "lead_notes") {
+        return {
+          insert: vi.fn(() => ({
+            select: vi.fn(() => ({
+              single: vi.fn().mockResolvedValue({
+                data: {
+                  id: "note-1", workspace_id: "workspace-1", lead_id: "assigned-lead",
+                  author_id: "operator-1", body: "Saved note", created_at: "2026-09-13T00:00:00Z",
+                },
+                error: null,
+              }),
+            })),
+          })),
+        };
+      }
+      if (table === "profiles") {
+        return {
+          select: vi.fn(() => ({
+            in: vi.fn().mockResolvedValue({ data: [{ id: "operator-1", full_name: "Operator One" }], error: null }),
+          })),
+        };
+      }
+      throw new Error(`Unexpected table lookup: ${table}`);
+    });
+    mocks.createDataClient.mockResolvedValue({ from });
+
+    await expect(createLeadNoteForWorkspace("assigned-lead", "Saved note"))
+      .resolves.toMatchObject({ lead_id: "assigned-lead", author_name: "Operator One" });
+
+    expect(mocks.getScopedLeadForWorkspace).toHaveBeenCalledWith("assigned-lead", "workspace-1");
+    expect(from).not.toHaveBeenCalledWith("leads");
+  });
 });

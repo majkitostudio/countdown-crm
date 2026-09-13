@@ -85,7 +85,8 @@ export async function createLeadNoteForWorkspace(
   const normalizedBody = validateBody(body);
   const context = await requireWorkspaceContext(requestedWorkspaceId);
 
-  if (context.role === "operator") {
+  const isOperator = context.role === "operator";
+  if (isOperator) {
     try {
       await getScopedLeadForWorkspace(leadId, context.workspaceId);
     } catch (error) {
@@ -96,18 +97,20 @@ export async function createLeadNoteForWorkspace(
 
   const supabase = await createDataClient();
 
-  const { data: lead, error: leadError } = await supabase
-    .from("leads")
-    .select("id")
-    .eq("id", leadId)
-    .eq("workspace_id", context.workspaceId)
-    .maybeSingle();
+  if (!isOperator) {
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .select("id")
+      .eq("id", leadId)
+      .eq("workspace_id", context.workspaceId)
+      .maybeSingle();
 
-  if (leadError) {
-    throw new DataAccessError("DATABASE", "Lead lookup for note failed.");
-  }
-  if (!lead) {
-    throw new DataAccessError("NOT_FOUND", "Lead not found in workspace.");
+    if (leadError) {
+      throw new DataAccessError("DATABASE", "Lead lookup for note failed.");
+    }
+    if (!lead) {
+      throw new DataAccessError("NOT_FOUND", "Lead not found in workspace.");
+    }
   }
 
   const { data, error } = await supabase
