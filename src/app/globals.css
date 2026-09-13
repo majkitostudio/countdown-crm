@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+@theme {
+  --color-canvas: #09090b;
+  --color-surface-page: rgb(24 24 27 / 0.6);
+  --color-surface-inset: rgb(9 9 11 / 0.6);
+  --color-surface-overlay: rgb(9 9 11 / 0.95);
+  --color-border-subtle: rgb(39 39 42 / 0.6);
+  --color-border-default: rgb(39 39 42 / 0.8);
+  --color-border-strong: rgb(63 63 70 / 0.9);
+  --color-text-primary: #f4f4f5;
+  --color-text-secondary: #d4d4d8;
+  --color-text-muted: #a1a1aa;
+  --color-text-disabled: #52525b;
+  --color-text-inverse: #09090b;
+  --color-action-primary: #f4f4f5;
+  --color-action-secondary: #18181b;
+  --color-action-danger: rgb(76 5 25 / 0.2);
+  --color-status-neutral: #27272a;
+  --color-status-info: rgb(8 47 73 / 0.2);
+  --color-status-success: rgb(6 78 59 / 0.2);
+  --color-status-warning: rgb(69 26 3 / 0.2);
+  --color-status-danger: rgb(76 5 25 / 0.2);
+  --color-status-blocked: rgb(76 5 25 / 0.3);
+  --color-focus: #a1a1aa;
+  --radius-control: 0.75rem;
+  --radius-surface: 1rem;
+  --radius-overlay: 1rem;
+  --spacing-control: 0.625rem;
+  --spacing-field: 0.75rem;
+  --spacing-section: 1.5rem;
+  --spacing-page-gutter: 1.5rem;
+  --shadow-overlay: 0 25px 50px -12px rgb(0 0 0 / 0.45);
+  --ease-interface: cubic-bezier(0.2, 0, 0, 1);
+}
+
 @layer utilities {
   .glass-card {
     background: rgba(24, 24, 27, 0.6);
