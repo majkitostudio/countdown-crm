@@ -14,4 +14,13 @@ describe("delivery address inputs", () => {
     expect(orderForm).toContain("DeliveryAddressFields");
     expect(productPanel).toContain("DeliveryAddressFields");
   });
+
+  it("shows the saved address on the order detail", () => {
+    const detailPage = source("src/app/orders/[orderId]/page.tsx");
+
+    expect(detailPage).toContain("parseDeliveryAddressSnapshot");
+    expect(detailPage).toContain('>Delivery address<');
+    expect(detailPage).toContain("deliveryAddress.recipient_name");
+    expect(detailPage).toContain("deliveryAddress.postal_code");
+  });
 });

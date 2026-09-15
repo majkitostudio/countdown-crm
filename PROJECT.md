@@ -29,7 +29,9 @@ rozhodnutí, ne odvádět pozornost administrací.
 
 Operator Console dnes drží přiřazeného zákazníka v hlavičce, otevírá jeho
 read-only Klientský profil bezpečně v nové kartě, má rozbalitelný Product Script
-a sdílené append-only poznámky přímo u skriptu. Doplňují je recent context
+a sdílené append-only poznámky přímo u skriptu. Ruční i post-call objednávky
+ukládají validovaný neměnný snapshot doručovací adresy; adresa je vidět i na
+detailu objednávky. Doplňují je recent context
 řádek, klávesové zkratky, přístupný callback modal, `Operator Next Action`,
 první slice `Callback Recovery Inbox` a serverový Conversation Brief se
 skutečnými údaji a bezpečným dalším krokem. Schválený
@@ -190,9 +192,11 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    privilegované RPC a `pgtap` jsou uzavřené a podložené read-backem; runner
    dokazuje pouze linked sandbox, ne produkční readiness.
 2. P1 má implementovaný Klientský profil a ověřenou doručovací adresu. Třírolový
-   autentizovaný full-shift smoke už prokázal assignment, poznámku, reload,
-   role-aware vstup a odmítnutí cizího assignmentu; zbývá browser a SQL důkaz
-   ručního i post-call objednávkového toku s validovaným adresním snapshotem.
+   autentizovaný full-shift smoke prokázal assignment, poznámku, reload,
+   role-aware vstup a odmítnutí cizího assignmentu. Ruční objednávka prošla
+   browserem včetně reloadu detailu; post-call objednávka prošla autentizovanou
+   serverovou hranicí a SQL read-backem. Důkaz je v
+   `docs/superpowers/reports/2026-09-15-p1-7-order-evidence.md`.
 3. P1.5 po uzavření P1 přidá úzce vymezený P2 onboarding trénažér: jeden až dva
    schválené skripty, bezpečný AI nácvik, compliance zpětnou vazbu a jasně
    označené tréninkové záznamy v Call Logu bez obchodního side effectu.

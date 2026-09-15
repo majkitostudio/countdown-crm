@@ -4,7 +4,7 @@
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna a první bezpečná vlna P2 týmů v Sandboxu. Production zůstává beze změny. Team Leader pracovní plocha, Daily Brief, callbacky a týmová analytika mají ověřený týmový rozsah; další práce pokračuje bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
+**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna a první bezpečná vlna P2 týmů v Sandboxu. Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky a týmová analytika mají ověřený týmový rozsah. Další práce pokračuje bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
 
 ## Co je skutečně hotové
 
@@ -120,7 +120,7 @@ akceptační kritéria a důkazní plán.
     - Ověření: `superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md`
     - Doplňkové ověření: `superpowers/reports/2026-09-13-unified-design-system-complete-verification.md`
      - Dokončeno: Login, Dashboard, Workspace včetně modulů a úzkého viewportu (390px) dodržují designový systém. Všechny entry/workspace stavy používají sdílené primitivy.
-6. [ ] **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
+6. [x] **Zjednodušit Operator Console kolem Klientského profilu a ověřené adresy.**
    Základní kontext přesunout do hlavičky přiřazeného zákazníka, odstranit
    Compact / Extended režim, umožnit zvětšení Product Scriptu bez ztráty identity
    klienta a otevřít read-only Klientský profil v nové kartě. Operátor smí pouze
@@ -135,8 +135,12 @@ akceptační kritéria a důkazní plán.
      autentizovaný P1.7 smoke s izolovanými testovacími účty prokázal kartu,
      poznámku, reload a odmítnutí cizího assignmentu. Oprava autorizační
      hranice poznámek je v `e7c731d`.
-   - Zbývá browser důkaz ručního i post-call objednávkového toku s uložením a
-     read-backem validované adresy. Důkaz: `superpowers/reports/2026-09-14-p1-7-full-shift-smoke.md`.
+   - Dokončeno: ruční objednávka prošla browserem včetně obnovení detailu a
+     zobrazení adresy. Post-call objednávka prošla autentizovanou serverovou
+     hranicí se skutečným Team/Operator kontextem a SQL read-backem hovoru,
+     session, objednávky, položky, adresy a auditu. Browserová simulace hovoru
+     se kvůli chybějícímu přístupu k mikrofonu nepřipojila; systém proto správně
+     nic nepředstíral a přešel do recovery. Důkaz: `superpowers/reports/2026-09-15-p1-7-order-evidence.md`.
 7. [x] **Provést souvislý browser smoke test celého pracovního dne.** Odděleně jako
    operátor, Team Leader a administrátor, včetně reloadu, persistence, prázdných
    stavů a přímých URL.

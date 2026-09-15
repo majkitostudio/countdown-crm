@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, Package, Pencil, ShoppingCart, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarClock, CircleAlert, ExternalLink, MapPin, Package, Pencil, ShoppingCart, UserRound } from "lucide-react";
 import { getWorkspaceOrder } from "@/lib/dal/activity";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { OrderStatusEditor } from "@/components/orders/OrderStatusEditor";
@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
+import { parseDeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -92,6 +93,7 @@ export default async function OrderDetailPage({
     ? order.items.reduce((sum, item) => sum + item.minimum_unit_price * item.quantity, 0)
     : null;
   const isBelowMinimum = minimumOrderTotal !== null && order.total_amount < minimumOrderTotal;
+  const deliveryAddress = parseDeliveryAddressSnapshot(order.delivery_address_snapshot);
 
   return (
     <div className="mx-auto max-w-screen-xl space-y-6">
@@ -129,6 +131,27 @@ export default async function OrderDetailPage({
               </div>
               {order.lead_id && <Link href={`/leads/${order.lead_id}`} className={getButtonClassName("secondary")}>Open customer profile <ExternalLink className="h-3.5 w-3.5" /></Link>}
             </div>
+          </section>
+
+          <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
+            <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
+              <div>
+                <h2 className="text-sm font-semibold text-zinc-100">Delivery address</h2>
+                <p className="mt-1 text-xs text-zinc-500">The address saved with this order.</p>
+              </div>
+              <MapPin className="h-4 w-4 text-zinc-500" />
+            </div>
+            {deliveryAddress ? (
+              <address className="not-italic text-sm leading-relaxed text-zinc-200">
+                <p className="font-medium text-zinc-100">{deliveryAddress.recipient_name}</p>
+                <p>{deliveryAddress.line1}</p>
+                {deliveryAddress.line2 && <p>{deliveryAddress.line2}</p>}
+                <p>{deliveryAddress.postal_code} {deliveryAddress.city}</p>
+                <p>{deliveryAddress.country}</p>
+              </address>
+            ) : (
+              <p className="text-xs text-zinc-500">No delivery address snapshot is available for this order.</p>
+            )}
           </section>
 
           <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
