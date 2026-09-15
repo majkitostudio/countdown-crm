@@ -43,7 +43,7 @@ export function NextBestActionContent({ state }: { state: NextBestActionState })
   );
 }
 
-export function NextBestActionCard() {
+export function NextBestActionCard({ scope = "workspace" }: { scope?: "team" | "workspace" }) {
   const [state, setState] = useState<NextBestActionState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -91,7 +91,7 @@ export function NextBestActionCard() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-zinc-100">Next best action</h3>
-            <p className="mt-0.5 text-xs text-zinc-400">Jedna prioritní akce z dostupných workspace signálů.</p>
+            <p className="mt-0.5 text-xs text-zinc-400">Jedna prioritní akce z dostupných {scope === "team" ? "týmových" : "workspace"} signálů.</p>
           </div>
         </div>
         <span className="shrink-0 rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">

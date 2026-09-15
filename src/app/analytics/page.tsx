@@ -33,7 +33,10 @@ const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
 export default function AnalyticsPage() {
   const emptyData: AnalyticsOverview = {
-    sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable" },
+    scope: "workspace",
+    scopeLabel: "Celý workspace",
+    accessibleTeams: [],
+    sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable", teams: "unavailable" },
     totalRevenue: 0,
     revenueByCurrency: [],
     projectedRevenue: 0,
@@ -66,6 +69,7 @@ export default function AnalyticsPage() {
   const [exportError, setExportError] = useState<string | null>(null);
 
   const data = result?.ok ? result.data : emptyData;
+  const scopeLabel = data.scopeLabel;
   const isEmptySuccess = result?.ok
     && result.data.totalCalls === 0
     && result.data.revenueByCurrency.length === 0
@@ -126,10 +130,12 @@ export default function AnalyticsPage() {
               ? "Restricted"
               : status === "unavailable"
                 ? "Unavailable"
-                : status === "empty" ? "No activity" : "Workspace DB",
+                : status === "empty" ? "No activity" : result?.ok ? scopeLabel : "Unavailable",
           tone: status === "success" ? "neutral" : "unavailable",
         }}
-        description="Workspace-scoped revenue and call metrics. Forecasts and attribution require additional persisted sources."
+        description={result?.ok
+          ? `${scopeLabel} — revenue and call metrics visible to this role. Forecasts and attribution require additional persisted sources.`
+          : "Ověřuji rozsah analytiky a dostupnost dat pro tuto roli."}
         actions={
           result?.ok ? (
             <Button
@@ -138,14 +144,27 @@ export default function AnalyticsPage() {
               variant="secondary"
             >
               <Download className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-              <span>{isExporting ? "Exporting CSV..." : "Export workspace CSV"}</span>
+              <span>{isExporting ? "Exporting CSV..." : `Export ${scopeLabel} CSV`}</span>
             </Button>
           ) : undefined
         }
       />
 
+      {result?.ok && (
+        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400" data-testid="analytics-scope">
+          <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2.5 py-1 font-medium text-zinc-200">{scopeLabel}</span>
+          {data.scope === "team" && (
+            <span>{data.sources.teams === "ready"
+              ? data.accessibleTeams.length > 0
+                ? data.accessibleTeams.map((team) => team.name).join(", ")
+                : "Nemáte přiřazený žádný aktivní tým"
+              : "Seznam týmů není dostupný"}</span>
+          )}
+        </div>
+      )}
+
       {result === null && (
-        <StatusAlert tone="neutral" role="status">Loading workspace analytics...</StatusAlert>
+        <StatusAlert tone="neutral" role="status">Loading analytics scope...</StatusAlert>
       )}
 
       {result && !result.ok && (
@@ -161,7 +180,7 @@ export default function AnalyticsPage() {
       )}
 
       {result?.ok && isEmptySuccess && (
-        <StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available for this workspace yet.</StatusAlert>
+        <StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available in this analytics scope yet.</StatusAlert>
       )}
 
       {result?.ok && <>
@@ -178,10 +197,10 @@ export default function AnalyticsPage() {
         />
 
         {/* Average Order Value AOV */}
-        <MetricCard label="Average Order Value (AOV)" value={formatCurrencyAmounts(data.avgOrderValueByCurrency)} detail="Calculated from completed orders in the workspace" />
+        <MetricCard label="Average Order Value (AOV)" value={formatCurrencyAmounts(data.avgOrderValueByCurrency)} detail={`Calculated from completed orders in ${scopeLabel.toLowerCase()}`} />
 
         {/* Conversion Rate */}
-        <MetricCard label="Call Conversion Rate" value={`${data.conversionRate}%`} detail={`Based on ${data.totalCalls} total calls`} />
+        <MetricCard label="Call Conversion Rate" value={`${data.conversionRate}%`} detail={`Based on ${data.totalCalls} calls in ${scopeLabel.toLowerCase()}`} />
 
         {/* Objection Resolution Rate */}
         <MetricCard label="Objection Overcome %" value={data.objectionMetricsAvailable && data.objectionResolutionRate !== null ? `${data.objectionResolutionRate}%` : "—"} detail="No persisted objection outcome metric" />

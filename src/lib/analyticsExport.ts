@@ -16,6 +16,8 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
 
   const rows = [
     ["Metric", "Value"],
+    ["Analytics scope", data.scopeLabel],
+    ...(data.scope === "team" ? [["Teams in scope", data.accessibleTeams.map((team) => team.name).join("; ")]] : []),
     ["Revenue by currency", formatCurrencyAmounts(data.revenueByCurrency)],
     ["AI Forecast Revenue (Next 30d)", "Unavailable"],
     ["Average Order Value by currency", formatCurrencyAmounts(data.avgOrderValueByCurrency)],
@@ -40,7 +42,7 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `countdown_analytics_report_${new Date().toISOString().split("T")[0]}.csv`);
+  link.setAttribute("download", `countdown_analytics_${data.scope}_${new Date().toISOString().split("T")[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

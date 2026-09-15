@@ -14,7 +14,11 @@ export interface DailyBriefWallet {
   }>;
 }
 
+export type DailyBriefScope = "team" | "workspace";
+
 export interface TeamLeaderDailyBrief {
+  scope: DailyBriefScope;
+  scopeLabel: string;
   daily: DailyTeamSummary;
   callbacksToAttend: number;
   todayCallbacks: number;
@@ -22,8 +26,8 @@ export interface TeamLeaderDailyBrief {
   openReminders: number;
   urgentReorders: number;
   pendingReviews: number | null;
-  teamWalletBalance: number | null;
-  teamWalletTransactions: number | null;
+  workspaceWalletBalance: number | null;
+  workspaceWalletTransactions: number | null;
   walletCurrency: string | null;
 }
 
@@ -34,6 +38,7 @@ export interface TeamLeaderDailyBriefInput {
   reorderOpportunities?: NextBestActionReorderOpportunity[];
   pendingReviews?: number | null;
   wallet?: DailyBriefWallet | null;
+  scope?: DailyBriefScope;
   now?: Date;
 }
 
@@ -49,6 +54,7 @@ function isSameDay(value: string, now: Date): boolean {
 /** Builds the manager's daily snapshot from already authorized workspace data. */
 export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): TeamLeaderDailyBrief {
   const now = input.now ?? new Date();
+  const scope = input.scope ?? "team";
   const callbacks = (input.callbacks ?? []).filter((callback) => isValidDate(callback.scheduled_at));
   const reminders = input.reminders ?? [];
   const endOfDay = new Date(now);
@@ -58,6 +64,8 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
   const wallet = input.wallet ?? null;
 
   return {
+    scope,
+    scopeLabel: scope === "team" ? "Týmová data" : "Celý workspace",
     daily: input.daily,
     callbacksToAttend,
     todayCallbacks: callbacks.filter((callback) => isSameDay(callback.scheduled_at, now)).length,
@@ -67,8 +75,8 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
       (opportunity) => opportunity.urgency === "urgent" || opportunity.urgency === "due_soon",
     ).length,
     pendingReviews: input.pendingReviews ?? null,
-    teamWalletBalance: wallet ? wallet.balances.reduce((sum, balance) => sum + Number(balance.balance || 0), 0) : null,
-    teamWalletTransactions: wallet
+    workspaceWalletBalance: wallet ? wallet.balances.reduce((sum, balance) => sum + Number(balance.balance || 0), 0) : null,
+    workspaceWalletTransactions: wallet
       ? wallet.balances.reduce((sum, balance) => sum + Number(balance.transaction_count || 0), 0)
       : null,
     walletCurrency: wallet?.currency ?? null,

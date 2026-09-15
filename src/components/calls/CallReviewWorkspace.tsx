@@ -255,7 +255,13 @@ export function CallReviewForm({
   );
 }
 
-export function CallReviewWorkspace({ initialReview }: { initialReview: CallReviewDTO }) {
+export function CallReviewWorkspace({
+  initialReview,
+  readOnly = false,
+}: {
+  initialReview: CallReviewDTO;
+  readOnly?: boolean;
+}) {
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
   const latestRevision = initialReview.revisions.at(-1) || null;
   const callSourceLabel = initialReview.callSource === "not_recorded"
@@ -293,7 +299,20 @@ export function CallReviewWorkspace({ initialReview }: { initialReview: CallRevi
       <Section title="Script evidence" icon={<ShieldCheck className="h-4 w-4" />}><ScriptEvidence review={initialReview} /></Section>
 
       <Section title="Current human review" icon={<RefreshCw className="h-4 w-4" />}>
-        {!latestRevision || isCorrectionMode ? (
+        {readOnly ? (
+          latestRevision ? (
+            <div className="space-y-3">
+              <Surface variant="inset"><div className="p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest verdict · revision {latestRevision.revisionNumber}</p>
+                <p className="mt-2 text-sm font-semibold text-zinc-100">{latestRevision.verdict}</p>
+                <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-zinc-300">{latestRevision.coachingNote}</p>
+              </div></Surface>
+              <StatusAlert tone="neutral">Review is read-only for your current permissions.</StatusAlert>
+            </div>
+          ) : (
+            <StatusAlert tone="neutral">No completed review exists yet. This view is read-only for your current permissions.</StatusAlert>
+          )
+        ) : !latestRevision || isCorrectionMode ? (
           <CallReviewForm
             key={`${latestRevision?.id || "new"}-${isCorrectionMode ? "correct" : "create"}`}
             callId={initialReview.call.id}

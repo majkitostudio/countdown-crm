@@ -14,6 +14,16 @@ describe("analytics UI authorization states", () => {
     expect(source).toContain('const resultTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";');
     expect(source).toContain("Analytics access is restricted:");
     expect(source).toContain("exportAnalyticsDataAction");
+    expect(source).toContain("data-testid=\"analytics-scope\"");
+    expect(source).toContain("Export ${scopeLabel} CSV");
     expect(source).toContain("result?.ok && <>");
+  });
+
+  it("uses the server-provided scope for the page and export instead of guessing in the browser", () => {
+    const source = readFileSync(path.join(projectRoot, "src", "app", "analytics", "page.tsx"), "utf8");
+
+    expect(source).toContain("const scopeLabel = data.scopeLabel;");
+    expect(source).toContain("data.scope === \"team\"");
+    expect(source).not.toContain("result.data.teamLeaderboard.filter");
   });
 });

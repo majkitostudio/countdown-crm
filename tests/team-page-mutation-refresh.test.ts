@@ -62,6 +62,11 @@ const changedMember = {
   updated_at: "2026-01-02T00:00:00.000Z",
 };
 
+const emptyTeamSources = {
+  presence: { status: "ready" as const, data: [] },
+  roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
+};
+
 type TeamMutationRunner = (
   mutation: () => Promise<unknown>,
   refresh: () => Promise<TeamPageData>,
@@ -98,16 +103,19 @@ function render(data: TeamPageData): string {
 describe("Team mutation composite refresh", () => {
   it("prefers newly received route data over an older client refresh snapshot", () => {
     const initialData: TeamPageData = {
+      ...emptyTeamSources,
       queue: { status: "ready", data: [queueItem] },
       operators: { status: "ready", data: [oldOperator] },
       members: null,
     };
     const locallyRefreshedData: TeamPageData = {
+      ...emptyTeamSources,
       queue: { status: "unavailable", reason: "database" },
       operators: { status: "ready", data: [oldOperator] },
       members: null,
     };
     const incomingData: TeamPageData = {
+      ...emptyTeamSources,
       queue: { status: "ready", data: [] },
       operators: { status: "ready", data: [] },
       members: null,
@@ -121,6 +129,7 @@ describe("Team mutation composite refresh", () => {
 
   it("replaces stale actionable queue rows after a successful mutation returns a structured queue failure", async () => {
     let state: TeamPageData = {
+      ...emptyTeamSources,
       queue: { status: "ready", data: [queueItem] },
       operators: { status: "ready", data: [oldOperator] },
       members: { status: "ready", data: [oldOperator] },
@@ -132,6 +141,7 @@ describe("Team mutation composite refresh", () => {
       async () => {
         events.push("refresh");
         return {
+          ...emptyTeamSources,
           queue: { status: "unavailable", reason: "database" },
           operators: { status: "ready", data: [oldOperator] },
           members: { status: "ready", data: [oldOperator] },
@@ -155,6 +165,7 @@ describe("Team mutation composite refresh", () => {
     { operation: "removal", mutationResult: undefined },
   ])("refreshes operator choices after a member $operation", async ({ mutationResult }) => {
     let state: TeamPageData = {
+      ...emptyTeamSources,
       queue: { status: "ready", data: [queueItem] },
       operators: { status: "ready", data: [oldOperator] },
       members: { status: "ready", data: [oldOperator, changedMember] },
@@ -167,6 +178,7 @@ describe("Team mutation composite refresh", () => {
         return mutationResult;
       },
       async () => ({
+        ...emptyTeamSources,
         queue: { status: "ready", data: [queueItem] },
         operators: mutationResult
           ? { status: "ready", data: [{ ...changedMember, role: "operator" as const }] }

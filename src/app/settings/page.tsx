@@ -158,13 +158,22 @@ export default function SettingsPage() {
         actions={
           <>
           {canManageProductScripts && (
-            <Link
-              href="/settings/scripts"
-              className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-500 hover:text-zinc-100"
-            >
-              <FileText className="h-4 w-4" />
-              <span>Product Scripts</span>
-            </Link>
+            <>
+              <Link
+                href="/settings/users"
+                className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-500 hover:text-zinc-100"
+              >
+                <User className="h-4 w-4" />
+                <span>Users & Permissions</span>
+              </Link>
+              <Link
+                href="/settings/scripts"
+                className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-500 hover:text-zinc-100"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Product Scripts</span>
+              </Link>
+            </>
           )}
           {canManageWorkspaceSchema && (
             <Button

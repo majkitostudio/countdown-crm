@@ -26,8 +26,8 @@ export default async function TeamPage() {
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={Users}
-        title="Workspace Members & Queue"
-        description="Manage workspace queue operations and membership access for the current workspace."
+        title={context.role === "administrator" ? "Team Operations" : "My Team Operations"}
+        description="View the teams, operator status and queue work available in the current role scope."
         badge={{ label: context.role === "administrator" ? "Administrator access" : "Team Leader access", tone: "neutral" }}
       />
       <TeamPageContent currentUserId={context.userId} role={context.role} data={data} />

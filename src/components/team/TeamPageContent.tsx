@@ -3,7 +3,9 @@
 import { useCallback, useState } from "react";
 import { refreshTeamPageAction } from "@/app/actions/workspace";
 import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
+import { TeamPresencePanel } from "@/components/team/TeamPresencePanel";
 import { TeamQueuePanel } from "@/components/team/TeamQueuePanel";
+import { TeamRosterPanel } from "@/components/team/TeamRosterPanel";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { TeamPageData } from "@/lib/dal/teamPage";
 
@@ -59,6 +61,26 @@ export function TeamPageContent({ currentUserId, role, data }: TeamPageContentPr
 
   return (
     <div className="space-y-8">
+      {currentData.roster.status === "ready" ? (
+        <TeamRosterPanel
+          teams={currentData.roster.data.teams}
+          memberships={currentData.roster.data.memberships}
+        />
+      ) : (
+        <SourceUnavailablePanel title="Team roster unavailable" message="Team roster is unavailable." />
+      )}
+
+      {currentData.operators.status === "ready" && currentData.presence.status === "ready" ? (
+        <TeamPresencePanel
+          operators={currentData.operators.data}
+          presence={currentData.presence.data}
+        />
+      ) : currentData.presence.status === "unavailable" ? (
+        <SourceUnavailablePanel title="Operator status unavailable" message="Operator status is unavailable." />
+      ) : (
+        <SourceUnavailablePanel title="Operators unavailable" message="Operators are unavailable." />
+      )}
+
       {currentData.queue.status === "ready" ? (
         <TeamQueuePanel
           queueItems={currentData.queue.data}

@@ -43,10 +43,25 @@ describe("Team Leader Daily Brief", () => {
       wallet: null,
     });
 
+    expect(brief.scope).toBe("team");
+    expect(brief.scopeLabel).toBe("Týmová data");
     expect(brief.todayCallbacks).toBe(1);
     expect(brief.overdueCallbacks).toBe(1);
     expect(brief.openReminders).toBe(1);
-    expect(brief.teamWalletBalance).toBeNull();
+    expect(brief.workspaceWalletBalance).toBeNull();
+  });
+
+  it("labels administrator data as workspace-wide without relabeling the wallet as team data", () => {
+    const brief = buildTeamLeaderDailyBrief({
+      scope: "workspace",
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      wallet: { currency: "CZK", balances: [{ balance: 300, transaction_count: 2 }] },
+    });
+
+    expect(brief.scope).toBe("workspace");
+    expect(brief.scopeLabel).toBe("Celý workspace");
+    expect(brief.workspaceWalletBalance).toBe(300);
+    expect(brief.workspaceWalletTransactions).toBe(2);
   });
 
   it("carries the persisted pending review count without inventing a value", () => {

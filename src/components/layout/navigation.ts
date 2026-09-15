@@ -12,7 +12,7 @@ import {
   Settings,
   ShieldAlert,
   ShoppingBag,
-  UserCog,
+
   Users,
   WalletCards,
   Workflow,
@@ -52,7 +52,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Security Audit Log", href: "/audit", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
   { label: "Control Checkpoint", href: "/readiness", icon: ClipboardCheck, roles: ["administrator"] },
   { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Workspace Members", href: "/team", icon: UserCog, roles: ["administrator"] },
+  { label: "Team Operations", href: "/team", icon: Users, roles: ["team_leader", "administrator"] },
 ];
 
 export function getAllowedWorkspaceNavigationItems(

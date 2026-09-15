@@ -7,7 +7,7 @@ import type { AgentLeaderboardPoint, AnalyticsActionResult, AnalyticsOverview } 
 import { formatCurrencyAmounts } from "@/lib/currency";
 import { StatusAlert } from "@/components/ui/Status";
 
-export function TopPerformers() {
+export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "workspace" }) {
   const [leaderboard, setLeaderboard] = useState<AgentLeaderboardPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
@@ -58,13 +58,13 @@ export function TopPerformers() {
           </h3>
         </div>
         <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
-          Workspace ranking
+          {scope === "team" ? "Team ranking" : "Workspace ranking"}
         </span>
       </div>
 
       {isLoading ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
-          Loading workspace leaderboard...
+          Loading {scope === "team" ? "team" : "workspace"} leaderboard...
         </div>
       ) : result && !result.ok ? (
         <StatusAlert tone={feedbackTone}>
@@ -77,7 +77,7 @@ export function TopPerformers() {
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
           <p className="text-xs font-medium text-zinc-200">No attributed activity yet</p>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            The leaderboard appears after workspace calls or completed orders have an operator attribution.
+            The leaderboard appears after {scope === "team" ? "team" : "workspace"} calls or completed orders have an operator attribution.
           </p>
         </div>
       ) : (

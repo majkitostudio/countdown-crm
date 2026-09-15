@@ -5,7 +5,7 @@ import { listOperatorCalendarEntriesForWorkspace } from "@/lib/dal/calendar";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { listCallReviewStatuses } from "@/lib/dal/callReviews";
 import { listWorkspaceCallsInContext } from "@/lib/dal/activity";
-import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { requireWorkspaceRole, type WorkspaceContext } from "@/lib/dal/workspace";
 import { getWalletOverview } from "@/lib/dal/wallet";
 import { getReorderOpportunities, type ReorderOpportunity } from "@/lib/reorder";
 import { buildTeamLeaderDailyBrief, type TeamLeaderDailyBrief } from "@/lib/teamLeaderDailyBrief";
@@ -18,8 +18,7 @@ export type ReorderOpportunitiesActionResult =
   | { ok: true; data: ReorderOpportunity[] }
   | { ok: false; message: string };
 
-async function loadPendingReviewCount() {
-  const context = await requireWorkspaceContext();
+async function loadPendingReviewCount(context: WorkspaceContext) {
   const calls = await listWorkspaceCallsInContext(context);
   const statuses = await listCallReviewStatuses(context, calls.map((call) => call.id));
   return calls.filter((call) => statuses.get(call.id) === "not_reviewed").length;
@@ -27,11 +26,13 @@ async function loadPendingReviewCount() {
 
 export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBriefActionResult> {
   try {
+    const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+    const scope = context.role === "administrator" ? "workspace" : "team";
     const [analyticsResult, calendarResult, walletResult, reviewsResult] = await Promise.allSettled([
-      getAnalyticsData(),
-      listOperatorCalendarEntriesForWorkspace(),
+      getAnalyticsData(context.workspaceId),
+      listOperatorCalendarEntriesForWorkspace(undefined, undefined, context.workspaceId),
       getWalletOverview(),
-      loadPendingReviewCount(),
+      loadPendingReviewCount(context),
     ]);
 
     if (analyticsResult.status === "rejected") {
@@ -76,6 +77,7 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
       status: "ready",
       brief: buildTeamLeaderDailyBrief({
         daily: analyticsResult.value.daily,
+        scope,
         callbacks,
         reminders,
         pendingReviews: reviewsResult.status === "fulfilled" ? reviewsResult.value : null,

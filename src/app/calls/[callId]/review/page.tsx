@@ -30,16 +30,17 @@ export default async function CallReviewPage({
   const query = await searchParams;
   const returnToCallsHref = query.return === "unreviewed" ? "/calls?review=unreviewed" : "/calls";
 
+  let context: Awaited<ReturnType<typeof requireWorkspaceRole>>;
   try {
-    await requireWorkspaceRole(["team_leader", "administrator"]);
+    context = await requireWorkspaceRole(["operator", "team_leader", "administrator"]);
   } catch (error) {
     if (isDataAccessError(error) && error.code === "FORBIDDEN") {
       return (
         <Surface variant="empty" className="w-full">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h1 className="text-base font-semibold text-zinc-100">Team Leader Review unavailable</h1>
+          <h1 className="text-base font-semibold text-zinc-100">Call review unavailable</h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            This area is available to Team Leaders and Administrators only.
+            This area is available to workspace Operators, Team Leaders and Administrators.
           </p>
           <Link
             href={returnToCallsHref}
@@ -62,7 +63,7 @@ export default async function CallReviewPage({
         icon={ShieldCheck}
         title="Call review"
         description={`Review recorded evidence for call #${review.call.id}.`}
-        badge={{ label: "Real call evidence", tone: "neutral" }}
+        badge={{ label: context.role === "operator" || review.canReview === false ? "Read-only call evidence" : "Real call evidence", tone: "neutral" }}
         actions={
           <Link
             href={returnToCallsHref}
@@ -72,7 +73,7 @@ export default async function CallReviewPage({
           </Link>
         }
       />
-      <CallReviewWorkspace initialReview={review} />
+      <CallReviewWorkspace initialReview={review} readOnly={context.role === "operator" || review.canReview === false} />
     </div>
   );
 }

@@ -114,13 +114,68 @@ export async function listWorkspaceMembers(requestedWorkspaceId?: string): Promi
 export async function listWorkspaceOperators(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
-  const { data: memberships, error } = await supabase
+  let operatorQuery = supabase
     .from("workspace_members")
     .select("workspace_id, user_id, role, created_at, updated_at")
     .eq("workspace_id", context.workspaceId)
     .eq("role", "operator")
     .order("created_at", { ascending: true });
 
+  if (context.role === "team_leader") {
+    const now = Date.now();
+    const { data: ledTeams, error: ledTeamsError } = await supabase
+      .from("team_memberships")
+      .select("team_id, active_from, active_until")
+      .eq("workspace_id", context.workspaceId)
+      .eq("user_id", context.userId)
+      .eq("membership_role", "leader");
+
+    if (ledTeamsError) {
+      throw new DataAccessError("DATABASE", "Team memberships could not be loaded");
+    }
+
+    const candidateTeamIds = (ledTeams || [])
+      .filter((membership) => Date.parse(membership.active_from) <= now && (!membership.active_until || Date.parse(membership.active_until) > now))
+      .map((membership) => membership.team_id);
+
+    if (candidateTeamIds.length === 0) return [];
+
+    const { data: activeTeams, error: activeTeamsError } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("workspace_id", context.workspaceId)
+      .eq("status", "active")
+      .in("id", candidateTeamIds);
+
+    if (activeTeamsError) {
+      throw new DataAccessError("DATABASE", "Active teams could not be loaded");
+    }
+
+    const teamIds = (activeTeams || []).map((team) => team.id);
+    if (teamIds.length === 0) return [];
+
+    const { data: teamOperators, error: teamOperatorsError } = await supabase
+      .from("team_memberships")
+      .select("user_id, active_from, active_until")
+      .eq("workspace_id", context.workspaceId)
+      .eq("membership_role", "member")
+      .in("team_id", teamIds);
+
+    if (teamOperatorsError) {
+      throw new DataAccessError("DATABASE", "Team operators could not be loaded");
+    }
+
+    const operatorIds = [...new Set(
+      (teamOperators || [])
+        .filter((membership) => Date.parse(membership.active_from) <= now && (!membership.active_until || Date.parse(membership.active_until) > now))
+        .map((membership) => membership.user_id),
+    )];
+
+    if (operatorIds.length === 0) return [];
+    operatorQuery = operatorQuery.in("user_id", operatorIds);
+  }
+
+  const { data: memberships, error } = await operatorQuery;
   if (error) {
     throw new DataAccessError("DATABASE", "Workspace operators could not be loaded");
   }

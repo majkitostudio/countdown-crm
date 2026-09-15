@@ -21,13 +21,16 @@ export default async function DashboardPage() {
     redirect(getRoleHomePath(context.role));
   }
 
+  const scope = context.role === "administrator" ? "workspace" : "team";
+  const scopeLabel = scope === "workspace" ? "Celý workspace" : "Týmová data";
+
   return (
-    <div className="mx-auto min-w-0 max-w-screen-2xl space-y-6 px-4 sm:px-6" data-testid="dashboard" data-scope="workspace">
+    <div className="mx-auto min-w-0 max-w-screen-2xl space-y-6 px-4 sm:px-6" data-testid="dashboard" data-scope={scope}>
       <PageHeader
         icon={LayoutDashboard}
         title="Dashboard Overview"
-        description="Persisted workspace metrics and activity; live telephony and presence remain unavailable in this pilot."
-        badge={{ label: "Workspace data", tone: "neutral" }}
+        description={`Persisted ${scope === "workspace" ? "workspace-wide" : "team-scoped"} metrics and activity; live telephony and presence remain unavailable in this pilot.`}
+        badge={{ label: scopeLabel, tone: "neutral" }}
         actions={
           <>
             <Link href="/leads?create=1" className={getButtonClassName("secondary")}>
@@ -49,23 +52,23 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team attention</p>
-              <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Next opportunities from workspace data</h2>
+              <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Next opportunities from {scope === "workspace" ? "workspace" : "team"} data</h2>
             </div>
             <span className="text-[10px] text-zinc-600">No synthetic priorities</span>
           </div>
-          <ReorderWidget />
-          <NextBestActionCard />
+          <ReorderWidget scope={scope} />
+          <NextBestActionCard scope={scope} />
         </section></Surface>
 
         <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
           <div className="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team activity</p>
-              <h2 id="dashboard-team-overview-title" className="mt-1 text-sm font-semibold text-zinc-100">Workspace performance at a glance</h2>
+              <h2 id="dashboard-team-overview-title" className="mt-1 text-sm font-semibold text-zinc-100">{scopeLabel} performance at a glance</h2>
             </div>
-            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">Workspace-scoped</span>
+            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">{scopeLabel}</span>
           </div>
-          <KpiCards compact />
+          <KpiCards compact scope={scope} />
         </section></Surface>
       </div>
 
@@ -79,7 +82,7 @@ export default async function DashboardPage() {
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <TopPerformers />
+            <TopPerformers scope={scope} />
           </div>
           <div>
             <CallActivityChart />
@@ -88,8 +91,8 @@ export default async function DashboardPage() {
       </section></Surface>
 
       <section aria-labelledby="dashboard-recent-activity-title" data-testid="dashboard-recent-activity">
-        <h2 id="dashboard-recent-activity-title" className="sr-only">Recent workspace activity</h2>
-        <RecentActivityFeed />
+        <h2 id="dashboard-recent-activity-title" className="sr-only">Recent {scope === "workspace" ? "workspace" : "team"} activity</h2>
+        <RecentActivityFeed scope={scope} />
       </section>
     </div>
   );

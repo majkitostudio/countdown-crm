@@ -46,6 +46,8 @@ describe("TeamPageContent partial source states", () => {
     const html = render({
       queue: { status: "ready", data: [queueItem] },
       operators: { status: "unavailable", reason: "database" },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
     });
 
@@ -55,10 +57,26 @@ describe("TeamPageContent partial source states", () => {
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Assign<\/button>/);
   });
 
+  it("keeps a callback queue row visible when its contact details are outside the readable scope", () => {
+    const html = render({
+      queue: { status: "ready", data: [{ ...queueItem, state: "waiting_callback", scheduled_at: "2026-09-08T09:00:00.000Z", lead: null }] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+    });
+
+    expect(html).toContain("Kontakt není v tomto rozsahu dostupný");
+    expect(html).toContain("Callback po termínu");
+    expect(html).toContain("Čekající callbacky");
+  });
+
   it("does not present an unavailable queue as a verified zero-item queue", () => {
     const html = render({
       queue: { status: "unavailable", reason: "database" },
       operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
     });
 
@@ -71,6 +89,8 @@ describe("TeamPageContent partial source states", () => {
     const html = render({
       queue: { status: "ready", data: [queueItem] },
       operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "unavailable", reason: "database" },
     }, "administrator");
 
@@ -82,6 +102,8 @@ describe("TeamPageContent partial source states", () => {
     const html = render({
       queue: { status: "ready", data: [] },
       operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
     });
 
@@ -92,6 +114,8 @@ describe("TeamPageContent partial source states", () => {
     const html = render({
       queue: { status: "ready", data: [] },
       operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
     });
 

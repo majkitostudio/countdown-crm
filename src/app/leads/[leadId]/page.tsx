@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft, Building2, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, UserRound } from "lucide-react";
-import { getScopedLeadForWorkspace } from "@/lib/dal/leadQueue";
+import { getDirectLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Customer360RetentionCard } from "@/components/leads/Customer360RetentionCard";
 import { LeadNotesSection } from "@/components/workspace/LeadNotesSection";
 import { listWorkspaceLeadActivity } from "@/lib/dal/activity";
 import { listLeadNotesForWorkspace } from "@/lib/dal/leadNotes";
+import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
@@ -17,11 +18,13 @@ function formatDate(value: string): string {
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ leadId: string }> }) {
   const { leadId } = await params;
-  let lead: Awaited<ReturnType<typeof getScopedLeadForWorkspace>> | null = null;
+  let lead: Awaited<ReturnType<typeof getDirectLeadForWorkspace>> | null = null;
+  let context: Awaited<ReturnType<typeof requireWorkspaceContext>> | null = null;
   let loadError: unknown = null;
 
   try {
-    lead = await getScopedLeadForWorkspace(leadId);
+    context = await requireWorkspaceContext();
+    lead = await getDirectLeadForWorkspace(leadId, context.workspaceId);
   } catch (error) {
     loadError = error;
   }
@@ -30,7 +33,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
     const message = isDataAccessError(loadError) && loadError.code === "FORBIDDEN"
       ? "This contact is not available for your workspace role."
       : isDataAccessError(loadError) && loadError.code === "NOT_FOUND"
-        ? "Contact unavailable. Operators can only open their current server assignment."
+        ? "Contact unavailable in the active workspace."
         : "Contact could not be loaded. No data was fabricated.";
 
     return (
@@ -103,7 +106,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
       </div>
 
       <Customer360RetentionCard lead={lead} activity={activity} activityUnavailable={activityUnavailable} />
-      {notesUnavailable ? (
+      {context?.role === "operator" ? (
+        <StatusAlert tone="neutral">This customer profile is read-only for Operators. Orders and call history can be opened from here.</StatusAlert>
+      ) : notesUnavailable ? (
         <StatusAlert tone="warning">Shared notes are currently unavailable. No note history was hidden or fabricated.</StatusAlert>
       ) : (
         <LeadNotesSection leadId={lead.id} initialNotes={notes} />

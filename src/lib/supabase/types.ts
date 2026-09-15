@@ -64,6 +64,91 @@ export interface Database {
           }
         ];
       };
+      teams: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          name: string;
+          slug: string;
+          status: "active" | "archived";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          name: string;
+          slug: string;
+          status?: "active" | "archived";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          workspace_id?: string;
+          name?: string;
+          slug?: string;
+          status?: "active" | "archived";
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "teams_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      team_memberships: {
+        Row: {
+          id: string;
+          team_id: string;
+          workspace_id: string;
+          user_id: string;
+          membership_role: "member" | "leader";
+          active_from: string;
+          active_until: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          workspace_id: string;
+          user_id: string;
+          membership_role?: "member" | "leader";
+          active_from?: string;
+          active_until?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          team_id?: string;
+          workspace_id?: string;
+          user_id?: string;
+          membership_role?: "member" | "leader";
+          active_from?: string;
+          active_until?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_workspace_fkey";
+            columns: ["team_id", "workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id", "workspace_id"];
+          },
+          {
+            foreignKeyName: "team_memberships_workspace_user_fkey";
+            columns: ["workspace_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "workspace_members";
+            referencedColumns: ["workspace_id", "user_id"];
+          }
+        ];
+      };
       workspace_members: {
         Row: {
           workspace_id: string;
@@ -182,6 +267,7 @@ export interface Database {
         Row: {
           id: string;
           workspace_id: string | null;
+          team_id: string | null;
           full_name: string;
           phone: string;
           email: string | null;
@@ -197,6 +283,7 @@ export interface Database {
         Insert: {
           id?: string;
           workspace_id?: string | null;
+          team_id?: string | null;
           full_name: string;
           phone: string;
           email?: string | null;
@@ -210,6 +297,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
+          team_id?: string | null;
           full_name?: string;
           phone?: string;
           email?: string | null;
@@ -250,6 +338,7 @@ export interface Database {
           id: string;
           workspace_id: string;
           lead_id: string;
+          team_id: string | null;
           assigned_operator_id: string | null;
           preferred_operator_id: string | null;
           state: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "waiting_callback" | "closed" | "paused";
@@ -273,6 +362,7 @@ export interface Database {
           id?: string;
           workspace_id: string;
           lead_id: string;
+          team_id?: string | null;
           assigned_operator_id?: string | null;
           preferred_operator_id?: string | null;
           state?: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "waiting_callback" | "closed" | "paused";
@@ -293,6 +383,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: {
+          team_id?: string | null;
           assigned_operator_id?: string | null;
           preferred_operator_id?: string | null;
           state?: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "waiting_callback" | "closed" | "paused";
@@ -317,9 +408,10 @@ export interface Database {
         Row: {
           id: string;
           workspace_id: string;
+          team_id: string | null;
           queue_item_id: string;
           lead_id: string;
-          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused";
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused" | "team_assigned";
           from_state: string | null;
           to_state: string;
           from_operator_id: string | null;
@@ -332,9 +424,10 @@ export interface Database {
         Insert: {
           id?: string;
           workspace_id: string;
+          team_id?: string | null;
           queue_item_id: string;
           lead_id: string;
-          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused";
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused" | "team_assigned";
           from_state?: string | null;
           to_state: string;
           from_operator_id?: string | null;
@@ -707,6 +800,7 @@ export interface Database {
         Row: {
           id: string;
           workspace_id: string | null;
+          team_id: string | null;
           lead_id: string | null;
           agent_id: string | null;
           duration_seconds: number;
@@ -721,6 +815,7 @@ export interface Database {
         Insert: {
           id?: string;
           workspace_id?: string | null;
+          team_id?: string | null;
           lead_id?: string | null;
           agent_id?: string | null;
           duration_seconds?: number;
@@ -733,6 +828,7 @@ export interface Database {
           created_at?: string;
         };
         Update: {
+          team_id?: string | null;
           lead_id?: string | null;
           agent_id?: string | null;
           duration_seconds?: number;
@@ -912,6 +1008,7 @@ export interface Database {
         Row: {
           id: string;
           workspace_id: string | null;
+          team_id: string | null;
           lead_id: string | null;
           product_id: string | null;
           agent_id: string | null;
@@ -930,6 +1027,7 @@ export interface Database {
         Insert: {
           id?: string;
           workspace_id?: string | null;
+          team_id?: string | null;
           lead_id?: string | null;
           product_id?: string | null;
           agent_id?: string | null;
@@ -946,6 +1044,7 @@ export interface Database {
           created_at?: string;
         };
         Update: {
+          team_id?: string | null;
           lead_id?: string | null;
           product_id?: string | null;
           agent_id?: string | null;

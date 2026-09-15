@@ -104,11 +104,11 @@ beforeEach(() => {
 });
 
 describe("getCallReview", () => {
-  it("checks the manager role before querying call evidence", async () => {
+  it("checks the workspace role before querying call evidence", async () => {
     mocks.requireWorkspaceRole.mockRejectedValue(new DataAccessError("FORBIDDEN", "Managers only"));
 
     await expect(getCallReview("call-1")).rejects.toMatchObject({ code: "FORBIDDEN" });
-    expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["team_leader", "administrator"]);
+    expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator", "team_leader", "administrator"]);
     expect(mocks.createDataClient).not.toHaveBeenCalled();
   });
 

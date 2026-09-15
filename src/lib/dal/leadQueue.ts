@@ -18,6 +18,7 @@ export type QueueCallOutcome = "order_placed" | "followup_scheduled" | "no_answe
 export interface LeadQueueSnapshot {
   queue_item_id: string;
   workspace_id: string;
+  team_id?: string | null;
   lead_id: string;
   assignment_state: Extract<QueueState, "assigned" | "in_progress" | "awaiting_outcome">;
   assigned_operator_id: string;
@@ -47,6 +48,7 @@ export interface QueueCompletionDTO {
 export interface QueueItemDTO {
   id: string;
   workspace_id: string;
+  team_id?: string | null;
   lead_id: string;
   assigned_operator_id: string | null;
   preferred_operator_id: string | null;
@@ -66,7 +68,7 @@ export interface QueueItemDTO {
   recovery_required: boolean;
   created_at: string;
   updated_at: string;
-  lead: Pick<LeadDTO, "id" | "full_name" | "phone" | "email" | "status" | "ai_score">;
+  lead: Pick<LeadDTO, "id" | "full_name" | "phone" | "email" | "status" | "ai_score"> | null;
   assigned_operator: { id: string; full_name: string; email: string } | null;
   preferred_operator: { id: string; full_name: string; email: string } | null;
 }
@@ -363,7 +365,7 @@ export async function listQueueItemsForWorkspace(workspaceId?: string): Promise<
   const { data, error } = await supabase
     .from("lead_queue_items")
     .select(`
-      id, workspace_id, lead_id, assigned_operator_id, preferred_operator_id,
+      id, workspace_id, team_id, lead_id, assigned_operator_id, preferred_operator_id,
       state, priority, available_at, scheduled_at, attempt_count, claimed_at,
       last_heartbeat_at, lease_expires_at, last_outcome, released_at,
       call_started_at, call_ended_at, recovery_required,
@@ -497,6 +499,20 @@ export async function reopenLeadAssignmentForWorkspace(
   const snapshot = requireRpcData<LeadQueueSnapshot | null>(data, error, "Lead could not be reopened");
   if (!snapshot) throw new DataAccessError("NOT_FOUND", "Queue item was not found");
   return snapshot;
+}
+
+export async function getDirectLeadForWorkspace(leadId: string, workspaceId?: string): Promise<LeadDTO> {
+  if (!leadId?.trim()) throw new DataAccessError("VALIDATION", "Lead id is required");
+  await requireWorkspaceContext(workspaceId);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("get_workspace_lead_detail", {
+    target_lead_id: leadId,
+  } as never);
+  if (error) throw new DataAccessError("DATABASE", "Lead lookup failed");
+  if (!data || typeof data !== "object") {
+    throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
+  }
+  return data as LeadDTO;
 }
 
 export async function getScopedLeadForWorkspace(leadId: string, workspaceId?: string): Promise<LeadDTO> {

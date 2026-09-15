@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { getCallbackAttention, isOverdueCallback } from "@/lib/callbackAttention";
 
 interface TeamQueuePanelProps {
   queueItems: QueueItemDTO[];
@@ -39,6 +40,7 @@ function formatDate(value: string | null): string {
 }
 
 export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutation }: TeamQueuePanelProps) {
+  const callbackAttention = getCallbackAttention(queueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -91,6 +93,13 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
         </span>
       </div>
 
+      <section className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:grid-cols-3" data-testid="team-callback-attention" aria-label="Callback attention">
+        <CallbackMetric label="Čekající callbacky" value={callbackAttention.total} />
+        <CallbackMetric label="Naplánované později" value={callbackAttention.scheduled} />
+        <CallbackMetric label="Po termínu" value={callbackAttention.overdue} tone={callbackAttention.overdue > 0 ? "warning" : "neutral"} />
+        <p className="sm:col-span-3 text-[11px] leading-relaxed text-zinc-500">Původní operátor má přednost. Pokud není dostupný, může si callback převzít volný operátor ze stejného týmu.</p>
+      </section>
+
       {successMessage && <StatusAlert tone="success" role="status">{successMessage}</StatusAlert>}
       {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
       {operatorsState === "unavailable" && <StatusAlert tone="neutral" role="status">Workspace operators are unavailable.</StatusAlert>}
@@ -101,7 +110,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
-          <table className="w-full min-w-[980px] text-left text-xs">
+          <table className="w-full min-w-245 text-left text-xs">
             <thead className="border-b border-zinc-800 bg-zinc-950/80 text-[10px] uppercase tracking-wider text-zinc-500">
               <tr>
                 <th className="px-4 py-3">Lead</th>
@@ -117,20 +126,22 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";
                 const canReopen = item.state === "closed";
+                const overdueCallback = isOverdueCallback(item);
                 return (
                   <tr key={item.id} className="align-top hover:bg-zinc-900/70">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-zinc-200">{item.lead.full_name}</div>
-                      <div className="mt-1 text-[11px] text-zinc-500">{item.lead.phone}</div>
-                      <Link href={`/leads/${item.lead_id}`} className="mt-2 inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-100">
+                      <div className="font-medium text-zinc-200">{item.lead?.full_name || "Kontakt není v tomto rozsahu dostupný"}</div>
+                      <div className="mt-1 text-[11px] text-zinc-500">{item.lead?.phone || "—"}</div>
+                      {item.lead && <Link href={`/leads/${item.lead_id}`} className="mt-2 inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-100">
                         <Eye className="h-3.5 w-3.5" /> View contact <ArrowRight className="h-3 w-3" />
-                      </Link>
+                      </Link>}
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-medium ${item.state === "in_progress" ? "border-rose-900/70 bg-rose-950/30 text-rose-300" : item.state === "closed" ? "border-zinc-700 bg-zinc-900 text-zinc-500" : "border-zinc-700 bg-zinc-950 text-zinc-300"}`}>
                         {STATE_LABELS[item.state]}
                       </span>
                       <div className="mt-2 font-mono text-[10px] text-zinc-600">Attempts: {item.attempt_count}</div>
+                      {overdueCallback && <div className="mt-2 text-[10px] font-medium text-amber-300">Callback po termínu</div>}
                     </td>
                     <td className="px-4 py-4 text-zinc-300">
                       {item.assigned_operator?.full_name || <span className="text-zinc-600">Available pool</span>}
@@ -150,7 +161,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                               onChange={(event) => setSelectedOperators((current) => ({ ...current, [item.id]: event.target.value }))}
                               disabled={isBusy || operatorsState === "unavailable" || operators.length === 0}
                               className="w-full"
-                              aria-label={`Reassign ${item.lead.full_name}`}
+                              aria-label={`Reassign ${item.lead?.full_name || "queue item"}`}
                             >
                               <option value="">Reassign to…</option>
                               {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
@@ -175,5 +186,14 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
       )}
       </div>
     </Surface>
+  );
+}
+
+function CallbackMetric({ label, value, tone = "neutral" }: { label: string; value: number; tone?: "neutral" | "warning" }) {
+  return (
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</p>
+      <p className={tone === "warning" ? "mt-1 font-mono text-lg font-semibold text-amber-200" : "mt-1 font-mono text-lg font-semibold text-zinc-100"}>{value}</p>
+    </div>
   );
 }

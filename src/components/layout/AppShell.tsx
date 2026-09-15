@@ -9,12 +9,14 @@ import { OperatorIdentityProvider } from "./OperatorIdentityProvider";
 import { CallSessionProvider } from "./CallSessionProvider";
 import { FloatingCallController } from "@/components/workspace/FloatingCallController";
 import { shouldCloseMobileNavigationOnKey } from "./mobileNavigation";
+import type { OperatorIdentity } from "@/lib/operatorIdentity";
 
 interface AppShellProps {
   children: React.ReactNode;
+  initialIdentity?: OperatorIdentity | null;
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, initialIdentity = null }: AppShellProps) {
   const pathname = usePathname();
   const isOperatorConsole = pathname === "/workspace";
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
@@ -47,7 +49,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <CallSessionProvider>
-    <OperatorIdentityProvider>
+    <OperatorIdentityProvider initialIdentity={initialIdentity}>
       <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
       {/* Global command palette */}
       <CommandPalette />

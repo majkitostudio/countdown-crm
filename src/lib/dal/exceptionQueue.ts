@@ -109,6 +109,7 @@ export interface ExceptionQueueSourcesInput {
   productScripts: PromiseSettledResult<ProductScriptSourceRow[]>;
   actions: PromiseSettledResult<ExceptionActionSourceRow[]>;
   callSessions: PromiseSettledResult<CallSessionLinkSourceRow[]>;
+  globalSourcesRestricted?: boolean;
 }
 
 const PRIORITY_ORDER: Record<ExceptionPriority, number> = {
@@ -338,6 +339,8 @@ export function buildTeamLeaderExceptionQueue(
     }];
   });
 
+  const workspaceGlobalRestrictionMessage = "Workspace-global checks are available to Administrators only.";
+
   return {
     items: visibleItems
       .sort((left, right) => {
@@ -349,12 +352,16 @@ export function buildTeamLeaderExceptionQueue(
       queue: sources.queueItems.status === "fulfilled"
         ? available()
         : unavailable("Lead queue checks could not be loaded."),
-      workflows: sources.workflowExecutions.status === "fulfilled"
-        ? available()
-        : unavailable("Workflow failure checks could not be loaded."),
-      scripts: sources.products.status === "fulfilled" && sources.productScripts.status === "fulfilled"
-        ? available()
-        : unavailable("Published script checks could not be loaded."),
+      workflows: sources.globalSourcesRestricted
+        ? unavailable(workspaceGlobalRestrictionMessage)
+        : sources.workflowExecutions.status === "fulfilled"
+          ? available()
+          : unavailable("Workflow failure checks could not be loaded."),
+      scripts: sources.globalSourcesRestricted
+        ? unavailable(workspaceGlobalRestrictionMessage)
+        : sources.products.status === "fulfilled" && sources.productScripts.status === "fulfilled"
+          ? available()
+          : unavailable("Published script checks could not be loaded."),
       actions: sources.actions.status === "fulfilled"
         ? available()
         : unavailable("Resolved and snoozed exception state could not be loaded."),
@@ -377,8 +384,9 @@ async function loadRows<T>(
 export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   const supabase = await createDataClient();
+  const isAdministrator = context.role === "administrator";
 
-  const [queueItems, workflowExecutions, products, productScripts, actions] = await Promise.allSettled([
+  const [queueItems] = await Promise.allSettled([
     loadRows<QueueSourceRow>(
       supabase
         .from("lead_queue_items")
@@ -388,40 +396,66 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
         .order("updated_at", { ascending: false }),
       "Lead queue checks could not be loaded.",
     ),
-    loadRows<WorkflowSourceRow>(
-      supabase
-        .from("workflow_executions")
-        .select("id, rule_id, status, created_at, logs, workflow:workflows(name)")
-        .eq("workspace_id", context.workspaceId)
-        .eq("status", "failure")
-        .order("created_at", { ascending: false }),
-      "Workflow failure checks could not be loaded.",
-    ),
-    loadRows<ProductSourceRow>(
-      supabase
-        .from("products")
-        .select("id, title, in_stock, created_at")
-        .eq("workspace_id", context.workspaceId)
-        .eq("in_stock", true)
-        .order("created_at", { ascending: false }),
-      "Active products could not be loaded.",
-    ),
-    loadRows<ProductScriptSourceRow>(
-      supabase
-        .from("product_scripts")
-        .select("product_id")
-        .eq("workspace_id", context.workspaceId),
-      "Published product scripts could not be loaded.",
-    ),
-    loadRows<ExceptionActionSourceRow>(
-      supabase
-        .from("team_leader_exception_actions")
-        .select("id, workspace_id, exception_key, status, resolution, snoozed_until, actor_id, previous_state, new_state, created_at, updated_at")
-        .eq("workspace_id", context.workspaceId)
-        .order("updated_at", { ascending: false }),
-      "Resolved and snoozed exception state could not be loaded.",
-    ),
   ]);
+
+  const visibleQueueIds = queueItems.status === "fulfilled" ? queueItems.value.map((row) => row.id) : [];
+  const visibleQueueExceptionKeys = visibleQueueIds.flatMap((queueId) => [
+    `queue:outcome_recovery:${queueId}`,
+    `queue:overdue_callback:${queueId}`,
+    `queue:expired_lease:${queueId}`,
+  ]);
+
+  let workflowExecutions: PromiseSettledResult<WorkflowSourceRow[]> = { status: "fulfilled", value: [] };
+  let products: PromiseSettledResult<ProductSourceRow[]> = { status: "fulfilled", value: [] };
+  let productScripts: PromiseSettledResult<ProductScriptSourceRow[]> = { status: "fulfilled", value: [] };
+
+  if (isAdministrator) {
+    [workflowExecutions, products, productScripts] = await Promise.all([
+      loadRows<WorkflowSourceRow>(
+        supabase
+          .from("workflow_executions")
+          .select("id, rule_id, status, created_at, logs, workflow:workflows(name)")
+          .eq("workspace_id", context.workspaceId)
+          .eq("status", "failure")
+          .order("created_at", { ascending: false }),
+        "Workflow failure checks could not be loaded.",
+      ).then((value) => ({ status: "fulfilled", value } as PromiseFulfilledResult<WorkflowSourceRow[]>)).catch((reason) => ({ status: "rejected", reason } as PromiseRejectedResult)),
+      loadRows<ProductSourceRow>(
+        supabase
+          .from("products")
+          .select("id, title, in_stock, created_at")
+          .eq("workspace_id", context.workspaceId)
+          .eq("in_stock", true)
+          .order("created_at", { ascending: false }),
+        "Active products could not be loaded.",
+      ).then((value) => ({ status: "fulfilled", value } as PromiseFulfilledResult<ProductSourceRow[]>)).catch((reason) => ({ status: "rejected", reason } as PromiseRejectedResult)),
+      loadRows<ProductScriptSourceRow>(
+        supabase
+          .from("product_scripts")
+          .select("product_id")
+          .eq("workspace_id", context.workspaceId),
+        "Published product scripts could not be loaded.",
+      ).then((value) => ({ status: "fulfilled", value } as PromiseFulfilledResult<ProductScriptSourceRow[]>)).catch((reason) => ({ status: "rejected", reason } as PromiseRejectedResult)),
+    ]);
+  }
+
+  let actions: PromiseSettledResult<ExceptionActionSourceRow[]> = { status: "fulfilled", value: [] };
+  if (isAdministrator || visibleQueueExceptionKeys.length > 0) {
+    const actionQuery = supabase
+      .from("team_leader_exception_actions")
+      .select("id, workspace_id, exception_key, status, resolution, snoozed_until, actor_id, previous_state, new_state, created_at, updated_at")
+      .eq("workspace_id", context.workspaceId);
+    if (!isAdministrator) actionQuery.in("exception_key", visibleQueueExceptionKeys);
+    actionQuery.order("updated_at", { ascending: false });
+
+    const [actionResult] = await Promise.allSettled([
+      loadRows<ExceptionActionSourceRow>(
+        actionQuery,
+        "Resolved and snoozed exception state could not be loaded.",
+      ),
+    ]);
+    actions = actionResult;
+  }
 
   let callSessions: PromiseSettledResult<CallSessionLinkSourceRow[]> = {
     status: "fulfilled",
@@ -440,7 +474,15 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
     ]);
   }
 
-  return buildTeamLeaderExceptionQueue({ queueItems, workflowExecutions, products, productScripts, actions, callSessions });
+  return buildTeamLeaderExceptionQueue({
+    queueItems,
+    workflowExecutions,
+    products,
+    productScripts,
+    actions,
+    callSessions,
+    globalSourcesRestricted: !isAdministrator,
+  });
 }
 
 function validateExceptionId(exceptionId: string): string {

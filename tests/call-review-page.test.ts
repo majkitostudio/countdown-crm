@@ -3,14 +3,14 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 describe("real call review page boundary", () => {
-  it("authorizes managers before loading real call evidence", () => {
+  it("authorizes workspace roles before loading real call evidence", () => {
     const source = readFileSync(
       resolve(process.cwd(), "src/app/calls/[callId]/review/page.tsx"),
       "utf8",
     );
 
     expect(source).not.toMatch(/^"use client";/);
-    expect(source).toContain('requireWorkspaceRole(["team_leader", "administrator"])');
+    expect(source).toContain('requireWorkspaceRole(["operator", "team_leader", "administrator"])');
     expect(source.indexOf("requireWorkspaceRole")).toBeLessThan(source.indexOf("getCallReview(callId)"));
   });
 
@@ -32,7 +32,7 @@ describe("real call review page boundary", () => {
     );
 
     expect(source).toContain('error.code === "FORBIDDEN"');
-    expect(source).toContain("Team Leaders and Administrators only");
+    expect(source).toContain("workspace Operators, Team Leaders and Administrators");
   });
 
   it("preserves the unreviewed Call Logs filter when returning from a review", () => {

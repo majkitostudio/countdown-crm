@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { CountdownMark } from "@/components/brand/CountdownMark";
 import { StatusBadge } from "@/components/ui/Status";
@@ -175,62 +176,69 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       </nav>
 
       {/* Operator Status Badge & Quick Control */}
-      <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/50">
-        <div className="relative">
-          <div ref={statusToggleContainerRef}>
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={() => setStatusMenuOpen((open) => !open)}
-              aria-haspopup="menu"
-              aria-controls={statusMenuId}
-              aria-expanded={statusMenuOpen}
-              aria-label={`Operator status: ${getStatusLabel(status)}. Open status menu`}
-            >
-              <span className={cn("flex w-full items-center gap-3", isCompact && "justify-center")}>
-              {!isCompact && (
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
-                    Status
-                  </span>
-                  <StatusBadge tone="neutral">
-                    {getStatusLabel(status)}
-                  </StatusBadge>
-                </div>
-              )}
-              {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Status</StatusBadge>}
-              </span>
-            </Button>
-          </div>
-
-          {/* Status Dropdown Menu */}
-          {statusMenuOpen && (
-            <div className="absolute bottom-full left-0 z-50 mb-2 w-48">
-            <Surface variant="overlay" className="w-full">
-              <div ref={statusMenuRef} id={statusMenuId} role="menu" aria-label="Operator status" className="space-y-1 p-1.5 text-xs">
-              {(["ready", "in_call", "break"] as OperatorStatus[]).map((s) => (
-                <Button
-                  key={s}
-                  variant={status === s ? "secondary" : "quiet"}
-                  className="w-full"
-                  role="menuitemradio"
-                  aria-checked={status === s}
-                  onClick={() => {
-                    setStatus(s);
-                    closeStatusMenu();
-                  }}
-                >
-                  <span className="flex w-full items-center gap-2 text-left">
-                    <StatusBadge tone="neutral">{getStatusLabel(s)}</StatusBadge>
-                  </span>
-                </Button>
-              ))}
-              </div>
-            </Surface>
+      {!isIdentityLoading && identity?.role === "operator" ? (
+        <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/50">
+          <div className="relative">
+            <div ref={statusToggleContainerRef}>
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setStatusMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-controls={statusMenuId}
+                aria-expanded={statusMenuOpen}
+                aria-label={`Operator status: ${getStatusLabel(status)}. Open status menu`}
+              >
+                <span className={cn("flex w-full items-center gap-3", isCompact && "justify-center")}>
+                {!isCompact && (
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
+                      Status
+                    </span>
+                    <StatusBadge tone="neutral">
+                      {getStatusLabel(status)}
+                    </StatusBadge>
+                  </div>
+                )}
+                {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Status</StatusBadge>}
+                </span>
+              </Button>
             </div>
-          )}
+
+            {/* Status Dropdown Menu */}
+            {statusMenuOpen && (
+              <div className="absolute bottom-full left-0 z-50 mb-2 w-48">
+              <Surface variant="overlay" className="w-full">
+                <div ref={statusMenuRef} id={statusMenuId} role="menu" aria-label="Operator status" className="space-y-1 p-1.5 text-xs">
+                {(["ready", "in_call", "break"] as OperatorStatus[]).map((s) => (
+                  <Button
+                    key={s}
+                    variant={status === s ? "secondary" : "quiet"}
+                    className="w-full"
+                    role="menuitemradio"
+                    aria-checked={status === s}
+                    onClick={() => {
+                      setStatus(s);
+                      closeStatusMenu();
+                    }}
+                  >
+                    <span className="flex w-full items-center gap-2 text-left">
+                      <StatusBadge tone="neutral">{getStatusLabel(s)}</StatusBadge>
+                    </span>
+                  </Button>
+                ))}
+                </div>
+              </Surface>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : !isIdentityLoading && identity ? (
+        <div className="border-t border-zinc-800/80 bg-zinc-950/50 p-3" aria-label={`Current role: ${getWorkspaceRoleLabel(identity.role)}`}>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Role</span>
+          <StatusBadge tone="neutral">{getWorkspaceRoleLabel(identity.role)}</StatusBadge>
+        </div>
+      ) : null}
     </aside>
   );
 }

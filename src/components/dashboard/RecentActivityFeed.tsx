@@ -43,7 +43,7 @@ function getOrderOutcomeLabel(outcome: string): string {
   return `${outcome.charAt(0).toUpperCase()}${outcome.slice(1)} order`;
 }
 
-export function RecentActivityFeed() {
+export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "workspace" }) {
   const [activity, setActivity] = useState<RecentActivityResult>({ entries: [], sources: { calls: "ready", orders: "ready" } });
   const [isLoading, setIsLoading] = useState(true);
   const [result, setResult] = useState<AnalyticsActionResult<RecentActivityResult> | null>(null);
@@ -90,11 +90,11 @@ export function RecentActivityFeed() {
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-zinc-400" />
             <h3 className="text-sm font-semibold text-zinc-100">
-            Recent Workspace Activity
+            Recent {scope === "team" ? "Team" : "Workspace"} Activity
             </h3>
           </div>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Persisted calls and orders with workspace attribution
+            Persisted calls and orders with {scope === "team" ? "team" : "workspace"} attribution
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export function RecentActivityFeed() {
 
       {isLoading ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
-          Loading recent workspace activity...
+          Loading recent {scope === "team" ? "team" : "workspace"} activity...
         </div>
       ) : result && !result.ok ? (
         <StatusAlert tone={feedbackTone}>
@@ -120,9 +120,9 @@ export function RecentActivityFeed() {
         </StatusAlert>
       ) : activity.entries.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-zinc-200">{activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Recent activity is partially unavailable" : "No recent workspace activity"}</p>
+          <p className="text-xs font-medium text-zinc-200">{activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Recent activity is partially unavailable" : `No recent ${scope === "team" ? "team" : "workspace"} activity`}</p>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            {activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "The available source returned no recent records; the missing source is not being shown as empty." : "Persisted calls and orders will appear here after they are attributed to the active workspace."}
+            {activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "The available source returned no recent records; the missing source is not being shown as empty." : `Persisted calls and orders will appear here after they are attributed to the active ${scope === "team" ? "team" : "workspace"}.`}
           </p>
         </div>
       ) : (

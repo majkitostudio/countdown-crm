@@ -40,6 +40,35 @@ export interface CreateLeadInput {
   notes?: string | null;
 }
 
+async function resolveLeadCreationTeam(
+  context: Awaited<ReturnType<typeof requireWorkspaceRole>>,
+  supabase: Awaited<ReturnType<typeof createDataClient>>,
+): Promise<string | null> {
+  if (context.role === "administrator") return null;
+
+  const { data: memberships, error } = await supabase
+    .from("team_memberships")
+    .select("team_id, active_from, active_until")
+    .eq("workspace_id", context.workspaceId)
+    .eq("user_id", context.userId)
+    .eq("membership_role", "leader");
+
+  if (error) {
+    throw new DataAccessError("DATABASE", "Lead team could not be resolved");
+  }
+
+  const now = Date.now();
+  const teamIds = (memberships || [])
+    .filter((membership) => Date.parse(membership.active_from) <= now && (!membership.active_until || Date.parse(membership.active_until) > now))
+    .map((membership) => membership.team_id);
+
+  if (teamIds.length !== 1) {
+    throw new DataAccessError("FORBIDDEN", "Team Leader must lead exactly one active team to create a lead");
+  }
+
+  return teamIds[0];
+}
+
 function assertLeadInput(input: CreateLeadInput): void {
   if (
     !input ||
@@ -129,11 +158,13 @@ export async function createLeadForWorkspace(
   assertLeadInput(input);
   const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
+  const teamId = await resolveLeadCreationTeam(context, supabase);
 
   const { data, error } = await supabase
     .from("leads")
     .insert({
       workspace_id: context.workspaceId,
+      team_id: teamId,
       full_name: input.full_name.trim(),
       phone: input.phone.trim(),
       email: input.email?.trim() || null,
@@ -169,12 +200,14 @@ export async function createLeadsForWorkspace(
   inputs.forEach(assertLeadInput);
   const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
+  const teamId = await resolveLeadCreationTeam(context, supabase);
 
   const { data, error } = await supabase
     .from("leads")
     .insert(
       inputs.map((input) => ({
         workspace_id: context.workspaceId,
+        team_id: teamId,
         full_name: input.full_name.trim(),
         phone: input.phone.trim(),
         email: input.email?.trim() || null,

@@ -4,7 +4,7 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 14. 9. 2026
+**Snapshot:** 15. 9. 2026
 **Repo baseline:** stabilní P1 pracovní smyčka, ověřený třírolový smoke, sjednocený UI systém podle Operator Console a připravená runtime závislostní vrstva
 **Produktový stav:** stabilizace před interním pilotem; Telnyx živý provider čeká na číslo
 
@@ -71,7 +71,10 @@ verze skriptu a při dokončení se vážou na konkrétní call. Verdikt a coach
 previous/new stav. V Call Logs má manažer stav `Not reviewed`, `Reviewed` nebo
 `Corrected`, počet čekajících review, filtr nehodnocených hovorů, prázdný stav po
 vyřízení celé fronty a přímý odkaz na review s návratem do stejného filtru.
-Operátor nemá review link ani přístup k review stránce.
+Operátor může známé review otevřít v read-only režimu; review link se mu ale v běžném
+seznamu hovorů nezobrazuje. Stejné oddělení platí pro objednávky: `/orders` zůstává
+team-scoped, zatímco známá objednávka se smí otevřít přes přímý odkaz nebo profil
+zákazníka. Cross-workspace záznamy zůstávají nedostupné.
 
 ### Barevná hierarchie
 
@@ -104,10 +107,13 @@ své sémantické barvy.
 Databáze a server musí vynutit workspace a roli. Skrytí tlačítka, přímá URL ani
 znalost UUID nejsou bezpečnostní hranice.
 
-Supabase CLI je v projektu připnuté na `2.116.0`. Linked sandbox má srovnanou
-migration history 86/86. Migrace Team Leader Review byla nejprve
-ověřena dry-runem, poté aplikována bez seedů, změn rolí a Vault secrets a
-prověřena přes skutečný Team Leader/operator Auth průchod s následným cleanupem.
+Supabase CLI je v projektu připnuté na `2.116.0`. Předchozí linked baseline
+měla srovnanou migration history 86/86; následně byla v odděleném Sandboxu
+aplikována a read-backem ověřena foundation migrace týmů
+`20260914003332_team_model_foundation`, bez seedů a bez přiřazení skutečných
+uživatelů. Migrace Team Leader Review byla nejprve ověřena dry-runem, poté
+aplikována bez změn rolí a Vault secrets a prověřena přes skutečný
+Team Leader/operator Auth průchod s následným cleanupem.
 Raw veřejný schema diff nemá destruktivní změny. Devět vypsaných definic funkcí
 bylo katalogově prokázáno jako čistý CRLF/LF false positive; všech 80
 projektových funkcí se shoduje v těle po line-ending normalizaci i v security
@@ -120,13 +126,23 @@ reset a 183/183 databázových testů prošly.
 P0.3 je uzavřené: oddělený runner pro linked databázové důkazy prošel skutečným
 read-only během 8/8 kontrol. Použil scoped identitu omezenou na jeden linked
 sandbox a přesně dvě oprávnění (`Database: Read` a `Data API Config: Read`);
-žádná migrace ani databázový zápis neproběhl. Aplikační sada nyní prochází
-376/376 testy v 90 souborech, databázová sada 183/183 testy, lint, typecheck a
-produkční build. Autentizovaný fallback průchod Team Leader → operátor → call →
-`no_answer` → reload → SQL read-back nyní prošel. Team Leader následně ověřil
-`/calendar` včetně reminder persistence po reloadu a read-only `/wallet` ledger.
-Operátorský callback dotaz a `/calendar` byly znovu ověřeny po nasazení post-call
-migrací. Živý Telnyx provider zůstává samostatně neověřený.
+žádná migrace ani databázový zápis v rámci runneru neproběhl. Aplikační sada
+nyní prochází 619/619 testy ve 135 souborech, lint, typecheck a produkční build;
+databázová sada má poslední známý výsledek 183/183 testů. Týmová foundation
+migrace má samostatný Sandbox read-back v aktuálním reportu. Historické týmové snapshoty
+hovorů/objednávek, Team Leader RLS a Team Leader browser smoke nyní prošly v Sandboxu;
+nová migrace `team_leader_exception_scope` drží workspace-global výjimky u Administrátora.
+Daily Brief a Analytics nyní serverově označují Team Leaderův přehled jako `Týmová data`
+a administrátorský jako `Celý workspace`; callbacky, hovory, objednávky, review a
+analytické řádky zůstávají v Team Leaderově přehledu omezené RLS na jeho tým. Analytics
+navíc vrací seznam povolených týmů a server před výpočtem přidává odpovídající týmový
+filtr. Wallet je v přehledu výslovně označená jako celofiremní, protože zůstává
+workspace-global.
+Autentizovaný fallback průchod Team Leader → operátor → call → `no_answer` → reload →
+SQL read-back nyní prošel. Team Leader následně ověřil `/calendar` včetně reminder
+persistence po reloadu a read-only `/wallet` ledger. Operátorský callback dotaz a
+`/calendar` byly znovu ověřeny po nasazení post-call migrací. Živý Telnyx provider
+zůstává samostatně neověřený.
 
 ## Telefonie a AI
 
@@ -170,16 +186,28 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    zapnout a proběhnout Auth smoke test. Bezpečný linked runner, schema drift,
    privilegované RPC a `pgtap` jsou uzavřené a podložené read-backem; runner
    dokazuje pouze linked sandbox, ne produkční readiness.
-2. P1 má implementovaný Klientský profil a ověřenou doručovací adresu. Ještě
-   před třírolovým full-shift smokem zbývá autentizovaný browser důkaz aktivního
-   assignmentu, obou objednávkových toků, reloadu a foreign-assignment denial;
-   dílčí selhání, role-aware navigace, pravdivé Call Logs a sjednocený vzhled
-   jsou už implementované a testované.
+2. P1 má implementovaný Klientský profil a ověřenou doručovací adresu. Třírolový
+   autentizovaný full-shift smoke už prokázal assignment, poznámku, reload,
+   role-aware vstup a odmítnutí cizího assignmentu; zbývá browser a SQL důkaz
+   ručního i post-call objednávkového toku s validovaným adresním snapshotem.
 3. P1.5 po uzavření P1 přidá úzce vymezený P2 onboarding trénažér: jeden až dva
    schválené skripty, bezpečný AI nácvik, compliance zpětnou vazbu a jasně
    označené tréninkové záznamy v Call Logu bez obchodního side effectu.
 4. P2 zavádí skutečné týmy/oddělení, členství, Team Leader scope, správu a RLS.
-   Teprve nad tímto základem vzniknou operátorské Results a týmová srovnání.
+   Schválená specifikace a implementační plán jsou v
+   `docs/superpowers/specs/2026-09-14-team-model-design.md` a
+   `docs/superpowers/plans/2026-09-14-team-model.md`. Foundation, testovací
+   přiřazení P1/P2/P3 a týmové omezení leadů/fronty jsou nyní zapnuté v Sandboxu.
+   Production zůstává beze změny. Historické snapshoty a databázové omezení
+   hovorů, objednávek, review, navázaných relací a globálních výjimek jsou nyní
+   ověřené v Sandboxu. Rozlišení seznam/detail pro objednávky a review je také
+   ověřené přes přímé URL; Production zůstává beze změny. Team Leader pracovní
+   plocha nyní zobrazuje povolené týmy, read-only presence a týmovou frontu a je
+   dostupná přímo z role-aware menu.
+   Daily Brief, dashboardové popisky a `/analytics` nyní explicitně rozlišují týmový
+   a workspace rozsah. `/analytics` ukazuje Team Leaderovi jen povolené týmy a export
+   zachovává stejný rozsah. `/team` navíc ukazuje počet čekajících a prošlých callbacků
+   a vysvětluje přednost původního operátora i převzetí volným kolegou ze stejného týmu.
 5. P3 propojí presence, směny, Live Monitor a role-aware Settings.
 6. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
 7. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní

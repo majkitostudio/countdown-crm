@@ -27,17 +27,18 @@ async function loadOrder(orderId: string): Promise<OrderLoadResult> {
       requireWorkspaceContext(),
       getWorkspaceOrder(orderId),
     ]);
+    const canManageOrder = Boolean(order?.can_manage);
     return {
       order,
-      canEdit: context.role === "operator" || context.role === "team_leader" || context.role === "administrator",
+      canEdit: canManageOrder,
       canEditDetails: Boolean(
-        order && order.items.length > 0 && (
+        order && canManageOrder && order.items.length > 0 && (
           context.role === "administrator"
           || (context.role === "team_leader" && ["pending", "in_progress"].includes(order.status))
           || (context.role === "operator" && order.agent_id === context.userId && ["pending", "in_progress"].includes(order.status))
         )
       ),
-      isManager: context.role === "team_leader" || context.role === "administrator",
+      isManager: canManageOrder && (context.role === "team_leader" || context.role === "administrator"),
     };
   } catch (error) {
     return { error };
@@ -126,7 +127,7 @@ export default async function OrderDetailPage({
                 <p className="text-base font-semibold text-zinc-100">{order.lead_name}</p>
                 <p className="mt-1 text-xs text-zinc-500">Lead ID <span className="font-mono text-zinc-400">{order.lead_id || "unavailable"}</span></p>
               </div>
-              {order.lead_id && <Link href={`/workspace?leadId=${order.lead_id}`} className={getButtonClassName("secondary")}>Open in Console <ExternalLink className="h-3.5 w-3.5" /></Link>}
+              {order.lead_id && <Link href={`/leads/${order.lead_id}`} className={getButtonClassName("secondary")}>Open customer profile <ExternalLink className="h-3.5 w-3.5" /></Link>}
             </div>
           </section>
 

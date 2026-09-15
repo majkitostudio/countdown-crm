@@ -31,11 +31,17 @@ const workspaceContext = {
   role: "team_leader" as const,
 };
 
-function createAnalyticsClient() {
-  const orders = [
+function createAnalyticsClient(options: {
+  orders?: Array<Record<string, unknown>>;
+  calls?: Array<Record<string, unknown>>;
+  teams?: Array<Record<string, unknown>>;
+  errors?: Partial<Record<"orders" | "calls" | "teams" | "profiles", boolean>>;
+} = {}) {
+  const orders = options.orders || [
     {
       id: "order-1",
       workspace_id: "workspace-1",
+      team_id: "team-1",
       agent_id: "agent-1",
       status: "completed",
       total_amount: 125,
@@ -43,13 +49,17 @@ function createAnalyticsClient() {
       created_at: "2026-08-26T10:00:00.000Z",
     },
   ];
-  const calls = [
+  const calls = options.calls || [
     {
       id: "call-1",
       workspace_id: "workspace-1",
+      team_id: "team-1",
       agent_id: "agent-1",
       created_at: "2026-08-26T09:00:00.000Z",
     },
+  ];
+  const teams = options.teams || [
+    { id: "team-1", workspace_id: "workspace-1", name: "Sales" },
   ];
   const profiles = [
     {
@@ -63,24 +73,35 @@ function createAnalyticsClient() {
       updated_at: "2026-08-01T00:00:00.000Z",
     },
   ];
+  const rowsByTable: Record<string, Array<Record<string, unknown>>> = { orders, calls, teams, profiles };
+  const filtersByTable: Record<string, string[]> = {};
 
   return {
+    filtersByTable,
     from(table: string) {
-      return {
+      let rows = [...(rowsByTable[table] || [])];
+      const query = {
         select() {
-          return {
-            eq() {
-              return Promise.resolve({
-                data: table === "orders" ? orders : calls,
-                error: null,
-              });
-            },
-            in() {
-              return Promise.resolve({ data: profiles, error: null });
-            },
-          };
+          return query;
+        },
+        eq(column: string, value: unknown) {
+          filtersByTable[table] = [...(filtersByTable[table] || []), `${column}=${String(value)}`];
+          rows = rows.filter((row) => row[column] === value);
+          return query;
+        },
+        in(column: string, values: unknown[]) {
+          filtersByTable[table] = [...(filtersByTable[table] || []), `${column} in ${values.join("|")}`];
+          rows = rows.filter((row) => values.includes(row[column]));
+          return query;
+        },
+        then(resolve: (value: { data: Array<Record<string, unknown>> | null; error: Error | null }) => unknown) {
+          const error = options.errors?.[table as keyof typeof options.errors]
+            ? new Error(`${table} unavailable`)
+            : null;
+          return Promise.resolve({ data: error ? null : rows, error }).then(resolve);
         },
       };
+      return query;
     },
   };
 }
@@ -102,6 +123,90 @@ describe("analytics server role boundary", () => {
 
       expect(result.totalRevenue).toBe(125);
       expect(mocks.requireWorkspaceRole).toHaveBeenLastCalledWith(ANALYTICS_ALLOWED_ROLES, "workspace-1");
+    }
+  });
+
+  it("returns only the Team Leader's permitted teams and applies that scope before aggregation", async () => {
+    const client = createAnalyticsClient({
+      // The teams query represents the database RLS result for this leader.
+      // The second team's activity is present only to prove the server filter
+      // runs before the numbers are calculated.
+      teams: [
+        { id: "team-1", workspace_id: "workspace-1", name: "Sales" },
+      ],
+      orders: [
+        {
+          id: "order-1",
+          workspace_id: "workspace-1",
+          team_id: "team-1",
+          agent_id: "agent-1",
+          status: "completed",
+          total_amount: 125,
+          currency: "USD",
+          created_at: "2026-08-26T10:00:00.000Z",
+        },
+        {
+          id: "order-2",
+          workspace_id: "workspace-1",
+          team_id: "team-2",
+          agent_id: "agent-2",
+          status: "completed",
+          total_amount: 900,
+          currency: "USD",
+          created_at: "2026-08-26T11:00:00.000Z",
+        },
+      ],
+    });
+    mocks.createDataClient.mockResolvedValue(client);
+
+    const result = await getAnalyticsData("workspace-1");
+
+    expect(result).toMatchObject({
+      scope: "team",
+      scopeLabel: "Moje týmy",
+      accessibleTeams: [{ id: "team-1", name: "Sales" }],
+    });
+    expect(client.filtersByTable.orders).toContain("team_id in team-1");
+    expect(client.filtersByTable.calls).toContain("team_id in team-1");
+    expect(result.totalRevenue).toBe(125);
+  });
+
+  it("keeps Administrator analytics workspace-wide without adding a team filter", async () => {
+    mocks.requireWorkspaceRole.mockResolvedValueOnce({ ...workspaceContext, role: "administrator" });
+    const client = createAnalyticsClient({
+      teams: [
+        { id: "team-1", workspace_id: "workspace-1", name: "Sales" },
+        { id: "team-2", workspace_id: "workspace-1", name: "Retention" },
+      ],
+    });
+    mocks.createDataClient.mockResolvedValue(client);
+
+    const result = await getAnalyticsData("workspace-1");
+
+    expect(result).toMatchObject({ scope: "workspace", scopeLabel: "Celý workspace" });
+    expect(result.accessibleTeams).toHaveLength(2);
+    expect(client.filtersByTable.orders?.some((filter) => filter.startsWith("team_id in"))).toBe(false);
+    expect(client.filtersByTable.calls?.some((filter) => filter.startsWith("team_id in"))).toBe(false);
+  });
+
+  it.each([
+    ["calls", { calls: "unavailable", orders: "ready" }, { totalCalls: 0, totalRevenue: 125 }],
+    ["orders", { calls: "ready", orders: "unavailable" }, { totalCalls: 1, totalRevenue: 0 }],
+    ["profiles", { operators: "unavailable" }, { totalCalls: 1, totalRevenue: 125 }],
+    ["teams", { teams: "unavailable" }, { totalCalls: 1, totalRevenue: 125 }],
+  ] as const)("keeps healthy analytics when the %s source is unavailable", async (failedSource, expectedSources, expectedValues) => {
+    mocks.createDataClient.mockResolvedValue(createAnalyticsClient({ errors: { [failedSource]: true } }));
+
+    const result = await getAnalyticsData("workspace-1");
+
+    expect(result.sources).toMatchObject(expectedSources);
+    expect(result).toMatchObject(expectedValues);
+    if (failedSource === "teams") {
+      expect(result.scope).toBe("team");
+      expect(result.accessibleTeams).toEqual([]);
+    }
+    if (failedSource === "profiles") {
+      expect(result.teamMetricsAvailable).toBe(false);
     }
   });
 

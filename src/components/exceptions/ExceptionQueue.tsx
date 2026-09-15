@@ -72,9 +72,11 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
     ));
   }, [data, priority, type, view]);
 
-  const sourceWarnings = Object.values(data.sources).filter(
-    (source): source is { state: "unavailable"; message: string } => source.state === "unavailable" && Boolean(source.message),
-  );
+  const sourceWarnings = Array.from(new Set(
+    Object.values(data.sources)
+      .filter((source): source is { state: "unavailable"; message: string } => source.state === "unavailable" && Boolean(source.message))
+      .map((source) => source.message),
+  ));
 
   const refresh = async () => {
     setBusy("refresh");
@@ -135,7 +137,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
         <StatusAlert tone="warning" role="status">
           <p className="font-medium">Exception Queue is only partially available.</p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-200/80">
-            {sourceWarnings.map((warning) => <li key={warning.message}>{warning.message}</li>)}
+            {sourceWarnings.map((warning) => <li key={warning}>{warning}</li>)}
           </ul>
         </StatusAlert>
       )}

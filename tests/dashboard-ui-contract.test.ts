@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const projectRoot = path.resolve(__dirname, "..");
 
 describe("Dashboard team hierarchy UI contract", () => {
-  it("keeps workspace-level team context explicit", () => {
+  it("keeps team and workspace context explicit", () => {
     const dashboard = readFileSync(path.join(projectRoot, "src", "app", "dashboard", "page.tsx"), "utf8");
     const kpis = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "KpiCards.tsx"), "utf8");
     const topPerformers = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "TopPerformers.tsx"), "utf8");
@@ -17,15 +17,17 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(dashboard).toContain('data-testid="dashboard-team-overview"');
     expect(dashboard).toContain('data-testid="dashboard-team-attention"');
     expect(dashboard).toContain('data-testid="dashboard-supporting-analytics"');
-    expect(dashboard).toContain("<KpiCards compact />");
+    expect(dashboard).toContain("<KpiCards compact scope={scope} />");
     expect(dashboard).toContain("dashboard-team-attention");
-    expect(dashboard).toContain("Workspace-scoped");
+    expect(dashboard).toContain("scopeLabel");
     expect(dashboard).toContain("No synthetic priorities");
-    expect(dashboard).toContain("<NextBestActionCard />");
+    expect(dashboard).toContain("<NextBestActionCard scope={scope} />");
     expect(nextBestAction).toContain('data-testid="next-best-action"');
     expect(dashboard).toContain("<TeamLeaderDailyBriefCard />");
     expect(dailyBrief).toContain('data-testid="team-leader-daily-brief"');
     expect(dailyBrief).toContain("Needs review");
+    expect(dailyBrief).toContain("Celofiremní peněženka");
+    expect(dailyBrief).toContain("scopeLabel");
     expect(dailyBrief).toContain('href="/calls?review=unreviewed"');
     expect(dailyBrief).not.toContain("getReorderOpportunities");
     expect(dailyBrief).toContain("loadDashboardDailyBriefAction");
@@ -35,10 +37,10 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(reorderWidget).toContain("loadReorderOpportunitiesAction");
     expect(reorderWidget).not.toContain("getReorderOpportunities");
     expect(dailyBrief).toContain('font-mono text-lg font-semibold text-zinc-100');
-    expect(kpis).toContain('label: "Team Calls"');
-    expect(kpis).toContain('label: "Team Conversion Rate"');
-    expect(kpis).toContain('label: "Team Revenue"');
-    expect(kpis).toContain('label: "Operators in Workspace"');
+    expect(kpis).toContain('scope === "team" ? "Team Calls" : "Workspace Calls"');
+    expect(kpis).toContain('scope === "team" ? "Team Conversion Rate" : "Workspace Conversion Rate"');
+    expect(kpis).toContain('scope === "team" ? "Team Revenue" : "Workspace Revenue"');
+    expect(kpis).toContain('scope === "team" ? "Operators in Team" : "Operators in Workspace"');
     expect(kpis).toContain("compact = false");
     expect(kpis).not.toContain('label: "My Calls"');
     for (const component of [kpis, topPerformers, recentActivity]) {

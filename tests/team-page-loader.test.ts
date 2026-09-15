@@ -5,6 +5,9 @@ const mocks = vi.hoisted(() => ({
   listQueueItemsForWorkspace: vi.fn(),
   listWorkspaceOperators: vi.fn(),
   listWorkspaceMembers: vi.fn(),
+  listAccessibleTeams: vi.fn(),
+  listTeamMemberships: vi.fn(),
+  listOperatorPresenceForWorkspace: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -14,6 +17,13 @@ vi.mock("@/lib/dal/leadQueue", () => ({
 vi.mock("@/lib/dal/memberships", () => ({
   listWorkspaceOperators: mocks.listWorkspaceOperators,
   listWorkspaceMembers: mocks.listWorkspaceMembers,
+}));
+vi.mock("@/lib/dal/teams", () => ({
+  listAccessibleTeams: mocks.listAccessibleTeams,
+  listTeamMemberships: mocks.listTeamMemberships,
+}));
+vi.mock("@/lib/dal/operatorPresence", () => ({
+  listOperatorPresenceForWorkspace: mocks.listOperatorPresenceForWorkspace,
 }));
 
 import { loadTeamPageData } from "@/lib/dal/teamPage";
@@ -34,6 +44,9 @@ beforeEach(() => {
   mocks.listQueueItemsForWorkspace.mockResolvedValue([]);
   mocks.listWorkspaceOperators.mockResolvedValue([]);
   mocks.listWorkspaceMembers.mockResolvedValue([]);
+  mocks.listAccessibleTeams.mockResolvedValue([]);
+  mocks.listTeamMemberships.mockResolvedValue([]);
+  mocks.listOperatorPresenceForWorkspace.mockResolvedValue([]);
 });
 
 describe("loadTeamPageData", () => {
@@ -47,6 +60,8 @@ describe("loadTeamPageData", () => {
       expected: {
         queue: { status: "unavailable", reason: "database" },
         operators: { status: "ready", data: [] },
+        presence: { status: "ready", data: [] },
+        roster: { status: "ready", data: { teams: [], memberships: {} } },
         members: null,
       },
     },
@@ -59,6 +74,8 @@ describe("loadTeamPageData", () => {
       expected: {
         queue: { status: "ready", data: [] },
         operators: { status: "unavailable", reason: "database" },
+        presence: { status: "ready", data: [] },
+        roster: { status: "ready", data: { teams: [], memberships: {} } },
         members: null,
       },
     },
@@ -71,6 +88,8 @@ describe("loadTeamPageData", () => {
       expected: {
         queue: { status: "ready", data: [] },
         operators: { status: "ready", data: [] },
+        presence: { status: "ready", data: [] },
+        roster: { status: "ready", data: { teams: [], memberships: {} } },
         members: { status: "unavailable", reason: "database" },
       },
     },
@@ -87,6 +106,8 @@ describe("loadTeamPageData", () => {
     await expect(loadTeamPageData(administratorContext)).resolves.toEqual({
       queue: { status: "unavailable", reason: "database" },
       operators: { status: "unavailable", reason: "database" },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "ready", data: [] },
     });
   });
@@ -95,6 +116,8 @@ describe("loadTeamPageData", () => {
     await expect(loadTeamPageData(administratorContext)).resolves.toEqual({
       queue: { status: "ready", data: [] },
       operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "ready", data: [] },
     });
   });
@@ -102,6 +125,8 @@ describe("loadTeamPageData", () => {
   it("does not request members for a team leader", async () => {
     await expect(loadTeamPageData(teamLeaderContext)).resolves.toMatchObject({
       members: null,
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
     });
 
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
@@ -112,6 +137,8 @@ describe("loadTeamPageData", () => {
 
     expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("workspace-1");
     expect(mocks.listWorkspaceOperators).toHaveBeenCalledWith("workspace-1");
+    expect(mocks.listOperatorPresenceForWorkspace).toHaveBeenCalledWith("workspace-1");
+    expect(mocks.listAccessibleTeams).toHaveBeenCalledWith("workspace-1");
     expect(mocks.listWorkspaceMembers).toHaveBeenCalledWith("workspace-1");
   });
 
@@ -136,5 +163,7 @@ describe("loadTeamPageData", () => {
     expect(mocks.listQueueItemsForWorkspace).not.toHaveBeenCalled();
     expect(mocks.listWorkspaceOperators).not.toHaveBeenCalled();
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
+    expect(mocks.listOperatorPresenceForWorkspace).not.toHaveBeenCalled();
+    expect(mocks.listAccessibleTeams).not.toHaveBeenCalled();
   });
 });

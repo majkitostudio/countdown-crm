@@ -58,6 +58,8 @@ export interface CallReviewDTO {
   transcript: CallTranscript;
   script: CallReviewScriptEvidence;
   revisions: CallReviewRevisionDTO[];
+  /** Whether the current user may create or correct this review. */
+  canReview?: boolean;
 }
 
 export interface RecordCallReviewInput {
@@ -73,6 +75,15 @@ export type CallReviewStatus = "not_reviewed" | "reviewed" | "corrected";
 const CALL_SELECT = "id, workspace_id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, callback_scheduled_at, transcript, created_at";
 const SESSION_SELECT = "provider, script_source, script_product_id, script_product_title, script_version_id, script_version_number, script_snapshot_html, script_captured_at";
 const REVISION_SELECT = "id, call_id, revision_number, verdict, coaching_note, correction_reason, reviewer_id, supersedes_revision_id, created_at";
+
+type DirectReviewPayload = {
+  call: Pick<CallRow, "id" | "workspace_id" | "lead_id" | "agent_id" | "duration_seconds" | "outcome" | "fail_reason" | "operator_note" | "callback_scheduled_at" | "transcript" | "created_at">;
+  customer: { id: string; name: string | null } | null;
+  operator: { id: string; name: string | null } | null;
+  session: Pick<SessionRow, "provider" | "script_source" | "script_product_id" | "script_product_title" | "script_version_id" | "script_version_number" | "script_snapshot_html" | "script_captured_at"> | null;
+  revisions: Array<RevisionRow & { reviewer_name: string | null }>;
+  can_review?: boolean;
+};
 
 export async function listCallReviewStatuses(
   context: WorkspaceContext,
@@ -181,8 +192,45 @@ function mapRevision(
   };
 }
 
+async function getDirectCallReview(
+  callId: string,
+  supabase: Awaited<ReturnType<typeof createDataClient>>,
+): Promise<CallReviewDTO | null> {
+  const { data, error } = await supabase.rpc("get_workspace_call_review_detail", {
+    target_call_id: callId,
+  } as never);
+  if (error) throw new DataAccessError("DATABASE", "Unable to load the call review detail.");
+  if (!data || typeof data !== "object") return null;
+
+  const payload = data as DirectReviewPayload;
+  const profileNames = new Map<string, string>();
+  if (payload.operator?.name) profileNames.set(payload.operator.id, payload.operator.name);
+  for (const revision of payload.revisions || []) {
+    if (revision.reviewer_name) profileNames.set(revision.reviewer_id, revision.reviewer_name);
+  }
+
+  return {
+    call: {
+      id: payload.call.id,
+      createdAt: payload.call.created_at,
+      durationSeconds: payload.call.duration_seconds,
+      outcome: payload.call.outcome,
+      failReason: payload.call.fail_reason,
+      operatorNote: payload.call.operator_note,
+      callbackScheduledAt: payload.call.callback_scheduled_at,
+    },
+    customer: payload.customer,
+    operator: payload.operator,
+    callSource: (payload.session?.provider || "not_recorded") as CallReviewDTO["callSource"],
+    transcript: parseCallTranscript(payload.call.transcript),
+    script: mapScriptEvidence(payload.session),
+    revisions: (payload.revisions || []).map((revision) => mapRevision(revision, profileNames)),
+    canReview: payload.can_review,
+  };
+}
+
 export async function getCallReview(callId: string): Promise<CallReviewDTO> {
-  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+  const context = await requireWorkspaceRole(["operator", "team_leader", "administrator"]);
   if (typeof callId !== "string" || !callId.trim()) {
     throw new DataAccessError("VALIDATION", "Call ID is required.");
   }
@@ -199,7 +247,10 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
     throw new DataAccessError("DATABASE", "Unable to load the call for review.");
   }
   if (!callData) {
-    throw new DataAccessError("NOT_FOUND", "Call was not found in this workspace.");
+    return getDirectCallReview(callId, supabase).then((review) => {
+      if (!review) throw new DataAccessError("NOT_FOUND", "Call was not found in this workspace.");
+      return review;
+    });
   }
 
   const call = callData as Pick<
@@ -301,6 +352,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
     transcript: parseCallTranscript(call.transcript),
     script: mapScriptEvidence(session),
     revisions: revisionRows.map((revision) => mapRevision(revision, profileNames)),
+    canReview: true,
   };
 }
 

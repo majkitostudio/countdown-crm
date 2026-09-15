@@ -59,10 +59,11 @@ export async function createCallForWorkspace(
   const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
 
+  let leadTeamId: string | null = null;
   if (input.lead_id) {
-    const { data, error } = await supabase
+    const { data: lead, error } = await supabase
       .from("leads")
-      .select("id")
+      .select("id, team_id")
       .eq("id", input.lead_id)
       .eq("workspace_id", context.workspaceId)
       .maybeSingle();
@@ -70,15 +71,17 @@ export async function createCallForWorkspace(
     if (error) {
       throw new DataAccessError("DATABASE", "Call lead lookup failed");
     }
-    if (!data) {
+    if (!lead) {
       throw new DataAccessError("VALIDATION", "Call lead does not belong to workspace");
     }
+    leadTeamId = lead.team_id;
   }
 
   const { data, error } = await supabase
     .from("calls")
     .insert({
       workspace_id: context.workspaceId,
+      team_id: leadTeamId,
       lead_id: input.lead_id || null,
       agent_id: context.userId,
       duration_seconds: input.duration_seconds ?? 0,

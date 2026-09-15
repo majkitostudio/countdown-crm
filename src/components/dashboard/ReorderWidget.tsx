@@ -6,7 +6,7 @@ import { RefreshCw, PhoneCall, Sparkles, ArrowRight } from "lucide-react";
 import { loadReorderOpportunitiesAction } from "@/app/actions/dashboard";
 import type { ReorderOpportunity } from "@/lib/reorder";
 
-export function ReorderWidget() {
+export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "workspace" }) {
   const [opportunities, setOpportunities] = useState<ReorderOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export function ReorderWidget() {
               </span>
             </h2>
             <p className="text-xs text-zinc-400">
-              Estimated replenishment dates from fulfilled order history and product-category cycles
+              Estimated replenishment dates from {scope === "team" ? "team" : "workspace"} fulfilled order history and product-category cycles
             </p>
           </div>
         </div>

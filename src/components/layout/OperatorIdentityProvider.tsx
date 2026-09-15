@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { OperatorIdentity } from "@/lib/operatorIdentity";
 import type { Database } from "@/lib/supabase/types";
 import { getCurrentWorkspaceContextAction } from "@/app/actions/workspace";
@@ -20,9 +21,15 @@ const OperatorIdentityContext = createContext<OperatorIdentityContextValue>({
   error: null,
 });
 
-export function OperatorIdentityProvider({ children }: { children: React.ReactNode }) {
-  const [identity, setIdentity] = useState<OperatorIdentity | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function OperatorIdentityProvider({
+  children,
+  initialIdentity = null,
+}: {
+  children: React.ReactNode;
+  initialIdentity?: OperatorIdentity | null;
+}) {
+  const [identity, setIdentity] = useState<OperatorIdentity | null>(initialIdentity);
+  const [isLoading, setIsLoading] = useState(!initialIdentity);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,46 +37,44 @@ export function OperatorIdentityProvider({ children }: { children: React.ReactNo
     const supabase = createClient();
 
     async function loadIdentity() {
-      setIsLoading(true);
+      if (!initialIdentity) setIsLoading(true);
       setError(null);
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (cancelled) return;
-      if (userError || !user) {
-        setIdentity(null);
-        setError("Authenticated operator profile is unavailable");
+      if (isDemoAuthEnabled()) {
+        setIdentity({
+          id: "demo-user",
+          name: "Demo Administrator",
+          email: "demo@countdowncrm.local",
+          role: "administrator",
+          avatarUrl: null,
+        });
         setIsLoading(false);
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, role, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (cancelled) return;
-      if (profileError) {
-        setIdentity(null);
-        setError("Operator profile lookup failed");
-        setIsLoading(false);
-        return;
-      }
-
-      const typedProfile = profile as OperatorProfileRow | null;
-      let workspaceRole: OperatorIdentity["role"] = null;
+      let workspaceContext: Awaited<ReturnType<typeof getCurrentWorkspaceContextAction>>;
       try {
-        const workspaceContext = await getCurrentWorkspaceContextAction();
-        workspaceRole = workspaceContext.role;
+        workspaceContext = await getCurrentWorkspaceContextAction();
       } catch {
-        setIdentity(null);
         setError("Authenticated workspace membership is unavailable");
         setIsLoading(false);
         return;
+      }
+
+      if (cancelled) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+
+      let typedProfile: OperatorProfileRow | null = null;
+      if (user) {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email, role, avatar_url")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!profileError) typedProfile = profile as OperatorProfileRow | null;
       }
 
       setIdentity(
@@ -78,14 +83,14 @@ export function OperatorIdentityProvider({ children }: { children: React.ReactNo
               id: typedProfile.id,
               name: typedProfile.full_name.trim() || "Unknown operator",
               email: typedProfile.email.trim(),
-              role: workspaceRole,
+              role: workspaceContext.role,
               avatarUrl: typedProfile.avatar_url,
             }
           : {
-              id: user.id,
-              name: "Unknown operator",
-              email: user.email || "",
-              role: workspaceRole,
+              id: workspaceContext.userId,
+              name: user?.user_metadata?.full_name || "Unknown operator",
+              email: user?.email || "",
+              role: workspaceContext.role,
               avatarUrl: null,
             }
       );
@@ -102,7 +107,7 @@ export function OperatorIdentityProvider({ children }: { children: React.ReactNo
       cancelled = true;
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [initialIdentity]);
 
   const value = useMemo(
     () => ({ identity, isLoading, error }),

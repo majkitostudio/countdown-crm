@@ -51,11 +51,20 @@ export interface AgentLeaderboardPoint {
   conversionRate: number;
 }
 
+export interface AnalyticsTeamScope {
+  id: string;
+  name: string;
+}
+
 export interface AnalyticsOverview {
+  scope: "team" | "workspace";
+  scopeLabel: "Moje týmy" | "Celý workspace";
+  accessibleTeams: AnalyticsTeamScope[];
   sources: {
     calls: "ready" | "unavailable";
     orders: "ready" | "unavailable";
     operators: "ready" | "unavailable";
+    teams: "ready" | "unavailable";
   };
   totalRevenue: number;
   revenueByCurrency: CurrencyAmount[];
@@ -231,15 +240,52 @@ export async function getRecentActivity(limit = 8, requestedWorkspaceId?: string
   };
 }
 
-/** Retrieves Team Leader analytics computed from workspace-scoped Supabase data. */
+/** Retrieves analytics using the role's server-authorized team scope. */
 export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<AnalyticsOverview> {
   const context = await requireWorkspaceRole(ANALYTICS_ALLOWED_ROLES, requestedWorkspaceId);
   const supabase = await createDataClient();
+  const scope = context.role === "administrator" ? "workspace" : "team";
+  const scopeLabel = scope === "workspace" ? "Celý workspace" : "Moje týmy";
 
-  const [ordersRes, callsRes] = await Promise.all([
-    supabase.from("orders").select("*").eq("workspace_id", context.workspaceId),
-    supabase.from("calls").select("*").eq("workspace_id", context.workspaceId),
-  ]);
+  // This query is filtered by RLS as well as the workspace condition. For a
+  // Team Leader it gives us the names and IDs that may be shown in the UI.
+  const teamsRes = await supabase
+    .from("teams")
+    .select("id, name")
+    .eq("workspace_id", context.workspaceId);
+  const teamsAvailable = !teamsRes.error;
+  const accessibleTeams = teamsAvailable
+    ? (teamsRes.data || []).map((team) => ({ id: team.id, name: team.name }))
+    : [];
+  const accessibleTeamIds = accessibleTeams.map((team) => team.id);
+
+  // The server-side team filter is an additional safety and performance
+  // measure. RLS remains the actual authorization boundary for every row.
+  const loadOrders = () => {
+    if (context.role === "team_leader" && teamsAvailable && accessibleTeamIds.length === 0) {
+      return Promise.resolve({ data: [], error: null });
+    }
+
+    let query = supabase.from("orders").select("*").eq("workspace_id", context.workspaceId);
+    if (context.role === "team_leader" && teamsAvailable) {
+      query = query.in("team_id", accessibleTeamIds);
+    }
+    return query;
+  };
+
+  const loadCalls = () => {
+    if (context.role === "team_leader" && teamsAvailable && accessibleTeamIds.length === 0) {
+      return Promise.resolve({ data: [], error: null });
+    }
+
+    let query = supabase.from("calls").select("*").eq("workspace_id", context.workspaceId);
+    if (context.role === "team_leader" && teamsAvailable) {
+      query = query.in("team_id", accessibleTeamIds);
+    }
+    return query;
+  };
+
+  const [ordersRes, callsRes] = await Promise.all([loadOrders(), loadCalls()]);
 
   const ordersAvailable = !ordersRes.error;
   const callsAvailable = !callsRes.error;
@@ -274,7 +320,15 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
   const conversionRate = calls.length > 0 ? (completedOrders.length / calls.length) * 100 : 0;
 
   return {
-    sources: { calls: callsAvailable ? "ready" : "unavailable", orders: ordersAvailable ? "ready" : "unavailable", operators: operatorsAvailable ? "ready" : "unavailable" },
+    scope,
+    scopeLabel,
+    accessibleTeams,
+    sources: {
+      calls: callsAvailable ? "ready" : "unavailable",
+      orders: ordersAvailable ? "ready" : "unavailable",
+      operators: operatorsAvailable ? "ready" : "unavailable",
+      teams: teamsAvailable ? "ready" : "unavailable",
+    },
     totalRevenue: Math.round(totalRevenue * 100) / 100,
     revenueByCurrency,
     projectedRevenue: 0,

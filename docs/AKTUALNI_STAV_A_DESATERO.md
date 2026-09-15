@@ -1,10 +1,10 @@
 # Aktuální stav, jednotné To-Do a Desatero
 
-**Snapshot:** 12. 9. 2026
+**Snapshot:** 15. 9. 2026
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený checkpoint P0.1–P0.3 a P1 stabilizační/UI vlna; P0.4 je vědomě odložené pro interní provoz. Nejbližší otevřený P1 krok je autentizovaný browser důkaz Klientského profilu a ověřené doručovací adresy.
+**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna a první bezpečná vlna P2 týmů v Sandboxu. Production zůstává beze změny. Team Leader pracovní plocha, Daily Brief, callbacky a týmová analytika mají ověřený týmový rozsah; další práce pokračuje bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
 
 ## Co je skutečně hotové
 
@@ -13,13 +13,15 @@
 - Role-aware vstup směruje operátora do konzole, Team Leadera do Exception Queue
   a administrátora do Workspace Readiness.
 - Exception Queue je nasazená a ověřená přes autentizované role i záporné
-  workspace/role scénáře.
+  workspace/role scénáře. Team Leader nově vidí pouze týmové queue výjimky;
+  workflow a chybějící produktové skripty jsou výslovně administrátorské.
 - Team Leader Review pracuje s reálným uloženým hovorem, neměnným snapshotem
   skriptu, append-only revizemi hodnocení a auditem. Linked sandbox prošel
   autentizovaným smoke testem včetně cleanupu.
 - Osobní preference operátora jsou serverové, workspace-scoped a chráněné RLS.
-- Linked migration history je srovnaná 86/86. P0.2 i P0.3 prošly 376/376
-  aplikačními a 183/183 databázovými testy, lintem, typecheckem a buildem.
+- Linked migration history je srovnaná. Aktuální Sandbox týmová vlna a výjimky
+  prošly 619/619 aplikačními testy, lintem, typecheckem a produkčním buildem;
+  databázová sada má poslední známý výsledek 183/183 testů.
 - P0.3 je skutečně uzavřené: linked runner provedl read-only ověření 8/8
   databázových kontraktů. Použil oddělenou identitu s pouze `Database: Read` a
   `Data API Config: Read`; produkce nebyla použita a žádný zápis neproběhl.
@@ -158,11 +160,16 @@ zatímco kompatibilita Telnyx/uuid a živý provider zůstávají externě bloko
 P1.9 proto nepřidává telefonní funkcionalitu ani dočasnou
 diagnostickou obrazovku, která by se mohla změnit spolu s providerem.
 
-Další práce může pokračovat pouze nad neblokovanou částí roadmapy. Nejbližší
-stabilní krok je návrh týmového základu P2 (`teams`, členství, Team Leader
-scope, správa a RLS); před implementací musí vzniknout samostatná specifikace,
-akceptační kritéria a důkazní plán. Telnyx se vrátí do práce až s číslem,
-ověřenou konfigurací a rozhodnutím k `uuid` větvi.
+Další práce může pokračovat pouze nad neblokovanou částí roadmapy. P2 Team
+Model má schválenou specifikaci, implementační plán, foundation, přiřazení P1/P2/P3,
+team scope pro leady/frontu, historické snapshoty a Team Leader RLS v Sandboxu.
+Přes skutečné přihlášení byly ověřeny administrátorský i Team Leader pohled včetně
+team-scoped seznamu a povoleného přímého detailu cizí objednávky/review; operátor
+má stejný read-only detailní průchod. Exception Queue už nesděluje Team Leaderovi
+globální workflow/product problémy. Production zůstává beze změny. Otevřené zůstávají
+linked concurrency důkaz snapshotů a další rozšíření týmové pracovní plochy; callbacky,
+read-only presence, `/team` pohled a týmová analytika mají první ověřený průchod. Telnyx se
+vrátí do práce až s číslem, ověřenou konfigurací a rozhodnutím k `uuid` větvi.
 
 ### P1.5 — P2 onboarding trénažér (interní pilot)
 
@@ -215,23 +222,30 @@ chyba je přesně dohledatelná i v případě úspěšného konce simulace.
 
 ### P2 — skutečné týmy a oddělení
 
-Toto je produktový a bezpečnostní základ, ne kosmetický filtr. Dnes neexistují
-tabulky `teams`, `team_memberships` ani `team_id`; „týmové“ přehledy agregují celý
-workspace. Results, týmové srovnání ani týmový provoz proto nesmějí tuto hranici
-předběhnout.
+Toto je produktový a bezpečnostní základ, ne kosmetický filtr. Foundation týmů,
+členství, `team_id`, queue routing a historické snapshoty jsou nyní zapnuté pouze
+v Sandboxu. Production se před dalšími důkazy nemění. Týmové přehledy smějí ukazovat
+jen skutečně doložený scope; workflow, produkty a Wallet zůstávají workspace-global,
+dokud pro ně neschválíme vlastní model vlastnictví.
 
-1. Rozhodnout první podporovaný model členství (kardinalita, aktivní tým,
-   přesuny v čase), vlastnictví Team Leaderem a chování uživatele bez týmu.
-2. Navrhnout `teams`, členství a historii změn včetně unikátností, FK, indexů,
-   auditní stopy a bezpečné migrace existujících workspace členů.
-3. Přidat administrátorskou správu `Users & Permissions` a týmů: pozvánky,
-   role, aktivace/deaktivace, přiřazení a změna Team Leadera.
-4. Zavést team scope do serverové datové vrstvy, RPC a RLS. UUID ani klientský
-   filtr nesmí být autorizační hranicí.
-5. Převést dnešní workspace agregace podle schváleného významu: Analytics,
-   Daily Brief, Exception Queue, Team queue a výběry členů; určit dopad na Wallet
-   a směnový kalendář.
-6. Teprve poté navrhnout operátorské `Results` a férové srovnání se skutečným
+1. [x] Rozhodnout první podporovaný model členství, aktivní týmy a vlastnictví
+   Team Leaderem.
+2. [x] Navrhnout a v Sandboxu zavést `teams`, členství, historii vlastnictví,
+   FK, indexy, auditní stopu a bezpečnou migraci workspace členů.
+3. [x] Přidat administrátorskou správu členství, rolí, týmů a přiřazení operátorů.
+4. [x] Zavést team scope do serverové datové vrstvy, RPC a RLS. UUID ani klientský
+   filtr nejsou autorizační hranicí.
+5. [x] Převést workspace agregace podle schváleného významu: historické hovory,
+   objednávky, review, Exception Queue, Daily Brief a Analytics jsou ověřené.
+   Team Leader analytika dostává pouze povolené týmy a serverový dotaz filtruje
+   týmové řádky před výpočtem; Administrátor dostává celý workspace. U objednávek
+   a review je ověřený i rozdíl mezi týmovým seznamem a přímým detailem; vlastní
+   naplánovaný callback operátora je viditelný v kalendáři a týmová fronta ukazuje
+   čekající/prošlé callbacky bez zavádění samostatného systému suplování.
+   Daily Brief nyní explicitně označuje `Týmová data` pro Team Leadera a
+   `Celý workspace` pro Administrátora. Celofiremní Wallet není vydávána za týmovou
+   metriku. `/team` zobrazuje povolené týmy a read-only presence.
+6. [ ] Teprve poté navrhnout operátorské `Results` a férové srovnání se skutečným
    týmem.
 
 P2 je hotové, až administrátor tým spravuje, Team Leader vidí jen povolený scope,

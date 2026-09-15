@@ -17,6 +17,6 @@ describe("role-aware page authorization", () => {
     );
 
     expect(callReviewPage).not.toMatch(/^"use client";/);
-    expect(callReviewPage).toContain('requireWorkspaceRole(["team_leader", "administrator"])');
+    expect(callReviewPage).toContain('requireWorkspaceRole(["operator", "team_leader", "administrator"])');
   });
 });

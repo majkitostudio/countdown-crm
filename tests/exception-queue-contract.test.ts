@@ -252,7 +252,7 @@ describe("Team Leader Exception Queue", () => {
     });
   });
 
-  it("authorizes the management read before querying workspace-scoped sources", async () => {
+  it("keeps workspace-global sources out of Team Leader reads", async () => {
     const tableResults: Record<string, unknown[]> = {
       lead_queue_items: [],
       workflow_executions: [],
@@ -273,11 +273,38 @@ describe("Team Leader Exception Queue", () => {
     await expect(listTeamLeaderExceptions()).resolves.toMatchObject({ items: [] });
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["team_leader", "administrator"]);
-    expect(from).toHaveBeenCalledTimes(5);
+    expect(from).toHaveBeenCalledTimes(1);
     expect(queueQuery.in).toHaveBeenCalledWith("state", ["assigned", "awaiting_outcome", "waiting_callback"]);
-    expect(productQuery.select).toHaveBeenCalledWith("id, title, in_stock, created_at");
-    expect(productQuery.order).toHaveBeenCalledWith("created_at", { ascending: false });
+    expect(productQuery.select).not.toHaveBeenCalled();
+    expect(from).not.toHaveBeenCalledWith("workflow_executions");
+    expect(from).not.toHaveBeenCalledWith("product_scripts");
+    expect(from).not.toHaveBeenCalledWith("team_leader_exception_actions");
     expect(from).not.toHaveBeenCalledWith("calls");
+  });
+
+  it("keeps Administrator reads workspace-wide", async () => {
+    const tableResultsForAdmin: Record<string, unknown[]> = {
+      lead_queue_items: [],
+      workflow_executions: [],
+      products: [],
+      product_scripts: [],
+      team_leader_exception_actions: [],
+    };
+    mocks.requireWorkspaceRole.mockResolvedValue({
+      userId: "admin-1",
+      workspaceId: "workspace-1",
+      role: "administrator",
+    });
+    const from = vi.fn((table: string) => queryResult(tableResultsForAdmin[table] || []));
+    mocks.createDataClient.mockResolvedValue({ from });
+
+    await expect(listTeamLeaderExceptions()).resolves.toMatchObject({ items: [] });
+
+    expect(from).toHaveBeenCalledTimes(5);
+    expect(from).toHaveBeenCalledWith("workflow_executions");
+    expect(from).toHaveBeenCalledWith("products");
+    expect(from).toHaveBeenCalledWith("product_scripts");
+    expect(from).toHaveBeenCalledWith("team_leader_exception_actions");
   });
 
   it("loads exact session links by queue item IDs and never queries calls by lead", async () => {

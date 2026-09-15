@@ -53,10 +53,13 @@ export function TeamLeaderDailyBriefCard() {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">Team Leader Daily Brief</h2>
-            <p className="mt-0.5 text-xs text-zinc-400">Dnešní workspace souhrn a nejbližší akce.</p>
+            <p className="mt-0.5 text-xs text-zinc-400">Přehled dnešních aktivit v rozsahu: {readyState?.brief.scopeLabel ?? "ověřuji rozsah"}. Peněženka je společná za celý workspace.</p>
           </div>
         </div>
-        <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Read-only</span>
+        <div className="flex flex-wrap gap-2">
+          {readyState && <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-400">{readyState.brief.scopeLabel}</span>}
+          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Read-only</span>
+        </div>
       </div>
 
       {state.status === "loading" ? (
@@ -86,10 +89,10 @@ export function TeamLeaderDailyBriefCard() {
                   : String(readyState.brief.pendingReviews)}
               href="/calls?review=unreviewed"
             />
-            {readyState.brief.teamWalletBalance === null ? (
-              <BriefDetail label="Team wallet" value="Unavailable" href="/wallet" />
+            {readyState.brief.workspaceWalletBalance === null ? (
+              <BriefDetail label="Celofiremní peněženka" value="Nedostupná" href="/wallet" />
             ) : (
-              <BriefDetail label="Team wallet" value={`${formatAmount(readyState.brief.teamWalletBalance, readyState.brief.walletCurrency || "CZK")} • ${readyState.brief.teamWalletTransactions} transactions`} href="/wallet" />
+              <BriefDetail label="Celofiremní peněženka" value={`${formatAmount(readyState.brief.workspaceWalletBalance, readyState.brief.walletCurrency || "CZK")} • ${readyState.brief.workspaceWalletTransactions} transakcí`} href="/wallet" />
             )}
           </div>
 
