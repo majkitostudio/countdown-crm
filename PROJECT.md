@@ -53,6 +53,9 @@ Team Leader a administrátor mají na samostatné stránce `/exceptions` odvozen
 Exception Queue. Zobrazuje pouze problémy doložené současnými workspace daty,
 umožňuje je s důvodem vyřešit nebo odložit a každou změnu zapisuje do auditu.
 Operátor položku v navigaci nevidí a serverový role guard odmítne i přímou URL.
+Současná verze je bezpečný technický základ; budoucí přestavba musí z Exception
+Queue udělat praktický pracovní nástroj Team Leadera. Nejdřív proběhne produktový
+rozhovor nad reálnými situacemi a schválení scénářů, až potom implementace.
 
 Osobní preference operátorů jsou uložené v `workspace_user_preferences` podle
 kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění;
@@ -208,6 +211,8 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    a workspace rozsah. `/analytics` ukazuje Team Leaderovi jen povolené týmy a export
    zachovává stejný rozsah. `/team` navíc ukazuje počet čekajících a prošlých callbacků
    a vysvětluje přednost původního operátora i převzetí volným kolegou ze stejného týmu.
+   Budoucí samostatný plán přestavby Exception Queue je zapsaný v
+   `docs/AKTUALNI_STAV_A_DESATERO.md`; do jeho schválení se současná verze nemění.
 5. P3 propojí presence, směny, Live Monitor a role-aware Settings.
 6. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
 7. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní

@@ -71,6 +71,9 @@ V první datové vlně se tým přidá k:
 
 Pozdější callbacky, výjimky, Analytics a Daily Brief musí používat stejný
 team scope. Žádná obrazovka nesmí označovat workspace agregaci za týmový výsledek.
+Stávající Exception Queue je pouze první bezpečný základ; její praktická přestavba
+je samostatný budoucí produktový plán a začne až po schválení reálných provozních
+scénářů Team Leadera.
 
 ## Přechod ze současného stavu
 

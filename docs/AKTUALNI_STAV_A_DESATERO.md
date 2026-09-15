@@ -252,6 +252,27 @@ P2 je hotové, až administrátor tým spravuje, Team Leader vidí jen povolený
 operátor patří do definovaného týmu, cross-team pokusy selžou na serveru/RLS a
 migrační i autentizované testy prokážou pozitivní i negativní scénáře.
 
+### Budoucí plán — praktická přestavba Exception Queue
+
+Stávající Exception Queue je bezpečný technický základ, ale její další verze musí
+být pracovní nástroj pro každodenní rozhodování Team Leadera, ne seznam interních
+technických stavů. Přestavba se začne až po produktovém rozhovoru nad reálnými
+situacemi, které má Team Leader řešit.
+
+1. [ ] Zmapovat skutečné provozní situace: co se stalo, jak rychle je nutné
+   reagovat, kdo má jednat, kam má Team Leader kliknout a kdy je problém vyřešený.
+2. [ ] Rozdělit důležité případy podle dopadu a naléhavosti; odstranit nebo skrýt
+   technické šumy, které nevedou k žádnému rozhodnutí.
+3. [ ] Navrhnout pro každý případ srozumitelnou kartu: co se stalo, koho se týká,
+   proč to vidíme, doporučený další krok, odpovědná osoba a termín.
+4. [ ] Zachovat týmový rozsah: Team Leader vidí pouze případy svých týmů;
+   workspace-global problémy zůstávají administrátorovi.
+5. [ ] Zachovat auditní stopu, možnost převzetí/eskalace, odložení s důvodem a
+   dohledatelné vyřešení. Přímé odkazy musí vést na konkrétní lead, hovor,
+   objednávku nebo týmovou frontu.
+6. [ ] Před implementací schválit samostatný návrh, akceptační scénáře a důkazní
+   plán pro Team Leadera i administrátora.
+
 ### P3 — role-aware pracovní den
 
 1. Napojit existující `operator_presence` na stav v sidebaru a pravdivou
