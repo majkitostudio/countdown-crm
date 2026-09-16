@@ -65,6 +65,7 @@ const changedMember = {
 const emptyTeamSources = {
   presence: { status: "ready" as const, data: [] },
   roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
+  checkpoint: { status: "unavailable" as const, reason: "database" as const },
 };
 
 type TeamMutationRunner = (
@@ -97,6 +98,7 @@ function render(data: TeamPageData): string {
     currentUserId: "admin-1",
     role: "administrator",
     data,
+    initialView: "queue",
   }));
 }
 

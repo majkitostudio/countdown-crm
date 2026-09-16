@@ -263,6 +263,93 @@ být pracovní nástroj pro každodenní rozhodování Team Leadera, ne seznam i
 technických stavů. Přestavba se začne až po produktovém rozhovoru nad reálnými
 situacemi, které má Team Leader řešit.
 
+#### Zjištění z produktového rozhovoru — 16. 9. 2026
+
+První potvrzený účel Team Leadera je péče o jeden nebo více svěřených týmů.
+Jeho každodenní práce se týká především:
+
+- nastavení a kontroly směn; směnový kalendář je stále neimplementovaná otevřená
+  P3 položka a musí zůstat mezi dalšími úkoly k vytvoření,
+- kontroly objednávek vlastního týmu a poznámek u objednávek,
+- kontroly poznámek u neúspěšných hovorů (failů),
+- kontroly předání neúspěšného leadu z P1 do fronty P4; poznámka musí obsahovat
+  důležité informace, které P4 potřebuje pro další práci,
+- poslechu a hodnocení hovorů vlastního týmu, prodejních i neprodejních.
+
+Z toho plyne, že Team Leader Exception Queue musí být týmová pracovní fronta
+pro konkrétní práci nad lidmi, leady, hovory, poznámkami a objednávkami. Technické
+problémy celého workspace, například selhání workflow nebo chybějící produktový
+skript, nemají být úkolem Team Leadera a mají zůstat v administrátorském rozsahu.
+Při návrhu je potřeba odlišit týmové úkoly a kontroly od technických výjimek
+workspace; zatím tím nepředjímáme, zda půjde o jednu obrazovku s oddíly, nebo
+více navazujících pracovních front.
+
+Team Leader si musí moci kontrolní pohled nastavit vlastními filtry. První
+potvrzené příklady filtrů jsou krátká poznámka, krátká délka hovoru, konkrétní
+důvod neúspěchu (např. obecný neúspěch nebo zdravotní riziko) a úspěšný hovor
+nebo objednávka s podezřením na nesprávnou či neúplnou poznámku. Filtry musí
+fungovat i nad úspěšnými výsledky; kontrola kvality se netýká pouze Failů.
+
+Minimální obsah kvalitní poznámky je:
+
+- problémy a potřeby klienta spolu s ověřenými informacemi z hovoru,
+- cíl nebo očekávání klienta,
+- všechny nabídnuté varianty a ceny a reakce klienta na každou z nich,
+- konečný výsledek, důvod rozhodnutí a případně další krok nebo předání.
+
+Poznámka má být dostatečně konkrétní, aby další tým nebo operátor dokázal
+pokračovat bez opakovaného zjišťování základních informací. Zjištěné zdravotní
+informace jsou citlivé; smějí být dostupné pouze v již povoleném týmovém rozsahu,
+s jasným odkazem na zdrojový hovor/objednávku a auditní stopou. Automatické
+vyhodnocení krátké nebo neúplné poznámky může být pouze signál pro kontrolu,
+ne samostatný lidský verdikt. Team Leader nemusí poznámku vracet operátorovi
+k doplnění ani vést nový workflow; podle upozornění si sám zapamatuje konkrétní
+chybu a vyřeší ji běžnou zpětnou vazbou. AI tedy pouze vytipuje podezřelé případy
+v pozadí a zobrazí důvod kontroly, bez automatického zásahu do výsledku hovoru,
+objednávky nebo fronty. Kontrola se spouští u všech uložených reálných hovorů,
+bez ohledu na to, zda byly úspěšné nebo neúspěšné a zda byly prodejní nebo
+neprodejní. Team Leaderovy filtry určují pouze následné zobrazení výsledků,
+ne rozsah samotného AI hodnocení. Tréninkové hovory jsou z této kontroly
+vyloučené; mají vlastní hodnocení a nesmějí ovlivňovat týmové obchodní výsledky
+ani frontu kontroly reálných hovorů.
+
+Schválený směr dalšího návrhu je jedna přehledná týmová pracovní plocha s
+přepínatelnými pohledy, nikoli dlouhý seznam všech typů problémů najednou.
+Pracovní název může být `Team Workspace`; `Team Checkpoint` zůstává možnou
+variantou názvu, ale finální pojmenování se rozhodne až s návrhem obrazovky.
+První navržené pohledy jsou:
+
+- Daily Checkpoint,
+- Kontrola kvality hovorů,
+- Objednávky,
+- Aktivní operátoři,
+- Callbacky a týmová fronta,
+- odkaz na samostatné Plánování směn.
+
+Daily Checkpoint má zobrazovat především nové objednávky, prošlé callbacky a
+aktuální výsledky týmu. Výchozím obdobím je dnešek s možností přepnout na týden
+nebo vlastní období. Aktuální výsledky mají být tabulka po jednotlivých
+operátorech, minimálně s konverzí, celkovým Talk Time, počtem vytočených hovorů
+a počtem hovorů spojených s klientem; další statistiky se doplní podle
+schváleného významu a časového období. Produktově zadaná konverze je počet
+prodejů dělený počtem Failů. Talk Time znamená celkový čas operátora strávený
+v hovorech za dané období; započítává se i průběh vytáčení a vyzvánění u hovoru,
+který klient nepřijal. K absolutnímu času se zobrazí také procento využití směny:
+celkový Talk Time dělený délkou konkrétní naplánované směny operátora. Délka
+směny není pevně daná na osm hodin a může být například osm nebo dvanáct hodin.
+Při chybějícím nebo neověřeném směnovém plánu se procento zobrazí jako
+nedostupné, nikoli jako vymyšlená nula. Při nulovém počtu Failů se konverze také
+nezobrazí jako nula nebo sto procent, ale jako nevypočitatelná hodnota.
+
+Plánování směn není součástí této malé týmové tabulky. Půjde o samostatný
+rozsáhlý systém pro plánování, obsazení, dostupnost a další směnová pravidla.
+Team Workspace na něj může odkazovat nebo zobrazit pouze stručný stav, ale nesmí
+z něj vzniknout zjednodušená náhrada plánovacího kalendáře.
+
+Každý pohled má vlastní účel, filtry a prázdný stav. Výsledky AI kontroly patří
+do pohledu Kontrola kvality hovorů. Technické workspace-global problémy zůstávají
+mimo tuto týmovou plochu a patří administrátorovi.
+
 1. [ ] Zmapovat skutečné provozní situace: co se stalo, jak rychle je nutné
    reagovat, kdo má jednat, kam má Team Leader kliknout a kdy je problém vyřešený.
 2. [ ] Rozdělit důležité případy podle dopadu a naléhavosti; odstranit nebo skrýt

@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   listAccessibleTeams: vi.fn(),
   listTeamMemberships: vi.fn(),
   listOperatorPresenceForWorkspace: vi.fn(),
+  loadTeamWorkspaceCheckpoint: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -25,6 +26,9 @@ vi.mock("@/lib/dal/teams", () => ({
 vi.mock("@/lib/dal/operatorPresence", () => ({
   listOperatorPresenceForWorkspace: mocks.listOperatorPresenceForWorkspace,
 }));
+vi.mock("@/lib/dal/teamWorkspace", () => ({
+  loadTeamWorkspaceCheckpoint: mocks.loadTeamWorkspaceCheckpoint,
+}));
 
 import { loadTeamPageData } from "@/lib/dal/teamPage";
 
@@ -39,6 +43,20 @@ const administratorContext = {
   role: "administrator" as const,
 };
 
+const emptyCheckpoint = {
+  period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
+  orders: [],
+  overdueCallbacks: [],
+  operatorMetrics: [],
+  sources: {
+    orders: { state: "ready" },
+    calls: { state: "ready" },
+    callbacks: { state: "ready" },
+    activities: { state: "ready" },
+    shifts: { state: "unavailable", message: "Shift planning is not implemented yet." },
+  },
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.listQueueItemsForWorkspace.mockResolvedValue([]);
@@ -47,6 +65,7 @@ beforeEach(() => {
   mocks.listAccessibleTeams.mockResolvedValue([]);
   mocks.listTeamMemberships.mockResolvedValue([]);
   mocks.listOperatorPresenceForWorkspace.mockResolvedValue([]);
+  mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
 });
 
 describe("loadTeamPageData", () => {
@@ -96,7 +115,10 @@ describe("loadTeamPageData", () => {
   ])("$name", async ({ setup, context, expected }) => {
     setup();
 
-    await expect(loadTeamPageData(context)).resolves.toEqual(expected);
+    await expect(loadTeamPageData(context)).resolves.toEqual({
+          ...expected,
+          checkpoint: { status: "ready", data: emptyCheckpoint },
+        });
   });
 
   it("reports queue and operators independently unavailable when both database reads fail", async () => {
@@ -109,6 +131,7 @@ describe("loadTeamPageData", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "ready", data: [] },
+      checkpoint: { status: "ready", data: emptyCheckpoint },
     });
   });
 
@@ -119,6 +142,7 @@ describe("loadTeamPageData", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "ready", data: [] },
+      checkpoint: { status: "ready", data: emptyCheckpoint },
     });
   });
 
@@ -130,6 +154,7 @@ describe("loadTeamPageData", () => {
     });
 
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
+    expect(mocks.loadTeamWorkspaceCheckpoint).toHaveBeenCalledWith(teamLeaderContext);
   });
 
   it("passes the supplied workspace ID to every administrator source", async () => {

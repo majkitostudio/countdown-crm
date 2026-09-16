@@ -7,6 +7,7 @@ import { listAccessibleTeams, listTeamMemberships, type TeamDTO, type TeamMember
 import { listOperatorPresenceForWorkspace, type OperatorPresenceDTO } from "@/lib/dal/operatorPresence";
 import { DataAccessError, isDataAccessError } from "@/lib/dal/errors";
 import type { WorkspaceContext } from "@/lib/dal/workspace";
+import { loadTeamWorkspaceCheckpoint, type TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
 
 export type TeamSource<T> =
   | { status: "ready"; data: T }
@@ -23,6 +24,7 @@ export interface TeamPageData {
   presence: TeamSource<OperatorPresenceDTO[]>;
   roster: TeamSource<TeamRosterData>;
   members: TeamSource<WorkspaceMemberDTO[]> | null;
+  checkpoint: TeamSource<TeamWorkspaceCheckpoint>;
 }
 
 function toTeamSource<T>(result: PromiseSettledResult<T>): TeamSource<T> {
@@ -55,12 +57,13 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
   }
 
   if (context.role === "administrator") {
-    const [queue, operators, presence, roster, members] = await Promise.allSettled([
+    const [queue, operators, presence, roster, members, checkpoint] = await Promise.allSettled([
       listQueueItemsForWorkspace(context.workspaceId),
       listWorkspaceOperators(context.workspaceId),
       listOperatorPresenceForWorkspace(context.workspaceId),
       loadTeamRoster(context.workspaceId),
       listWorkspaceMembers(context.workspaceId),
+      loadTeamWorkspaceCheckpoint(context),
     ]);
 
     return {
@@ -69,14 +72,16 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
       presence: toTeamSource(presence),
       roster: toTeamSource(roster),
       members: toTeamSource(members),
+      checkpoint: toTeamSource(checkpoint),
     };
   }
 
-  const [queue, operators, presence, roster] = await Promise.allSettled([
+  const [queue, operators, presence, roster, checkpoint] = await Promise.allSettled([
     listQueueItemsForWorkspace(context.workspaceId),
     listWorkspaceOperators(context.workspaceId),
     listOperatorPresenceForWorkspace(context.workspaceId),
     loadTeamRoster(context.workspaceId),
+    loadTeamWorkspaceCheckpoint(context),
   ]);
 
   return {
@@ -85,5 +90,6 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
     presence: toTeamSource(presence),
     roster: toTeamSource(roster),
     members: null,
+    checkpoint: toTeamSource(checkpoint),
   };
 }

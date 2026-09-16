@@ -33,11 +33,12 @@ const queueItem = {
   preferred_operator: null,
 };
 
-function render(data: TeamPageData, role: "team_leader" | "administrator" = "team_leader"): string {
+function render(data: TeamPageData, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" = "queue"): string {
   return renderToStaticMarkup(React.createElement(TeamPageContent, {
     currentUserId: "leader-1",
     role,
     data,
+    initialView,
   }));
 }
 
@@ -49,6 +50,7 @@ describe("TeamPageContent partial source states", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
     });
 
     expect(html).toContain("Ada Lovelace");
@@ -64,6 +66,7 @@ describe("TeamPageContent partial source states", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
     });
 
     expect(html).toContain("Kontakt není v tomto rozsahu dostupný");
@@ -78,6 +81,7 @@ describe("TeamPageContent partial source states", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
     });
 
     expect(html).toContain("Lead queue is unavailable.");
@@ -85,17 +89,18 @@ describe("TeamPageContent partial source states", () => {
     expect(html).not.toContain("Queue is empty. No assignment data was fabricated.");
   });
 
-  it("keeps the administrator queue visible when members are unavailable", () => {
-    const html = render({
-      queue: { status: "ready", data: [queueItem] },
-      operators: { status: "ready", data: [] },
-      presence: { status: "ready", data: [] },
-      roster: { status: "ready", data: { teams: [], memberships: {} } },
-      members: { status: "unavailable", reason: "database" },
-    }, "administrator");
+  it("keeps the administrator queue and member warning in their separate views", () => {
+    const data = {
+      queue: { status: "ready" as const, data: [queueItem] },
+      operators: { status: "ready" as const, data: [] },
+      presence: { status: "ready" as const, data: [] },
+      roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
+      members: { status: "unavailable" as const, reason: "database" as const },
+      checkpoint: { status: "unavailable" as const, reason: "database" as const },
+    };
 
-    expect(html).toContain("Ada Lovelace");
-    expect(html).toContain("Workspace members are unavailable.");
+    expect(render(data, "administrator", "queue")).toContain("Ada Lovelace");
+    expect(render(data, "administrator", "operators")).toContain("Workspace members are unavailable.");
   });
 
   it("renders the established empty state only for an available empty queue", () => {
@@ -105,6 +110,7 @@ describe("TeamPageContent partial source states", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
     });
 
     expect(html).toContain("Queue is empty. No assignment data was fabricated.");
@@ -117,6 +123,7 @@ describe("TeamPageContent partial source states", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
     });
 
     expect(html).not.toContain("Current workspace members");

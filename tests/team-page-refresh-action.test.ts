@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   listAccessibleTeams: vi.fn(),
   listTeamMemberships: vi.fn(),
   listOperatorPresenceForWorkspace: vi.fn(),
+  loadTeamWorkspaceCheckpoint: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -25,6 +26,9 @@ vi.mock("@/lib/dal/teams", () => ({
 vi.mock("@/lib/dal/operatorPresence", () => ({
   listOperatorPresenceForWorkspace: mocks.listOperatorPresenceForWorkspace,
 }));
+vi.mock("@/lib/dal/teamWorkspace", () => ({
+  loadTeamWorkspaceCheckpoint: mocks.loadTeamWorkspaceCheckpoint,
+}));
 
 import * as actions from "@/app/actions/workspace";
 
@@ -33,6 +37,20 @@ async function refresh() {
   expect(actions).toHaveProperty("refreshTeamPageAction", expect.any(Function));
   return actions.refreshTeamPageAction();
 }
+
+const emptyCheckpoint = {
+  period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
+  orders: [],
+  overdueCallbacks: [],
+  operatorMetrics: [],
+  sources: {
+    orders: { state: "ready" },
+    calls: { state: "ready" },
+    callbacks: { state: "ready" },
+    activities: { state: "ready" },
+    shifts: { state: "unavailable", message: "Shift planning is not implemented yet." },
+  },
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -43,6 +61,7 @@ beforeEach(() => {
   mocks.listAccessibleTeams.mockResolvedValue([]);
   mocks.listTeamMemberships.mockResolvedValue([]);
   mocks.listOperatorPresenceForWorkspace.mockResolvedValue([]);
+  mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
 });
 
 describe("authenticated Team composite refresh", () => {
@@ -56,6 +75,7 @@ describe("authenticated Team composite refresh", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "unavailable", reason: "database" },
+      checkpoint: { status: "ready", data: emptyCheckpoint },
     });
     expect(mocks.requireWorkspaceContext).toHaveBeenCalledWith();
     expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("current-workspace");
@@ -74,6 +94,7 @@ describe("authenticated Team composite refresh", () => {
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
+      checkpoint: { status: "ready", data: emptyCheckpoint },
     });
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
   });
