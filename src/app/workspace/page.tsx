@@ -25,6 +25,7 @@ import { getActiveTelephonyAdapterClient } from "@/lib/telephony/telephonyAdapte
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
 import { completeCallAction } from "@/app/actions/crm";
+import { requestAssistanceAction } from "@/app/actions/assistance";
 import { listScheduledCallbacksAction } from "@/app/actions/calendar";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
@@ -127,6 +128,7 @@ function WorkspaceContent() {
   const [conversationBriefError, setConversationBriefError] = useState<string | null>(null);
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
+  const [assistancePending, setAssistancePending] = useState(false);
   const [isCallbackScheduleOpen, setIsCallbackScheduleOpen] = useState(false);
   const [isCallbackSchedulePending, setIsCallbackSchedulePending] = useState(false);
   const [callbackScheduleError, setCallbackScheduleError] = useState<string | null>(null);
@@ -183,6 +185,21 @@ function WorkspaceContent() {
     }
   }, [identity?.role]);
 
+  const requestAssistance = useCallback(async (requestType: "help" | "sos") => {
+    if (!activeQueueItemId) {
+      setNotificationToast("Žádost o pomoc vyžaduje aktivní přiřazení.");
+      return;
+    }
+    setAssistancePending(true);
+    try {
+      await requestAssistanceAction({ queueItemId: activeQueueItemId, requestType });
+      setNotificationToast(requestType === "sos" ? "SOS signál byl odeslán Team Leaderovi." : "Žádost o pomoc byla odeslána Team Leaderovi.");
+    } catch (error) {
+      setAssistancePending(false);
+      setNotificationToast(error instanceof Error ? error.message : "Žádost o pomoc se nepodařilo odeslat.");
+    }
+  }, [activeQueueItemId]);
+
   const refreshOperatorAssignment = useCallback(async () => {
     if (identity?.role !== "operator") return;
 
@@ -201,6 +218,7 @@ function WorkspaceContent() {
           : 0,
       );
       setNotificationToast(null);
+      setAssistancePending(false);
       await refreshCallbackInbox();
     } catch (error) {
       setNotificationToast(error instanceof Error ? error.message : "The operator assignment could not be refreshed.");
@@ -213,6 +231,7 @@ function WorkspaceContent() {
     activeQueueItemIdRef.current = activeQueueItemId;
     identityRoleRef.current = identity?.role || null;
   }, [activeQueueItemId, identity?.role]);
+
 
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
 
@@ -445,6 +464,7 @@ function WorkspaceContent() {
         setAssignmentState(nextAssignment?.assignment_state || null);
         setRecoveryRequired(nextAssignment?.recovery_required || false);
         setCallDurationSeconds(0);
+        setAssistancePending(false);
         setActiveLead(nextAssignment?.lead || null);
         setLeads(nextAssignment ? [nextAssignment.lead] : []);
 
@@ -994,6 +1014,8 @@ function WorkspaceContent() {
       isCompletionPending={isCompletionPending}
       onToggleCall={handleToggleCall}
       onToggleMute={() => softphoneController.toggleMute()}
+      onRequestHelp={identity?.role === "operator" ? requestAssistance : undefined}
+      assistancePending={assistancePending}
       onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
       onScheduleCallback={identity?.role === "operator" ? () => {
         setCallbackScheduleError(null);

@@ -1,10 +1,10 @@
 # Aktuální stav, jednotné To-Do a Desatero
 
-**Snapshot:** 15. 9. 2026
+**Snapshot:** 16. 9. 2026
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna a první bezpečná vlna P2 týmů v Sandboxu. Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky a týmová analytika mají ověřený týmový rozsah. Další práce pokračuje bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
+**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna, první bezpečná vlna P2 týmů a serverová AI kontrola kvality v Sandboxu. Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky, týmová analytika a AI doporučení mají ověřený nebo zdokumentovaný týmový rozsah. Další práce pokračuje praktickým návrhem Team Checkpointu, samostatným plánováním směn a onboardingem trenérem, bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
 
 ## Co je skutečně hotové
 
@@ -18,9 +18,14 @@
 - Team Leader Review pracuje s reálným uloženým hovorem, neměnným snapshotem
   skriptu, append-only revizemi hodnocení a auditem. Linked sandbox prošel
   autentizovaným smoke testem včetně cleanupu.
+- AI kontrola kvality poznámek je oddělená od tréninku, spouští se u všech
+  uložených reálných hovorů, vytváří `pending`, používá Gemini
+  `gemini-3.6-flash`, rediguje kontaktní údaje a ukládá pouze doporučení.
+  Anonymizovaný end-to-end průchod včetně atomického claimu prošel; detail je v
+  `docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`.
 - Osobní preference operátora jsou serverové, workspace-scoped a chráněné RLS.
-- Linked migration history je srovnaná. Aktuální Sandbox týmová vlna a výjimky
-  prošly 619/619 aplikačními testy, lintem, typecheckem a produkčním buildem;
+- Linked migration history je srovnaná. Aktuální Sandbox týmová a AI vlna
+  prošly 642/642 aplikačními testy, lintem, typecheckem a produkčním buildem;
   databázová sada má poslední známý výsledek 183/183 testů.
 - P0.3 je skutečně uzavřené: linked runner provedl read-only ověření 8/8
   databázových kontraktů. Použil oddělenou identitu s pouze `Database: Read` a
@@ -276,6 +281,16 @@ Jeho každodenní práce se týká především:
   důležité informace, které P4 potřebuje pro další práci,
 - poslechu a hodnocení hovorů vlastního týmu, prodejních i neprodejních.
 
+Pro žádosti o asistenci platí odlišné pravidlo než pro běžné řízení týmu:
+každý Team Leader může přijmout žádost od libovolného operátora ve workspace a
+přímo za ním přijít, i když operátor není v jeho svěřeném týmu. Tato asistenční
+pravomoc mu ale automaticky nedává přístup k cizím týmovým objednávkám, směnám,
+Walletu nebo výsledkům. Pro první verzi stačí zobrazit operátora, jeho tým, stav
+přiřazení nebo hovoru, čas čekání, naléhavost a krátkou poznámku. Operátor může
+žádost odeslat kdykoli, když má aktivně přiřazeného leadu — před hovorem, během
+hovoru i při dokončování výsledku. Žádost bez přiřazeného leadu zatím není
+podporovaná, aby Team Leader vždy věděl, za kterým operátorem má jít.
+
 Z toho plyne, že Team Leader Exception Queue musí být týmová pracovní fronta
 pro konkrétní práci nad lidmi, leady, hovory, poznámkami a objednávkami. Technické
 problémy celého workspace, například selhání workflow nebo chybějící produktový
@@ -350,19 +365,44 @@ Každý pohled má vlastní účel, filtry a prázdný stav. Výsledky AI kontro
 do pohledu Kontrola kvality hovorů. Technické workspace-global problémy zůstávají
 mimo tuto týmovou plochu a patří administrátorovi.
 
-1. [ ] Zmapovat skutečné provozní situace: co se stalo, jak rychle je nutné
-   reagovat, kdo má jednat, kam má Team Leader kliknout a kdy je problém vyřešený.
+1. [x] Zmapovat skutečné provozní situace: co se stalo, jak rychle je nutné
+   reagovat, kdo má jednat, kam má Team Leader kliknout a kdy je problém
+   vyřešený. Základní produktový rozhovor proběhl 16. 9. 2026.
 2. [ ] Rozdělit důležité případy podle dopadu a naléhavosti; odstranit nebo skrýt
-   technické šumy, které nevedou k žádnému rozhodnutí.
+   technické šumy, které nevedou k žádnému rozhodnutí. Základní hranice je jasná,
+   ale konkrétní priorita a pracovní karta ještě čekají na návrh.
 3. [ ] Navrhnout pro každý případ srozumitelnou kartu: co se stalo, koho se týká,
    proč to vidíme, doporučený další krok, odpovědná osoba a termín.
-4. [ ] Zachovat týmový rozsah: Team Leader vidí pouze případy svých týmů;
-   workspace-global problémy zůstávají administrátorovi.
+4. [x] Zachovat týmový rozsah: Team Leader vidí pouze případy svých týmů;
+   workspace-global problémy zůstávají administrátorovi. Tato hranice je
+   ověřená v týmových migracích, RLS a `/team` datové vrstvě.
 5. [ ] Zachovat auditní stopu, možnost převzetí/eskalace, odložení s důvodem a
    dohledatelné vyřešení. Přímé odkazy musí vést na konkrétní lead, hovor,
-   objednávku nebo týmovou frontu.
+   objednávku nebo týmovou frontu. Stávající technický základ audit má; návrh
+   nové pracovní karty a jejího životního cyklu ještě není schválený.
 6. [ ] Před implementací schválit samostatný návrh, akceptační scénáře a důkazní
    plán pro Team Leadera i administrátora.
+
+### Bezprostřední pořadí po checkpointu 16. 9. 2026
+
+1. **Navrhnout praktický Team Checkpoint:** z rozhovoru udělat konkrétní scénáře,
+   priority, obsah karty a jasné stavy pro Team Leadera. Technické workspace-global
+   problémy zůstanou administrátorovi.
+2. **Dokončit ověřovací průchod `/team` v Sandboxu:** autentizovaný Team Leader,
+   administrátor a operátor, včetně přímé URL, cross-team odmítnutí, reloadu,
+   prázdných stavů a AI panelu. Potom teprve uzavřít aktuální Team Workspace vlnu.
+3. **Rozhodnout uložené kontrolní pohledy:** Team Leader si může uložit vlastní
+   kombinaci filtrů, ale nikdy tím nesmí rozšířit svůj týmový rozsah. Je to malý
+   navazující slice po základním ověření filtrů, ne náhrada návrhu Team Checkpointu.
+4. **Zahájit samostatné plánování směn:** nejde o malou tabulku v `/team`. Musí
+   pokrýt směny, dostupnost, absence, přesčasy a zdroj pro Talk Time procento.
+   Do té doby se procento zobrazuje jako nedostupné.
+5. **Navrhnout a následně implementovat onboarding trenér pro operátory:** až
+   po uzavření praktického Team Checkpointu; trénink zůstane oddělený od ostrých
+   hovorů, objednávek, Walletu a týmových výsledků.
+6. **Telnyx řešit až po získání správného telefonního čísla:** potom ověřit
+   konfiguraci, živý outbound, webhooky a read-back. Do té doby zůstává telefonie
+   simulovaná a Production se nemění.
 
 ### P3 — role-aware pracovní den
 
@@ -403,8 +443,12 @@ provider vstup chybí, ostatní neblokované body pokračují podle priorit vý�
 
 - audio recording a retention politika,
 - transcription s přesným stavem dostupnosti,
-- Gemini pouze jako serverový, člověkem upravitelný návrh verdiktu nebo poznámky;
-  nikdy ne jako automaticky vydávaný medicínský či právní závěr.
+- Gemini pro audio/transcription scénáře pouze jako serverový, člověkem
+  upravitelný návrh verdiktu nebo poznámky; nikdy ne jako automaticky vydávaný
+  medicínský či právní závěr.
+
+Samostatná Gemini kontrola úplnosti textových poznámek u reálných hovorů je již
+ověřená v Sandboxu a není blokovaná nákupem telefonního čísla.
 
 ## Zmrazené do po-pilotního rozhodnutí
 

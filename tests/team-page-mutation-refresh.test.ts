@@ -66,6 +66,7 @@ const emptyTeamSources = {
   presence: { status: "ready" as const, data: [] },
   roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
   checkpoint: { status: "unavailable" as const, reason: "database" as const },
+  qualityReviews: { status: "ready" as const, data: [] },
 };
 
 type TeamMutationRunner = (

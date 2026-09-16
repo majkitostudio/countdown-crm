@@ -1,12 +1,12 @@
-# Countdown CRM — aktuální projektový status
+# Countdown CRM — historický projektový status
 
-**Ověřeno:** 31. 8. 2026
-**Repo baseline:** `main` / `origin/main` / `e307aa7`
-**Release status:** stabilizace před bezpečným interním pilotem
+**Historický snapshot:** 31. 8. 2026
+**Repo baseline v tomto snapshotu:** `main` / `origin/main` / `e307aa7`
 
-Tento dokument je jediný aktuální zdroj pravdy pro rozhodování o směru
-projektu. Historické audity, staré roadmapy a commitové katalogy jsou podklady,
-nikoli dnešní důkaz.
+Tento dokument zachovává starší stav projektu a jeho tehdejší důkazní matici.
+Není aktuálním zdrojem pravdy: pro současný stav používej `PROJECT.md`,
+`docs/AKTUALNI_STAV_A_DESATERO.md` a nejnovější checkpoint reporty. Historické
+audity, roadmapy a commitové katalogy zde nejsou automaticky aktualizované.
 
 ## Krátký stav
 

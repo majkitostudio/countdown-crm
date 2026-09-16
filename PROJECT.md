@@ -4,7 +4,7 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 15. 9. 2026
+**Snapshot:** 16. 9. 2026
 **Repo baseline:** stabilní P1 pracovní smyčka, ověřený třírolový smoke, sjednocený UI systém podle Operator Console a připravená runtime závislostní vrstva
 **Produktový stav:** stabilizace před interním pilotem; Telnyx živý provider čeká na číslo
 
@@ -51,13 +51,7 @@ během hovoru; jeho text má statické orientační sekce pro rychlejší čten�
 Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou
 live AI predikce.
 
-Team Leader a administrátor mají na samostatné stránce `/exceptions` odvozený
-Exception Queue. Zobrazuje pouze problémy doložené současnými workspace daty,
-umožňuje je s důvodem vyřešit nebo odložit a každou změnu zapisuje do auditu.
-Operátor položku v navigaci nevidí a serverový role guard odmítne i přímou URL.
-Současná verze je bezpečný technický základ; budoucí přestavba musí z Exception
-Queue udělat praktický pracovní nástroj Team Leadera. Nejdřív proběhne produktový
-rozhovor nad reálnými situacemi a schválení scénářů, až potom implementace.
+Technická Exception Queue zůstává na `/exceptions` pro Team Leadera a administrátora, ale workspace-global problémy (například workflow nebo chybějící produktový skript) mají zůstat administrátorské. Praktická týmová práce Team Leadera je soustředěná na `/team` v pracovní ploše s přepínatelnými pohledy Daily Checkpoint, Kontrola kvality hovorů, Objednávky, Aktivní operátoři a Callbacky a týmová fronta. Operátor tuto plochu nevidí a serverový role guard odmítne i přímou URL. Produktový rozhovor pro další přestavbu je zdokumentovaný; následuje návrh konkrétních scénářů a karet, nikoli další rozšiřování technické fronty.
 
 Osobní preference operátorů jsou uložené v `workspace_user_preferences` podle
 kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění;
@@ -132,7 +126,7 @@ P0.3 je uzavřené: oddělený runner pro linked databázové důkazy prošel sk
 read-only během 8/8 kontrol. Použil scoped identitu omezenou na jeden linked
 sandbox a přesně dvě oprávnění (`Database: Read` a `Data API Config: Read`);
 žádná migrace ani databázový zápis v rámci runneru neproběhl. Aplikační sada
-nyní prochází 619/619 testy ve 135 souborech, lint, typecheck a produkční build;
+nyní prochází 642/642 testy ve 140 souborech, lint, typecheck a produkční build;
 databázová sada má poslední známý výsledek 183/183 testů. Týmová foundation
 migrace má samostatný Sandbox read-back v aktuálním reportu. Historické týmové snapshoty
 hovorů/objednávek, Team Leader RLS a Team Leader browser smoke nyní prošly v Sandboxu;
@@ -165,9 +159,16 @@ probíhá refundace a následně bude potřeba ověřit číslo pro Moravskoslez
 Do té doby chybí ověřený živý outbound test, webhook read-back a produkční
 telefonní důkaz. Současný fallback softphone je simulace.
 
-Inbound routing, nahrávání, audio retention, přepis hovorů a post-call Gemini
-AI nejsou implementované. Gemini je plánovaná serverová hranice pro přepis a
-editovatelný návrh verdiktu/poznámky po stabilizaci telefonie.
+Inbound routing, nahrávání a audio retention stále nejsou implementované.
+Serverová AI kontrola kvality poznámek u uložených reálných hovorů je ověřená v
+Sandboxu: po uložení vznikne stav `pending`, vlastní Gemini kontrola proběhne až
+po odeslání odpovědi a výsledek je týmově omezené doporučení `ok`, `review` nebo
+`unavailable`, bez změny hovoru, objednávky či operátora. Používá aktuální model
+`gemini-3.6-flash`, atomický claim proti duplicitám, redakci kontaktních údajů a
+limit délky odesílaného textu. Tréninkové relace jsou uložené odděleně a do této
+kontroly nevstupují. Ověření anonymizovaným hovorem je v
+`docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`;
+Production zůstává beze změny.
 
 ## Co se nesmí vydávat za hotové
 
@@ -215,12 +216,16 @@ Podrobný aktivní backlog a produktový průchod třemi rolemi je v
    a workspace rozsah. `/analytics` ukazuje Team Leaderovi jen povolené týmy a export
    zachovává stejný rozsah. `/team` navíc ukazuje počet čekajících a prošlých callbacků
    a vysvětluje přednost původního operátora i převzetí volným kolegou ze stejného týmu.
-   Budoucí samostatný plán přestavby Exception Queue je zapsaný v
-   `docs/AKTUALNI_STAV_A_DESATERO.md`; do jeho schválení se současná verze nemění.
+   Produktový rozhovor pro praktickou přestavbu Exception Queue je dokončený a
+   zapsaný v `docs/AKTUALNI_STAV_A_DESATERO.md`; další krok je návrh scénářů,
+   priorit a karet Team Checkpointu. Technická workspace-global fronta se do té
+   doby nemění.
 5. P3 propojí presence, směny, Live Monitor a role-aware Settings.
 6. P4 rozšíří kvalitu obsluhy a cíleně sníží rizikový coupling.
-7. Telnyx je externě blokovaný; transcription/Gemini následují až po stabilní
-   telefonii. Široké moduly zůstávají do po-pilotního rozhodnutí zmrazené.
+7. Telnyx a audio/transcription funkce jsou externě blokované a vrátí se na řadu
+   až po získání správného čísla a ověřené telefonii. Gemini kontrola úplnosti
+   poznámek je samostatná serverová funkce a je již ověřená v Sandboxu. Široké
+   moduly zůstávají do po-pilotního rozhodnutí zmrazené.
 
 ### Provozní rozhodnutí k Auth (8. 9. 2026)
 

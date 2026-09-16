@@ -4,6 +4,10 @@
 **Stav:** schváleno k implementaci  
 **Cíl:** Sandbox only; Production se nemění
 
+**Aktualizace 16. 9. 2026:** AI vlna a anonymizovaný end-to-end průchod jsou
+ověřené. Ověřovací report je v
+`docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`.
+
 ## Zásady
 
 - Nejprve serverový datový kontrakt a testy, potom UI.
@@ -35,8 +39,10 @@
   po doručení a odstoupení od smlouvy,
 - [x] bonus při opravě zdroje připsat původnímu operátorovi,
 - [x] Admin zadá částku a důvod viditelné finanční korekce,
-- [ ] zachovat neměnný původní Wallet záznam; Adminova oprava bude korekce,
-  nikoli fyzické přepsání nebo smazání.
+- [x] potvrdit, že Team Leader může vytvořit nový ruční Wallet pohyb s kladnou
+  nebo zápornou částkou a důvodem, ale nesmí později upravit ani smazat žádný
+  Wallet záznam; Admin může existující záznam upravit, změnit částku nebo
+  odstranit.
 
 **Aktuální auditní zjištění:** současný model používá `calls.outcome = objection`
 pro Fail a `calls.outcome = order_placed` pro prodejní výsledek. Objednávky jsou
@@ -52,25 +58,26 @@ ani změna Production.
 
 - [x] vytvořit první čistý typovaný výpočetní základ pro operátorské metriky v
   `src/lib/teamWorkspaceMetrics.ts`, včetně testů bez databázového zápisu,
-- [ ] vytvořit serverový read model pro Daily Checkpoint,
-- [ ] přidat týmově omezené nové objednávky,
-- [ ] přidat týmově omezené prošlé callbacky,
-- [ ] přidat týmově omezenou tabulku výsledků operátorů,
-- [ ] spočítat prodeje ze všech započítaných objednávek týmu, včetně ručních a
+- [x] vytvořit serverový read model pro Daily Checkpoint,
+- [x] přidat týmově omezené nové objednávky,
+- [x] přidat týmově omezené prošlé callbacky,
+- [x] přidat týmově omezenou tabulku výsledků operátorů,
+- [x] spočítat prodeje ze všech započítaných objednávek týmu, včetně ručních a
   post-call objednávek,
-- [ ] spočítat Faily ze schválených týmových výsledků hovorů,
-- [ ] spočítat konverzi jako všechny prodeje dělené počtem Failů,
-- [ ] oddělit obchodní počet prodejů od finančního bonusu; ruční objednávka smí
-  nést provizi, ale nesmí vytvořit bonus,
-- [ ] zachovat odlišné zobrazované názvy zdrojů `Manual Creation` a `Post-call`
+- [x] spočítat Faily ze schválených týmových výsledků hovorů,
+- [x] spočítat konverzi jako všechny prodeje dělené počtem Failů,
+- [x] oddělit obchodní počet prodejů od finančního bonusu; read model Wallet
+  nemění a ruční objednávku nezapočítává jako automatický bonus,
+- [x] zachovat odlišné zobrazované názvy zdrojů `Manual Creation` a `Post-call`
   bez zbytečné změny interních historických hodnot,
-- [ ] spočítat vytočené a spojené hovory,
-- [ ] spočítat absolutní Talk Time podle schválené definice,
-- [ ] spočítat Talk Time procento pouze z ověřené délky směny,
-- [ ] pro nulový počet Failů a chybějící směnu vracet pravdivý nedostupný stav,
-- [ ] pokrýt partial failure jednotlivých zdrojů bez vydávání nedostupných dat za
+- [x] spočítat vytočené a spojené hovory,
+- [x] spočítat absolutní Talk Time podle schválené definice,
+- [ ] spočítat Talk Time procento z reálné ověřené délky směny po implementaci
+  samostatného směnového kalendáře,
+- [x] pro nulový počet Failů a chybějící směnu vracet pravdivý nedostupný stav,
+- [x] pokrýt partial failure jednotlivých zdrojů bez vydávání nedostupných dat za
   nulu,
-- [ ] ověřit, že statistická část nemění Wallet ani payout logiku mimo schválenou
+- [x] ověřit, že statistická část nemění Wallet ani payout logiku mimo schválenou
   cílenou opravu zdroje objednávky.
 
 **Testy:** čisté výpočty, nulové hodnoty, více týmů, archivovaný tým, historický
@@ -102,11 +109,13 @@ Tato vlna se provede pouze po uzavření finančních rozhodnutí z Fáze 0.
 - [ ] uložit interní auditní stopu automatických korekcí a jasně odlišit ji od
   ruční finanční transakce Admina.
 
-**Testy:** povolený Team Leader, cizí tým, Operator denial, Administrator pro
-ruční odečet, concurrency/retry, audit read-back, bonus rule snapshot, manual bez
-bonusu, Post-call s okamžitým bonusem, nepřevzatá objednávka bez viditelného
-operátorského odečtu, `Manual → Post-call → Manual`, doručení a odstoupení od
-smlouvy s právě jedním viditelným Admin odečtem.
+**Testy:** povolený Team Leader pro nový kladný i záporný ruční pohyb s důvodem,
+Team Leader bez editace/mazání starého záznamu, cizí tým, Operator denial,
+Administrator pro ruční odečet i editaci/mazání, concurrency/retry, audit
+read-back, bonus rule snapshot, manual bez automatického bonusu, Post-call s
+okamžitým bonusem, nepřevzatá objednávka bez viditelného operátorského odečtu,
+`Manual → Post-call → Manual`, doručení a odstoupení od smlouvy s právě jedním
+viditelným Admin odečtem.
 
 ## Fáze 2 — Team Workspace shell a Daily Checkpoint
 
@@ -119,61 +128,76 @@ smlouvy s právě jedním viditelným Admin odečtem.
 - [ ] přidat jasné loading, empty, unavailable a error stavy,
 - [ ] přidat pouze odkaz nebo stručný stav pro samostatné Plánování směn,
 - [ ] neimplementovat plánovací kalendář v této vlně,
-- [ ] zachovat přístup administrátora k celému workspace podle jeho role.
+- [x] zachovat přístup administrátora k celému workspace podle jeho role.
+- [x] přidat jednoduchý `Request Help` / `SOS` signál z Operator Console do části
+  `Co vyžaduje pozornost`, včetně převzetí a uzavření žádosti; signál je dostupný
+  u aktivně přiřazeného leadu před hovorem, během hovoru i při dokončování výsledku,
+- [x] oddělit asistenční rozsah od manažerského: každý Team Leader může přijmout
+  pomoc pro libovolného operátora, ale bez automatického rozšíření přístupu k jeho
+  týmovým objednávkám, směnám, Walletu nebo výsledkům,
+- [x] zachovat minimální kontext žádosti a auditní stopu bez interního chatu,
+  vzdáleného převzetí hovoru a audio monitoringu.
 
 **Testy:** Team Leader týmu A/B, Administrator, Operator denial, přímá URL,
 reload, úzká šířka, prázdný tým a částečně nedostupný zdroj.
 
 ## Fáze 3 — serverová AI kontrola poznámek
 
-- [ ] vytvořit server-only Gemini adapter oddělený od tréninkového promptu,
-- [ ] použít samostatné nastavení modelu pro kontrolu poznámek,
-- [ ] definovat strukturovaný výsledek: stav, důvody, chybějící části a čas kontroly,
-- [ ] zkombinovat deterministické signály s Gemini doporučením,
-- [ ] spouštět kontrolu po uložení každého reálného hovoru,
-- [ ] vyloučit tréninkové relace a jejich vlastní hodnocení,
-- [ ] zajistit idempotenci, aby reload nebo opakovaný event nevytvořil duplicitní
-  výsledek,
-- [ ] uložit `unavailable` při chybě AI a zachovat dostupnost ostatních dat,
-- [ ] nepřidávat automatický OpenAI fallback bez samostatného rozhodnutí,
-- [ ] vytvořit anonymizované testovací poznámky podle schváleného checklistu.
+- [x] vytvořit server-only Gemini adapter oddělený od tréninkového promptu,
+- [x] použít samostatné nastavení modelu pro kontrolu poznámek,
+- [x] definovat strukturovaný výsledek: stav, důvody, chybějící části a čas kontroly,
+- [x] zkombinovat deterministické signály s Gemini doporučením,
+- [x] po uložení každého reálného hovoru okamžitě vytvořit stav `pending`,
+  ale Gemini spouštět až po odpovědi přes Next.js `after()`,
+- [x] vyloučit tréninkové relace a jejich vlastní hodnocení,
+- [x] zajistit idempotenci a atomický claim s lease, aby paralelní zpracování
+  nespustilo Gemini dvakrát,
+- [x] uložit `unavailable` při chybě AI a zachovat dostupnost ostatních dat,
+- [x] nepřidávat automatický OpenAI fallback bez samostatného rozhodnutí,
+- [x] vytvořit anonymizované testovací poznámky podle schváleného checklistu,
+- [x] redigovat e-maily, telefony a omezit délku textu před odesláním Gemini,
+- [x] odmítnout neúplný nebo chybný JSON z Gemini místo jeho uložení jako platného,
+- [x] pokrýt i přímou cestu vytvoření hovoru mimo post-call frontu.
 
 **Důkaz:** serverový test validace odpovědi, timeout, neplatná odpověď, opakované
 spuštění, chybějící poznámka, správná poznámka, úspěch, Fail a citlivý obsah.
-První skutečné volání Gemini pouze v Sandboxu s klíčem z runtime prostředí.
+Skutečné anonymizované volání Gemini proběhlo v Sandboxu s klíčem z runtime
+prostředí a prošlo stavem `pending` → `ok`; současně prošel atomický claim a
+cleanup testovacích dat. Výsledek a oprava výchozího modelu jsou v reportu
+`docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`.
 
 ## Fáze 4 — Quality Review a filtry
 
-- [ ] přidat pohled Kontrola kvality hovorů v rámci Team Workspace,
-- [ ] zobrazit pouze AI doporučené nebo filtrem vybrané týmové záznamy,
-- [ ] přidat filtry pro krátkou poznámku, krátký hovor, důvod Failu a úspěšný
+- [x] přidat pohled Kontrola kvality hovorů v rámci Team Workspace,
+- [x] zobrazit pouze AI doporučené nebo filtrem vybrané týmové záznamy,
+- [x] přidat filtry pro krátkou poznámku, krátký hovor, důvod Failu a úspěšný
   výsledek s podezřením na neúplnou poznámku,
-- [ ] zobrazit důvod doporučení a přímý odkaz na hovor, poznámku nebo objednávku,
+- [x] zobrazit důvod doporučení a přímý odkaz na hovor, poznámku nebo objednávku,
 - [ ] po ověření základních filtrů umožnit Team Leaderovi uložit vlastní kontrolní
   pohledy; uložené pohledy nesmí změnit team scope,
-- [ ] zachovat Team Leaderovy týmové hranice,
-- [ ] jasně odlišit `pravděpodobně v pořádku`, `doporučeno zkontrolovat` a
+- [x] zachovat Team Leaderovy týmové hranice,
+- [x] jasně odlišit `pravděpodobně v pořádku`, `doporučeno zkontrolovat` a
   `nelze vyhodnotit`,
-- [ ] nepřidávat workflow pro vracení poznámek operátorům.
+- [x] nepřidávat workflow pro vracení poznámek operátorům.
 
 **Testy:** kombinace filtrů, úspěšné i neúspěšné hovory, více týmů, prázdný
 výsledek, nedostupná AI a read-only chování podle role.
 
 ## Fáze 5 — ověření a důkaz v Sandboxu
 
-- [ ] `npm test`,
-- [ ] `npm run lint`,
-- [ ] `npm run typecheck`,
-- [ ] `npm run build`,
+- [x] `npm test` — 140 souborů, 642 testů,
+- [x] `npm run lint`,
+- [x] `npm run typecheck`,
+- [x] `npm run build`,
 - [ ] autentizovaný browser smoke jako Administrator,
 - [ ] autentizovaný browser smoke jako Team Leader s jedním týmem,
 - [ ] negativní Team Leader cross-team a Operator denial,
 - [ ] reload a read-back Daily Checkpointu,
-- [ ] ověřit AI výsledek u anonymizovaného reálného hovoru v Sandboxu,
+- [x] ověřit AI výsledek u anonymizovaného reálného hovoru v Sandboxu,
 - [ ] ověřit, že tréninkový hovor výsledek kontroly reálných hovorů nevytvoří,
 - [ ] ověřit `unavailable` pro AI a chybějící směnový plán,
-- [ ] zkontrolovat diff, tajné údaje a cleanup testovacích dat,
-- [ ] vytvořit sanitizovaný ověřovací report.
+- [x] zkontrolovat diff, tajné údaje a cleanup testovacích dat,
+- [x] vytvořit sanitizovaný ověřovací report.
 
 Production se v žádné fázi tohoto plánu nepoužije.
 

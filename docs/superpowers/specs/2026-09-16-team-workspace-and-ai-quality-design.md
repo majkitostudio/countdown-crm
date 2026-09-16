@@ -47,6 +47,30 @@ Výsledky obsahují minimálně počet prodejů, počet Failů, konverzi, Talk T
 počet vytočených hovorů a počet hovorů spojených s klientem. Další statistiky se
 přidají až po schválení jejich významu.
 
+### Rozsah Team Leadera a žádosti o asistenci
+
+Team Leader má dva odlišné rozsahy:
+
+- **Manažerský rozsah:** vlastní svěřené týmy. Zde může vidět týmové výsledky,
+  objednávky, callbacky, směny a Wallet podle své role.
+- **Asistenční rozsah:** všichni operátoři ve workspace pro účely žádosti o pomoc.
+  Každý Team Leader může přijmout žádost o asistenci a vyhledat konkrétního
+  operátora, i když jeho tým není v běžném manažerském rozsahu.
+
+Asistenční rozsah sám o sobě nerozšiřuje přístup k cizím týmovým výsledkům,
+objednávkám, směnám ani Walletu. Žádost zobrazí pouze minimum potřebné k pomoci:
+operátora, tým, stav přiřazení nebo hovoru, čas čekání, naléhavost a případnou
+krátkou poznámku. Případné další otevření dat musí dál respektovat běžná
+oprávnění.
+
+Operátor může z Operator Console odeslat jednoduchý signál `Request Help`,
+případně urgentní `SOS`, kdykoli má aktivně přiřazeného zákazníka — před
+vytáčením, během hovoru i při dokončování výsledku. V první verzi není žádost
+bez přiřazeného leadu podporovaná, protože by Team Leader neměl dostatečný
+kontext, za kým má jít. Team Leader žádost převezme, fyzicky za operátorem přijde
+a po vyřešení ji označí jako dokončenou. První verze nepotřebuje interní chat,
+převzetí hovoru ani audio monitoring.
+
 ### Definice výsledků
 
 - **Počet prodejů:** všechny započítané objednávky vlastního týmu ve zvoleném
@@ -91,16 +115,17 @@ Hlavním stavem pro nepřevzatý balíček je `Returned`. Tento stav se od výji
 `Anulováno` po doručení nesmí zaměňovat.
 
 Systém musí oddělit aktuální nárok na bonus od viditelných Wallet transakcí.
-Team Leader získává pouze oprávnění opravit zdroj objednávky; finanční korekce
-ve Walletu zůstává výhradně Adminovi.
-Automatické korekce musí mít interní auditní stopu, ale nesmějí se vydávat za
-ruční finanční odečet Admina. Ruční odečet Admina při odstoupení od smlouvy je
-naopak běžná viditelná Wallet korekce s částkou a důvodem.
+Team Leader může vytvořit nový ruční Wallet pohyb pro operátora — kladný i
+záporný — vždy s částkou a důvodem. Tento nově vytvořený záznam už Team Leader
+nesmí upravit ani smazat. Stejné vytvoření nového ručního pohybu může provést i
+Admin.
 
-Admin může v uživatelském rozhraní provést opravu nebo odebrání finančního
-účinku, ale doporučená implementace nesmí fyzicky přepisovat ani mazat původní
-neměnnou transakci. Zachová ji a přidá korekci s důvodem, autorem a časem.
-Team Leader tuto finanční pravomoc nemá.
+Admin má navíc širší pravomoc: může existující Wallet záznam upravit, změnit
+částku bonusu nebo jej úplně odstranit. Team Leader tuto pravomoc nemá.
+Automatické korekce při změně zdroje objednávky nebo nepřevzetí objednávky mají
+interní auditní stopu a nesmí se zobrazit jako běžný ruční Wallet pohyb. Ruční
+odečet při odstoupení od smlouvy po doručení je viditelný Wallet záznam s částkou
+a důvodem; může jej vytvořit oprávněná role podle finančního procesu.
 
 Současný Wallet bonus při doručení a reversal při vrácení je potřeba upravit tak,
 aby nevznikl dvojitý bonus ani konflikt s novým okamžitým nárokem. Širší změna
@@ -167,6 +192,8 @@ U doporučení musí být uložený srozumitelný důvod, například že chybí
 - U kontroly reálných poznámek se nepoužije automatický fallback na jiného AI
   poskytovatele bez samostatného schválení.
 - První ověření proběhne pouze nad Sandboxem nebo anonymními testovacími daty.
+- Ověřený výchozí model pro kontrolu poznámek je `gemini-3.6-flash`; klíč je
+  pouze v serverovém runtime prostředí.
 
 ## Role a rozsah
 
@@ -210,4 +237,12 @@ U doporučení musí být uložený srozumitelný důvod, například že chybí
     hranici; změna je auditovaná a opakování nevytvoří dvojitý bonus.
 11. Post-call bonus se připíše okamžitě, nepřevzatá objednávka ho zruší interně,
     odstoupení po doručení řeší viditelným ručním odečtem Admin.
-12. Nedostupný zdroj nebo AI je zobrazen jako nedostupný stav, nikoli jako nula.
+13. Nedostupný zdroj nebo AI je zobrazen jako nedostupný stav, nikoli jako nula.
+
+## Stav ověření 16. 9. 2026
+
+Serverová AI kontrola byla ověřena v Sandboxu anonymizovaným hovorem. Prošel
+pending stav, atomický claim proti dvojímu zpracování, odpověď Gemini `ok` a
+uložení výsledku. Podrobný důkaz je v
+`docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`.
+Production zůstává beze změny.

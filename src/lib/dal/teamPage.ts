@@ -8,6 +8,8 @@ import { listOperatorPresenceForWorkspace, type OperatorPresenceDTO } from "@/li
 import { DataAccessError, isDataAccessError } from "@/lib/dal/errors";
 import type { WorkspaceContext } from "@/lib/dal/workspace";
 import { loadTeamWorkspaceCheckpoint, type TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
+import { listCallQualityReviewsForWorkspace, type CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
+import { listAssistanceRequestsForWorkspace, type AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
 
 export type TeamSource<T> =
   | { status: "ready"; data: T }
@@ -25,6 +27,8 @@ export interface TeamPageData {
   roster: TeamSource<TeamRosterData>;
   members: TeamSource<WorkspaceMemberDTO[]> | null;
   checkpoint: TeamSource<TeamWorkspaceCheckpoint>;
+  qualityReviews: TeamSource<CallQualityReviewDTO[]>;
+  assistanceRequests?: TeamSource<AssistanceRequestDTO[]>;
 }
 
 function toTeamSource<T>(result: PromiseSettledResult<T>): TeamSource<T> {
@@ -57,13 +61,15 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
   }
 
   if (context.role === "administrator") {
-    const [queue, operators, presence, roster, members, checkpoint] = await Promise.allSettled([
+    const [queue, operators, presence, roster, members, checkpoint, qualityReviews, assistanceRequests] = await Promise.allSettled([
       listQueueItemsForWorkspace(context.workspaceId),
       listWorkspaceOperators(context.workspaceId),
       listOperatorPresenceForWorkspace(context.workspaceId),
       loadTeamRoster(context.workspaceId),
       listWorkspaceMembers(context.workspaceId),
       loadTeamWorkspaceCheckpoint(context),
+      listCallQualityReviewsForWorkspace(context.workspaceId),
+      listAssistanceRequestsForWorkspace(),
     ]);
 
     return {
@@ -73,15 +79,19 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
       roster: toTeamSource(roster),
       members: toTeamSource(members),
       checkpoint: toTeamSource(checkpoint),
+      qualityReviews: toTeamSource(qualityReviews),
+      assistanceRequests: toTeamSource(assistanceRequests),
     };
   }
 
-  const [queue, operators, presence, roster, checkpoint] = await Promise.allSettled([
+  const [queue, operators, presence, roster, checkpoint, qualityReviews, assistanceRequests] = await Promise.allSettled([
     listQueueItemsForWorkspace(context.workspaceId),
     listWorkspaceOperators(context.workspaceId),
     listOperatorPresenceForWorkspace(context.workspaceId),
     loadTeamRoster(context.workspaceId),
     loadTeamWorkspaceCheckpoint(context),
+    listCallQualityReviewsForWorkspace(context.workspaceId),
+    listAssistanceRequestsForWorkspace(),
   ]);
 
   return {
@@ -91,5 +101,7 @@ export async function loadTeamPageData(context: WorkspaceContext): Promise<TeamP
     roster: toTeamSource(roster),
     members: null,
     checkpoint: toTeamSource(checkpoint),
+    qualityReviews: toTeamSource(qualityReviews),
+    assistanceRequests: toTeamSource(assistanceRequests),
   };
 }

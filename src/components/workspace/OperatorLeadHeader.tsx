@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ExternalLink, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings } from "lucide-react";
+import { AlertTriangle, ExternalLink, HandHelping, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
@@ -31,6 +31,8 @@ interface OperatorLeadHeaderProps {
   isCompletionPending?: boolean;
   onCallOutcome?: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback?: () => void;
+  onRequestHelp?: (requestType: "help" | "sos") => void;
+  assistancePending?: boolean;
 }
 
 export function OperatorLeadHeader({
@@ -52,6 +54,8 @@ export function OperatorLeadHeader({
   isCompletionPending = false,
   onCallOutcome,
   onScheduleCallback,
+  onRequestHelp,
+  assistancePending = false,
 }: OperatorLeadHeaderProps) {
   const formatTimer = (totalSeconds: number) =>
     `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
@@ -73,6 +77,32 @@ export function OperatorLeadHeader({
         : callFailureMessage
           ? "call_failed"
           : "ready";
+  const assistanceControls = onRequestHelp ? (
+    <>
+      <Button
+        variant="secondary"
+        type="button"
+        disabled={assistancePending}
+        onClick={() => onRequestHelp("help")}
+        title={assistancePending ? "Žádost o pomoc čeká na Team Leadera" : "Požádat o pomoc k přiřazenému leadu"}
+      >
+        <HandHelping className="h-4 w-4" />
+        {assistancePending ? "Pomoc čeká" : "Request Help"}
+      </Button>
+      {!assistancePending && (
+        <Button
+          variant="danger"
+          type="button"
+          onClick={() => onRequestHelp("sos")}
+          title="Urgentní žádost o pomoc k přiřazenému leadu"
+          aria-label="Urgentní žádost o pomoc"
+        >
+          <AlertTriangle className="h-4 w-4" />
+          SOS
+        </Button>
+      )}
+    </>
+  ) : null;
   return (
     <Surface
       variant="page"
@@ -131,6 +161,7 @@ export function OperatorLeadHeader({
               >
                 {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
+              {assistanceControls}
               <Link
                 href="/settings"
                 aria-label="Open settings"
@@ -150,19 +181,25 @@ export function OperatorLeadHeader({
               </Button>
             </>
           ) : callFailureMessage ? (
-            <StatusAlert tone="danger" className="w-full">
-              <div className="max-w-xs text-right">
-              <p className="text-[10px] uppercase tracking-wider text-rose-200">Call failed</p>
-              <p className="mt-0.5 text-[10px] text-rose-300/80">{callFailureMessage}</p>
-              </div>
-            </StatusAlert>
+            <>
+              <StatusAlert tone="danger" className="w-full">
+                <div className="max-w-xs text-right">
+                  <p className="text-[10px] uppercase tracking-wider text-rose-200">Call failed</p>
+                  <p className="mt-0.5 text-[10px] text-rose-300/80">{callFailureMessage}</p>
+                </div>
+              </StatusAlert>
+              {assistanceControls}
+            </>
           ) : isAwaitingOutcome ? (
-            <StatusAlert tone="warning" className="w-full">
-              <div className="text-right">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Outcome required</p>
-              <p className="mt-0.5 text-[11px] text-amber-200/90">Lead stays with you until saved</p>
-              </div>
-            </StatusAlert>
+            <>
+              <StatusAlert tone="warning" className="w-full">
+                <div className="text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Outcome required</p>
+                  <p className="mt-0.5 text-[11px] text-amber-200/90">Lead stays with you until saved</p>
+                </div>
+              </StatusAlert>
+              {assistanceControls}
+            </>
           ) : (
             <>
               <Button
@@ -177,6 +214,7 @@ export function OperatorLeadHeader({
                 {isStarting ? "Starting call..." : "Call Client"}
                 {!isStarting && <kbd className="rounded border border-zinc-300/60 bg-zinc-200/70 px-1 font-mono text-[10px] text-zinc-600">C</kbd>}
               </Button>
+              {assistanceControls}
               {onCreateOrder && (
                 <Button
                   variant="secondary"

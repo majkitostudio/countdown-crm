@@ -5,6 +5,7 @@ import { DataAccessError } from "./errors";
 import { requireWorkspaceContext } from "./workspace";
 import { createDataClient } from "./db";
 import { validateCallFailFields } from "@/lib/postCall";
+import { reviewCompletedCallForWorkspace } from "@/lib/dal/callQualityReviews";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type CallOutcome = CallRow["outcome"];
@@ -96,6 +97,12 @@ export async function createCallForWorkspace(
 
   if (error || !data) {
     throw new DataAccessError("DATABASE", "Call creation failed");
+  }
+
+  try {
+    await reviewCompletedCallForWorkspace(data.id, context.workspaceId);
+  } catch (reviewError) {
+    console.warn("Call quality review could not be queued; the call remains saved.", reviewError);
   }
 
   return data as CallDTO;

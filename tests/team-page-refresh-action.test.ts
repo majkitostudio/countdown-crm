@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   listTeamMemberships: vi.fn(),
   listOperatorPresenceForWorkspace: vi.fn(),
   loadTeamWorkspaceCheckpoint: vi.fn(),
+  listCallQualityReviewsForWorkspace: vi.fn(),
+  listAssistanceRequestsForWorkspace: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -28,6 +30,12 @@ vi.mock("@/lib/dal/operatorPresence", () => ({
 }));
 vi.mock("@/lib/dal/teamWorkspace", () => ({
   loadTeamWorkspaceCheckpoint: mocks.loadTeamWorkspaceCheckpoint,
+}));
+vi.mock("@/lib/dal/callQualityReviews", () => ({
+  listCallQualityReviewsForWorkspace: mocks.listCallQualityReviewsForWorkspace,
+}));
+vi.mock("@/lib/dal/assistanceRequests", () => ({
+  listAssistanceRequestsForWorkspace: mocks.listAssistanceRequestsForWorkspace,
 }));
 
 import * as actions from "@/app/actions/workspace";
@@ -62,6 +70,8 @@ beforeEach(() => {
   mocks.listTeamMemberships.mockResolvedValue([]);
   mocks.listOperatorPresenceForWorkspace.mockResolvedValue([]);
   mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
+  mocks.listCallQualityReviewsForWorkspace.mockResolvedValue([]);
+  mocks.listAssistanceRequestsForWorkspace.mockResolvedValue([]);
 });
 
 describe("authenticated Team composite refresh", () => {
@@ -76,6 +86,8 @@ describe("authenticated Team composite refresh", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "unavailable", reason: "database" },
       checkpoint: { status: "ready", data: emptyCheckpoint },
+      qualityReviews: { status: "ready", data: [] },
+      assistanceRequests: { status: "ready", data: [] },
     });
     expect(mocks.requireWorkspaceContext).toHaveBeenCalledWith();
     expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("current-workspace");
@@ -95,6 +107,8 @@ describe("authenticated Team composite refresh", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
       checkpoint: { status: "ready", data: emptyCheckpoint },
+      qualityReviews: { status: "ready", data: [] },
+      assistanceRequests: { status: "ready", data: [] },
     });
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
   });

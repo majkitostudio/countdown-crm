@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   listTeamMemberships: vi.fn(),
   listOperatorPresenceForWorkspace: vi.fn(),
   loadTeamWorkspaceCheckpoint: vi.fn(),
+  listCallQualityReviewsForWorkspace: vi.fn(),
+  listAssistanceRequestsForWorkspace: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -28,6 +30,12 @@ vi.mock("@/lib/dal/operatorPresence", () => ({
 }));
 vi.mock("@/lib/dal/teamWorkspace", () => ({
   loadTeamWorkspaceCheckpoint: mocks.loadTeamWorkspaceCheckpoint,
+}));
+vi.mock("@/lib/dal/callQualityReviews", () => ({
+  listCallQualityReviewsForWorkspace: mocks.listCallQualityReviewsForWorkspace,
+}));
+vi.mock("@/lib/dal/assistanceRequests", () => ({
+  listAssistanceRequestsForWorkspace: mocks.listAssistanceRequestsForWorkspace,
 }));
 
 import { loadTeamPageData } from "@/lib/dal/teamPage";
@@ -66,6 +74,8 @@ beforeEach(() => {
   mocks.listTeamMemberships.mockResolvedValue([]);
   mocks.listOperatorPresenceForWorkspace.mockResolvedValue([]);
   mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
+  mocks.listCallQualityReviewsForWorkspace.mockResolvedValue([]);
+  mocks.listAssistanceRequestsForWorkspace.mockResolvedValue([]);
 });
 
 describe("loadTeamPageData", () => {
@@ -118,6 +128,8 @@ describe("loadTeamPageData", () => {
     await expect(loadTeamPageData(context)).resolves.toEqual({
           ...expected,
           checkpoint: { status: "ready", data: emptyCheckpoint },
+          qualityReviews: { status: "ready", data: [] },
+          assistanceRequests: { status: "ready", data: [] },
         });
   });
 
@@ -132,6 +144,8 @@ describe("loadTeamPageData", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "ready", data: [] },
       checkpoint: { status: "ready", data: emptyCheckpoint },
+      qualityReviews: { status: "ready", data: [] },
+      assistanceRequests: { status: "ready", data: [] },
     });
   });
 
@@ -143,6 +157,8 @@ describe("loadTeamPageData", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: { status: "ready", data: [] },
       checkpoint: { status: "ready", data: emptyCheckpoint },
+      qualityReviews: { status: "ready", data: [] },
+      assistanceRequests: { status: "ready", data: [] },
     });
   });
 

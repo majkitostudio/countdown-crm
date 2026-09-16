@@ -6,6 +6,7 @@ import { requireWorkspaceContext } from "./workspace";
 import { createDataClient } from "./db";
 import { getScopedLeadForWorkspace } from "./leadQueue";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
+import { reviewCompletedCallForWorkspace } from "@/lib/dal/callQualityReviews";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { validateCallFailFields, type FailReason } from "@/lib/postCall";
@@ -198,6 +199,12 @@ async function completeCallForAuthorizedWorkspace(
       operatorNote: operatorNote || "",
     },
   });
+
+  try {
+    await reviewCompletedCallForWorkspace(row.call_id, context.workspaceId);
+  } catch (error) {
+    console.warn("Call quality review could not be completed; the call remains saved.", error);
+  }
 
   return { ...row, operator_name: operatorName, workflowDispatches: [workflowDispatch] };
 }

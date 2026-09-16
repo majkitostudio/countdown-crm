@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { refreshTeamPageAction } from "@/app/actions/workspace";
 import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
 import { TeamPresencePanel } from "@/components/team/TeamPresencePanel";
 import { TeamQueuePanel } from "@/components/team/TeamQueuePanel";
 import { TeamRosterPanel } from "@/components/team/TeamRosterPanel";
 import { TeamDailyCheckpointPanel } from "@/components/team/TeamDailyCheckpointPanel";
+import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel";
+import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { TeamPageData } from "@/lib/dal/teamPage";
 
@@ -19,10 +21,11 @@ interface TeamPageContentProps {
 
 export type TeamMutationHandler = (mutation: () => Promise<unknown>) => Promise<void>;
 
-type TeamWorkspaceView = "checkpoint" | "orders" | "operators" | "queue";
+type TeamWorkspaceView = "checkpoint" | "quality" | "orders" | "operators" | "queue";
 
 const TEAM_WORKSPACE_VIEWS: Array<{ id: TeamWorkspaceView; label: string }> = [
   { id: "checkpoint", label: "Daily Checkpoint" },
+  { id: "quality", label: "Kontrola kvality hovorů" },
   { id: "orders", label: "Objednávky" },
   { id: "operators", label: "Aktivní operátoři" },
   { id: "queue", label: "Callbacky a týmová fronta" },
@@ -62,6 +65,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
   const [refreshedState, setRefreshedState] = useState({ initialData: data, data });
   const [view, setView] = useState<TeamWorkspaceView>(initialView);
   const currentData = selectCurrentTeamPageData(refreshedState, data);
+  const assistanceSource = currentData.assistanceRequests;
   const runMutation = useCallback<TeamMutationHandler>(
     (mutation) => runTeamMutationAndRefresh(
       mutation,
@@ -70,6 +74,16 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
     ),
     [data],
   );
+
+  useEffect(() => {
+    if (view !== "checkpoint") return;
+    const refreshTimer = window.setInterval(() => {
+      void refreshTeamPageAction()
+        .then((nextData) => setRefreshedState({ initialData: data, data: nextData }))
+        .catch(() => undefined);
+    }, 5_000);
+    return () => window.clearInterval(refreshTimer);
+  }, [data, view]);
 
   return (
     <div className="space-y-6">
@@ -96,9 +110,25 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
       </nav>
 
       {view === "checkpoint" && (
-        currentData.checkpoint.status === "ready"
-          ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} />
-          : <SourceUnavailablePanel title="Daily Checkpoint unavailable" message="Daily Checkpoint is unavailable." />
+        <div className="space-y-6">
+          {assistanceSource?.status !== "unavailable" ? (
+            <TeamAssistancePanel
+              requests={assistanceSource?.data || []}
+              onMutationAction={runMutation}
+            />
+          ) : (
+            <SourceUnavailablePanel title="Žádosti o asistenci nejsou dostupné" message="Signály od operátorů nejsou dostupné." />
+          )}
+          {currentData.checkpoint.status === "ready"
+            ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} />
+            : <SourceUnavailablePanel title="Daily Checkpoint unavailable" message="Daily Checkpoint is unavailable." />}
+        </div>
+      )}
+
+      {view === "quality" && (
+        currentData.qualityReviews.status === "ready"
+          ? <TeamQualityReviewPanel reviews={currentData.qualityReviews.data} />
+          : <SourceUnavailablePanel title="Kontrola kvality nedostupná" message="AI kontrola kvality hovorů není dostupná." />
       )}
 
       {view === "orders" && (

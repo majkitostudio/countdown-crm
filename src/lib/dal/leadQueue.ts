@@ -7,6 +7,7 @@ import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import type { LeadDTO } from "./leads";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
+import { reviewCompletedCallForWorkspace } from "@/lib/dal/callQualityReviews";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { isFailReason, validateCallFailFields, type FailReason } from "@/lib/postCall";
@@ -312,7 +313,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
   const deliveryAddress = hasOrder
     ? parseDeliveryAddressSnapshot(input.delivery_address_snapshot)
     : null;
-  await requireWorkspaceRole(["operator"]);
+  const context = await requireWorkspaceRole(["operator"]);
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call_with_order_items_idempotent", {
     completion_key: input.call_session_id,
@@ -355,6 +356,12 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       operatorNote: operatorNote.trim(),
     },
   });
+
+  try {
+    await reviewCompletedCallForWorkspace(completion.call_id, context.workspaceId);
+  } catch (error) {
+    console.warn("Call quality review could not be completed; the call remains saved.", error);
+  }
 
   return { ...completion, workflowDispatches: [workflowDispatch] };
 }

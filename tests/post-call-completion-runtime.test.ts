@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   requireWorkspaceRole: vi.fn(),
   requireWorkspaceContext: vi.fn(),
   dispatchWorkflowEventForWorkspace: vi.fn(),
+  reviewCompletedCallForWorkspace: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -15,6 +16,9 @@ vi.mock("@/lib/dal/workspace", () => ({
 }));
 vi.mock("@/lib/workflows/dispatcher", () => ({
   dispatchWorkflowEventForWorkspace: mocks.dispatchWorkflowEventForWorkspace,
+}));
+vi.mock("@/lib/dal/callQualityReviews", () => ({
+  reviewCompletedCallForWorkspace: mocks.reviewCompletedCallForWorkspace,
 }));
 
 import { completeLeadCallForWorkspace } from "@/lib/dal/leadQueue";

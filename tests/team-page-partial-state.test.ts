@@ -51,6 +51,7 @@ describe("TeamPageContent partial source states", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
     });
 
     expect(html).toContain("Ada Lovelace");
@@ -67,6 +68,7 @@ describe("TeamPageContent partial source states", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
     });
 
     expect(html).toContain("Kontakt není v tomto rozsahu dostupný");
@@ -82,6 +84,7 @@ describe("TeamPageContent partial source states", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
     });
 
     expect(html).toContain("Lead queue is unavailable.");
@@ -97,6 +100,7 @@ describe("TeamPageContent partial source states", () => {
       roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
       members: { status: "unavailable" as const, reason: "database" as const },
       checkpoint: { status: "unavailable" as const, reason: "database" as const },
+      qualityReviews: { status: "ready" as const, data: [] },
     };
 
     expect(render(data, "administrator", "queue")).toContain("Ada Lovelace");
@@ -111,6 +115,7 @@ describe("TeamPageContent partial source states", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
     });
 
     expect(html).toContain("Queue is empty. No assignment data was fabricated.");
@@ -124,6 +129,7 @@ describe("TeamPageContent partial source states", () => {
       roster: { status: "ready", data: { teams: [], memberships: {} } },
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
     });
 
     expect(html).not.toContain("Current workspace members");
