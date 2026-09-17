@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { RotateCcw } from "lucide-react";
 import type { CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
 import type { CallQualitySignal } from "@/lib/callQualityReview";
 import { FAIL_REASON_OPTIONS } from "@/lib/postCall";
@@ -42,11 +43,13 @@ function outcomeCopy(outcome: string): string {
 }
 
 export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReviewDTO[] }) {
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState("review");
   const [signal, setSignal] = useState("all");
   const [outcome, setOutcome] = useState("all");
   const [failReason, setFailReason] = useState("all");
   const [search, setSearch] = useState("");
+
+  const hasActiveFilters = status !== "all" || signal !== "all" || outcome !== "all" || failReason !== "all" || search.trim().length > 0;
 
   const filteredReviews = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("cs-CZ");
@@ -117,9 +120,21 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         </label>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-zinc-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-500">
         <span>Zobrazeno {filteredReviews.length} z {reviews.length} kontrol</span>
-        <span>Kontrola probíhá pouze u reálných hovorů</span>
+        <div className="flex items-center gap-3">
+          <span>Kontrola probíhá pouze u reálných hovorů</span>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => { setStatus("all"); setSignal("all"); setOutcome("all"); setFailReason("all"); setSearch(""); }}
+              className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-zinc-100"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+              Zrušit filtry
+            </button>
+          )}
+        </div>
       </div>
 
       {filteredReviews.length === 0 ? (

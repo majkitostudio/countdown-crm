@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BarChart3, CalendarClock, CheckCircle2, Clock3, ShoppingBag } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BarChart3, CalendarClock, CheckCircle2, Clock3, Filter, RotateCcw, ShoppingBag } from "lucide-react";
 import type { TeamWorkspaceCheckpoint, TeamWorkspaceSourceState } from "@/lib/dal/teamWorkspace";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
@@ -20,11 +21,24 @@ function formatDate(value: string): string {
 
 function formatSource(value: string): string {
   const labels: Record<string, string> = {
-    manual: "Manual Creation",
+    manual: "Ruční vytvoření",
     previous_call: "Post-call",
-    email: "Email",
-    web_form: "Web form",
-    other: "Other",
+    email: "E-mail",
+    web_form: "Webový formulář",
+    other: "Jiný zdroj",
+  };
+  return labels[value] || value;
+}
+
+function formatOrderStatus(value: string): string {
+  const labels: Record<string, string> = {
+    completed: "Dokončeno",
+    pending: "Čeká",
+    in_progress: "Zpracovává se",
+    sent: "Odesláno",
+    delivered: "Doručeno",
+    returned: "Vráceno",
+    cancelled: "Anulováno",
   };
   return labels[value] || value;
 }
@@ -44,7 +58,25 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
   const showOrders = section === "all" || section === "orders";
   const showCallbacks = section === "all";
   const showResults = section === "all";
-  const totalOrders = checkpoint.orders.length;
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [operatorFilter, setOperatorFilter] = useState("all");
+  const isOrdersView = section === "orders";
+  const orderOperators = useMemo(
+    () => Array.from(new Set(checkpoint.orders.map((order) => order.operatorName))).sort((left, right) => left.localeCompare(right, "cs")),
+    [checkpoint.orders],
+  );
+  const filteredOrders = useMemo(
+    () => checkpoint.orders.filter((order) => (
+      (sourceFilter === "all" || order.source === sourceFilter)
+      && (statusFilter === "all" || order.status === statusFilter)
+      && (operatorFilter === "all" || order.operatorName === operatorFilter)
+    )),
+    [checkpoint.orders, operatorFilter, sourceFilter, statusFilter],
+  );
+  const visibleOrders = isOrdersView ? filteredOrders : checkpoint.orders;
+  const hasOrderFilters = sourceFilter !== "all" || statusFilter !== "all" || operatorFilter !== "all";
+  const totalOrders = visibleOrders.length;
   const overdueCallbacks = checkpoint.overdueCallbacks.length;
   const totalSales = checkpoint.operatorMetrics.reduce((total, metric) => total + metric.sales, 0);
   const hasUnavailableMetrics = sourceIsUnavailable(checkpoint.sources.orders) || sourceIsUnavailable(checkpoint.sources.calls);
@@ -64,6 +96,37 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
           </div>
           <StatusBadge tone="neutral">Dnes · Týmová data</StatusBadge>
         </div>
+
+        {isOrdersView && checkpoint.sources.orders.state === "ready" && (
+          <div className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-3" aria-label="Filtry objednávek">
+            <label className="text-xs text-zinc-500">
+              <span className="flex items-center gap-1.5"><Filter className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" />Zdroj objednávky</span>
+              <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200">
+                <option value="all">Všechny zdroje</option>
+                {Array.from(new Set(checkpoint.orders.map((order) => order.source))).map((source) => <option key={source} value={source}>{formatSource(source)}</option>)}
+              </select>
+            </label>
+            <label className="text-xs text-zinc-500">
+              Stav objednávky
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200">
+                <option value="all">Všechny stavy</option>
+                {Array.from(new Set(checkpoint.orders.map((order) => order.status))).map((status) => <option key={status} value={status}>{formatOrderStatus(status)}</option>)}
+              </select>
+            </label>
+            <label className="text-xs text-zinc-500">
+              Operátor
+              <select value={operatorFilter} onChange={(event) => setOperatorFilter(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200">
+                <option value="all">Všichni operátoři</option>
+                {orderOperators.map((operator) => <option key={operator} value={operator}>{operator}</option>)}
+              </select>
+            </label>
+            {hasOrderFilters && (
+              <button type="button" onClick={() => { setSourceFilter("all"); setStatusFilter("all"); setOperatorFilter("all"); }} className="inline-flex items-center gap-1.5 text-left text-xs text-zinc-400 hover:text-zinc-100 sm:col-span-3">
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Zrušit filtry
+              </button>
+            )}
+          </div>
+        )}
 
         {warnings.length > 0 && (
           <StatusAlert tone="warning" role="status">
@@ -89,8 +152,8 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
           </div>
           {checkpoint.sources.orders.state === "unavailable" ? (
             <UnavailableRow message="Objednávky nejsou dostupné. Přehled nevytváří náhradní nuly." />
-          ) : checkpoint.orders.length === 0 ? (
-            <EmptyRow message="Dnes nejsou v tomto týmovém rozsahu žádné nové objednávky." />
+          ) : visibleOrders.length === 0 ? (
+            <EmptyRow message={hasOrderFilters ? "Zvoleným filtrům neodpovídají žádné objednávky." : "Dnes nejsou v tomto týmovém rozsahu žádné nové objednávky."} />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
               <table className="w-full min-w-180 text-left text-xs">
@@ -104,12 +167,12 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/70">
-                  {checkpoint.orders.map((order) => (
+                  {visibleOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-zinc-900/70">
                       <td className="px-4 py-3"><Link href={`/orders/${order.id}`} className="font-mono text-zinc-300 hover:text-zinc-100">#{order.id.slice(0, 8)}</Link><span className="mt-1 block text-[10px] text-zinc-600">{formatDate(order.createdAt)}</span></td>
                       <td className="px-4 py-3 text-zinc-300">{order.operatorName}</td>
                       <td className="px-4 py-3 text-zinc-400">{formatSource(order.source)}</td>
-                      <td className="px-4 py-3"><StatusBadge tone={order.status === "cancelled" || order.status === "returned" ? "danger" : order.status === "completed" || order.status === "delivered" ? "success" : "neutral"}>{order.status}</StatusBadge></td>
+                      <td className="px-4 py-3"><StatusBadge tone={order.status === "cancelled" || order.status === "returned" ? "danger" : order.status === "completed" || order.status === "delivered" ? "success" : "neutral"}>{formatOrderStatus(order.status)}</StatusBadge></td>
                       <td className="px-4 py-3 text-right font-mono text-zinc-300">{order.currency} {order.totalAmount.toFixed(2)}</td>
                     </tr>
                   ))}

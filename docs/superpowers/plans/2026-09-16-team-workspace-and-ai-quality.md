@@ -136,7 +136,13 @@ viditelným Admin odečtem.
   pomoc pro libovolného operátora, ale bez automatického rozšíření přístupu k jeho
   týmovým objednávkám, směnám, Walletu nebo výsledkům,
 - [x] zachovat minimální kontext žádosti a auditní stopu bez interního chatu,
-  vzdáleného převzetí hovoru a audio monitoringu.
+  vzdáleného převzetí hovoru a audio monitoringu,
+- [x] převést Team Workspace do existujícího Countdown designového systému:
+  neutrální kostra, omezené zvýraznění, kontextový pruh a oddělené hlavní bloky,
+- [x] přidat pravdivé filtry objednávek, aktivních operátorů a týmové fronty,
+  včetně zrušení filtrů a prázdných výsledků,
+- [ ] přidat serverové přepínání období a týmů; do té doby zobrazovat pouze
+  pravdivý kontext bez falešně funkčních dropdownů.
 
 **Testy:** Team Leader týmu A/B, Administrator, Operator denial, přímá URL,
 reload, úzká šířka, prázdný tým a částečně nedostupný zdroj.

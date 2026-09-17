@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowRight, Eye, RotateCcw, Send, Unlock, XCircle } from "lucide-react";
 import {
   reassignLeadAssignmentAction,
@@ -42,6 +42,8 @@ function formatDate(value: string | null): string {
 export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutation }: TeamQueuePanelProps) {
   const callbackAttention = getCallbackAttention(queueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
+  const [stateFilter, setStateFilter] = useState<"all" | QueueItemDTO["state"]>("all");
+  const [operatorFilter, setOperatorFilter] = useState("all");
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -59,6 +61,16 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
       setBusyItemId(null);
     }
   };
+
+  const visibleQueueItems = useMemo(
+    () => queueItems.filter((item) => {
+      const matchesState = stateFilter === "all" || item.state === stateFilter;
+      const matchesOperator = operatorFilter === "all" || item.assigned_operator_id === operatorFilter;
+      return matchesState && matchesOperator;
+    }),
+    [operatorFilter, queueItems, stateFilter],
+  );
+  const hasFilters = stateFilter !== "all" || operatorFilter !== "all";
 
   const reassign = (item: QueueItemDTO) => {
     if (operatorsState === "unavailable") return;
@@ -104,7 +116,30 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
       {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
       {operatorsState === "unavailable" && <StatusAlert tone="neutral" role="status">Workspace operators are unavailable.</StatusAlert>}
 
-      {queueItems.length === 0 ? (
+      <div className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">
+        <label className="text-xs text-zinc-500">
+          Stav fronty
+          <select value={stateFilter} onChange={(event) => setStateFilter(event.target.value as typeof stateFilter)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200">
+            <option value="all">Všechny stavy</option>
+            {Object.entries(STATE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label className="text-xs text-zinc-500">
+          Přiřazený operátor
+          <select value={operatorFilter} onChange={(event) => setOperatorFilter(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-zinc-200">
+            <option value="all">Všichni operátoři</option>
+            {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
+          </select>
+        </label>
+        {hasFilters && (
+          <button type="button" onClick={() => { setStateFilter("all"); setOperatorFilter("all"); }} className="inline-flex items-center gap-1.5 text-left text-xs text-zinc-400 hover:text-zinc-100 sm:col-span-2">
+            Zrušit filtry
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-zinc-600">Zobrazeno {visibleQueueItems.length} z {queueItems.length} položek fronty.</p>
+
+      {visibleQueueItems.length === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-8 text-center text-xs text-zinc-500">
           Queue is empty. No assignment data was fabricated.
         </div>
@@ -121,7 +156,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/70">
-              {queueItems.map((item) => {
+              {visibleQueueItems.map((item) => {
                 const isBusy = busyItemId === item.id;
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";

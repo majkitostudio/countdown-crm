@@ -328,10 +328,10 @@ ne rozsah samotného AI hodnocení. Tréninkové hovory jsou z této kontroly
 vyloučené; mají vlastní hodnocení a nesmějí ovlivňovat týmové obchodní výsledky
 ani frontu kontroly reálných hovorů.
 
-Schválený směr dalšího návrhu je jedna přehledná týmová pracovní plocha s
-přepínatelnými pohledy, nikoli dlouhý seznam všech typů problémů najednou.
-Pracovní název může být `Team Workspace`; `Team Checkpoint` zůstává možnou
-variantou názvu, ale finální pojmenování se rozhodne až s návrhem obrazovky.
+Schválený směr je jedna přehledná týmová pracovní plocha s přepínatelnými
+pohledy, nikoli dlouhý seznam všech typů problémů najednou. Finální název
+obrazovky je `Team Workspace`; `Team Checkpoint` zůstává označením výchozího
+pracovního pohledu.
 První navržené pohledy jsou:
 
 - Daily Checkpoint,
@@ -365,6 +365,21 @@ Každý pohled má vlastní účel, filtry a prázdný stav. Výsledky AI kontro
 do pohledu Kontrola kvality hovorů. Technické workspace-global problémy zůstávají
 mimo tuto týmovou plochu a patří administrátorovi.
 
+#### Refinement Team Workspace — 17. 9. 2026
+
+- [x] Převést schválené rozvržení do existujícího Countdown designového systému:
+  neutrální karty, omezené barevné zvýraznění, kontextový pruh a hlavní tabulka
+  výsledků bez falešných dat.
+- [x] Zachovat výchozí pořadí práce: asistence, KPI přehled, objednávky a
+  callbacky, aktuální výsledky.
+- [x] Přidat pravdivé lokální filtry pro objednávky podle zdroje, stavu a
+  operátora; pro kontrolu kvality podle AI signálu, výsledku, důvodu Failu a
+  vyhledávání; pro operátory podle jména/stavu; pro frontu podle stavu a
+  přiřazeného operátora.
+- [x] Přidat zrušení filtrů a prázdný stav pro výsledek bez shody.
+- [ ] Přidat skutečné přepínání období a týmů až po rozšíření serverového
+  read modelu; současný kontext `Dnes` a `Povolené týmy` není falešně interaktivní.
+
 1. [x] Zmapovat skutečné provozní situace: co se stalo, jak rychle je nutné
    reagovat, kdo má jednat, kam má Team Leader kliknout a kdy je problém
    vyřešený. Základní produktový rozhovor proběhl 16. 9. 2026.
@@ -385,9 +400,9 @@ mimo tuto týmovou plochu a patří administrátorovi.
 
 ### Bezprostřední pořadí po checkpointu 16. 9. 2026
 
-1. **Navrhnout praktický Team Checkpoint:** z rozhovoru udělat konkrétní scénáře,
-   priority, obsah karty a jasné stavy pro Team Leadera. Technické workspace-global
-   problémy zůstanou administrátorovi.
+1. **Dokončit praktický Team Checkpoint:** na hotové kostře dopracovat konkrétní
+   scénáře, priority, obsah karty, detail operátora a jasné stavy pro Team Leadera.
+   Technické workspace-global problémy zůstanou administrátorovi.
 2. **Dokončit ověřovací průchod `/team` v Sandboxu:** autentizovaný Team Leader,
    administrátor a operátor, včetně přímé URL, cross-team odmítnutí, reloadu,
    prázdných stavů a AI panelu. Potom teprve uzavřít aktuální Team Workspace vlnu.
