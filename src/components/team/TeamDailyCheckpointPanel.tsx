@@ -46,6 +46,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
   const showResults = section === "all";
   const totalOrders = checkpoint.orders.length;
   const overdueCallbacks = checkpoint.overdueCallbacks.length;
+  const totalSales = checkpoint.operatorMetrics.reduce((total, metric) => total + metric.sales, 0);
   const hasUnavailableMetrics = sourceIsUnavailable(checkpoint.sources.orders) || sourceIsUnavailable(checkpoint.sources.calls);
 
   return (
@@ -73,13 +74,15 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
           </StatusAlert>
         )}
 
-        <div className="grid gap-3 md:grid-cols-3">
-          <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail="Objednávky vytvořené dnes v týmu" />
-          <MetricCard label="Prošlé callbacky" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Callbacky po termínu" />
-          <MetricCard label="Operátoři ve výsledcích" value={checkpoint.operatorMetrics.length} detail="Operátoři v povoleném rozsahu" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail="Vytvořené dnes v týmu" />
+          <MetricCard label="Prošlé callbacky" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
+          <MetricCard label="Aktivní operátoři" value={checkpoint.operatorMetrics.length} detail="V povoleném rozsahu" />
+          <MetricCard label="Prodeje dnes" value={checkpoint.sources.calls.state === "ready" ? totalSales : "—"} detail="Včetně post-call objednávek" />
         </div>
 
-        {showOrders && <section className="space-y-3" aria-labelledby="checkpoint-orders-heading">
+        <div className="grid gap-4 lg:grid-cols-2">
+        {showOrders && <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-labelledby="checkpoint-orders-heading">
           <div className="flex items-center gap-2">
             <ShoppingBag className="h-4 w-4 text-zinc-400" aria-hidden="true" />
             <h3 id="checkpoint-orders-heading" className="text-sm font-semibold text-zinc-100">Nové objednávky</h3>
@@ -116,7 +119,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
           )}
         </section>}
 
-        {showCallbacks && <section className="space-y-3" aria-labelledby="checkpoint-callbacks-heading">
+        {showCallbacks && <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-labelledby="checkpoint-callbacks-heading">
           <div className="flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
             <h3 id="checkpoint-callbacks-heading" className="text-sm font-semibold text-zinc-100">Prošlé callbacky</h3>
@@ -128,7 +131,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {checkpoint.overdueCallbacks.map((callback) => (
-                <div key={callback.id} className="rounded-xl border border-amber-900/50 bg-amber-950/10 p-4">
+                <div key={callback.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0"><Link href={`/leads/${callback.leadId}`} className="font-medium text-zinc-200 hover:text-zinc-100">{callback.leadName}</Link><p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</p></div>
                     <StatusBadge tone="warning">Po termínu</StatusBadge>
@@ -139,8 +142,9 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
             </div>
           )}
         </section>}
+        </div>
 
-        {showResults && <section className="space-y-3" aria-labelledby="checkpoint-results-heading">
+        {showResults && <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-labelledby="checkpoint-results-heading">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-zinc-400" aria-hidden="true" />
             <h3 id="checkpoint-results-heading" className="text-sm font-semibold text-zinc-100">Aktuální výsledky</h3>

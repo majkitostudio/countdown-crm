@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CalendarClock, Users } from "lucide-react";
 import { refreshTeamPageAction } from "@/app/actions/workspace";
 import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
 import { TeamPresencePanel } from "@/components/team/TeamPresencePanel";
@@ -54,10 +55,39 @@ export async function runTeamMutationAndRefresh(
 
 function SourceUnavailablePanel({ title, message }: { title: string; message: string }) {
   return (
-    <section className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-6" role="status">
-      <h2 className="text-sm font-semibold text-amber-100">{title}</h2>
-      <p className="mt-1 text-xs leading-relaxed text-amber-200/70">{message} No data was fabricated.</p>
+    <section className="rounded-xl border border-zinc-700 bg-zinc-950/50 p-5" role="status">
+      <h2 className="text-sm font-semibold text-zinc-200">{title}</h2>
+      <p className="mt-1 text-xs leading-relaxed text-zinc-500">{message} No data was fabricated.</p>
     </section>
+  );
+}
+
+function TeamWorkspaceContextBar({ data }: { data: TeamPageData }) {
+  const teamNames = data.roster.status === "ready"
+    ? data.roster.data.teams.map((team) => team.name).join(", ")
+    : "Týmy nejsou dostupné";
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-xs sm:flex-row sm:items-center">
+      <div className="flex items-center gap-2">
+        <span className="text-zinc-500">Období</span>
+        <span className="font-medium text-zinc-200">Dnes</span>
+      </div>
+      <span className="hidden h-5 border-l border-zinc-800 sm:block" aria-hidden="true" />
+      <div className="flex min-w-0 items-center gap-2">
+        <Users className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
+        <span className="text-zinc-500">Povolené týmy</span>
+        <span className="truncate font-medium text-zinc-200">{teamNames}</span>
+      </div>
+      <span className="flex items-center gap-2 text-zinc-500 sm:ml-auto">
+        <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden="true" />
+        Týmová data
+      </span>
+      <span className="flex items-center gap-1.5 text-zinc-600" title="Plánování směn bude samostatná část systému">
+        <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+        Směny samostatně
+      </span>
+    </div>
   );
 }
 
@@ -108,6 +138,8 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           })}
         </div>
       </nav>
+
+      <TeamWorkspaceContextBar data={currentData} />
 
       {view === "checkpoint" && (
         <div className="space-y-6">

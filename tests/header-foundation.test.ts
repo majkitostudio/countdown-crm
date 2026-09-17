@@ -26,7 +26,7 @@ describe("unified authenticated header foundations", () => {
     expect(leaderPaths).toContain("/team");
     expect(administratorPaths).toContain("/exceptions");
     expect(administratorPaths).toContain("/team");
-    expect(getAllowedNavigationCommands("team_leader").find((item) => item.path === "/team")?.label).toBe("Team Operations");
+    expect(getAllowedNavigationCommands("team_leader").find((item) => item.path === "/team")?.label).toBe("Team Workspace");
   });
 
   it("uses truthful role-aware search copy and canonical status recipes", () => {

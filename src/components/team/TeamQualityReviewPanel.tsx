@@ -27,10 +27,10 @@ function formatDuration(seconds: number): string {
 }
 
 function statusCopy(status: CallQualityReviewDTO["status"]): { label: string; className: string } {
-  if (status === "review") return { label: "Doporučeno zkontrolovat", className: "border-amber-800/70 bg-amber-950/30 text-amber-200" };
-  if (status === "unavailable") return { label: "AI nedostupná", className: "border-zinc-700 bg-zinc-900 text-zinc-300" };
-  if (status === "pending") return { label: "Kontrola probíhá", className: "border-sky-800/70 bg-sky-950/30 text-sky-200" };
-  return { label: "Pravděpodobně v pořádku", className: "border-emerald-800/70 bg-emerald-950/30 text-emerald-200" };
+  if (status === "review") return { label: "Doporučeno zkontrolovat", className: "border-zinc-600 bg-zinc-900 text-zinc-200" };
+  if (status === "unavailable") return { label: "AI nedostupná", className: "border-zinc-700 bg-zinc-900 text-zinc-400" };
+  if (status === "pending") return { label: "Kontrola probíhá", className: "border-zinc-700 bg-zinc-900 text-zinc-300" };
+  return { label: "Pravděpodobně v pořádku", className: "border-zinc-700 bg-zinc-900 text-zinc-400" };
 }
 
 function outcomeCopy(outcome: string): string {

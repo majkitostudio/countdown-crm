@@ -65,10 +65,10 @@ export function TeamAssistancePanel({
               const busy = busyRequestId === request.id;
               const isSos = request.requestType === "sos";
               return (
-                <article key={request.id} className={`rounded-xl border p-4 ${isSos ? "border-rose-900/70 bg-rose-950/20" : "border-zinc-800 bg-zinc-950/60"}`}>
+                <article key={request.id} className="rounded-xl border border-zinc-700 bg-zinc-950/50 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-start gap-3">
-                      {isSos && <AlertTriangle className="mt-0.5 h-4 w-4 text-rose-300" aria-label="Urgentní SOS" />}
+                      {isSos && <AlertTriangle className="mt-0.5 h-4 w-4 text-zinc-300" aria-label="Urgentní SOS" />}
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-sm font-semibold text-zinc-100">{request.operatorName}</h3>
