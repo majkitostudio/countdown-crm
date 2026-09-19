@@ -8,6 +8,14 @@
 ověřené. Ověřovací report je v
 `docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`.
 
+**Aktualizace 19. 9. 2026:** Uložené kontrolní pohledy (Fáze 4) jsou nasazené v
+Sandboxu a ověřené v prohlížeči jako Team Leader: uložení pod jménem, aplikace
+uložených filtrů jedním kliknutím, zvýraznění aktivního pohledu, perzistence po
+reloadu a smazání. Role gate zůstává `team_leader` / `administrator`; operátor
+nemá na Team Workspace přístup. Testy: 143 souborů / 660 testů, lint, typecheck
+i build prošly. Migrace `20260919090000_workspace_saved_views.sql` je v historii
+Sandboxu; dočasný Team Leader účet byl po ověření smazán.
+
 ## Zásady
 
 - Nejprve serverový datový kontrakt a testy, potom UI.
@@ -125,8 +133,8 @@ viditelným Admin odečtem.
   Team Queue,
 - [x] zobrazit nové objednávky, prošlé callbacky a výsledky bez zahlcení jednou
   dlouhou frontou,
-- [ ] přidat jasné loading, empty, unavailable a error stavy,
-- [ ] přidat pouze odkaz nebo stručný stav pro samostatné Plánování směn,
+- [x] přidat jasné loading, empty, unavailable a error stavy,
+- [x] přidat pouze odkaz nebo stručný stav pro samostatné Plánování směn,
 - [ ] neimplementovat plánovací kalendář v této vlně,
 - [x] zachovat přístup administrátora k celému workspace podle jeho role.
 - [x] přidat jednoduchý `Request Help` / `SOS` signál z Operator Console do části
@@ -179,7 +187,7 @@ cleanup testovacích dat. Výsledek a oprava výchozího modelu jsou v reportu
 - [x] přidat filtry pro krátkou poznámku, krátký hovor, důvod Failu a úspěšný
   výsledek s podezřením na neúplnou poznámku,
 - [x] zobrazit důvod doporučení a přímý odkaz na hovor, poznámku nebo objednávku,
-- [ ] po ověření základních filtrů umožnit Team Leaderovi uložit vlastní kontrolní
+- [x] po ověření základních filtrů umožnit Team Leaderovi uložit vlastní kontrolní
   pohledy; uložené pohledy nesmí změnit team scope,
 - [x] zachovat Team Leaderovy týmové hranice,
 - [x] jasně odlišit `pravděpodobně v pořádku`, `doporučeno zkontrolovat` a
@@ -191,17 +199,17 @@ výsledek, nedostupná AI a read-only chování podle role.
 
 ## Fáze 5 — ověření a důkaz v Sandboxu
 
-- [x] `npm test` — 140 souborů, 642 testů,
+- [x] `npm test` — 143 souborů, 660 testů,
 - [x] `npm run lint`,
 - [x] `npm run typecheck`,
 - [x] `npm run build`,
-- [ ] autentizovaný browser smoke jako Administrator,
-- [ ] autentizovaný browser smoke jako Team Leader s jedním týmem,
-- [ ] negativní Team Leader cross-team a Operator denial,
-- [ ] reload a read-back Daily Checkpointu,
+- [x] autentizovaný browser smoke jako Administrator,
+- [x] autentizovaný browser smoke jako Team Leader s jedním týmem,
+- [x] negativní Team Leader cross-team a Operator denial,
+- [x] reload a read-back Daily Checkpointu,
 - [x] ověřit AI výsledek u anonymizovaného reálného hovoru v Sandboxu,
-- [ ] ověřit, že tréninkový hovor výsledek kontroly reálných hovorů nevytvoří,
-- [ ] ověřit `unavailable` pro AI a chybějící směnový plán,
+- [x] ověřit, že tréninkový hovor výsledek kontroly reálných hovorů nevytvoří,
+- [x] ověřit `unavailable` pro AI a chybějící směnový plán,
 - [x] zkontrolovat diff, tajné údaje a cleanup testovacích dat,
 - [x] vytvořit sanitizovaný ověřovací report.
 

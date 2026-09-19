@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bookmark, BookmarkCheck, Loader2, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import type { CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
 import type { CallQualitySignal } from "@/lib/callQualityReview";
 import { FAIL_REASON_OPTIONS } from "@/lib/postCall";
+import {
+  deleteSavedQualityViewAction,
+  listSavedQualityViewsAction,
+  saveQualityViewAction,
+} from "@/app/actions/savedViews";
+import type { QualityReviewFilters, SavedQualityView } from "@/lib/dal/savedViews";
 
 const signalLabels: Record<string, string> = {
   missing_note: "Chybí poznámka",
@@ -42,6 +48,10 @@ function outcomeCopy(outcome: string): string {
   return outcome;
 }
 
+function buildFilters(status: string, signal: string, outcome: string, failReason: string, search: string): QualityReviewFilters {
+  return { status, signal, outcome, failReason, search };
+}
+
 export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReviewDTO[] }) {
   const [status, setStatus] = useState("review");
   const [signal, setSignal] = useState("all");
@@ -49,7 +59,32 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
   const [failReason, setFailReason] = useState("all");
   const [search, setSearch] = useState("");
 
+  const [savedViews, setSavedViews] = useState<SavedQualityView[]>([]);
+  const [viewsStatus, setViewsStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [viewError, setViewError] = useState<string | null>(null);
+  const [showSaveInput, setShowSaveInput] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [savingView, setSavingView] = useState(false);
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listSavedQualityViewsAction()
+      .then((views) => {
+        if (cancelled) return;
+        setSavedViews(views);
+        setViewsStatus("ready");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setViewsStatus("error");
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   const hasActiveFilters = status !== "all" || signal !== "all" || outcome !== "all" || failReason !== "all" || search.trim().length > 0;
+
+  const currentFilters = buildFilters(status, signal, outcome, failReason, search);
 
   const filteredReviews = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("cs-CZ");
@@ -68,6 +103,57 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
     });
   }, [failReason, outcome, reviews, search, signal, status]);
 
+  const applySavedView = (view: SavedQualityView) => {
+    setStatus(view.filters.status);
+    setSignal(view.filters.signal);
+    setOutcome(view.filters.outcome);
+    setFailReason(view.filters.failReason);
+    setSearch(view.filters.search);
+    setActiveViewId(view.id);
+  };
+
+  const handleSaveCurrentView = async () => {
+    const name = draftName.trim();
+    if (!name) return;
+    setSavingView(true);
+    setViewError(null);
+    try {
+      const saved = await saveQualityViewAction({ name, filters: currentFilters });
+      const next = savedViews.some((view) => view.id === saved.id)
+        ? savedViews.map((view) => (view.id === saved.id ? saved : view))
+        : [...savedViews, saved];
+      setSavedViews(next);
+      setActiveViewId(saved.id);
+      setDraftName("");
+      setShowSaveInput(false);
+    } catch (error) {
+      setViewError(error instanceof Error ? error.message : "Pohled se nepodařilo uložit.");
+    } finally {
+      setSavingView(false);
+    }
+  };
+
+  const handleDeleteSavedView = async (viewId: string) => {
+    setViewError(null);
+    try {
+      await deleteSavedQualityViewAction(viewId);
+      const next = savedViews.filter((view) => view.id !== viewId);
+      setSavedViews(next);
+      if (activeViewId === viewId) setActiveViewId(null);
+    } catch (error) {
+      setViewError(error instanceof Error ? error.message : "Pohled se nepodařilo smazat.");
+    }
+  };
+
+  const clearFilters = () => {
+    setStatus("all");
+    setSignal("all");
+    setOutcome("all");
+    setFailReason("all");
+    setSearch("");
+    setActiveViewId(null);
+  };
+
   return (
     <section className="space-y-5" aria-labelledby="team-quality-review-heading">
       <header>
@@ -77,10 +163,97 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         </p>
       </header>
 
+      <div aria-label="Uložené kontrolní pohledy" className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-950/60 p-3">
+        <span className="mr-1 text-xs text-zinc-500">Uložené pohledy:</span>
+
+        {viewsStatus === "loading" && (
+          <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+            Načítám…
+          </span>
+        )}
+
+        {viewsStatus === "error" && (
+          <span className="text-xs text-amber-200/70">Uložené pohledy se nepodařilo načíst.</span>
+        )}
+
+        {viewsStatus === "ready" && savedViews.length === 0 && (
+          <span className="text-xs text-zinc-600">Zatím žádné. Nastav filtry a ulož si je pod jménem.</span>
+        )}
+
+        {viewsStatus === "ready" && savedViews.map((view) => {
+          const isActive = activeViewId === view.id;
+          return (
+            <span key={view.id} className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-900 text-xs">
+              <button
+                type="button"
+                onClick={() => applySavedView(view)}
+                className={`inline-flex items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 ${isActive ? "bg-zinc-800 text-zinc-100" : ""}`}
+              >
+                {isActive ? <BookmarkCheck className="h-3.5 w-3.5 text-sky-300" aria-hidden="true" /> : <Bookmark className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />}
+                {view.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteSavedView(view.id)}
+                aria-label={`Smazat pohled ${view.name}`}
+                className="rounded-r-lg px-1.5 py-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+              >
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </span>
+          );
+        })}
+
+        {viewsStatus === "ready" && !showSaveInput && (
+          <button
+            type="button"
+            onClick={() => setShowSaveInput(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+            Uložit tento pohled
+          </button>
+        )}
+
+        {showSaveInput && (
+          <span className="inline-flex items-center gap-2">
+            <input
+              aria-label="Název uloženého pohledu"
+              value={draftName}
+              onChange={(event) => setDraftName(event.target.value)}
+              onKeyDown={(event) => { if (event.key === "Enter") handleSaveCurrentView(); if (event.key === "Escape") { setShowSaveInput(false); setDraftName(""); } }}
+              placeholder="Např. Faily včera"
+              maxLength={60}
+              autoFocus
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleSaveCurrentView}
+              disabled={savingView || draftName.trim().length === 0}
+              className="rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {savingView ? "Ukládám…" : "Uložit"}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowSaveInput(false); setDraftName(""); }}
+              aria-label="Zrušit ukládání pohledu"
+              className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </span>
+        )}
+
+        {viewError && <span className="ml-1 text-xs text-red-300">{viewError}</span>}
+      </div>
+
       <div className="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4 sm:grid-cols-2 lg:grid-cols-5">
         <label className="text-xs text-zinc-500" htmlFor="quality-status-filter">
           Stav AI kontroly
-          <select id="quality-status-filter" name="quality-status" value={status} onChange={(event) => setStatus(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
+          <select id="quality-status-filter" name="quality-status" value={status} onChange={(event) => { setStatus(event.target.value); setActiveViewId(null); }} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
             <option value="all">Vše</option>
             <option value="review">Doporučeno zkontrolovat</option>
             <option value="unavailable">AI nedostupná</option>
@@ -90,7 +263,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-signal-filter">
           Signál
-          <select id="quality-signal-filter" name="quality-signal" value={signal} onChange={(event) => setSignal(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
+          <select id="quality-signal-filter" name="quality-signal" value={signal} onChange={(event) => { setSignal(event.target.value); setActiveViewId(null); }} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
             <option value="all">Všechny signály</option>
             <option value="missing_note">Chybí poznámka</option>
             <option value="short_note">Krátká poznámka</option>
@@ -100,7 +273,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-outcome-filter">
           Typ hovoru
-          <select id="quality-outcome-filter" name="quality-outcome" value={outcome} onChange={(event) => setOutcome(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
+          <select id="quality-outcome-filter" name="quality-outcome" value={outcome} onChange={(event) => { setOutcome(event.target.value); setActiveViewId(null); }} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
             <option value="all">Všechny hovory</option>
             <option value="sale">Úspěšné hovory / prodeje</option>
             <option value="successful_review">Úspěch s doporučením kontroly</option>
@@ -109,14 +282,14 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-fail-reason-filter">
           Důvod Failu
-          <select id="quality-fail-reason-filter" name="quality-fail-reason" value={failReason} onChange={(event) => setFailReason(event.target.value)} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
+          <select id="quality-fail-reason-filter" name="quality-fail-reason" value={failReason} onChange={(event) => { setFailReason(event.target.value); setActiveViewId(null); }} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
             <option value="all">Všechny důvody</option>
             {FAIL_REASON_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
           </select>
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-search-filter">
           Hledat operátora nebo klienta
-          <input id="quality-search-filter" name="quality-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Začněte psát…" className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600" />
+          <input id="quality-search-filter" name="quality-search" value={search} onChange={(event) => { setSearch(event.target.value); setActiveViewId(null); }} placeholder="Začněte psát…" className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600" />
         </label>
       </div>
 
@@ -127,7 +300,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
           {hasActiveFilters && (
             <button
               type="button"
-              onClick={() => { setStatus("all"); setSignal("all"); setOutcome("all"); setFailReason("all"); setSearch(""); }}
+              onClick={clearFilters}
               className="inline-flex items-center gap-1.5 text-zinc-400 hover:text-zinc-100"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
