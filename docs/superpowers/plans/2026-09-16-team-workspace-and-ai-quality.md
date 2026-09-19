@@ -30,7 +30,9 @@ model nově nese `recentCallsByOperator` (team-scoped hovory operátora v obdob�
 max 10, včetně `duration_seconds`, s odkazem do Call Review v detailu operátora)
 a `upcomingCallbacks` (naplánované callbacky od teď do konce období, stejný team
 scope jako prošlé). Callback zdroj je `ready` jen při úspěchu obou dotazů.
-Aktuální ověření: 145 souborů / 680 testů, lint, typecheck i build prošly.
+Plný sandbox průchod je v
+`docs/superpowers/reports/2026-09-19-team-checkpoint-verification.md`.
+Aktuální ověření: 147 souborů / 687 testů, lint, typecheck i build prošly.
 
 ## Zásady
 

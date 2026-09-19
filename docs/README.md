@@ -39,6 +39,12 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [superpowers/plans/2026-09-05-local-telephony-settings-and-console.md](superpowers/plans/2026-09-05-local-telephony-settings-and-console.md) | Implementační plán a stav jednotlivých kroků lokální telefonní laboratoře. |
 | [superpowers/specs/2026-09-04-telnyx-outbound-pilot-design.md](superpowers/specs/2026-09-04-telnyx-outbound-pilot-design.md) | Schválený návrh pro dokončení outbound telefonie. |
 | [superpowers/plans/2026-09-04-telnyx-outbound-pilot.md](superpowers/plans/2026-09-04-telnyx-outbound-pilot.md) | Implementační plán pro Telnyx outbound pilot. |
+| [superpowers/reports/2026-09-15-p1-7-order-evidence.md](superpowers/reports/2026-09-15-p1-7-order-evidence.md) | Důkaz ruční i post-call objednávky včetně adresního snapshotu a read-backu. |
+| [superpowers/reports/2026-09-16-gemini-call-quality-verification.md](superpowers/reports/2026-09-16-gemini-call-quality-verification.md) | Ověření serverové Gemini kontroly poznámek (`pending` → `ok`, atomický claim). |
+| [superpowers/reports/2026-09-16-team-assistance-browser-verification.md](superpowers/reports/2026-09-16-team-assistance-browser-verification.md) | Browser ověření žádostí o asistenci a jejich převzetí/uzavření. |
+| [superpowers/reports/2026-09-17-speech-to-text-browser-smoke.md](superpowers/reports/2026-09-17-speech-to-text-browser-smoke.md) | Částečný smoke browserového přepisu v trenažéru, vady a odložené rozhodnutí. |
+| [superpowers/reports/2026-09-18-team-workspace-verification.md](superpowers/reports/2026-09-18-team-workspace-verification.md) | Ověřovací průchod `/team` v Sandboxu (role, cross-team, reload, prázdné stavy). |
+| [superpowers/reports/2026-09-19-team-checkpoint-verification.md](superpowers/reports/2026-09-19-team-checkpoint-verification.md) | Plný průchod novinek Team Checkpointu (overdue odznak, detail, claim → resolve, tři role). |
 
 ## Pořadí zdrojů pravdy
 

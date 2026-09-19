@@ -56,6 +56,45 @@ export const SALES_ORDER_STATUSES = [
   "delivered",
 ] as const;
 
+/** Kolik posledních položek se drží v checkpointu pro detail operátora. */
+export const RECENT_ITEMS_PER_OPERATOR_LIMIT = 10;
+
+/**
+ * Seskupí předseřazené položky (nejnovější první) podle operátora a každou
+ * skupinu ořízne na limit. Položky bez operátora se zahazují.
+ */
+export function groupByOperator<T extends { operatorId: string | null }>(
+  items: T[],
+  limit: number = RECENT_ITEMS_PER_OPERATOR_LIMIT,
+): Record<string, T[]> {
+  const grouped: Record<string, T[]> = {};
+  for (const item of items) {
+    if (item.operatorId === null) continue;
+    const list = grouped[item.operatorId] || [];
+    if (list.length >= limit) continue;
+    list.push(item);
+    grouped[item.operatorId] = list;
+  }
+  return grouped;
+}
+
+/**
+ * Rozdělí callbacky na prošlé a naplánované podle aktuálního času.
+ * Hranice je ostrá: callback splatný přesně teď ještě patří mezi naplánované.
+ */
+export function splitCallbacksByDue<T extends { scheduledAt: string }>(
+  items: T[],
+  now: Date,
+): { overdue: T[]; upcoming: T[] } {
+  const overdue: T[] = [];
+  const upcoming: T[] = [];
+  for (const item of items) {
+    if (Date.parse(item.scheduledAt) < now.getTime()) overdue.push(item);
+    else upcoming.push(item);
+  }
+  return { overdue, upcoming };
+}
+
 function parseTimestamp(value: string | null): number | null {
   if (!value) return null;
   const timestamp = Date.parse(value);

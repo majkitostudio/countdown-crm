@@ -8,22 +8,21 @@ import type { TeamMutationHandler } from "@/components/team/TeamPageContent";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import {
+  ASSISTANCE_WAIT_THRESHOLD_MS,
+  assistanceWaitingMs,
+  formatAssistanceWait,
+  isAssistanceOverdue,
+} from "@/lib/assistanceWait";
+
+export { ASSISTANCE_WAIT_THRESHOLD_MS };
 
 function waitLabel(createdAt: string): string {
-  const seconds = Math.max(0, Math.round((Date.now() - Date.parse(createdAt)) / 1000));
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  return formatAssistanceWait(createdAt);
 }
 
 function waitingMs(createdAt: string): number {
-  return Math.max(0, Date.now() - Date.parse(createdAt));
-}
-
-/** Schválená hranice z Team Checkpoint předlohy: čekání déle než 5 minut vyžaduje pozornost. */
-export const ASSISTANCE_WAIT_THRESHOLD_MS = 5 * 60 * 1000;
-
-export function isAssistanceOverdue(createdAt: string, now: number = Date.now()): boolean {
-  return Math.max(0, now - Date.parse(createdAt)) >= ASSISTANCE_WAIT_THRESHOLD_MS;
+  return assistanceWaitingMs(createdAt);
 }
 
 function sortByUrgency(requests: AssistanceRequestDTO[]): AssistanceRequestDTO[] {
@@ -106,7 +105,9 @@ export function TeamAssistancePanel({
                             {request.status === "claimed" ? "Převzato" : "Čeká na pomoc"}
                           </StatusBadge>
                           <StatusBadge tone={overdue ? "warning" : "neutral"}>
-                            čeká {waitLabel(request.createdAt)}{overdue ? " · déle než 5 min" : ""}
+                            <span suppressHydrationWarning>
+                              čeká {waitLabel(request.createdAt)}{overdue ? " · déle než 5 min" : ""}
+                            </span>
                           </StatusBadge>
                         </div>
                         <p className="mt-1 text-xs text-zinc-500">

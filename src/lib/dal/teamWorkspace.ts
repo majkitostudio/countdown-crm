@@ -3,6 +3,9 @@ import "server-only";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import {
   buildTeamWorkspaceOperatorMetrics,
+  groupByOperator,
+  RECENT_ITEMS_PER_OPERATOR_LIMIT,
+  splitCallbacksByDue,
   type TeamWorkspaceCall,
   type TeamWorkspaceCallActivity,
   type TeamWorkspaceOperator,
@@ -53,7 +56,7 @@ export interface TeamWorkspaceRecentCall {
 }
 
 /** Kolik posledních hovorů se drží v checkpointu pro detail operátora. */
-export const TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR = 10;
+export const TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR = RECENT_ITEMS_PER_OPERATOR_LIMIT;
 
 export interface TeamWorkspaceCheckpoint {
   periodKey: TeamWorkspacePeriodKey;
@@ -219,40 +222,35 @@ function mapActivities(
   return activities;
 }
 
-function mapOverdueCallbacks(callbacks: ScheduledCallbackDTO[], now: Date): TeamWorkspaceCallbackSummary[] {
-  return mapCallbackSummaries(callbacks.filter((callback) => Date.parse(callback.scheduled_at) < now.getTime()));
+function splitCallbackSummaries(
+  callbacks: ScheduledCallbackDTO[],
+  now: Date,
+): { overdue: TeamWorkspaceCallbackSummary[]; upcoming: TeamWorkspaceCallbackSummary[] } {
+  const summaries = callbacks.map(mapCallbackSummary);
+  return splitCallbacksByDue(summaries, now);
 }
 
-function mapUpcomingCallbacks(callbacks: ScheduledCallbackDTO[], now: Date): TeamWorkspaceCallbackSummary[] {
-  return mapCallbackSummaries(callbacks.filter((callback) => Date.parse(callback.scheduled_at) >= now.getTime()));
-}
-
-function mapCallbackSummaries(callbacks: ScheduledCallbackDTO[]): TeamWorkspaceCallbackSummary[] {
-  return callbacks.map((callback) => ({
+function mapCallbackSummary(callback: ScheduledCallbackDTO): TeamWorkspaceCallbackSummary {
+  return {
     id: callback.id,
     leadId: callback.lead_id,
     leadName: callback.lead.full_name,
     scheduledAt: callback.scheduled_at,
     operatorName: callback.preferred_operator?.full_name || null,
-  }));
+  };
 }
 
 function mapRecentCallsByOperator(calls: CallRow[]): Record<string, TeamWorkspaceRecentCall[]> {
-  const grouped: Record<string, TeamWorkspaceRecentCall[]> = {};
-  for (const call of calls) {
-    if (call.agent_id === null) continue;
-    const list = grouped[call.agent_id] || [];
-    if (list.length >= TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR) continue;
-    list.push({
+  return groupByOperator(
+    calls.map((call) => ({
       id: call.id,
       operatorId: call.agent_id,
       outcome: call.outcome,
       durationSeconds: Number(call.duration_seconds || 0),
       createdAt: call.created_at,
-    });
-    grouped[call.agent_id] = list;
-  }
-  return grouped;
+    })),
+    TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR,
+  );
 }
 
 function mapOrders(rows: OrderRow[], operators: WorkspaceMemberDTO[]): TeamWorkspaceOrderSummary[] {
@@ -350,12 +348,14 @@ export async function loadTeamWorkspaceCheckpoint(
     shifts: unavailable("Shift planning is not implemented yet."),
   } satisfies TeamWorkspaceCheckpoint["sources"];
 
+  const { overdue, upcoming } = splitCallbackSummaries([...overdueCallbacks, ...upcomingCallbacks], now);
+
   return {
     periodKey,
     period,
     orders: mapOrders(orders, operators),
-    overdueCallbacks: mapOverdueCallbacks(overdueCallbacks, now),
-    upcomingCallbacks: mapUpcomingCallbacks(upcomingCallbacks, now),
+    overdueCallbacks: overdue,
+    upcomingCallbacks: upcoming,
     operatorMetrics: buildTeamWorkspaceOperatorMetrics(metricInput),
     recentCallsByOperator: mapRecentCallsByOperator(calls),
     sources,

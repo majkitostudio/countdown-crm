@@ -4,8 +4,8 @@ Toto je kanonický stručný kontext projektu. Není to povinný workflow protok
 nenahrazuje testy a sám o sobě neprokazuje, že je funkce pilot-ready nebo
 production-ready.
 
-**Snapshot:** 16. 9. 2026
-**Repo baseline:** stabilní P1 pracovní smyčka, ověřený třírolový smoke, sjednocený UI systém podle Operator Console a připravená runtime závislostní vrstva
+**Snapshot:** 19. 9. 2026
+**Repo baseline:** stabilní P1 pracovní smyčka, ověřený třírolový smoke, sjednocený UI systém podle Operator Console, schválený Team Checkpoint v jazyce designového systému a připravená runtime závislostní vrstva
 **Produktový stav:** stabilizace před interním pilotem; Telnyx živý provider čeká na číslo
 
 ## Produkt
@@ -51,7 +51,7 @@ během hovoru; jeho text má statické orientační sekce pro rychlejší čten�
 Deterministické Customer 360, Next Best Action a Team Leader Daily Brief nejsou
 live AI predikce.
 
-Technická Exception Queue zůstává na `/exceptions` pro Team Leadera a administrátora, ale workspace-global problémy (například workflow nebo chybějící produktový skript) mají zůstat administrátorské. Praktická týmová práce Team Leadera je soustředěná na `/team` v pracovní ploše s přepínatelnými pohledy Daily Checkpoint, Kontrola kvality hovorů, Objednávky, Aktivní operátoři a Callbacky a týmová fronta. Team Workspace má schválenou neutrální vizuální kostru podle společného designového systému a pravdivé lokální filtry pro objednávky, kvalitu, operátory a týmovou frontu; přepínání období a týmů čeká na serverový read model. Operátor tuto plochu nevidí a serverový role guard odmítne i přímou URL. Produktový rozhovor pro další přestavbu je zdokumentovaný; následuje návrh konkrétních scénářů a detailu operátora, nikoli další rozšiřování technické fronty.
+Technická Exception Queue zůstává na `/exceptions` pro Team Leadera a administrátora, ale workspace-global problémy (například workflow nebo chybějící produktový skript) mají zůstat administrátorské. Praktická týmová práce Team Leadera je soustředěná na `/team` v pracovní ploše s přepínatelnými pohledy Daily Checkpoint, Kontrola kvality hovorů, Objednávky, Aktivní operátoři a Callbacky a týmová fronta. Team Workspace má schválenou neutrální vizuální kostru podle společného designového systému a pravdivé lokální filtry pro objednávky, kvalitu, operátory a týmovou frontu. Checkpoint tab drží schválené rozvržení předlohy: asistence s 5minutovou hranicí naléhavosti je první, následují KPI, klikací výsledky s detailem operátora (souhrn, skutečná historie hovorů s odkazem do Call Review, objednávky, callbacky, žádosti, AI kontrola) a read-only předání směny bez dokončovacího workflow. Checkpoint hlásí prošlé i naplánované callbacky v období; přepínání období a týmů čeká na serverový read model. Operátor tuto plochu nevidí a serverový role guard odmítne i přímou URL. Produktový rozhovor pro další přestavbu je zdokumentovaný; následuje návrh konkrétních scénářů a detailu operátora, nikoli další rozšiřování technické fronty.
 
 Osobní preference operátorů jsou uložené v `workspace_user_preferences` podle
 kombinace workspace + uživatel. Aktuálně pokrývají hlasitost vyzvánění;

@@ -1,10 +1,10 @@
 # Aktuální stav, jednotné To-Do a Desatero
 
-**Snapshot:** 16. 9. 2026
+**Snapshot:** 19. 9. 2026
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna, první bezpečná vlna P2 týmů a serverová AI kontrola kvality v Sandboxu. Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky, týmová analytika a AI doporučení mají ověřený nebo zdokumentovaný týmový rozsah. Další práce pokračuje praktickým návrhem Team Checkpointu, samostatným plánováním směn a onboardingem trenérem, bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
+**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna, první bezpečná vlna P2 týmů, serverová AI kontrola kvality v Sandboxu a schválený Team Checkpoint v designovém jazyce aplikace (5minutová asistence, detail operátora se skutečnou historií hovorů, read-only předání směny, prošlé i naplánované callbacky). Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky, týmová analytika a AI doporučení mají ověřený nebo zdokumentovaný týmový rozsah. Další práce pokračuje praktickým návrhem Team Checkpointu, samostatným plánováním směn a onboardingem trenérem, bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
 
 ## Co je skutečně hotové
 
@@ -452,8 +452,10 @@ mimo tuto týmovou plochu a patří administrátorovi.
    **Follow-up na `main` (19. 9. 2026):** detail operátora ukazuje skutečnou
    historii hovorů z team-scoped read modelu (`recentCallsByOperator`, max 10,
    s odkazem do Call Review) a checkpoint hlásí i naplánované callbacky
-   v období (`upcomingCallbacks`). Ověřeno 145 souborů / 680 testů, lint,
-   typecheck, build.
+   v období (`upcomingCallbacks`). Ověřeno 147 souborů / 687 testů, lint,
+   typecheck, build, plus plný sandbox průchod v
+   `docs/superpowers/reports/2026-09-19-team-checkpoint-verification.md`
+   (tři role, cross-team denial, overdue odznak, claim → resolve s auditem).
 2. **Dokončen ověřovací průchod `/team` v Sandboxu** (19. 9. 2026): autentizovaný
    Team Leader, administrátor a operátor, včetně přímé URL, cross-team odmítnutí,
    reloadu, prázdných stavů a AI panelu. Dočasné účty byly smazány; důkaz je

@@ -68,7 +68,8 @@ describe("team checkpoint follow-ups (recent calls and upcoming callbacks)", () 
 
   it("reports upcoming callbacks in the period without fabricating them", () => {
     expect(workspaceDal).toContain("upcomingCallbacks");
-    expect(workspaceDal).toContain("mapUpcomingCallbacks");
+    expect(workspaceDal).toContain("splitCallbackSummaries");
+    expect(workspaceDal).toContain("splitCallbacksByDue");
     expect(checkpoint).toContain("Naplánované v období");
     expect(handover).toContain("naplánované");
   });
