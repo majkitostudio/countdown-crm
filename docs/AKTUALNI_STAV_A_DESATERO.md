@@ -443,6 +443,12 @@ mimo tuto týmovou plochu a patří administrátorovi.
    `https://uuuj6frnpq3ue9pw1y86ky0c.macaly.app`. Předloha je čisté rozvržení;
    barvy a písmo se při implementaci zasadí do stávajícího designu aplikace.
    Technické workspace-global problémy zůstanou administrátorovi.
+   **Implementováno na `main` (19. 9. 2026):** checkpoint tab používá 5minutovou
+   hranici s řazením podle naléhavosti, klikací řádky výsledků otevírají detail
+   operátora pouze z existujícího read modelu (bez vymyšlené historie hovorů) a
+   Konec směny je read-only předání bez falešného dokončovacího workflow.
+   Asistence zůstává záměrně první, před KPI. Ověřeno 145 souborů / 678 testů,
+   lint, typecheck, build.
 2. **Dokončen ověřovací průchod `/team` v Sandboxu** (19. 9. 2026): autentizovaný
    Team Leader, administrátor a operátor, včetně přímé URL, cross-team odmítnutí,
    reloadu, prázdných stavů a AI panelu. Dočasné účty byly smazány; důkaz je

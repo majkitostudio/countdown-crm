@@ -15,6 +15,26 @@ function waitLabel(createdAt: string): string {
   return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
 }
 
+function waitingMs(createdAt: string): number {
+  return Math.max(0, Date.now() - Date.parse(createdAt));
+}
+
+/** Schválená hranice z Team Checkpoint předlohy: čekání déle než 5 minut vyžaduje pozornost. */
+export const ASSISTANCE_WAIT_THRESHOLD_MS = 5 * 60 * 1000;
+
+export function isAssistanceOverdue(createdAt: string, now: number = Date.now()): boolean {
+  return Math.max(0, now - Date.parse(createdAt)) >= ASSISTANCE_WAIT_THRESHOLD_MS;
+}
+
+function sortByUrgency(requests: AssistanceRequestDTO[]): AssistanceRequestDTO[] {
+  return [...requests].sort((left, right) => {
+    const leftOpen = left.status === "open" ? 0 : 1;
+    const rightOpen = right.status === "open" ? 0 : 1;
+    if (leftOpen !== rightOpen) return leftOpen - rightOpen;
+    return waitingMs(right.createdAt) - waitingMs(left.createdAt);
+  });
+}
+
 export function TeamAssistancePanel({
   requests,
   onMutationAction,
@@ -37,6 +57,9 @@ export function TeamAssistancePanel({
     }
   }
 
+  const sortedRequests = sortByUrgency(requests);
+  const overdueCount = requests.filter((request) => request.status === "open" && isAssistanceOverdue(request.createdAt)).length;
+
   return (
     <Surface variant="page">
       <div className="space-y-4 p-6">
@@ -47,10 +70,15 @@ export function TeamAssistancePanel({
               <h2 className="text-sm font-semibold text-zinc-100">Co vyžaduje pozornost</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
                 Jednoduché signály od operátorů. Převzetí znamená, že za operátorem jdete osobně.
+                {overdueCount > 0 && (
+                  <span className="mt-1 block text-zinc-400">
+                    {overdueCount === 1 ? "1 položka čeká déle než 5 min" : `${overdueCount} položky čekají déle než 5 min`}
+                  </span>
+                )}
               </p>
             </div>
           </div>
-          <StatusBadge tone={requests.length > 0 ? "warning" : "neutral"}>{requests.length} otevřených</StatusBadge>
+          <StatusBadge tone={overdueCount > 0 ? "warning" : requests.length > 0 ? "warning" : "neutral"}>{requests.length} otevřených</StatusBadge>
         </div>
 
         {errorMessage && <StatusAlert tone="danger" role="alert">{errorMessage}</StatusAlert>}
@@ -61,9 +89,10 @@ export function TeamAssistancePanel({
           </div>
         ) : (
           <div className="space-y-3">
-            {requests.map((request) => {
+            {sortedRequests.map((request) => {
               const busy = busyRequestId === request.id;
               const isSos = request.requestType === "sos";
+              const overdue = request.status === "open" && isAssistanceOverdue(request.createdAt);
               return (
                 <article key={request.id} className="rounded-xl border border-zinc-700 bg-zinc-950/50 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -73,12 +102,15 @@ export function TeamAssistancePanel({
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-sm font-semibold text-zinc-100">{request.operatorName}</h3>
                           <StatusBadge tone={isSos ? "danger" : "warning"}>{isSos ? "SOS" : "Request Help"}</StatusBadge>
-                          <StatusBadge tone={request.status === "claimed" ? "neutral" : "warning"}>
+                          <StatusBadge tone={request.status === "claimed" ? "neutral" : overdue ? "warning" : "warning"}>
                             {request.status === "claimed" ? "Převzato" : "Čeká na pomoc"}
+                          </StatusBadge>
+                          <StatusBadge tone={overdue ? "warning" : "neutral"}>
+                            čeká {waitLabel(request.createdAt)}{overdue ? " · déle než 5 min" : ""}
                           </StatusBadge>
                         </div>
                         <p className="mt-1 text-xs text-zinc-500">
-                          Tým: {request.teamName} · čeká {waitLabel(request.createdAt)}
+                          Tým: {request.teamName}
                         </p>
                         {request.note && <p className="mt-3 text-xs leading-relaxed text-zinc-300">„{request.note}“</p>}
                         {request.claimedByName && <p className="mt-2 text-[11px] text-zinc-500">Přebírá: {request.claimedByName}</p>}

@@ -12,9 +12,18 @@ ověřené. Ověřovací report je v
 Sandboxu a ověřené v prohlížeči jako Team Leader: uložení pod jménem, aplikace
 uložených filtrů jedním kliknutím, zvýraznění aktivního pohledu, perzistence po
 reloadu a smazání. Role gate zůstává `team_leader` / `administrator`; operátor
-nemá na Team Workspace přístup. Testy: 143 souborů / 660 testů, lint, typecheck
-i build prošly. Migrace `20260919090000_workspace_saved_views.sql` je v historii
-Sandboxu; dočasný Team Leader účet byl po ověření smazán.
+nemá na Team Workspace přístup. Migrace `20260919090000_workspace_saved_views.sql`
+je v historii Sandboxu; dočasný Team Leader účet byl po ověření smazán.
+
+**Aktualizace 19. 9. 2026:** Schválená Macaly předloha Team Checkpointu je
+implementovaná na `main` v jazyce stávajícího designového systému (pouze
+`Surface`/`MetricCard`/`StatusBadge`/`Button`, zinc default, `warning` jen pro
+čekání déle než 5 min, `danger` jen pro SOS odznak): 5minutová hranice s řazením
+podle naléhavosti v `TeamAssistancePanel`, klikací řádky výsledků do
+`TeamOperatorDetailPanel` (jen existující read model, bez vymyšlené historie
+hovorů) a read-only `TeamCheckpointHandoverPanel` bez uzavírací mutace.
+Asistence zůstává záměrně před KPI. Aktuální ověření: 145 souborů / 678 testů,
+lint, typecheck i build prošly.
 
 ## Zásady
 

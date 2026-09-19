@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { CalendarClock, Users } from "lucide-react";
 import { refreshTeamPageAction } from "@/app/actions/workspace";
 import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
@@ -10,6 +10,8 @@ import { TeamRosterPanel } from "@/components/team/TeamRosterPanel";
 import { TeamDailyCheckpointPanel } from "@/components/team/TeamDailyCheckpointPanel";
 import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel";
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
+import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
+import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { TeamPageData } from "@/lib/dal/teamPage";
 import {
@@ -152,6 +154,7 @@ function TeamWorkspaceContextBar({
 export function TeamPageContent({ currentUserId, role, data, initialView = "checkpoint" }: TeamPageContentProps) {
   const [refreshedState, setRefreshedState] = useState({ initialData: data, data });
   const [view, setView] = useState<TeamWorkspaceView>(initialView);
+  const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
   const [scope, setScope] = useState<TeamWorkspaceScopeInput>({
     periodKey: data.scope.periodKey,
     teamIds: data.scope.teamIds,
@@ -166,6 +169,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
 
   const applyScope = useCallback((next: TeamWorkspaceScopeInput) => {
     setScope(next);
+    setSelectedOperatorId(null);
     startTransition(() => {
       void refreshTeamPageAction(next)
         .then(replaceScopeData)
@@ -191,6 +195,34 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
     }, 5_000);
     return () => window.clearInterval(refreshTimer);
   }, [data, view, scope, replaceScopeData]);
+
+  const openAssistance = useMemo(
+    () => (assistanceSource?.status === "ready" ? assistanceSource.data : []),
+    [assistanceSource],
+  );
+  const qualityList = useMemo(
+    () => (currentData.qualityReviews.status === "ready" ? currentData.qualityReviews.data : []),
+    [currentData.qualityReviews],
+  );
+  const qualityPendingCount = useMemo(
+    () => qualityList.filter((review) => review.status === "review" || review.status === "pending").length,
+    [qualityList],
+  );
+
+  const operatorDetail: TeamOperatorDetailData | null = useMemo(() => {
+    if (!selectedOperatorId || currentData.checkpoint.status !== "ready") return null;
+    const checkpoint = currentData.checkpoint.data;
+    const metric = checkpoint.operatorMetrics.find((item) => item.operatorId === selectedOperatorId);
+    if (!metric) return null;
+    return {
+      metric,
+      orders: checkpoint.orders.filter((order) => order.operatorId === selectedOperatorId),
+      overdueCallbacks: checkpoint.overdueCallbacks.filter((callback) => callback.operatorName === metric.operatorName),
+      assistanceRequests: openAssistance.filter((request) => request.operatorId === selectedOperatorId),
+      qualityReviews: qualityList.filter((review) => review.operator?.id === selectedOperatorId),
+      qualityAvailable: currentData.qualityReviews.status === "ready",
+    };
+  }, [selectedOperatorId, currentData.checkpoint, currentData.qualityReviews, openAssistance, qualityList]);
 
   return (
     <div className="space-y-6">
@@ -235,7 +267,31 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
             <SourceUnavailablePanel title="Žádosti o asistenci nejsou dostupné" message="Signály od operátorů nejsou dostupné." />
           )}
           {currentData.checkpoint.status === "ready"
-            ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} periodKey={currentData.checkpoint.data.periodKey} />
+            ? operatorDetail
+              ? (
+                <TeamOperatorDetailPanel
+                  detail={operatorDetail}
+                  onBack={() => setSelectedOperatorId(null)}
+                  onOpenQuality={() => { setSelectedOperatorId(null); setView("quality"); }}
+                />
+              )
+              : (
+                <div className="space-y-6">
+                  <TeamDailyCheckpointPanel
+                    checkpoint={currentData.checkpoint.data}
+                    periodKey={currentData.checkpoint.data.periodKey}
+                    onSelectOperator={setSelectedOperatorId}
+                  />
+                  <TeamCheckpointHandoverPanel
+                    checkpoint={currentData.checkpoint.data}
+                    openAssistance={openAssistance}
+                    qualityPendingCount={qualityPendingCount}
+                    qualityAvailable={currentData.qualityReviews.status === "ready"}
+                    onOpenQueue={() => setView("queue")}
+                    onOpenQuality={() => setView("quality")}
+                  />
+                </div>
+              )
             : <SourceUnavailablePanel title="Daily Checkpoint unavailable" message="Daily Checkpoint is unavailable." />}
         </div>
       )}

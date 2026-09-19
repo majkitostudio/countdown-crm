@@ -54,7 +54,7 @@ function sourceIsUnavailable(source: TeamWorkspaceSourceState): boolean {
   return source.state === "unavailable";
 }
 
-export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKey = "today" }: { checkpoint: TeamWorkspaceCheckpoint; section?: "all" | "orders"; periodKey?: TeamWorkspacePeriodKey }) {
+export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKey = "today", onSelectOperator }: { checkpoint: TeamWorkspaceCheckpoint; section?: "all" | "orders"; periodKey?: TeamWorkspacePeriodKey; onSelectOperator?: (operatorId: string) => void }) {
   const periodLabel = TEAM_WORKSPACE_PERIOD_LABELS[periodKey] || TEAM_WORKSPACE_PERIOD_LABELS.today;
   const warnings = sourceWarnings(checkpoint.sources);
   const showOrders = section === "all" || section === "orders";
@@ -213,6 +213,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-zinc-400" aria-hidden="true" />
             <h3 id="checkpoint-results-heading" className="text-sm font-semibold text-zinc-100">Aktuální výsledky</h3>
+            {onSelectOperator && <span className="text-[11px] text-zinc-600">řádek rozklikne detail</span>}
           </div>
           {hasUnavailableMetrics && <StatusAlert tone="warning" role="status">Prodeje nebo hovory nejsou úplně dostupné. Čísla se nesmí chápat jako úplný výsledek.</StatusAlert>}
           {checkpoint.operatorMetrics.length === 0 ? (
@@ -225,8 +226,21 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
                 </thead>
                 <tbody className="divide-y divide-zinc-800/70">
                   {checkpoint.operatorMetrics.map((metric) => (
-                    <tr key={metric.operatorId} className="hover:bg-zinc-900/70">
-                      <td className="px-4 py-4 font-medium text-zinc-200">{metric.operatorName}</td>
+                    <tr key={metric.operatorId} className={onSelectOperator ? "hover:bg-zinc-900/70" : "hover:bg-zinc-900/70"}>
+                      <td className="px-4 py-4 font-medium text-zinc-200">
+                        {onSelectOperator ? (
+                          <button
+                            type="button"
+                            onClick={() => onSelectOperator(metric.operatorId)}
+                            className="rounded underline decoration-zinc-700 underline-offset-4 hover:text-zinc-100 hover:decoration-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+                            aria-label={`Detail operátora ${metric.operatorName}`}
+                          >
+                            {metric.operatorName}
+                          </button>
+                        ) : (
+                          metric.operatorName
+                        )}
+                      </td>
                       <td className="px-4 py-4 text-right font-mono text-zinc-300">{metric.sales}</td>
                       <td className="px-4 py-4 text-right font-mono text-zinc-300">{metric.fails}</td>
                       <td className="px-4 py-4 text-right font-mono text-zinc-300">{metric.conversionPercent === null ? "—" : `${metric.conversionPercent}%`}</td>
