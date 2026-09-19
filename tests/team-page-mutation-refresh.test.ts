@@ -67,6 +67,7 @@ const emptyTeamSources = {
   roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
   checkpoint: { status: "unavailable" as const, reason: "database" as const },
   qualityReviews: { status: "ready" as const, data: [] },
+  scope: { periodKey: "today" as const, teamIds: [], selectableTeams: [] },
 };
 
 type TeamMutationRunner = (

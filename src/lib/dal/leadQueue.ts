@@ -366,10 +366,13 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
   return { ...completion, workflowDispatches: [workflowDispatch] };
 }
 
-export async function listQueueItemsForWorkspace(workspaceId?: string): Promise<QueueItemDTO[]> {
+export async function listQueueItemsForWorkspace(
+  workspaceId?: string,
+  options?: { teamIds?: string[] },
+): Promise<QueueItemDTO[]> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
   const supabase = await createDataClient();
-  const { data, error } = await supabase
+  let queueQuery = supabase
     .from("lead_queue_items")
     .select(`
       id, workspace_id, team_id, lead_id, assigned_operator_id, preferred_operator_id,
@@ -381,8 +384,11 @@ export async function listQueueItemsForWorkspace(workspaceId?: string): Promise<
       assigned_operator:profiles!lead_queue_items_assigned_operator_id_fkey(id, full_name, email),
       preferred_operator:profiles!lead_queue_items_preferred_operator_id_fkey(id, full_name, email)
     `)
-    .eq("workspace_id", context.workspaceId)
-    .order("available_at", { ascending: true });
+    .eq("workspace_id", context.workspaceId);
+  if (options?.teamIds && options.teamIds.length > 0) {
+    queueQuery = queueQuery.in("team_id", options.teamIds);
+  }
+  const { data, error } = await queueQuery.order("available_at", { ascending: true });
 
   if (error) {
     throw new DataAccessError("DATABASE", "Lead queue could not be loaded");

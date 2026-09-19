@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   listWorkspaceOperators: vi.fn(),
   listWorkspaceMembers: vi.fn(),
   listAccessibleTeams: vi.fn(),
+  listSelectableWorkspaceTeams: vi.fn(),
+  listTeamOperatorIds: vi.fn(),
   listTeamMemberships: vi.fn(),
   listOperatorPresenceForWorkspace: vi.fn(),
   loadTeamWorkspaceCheckpoint: vi.fn(),
@@ -23,6 +25,8 @@ vi.mock("@/lib/dal/memberships", () => ({
 }));
 vi.mock("@/lib/dal/teams", () => ({
   listAccessibleTeams: mocks.listAccessibleTeams,
+  listSelectableWorkspaceTeams: mocks.listSelectableWorkspaceTeams,
+  listTeamOperatorIds: mocks.listTeamOperatorIds,
   listTeamMemberships: mocks.listTeamMemberships,
 }));
 vi.mock("@/lib/dal/operatorPresence", () => ({
@@ -47,6 +51,7 @@ async function refresh() {
 }
 
 const emptyCheckpoint = {
+  periodKey: "today",
   period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
   orders: [],
   overdueCallbacks: [],
@@ -60,6 +65,12 @@ const emptyCheckpoint = {
   },
 };
 
+const defaultScope = {
+  periodKey: "today",
+  teamIds: [],
+  selectableTeams: [],
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireWorkspaceContext.mockResolvedValue({ userId: "admin-1", workspaceId: "current-workspace", role: "administrator" });
@@ -67,6 +78,8 @@ beforeEach(() => {
   mocks.listWorkspaceOperators.mockResolvedValue([]);
   mocks.listWorkspaceMembers.mockResolvedValue([]);
   mocks.listAccessibleTeams.mockResolvedValue([]);
+  mocks.listSelectableWorkspaceTeams.mockResolvedValue([]);
+  mocks.listTeamOperatorIds.mockResolvedValue([]);
   mocks.listTeamMemberships.mockResolvedValue([]);
   mocks.listOperatorPresenceForWorkspace.mockResolvedValue([]);
   mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
@@ -88,11 +101,13 @@ describe("authenticated Team composite refresh", () => {
       checkpoint: { status: "ready", data: emptyCheckpoint },
       qualityReviews: { status: "ready", data: [] },
       assistanceRequests: { status: "ready", data: [] },
+      scope: defaultScope,
     });
     expect(mocks.requireWorkspaceContext).toHaveBeenCalledWith();
-    expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("current-workspace");
+    expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("current-workspace", {});
     expect(mocks.listWorkspaceOperators).toHaveBeenCalledWith("current-workspace");
-    expect(mocks.listOperatorPresenceForWorkspace).toHaveBeenCalledWith("current-workspace");
+    expect(mocks.listSelectableWorkspaceTeams).toHaveBeenCalledWith("current-workspace");
+    expect(mocks.listOperatorPresenceForWorkspace).toHaveBeenCalledWith("current-workspace", {});
     expect(mocks.listAccessibleTeams).toHaveBeenCalledWith("current-workspace");
     expect(mocks.listWorkspaceMembers).toHaveBeenCalledWith("current-workspace");
   });
@@ -109,8 +124,30 @@ describe("authenticated Team composite refresh", () => {
       checkpoint: { status: "ready", data: emptyCheckpoint },
       qualityReviews: { status: "ready", data: [] },
       assistanceRequests: { status: "ready", data: [] },
+      scope: defaultScope,
     });
     expect(mocks.listWorkspaceMembers).not.toHaveBeenCalled();
+  });
+
+  it("passes a client-supplied scope into the composite loader", async () => {
+    mocks.requireWorkspaceContext.mockResolvedValue({ userId: "admin-1", workspaceId: "current-workspace", role: "administrator" });
+    mocks.listSelectableWorkspaceTeams.mockResolvedValue([
+      { id: "team-a", name: "Tým A", workspace_id: "current-workspace", slug: "tym-a", status: "active", created_at: "", updated_at: "" },
+      { id: "team-b", name: "Tým B", workspace_id: "current-workspace", slug: "tym-b", status: "active", created_at: "", updated_at: "" },
+    ]);
+    mocks.listTeamOperatorIds.mockResolvedValue(["operator-1"]);
+
+    await expect(actions.refreshTeamPageAction({ periodKey: "month", teamIds: ["team-a"] })).resolves.toMatchObject({
+      scope: { periodKey: "month", teamIds: ["team-a"], selectableTeams: [
+        { id: "team-a", name: "Tým A" },
+        { id: "team-b", name: "Tým B" },
+      ] },
+    });
+    expect(mocks.loadTeamWorkspaceCheckpoint).toHaveBeenCalledWith(
+      { userId: "admin-1", workspaceId: "current-workspace", role: "administrator" },
+      { periodKey: "month", operatorIds: ["operator-1"] },
+    );
+    expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("current-workspace", { teamIds: ["team-a"] });
   });
 
   it("rejects an operator before requesting any source", async () => {

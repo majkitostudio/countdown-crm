@@ -10,6 +10,7 @@ import {
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import { loadTeamPageData, type TeamPageData } from "@/lib/dal/teamPage";
+import type { TeamWorkspaceScopeInput } from "@/lib/teamWorkspaceScope";
 
 export async function getCurrentWorkspaceContextAction() {
   const context = await requireWorkspaceContext();
@@ -28,9 +29,9 @@ export async function listWorkspaceOperatorsAction(): Promise<WorkspaceMemberDTO
   return listWorkspaceOperators();
 }
 
-export async function refreshTeamPageAction(): Promise<TeamPageData> {
+export async function refreshTeamPageAction(scopeInput?: TeamWorkspaceScopeInput): Promise<TeamPageData> {
   const context = await requireWorkspaceContext();
-  return loadTeamPageData(context);
+  return loadTeamPageData(context, scopeInput);
 }
 
 export async function updateWorkspaceMemberRoleAction(

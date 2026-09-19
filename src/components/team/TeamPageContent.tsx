@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { CalendarClock, Users } from "lucide-react";
 import { refreshTeamPageAction } from "@/app/actions/workspace";
 import { TeamMembersPanel } from "@/components/team/TeamMembersPanel";
@@ -12,6 +12,12 @@ import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { TeamPageData } from "@/lib/dal/teamPage";
+import {
+  TEAM_WORKSPACE_PERIOD_KEYS,
+  TEAM_WORKSPACE_PERIOD_LABELS,
+  type TeamWorkspacePeriodKey,
+  type TeamWorkspaceScopeInput,
+} from "@/lib/teamWorkspaceScope";
 
 interface TeamPageContentProps {
   currentUserId: string;
@@ -62,27 +68,79 @@ function SourceUnavailablePanel({ title, message }: { title: string; message: st
   );
 }
 
-function TeamWorkspaceContextBar({ data }: { data: TeamPageData }) {
-  const teamNames = data.roster.status === "ready"
-    ? data.roster.data.teams.map((team) => team.name).join(", ")
-    : "Týmy nejsou dostupné";
+function TeamWorkspaceContextBar({
+  periodKey,
+  teamIds,
+  selectableTeams,
+  isPending,
+  onScopeChange,
+}: {
+  periodKey: TeamWorkspacePeriodKey;
+  teamIds: string[];
+  selectableTeams: Array<{ id: string; name: string }>;
+  isPending: boolean;
+  onScopeChange: (next: TeamWorkspaceScopeInput) => void;
+}) {
+  const selectTeam = (teamId: string) => {
+    const selected = teamIds.includes(teamId);
+    const nextTeamIds = selected ? teamIds.filter((id) => id !== teamId) : [...teamIds, teamId];
+    onScopeChange({ periodKey, teamIds: nextTeamIds });
+  };
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-xs sm:flex-row sm:items-center">
-      <div className="flex items-center gap-2">
+      <label className="flex items-center gap-2">
         <span className="text-zinc-500">Období</span>
-        <span className="font-medium text-zinc-200">Dnes</span>
-      </div>
+        <select
+          value={periodKey}
+          onChange={(event) => onScopeChange({ periodKey: event.target.value as TeamWorkspacePeriodKey, teamIds })}
+          className="rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 py-1.5 font-medium text-zinc-200"
+          aria-label="Zobrazované období"
+        >
+          {TEAM_WORKSPACE_PERIOD_KEYS.map((key) => (
+            <option key={key} value={key}>{TEAM_WORKSPACE_PERIOD_LABELS[key]}</option>
+          ))}
+        </select>
+      </label>
       <span className="hidden h-5 border-l border-zinc-800 sm:block" aria-hidden="true" />
-      <div className="flex min-w-0 items-center gap-2">
-        <Users className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
-        <span className="text-zinc-500">Povolené týmy</span>
-        <span className="truncate font-medium text-zinc-200">{teamNames}</span>
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <span className="flex items-center gap-1.5 text-zinc-500">
+          <Users className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
+          Povolené týmy
+        </span>
+        {selectableTeams.length === 0 ? (
+          <span className="text-zinc-600">Žádné týmy</span>
+        ) : (
+          selectableTeams.map((team) => {
+            const selected = teamIds.includes(team.id);
+            return (
+              <button
+                key={team.id}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => selectTeam(team.id)}
+                className={selected
+                  ? "rounded-full bg-zinc-100 px-2.5 py-1 font-medium text-zinc-950"
+                  : "rounded-full border border-zinc-700 px-2.5 py-1 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"}
+              >
+                {team.name}
+              </button>
+            );
+          })
+        )}
       </div>
-      <span className="flex items-center gap-2 text-zinc-500 sm:ml-auto">
-        <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden="true" />
-        Týmová data
-      </span>
+      {isPending && (
+        <span className="flex items-center gap-2 text-zinc-500 sm:ml-auto" role="status">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-500" aria-hidden="true" />
+          Načítám…
+        </span>
+      )}
+      {!isPending && (
+        <span className="flex items-center gap-2 text-zinc-500 sm:ml-auto">
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden="true" />
+          Týmová data
+        </span>
+      )}
       <span className="flex items-center gap-1.5 text-zinc-600" title="Plánování směn bude samostatná část systému">
         <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
         Směny samostatně
@@ -94,26 +152,45 @@ function TeamWorkspaceContextBar({ data }: { data: TeamPageData }) {
 export function TeamPageContent({ currentUserId, role, data, initialView = "checkpoint" }: TeamPageContentProps) {
   const [refreshedState, setRefreshedState] = useState({ initialData: data, data });
   const [view, setView] = useState<TeamWorkspaceView>(initialView);
+  const [scope, setScope] = useState<TeamWorkspaceScopeInput>({
+    periodKey: data.scope.periodKey,
+    teamIds: data.scope.teamIds,
+  });
+  const [isRefreshing, startTransition] = useTransition();
   const currentData = selectCurrentTeamPageData(refreshedState, data);
   const assistanceSource = currentData.assistanceRequests;
+
+  const replaceScopeData = useCallback((nextData: TeamPageData) => {
+    setRefreshedState({ initialData: data, data: nextData });
+  }, [data]);
+
+  const applyScope = useCallback((next: TeamWorkspaceScopeInput) => {
+    setScope(next);
+    startTransition(() => {
+      void refreshTeamPageAction(next)
+        .then(replaceScopeData)
+        .catch(() => setScope({ periodKey: data.scope.periodKey, teamIds: data.scope.teamIds }));
+    });
+  }, [data, replaceScopeData]);
+
   const runMutation = useCallback<TeamMutationHandler>(
     (mutation) => runTeamMutationAndRefresh(
       mutation,
-      refreshTeamPageAction,
-      (nextData) => setRefreshedState({ initialData: data, data: nextData }),
+      () => refreshTeamPageAction(scope),
+      replaceScopeData,
     ),
-    [data],
+    [replaceScopeData, scope],
   );
 
   useEffect(() => {
     if (view !== "checkpoint") return;
     const refreshTimer = window.setInterval(() => {
-      void refreshTeamPageAction()
-        .then((nextData) => setRefreshedState({ initialData: data, data: nextData }))
+      void refreshTeamPageAction(scope)
+        .then(replaceScopeData)
         .catch(() => undefined);
     }, 5_000);
     return () => window.clearInterval(refreshTimer);
-  }, [data, view]);
+  }, [data, view, scope, replaceScopeData]);
 
   return (
     <div className="space-y-6">
@@ -139,7 +216,13 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
         </div>
       </nav>
 
-      <TeamWorkspaceContextBar data={currentData} />
+      <TeamWorkspaceContextBar
+        periodKey={scope.periodKey ?? currentData.scope.periodKey}
+        teamIds={scope.teamIds ?? currentData.scope.teamIds}
+        selectableTeams={currentData.scope.selectableTeams}
+        isPending={isRefreshing}
+        onScopeChange={applyScope}
+      />
 
       {view === "checkpoint" && (
         <div className="space-y-6">
@@ -152,7 +235,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
             <SourceUnavailablePanel title="Žádosti o asistenci nejsou dostupné" message="Signály od operátorů nejsou dostupné." />
           )}
           {currentData.checkpoint.status === "ready"
-            ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} />
+            ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} periodKey={currentData.checkpoint.data.periodKey} />
             : <SourceUnavailablePanel title="Daily Checkpoint unavailable" message="Daily Checkpoint is unavailable." />}
         </div>
       )}
@@ -165,7 +248,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
 
       {view === "orders" && (
         currentData.checkpoint.status === "ready"
-          ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} section="orders" />
+          ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} section="orders" periodKey={currentData.checkpoint.data.periodKey} />
           : <SourceUnavailablePanel title="Orders unavailable" message="Team orders are unavailable." />
       )}
 

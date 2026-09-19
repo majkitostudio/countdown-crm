@@ -33,11 +33,11 @@ const queueItem = {
   preferred_operator: null,
 };
 
-function render(data: TeamPageData, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" = "queue"): string {
+function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" = "queue"): string {
   return renderToStaticMarkup(React.createElement(TeamPageContent, {
     currentUserId: "leader-1",
     role,
-    data,
+    data: { ...data, scope: { periodKey: "today", teamIds: [], selectableTeams: [] } },
     initialView,
   }));
 }

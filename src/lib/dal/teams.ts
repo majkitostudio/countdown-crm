@@ -74,6 +74,100 @@ export async function listAccessibleTeams(requestedWorkspaceId?: string): Promis
   return (data || []) as TeamDTO[];
 }
 
+const TEAM_SELECT_COLUMNS = "id, workspace_id, name, slug, status, created_at, updated_at";
+
+/**
+ * The teams the current user is allowed to work with in the Team Workspace.
+ * Administrators may select every active team; a Team Leader only the active
+ * teams they lead. This never trusts the client and is the validation set for
+ * every team-scoped query.
+ */
+export async function listSelectableWorkspaceTeams(requestedWorkspaceId?: string): Promise<TeamDTO[]> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
+  const supabase = await createDataClient();
+
+  const load = supabase
+    .from("teams")
+    .select(TEAM_SELECT_COLUMNS)
+    .eq("workspace_id", context.workspaceId)
+    .eq("status", "active")
+    .order("name", { ascending: true });
+
+  if (context.role === "administrator") {
+    const { data, error } = await load;
+    if (error) {
+      throw new DataAccessError("DATABASE", "Selectable teams could not be loaded");
+    }
+    return (data || []) as TeamDTO[];
+  }
+
+  const now = Date.now();
+  const { data: ledTeams, error: ledTeamsError } = await supabase
+    .from("team_memberships")
+    .select("team_id, active_from, active_until")
+    .eq("workspace_id", context.workspaceId)
+    .eq("user_id", context.userId)
+    .eq("membership_role", "leader");
+
+  if (ledTeamsError) {
+    throw new DataAccessError("DATABASE", "Led teams could not be loaded");
+  }
+
+  const teamIds = [...new Set(
+    (ledTeams || [])
+      .filter((membership) => Date.parse(membership.active_from) <= now && (!membership.active_until || Date.parse(membership.active_until) > now))
+      .map((membership) => membership.team_id),
+  )];
+
+  if (teamIds.length === 0) return [];
+  const { data, error } = await load.in("id", teamIds);
+  if (error) {
+    throw new DataAccessError("DATABASE", "Selectable teams could not be loaded");
+  }
+  return (data || []) as TeamDTO[];
+}
+
+/**
+ * Operator user ids (active operators in the workspace) for a strict subset of
+ * selectable teams. Used to scope orders, calls, quality reviews and presence
+ * to what a chosen team filter may actually see.
+ */
+export async function listTeamOperatorIds(
+  requestedWorkspaceId: string,
+  teamIds: string[],
+): Promise<string[]> {
+  if (teamIds.length === 0) return [];
+  const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
+  const supabase = await createDataClient();
+
+  const now = Date.now();
+  const [teamMemberships, workspaceOperators] = await Promise.all([
+    supabase
+      .from("team_memberships")
+      .select("user_id, active_from, active_until")
+      .eq("workspace_id", context.workspaceId)
+      .eq("membership_role", "member")
+      .in("team_id", teamIds),
+    supabase
+      .from("workspace_members")
+      .select("user_id")
+      .eq("workspace_id", context.workspaceId)
+      .eq("role", "operator"),
+  ]);
+
+  if (teamMemberships.error || workspaceOperators.error) {
+    throw new DataAccessError("DATABASE", "Team operators could not be loaded");
+  }
+
+  const operatorIds = new Set((workspaceOperators.data || []).map((membership) => membership.user_id));
+  return [...new Set(
+    (teamMemberships.data || [])
+      .filter((membership) => Date.parse(membership.active_from) <= now && (!membership.active_until || Date.parse(membership.active_until) > now))
+      .map((membership) => membership.user_id)
+      .filter((userId) => operatorIds.has(userId)),
+  )];
+}
+
 export async function listTeamMemberships(
   teamId: string,
   requestedWorkspaceId?: string,

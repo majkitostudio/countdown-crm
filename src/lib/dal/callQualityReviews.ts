@@ -240,7 +240,7 @@ export async function reviewCompletedCallForWorkspace(callId: string, workspaceI
   }
 }
 
-async function loadCallQualityReviews(context: WorkspaceContext): Promise<CallQualityReviewDTO[]> {
+async function loadCallQualityReviews(context: WorkspaceContext, operatorIds?: string[]): Promise<CallQualityReviewDTO[]> {
   const supabase = await createDataClient();
   const { data: qualityData, error: qualityError } = await supabase
     .from("call_quality_reviews")
@@ -254,11 +254,15 @@ async function loadCallQualityReviews(context: WorkspaceContext): Promise<CallQu
   const callIds = qualityRows.map((row) => row.call_id);
   if (callIds.length === 0) return [];
 
-  const { data: callsData, error: callsError } = await supabase
+  let callsQuery = supabase
     .from("calls")
     .select("id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, transcript, created_at")
     .eq("workspace_id", context.workspaceId)
     .in("id", callIds);
+  if (operatorIds && operatorIds.length > 0) {
+    callsQuery = callsQuery.in("agent_id", operatorIds);
+  }
+  const { data: callsData, error: callsError } = await callsQuery;
   if (callsError) throw new DataAccessError("DATABASE", "Calls for AI quality reviews could not be loaded.");
 
   const calls = (callsData || []) as unknown as CallQualitySourceRow[];
@@ -283,7 +287,10 @@ async function loadCallQualityReviews(context: WorkspaceContext): Promise<CallQu
   });
 }
 
-export async function listCallQualityReviewsForWorkspace(workspaceId?: string): Promise<CallQualityReviewDTO[]> {
+export async function listCallQualityReviewsForWorkspace(
+  workspaceId?: string,
+  options?: { operatorIds?: string[] },
+): Promise<CallQualityReviewDTO[]> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"], workspaceId);
-  return loadCallQualityReviews(context);
+  return loadCallQualityReviews(context, options?.operatorIds);
 }

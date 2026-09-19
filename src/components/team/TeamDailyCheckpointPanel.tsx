@@ -7,6 +7,7 @@ import type { TeamWorkspaceCheckpoint, TeamWorkspaceSourceState } from "@/lib/da
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { TEAM_WORKSPACE_PERIOD_LABELS, type TeamWorkspacePeriodKey } from "@/lib/teamWorkspaceScope";
 
 function formatDuration(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -53,7 +54,8 @@ function sourceIsUnavailable(source: TeamWorkspaceSourceState): boolean {
   return source.state === "unavailable";
 }
 
-export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { checkpoint: TeamWorkspaceCheckpoint; section?: "all" | "orders" }) {
+export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKey = "today" }: { checkpoint: TeamWorkspaceCheckpoint; section?: "all" | "orders"; periodKey?: TeamWorkspacePeriodKey }) {
+  const periodLabel = TEAM_WORKSPACE_PERIOD_LABELS[periodKey] || TEAM_WORKSPACE_PERIOD_LABELS.today;
   const warnings = sourceWarnings(checkpoint.sources);
   const showOrders = section === "all" || section === "orders";
   const showCallbacks = section === "all";
@@ -90,11 +92,11 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">{section === "orders" ? "Objednávky" : "Daily Checkpoint"}</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                {section === "orders" ? "Objednávky vytvořené dnes v povoleném týmovém rozsahu." : "Týmový přehled dnešních objednávek, prošlých callbacků a aktuálních výsledků operátorů."}
+                {section === "orders" ? "Objednávky vytvořené v zvoleném období v povoleném týmovém rozsahu." : "Týmový přehled objednávek, prošlých callbacků a aktuálních výsledků operátorů v zvoleném období."}
               </p>
             </div>
           </div>
-          <StatusBadge tone="neutral">Dnes · Týmová data</StatusBadge>
+          <StatusBadge tone="neutral">{periodLabel} · Týmová data</StatusBadge>
         </div>
 
         {isOrdersView && checkpoint.sources.orders.state === "ready" && (
@@ -138,10 +140,10 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
         )}
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail="Vytvořené dnes v týmu" />
+          <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail={`Vytvořené v období „${periodLabel.toLowerCase()}“ v týmu`} />
           <MetricCard label="Prošlé callbacky" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
           <MetricCard label="Aktivní operátoři" value={checkpoint.operatorMetrics.length} detail="V povoleném rozsahu" />
-          <MetricCard label="Prodeje dnes" value={checkpoint.sources.calls.state === "ready" ? totalSales : "—"} detail="Včetně post-call objednávek" />
+          <MetricCard label="Prodeje" value={checkpoint.sources.calls.state === "ready" ? totalSales : "—"} detail={`Za zvolené období (${periodLabel.toLowerCase()})`} />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -153,7 +155,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all" }: { chec
           {checkpoint.sources.orders.state === "unavailable" ? (
             <UnavailableRow message="Objednávky nejsou dostupné. Přehled nevytváří náhradní nuly." />
           ) : visibleOrders.length === 0 ? (
-            <EmptyRow message={hasOrderFilters ? "Zvoleným filtrům neodpovídají žádné objednávky." : "Dnes nejsou v tomto týmovém rozsahu žádné nové objednávky."} />
+            <EmptyRow message={hasOrderFilters ? "Zvoleným filtrům neodpovídají žádné objednávky." : "V tomto týmovém rozsahu a zvoleném období nejsou žádné nové objednávky."} />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
               <table className="w-full min-w-180 text-left text-xs">

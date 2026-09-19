@@ -15,6 +15,11 @@ import { createDataClient } from "./db";
 import { listScheduledCallbacksForWorkspace, type ScheduledCallbackDTO } from "./leadQueue";
 import { listWorkspaceOperators, type WorkspaceMemberDTO } from "./memberships";
 import type { WorkspaceContext } from "./workspace";
+import {
+  isTeamWorkspacePeriodKey,
+  periodBoundsForPeriodKey,
+  type TeamWorkspacePeriodKey,
+} from "@/lib/teamWorkspaceScope";
 
 export type TeamWorkspaceSourceState =
   | { state: "ready" }
@@ -40,6 +45,7 @@ export interface TeamWorkspaceCallbackSummary {
 }
 
 export interface TeamWorkspaceCheckpoint {
+  periodKey: TeamWorkspacePeriodKey;
   period: TeamWorkspacePeriod;
   orders: TeamWorkspaceOrderSummary[];
   overdueCallbacks: TeamWorkspaceCallbackSummary[];
@@ -85,14 +91,6 @@ type TelephonyActivityRow = {
   ended_at: string | null;
   created_at: string;
 };
-
-function utcDayPeriod(now: Date): TeamWorkspacePeriod {
-  const date = now.toISOString().slice(0, 10);
-  const from = `${date}T00:00:00.000Z`;
-  const nextDay = new Date(`${date}T00:00:00.000Z`);
-  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-  return { from, to: nextDay.toISOString() };
-}
 
 function ready(): TeamWorkspaceSourceState {
   return { state: "ready" };
@@ -233,16 +231,33 @@ function mapOrders(rows: OrderRow[], operators: WorkspaceMemberDTO[]): TeamWorks
   }));
 }
 
+export interface TeamWorkspaceCheckpointOptions {
+  periodKey?: TeamWorkspacePeriodKey;
+  /** Strict subset of the user's selectable operators. Empty means "all". */
+  operatorIds?: string[];
+  now?: Date;
+}
+
+function isInOperatorScope(operatorId: string | null, allowed: Set<string>): boolean {
+  return operatorId !== null && allowed.has(operatorId);
+}
+
 export async function loadTeamWorkspaceCheckpoint(
   context: WorkspaceContext,
-  now = new Date(),
+  options: TeamWorkspaceCheckpointOptions = {},
 ): Promise<TeamWorkspaceCheckpoint> {
   if (!isTeamLeaderOrAdministrator(context.role)) {
     throw new DataAccessError("FORBIDDEN", "Insufficient workspace permissions");
   }
 
-  const period = utcDayPeriod(now);
-  const operators = await listWorkspaceOperators(context.workspaceId);
+  const now = options.now || new Date();
+  const periodKey = options.periodKey && isTeamWorkspacePeriodKey(options.periodKey) ? options.periodKey : "today";
+  const period = periodBoundsForPeriodKey(periodKey, now);
+  const operatorIds = [...new Set(options.operatorIds || [])];
+  const allowedOperators = operatorIds.length ? new Set(operatorIds) : null;
+
+  const operators = (await listWorkspaceOperators(context.workspaceId))
+    .filter((operator) => allowedOperators === null || isInOperatorScope(operator.user_id, allowedOperators));
   const [ordersResult, callsResult, queueActivitiesResult, telephonyActivitiesResult, callbacksResult] = await Promise.allSettled([
     loadOrders(context.workspaceId, period),
     loadCalls(context.workspaceId, period),
@@ -251,11 +266,16 @@ export async function loadTeamWorkspaceCheckpoint(
     listScheduledCallbacksForWorkspace(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), now.toISOString(), context.workspaceId),
   ]);
 
-  const orders = ordersResult.status === "fulfilled" ? ordersResult.value : [];
-  const calls = callsResult.status === "fulfilled" ? callsResult.value : [];
-  const queueActivities = queueActivitiesResult.status === "fulfilled" ? queueActivitiesResult.value : [];
-  const telephonyActivities = telephonyActivitiesResult.status === "fulfilled" ? telephonyActivitiesResult.value : [];
-  const callbacks = callbacksResult.status === "fulfilled" ? callbacksResult.value : [];
+  const orders = (ordersResult.status === "fulfilled" ? ordersResult.value : [])
+    .filter((order) => allowedOperators === null || isInOperatorScope(order.agent_id, allowedOperators));
+  const calls = (callsResult.status === "fulfilled" ? callsResult.value : [])
+    .filter((call) => allowedOperators === null || isInOperatorScope(call.agent_id, allowedOperators));
+  const queueActivities = (queueActivitiesResult.status === "fulfilled" ? queueActivitiesResult.value : [])
+    .filter((activity) => allowedOperators === null || isInOperatorScope(activity.assigned_operator_id, allowedOperators));
+  const telephonyActivities = (telephonyActivitiesResult.status === "fulfilled" ? telephonyActivitiesResult.value : [])
+    .filter((activity) => allowedOperators === null || isInOperatorScope(activity.operator_id, allowedOperators));
+  const callbacks = (callbacksResult.status === "fulfilled" ? callbacksResult.value : [])
+    .filter((callback) => allowedOperators === null || isInOperatorScope(callback.preferred_operator_id, allowedOperators));
 
   const metricInput = {
     operators: toOperatorMetricInput(operators),
@@ -287,6 +307,7 @@ export async function loadTeamWorkspaceCheckpoint(
   } satisfies TeamWorkspaceCheckpoint["sources"];
 
   return {
+    periodKey,
     period,
     orders: mapOrders(orders, operators),
     overdueCallbacks: mapCallbacks(callbacks, now),
