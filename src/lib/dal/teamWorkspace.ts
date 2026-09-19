@@ -44,12 +44,25 @@ export interface TeamWorkspaceCallbackSummary {
   operatorName: string | null;
 }
 
+export interface TeamWorkspaceRecentCall {
+  id: string;
+  operatorId: string | null;
+  outcome: TeamWorkspaceCall["outcome"];
+  durationSeconds: number;
+  createdAt: string;
+}
+
+/** Kolik posledních hovorů se drží v checkpointu pro detail operátora. */
+export const TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR = 10;
+
 export interface TeamWorkspaceCheckpoint {
   periodKey: TeamWorkspacePeriodKey;
   period: TeamWorkspacePeriod;
   orders: TeamWorkspaceOrderSummary[];
   overdueCallbacks: TeamWorkspaceCallbackSummary[];
+  upcomingCallbacks: TeamWorkspaceCallbackSummary[];
   operatorMetrics: TeamWorkspaceOperatorMetrics[];
+  recentCallsByOperator: Record<string, TeamWorkspaceRecentCall[]>;
   sources: {
     orders: TeamWorkspaceSourceState;
     calls: TeamWorkspaceSourceState;
@@ -73,6 +86,7 @@ type CallRow = {
   id: string;
   agent_id: string | null;
   outcome: TeamWorkspaceCall["outcome"];
+  duration_seconds: number | null;
   created_at: string;
 };
 
@@ -131,7 +145,7 @@ async function loadCalls(
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("calls")
-    .select("id, agent_id, outcome, created_at")
+    .select("id, agent_id, outcome, duration_seconds, created_at")
     .eq("workspace_id", workspaceId)
     .gte("created_at", period.from)
     .lt("created_at", period.to)
@@ -205,16 +219,40 @@ function mapActivities(
   return activities;
 }
 
-function mapCallbacks(callbacks: ScheduledCallbackDTO[], now: Date): TeamWorkspaceCallbackSummary[] {
-  return callbacks
-    .filter((callback) => Date.parse(callback.scheduled_at) < now.getTime())
-    .map((callback) => ({
-      id: callback.id,
-      leadId: callback.lead_id,
-      leadName: callback.lead.full_name,
-      scheduledAt: callback.scheduled_at,
-      operatorName: callback.preferred_operator?.full_name || null,
-    }));
+function mapOverdueCallbacks(callbacks: ScheduledCallbackDTO[], now: Date): TeamWorkspaceCallbackSummary[] {
+  return mapCallbackSummaries(callbacks.filter((callback) => Date.parse(callback.scheduled_at) < now.getTime()));
+}
+
+function mapUpcomingCallbacks(callbacks: ScheduledCallbackDTO[], now: Date): TeamWorkspaceCallbackSummary[] {
+  return mapCallbackSummaries(callbacks.filter((callback) => Date.parse(callback.scheduled_at) >= now.getTime()));
+}
+
+function mapCallbackSummaries(callbacks: ScheduledCallbackDTO[]): TeamWorkspaceCallbackSummary[] {
+  return callbacks.map((callback) => ({
+    id: callback.id,
+    leadId: callback.lead_id,
+    leadName: callback.lead.full_name,
+    scheduledAt: callback.scheduled_at,
+    operatorName: callback.preferred_operator?.full_name || null,
+  }));
+}
+
+function mapRecentCallsByOperator(calls: CallRow[]): Record<string, TeamWorkspaceRecentCall[]> {
+  const grouped: Record<string, TeamWorkspaceRecentCall[]> = {};
+  for (const call of calls) {
+    if (call.agent_id === null) continue;
+    const list = grouped[call.agent_id] || [];
+    if (list.length >= TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR) continue;
+    list.push({
+      id: call.id,
+      operatorId: call.agent_id,
+      outcome: call.outcome,
+      durationSeconds: Number(call.duration_seconds || 0),
+      createdAt: call.created_at,
+    });
+    grouped[call.agent_id] = list;
+  }
+  return grouped;
 }
 
 function mapOrders(rows: OrderRow[], operators: WorkspaceMemberDTO[]): TeamWorkspaceOrderSummary[] {
@@ -258,12 +296,14 @@ export async function loadTeamWorkspaceCheckpoint(
 
   const operators = (await listWorkspaceOperators(context.workspaceId))
     .filter((operator) => allowedOperators === null || isInOperatorScope(operator.user_id, allowedOperators));
-  const [ordersResult, callsResult, queueActivitiesResult, telephonyActivitiesResult, callbacksResult] = await Promise.allSettled([
+  const overdueWindowStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const [ordersResult, callsResult, queueActivitiesResult, telephonyActivitiesResult, overdueCallbacksResult, upcomingCallbacksResult] = await Promise.allSettled([
     loadOrders(context.workspaceId, period),
     loadCalls(context.workspaceId, period),
     loadQueueActivities(context.workspaceId, period),
     loadTelephonyActivities(context.workspaceId, period),
-    listScheduledCallbacksForWorkspace(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), now.toISOString(), context.workspaceId),
+    listScheduledCallbacksForWorkspace(overdueWindowStart, now.toISOString(), context.workspaceId),
+    listScheduledCallbacksForWorkspace(now.toISOString(), period.to, context.workspaceId),
   ]);
 
   const orders = (ordersResult.status === "fulfilled" ? ordersResult.value : [])
@@ -274,7 +314,9 @@ export async function loadTeamWorkspaceCheckpoint(
     .filter((activity) => allowedOperators === null || isInOperatorScope(activity.assigned_operator_id, allowedOperators));
   const telephonyActivities = (telephonyActivitiesResult.status === "fulfilled" ? telephonyActivitiesResult.value : [])
     .filter((activity) => allowedOperators === null || isInOperatorScope(activity.operator_id, allowedOperators));
-  const callbacks = (callbacksResult.status === "fulfilled" ? callbacksResult.value : [])
+  const overdueCallbacks = (overdueCallbacksResult.status === "fulfilled" ? overdueCallbacksResult.value : [])
+    .filter((callback) => allowedOperators === null || isInOperatorScope(callback.preferred_operator_id, allowedOperators));
+  const upcomingCallbacks = (upcomingCallbacksResult.status === "fulfilled" ? upcomingCallbacksResult.value : [])
     .filter((callback) => allowedOperators === null || isInOperatorScope(callback.preferred_operator_id, allowedOperators));
 
   const metricInput = {
@@ -299,7 +341,9 @@ export async function loadTeamWorkspaceCheckpoint(
   const sources = {
     orders: ordersResult.status === "fulfilled" ? ready() : unavailable("New team orders could not be loaded."),
     calls: callsResult.status === "fulfilled" ? ready() : unavailable("Team calls could not be loaded."),
-    callbacks: callbacksResult.status === "fulfilled" ? ready() : unavailable("Overdue callbacks could not be loaded."),
+    callbacks: overdueCallbacksResult.status === "fulfilled" && upcomingCallbacksResult.status === "fulfilled"
+      ? ready()
+      : unavailable("Callbacks could not be fully loaded."),
     activities: queueActivitiesResult.status === "fulfilled" && telephonyActivitiesResult.status === "fulfilled"
       ? ready()
       : unavailable("Talk Time activity could not be fully loaded."),
@@ -310,8 +354,10 @@ export async function loadTeamWorkspaceCheckpoint(
     periodKey,
     period,
     orders: mapOrders(orders, operators),
-    overdueCallbacks: mapCallbacks(callbacks, now),
+    overdueCallbacks: mapOverdueCallbacks(overdueCallbacks, now),
+    upcomingCallbacks: mapUpcomingCallbacks(upcomingCallbacks, now),
     operatorMetrics: buildTeamWorkspaceOperatorMetrics(metricInput),
+    recentCallsByOperator: mapRecentCallsByOperator(calls),
     sources,
   };
 }

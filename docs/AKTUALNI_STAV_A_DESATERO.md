@@ -449,6 +449,11 @@ mimo tuto týmovou plochu a patří administrátorovi.
    Konec směny je read-only předání bez falešného dokončovacího workflow.
    Asistence zůstává záměrně první, před KPI. Ověřeno 145 souborů / 678 testů,
    lint, typecheck, build.
+   **Follow-up na `main` (19. 9. 2026):** detail operátora ukazuje skutečnou
+   historii hovorů z team-scoped read modelu (`recentCallsByOperator`, max 10,
+   s odkazem do Call Review) a checkpoint hlásí i naplánované callbacky
+   v období (`upcomingCallbacks`). Ověřeno 145 souborů / 680 testů, lint,
+   typecheck, build.
 2. **Dokončen ověřovací průchod `/team` v Sandboxu** (19. 9. 2026): autentizovaný
    Team Leader, administrátor a operátor, včetně přímé URL, cross-team odmítnutí,
    reloadu, prázdných stavů a AI panelu. Dočasné účty byly smazány; důkaz je

@@ -218,6 +218,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
       metric,
       orders: checkpoint.orders.filter((order) => order.operatorId === selectedOperatorId),
       overdueCallbacks: checkpoint.overdueCallbacks.filter((callback) => callback.operatorName === metric.operatorName),
+      recentCalls: checkpoint.recentCallsByOperator[selectedOperatorId] || [],
       assistanceRequests: openAssistance.filter((request) => request.operatorId === selectedOperatorId),
       qualityReviews: qualityList.filter((review) => review.operator?.id === selectedOperatorId),
       qualityAvailable: currentData.qualityReviews.status === "ready",

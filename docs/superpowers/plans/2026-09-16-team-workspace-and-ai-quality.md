@@ -25,6 +25,13 @@ hovorů) a read-only `TeamCheckpointHandoverPanel` bez uzavírací mutace.
 Asistence zůstává záměrně před KPI. Aktuální ověření: 145 souborů / 678 testů,
 lint, typecheck i build prošly.
 
+**Aktualizace 19. 9. 2026:** follow-up návrhů z review předlohy. Checkpoint read
+model nově nese `recentCallsByOperator` (team-scoped hovory operátora v období,
+max 10, včetně `duration_seconds`, s odkazem do Call Review v detailu operátora)
+a `upcomingCallbacks` (naplánované callbacky od teď do konce období, stejný team
+scope jako prošlé). Callback zdroj je `ready` jen při úspěchu obou dotazů.
+Aktuální ověření: 145 souborů / 680 testů, lint, typecheck i build prošly.
+
 ## Zásady
 
 - Nejprve serverový datový kontrakt a testy, potom UI.

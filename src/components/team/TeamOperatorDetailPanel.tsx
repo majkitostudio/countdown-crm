@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarClock, HandHelping, ShoppingBag } from "lucide-react";
 import type { AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
 import type { CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
-import type { TeamWorkspaceCallbackSummary, TeamWorkspaceOrderSummary } from "@/lib/dal/teamWorkspace";
+import type { TeamWorkspaceCallbackSummary, TeamWorkspaceOrderSummary, TeamWorkspaceRecentCall } from "@/lib/dal/teamWorkspace";
 import type { TeamWorkspaceOperatorMetrics } from "@/lib/teamWorkspaceMetrics";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
@@ -17,6 +17,19 @@ function formatDuration(seconds: number): string {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
+function formatCallDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
+
+function outcomeLabel(outcome: string): string {
+  if (outcome === "order_placed") return "Prodej";
+  if (outcome === "objection") return "Fail";
+  if (outcome === "no_answer") return "Bez spojení";
+  if (outcome === "followup_scheduled") return "Callback";
+  return outcome;
+}
+
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
@@ -25,6 +38,7 @@ export interface TeamOperatorDetailData {
   metric: TeamWorkspaceOperatorMetrics;
   orders: TeamWorkspaceOrderSummary[];
   overdueCallbacks: TeamWorkspaceCallbackSummary[];
+  recentCalls: TeamWorkspaceRecentCall[];
   assistanceRequests: AssistanceRequestDTO[];
   qualityReviews: CallQualityReviewDTO[];
   qualityAvailable: boolean;
@@ -46,7 +60,7 @@ export function TeamOperatorDetailPanel({
   onBack: () => void;
   onOpenQuality: () => void;
 }) {
-  const { metric, orders, overdueCallbacks, assistanceRequests, qualityReviews, qualityAvailable } = detail;
+  const { metric, orders, overdueCallbacks, recentCalls, assistanceRequests, qualityReviews, qualityAvailable } = detail;
   const needsReview = qualityReviews.filter((review) => review.status === "review" || review.status === "pending").length;
 
   return (
@@ -87,6 +101,32 @@ export function TeamOperatorDetailPanel({
           </div>
         </section>
         <p className="text-[11px] text-zinc-500">Konverze a Talk % se zavedou se směnami.</p>
+
+        <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Poslední hovory operátora">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-zinc-100">Poslední hovory</h3>
+            <StatusBadge tone="neutral">{recentCalls.length}</StatusBadge>
+          </div>
+          {recentCalls.length === 0 ? (
+            <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
+              V zvoleném období nemá operátor žádné hovory.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {recentCalls.map((call) => (
+                <li key={call.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
+                  <span className="text-zinc-500">{formatDate(call.createdAt)}</span>
+                  <StatusBadge tone="neutral">{outcomeLabel(call.outcome)}</StatusBadge>
+                  <span className="font-mono text-zinc-400">{formatCallDuration(call.durationSeconds)}</span>
+                  <Link href={`/calls/${call.id}/review`} className="ml-auto font-semibold text-zinc-300 hover:text-zinc-100">
+                    Review →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="text-[11px] text-zinc-500">Přehrávání a hodnocení je v Kontrole kvality hovorů.</p>
+        </section>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Objednávky operátora">

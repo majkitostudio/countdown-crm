@@ -189,6 +189,11 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
             <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
             <h3 id="checkpoint-callbacks-heading" className="text-sm font-semibold text-zinc-100">Prošlé callbacky</h3>
           </div>
+          {checkpoint.sources.callbacks.state === "ready" && (
+            <p className="text-[11px] text-zinc-500">
+              Prošlé: {checkpoint.overdueCallbacks.length} · Naplánované v období: {checkpoint.upcomingCallbacks.length}
+            </p>
+          )}
           {checkpoint.sources.callbacks.state === "unavailable" ? (
             <UnavailableRow message="Callbacky nejsou dostupné. Přehled nevytváří náhradní nuly." />
           ) : checkpoint.overdueCallbacks.length === 0 ? (

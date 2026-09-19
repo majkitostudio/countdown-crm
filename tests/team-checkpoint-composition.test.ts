@@ -6,6 +6,7 @@ const checkpoint = readFileSync("src/components/team/TeamDailyCheckpointPanel.ts
 const detail = readFileSync("src/components/team/TeamOperatorDetailPanel.tsx", "utf8");
 const handover = readFileSync("src/components/team/TeamCheckpointHandoverPanel.tsx", "utf8");
 const content = readFileSync("src/components/team/TeamPageContent.tsx", "utf8");
+const workspaceDal = readFileSync("src/lib/dal/teamWorkspace.ts", "utf8");
 
 describe("team checkpoint composition (approved Macaly layout, app design language)", () => {
   it("keeps the existing assistance contract and adds the 5-minute attention threshold", () => {
@@ -50,5 +51,25 @@ describe("team checkpoint composition (approved Macaly layout, app design langua
       expect(source).not.toContain("text-rose");
       expect(source).not.toContain("bg-rose");
     }
+  });
+});
+
+describe("team checkpoint follow-ups (recent calls and upcoming callbacks)", () => {
+  it("derives operator recent calls from the team-scoped checkpoint read model", () => {
+    expect(workspaceDal).toContain("recentCallsByOperator");
+    expect(workspaceDal).toContain("TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR");
+    expect(workspaceDal).toContain("duration_seconds");
+    expect(detail).toContain("Poslední hovory");
+    expect(detail).toContain("/calls/${call.id}/review");
+    expect(detail).not.toContain("posledních 10");
+    expect(detail).not.toContain("Posledních 10");
+    expect(content).toContain("recentCallsByOperator[selectedOperatorId]");
+  });
+
+  it("reports upcoming callbacks in the period without fabricating them", () => {
+    expect(workspaceDal).toContain("upcomingCallbacks");
+    expect(workspaceDal).toContain("mapUpcomingCallbacks");
+    expect(checkpoint).toContain("Naplánované v období");
+    expect(handover).toContain("naplánované");
   });
 });

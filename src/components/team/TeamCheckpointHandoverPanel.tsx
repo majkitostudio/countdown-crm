@@ -104,6 +104,11 @@ export function TeamCheckpointHandoverPanel({
             Kvalita hovorů: {qualityAvailable ? `${qualityPendingCount} ke kontrole` : "nedostupná"} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </div>
+        {checkpoint.sources.callbacks.state === "ready" && (
+          <p className="text-[11px] text-zinc-500">
+            Callbacky v období — prošlé: {checkpoint.overdueCallbacks.length} · naplánované: {checkpoint.upcomingCallbacks.length}
+          </p>
+        )}
       </div>
     </Surface>
   );

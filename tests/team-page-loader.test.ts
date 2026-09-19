@@ -60,7 +60,9 @@ const emptyCheckpoint = {
   period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
   orders: [],
   overdueCallbacks: [],
+  upcomingCallbacks: [],
   operatorMetrics: [],
+  recentCallsByOperator: {},
   sources: {
     orders: { state: "ready" },
     calls: { state: "ready" },
