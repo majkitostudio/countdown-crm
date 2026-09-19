@@ -448,9 +448,10 @@ mimo tuto týmovou plochu a patří administrátorovi.
    reloadu, prázdných stavů a AI panelu. Dočasné účty byly smazány; důkaz je
    v `docs/superpowers/reports/2026-09-18-team-workspace-verification.md`.
    Team Workspace vlna je tím bezpečně uzavřena.
-3. **Rozhodnout uložené kontrolní pohledy:** Team Leader si může uložit vlastní
-   kombinaci filtrů, ale nikdy tím nesmí rozšířit svůj týmový rozsah. Je to malý
-   navazující slice po základním ověření filtrů, ne náhrada návrhu Team Checkpointu.
+3. **Hotové uložené kontrolní pohledy** (19. 9. 2026): Team Leader si může uložit
+   vlastní kombinaci filtrů pod jménem, jedním kliknutím ji aktivovat i smazat;
+   uložené pohledy nikdy nerozšiřují týmový rozsah a jsou dostupné jen rolím
+   `team_leader` a `administrator`. Ověřeno v Sandboxu a nasazené na `main`.
 4. **Zahájit samostatné plánování směn:** nejde o malou tabulku v `/team`. Musí
    pokrýt směny, dostupnost, absence, přesčasy a zdroj pro Talk Time procento.
    Do té doby se procento zobrazuje jako nedostupné.
