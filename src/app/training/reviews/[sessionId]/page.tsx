@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ClipboardList, LockKeyhole, MessageSquare, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ClipboardList, LockKeyhole, MessageSquare, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getTrainingSessionReview } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Surface } from "@/components/ui/Surface";
+import { TrainingHumanReview } from "@/components/training/TrainingHumanReview";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -63,7 +64,18 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
   }
 
   const scorecard = session.scorecard && typeof session.scorecard === "object" && !Array.isArray(session.scorecard)
-    ? session.scorecard as { grade?: string; overallScore?: number; complianceScore?: number; summaryFeedback?: string }
+    ? session.scorecard as {
+        grade?: string;
+        overallScore?: number;
+        complianceScore?: number;
+        summaryFeedback?: string;
+        complianceFindings?: Array<{
+          phrase: string;
+          reason: string;
+          saferAlternative: string;
+          occurrences: number;
+        }>;
+      }
     : {};
 
   return (
@@ -71,9 +83,9 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
         <PageHeader
           icon={ClipboardList}
           title="Training Review"
-          badge={{ label: "Read-only", tone: "neutral" }}
+          badge={{ label: "Training only", tone: "neutral" }}
           backLink={{ href: "/training/reviews", label: "Back to Teamleader Review" }}
-          description={<>{session.scenario_title} · {session.target_product}</>}
+          description={<>{session.scenario_title} · {session.target_product} · Human review is separate from the automated score.</>}
           actions={
             <div className="text-left text-xs md:text-right">
               <div className="font-medium text-zinc-200">{session.operator_name}</div>
@@ -137,7 +149,7 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
 
         <div className="grid gap-6 md:grid-cols-2">
           <Surface variant="inset"><div className="p-5">
-            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><ShieldCheck className="h-4 w-4 text-zinc-400" /> Score summary</h2>
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><ShieldCheck className="h-4 w-4 text-zinc-400" /> Automated score summary</h2>
             <p className="mt-3 text-xs leading-relaxed text-zinc-400">{scorecard.summaryFeedback || "No summary feedback was stored for this session."}</p>
           </div></Surface>
           <Surface variant="inset"><div className="p-5">
@@ -145,6 +157,28 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             <p className="mt-3 text-xs leading-relaxed text-zinc-400">This review is visible only to Team Leaders and Administrators who are members of the same workspace.</p>
           </div></Surface>
         </div>
+
+        <Surface variant="page"><section className="p-5">
+          <div className="mb-4 flex items-center gap-2 border-b border-zinc-800/80 pb-3">
+            <ShieldAlert className="h-4 w-4 text-zinc-500" />
+            <h2 className="text-sm font-semibold text-zinc-100">Automated compliance findings</h2>
+          </div>
+          {scorecard.complianceFindings && scorecard.complianceFindings.length > 0 ? (
+            <div className="space-y-3">
+              {scorecard.complianceFindings.map((finding) => (
+                <article key={`${finding.phrase}-${finding.reason}`} className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 text-xs text-rose-100/80">
+                  <p><strong>Phrase:</strong> “{finding.phrase}”{finding.occurrences > 1 ? ` · ${finding.occurrences}×` : ""}</p>
+                  <p className="mt-2"><strong>Why it matters:</strong> {finding.reason}</p>
+                  <p className="mt-2"><strong>Safer alternative:</strong> {finding.saferAlternative}</p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs leading-relaxed text-zinc-500">No automated compliance finding was stored for this session. This is not a human verdict.</p>
+          )}
+        </section></Surface>
+
+        <TrainingHumanReview sessionId={session.id} revisions={session.revisions} />
       </div>
   );
 }

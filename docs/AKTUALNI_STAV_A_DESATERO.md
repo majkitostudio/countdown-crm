@@ -224,10 +224,45 @@ se však odloží až za P2.
    autorizaci operátora/Team Leadera, fallback při nedostupné AI nebo mikrofonu
    a kontrolní scénáře včetně compliance porušení.
 
+8. **Provést speech-to-text validační spike v AI trenažéru.** Trénink slouží
+   jako první bezpečné prostředí pro ověření, že mluvený vstup operátora lze
+   převést na ověřitelný text a zobrazit v tréninkové timeline. Přepis zůstává
+   označený jako `training` a ukládá se do tréninkových session/turnů, nikdy
+   přímo do ostrého `calls` bez skutečného telephony source.
+   - **Browserová UX část je implementovaná:** `src/lib/speechRecognition.ts`
+     používá `SpeechRecognition`/`webkitSpeechRecognition`, trénink má explicitní
+     stavy `listening`, `processing`, `ready`, `error` a `unsupported`, přepis
+     lze před odesláním upravit a ukládá se zdroj `browser_speech` s confidence.
+   - Audio se v tomto spiku neukládá. Jde o browserový recognition kontrakt,
+     nikoli o serverové nahrávání nebo Gemini transcription.
+   - Zbývá autentizovaný browserový smoke test s mikrofonem na podporovaném
+     prohlížeči: známý krátký skript, diakritika, pauzy, námitky, odmítnutí
+     oprávnění a opakování po chybě. Akceptace musí rozlišit skutečný text od
+     mezistavu či nedostupnosti; systém nesmí text domýšlet.
+   - Je nutné rozlišit browserové speech recognition od serverového přepisu
+     stejného audio formátu přes schválený AI provider. První nyní ověřuje UX,
+     druhé bude teprve ověřovat transcription pipeline.
+    - Tento spike ověří transcription vrstvu a její UI, ale **nenahradí důkaz
+      telefonie**: po napojení Telnyx/SIP se musí stejný kontrakt zopakovat nad
+      nahrávkou obsahující skutečný zvuk obou stran, včetně retention, vazby na
+      `telephony_call_sessions` a read-backu do Call Review.
+    - **Částečný smoke 17. 9. 2026 v linked sandboxu:** podporovaná cesta,
+      průběžný i finální přepis a přenos `source=browser_speech` + confidence
+      jsou ověřené. Důkaz, zjištěné vady a neověřené scénáře jsou v
+      `docs/superpowers/reports/2026-09-17-speech-to-text-browser-smoke.md`.
+    - **Zjištění k podobě rozhovoru:** spike je textová pipeline
+      (mikrofon → přepis → text → LLM → browser TTS), nikoli přímý poslech
+      audia, a chová se jako diktování (klik na každou promluvu, během poslechu
+      nelze odeslat). Tři varianty řešení jsou popsané v reportu.
+    - **Rozhodnutí 17. 9. 2026:** směr (realtime voice API vs. vylepšená
+      browserová pipeline vs. Telnyx) se vědomě odkládá; nic se neimplementuje.
+
 P1.5 je hotové, až nováček bezpečně dokončí jeden cvičný P2 hovor, v Call Logu
 vznikne jen správně označený tréninkový záznam bez obchodního side effectu,
 Team Leader otevře stejný důkazní podklad pro review a zásadní compliance
-chyba je přesně dohledatelná i v případě úspěšného konce simulace.
+chyba je přesně dohledatelná i v případě úspěšného konce simulace. Speech-to-text
+spike je samostatný ověřovací krok; jeho úspěch se nesmí vydávat za dokončenou
+telefonní transkripci.
 
 ### P2 — skutečné týmy a oddělení
 
@@ -400,12 +435,19 @@ mimo tuto týmovou plochu a patří administrátorovi.
 
 ### Bezprostřední pořadí po checkpointu 16. 9. 2026
 
-1. **Dokončit praktický Team Checkpoint:** na hotové kostře dopracovat konkrétní
-   scénáře, priority, obsah karty, detail operátora a jasné stavy pro Team Leadera.
+1. **Schválený praktický Team Checkpoint** (19. 9. 2026): konečná předloha
+   vznikla v Macaly a schválil ji produkt. Obsahuje přehled dne, panel
+   pozornosti (žádosti o pomoc s 5minutovou čekací hranicí), výsledky
+   operátorů s čestným „—" u konverzí a Talk %, detail operátora, ukončení
+   směny, chybový/načítací stav i mobilní podobu. Odkaz:
+   `https://uuuj6frnpq3ue9pw1y86ky0c.macaly.app`. Předloha je čisté rozvržení;
+   barvy a písmo se při implementaci zasadí do stávajícího designu aplikace.
    Technické workspace-global problémy zůstanou administrátorovi.
-2. **Dokončit ověřovací průchod `/team` v Sandboxu:** autentizovaný Team Leader,
-   administrátor a operátor, včetně přímé URL, cross-team odmítnutí, reloadu,
-   prázdných stavů a AI panelu. Potom teprve uzavřít aktuální Team Workspace vlnu.
+2. **Dokončen ověřovací průchod `/team` v Sandboxu** (19. 9. 2026): autentizovaný
+   Team Leader, administrátor a operátor, včetně přímé URL, cross-team odmítnutí,
+   reloadu, prázdných stavů a AI panelu. Dočasné účty byly smazány; důkaz je
+   v `docs/superpowers/reports/2026-09-18-team-workspace-verification.md`.
+   Team Workspace vlna je tím bezpečně uzavřena.
 3. **Rozhodnout uložené kontrolní pohledy:** Team Leader si může uložit vlastní
    kombinaci filtrů, ale nikdy tím nesmí rozšířit svůj týmový rozsah. Je to malý
    navazující slice po základním ověření filtrů, ne náhrada návrhu Team Checkpointu.

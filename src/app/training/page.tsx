@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, ClipboardList, FileText, PhoneOff, PhoneOutgoing, Play, Send, ShieldAlert, Volume2 } from "lucide-react";
+import { CheckCircle2, ClipboardList, FileText, LoaderCircle, Mic, MicOff, PhoneOff, PhoneOutgoing, Play, Send, ShieldAlert, Volume2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
 import { listTrainingCallLogRecordsAction } from "@/app/actions/crm";
 import { P2_TRAINING_SCRIPTS, TRAINING_PERSONAS, evaluateTrainingSession, getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingScorecard } from "@/lib/training";
 import { speakText, stopSpeaking } from "@/lib/speechSynthesis";
+import { createBrowserSpeechRecognition, isBrowserSpeechRecognitionSupported, type BrowserSpeechRecognition } from "@/lib/speechRecognition";
 
 function timeLabel(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -38,6 +39,13 @@ export default function TrainingPage() {
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
   const elapsedRef = useRef(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const speechFinalRef = useRef("");
+  const speechConfidenceRef = useRef<number | null>(null);
+  const [speechSupported, setSpeechSupported] = useState<boolean | null>(null);
+  const [speechStatus, setSpeechStatus] = useState<"idle" | "listening" | "processing" | "ready" | "error" | "unsupported">("idle");
+  const [speechInterim, setSpeechInterim] = useState("");
+  const [inputSource, setInputSource] = useState<"typed" | "browser_speech">("typed");
 
   const scenario = useMemo(() => getTrainingScenario(scriptId, difficulty, personaId), [scriptId, difficulty, personaId]);
   const isActive = Boolean(startedAt && !result);
@@ -46,6 +54,31 @@ export default function TrainingPage() {
     void listTrainingCallLogRecordsAction()
       .then((records) => setHistory(records.map((record) => ({ sessionId: record.sessionId, customerName: record.customerName, durationSeconds: record.durationSeconds, createdAt: record.createdAt, scorecard: record.scorecard }))))
       .catch(() => setHistoryUnavailable(true));
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSpeechSupported(isBrowserSpeechRecognitionSupported()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!startedAt || result) return;
+
+    const updateElapsed = () => {
+      const startedAtMs = Date.parse(startedAt);
+      const seconds = Number.isFinite(startedAtMs) ? Math.max(0, Math.floor((Date.now() - startedAtMs) / 1000)) : 0;
+      elapsedRef.current = seconds;
+      setElapsedSeconds(seconds);
+    };
+
+    updateElapsed();
+    const timer = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(timer);
+  }, [startedAt, result]);
+
+  useEffect(() => () => {
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
   }, []);
 
   function startTraining() {
@@ -60,18 +93,25 @@ export default function TrainingPage() {
     setMessages([initial]);
     setResult(null);
     setSaveState("idle");
+    setSpeechStatus("idle");
+    setSpeechInterim("");
+    setInputSource("typed");
+    speechFinalRef.current = "";
+    speechConfidenceRef.current = null;
     setNotice("Jde o tréninkový hovor. Nevznikne objednávka, callback ani zásah do ostré fronty.");
     speakText(initial.text);
   }
 
   async function sendTurn() {
-    if (!scenario || !isActive || isSending || !input.trim()) return;
+    if (!scenario || !isActive || isSending || speechStatus === "listening" || speechStatus === "processing" || !input.trim()) return;
     const text = input.trim();
+    const source = inputSource;
+    const confidence = source === "browser_speech" ? speechConfidenceRef.current : null;
     setInput("");
     setIsSending(true);
     setNotice(null);
     try {
-      const response = await submitTrainingTurnAction({ scriptId, difficulty, personaId, history: messages, userMessage: text, source: "typed" });
+      const response = await submitTrainingTurnAction({ scriptId, difficulty, personaId, history: messages, userMessage: text, source, confidence });
       if (!response.ok) {
         setNotice(response.message);
         setInput(text);
@@ -81,39 +121,135 @@ export default function TrainingPage() {
       const operator: TrainingMessage = { id: newId("operator"), sender: "user", text: response.operatorTurn.text, timestamp: timeLabel(now), occurredAt: now, source: response.operatorTurn.source, confidence: response.operatorTurn.confidence };
       const customerAt = new Date().toISOString();
       const customer: TrainingMessage = { id: newId("customer"), sender: "ai_customer", text: response.customerTurn.text, timestamp: timeLabel(customerAt), occurredAt: customerAt, source: "ai_customer", sentiment: response.customerTurn.sentiment };
-      elapsedRef.current += 25;
-      setElapsedSeconds(elapsedRef.current);
       setMessages((current) => [...current, operator, customer]);
+      setInputSource("typed");
+      speechFinalRef.current = "";
+      speechConfidenceRef.current = null;
+      setSpeechInterim("");
+      setSpeechStatus("idle");
       setAiSource(response.customerTurn.aiSource);
       setNotice(response.customerTurn.aiNotice || null);
       speakText(customer.text);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Odpověď AI zákazníka není nyní dostupná.");
+      setInput(text);
     } finally {
       setIsSending(false);
     }
   }
 
   async function finishTraining() {
-    if (!scenario || !startedAt || !completionKey || isSending) return;
+    if (!scenario || !startedAt || !completionKey || isSending || speechStatus === "listening" || speechStatus === "processing") return;
     stopSpeaking();
     const scorecard = evaluateTrainingSession(scenario, messages);
+    const completedDuration = elapsedRef.current;
     setResult(scorecard);
     setSaveState("saving");
-    const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, scorecard, durationSeconds: elapsedRef.current, aiSource, startedAt, completionKey });
-    setSaveState(save.ok ? "saved" : save.code === "UNAVAILABLE" ? "unavailable" : "error");
-    if (save.ok) {
-      setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: elapsedRef.current, createdAt: new Date().toISOString(), scorecard }, ...current]);
+    try {
+      const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, scorecard, durationSeconds: completedDuration, aiSource, startedAt, completionKey });
+      setSaveState(save.ok ? "saved" : save.code === "UNAVAILABLE" ? "unavailable" : "error");
+      if (save.ok) {
+        setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: completedDuration, createdAt: new Date().toISOString(), scorecard }, ...current]);
+      }
+    } catch (error) {
+      setSaveState("error");
+      setNotice(error instanceof Error ? error.message : "Výsledek se nepodařilo uložit.");
+    }
+  }
+
+  function stopListening() {
+    if (speechStatus !== "listening") return;
+    setSpeechStatus("processing");
+    recognitionRef.current?.stop();
+  }
+
+  function startListening() {
+    if (!isActive || isSending || speechStatus === "listening" || speechStatus === "processing") return;
+    if (speechSupported !== true) {
+      setSpeechStatus("unsupported");
+      setNotice("Tento prohlížeč nepodporuje browserový přepis. Můžete pokračovat psaním.");
+      return;
+    }
+
+    speechFinalRef.current = "";
+    speechConfidenceRef.current = null;
+    setSpeechInterim("");
+    setSpeechStatus("listening");
+    setNotice("Mluvte česky. Po skončení přepis zkontrolujete a můžete ho upravit před odesláním.");
+
+    const recognition = createBrowserSpeechRecognition({
+      language: "cs-CZ",
+      onStart: () => setSpeechStatus("listening"),
+      onResult: ({ transcript, confidence, isFinal }) => {
+        if (isFinal) {
+          speechFinalRef.current = `${speechFinalRef.current} ${transcript}`.trim();
+          if (confidence !== null) speechConfidenceRef.current = confidence;
+          setInput(speechFinalRef.current);
+          setInputSource("browser_speech");
+          setSpeechInterim("");
+          return;
+        }
+        setSpeechInterim(transcript);
+      },
+      onError: ({ error }) => {
+        if (error === "aborted") return;
+        setSpeechStatus("error");
+        setNotice(error === "not-allowed"
+          ? "Přístup k mikrofonu nebyl povolen. Můžete pokračovat psaním."
+          : "Browserový přepis se nepodařilo dokončit. Zkuste to znovu nebo pokračujte psaním.");
+      },
+      onEnd: () => {
+        recognitionRef.current = null;
+        setSpeechInterim("");
+        if (speechFinalRef.current) {
+          setInput(speechFinalRef.current);
+          setInputSource("browser_speech");
+          setSpeechStatus("ready");
+        } else {
+          setSpeechStatus("idle");
+        }
+      },
+    });
+
+    if (!recognition) {
+      setSpeechStatus("unsupported");
+      setNotice("Tento prohlížeč nepodporuje browserový přepis. Můžete pokračovat psaním.");
+      return;
+    }
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setSpeechStatus("error");
+      setNotice("Mikrofon se nepodařilo spustit. Zkontrolujte oprávnění a zkuste to znovu.");
     }
   }
 
   function resetTraining() {
     stopSpeaking();
+    recognitionRef.current?.abort();
+    recognitionRef.current = null;
+    setSpeechStatus("idle");
+    setSpeechInterim("");
     setStartedAt(null);
     setMessages([]);
     setResult(null);
     setNotice(null);
     setSaveState("idle");
     setInput("");
+    setInputSource("typed");
+    speechFinalRef.current = "";
+    speechConfidenceRef.current = null;
   }
+
+  function updateInput(value: string) {
+    setInput(value);
+    if (speechStatus !== "listening" && speechStatus !== "processing") setInputSource("typed");
+  }
+
+  const speechBusy = speechStatus === "listening" || speechStatus === "processing";
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -160,11 +296,45 @@ export default function TrainingPage() {
               <div><h2 className="font-semibold text-zinc-100">Hovor s: {scenario.customer.name}</h2><p className="mt-1 text-xs text-zinc-500">{scenario.title} · {difficulty === "easy" ? "snadná" : "standardní"} obtížnost</p></div>
               <span className="font-mono text-sm text-zinc-400">{durationLabel(elapsedSeconds)}</span>
             </div>
-            <div className="min-h-[420px] space-y-4 p-5">
+            <div className="min-h-105 space-y-4 p-5">
               {messages.map((message) => <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-xl border p-3 ${message.sender === "user" ? "border-sky-900/70 bg-sky-950/30 text-sky-50" : "border-zinc-800 bg-zinc-950 text-zinc-200"}`}><div className="mb-1 flex gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>{message.sender === "user" ? "Operátor" : scenario.customer.name}</span><span>{message.timestamp}</span>{message.sender === "ai_customer" && <button type="button" onClick={() => speakText(message.text)} className="ml-auto text-zinc-400 hover:text-zinc-100" aria-label="Přečíst odpověď"><Volume2 className="h-3.5 w-3.5" /></button>}</div><p className="text-sm leading-relaxed">{message.text}</p></div></div>)}
               {isSending && <p className="text-xs text-zinc-500">AI zákazník odpovídá…</p>}
             </div>
-            <div className="border-t border-zinc-800 p-4"><div className="flex gap-3"><textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendTurn(); } }} placeholder="Napište, co byste zákazníkovi řekl/a…" className="min-h-20 flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-zinc-600" /><button type="button" onClick={() => void sendTurn()} disabled={isSending || !input.trim()} className="inline-flex self-end items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" />Odeslat</button></div><div className="mt-3 flex items-center justify-between"><span className="text-[11px] text-zinc-500">Enter odešle · Shift+Enter nový řádek</span><button type="button" onClick={() => void finishTraining()} disabled={isSending || messages.length < 3} className="inline-flex items-center gap-2 text-xs font-medium text-zinc-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><PhoneOff className="h-4 w-4" />Ukončit a vyhodnotit</button></div></div>
+            <div className="border-t border-zinc-800 p-4">
+              <div className="flex gap-3">
+                <textarea
+                  value={input}
+                  onChange={(event) => updateInput(event.target.value)}
+                  onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendTurn(); } }}
+                  placeholder="Napište, co byste zákazníkovi řekl/a…"
+                  className="min-h-20 flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+                  disabled={speechBusy}
+                />
+                <button type="button" onClick={() => void sendTurn()} disabled={isSending || speechBusy || !input.trim()} className="inline-flex self-end items-center gap-2 rounded-xl bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" />Odeslat</button>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">
+                  <button type="button" onClick={speechStatus === "listening" ? stopListening : startListening} disabled={isSending || speechStatus === "processing" || speechSupported === false} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-zinc-300 hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-50">
+                    {speechStatus === "listening" ? <MicOff className="h-3.5 w-3.5" /> : speechStatus === "processing" ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Mic className="h-3.5 w-3.5" />}
+                    {speechStatus === "listening" ? "Zastavit přepis" : speechStatus === "processing" ? "Zpracovávám…" : "Mluvit místo psaní"}
+                  </button>
+                  <span aria-live="polite">
+                    {speechSupported === false
+                      ? "Browserový přepis není podporovaný"
+                      : speechStatus === "ready"
+                        ? "Přepis je připravený k úpravě"
+                        : speechStatus === "error"
+                          ? "Přepis selhal; můžete pokračovat psaním"
+                          : inputSource === "browser_speech"
+                            ? "Zdroj: browserový přepis"
+                            : "Volitelné · audio se neukládá"}
+                  </span>
+                </div>
+                <button type="button" onClick={() => void finishTraining()} disabled={isSending || speechBusy || messages.length < 3} className="inline-flex items-center gap-2 text-xs font-medium text-zinc-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><PhoneOff className="h-4 w-4" />Ukončit a vyhodnotit</button>
+              </div>
+              {speechInterim && <p className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs italic text-zinc-500" aria-live="polite">Průběžný přepis: {speechInterim}</p>}
+              <p className="mt-2 text-[11px] text-zinc-600">Enter odešle · Shift+Enter nový řádek · Mluvený text zkontrolujte před odesláním.</p>
+            </div>
           </section>
           <aside className="space-y-4"><section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center gap-2"><FileText className="h-4 w-4 text-zinc-400" /><h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Skript pro tento hovor</h2></div><div className="mt-4 space-y-4">{personaliseTrainingScript(scenario).map((section) => <div key={section.title}><h3 className="text-xs font-semibold text-zinc-200">{section.title}</h3><p className="mt-1 text-xs leading-relaxed text-zinc-400">{section.text}</p></div>)}</div></section><section className="rounded-2xl border border-amber-900/50 bg-amber-950/10 p-5"><div className="flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-amber-300" /><h2 className="text-xs font-semibold text-amber-200">Bezpečná hranice</h2></div><p className="mt-2 text-xs leading-relaxed text-amber-100/70">Neslibujte účinek, negarantujte výsledek a nevydávejte se za lékaře. Jedna chyba nezmění reakci zákazníka, ale objeví se ve výsledku hovoru.</p></section>{notice && <p className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs leading-relaxed text-zinc-400">{notice}</p>}</aside>
         </div>

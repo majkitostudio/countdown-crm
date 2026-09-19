@@ -25,9 +25,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
   const router = useRouter();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
-  const [activeBlueprintName, setActiveBlueprintName] = useState(
-    blueprintEngine.getActiveBlueprint().name
-  );
+  const [activeBlueprintName, setActiveBlueprintName] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSignOutPending, setIsSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -116,7 +114,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
             title="Change CRM industry blueprint"
           >
             <Layers className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
-            <span className="hidden truncate whitespace-nowrap xl:inline">{activeBlueprintName}</span>
+            <span className="hidden truncate whitespace-nowrap xl:inline">{activeBlueprintName ?? "Blueprint"}</span>
             <span className="sr-only xl:hidden">Change CRM industry blueprint</span>
           </Button>
         )}
