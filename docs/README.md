@@ -38,7 +38,8 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [superpowers/reports/2026-09-05-local-telephony-verification.md](superpowers/reports/2026-09-05-local-telephony-verification.md) | Důkazní report lokálního Docker/Asterisk stavu, automatických kontrol a otevřených browser blockerů. |
 | [superpowers/plans/2026-09-05-local-telephony-settings-and-console.md](superpowers/plans/2026-09-05-local-telephony-settings-and-console.md) | Implementační plán a stav jednotlivých kroků lokální telefonní laboratoře. |
 | [superpowers/specs/2026-09-04-telnyx-outbound-pilot-design.md](superpowers/specs/2026-09-04-telnyx-outbound-pilot-design.md) | Schválený návrh pro dokončení outbound telefonie. |
-| [superpowers/plans/2026-09-04-telnyx-outbound-pilot.md](superpowers/plans/2026-09-04-telnyx-outbound-pilot.md) | Implementační plán pro Telnyx outbound pilot. |
+| [superpowers/plans/2026-09-19-p1-5-onboarding-trainer.md](superpowers/plans/2026-09-19-p1-5-onboarding-trainer.md) | Implementační plán onboarding trenéru P1.5. |
+| [superpowers/specs/2026-09-19-p1-5-onboarding-trainer-design.md](superpowers/specs/2026-09-19-p1-5-onboarding-trainer-design.md) | Schválená specifikace onboarding trenéru P1.5. |
 | [superpowers/reports/2026-09-15-p1-7-order-evidence.md](superpowers/reports/2026-09-15-p1-7-order-evidence.md) | Důkaz ruční i post-call objednávky včetně adresního snapshotu a read-backu. |
 | [superpowers/reports/2026-09-16-gemini-call-quality-verification.md](superpowers/reports/2026-09-16-gemini-call-quality-verification.md) | Ověření serverové Gemini kontroly poznámek (`pending` → `ok`, atomický claim). |
 | [superpowers/reports/2026-09-16-team-assistance-browser-verification.md](superpowers/reports/2026-09-16-team-assistance-browser-verification.md) | Browser ověření žádostí o asistenci a jejich převzetí/uzavření. |
