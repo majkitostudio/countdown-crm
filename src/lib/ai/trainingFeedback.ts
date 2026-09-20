@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import type { TrainingScenario, TrainingMessage, TrainingFeedback } from "@/lib/training";
 import { findComplianceFindings } from "@/lib/training";
 
-const TRAINING_FEEDBACK_TIMEOUT_MS = 12_000;
+const TRAINING_FEEDBACK_TIMEOUT_MS = 30_000;
 
 export class TrainingFeedbackError extends Error {
   readonly code: "MISSING_API_KEY" | "TIMEOUT" | "INVALID_RESPONSE" | "PROVIDER";
@@ -103,52 +103,73 @@ export async function generateTrainingFeedback(
   const client = new GoogleGenAI({ apiKey });
   const model = process.env.GEMINI_TRAINING_MODEL?.trim() || "gemini-3.6-flash";
 
-  const controller = new AbortController();
-  let timedOut = false;
-  const timeoutId = setTimeout(() => {
-    timedOut = true;
-    controller.abort();
-  }, TRAINING_FEEDBACK_TIMEOUT_MS);
+  const maxRetries = 2;
+  let lastError: Error | null = null;
 
-  try {
-    const response = await client.models.generateContent({
-      model,
-      contents: buildFeedbackPrompt(scenario, history),
-      config: {
-        abortSignal: controller.signal,
-        temperature: 0,
-        maxOutputTokens: 1500,
-        responseMimeType: "application/json",
-        responseJsonSchema: FEEDBACK_RESPONSE_SCHEMA,
-      },
-    });
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, TRAINING_FEEDBACK_TIMEOUT_MS);
 
-    const rawText = typeof response.text === "string" ? response.text.trim() : "";
-    if (!rawText) throw new Error("AI returned empty feedback.");
-
-    let parsed: unknown;
     try {
-      parsed = JSON.parse(rawText);
-    } catch {
-      throw new Error("AI returned invalid feedback JSON.");
-    }
+      const response = await client.models.generateContent({
+        model,
+        contents: buildFeedbackPrompt(scenario, history),
+        config: {
+          abortSignal: controller.signal,
+          temperature: 0,
+          maxOutputTokens: 3000,
+          responseMimeType: "application/json",
+          responseJsonSchema: FEEDBACK_RESPONSE_SCHEMA,
+        },
+      });
 
-    const result = parsed as { feedback: Array<{ type: string; operator_text: string; suggested_text: string; reason: string; severity: string }> };
-    if (!result || !Array.isArray(result.feedback)) {
-      throw new Error("AI returned invalid feedback shape.");
-    }
+      const rawText = typeof response.text === "string" ? response.text.trim() : "";
+      console.log("Training feedback raw response:", rawText);
+      if (!rawText) throw new Error("AI returned empty feedback.");
 
-    return result.feedback.map((item) => ({
-      type: item.type as TrainingFeedback["type"],
-      operatorText: item.operator_text,
-      suggestedText: item.suggested_text,
-      reason: item.reason,
-      severity: item.severity as TrainingFeedback["severity"],
-    }));
-  } catch (error) {
-    if (timedOut) throw new Error("Training feedback generation timed out.");
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(rawText);
+      } catch {
+        console.error("Failed to parse feedback JSON:", rawText);
+        throw new Error("AI returned invalid feedback JSON.");
+      }
+
+      const result = parsed as { feedback: Array<{ type: string; operator_text: string; suggested_text: string; reason: string; severity: string }> };
+      if (!result || !Array.isArray(result.feedback)) {
+        console.error("Invalid feedback shape:", parsed);
+        throw new Error("AI returned invalid feedback shape.");
+      }
+
+      return result.feedback.map((item) => ({
+        type: item.type as TrainingFeedback["type"],
+        operatorText: item.operator_text,
+        suggestedText: item.suggested_text,
+        reason: item.reason,
+        severity: item.severity as TrainingFeedback["severity"],
+      }));
+    } catch (error) {
+      if (timedOut) throw new Error("Training feedback generation timed out.");
+      
+      // Check if it's a 503 error (model overloaded) - retry if not last attempt
+      const is503 = error instanceof Error && error.message.includes("503") || 
+                    error instanceof Error && error.message.includes("UNAVAILABLE");
+      
+      if (is503 && attempt < maxRetries) {
+        console.warn(`Training feedback attempt ${attempt + 1} failed with 503, retrying...`, error);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
+        continue;
+      }
+      
+      lastError = error instanceof Error ? error : new Error(String(error));
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
+
+  throw lastError || new Error("Training feedback generation failed after retries.");
 }

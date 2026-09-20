@@ -42,7 +42,7 @@ async function withTrainingProviderTimeout<T>(promise: Promise<T>): Promise<T> {
   }
 }
 
-function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "gemini-flash" | "openai-responses"): RoleplayAIResponse {
+function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "gemini-flash" | "rule-engine"): RoleplayAIResponse {
   const sentiment = ["positive", "neutral", "negative"].includes(parsed.sentiment as string)
     ? parsed.sentiment as RoleplayAIResponse["sentiment"]
     : "neutral";
@@ -52,11 +52,11 @@ function normalizeTrainingResponse(parsed: ParsedTrainingResponse, aiSource: "ge
   return { text, sentiment, aiSource };
 }
 
-function providerNotice(provider: "gemini" | "openai", error: unknown): string {
+function providerNotice(provider: "gemini", error: unknown): string {
   if (error instanceof Error && error.message === "TRAINING_PROVIDER_TIMEOUT") return "Odpověď AI zákazníka se opozdila; tento tah dokončil lokální tréninkový režim.";
   const status = typeof error === "object" && error !== null && "status" in error ? error.status : undefined;
   if (status === 429) return "AI zákazník je nyní vytížený; tento tah dokončil lokální tréninkový režim.";
-  return `${provider === "gemini" ? "Gemini" : "OpenAI"} není pro tento tah dostupný; pokračujeme bezpečným lokálním režimem.`;
+  return `Gemini není pro tento tah dostupný; pokračujeme bezpečným lokálním režimem.`;
 }
 
 function buildPrompt(scenario: TrainingScenario, history: TrainingMessage[], userMessage: string): string {
@@ -91,30 +91,17 @@ Vrať pouze validní JSON:
 
 async function generateTrainingResponseAction(scenario: TrainingScenario, history: TrainingMessage[], userMessage: string): Promise<RoleplayAIResponse> {
   const prompt = buildPrompt(scenario, history, userMessage);
-  const primary = process.env.TRAINING_AI_PROVIDER === "openai" ? "openai" : "gemini";
-  const providers = primary === "openai" ? ["openai", "gemini"] as const : ["gemini", "openai"] as const;
   let aiNotice: string | undefined;
 
-  for (const provider of providers) {
-    try {
-      if (provider === "gemini" && process.env.GEMINI_API_KEY) {
-        const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const response = await withTrainingProviderTimeout(client.interactions.create({ model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash", input: prompt, store: false }));
-        return { ...normalizeTrainingResponse(JSON.parse((response.output_text || "").replace(/```json|```/g, "").trim()), "gemini-flash"), aiNotice };
-      }
-      if (provider === "openai" && process.env.OPENAI_API_KEY) {
-        const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const response = await withTrainingProviderTimeout(client.responses.create({
-          model: process.env.OPENAI_TRAINING_MODEL || "gpt-5.4-mini",
-          input: prompt,
-          text: { format: { type: "json_schema", name: "p2_training_customer", strict: true, schema: { type: "object", additionalProperties: false, properties: { text: { type: "string" }, sentiment: { type: "string", enum: ["positive", "neutral", "negative"] } }, required: ["text", "sentiment"] } } },
-        }));
-        return { ...normalizeTrainingResponse(JSON.parse(response.output_text), "openai-responses"), aiNotice };
-      }
-    } catch (error) {
-      aiNotice = providerNotice(provider, error);
-      console.warn(`${provider} training response failed; continuing with the next safe option.`, error);
+  try {
+    if (process.env.GEMINI_API_KEY) {
+      const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await withTrainingProviderTimeout(client.interactions.create({ model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash", input: prompt, store: false }));
+      return { ...normalizeTrainingResponse(JSON.parse((response.output_text || "").replace(/```json|```/g, "").trim()), "gemini-flash"), aiNotice };
     }
+  } catch (error) {
+    aiNotice = providerNotice("gemini", error);
+    console.warn(`gemini training response failed; continuing with safe fallback.`, error);
   }
 
   const lower = userMessage.toLocaleLowerCase("cs-CZ");
