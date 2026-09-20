@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, ClipboardList, FileText, LoaderCircle, Mic, MicOff, PhoneOff, PhoneOutgoing, Play, Send, ShieldAlert, Volume2 } from "lucide-react";
+import { ClipboardList, FileText, LoaderCircle, Mic, MicOff, PhoneOff, PhoneOutgoing, Play, Send, ShieldAlert, Volume2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { submitTrainingTurnAction } from "@/app/actions/training";
 import { saveTrainingSessionAction } from "@/app/actions/trainingSession";
+import { generateTrainingFeedbackAction } from "@/app/actions/trainingFeedback";
 import { listTrainingCallLogRecordsAction } from "@/app/actions/crm";
-import { P2_TRAINING_SCRIPTS, TRAINING_PERSONAS, evaluateTrainingSession, getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingScorecard } from "@/lib/training";
+import { P2_TRAINING_SCRIPTS, TRAINING_PERSONAS, getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingFeedback } from "@/lib/training";
 import { speakText, stopSpeaking } from "@/lib/speechSynthesis";
-import { createBrowserSpeechRecognition, isBrowserSpeechRecognitionSupported, type BrowserSpeechRecognition } from "@/lib/speechRecognition";
+import { createContinuousSpeechRecognition, isBrowserSpeechRecognitionSupported, type BrowserSpeechRecognitionErrorEvent, type ContinuousSpeechRecognition } from "@/lib/speechRecognition";
 
 function timeLabel(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -33,13 +34,13 @@ export default function TrainingPage() {
   const [isSending, setIsSending] = useState(false);
   const [aiSource, setAiSource] = useState<"gemini-flash" | "openai-responses" | "rule-engine" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [result, setResult] = useState<TrainingScorecard | null>(null);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error" | "unavailable">("idle");
-  const [history, setHistory] = useState<Array<{ sessionId: string; customerName: string; durationSeconds: number; createdAt: string; scorecard: unknown }>>([]);
+  const [result, setResult] = useState<TrainingFeedback[] | null>(null);
+  const [, setSaveState] = useState<"idle" | "saving" | "saved" | "error" | "unavailable">("idle");
+  const [history, setHistory] = useState<Array<{ sessionId: string; customerName: string; durationSeconds: number; createdAt: string; feedback: TrainingFeedback[] }>>([]);
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
   const elapsedRef = useRef(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+const continuousRecognitionRef = useRef<ContinuousSpeechRecognition | null>(null);
   const speechFinalRef = useRef("");
   const speechConfidenceRef = useRef<number | null>(null);
   const [speechSupported, setSpeechSupported] = useState<boolean | null>(null);
@@ -52,7 +53,7 @@ export default function TrainingPage() {
 
   useEffect(() => {
     void listTrainingCallLogRecordsAction()
-      .then((records) => setHistory(records.map((record) => ({ sessionId: record.sessionId, customerName: record.customerName, durationSeconds: record.durationSeconds, createdAt: record.createdAt, scorecard: record.scorecard }))))
+      .then((records) => setHistory(records.map((record) => ({ sessionId: record.sessionId, customerName: record.customerName, durationSeconds: record.durationSeconds, createdAt: record.createdAt, feedback: (record.scorecard as TrainingFeedback[] | undefined) || [] }))))
       .catch(() => setHistoryUnavailable(true));
   }, []);
 
@@ -77,8 +78,8 @@ export default function TrainingPage() {
   }, [startedAt, result]);
 
   useEffect(() => () => {
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
+    continuousRecognitionRef.current?.abort();
+    continuousRecognitionRef.current = null;
   }, []);
 
   function startTraining() {
@@ -141,15 +142,19 @@ export default function TrainingPage() {
   async function finishTraining() {
     if (!scenario || !startedAt || !completionKey || isSending || speechStatus === "listening" || speechStatus === "processing") return;
     stopSpeaking();
-    const scorecard = evaluateTrainingSession(scenario, messages);
+    const feedbackResult = await generateTrainingFeedbackAction({ scriptId, difficulty, personaId, history: messages });
+    if (!feedbackResult.ok) {
+      setNotice(feedbackResult.message);
+      return;
+    }
     const completedDuration = elapsedRef.current;
-    setResult(scorecard);
+    setResult(feedbackResult.feedback);
     setSaveState("saving");
     try {
-      const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, scorecard, durationSeconds: completedDuration, aiSource, startedAt, completionKey });
+      const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, feedback: feedbackResult.feedback, durationSeconds: completedDuration, aiSource, startedAt, completionKey });
       setSaveState(save.ok ? "saved" : save.code === "UNAVAILABLE" ? "unavailable" : "error");
       if (save.ok) {
-        setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: completedDuration, createdAt: new Date().toISOString(), scorecard }, ...current]);
+        setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: completedDuration, createdAt: new Date().toISOString(), feedback: feedbackResult.feedback }, ...current]);
       }
     } catch (error) {
       setSaveState("error");
@@ -157,10 +162,10 @@ export default function TrainingPage() {
     }
   }
 
-  function stopListening() {
+function stopListening() {
     if (speechStatus !== "listening") return;
     setSpeechStatus("processing");
-    recognitionRef.current?.stop();
+    continuousRecognitionRef.current?.stop();
   }
 
   function startListening() {
@@ -175,31 +180,30 @@ export default function TrainingPage() {
     speechConfidenceRef.current = null;
     setSpeechInterim("");
     setSpeechStatus("listening");
-    setNotice("Mluvte česky. Po skončení přepis zkontrolujete a můžete ho upravit před odesláním.");
+    setNotice("Mluvte česky. Přepis běží nepřetržitě – můžete psát i mluvit současně. Klikněte 'Zastavit přepis' pro ukončení.");
 
-    const recognition = createBrowserSpeechRecognition({
+    const continuous = createContinuousSpeechRecognition({
       language: "cs-CZ",
       onStart: () => setSpeechStatus("listening"),
-      onResult: ({ transcript, confidence, isFinal }) => {
-        if (isFinal) {
-          speechFinalRef.current = `${speechFinalRef.current} ${transcript}`.trim();
-          if (confidence !== null) speechConfidenceRef.current = confidence;
-          setInput(speechFinalRef.current);
-          setInputSource("browser_speech");
-          setSpeechInterim("");
-          return;
-        }
+      onInterimResult: (transcript) => {
         setSpeechInterim(transcript);
       },
-      onError: ({ error }) => {
-        if (error === "aborted") return;
+      onFinalResult: (transcript, confidence) => {
+        speechFinalRef.current = `${speechFinalRef.current} ${transcript}`.trim();
+        if (confidence !== null) speechConfidenceRef.current = confidence;
+        setInput(speechFinalRef.current);
+        setInputSource("browser_speech");
+        setSpeechInterim("");
+      },
+      onError: (event: BrowserSpeechRecognitionErrorEvent) => {
+        if (event.error === "aborted") return;
         setSpeechStatus("error");
-        setNotice(error === "not-allowed"
+        setNotice(event.error === "not-allowed"
           ? "Přístup k mikrofonu nebyl povolen. Můžete pokračovat psaním."
           : "Browserový přepis se nepodařilo dokončit. Zkuste to znovu nebo pokračujte psaním.");
       },
       onEnd: () => {
-        recognitionRef.current = null;
+        // Continuous recognition auto-restarts, onEnd only fires when stopped/aborted
         setSpeechInterim("");
         if (speechFinalRef.current) {
           setInput(speechFinalRef.current);
@@ -211,26 +215,20 @@ export default function TrainingPage() {
       },
     });
 
-    if (!recognition) {
+    if (!continuous) {
       setSpeechStatus("unsupported");
       setNotice("Tento prohlížeč nepodporuje browserový přepis. Můžete pokračovat psaním.");
       return;
     }
 
-    recognitionRef.current = recognition;
-    try {
-      recognition.start();
-    } catch {
-      recognitionRef.current = null;
-      setSpeechStatus("error");
-      setNotice("Mikrofon se nepodařilo spustit. Zkontrolujte oprávnění a zkuste to znovu.");
-    }
+    continuousRecognitionRef.current = continuous;
+    continuous.start();
   }
 
   function resetTraining() {
     stopSpeaking();
-    recognitionRef.current?.abort();
-    recognitionRef.current = null;
+    continuousRecognitionRef.current?.abort();
+    continuousRecognitionRef.current = null;
     setSpeechStatus("idle");
     setSpeechInterim("");
     setStartedAt(null);
@@ -255,7 +253,7 @@ export default function TrainingPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader icon={PhoneOutgoing} title="Trenažér P2" badge={{ label: "Interní pilot", tone: "neutral" }} description="Bezpečný nácvik prvního P2 hovoru s AI zákazníkem. Trénink nikdy nevytváří objednávku ani ostrý pracovní úkol." />
 
-      {!isActive && !result && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Moje poslední tréninky</h2><p className="mt-1 text-xs text-zinc-500">Pouze vaše cvičné hovory. Obchodní výsledky ani ostré hovory se sem nemíchají.</p></div><ClipboardList className="h-5 w-5 text-zinc-500" /></div>{historyUnavailable ? <p className="mt-4 text-xs text-zinc-500">Historii tréninků se nyní nepodařilo načíst.</p> : history.length === 0 ? <p className="mt-4 text-xs text-zinc-500">Zatím jste neměl/a žádný dokončený trénink.</p> : <div className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950">{history.slice(0, 5).map((entry) => { const score = entry.scorecard && typeof entry.scorecard === "object" ? entry.scorecard as { overallScore?: number; passed?: boolean; complianceScore?: number } : {}; return <div key={entry.sessionId} className="grid gap-2 px-4 py-3 text-xs sm:grid-cols-[1fr_auto_auto]"><div><p className="font-medium text-zinc-200">{entry.customerName}</p><p className="mt-1 text-zinc-500">{new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(entry.createdAt))} · {durationLabel(entry.durationSeconds)}</p></div><span className={`self-center rounded border px-2 py-1 text-[11px] ${score.passed ? "border-emerald-900/70 bg-emerald-950/30 text-emerald-200" : "border-amber-900/70 bg-amber-950/30 text-amber-200"}`}>{score.passed ? "Splněno" : "K opravě"}</span><span className="self-center font-mono text-zinc-300">{typeof score.overallScore === "number" ? `${score.overallScore}%` : "—"}<span className="ml-2 text-zinc-500">Compliance {typeof score.complianceScore === "number" ? `${score.complianceScore}%` : "—"}</span></span></div>})}</div>}</section>}
+      {!isActive && !result && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Moje poslední tréninky</h2><p className="mt-1 text-xs text-zinc-500">Pouze vaše cvičné hovory. Obchodní výsledky ani ostré hovory se sem nemíchají.</p></div><ClipboardList className="h-5 w-5 text-zinc-500" /></div>{historyUnavailable ? <p className="mt-4 text-xs text-zinc-500">Historii tréninků se nyní nepodařilo načíst.</p> : history.length === 0 ? <p className="mt-4 text-xs text-zinc-500">Zatím jste neměl/a žádný dokončený trénink.</p> : <div className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950">{history.slice(0, 5).map((entry) => { const fb = entry.feedback; const hasCritical = fb.some((f) => f.severity === "critical"); return <div key={entry.sessionId} className="grid gap-2 px-4 py-3 text-xs sm:grid-cols-[1fr_auto_auto]"><div><p className="font-medium text-zinc-200">{entry.customerName}</p><p className="mt-1 text-zinc-500">{new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(entry.createdAt))} · {durationLabel(entry.durationSeconds)}</p></div><span className={`self-center rounded border px-2 py-1 text-[11px] ${hasCritical ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : fb.length > 0 ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"}`}>{hasCritical ? "Závažné chyby" : fb.length > 0 ? "K opravě" : "Bez zásadních chyb"}</span><span className="self-center font-mono text-zinc-300">{fb.length} oprava{fb.length !== 1 ? "y" : ""}</span></div>})}</div>}</section>}
 
       {!isActive && !result && (
         <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
@@ -340,7 +338,16 @@ export default function TrainingPage() {
         </div>
       )}
 
-      {result && scenario && <section className="mx-auto max-w-4xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6"><div className="text-center"><div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl ${result.passed ? "bg-emerald-950/40 text-emerald-300" : "bg-amber-950/40 text-amber-300"}`}>{result.passed ? <CheckCircle2 className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}</div><h2 className="mt-3 text-lg font-semibold text-zinc-100">{result.passed ? "Cvičení splněno" : "Cvičení potřebuje opravu"}</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">{result.summaryFeedback}</p></div><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">{[["Celkem", result.overallScore], ["Zjištění", result.discoveryScore], ["Nabídka", result.offerScore], ["Závěr", result.closingScore], ["Compliance", result.complianceScore]].map(([label, score]) => <div key={String(label)} className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-center"><span className="block font-mono text-lg text-zinc-100">{score}%</span><span className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</span></div>)}</div>{result.complianceFindings.length > 0 && <div className="mt-6 space-y-3 rounded-xl border border-rose-900/60 bg-rose-950/20 p-5"><h3 className="flex items-center gap-2 text-sm font-semibold text-rose-100"><ShieldAlert className="h-4 w-4" />Závažné právní chyby</h3>{result.complianceFindings.map((finding) => <div key={`${finding.phrase}-${finding.reason}`} className="text-xs leading-relaxed text-rose-100/80"><p><strong>Řečená věta:</strong> „{finding.phrase}“{finding.occurrences > 1 ? ` · ${finding.occurrences}×` : ""}</p><p className="mt-1"><strong>Proč:</strong> {finding.reason}</p><p className="mt-1"><strong>Bezpečněji:</strong> {finding.saferAlternative}</p></div>)}</div>}<div className="mt-6 grid gap-4 md:grid-cols-2"><div><h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Co se povedlo</h3><ul className="mt-3 space-y-2 text-sm text-zinc-400">{result.strengths.map((item) => <li key={item}>• {item}</li>)}</ul></div><div><h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Další pokus zlepší</h3><ul className="mt-3 space-y-2 text-sm text-zinc-400">{result.improvements.map((item) => <li key={item}>• {item}</li>)}</ul></div></div><p className="mt-6 text-center text-xs text-zinc-500">{saveState === "saving" && "Ukládám přepis pro kontrolu vedoucího…"}{saveState === "saved" && "Tréninkový přepis byl uložen do historie jako jasně označený tréninkový záznam."}{saveState === "unavailable" && "V demo režimu se přepis neukládá."}{saveState === "error" && "Výsledek zůstal zobrazený, ale přepis se nepodařilo uložit."}</p><div className="mt-6 flex justify-center"><button type="button" onClick={resetTraining} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><ClipboardList className="h-4 w-4" />Vybrat další cvičení</button></div></section>}
+      {result && scenario && (() => {
+        const feedbackItems = result.map((fb, idx) => {
+          const borderClass = fb.severity === "critical" ? "border-rose-900/60 bg-rose-950/20" : fb.severity === "warning" ? "border-amber-900/60 bg-amber-950/20" : "border-zinc-800/60 bg-zinc-950/20";
+          const badgeClass = fb.severity === "critical" ? "border-rose-900 text-rose-200" : fb.severity === "warning" ? "border-amber-900 text-amber-200" : "border-zinc-700 text-zinc-300";
+          const severityLabel = fb.severity === "critical" ? "Závažné" : fb.severity === "warning" ? "Upozornění" : "Info";
+          return <div key={idx} className={`rounded-xl border p-4 ${borderClass}`}><div className="flex items-start gap-2"><span className={`flex-shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>{severityLabel}</span><span className="text-xs font-medium text-zinc-300 capitalize">{fb.type}</span></div><p className="mt-2 text-xs text-zinc-400"><strong>Řekl/a jsi:</strong> „{fb.operatorText}“</p><p className="mt-1 text-xs text-emerald-300"><strong>Správně:</strong> „{fb.suggestedText}“</p><p className="mt-1 text-xs text-zinc-500"><strong>Proč:</strong> {fb.reason}</p></div>;
+        });
+        const noFeedback = result.length === 0 ? <p className="mt-6 text-center text-emerald-300">Bez zásadních chyb – dobrá práce.</p> : <div className="mt-6 space-y-4">{feedbackItems}</div>;
+        return <section className="mx-auto max-w-4xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6"><div className="text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900/50 text-zinc-300"><FileText className="h-6 w-6" /></div><h2 className="mt-3 text-lg font-semibold text-zinc-100">Co mělo znít lépe</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">AI coachingová zpětná vazba – konkrétní opravy bez bodování. Projděte si, přidejte vlastní poznámky a zkuste to znovu.</p></div>{noFeedback}<div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-center text-sm text-zinc-400">Zavřete toto okno a zkuste to znovu, nebo pokračujte do recenze Team Leadera.</div><div className="mt-6 flex justify-center"><button type="button" onClick={resetTraining} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><ClipboardList className="h-4 w-4" />Vybrat další cvičení</button></div></section>;
+      })()}
     </div>
   );
 }

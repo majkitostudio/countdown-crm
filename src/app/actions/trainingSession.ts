@@ -3,7 +3,7 @@
 import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { createDataClient } from "@/lib/dal/db";
-import { evaluateTrainingSession, getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingScorecard } from "@/lib/training";
+import { getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingFeedback } from "@/lib/training";
 
 export type TrainingSessionSaveResult =
   | { ok: true; sessionId: string }
@@ -14,7 +14,7 @@ export type SaveTrainingSessionInput = {
   difficulty: TrainingDifficulty;
   personaId: string;
   messages: TrainingMessage[];
-  scorecard: TrainingScorecard;
+  feedback: TrainingFeedback[];
   durationSeconds: number;
   aiSource: "gemini-flash" | "openai-responses" | "rule-engine" | null;
   startedAt: string;
@@ -33,13 +33,12 @@ function isUuid(value: unknown): value is string {
 
 export async function saveTrainingSessionAction(input: SaveTrainingSessionInput): Promise<TrainingSessionSaveResult> {
   if (isDemoAuthEnabled()) return { ok: false, code: "UNAVAILABLE", message: "V demo režimu nelze uložit přepis tréninkového hovoru." };
-  if (!input || typeof input.scriptId !== "string" || typeof input.personaId !== "string" || !["easy", "standard"].includes(input.difficulty) || !Array.isArray(input.messages) || input.messages.length === 0 || input.messages.length > 50 || !input.messages.every(isValidMessage) || !Number.isInteger(input.durationSeconds) || input.durationSeconds < 0 || Number.isNaN(Date.parse(input.startedAt)) || !isUuid(input.completionKey) || (input.aiSource !== null && !["gemini-flash", "openai-responses", "rule-engine"].includes(input.aiSource))) {
+  if (!input || typeof input.scriptId !== "string" || typeof input.personaId !== "string" || !["easy", "standard"].includes(input.difficulty) || !Array.isArray(input.messages) || input.messages.length === 0 || input.messages.length > 50 || !input.messages.every(isValidMessage) || !Number.isInteger(input.durationSeconds) || input.durationSeconds < 0 || Number.isNaN(Date.parse(input.startedAt)) || !isUuid(input.completionKey) || (input.aiSource !== null && !["gemini-flash", "openai-responses", "rule-engine"].includes(input.aiSource)) || !Array.isArray(input.feedback)) {
     return { ok: false, code: "VALIDATION", message: "Údaje pro uložení tréninkového hovoru nejsou platné." };
   }
 
   const scenario = getTrainingScenario(input.scriptId, input.difficulty, input.personaId);
   if (!scenario) return { ok: false, code: "VALIDATION", message: "Zvolený P2 trénink není platný." };
-  const scorecard = evaluateTrainingSession(scenario, input.messages);
 
   const context = await requireWorkspaceContext();
   const supabase = await createDataClient();
@@ -64,7 +63,7 @@ export async function saveTrainingSessionAction(input: SaveTrainingSessionInput)
       status: "completed",
       duration_seconds: input.durationSeconds,
       ai_source: input.aiSource,
-      scorecard,
+      feedback: input.feedback,
       script_snapshot: scriptSnapshot,
       completion_key: input.completionKey,
       started_at: input.startedAt,

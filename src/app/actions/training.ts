@@ -1,7 +1,6 @@
 "use server";
 
 import { GoogleGenAI } from "@google/genai";
-import OpenAI from "openai";
 import { findComplianceFindings, getTrainingScenario, type TrainingDifficulty, type TrainingMessage, type TrainingScenario } from "@/lib/training";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
 
@@ -10,7 +9,7 @@ export type TrainingTurnSource = "typed" | "browser_speech";
 export interface RoleplayAIResponse {
   text: string;
   sentiment: "positive" | "neutral" | "negative";
-  aiSource: "gemini-flash" | "openai-responses" | "rule-engine";
+  aiSource: "gemini-flash" | "rule-engine";
   aiNotice?: string;
 }
 

@@ -58,6 +58,15 @@ export type TrainingScorecard = {
   summaryFeedback: string;
 };
 
+/** Nová coachingová zpětná vazba – nahradí TrainingScorecard. */
+export type TrainingFeedback = {
+  type: "objection" | "direction" | "closing" | "compliance" | "other";
+  operatorText: string;      // co operátor řekl
+  suggestedText: string;     // jak to mělo znít
+  reason: string;            // proč
+  severity: "critical" | "warning" | "info";
+};
+
 export const P2_TRAINING_SCRIPTS: TrainingScript[] = [
   {
     id: "p2-joints-free-sample",
@@ -166,3 +175,5 @@ export function evaluateTrainingSession(scenario: TrainingScenario, history: Tra
       : "Cvičení je zaznamenáno, ale ještě není splněno. Projděte konkrétní zpětnou vazbu a zkuste jej znovu.",
   };
 }
+
+
