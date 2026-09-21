@@ -12,6 +12,8 @@ import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
 import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
+import { TeamCheckpointCallbacksSection } from "@/components/team/TeamCheckpointCallbacksSection";
+import { TeamCheckpointQualitySection } from "@/components/team/TeamCheckpointQualitySection";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { TeamPageData } from "@/lib/dal/teamPage";
 import {
@@ -259,6 +261,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
 
       {view === "checkpoint" && (
         <div className="space-y-6">
+          {/* 1. Asistence - Co vyžaduje pozornost */}
           {assistanceSource?.status !== "unavailable" ? (
             <TeamAssistancePanel
               requests={assistanceSource?.data || []}
@@ -267,6 +270,8 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           ) : (
             <SourceUnavailablePanel title="Žádosti o asistenci nejsou dostupné" message="Signály od operátorů nejsou dostupné." />
           )}
+
+          {/* 2-6. Daily Checkpoint + Konec směny + Callbacky + Kvalita */}
           {currentData.checkpoint.status === "ready"
             ? operatorDetail
               ? (
@@ -289,6 +294,17 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
                     qualityPendingCount={qualityPendingCount}
                     qualityAvailable={currentData.qualityReviews.status === "ready"}
                     onOpenQueue={() => setView("queue")}
+                    onOpenQuality={() => setView("quality")}
+                  />
+                  {/* Callbacky jako sekce v checkpointu */}
+                  <TeamCheckpointCallbacksSection
+                    checkpoint={currentData.checkpoint.data}
+                    onOpenQueue={() => setView("queue")}
+                  />
+                  {/* Kvalita hovorů jako sekce v checkpointu */}
+                  <TeamCheckpointQualitySection
+                    qualityPendingCount={qualityPendingCount}
+                    qualityAvailable={currentData.qualityReviews.status === "ready"}
                     onOpenQuality={() => setView("quality")}
                   />
                 </div>
