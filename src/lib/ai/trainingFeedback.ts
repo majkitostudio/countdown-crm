@@ -42,7 +42,12 @@ const FEEDBACK_RESPONSE_SCHEMA = {
 
 function buildFeedbackPrompt(scenario: TrainingScenario, history: TrainingMessage[]): string {
   const complianceFindings = findComplianceFindings(history);
-  const operatorMessages = history.filter((m) => m.sender === "user").map((m) => m.text).join("\n---\n");
+  const redact = (value: string) => value
+    .replace(/\b[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ][a-záčďéěíňóřšťúůýž]+(?:\s+[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ][a-záčďéěíňóřšťúůýž]+)+\b/g, "[jméno]")
+    .replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g, "[e-mail]")
+    .replace(/\b(?:\+420\s?)?\d{3}[\s-]?\d{3}[\s-]?\d{3}\b/g, "[telefon]")
+    .replace(/\b\d{1,4}\s+[A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽa-záčďéěíňóřšťúůýž]+\s+\d{1,4}(?:,\s*\d{3}\s+[A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽa-záčďéěíňóřšťúůýž -]+)?\b/g, "[adresa]");
+  const operatorMessages = history.filter((m) => m.sender === "user").map((m) => redact(m.text)).join("\n---\n");
 
   return `
 Jsi AI coaching asistent pro P2 outbound trénink (Countdown CRM).
@@ -50,9 +55,9 @@ Analyzuj přepis tréninkového hovoru a vrať konkrétní opravy.
 
 SKRIPT (pouze pro orientaci):
 ${scenario.title} – ${scenario.productLabel}
-${scenario.sections.map((s) => `${s.title}: ${s.text}`).join("\n")}
+${scenario.sections.map((s) => `${s.title}: ${redact(s.text)}`).join("\n")}
 
-ZÁKAZNÍK: ${scenario.customer.name} – ${scenario.customer.profile}
+ZÁKAZNÍK: [tréninkový zákazník] – ${redact(scenario.customer.profile)}
 OBTÍŽNOST: ${scenario.difficulty === "easy" ? "snadná" : "standardní"}
 
 PŘEPROS OPERÁTORA:
@@ -101,7 +106,9 @@ export async function generateTrainingFeedback(
   }
 
   const client = new GoogleGenAI({ apiKey });
-  const model = process.env.GEMINI_TRAINING_MODEL?.trim() || "gemini-3.6-flash";
+  const model = process.env.GEMINI_FEEDBACK_MODEL?.trim()
+    || process.env.GEMINI_TRAINING_MODEL?.trim()
+    || "gemini-3.6-flash";
 
   const maxRetries = 2;
   let lastError: Error | null = null;
@@ -128,7 +135,6 @@ export async function generateTrainingFeedback(
       });
 
       const rawText = typeof response.text === "string" ? response.text.trim() : "";
-      console.log("Training feedback raw response:", rawText);
       if (!rawText) throw new Error("AI returned empty feedback.");
 
       let parsed: unknown;
@@ -139,19 +145,34 @@ export async function generateTrainingFeedback(
         throw new Error("AI returned invalid feedback JSON.");
       }
 
-      const result = parsed as { feedback: Array<{ type: string; operator_text: string; suggested_text: string; reason: string; severity: string }> };
-      if (!result || !Array.isArray(result.feedback)) {
+      const result = parsed as { feedback?: unknown };
+      if (!result || !Array.isArray(result.feedback) || result.feedback.length > 7) {
         console.error("Invalid feedback shape:", parsed);
         throw new Error("AI returned invalid feedback shape.");
       }
 
-      return result.feedback.map((item) => ({
-        type: item.type as TrainingFeedback["type"],
-        operatorText: item.operator_text,
-        suggestedText: item.suggested_text,
-        reason: item.reason,
-        severity: item.severity as TrainingFeedback["severity"],
-      }));
+      const allowedTypes = new Set<TrainingFeedback["type"]>(["objection", "direction", "closing", "compliance", "other"]);
+      const allowedSeverities = new Set<TrainingFeedback["severity"]>(["critical", "warning", "info"]);
+      if (!result.feedback.every((item) => {
+        if (!item || typeof item !== "object") return false;
+        const value = item as Record<string, unknown>;
+        return allowedTypes.has(value.type as TrainingFeedback["type"])
+          && allowedSeverities.has(value.severity as TrainingFeedback["severity"])
+          && ["operator_text", "suggested_text", "reason"].every((key) => typeof value[key] === "string" && value[key].trim().length > 0 && value[key].length <= 2_000);
+      })) {
+        throw new Error("AI returned invalid feedback item.");
+      }
+
+      return result.feedback.map((item) => {
+        const value = item as Record<string, string>;
+        return {
+          type: value.type as TrainingFeedback["type"],
+          operatorText: value.operator_text,
+          suggestedText: value.suggested_text,
+          reason: value.reason,
+          severity: value.severity as TrainingFeedback["severity"],
+        };
+      });
     } catch (error) {
       if (timedOut) throw new Error("Training feedback generation timed out.");
       

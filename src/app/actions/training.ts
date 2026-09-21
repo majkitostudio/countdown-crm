@@ -96,7 +96,10 @@ async function generateTrainingResponseAction(scenario: TrainingScenario, histor
   try {
     if (process.env.GEMINI_API_KEY) {
       const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await withTrainingProviderTimeout(client.interactions.create({ model: process.env.GEMINI_TRAINING_MODEL || "gemini-3.6-flash", input: prompt, store: false }));
+      const model = process.env.GEMINI_ROLEPLAY_MODEL?.trim()
+        || process.env.GEMINI_TRAINING_MODEL?.trim()
+        || "gemini-3.5-flash-lite";
+      const response = await withTrainingProviderTimeout(client.interactions.create({ model, input: prompt, store: false }));
       return { ...normalizeTrainingResponse(JSON.parse((response.output_text || "").replace(/```json|```/g, "").trim()), "gemini-flash"), aiNotice };
     }
   } catch (error) {

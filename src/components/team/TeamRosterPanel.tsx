@@ -28,7 +28,7 @@ export function TeamRosterPanel({ teams, memberships }: TeamRosterPanelProps) {
           <div>
             <div className="flex items-center gap-3">
               <Users className="h-4 w-4 text-zinc-400" />
-              <h2 className="text-sm font-semibold text-zinc-100">My teams</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">Moje týmy</h2>
             </div>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500">
               Přehled týmů, které tato role smí řídit. Zobrazená jména a členové pocházejí z aktuálního workspace.
@@ -79,7 +79,7 @@ export function TeamRosterPanel({ teams, memberships }: TeamRosterPanelProps) {
         )}
 
         {leaderCount > 0 && (
-          <p className="text-[11px] text-zinc-600">Team Leaders in scope: {leaderCount}</p>
+          <p className="text-xs text-zinc-600">Team Leadeři v rozsahu: {leaderCount}</p>
         )}
       </div>
     </Surface>

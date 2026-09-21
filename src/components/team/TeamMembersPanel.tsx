@@ -69,7 +69,7 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
                 <UserCog className="h-4 w-4" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-zinc-100">Workspace Members</h2>
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-100">Členové workspace</h2>
                 <p className="mt-1 text-xs text-zinc-400">Správa rolí Operator, Team Leader a Administrator.</p>
               </div>
             </div>
@@ -77,7 +77,7 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
               Tato administrace mění membership roli v aktuálním workspace. Přihlášení a Auth identity se spravují odděleně; pozvánkový flow není součástí tohoto pilotního slice.
             </p>
           </div>
-          <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-mono text-zinc-300">Administrator only</span>
+          <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-mono text-zinc-300">Pouze administrátor</span>
         </div>
         </div>
       </Surface>
@@ -100,7 +100,7 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
                     {(member.full_name || member.email || "??").slice(0, 2).toUpperCase()
                   }</div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-zinc-200">{member.full_name || "Unknown operator"}{isCurrentUser ? " (you)" : ""}</p>
+                    <p className="truncate text-sm font-medium text-zinc-200">{member.full_name || "Neznámý operátor"}{isCurrentUser ? " (vy)" : ""}</p>
                     <p className="truncate text-[11px] text-zinc-500">{member.email || member.user_id}</p>
                   </div>
                 </div>

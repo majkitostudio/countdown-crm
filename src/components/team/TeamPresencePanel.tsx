@@ -99,7 +99,7 @@ export function TeamPresencePanel({ operators, presence }: TeamPresencePanelProp
                 <div key={operator.user_id} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-zinc-200">{operator.full_name || operator.email || "Unknown operator"}</p>
+                      <p className="truncate text-sm font-medium text-zinc-200">{operator.full_name || operator.email || "Neznámý operátor"}</p>
                       <p className="mt-1 truncate text-[11px] text-zinc-500">{operator.email || "Email není uveden"}</p>
                     </div>
                     <StatusBadge tone={statusTone(state, fresh)}>{fresh ? STATE_LABELS[state] : "Offline / stale"}</StatusBadge>

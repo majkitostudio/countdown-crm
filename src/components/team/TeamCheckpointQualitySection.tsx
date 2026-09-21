@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
@@ -15,10 +15,13 @@ export function TeamCheckpointQualitySection({
       <div className="space-y-4 p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <h2 className="text-sm font-semibold text-zinc-100">Kvalita hovorů</h2>
-            <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-              AI kontrola poznámek u reálných hovorů. Doporučení ke kontrole pro Team Leadera.
-            </p>
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" aria-hidden="true" />
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-100">Kvalita hovorů</h2>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                AI kontrola poznámek u reálných hovorů. Doporučení ke kontrole pro Team Leadera.
+              </p>
+            </div>
           </div>
           <StatusBadge tone={qualityPendingCount > 0 ? "warning" : "neutral"}>
             {qualityAvailable

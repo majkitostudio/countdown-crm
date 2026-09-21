@@ -90,7 +90,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
           <div className="flex items-start gap-3">
             <BarChart3 className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">{section === "orders" ? "Objednávky" : "Daily Checkpoint"}</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">{section === "orders" ? "Objednávky" : "Denní checkpoint"}</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
                 {section === "orders" ? "Objednávky vytvořené v zvoleném období v povoleném týmovém rozsahu." : "Týmový přehled objednávek, prošlých callbacků a aktuálních výsledků operátorů v zvoleném období."}
               </p>
@@ -142,7 +142,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail={`Vytvořené v období „${periodLabel.toLowerCase()}“ v týmu`} />
           <MetricCard label="Prošlé callbacky" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
-          <MetricCard label="Aktivní operátoři" value={checkpoint.operatorMetrics.length} detail="V povoleném rozsahu" />
+          <MetricCard label="Operátoři s výsledky" value={checkpoint.operatorMetrics.length} detail="V povoleném rozsahu" />
           <MetricCard label="Prodeje" value={checkpoint.sources.calls.state === "ready" ? totalSales : "—"} detail={`Za zvolené období (${periodLabel.toLowerCase()})`} />
         </div>
 
@@ -227,7 +227,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
             <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
               <table className="w-full min-w-240 text-left text-xs">
                 <thead className="border-b border-zinc-800 bg-zinc-950/80 text-[10px] uppercase tracking-wider text-zinc-500">
-                  <tr><th className="px-4 py-3">Operátor</th><th className="px-4 py-3 text-right">Prodeje</th><th className="px-4 py-3 text-right">Faily</th><th className="px-4 py-3 text-right">Konverze</th><th className="px-4 py-3 text-right">Talk Time</th><th className="px-4 py-3 text-right">Talk %</th><th className="px-4 py-3 text-right">Vytočeno</th><th className="px-4 py-3 text-right">Spojeno</th></tr>
+                  <tr><th className="px-4 py-3">Operátor</th><th className="px-4 py-3 text-right">Prodeje</th><th className="px-4 py-3 text-right">Neúspěšné hovory</th><th className="px-4 py-3 text-right">Konverze</th><th className="px-4 py-3 text-right">Čas hovoru</th><th className="px-4 py-3 text-right">Podíl času</th><th className="px-4 py-3 text-right">Vytočeno</th><th className="px-4 py-3 text-right">Spojeno</th></tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/70">
                   {checkpoint.operatorMetrics.map((metric) => (
@@ -259,7 +259,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
               </table>
             </div>
           )}
-          {checkpoint.sources.shifts.state === "unavailable" && <p className="text-[11px] text-zinc-500">Talk Time procento se zobrazí až po zavedení ověřeného plánování směn.</p>}
+          {checkpoint.sources.shifts.state === "unavailable" && <p className="text-xs text-zinc-500">Konverze a podíl času na hovoru se zobrazí po zavedení ověřeného plánování směn.</p>}
         </section>}
       </div>
     </Surface>

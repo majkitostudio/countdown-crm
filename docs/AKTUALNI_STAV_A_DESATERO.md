@@ -456,6 +456,11 @@ mimo tuto týmovou plochu a patří administrátorovi.
    typecheck, build, plus plný sandbox průchod v
    `docs/superpowers/reports/2026-09-19-team-checkpoint-verification.md`
    (tři role, cross-team denial, overdue odznak, claim → resolve s auditem).
+   **Macaly layout na `main` (20. 9. 2026):** checkpoint tab drží pořadí
+   Asistence → KPI → Výsledky → Konec směny → Callbacky + Kvalita; řádky
+   výsledků otevírají detail; taby Checkpoint / Kvalita / Objednávky /
+   Operátoři / Fronta. Ověřeno 12/12 browser smoke + DB read-back v
+   `docs/superpowers/reports/2026-09-20-team-checkpoint-layout-verification.md`.
 2. **Dokončen ověřovací průchod `/team` v Sandboxu** (19. 9. 2026): autentizovaný
    Team Leader, administrátor a operátor, včetně přímé URL, cross-team odmítnutí,
    reloadu, prázdných stavů a AI panelu. Dočasné účty byly smazány; důkaz je

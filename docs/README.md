@@ -46,6 +46,7 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [superpowers/reports/2026-09-17-speech-to-text-browser-smoke.md](superpowers/reports/2026-09-17-speech-to-text-browser-smoke.md) | Částečný smoke browserového přepisu v trenažéru, vady a odložené rozhodnutí. |
 | [superpowers/reports/2026-09-18-team-workspace-verification.md](superpowers/reports/2026-09-18-team-workspace-verification.md) | Ověřovací průchod `/team` v Sandboxu (role, cross-team, reload, prázdné stavy). |
 | [superpowers/reports/2026-09-19-team-checkpoint-verification.md](superpowers/reports/2026-09-19-team-checkpoint-verification.md) | Plný průchod novinek Team Checkpointu (overdue odznak, detail, claim → resolve, tři role). |
+| [superpowers/reports/2026-09-20-team-checkpoint-layout-verification.md](superpowers/reports/2026-09-20-team-checkpoint-layout-verification.md) | Ověření Macaly layoutu checkpointu (sekce Callbacky/Kvalita, detail, 12/12 smoke). |
 
 ## Pořadí zdrojů pravdy
 

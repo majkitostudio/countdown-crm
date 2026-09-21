@@ -32,7 +32,7 @@ export interface TrainingCallLogRecord {
   transcript: string;
   createdAt: string;
   reviewHref: string | null;
-  scorecard: unknown;
+  feedback: unknown;
 }
 
 async function getOperatorProfiles(
@@ -91,7 +91,7 @@ export async function getTrainingSessionReviews(): Promise<TrainingSessionReview
     const operator = operatorProfiles.get(session.operator_id);
     return {
       ...session,
-      operator_name: operator?.full_name || "Unknown operator",
+      operator_name: operator?.full_name || "Neznámý operátor",
       operator_email: operator?.email || "",
       turn_count: turnCounts.get(session.id) || 0,
     };
@@ -139,7 +139,7 @@ export async function getTrainingSessionReview(
 
   return {
     ...(session as TrainingSessionRow),
-    operator_name: operator?.full_name || "Unknown operator",
+    operator_name: operator?.full_name || "Neznámý operátor",
     operator_email: operator?.email || "",
     turn_count: turns?.length || 0,
     turns: (turns || []) as TrainingTurnRow[],
@@ -172,7 +172,7 @@ export async function listTrainingCallLogRecords(): Promise<TrainingCallLogRecor
   const supabase = await createDataClient();
   const { data: sessions, error: sessionsError } = await supabase
     .from("training_sessions")
-    .select("id, operator_id, customer_name, duration_seconds, created_at, scorecard")
+    .select("id, operator_id, customer_name, duration_seconds, created_at, feedback")
     .eq("workspace_id", context.workspaceId)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -195,11 +195,11 @@ export async function listTrainingCallLogRecords(): Promise<TrainingCallLogRecor
     id: `training:${session.id}`,
     sessionId: session.id,
     customerName: `${session.customer_name} · trénink`,
-    operatorName: profileNames.get(session.operator_id)?.full_name || "Unknown operator",
+    operatorName: profileNames.get(session.operator_id)?.full_name || "Neznámý operátor",
     durationSeconds: session.duration_seconds,
     transcript: JSON.stringify((bySession.get(session.id) || []).map((turn) => ({ speaker: turn.speaker === "operator" ? "operator" : "customer", text: turn.text, timestamp: turn.occurred_at }))),
     createdAt: session.created_at,
     reviewHref: canReview ? `/training/reviews/${session.id}` : null,
-    scorecard: session.scorecard,
+    feedback: session.feedback,
   }));
 }

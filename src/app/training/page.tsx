@@ -53,7 +53,7 @@ const continuousRecognitionRef = useRef<ContinuousSpeechRecognition | null>(null
 
   useEffect(() => {
     void listTrainingCallLogRecordsAction()
-      .then((records) => setHistory(records.map((record) => ({ sessionId: record.sessionId, customerName: record.customerName, durationSeconds: record.durationSeconds, createdAt: record.createdAt, feedback: (record.scorecard as TrainingFeedback[] | undefined) || [] }))))
+      .then((records) => setHistory(records.map((record) => ({ sessionId: record.sessionId, customerName: record.customerName, durationSeconds: record.durationSeconds, createdAt: record.createdAt, feedback: (record.feedback as TrainingFeedback[] | undefined) || [] }))))
       .catch(() => setHistoryUnavailable(true));
   }, []);
 
@@ -295,7 +295,7 @@ function stopListening() {
               <span className="font-mono text-sm text-zinc-400">{durationLabel(elapsedSeconds)}</span>
             </div>
             <div className="min-h-105 space-y-4 p-5">
-              {messages.map((message) => <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-xl border p-3 ${message.sender === "user" ? "border-sky-900/70 bg-sky-950/30 text-sky-50" : "border-zinc-800 bg-zinc-950 text-zinc-200"}`}><div className="mb-1 flex gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>{message.sender === "user" ? "Operátor" : scenario.customer.name}</span><span>{message.timestamp}</span>{message.sender === "ai_customer" && <button type="button" onClick={() => speakText(message.text)} className="ml-auto text-zinc-400 hover:text-zinc-100" aria-label="Přečíst odpověď"><Volume2 className="h-3.5 w-3.5" /></button>}</div><p className="text-sm leading-relaxed">{message.text}</p></div></div>)}
+              {messages.map((message) => <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-xl border p-3 ${message.sender === "user" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "border-zinc-800 bg-zinc-950 text-zinc-200"}`}><div className="mb-1 flex gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>{message.sender === "user" ? "Operátor" : scenario.customer.name}</span><span>{message.timestamp}</span>{message.sender === "ai_customer" && <button type="button" onClick={() => speakText(message.text)} className="ml-auto text-zinc-400 hover:text-zinc-100" aria-label="Přečíst odpověď"><Volume2 className="h-3.5 w-3.5" /></button>}</div><p className="text-sm leading-relaxed">{message.text}</p></div></div>)}
               {isSending && <p className="text-xs text-zinc-500">AI zákazník odpovídá…</p>}
             </div>
             <div className="border-t border-zinc-800 p-4">

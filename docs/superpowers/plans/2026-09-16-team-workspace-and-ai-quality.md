@@ -34,6 +34,14 @@ Plný sandbox průchod je v
 `docs/superpowers/reports/2026-09-19-team-checkpoint-verification.md`.
 Aktuální ověření: 147 souborů / 687 testů, lint, typecheck i build prošly.
 
+**Aktualizace 20. 9. 2026:** Macaly layout checkpointu na `main` (commit
+`ef4caa6`): pořadí Asistence → KPI → Výsledky (klikací řádky do detailu) →
+Konec směny → sekce Callbacky + Kvalita v checkpoint tabu; nové komponenty
+`TeamCheckpointCallbacksSection` a `TeamCheckpointQualitySection`; taby beze
+změny. Ověřeno 12/12 browser smoke (TL, Admin, operátor denial, reload,
+390 px) + DB read-back hranic v
+`docs/superpowers/reports/2026-09-20-team-checkpoint-layout-verification.md`.
+
 ## Zásady
 
 - Nejprve serverový datový kontrakt a testy, potom UI.

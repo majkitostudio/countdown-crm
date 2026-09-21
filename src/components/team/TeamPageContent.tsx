@@ -35,7 +35,7 @@ export type TeamMutationHandler = (mutation: () => Promise<unknown>) => Promise<
 type TeamWorkspaceView = "checkpoint" | "quality" | "orders" | "operators" | "queue";
 
 const TEAM_WORKSPACE_VIEWS: Array<{ id: TeamWorkspaceView; label: string }> = [
-  { id: "checkpoint", label: "Daily Checkpoint" },
+  { id: "checkpoint", label: "Denní checkpoint" },
   { id: "quality", label: "Kontrola kvality hovorů" },
   { id: "orders", label: "Objednávky" },
   { id: "operators", label: "Aktivní operátoři" },
@@ -67,7 +67,7 @@ function SourceUnavailablePanel({ title, message }: { title: string; message: st
   return (
     <section className="rounded-xl border border-zinc-700 bg-zinc-950/50 p-5" role="status">
       <h2 className="text-sm font-semibold text-zinc-200">{title}</h2>
-      <p className="mt-1 text-xs leading-relaxed text-zinc-500">{message} No data was fabricated.</p>
+      <p className="mt-1 text-xs leading-relaxed text-zinc-500">{message} Náhradní data nezobrazujeme.</p>
     </section>
   );
 }
@@ -220,6 +220,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
       metric,
       orders: checkpoint.orders.filter((order) => order.operatorId === selectedOperatorId),
       overdueCallbacks: checkpoint.overdueCallbacks.filter((callback) => callback.operatorName === metric.operatorName),
+      upcomingCallbacks: checkpoint.upcomingCallbacks.filter((callback) => callback.operatorName === metric.operatorName),
       recentCalls: checkpoint.recentCallsByOperator[selectedOperatorId] || [],
       assistanceRequests: openAssistance.filter((request) => request.operatorId === selectedOperatorId),
       qualityReviews: qualityList.filter((review) => review.operator?.id === selectedOperatorId),
@@ -309,7 +310,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
                   />
                 </div>
               )
-            : <SourceUnavailablePanel title="Daily Checkpoint unavailable" message="Daily Checkpoint is unavailable." />}
+            : <SourceUnavailablePanel title="Denní checkpoint není dostupný" message="Denní checkpoint není dostupný." />}
         </div>
       )}
 

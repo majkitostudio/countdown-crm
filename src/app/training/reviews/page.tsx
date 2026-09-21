@@ -32,13 +32,13 @@ export default async function TrainingReviewsPage() {
   if (loadError) {
     const message = isDataAccessError(loadError) && loadError.code === "FORBIDDEN"
       ? "This review area is available to Team Leaders and Administrators only."
-      : "Training reviews could not be loaded. No data was fabricated.";
+      : "Kontroly tréninků se nepodařilo načíst. Náhradní data nezobrazujeme.";
 
     return (
       <div className="mx-auto max-w-2xl">
       <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Teamleader Review unavailable</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Kontrola tréninků není dostupná</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
         <Link
           href="/training"
@@ -56,48 +56,46 @@ export default async function TrainingReviewsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-8">
         <PageHeader
           icon={ClipboardList}
-          title="Training reviews"
+          title="Kontrola tréninků"
           badge={{ label: "Training only", tone: "neutral" }}
-          description="Review completed training sessions without opening production call records."
-          actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} session{sessions.length === 1 ? "" : "s"}</span>}
+          description="Kontrola dokončených tréninků oddělená od ostrých hovorů."
+          actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} {sessions.length === 1 ? "relace" : "relací"}</span>}
         />
 
         {sessions.length === 0 ? (
           <Surface variant="empty">
             <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
-            <h2 className="text-sm font-semibold text-zinc-200">No training sessions yet</h2>
-            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Completed training sessions will appear here for Team Leader and Administrator review.</p>
+            <h2 className="text-sm font-semibold text-zinc-200">Zatím žádné tréninky</h2>
+            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Dokončené tréninky se zde zobrazí pro kontrolu Team Leaderem nebo administrátorem.</p>
             <Link
               href="/training"
               className={getButtonClassName("primary")}
             >
-              Open AI Training
+              Otevřít AI trénink
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Surface>
         ) : (
           <Surface variant="table">
             <div className="border-b border-zinc-800 px-6 py-4">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Recent training sessions</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Poslední tréninky</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[860px] text-left text-xs">
                 <thead className="border-b border-zinc-800 bg-zinc-950/60 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
                   <tr>
-                    <th className="px-5 py-3">Date</th>
-                    <th className="px-5 py-3">Operator</th>
-                    <th className="px-5 py-3">Scenario</th>
-                    <th className="px-5 py-3">Duration</th>
-                    <th className="px-5 py-3">Score</th>
-                    <th className="px-5 py-3">Turns</th>
+                    <th className="px-5 py-3">Datum</th>
+                    <th className="px-5 py-3">Operátor</th>
+                    <th className="px-5 py-3">Scénář</th>
+                    <th className="px-5 py-3">Délka</th>
+                    <th className="px-5 py-3">Opravy</th>
+                    <th className="px-5 py-3">Tahů</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/70">
                   {sessions.map((session) => {
-                    const scorecard = session.scorecard && typeof session.scorecard === "object" && !Array.isArray(session.scorecard)
-                      ? session.scorecard as { overallScore?: number; complianceScore?: number }
-                      : {};
+                    const feedback = Array.isArray(session.feedback) ? session.feedback : [];
                     return (
                       <tr key={session.id} className="transition-colors hover:bg-zinc-900/80">
                         <td className="whitespace-nowrap px-5 py-4 font-mono text-[11px] text-zinc-400">{formatDate(session.created_at)}</td>
@@ -110,17 +108,14 @@ export default async function TrainingReviewsPage() {
                           <div className="mt-0.5 text-[11px] text-zinc-500">{session.target_product}</div>
                         </td>
                         <td className="whitespace-nowrap px-5 py-4 font-mono text-zinc-300">{formatDuration(session.duration_seconds)}</td>
-                        <td className="whitespace-nowrap px-5 py-4 font-mono text-zinc-300">
-                          <span>{typeof scorecard.overallScore === "number" ? `${scorecard.overallScore}%` : "—"}</span>
-                          <span className="ml-2 text-[10px] text-zinc-500">{typeof scorecard.complianceScore === "number" ? `${scorecard.complianceScore}% compliance` : ""}</span>
-                        </td>
+                        <td className="whitespace-nowrap px-5 py-4 font-mono text-zinc-300">{feedback.length}</td>
                         <td className="px-5 py-4 font-mono text-zinc-300">{session.turn_count}</td>
                         <td className="px-5 py-4 text-right">
                           <Link
                             href={`/training/reviews/${session.id}`}
                             className={getButtonClassName("secondary")}
                           >
-                            Open review
+                            Otevřít kontrolu
                             <ArrowRight className="h-3.5 w-3.5" />
                           </Link>
                         </td>

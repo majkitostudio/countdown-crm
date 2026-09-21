@@ -38,6 +38,7 @@ export interface TeamOperatorDetailData {
   metric: TeamWorkspaceOperatorMetrics;
   orders: TeamWorkspaceOrderSummary[];
   overdueCallbacks: TeamWorkspaceCallbackSummary[];
+  upcomingCallbacks: TeamWorkspaceCallbackSummary[];
   recentCalls: TeamWorkspaceRecentCall[];
   assistanceRequests: AssistanceRequestDTO[];
   qualityReviews: CallQualityReviewDTO[];
@@ -60,7 +61,7 @@ export function TeamOperatorDetailPanel({
   onBack: () => void;
   onOpenQuality: () => void;
 }) {
-  const { metric, orders, overdueCallbacks, recentCalls, assistanceRequests, qualityReviews, qualityAvailable } = detail;
+  const { metric, orders, overdueCallbacks, upcomingCallbacks, recentCalls, assistanceRequests, qualityReviews, qualityAvailable } = detail;
   const needsReview = qualityReviews.filter((review) => review.status === "review" || review.status === "pending").length;
 
   return (
@@ -85,7 +86,7 @@ export function TeamOperatorDetailPanel({
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{metric.sales}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-            <p className="text-xs font-medium text-zinc-500">Faily</p>
+            <p className="text-xs font-medium text-zinc-500">Neúspěšné hovory</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{metric.fails}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
@@ -93,7 +94,7 @@ export function TeamOperatorDetailPanel({
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{metric.dialedCalls} / {metric.connectedCalls}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-            <p className="text-xs font-medium text-zinc-500">Talk Time</p>
+            <p className="text-xs font-medium text-zinc-500">Čas hovoru</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{formatDuration(metric.talkTimeSeconds)}</p>
             <p className="mt-1 text-xs text-zinc-500">
               Konverze {metric.conversionPercent === null ? "—" : `${metric.conversionPercent}%`} · Talk % {metric.talkTimePercent === null ? "—" : `${metric.talkTimePercent}%`}
@@ -119,7 +120,7 @@ export function TeamOperatorDetailPanel({
                   <StatusBadge tone="neutral">{outcomeLabel(call.outcome)}</StatusBadge>
                   <span className="font-mono text-zinc-400">{formatCallDuration(call.durationSeconds)}</span>
                   <Link href={`/calls/${call.id}/review`} className="ml-auto font-semibold text-zinc-300 hover:text-zinc-100">
-                    Review →
+                    Otevřít kontrolu →
                   </Link>
                 </li>
               ))}
@@ -152,22 +153,22 @@ export function TeamOperatorDetailPanel({
             )}
           </section>
 
-          <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Prošlé callbacky operátora">
+          <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Callbacky operátora">
             <div className="flex items-center gap-2">
               <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-              <h3 className="text-sm font-semibold text-zinc-100">Prošlé callbacky</h3>
-              <StatusBadge tone={overdueCallbacks.length > 0 ? "warning" : "neutral"}>{overdueCallbacks.length}</StatusBadge>
+              <h3 className="text-sm font-semibold text-zinc-100">Callbacky</h3>
+                <StatusBadge tone={overdueCallbacks.length > 0 ? "warning" : "neutral"}>{overdueCallbacks.length + upcomingCallbacks.length}</StatusBadge>
             </div>
-            {overdueCallbacks.length === 0 ? (
+            {overdueCallbacks.length === 0 && upcomingCallbacks.length === 0 ? (
               <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
-                Operátor nemá žádné prošlé callbacky.
+                Operátor nemá žádné callbacky v tomto období.
               </p>
             ) : (
               <ul className="space-y-2">
-                {overdueCallbacks.slice(0, 5).map((callback) => (
+                {[...overdueCallbacks.map((callback) => ({ callback, label: "Po termínu", tone: "warning" as const })), ...upcomingCallbacks.map((callback) => ({ callback, label: "Naplánováno", tone: "info" as const }))].slice(0, 5).map(({ callback, label, tone }) => (
                   <li key={callback.id} className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
-                    <Link href={`/leads/${callback.leadId}`} className="font-medium text-zinc-200 hover:text-zinc-100">{callback.leadName}</Link>
-                    <span className="text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</span>
+                    <Link href={`/leads/${callback.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-zinc-100">{callback.leadName}</Link>
+                    <span className="flex items-center gap-2 text-zinc-500"><StatusBadge tone={tone}>{label}</StatusBadge>{formatDate(callback.scheduledAt)}</span>
                   </li>
                 ))}
               </ul>

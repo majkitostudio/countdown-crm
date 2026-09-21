@@ -223,7 +223,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
               value={draftName}
               onChange={(event) => setDraftName(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter") handleSaveCurrentView(); if (event.key === "Escape") { setShowSaveInput(false); setDraftName(""); } }}
-              placeholder="Např. Faily včera"
+              placeholder="Např. Neúspěšné hovory včera"
               maxLength={60}
               autoFocus
               className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
@@ -277,7 +277,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
             <option value="all">Všechny hovory</option>
             <option value="sale">Úspěšné hovory / prodeje</option>
             <option value="successful_review">Úspěch s doporučením kontroly</option>
-            <option value="fail">Faily</option>
+            <option value="fail">Neúspěšné hovory</option>
           </select>
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-fail-reason-filter">

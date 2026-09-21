@@ -1474,7 +1474,7 @@ export interface Database {
           status: string;
           duration_seconds: number;
           ai_source: string | null;
-          scorecard: Json;
+          feedback: Json;
           completion_key: string | null;
           script_snapshot: Json;
           started_at: string;
@@ -1492,6 +1492,7 @@ export interface Database {
           status?: string;
           duration_seconds?: number;
           ai_source?: string | null;
+          feedback?: Json;
           scorecard?: Json;
           completion_key?: string | null;
           script_snapshot?: Json;
@@ -1503,6 +1504,7 @@ export interface Database {
           status?: string;
           duration_seconds?: number;
           ai_source?: string | null;
+          feedback?: Json;
           scorecard?: Json;
           completion_key?: string | null;
           script_snapshot?: Json;

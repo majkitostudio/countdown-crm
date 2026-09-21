@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarClock, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import type { TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
@@ -53,7 +54,7 @@ export function TeamCheckpointCallbacksSection({
                     <div key={callback.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <span className="font-medium text-zinc-200">{callback.leadName}</span>
+                          <Link href={`/leads/${callback.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{callback.leadName}</Link>
                           <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</p>
                         </div>
                         <StatusBadge tone="warning">Po termínu</StatusBadge>
@@ -72,7 +73,7 @@ export function TeamCheckpointCallbacksSection({
                     <div key={callback.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <span className="font-medium text-zinc-200">{callback.leadName}</span>
+                          <Link href={`/leads/${callback.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{callback.leadName}</Link>
                           <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</p>
                         </div>
                         <StatusBadge tone="info">Naplánovaný</StatusBadge>
