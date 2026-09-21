@@ -1,10 +1,10 @@
 # Aktuální stav, jednotné To-Do a Desatero
 
-**Snapshot:** 19. 9. 2026
+**Snapshot:** 21. 9. 2026
 
 **Detailní zdroj pořadí práce:** tento dokument
 
-**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna, první bezpečná vlna P2 týmů, serverová AI kontrola kvality v Sandboxu a schválený Team Checkpoint v designovém jazyce aplikace (5minutová asistence, detail operátora se skutečnou historií hovorů, read-only předání směny, prošlé i naplánované callbacky). Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky, týmová analytika a AI doporučení mají ověřený nebo zdokumentovaný týmový rozsah. Další práce pokračuje praktickým návrhem Team Checkpointu, samostatným plánováním směn a onboardingem trenérem, bez rozšiřování týmového vlastnictví do workflow, produktů a Walletu.
+**Stav:** dokončený checkpoint P0.1–P0.3, P1 stabilizační/UI vlna, první bezpečná vlna P2 týmů, Team Checkpoint a interní P1.5 onboardingový trénink. Production zůstává beze změny. Ruční i post-call objednávky mají ověřený adresní snapshot a read-back; Team Leader pracovní plocha, Daily Brief, callbacky, týmová analytika a AI doporučení mají ověřený nebo zdokumentovaný týmový rozsah. Trénink ukládá coaching feedback bez skóre, má bezpečný lokální fallback a oddělené modely Gemini: `gemini-3.5-flash-lite` pro AI zákazníka a `gemini-3.6-flash` pro závěrečné hodnocení. Další práce se má soustředit na ověřený pilotní pracovní den, směny a dostupnost, dotažení training UX a stabilitu AI provideru; týmové vlastnictví se zatím nerozšiřuje do workflow, produktů a Walletu.
 
 ## Co je skutečně hotové
 
@@ -24,9 +24,13 @@
   Anonymizovaný end-to-end průchod včetně atomického claimu prošel; detail je v
   `docs/superpowers/reports/2026-09-16-gemini-call-quality-verification.md`.
 - Osobní preference operátora jsou serverové, workspace-scoped a chráněné RLS.
-- Linked migration history je srovnaná. Aktuální Sandbox týmová a AI vlna
-  prošly 642/642 aplikačními testy, lintem, typecheckem a produkčním buildem;
-  databázová sada má poslední známý výsledek 183/183 testů.
+- Aktuální pracovní strom prošel 687/687 aplikačními testy, lintem,
+  typecheckem, produkčním buildem, `git diff --check` a autentizovaným
+  Playwright smoke testem tréninku.
+- Linked migration history **není plně srovnaná**: Sandbox obsahuje historické
+  migration ID, která nejsou v lokálním repozitáři. Nová training migrace byla
+  proto ověřeně aplikována cíleně; `db push` se nesmí spouštět hromadně bez
+  samostatného rozhodnutí o opravě historie.
 - P0.3 je skutečně uzavřené: linked runner provedl read-only ověření 8/8
   databázových kontraktů. Použil oddělenou identitu s pouze `Database: Read` a
   `Data API Config: Read`; produkce nebyla použita a žádný zápis neproběhl.
@@ -45,6 +49,43 @@
 
 Hotový bod se do priorit níže nevrací. Pokud se objeví regrese, zapisuje se jako
 nový konkrétní problém s vlastním důkazem.
+
+## Doporučený směr dalších pěti oblastí
+
+Po auditu bych nyní nevolil další velkou izolovanou funkci. Produkt má zdravý
+základ; největší přínos přinese dotažení pracovního dne operátora, odstranění
+rozporů mezi tím, co UI slibuje, a tím, co data skutečně říkají, a stabilnější
+pilot. Doporučené pořadí:
+
+1. **Pilotní pracovní den operátora — dotažení existujícího produktu (P0/P1).**
+   Projít jeden úplný scénář: přihlášení → převzetí leadu → hovor → výsledek
+   nebo objednávka → callback → reload → kontrola v Team Workspace. Doplnit
+   živé důkazy persistence, rolí a cross-workspace hranic. To je nejvyšší
+   priorita, protože potvrzuje CRM jako celek, ne jen jednotlivé obrazovky.
+2. **Směny, dostupnost a pravdivé Talk Time — nová podpůrná funkce (P1/P2).**
+   Navrhnout jediný serverový model směn, absencí, plánované dostupnosti a
+   přesčasů. Team Checkpoint pak může zobrazovat skutečné konverze a Talk %
+   místo dnešních nedostupných hodnot. Nezačínat grafy; nejprve vytvořit zdroj
+   pravdy a role-aware pravidla.
+3. **AI trénink jako použitelný onboarding — redefinice již implementované
+   funkce (P1.5).** Ověřit více než jeden browserový tah, historii po reloadu,
+   Team Leader review, fallback při `429/503`, limity opakování a skutečnou
+   dostupnost speech UX. Rozhodnout, zda zůstáváme u textové/diktovací
+   pipeline, nebo investujeme do realtime voice. Nehonit chytřejší AI, dokud
+   není stabilní pracovní zážitek.
+4. **UI/UX polish a lokalizace kritických cest — cílený polish upgrade (P1).**
+   Udělat průchod tabulkami, metrikami, empty/error/unavailable stavy a češtinou
+   napříč `/workspace`, `/team`, `/training` a review. Sjednotit hierarchii
+   hodnoty a metadat, délku textů, názvy stavů a sémantiku barev.
+5. **Provozní stabilita AI, migrací a telefonie — technická připravenost
+   pilotu (P1/P2).** Zastavit retry při `429`, měřit provider latency a
+   fallbacky bez logování citlivých dat, zdokumentovat modely/kvóty a bezpečně
+   vyřešit migration-history drift. Telnyx řešit až po získání čísla; do té
+   doby nepředstírat živou telefonii ani realtime monitoring.
+
+**Co bych nyní nedělal:** další dashboard, další AI skóre, rozšiřování Walletu
+do týmů ani obecný „AI copilot“. Nejdříve musí být spolehlivý základní pracovní
+den, pravdivé metriky a opakovatelný pilotní důkaz.
 
 ## Jediné pořadí další práce
 
@@ -257,7 +298,9 @@ se však odloží až za P2.
     - **Rozhodnutí 17. 9. 2026:** směr (realtime voice API vs. vylepšená
       browserová pipeline vs. Telnyx) se vědomě odkládá; nic se neimplementuje.
 
-P1.5 je hotové, až nováček bezpečně dokončí jeden cvičný P2 hovor, v Call Logu
+P1.5 implementace je nyní na `main` a prošla autentizovaným Playwright smoke
+testem. Produktově uzavřená bude až tehdy, když nováček bezpečně dokončí jeden
+cvičný P2 hovor, v Call Logu
 vznikne jen správně označený tréninkový záznam bez obchodního side effectu,
 Team Leader otevře stejný důkazní podklad pro review a zásadní compliance
 chyba je přesně dohledatelná i v případě úspěšného konce simulace. Speech-to-text
@@ -473,9 +516,9 @@ mimo tuto týmovou plochu a patří administrátorovi.
 4. **Zahájit samostatné plánování směn:** nejde o malou tabulku v `/team`. Musí
    pokrýt směny, dostupnost, absence, přesčasy a zdroj pro Talk Time procento.
    Do té doby se procento zobrazuje jako nedostupné.
-5. **Navrhnout a následně implementovat onboarding trenér pro operátory:** až
-   po uzavření praktického Team Checkpointu; trénink zůstane oddělený od ostrých
-   hovorů, objednávek, Walletu a týmových výsledků.
+5. **Dopilovat onboarding trenér pro operátory:** základní implementace je na
+   `main`; další práce patří do samostatné P1.5 follow-up vlny. Trénink zůstane
+   oddělený od ostrých hovorů, objednávek, Walletu a týmových výsledků.
 6. **Telnyx řešit až po získání správného telefonního čísla:** potom ověřit
    konfiguraci, živý outbound, webhooky a read-back. Do té doby zůstává telefonie
    simulovaná a Production se nemění.
