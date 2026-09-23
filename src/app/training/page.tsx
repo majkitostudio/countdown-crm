@@ -35,6 +35,7 @@ export default function TrainingPage() {
   const [aiSource, setAiSource] = useState<"gemini-flash" | "openai-responses" | "rule-engine" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [result, setResult] = useState<TrainingFeedback[] | null>(null);
+  const [feedbackUnavailable, setFeedbackUnavailable] = useState(false);
   const [, setSaveState] = useState<"idle" | "saving" | "saved" | "error" | "unavailable">("idle");
   const [history, setHistory] = useState<Array<{ sessionId: string; customerName: string; durationSeconds: number; createdAt: string; feedback: TrainingFeedback[] }>>([]);
   const [historyUnavailable, setHistoryUnavailable] = useState(false);
@@ -93,6 +94,7 @@ const continuousRecognitionRef = useRef<ContinuousSpeechRecognition | null>(null
     setElapsedSeconds(0);
     setMessages([initial]);
     setResult(null);
+    setFeedbackUnavailable(false);
     setSaveState("idle");
     setSpeechStatus("idle");
     setSpeechInterim("");
@@ -143,18 +145,17 @@ const continuousRecognitionRef = useRef<ContinuousSpeechRecognition | null>(null
     if (!scenario || !startedAt || !completionKey || isSending || speechStatus === "listening" || speechStatus === "processing") return;
     stopSpeaking();
     const feedbackResult = await generateTrainingFeedbackAction({ scriptId, difficulty, personaId, history: messages });
-    if (!feedbackResult.ok) {
-      setNotice(feedbackResult.message);
-      return;
-    }
+    const feedback = feedbackResult.ok ? feedbackResult.feedback : [];
+    setFeedbackUnavailable(!feedbackResult.ok);
+    if (!feedbackResult.ok) setNotice("Automatické AI hodnocení nyní není dostupné. Trénink lze uložit a Team Leader ho může projít ručně.");
     const completedDuration = elapsedRef.current;
-    setResult(feedbackResult.feedback);
+    setResult(feedback);
     setSaveState("saving");
     try {
-      const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, feedback: feedbackResult.feedback, durationSeconds: completedDuration, aiSource, startedAt, completionKey });
+      const save = await saveTrainingSessionAction({ scriptId, difficulty, personaId, messages, feedback, durationSeconds: completedDuration, aiSource, startedAt, completionKey });
       setSaveState(save.ok ? "saved" : save.code === "UNAVAILABLE" ? "unavailable" : "error");
       if (save.ok) {
-        setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: completedDuration, createdAt: new Date().toISOString(), feedback: feedbackResult.feedback }, ...current]);
+        setHistory((current) => [{ sessionId: save.sessionId, customerName: `${scenario.customer.name} · trénink`, durationSeconds: completedDuration, createdAt: new Date().toISOString(), feedback }, ...current]);
       }
     } catch (error) {
       setSaveState("error");
@@ -345,7 +346,11 @@ function stopListening() {
           const severityLabel = fb.severity === "critical" ? "Závažné" : fb.severity === "warning" ? "Upozornění" : "Info";
           return <div key={idx} className={`rounded-xl border p-4 ${borderClass}`}><div className="flex items-start gap-2"><span className={`flex-shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>{severityLabel}</span><span className="text-xs font-medium text-zinc-300 capitalize">{fb.type}</span></div><p className="mt-2 text-xs text-zinc-400"><strong>Řekl/a jsi:</strong> „{fb.operatorText}“</p><p className="mt-1 text-xs text-emerald-300"><strong>Správně:</strong> „{fb.suggestedText}“</p><p className="mt-1 text-xs text-zinc-500"><strong>Proč:</strong> {fb.reason}</p></div>;
         });
-        const noFeedback = result.length === 0 ? <p className="mt-6 text-center text-emerald-300">Bez zásadních chyb – dobrá práce.</p> : <div className="mt-6 space-y-4">{feedbackItems}</div>;
+        const noFeedback = feedbackUnavailable
+          ? <p className="mt-6 text-center text-amber-200">Automatické AI hodnocení nebylo dostupné. Trénink je uložený a může ho projít Team Leader.</p>
+          : result.length === 0
+            ? <p className="mt-6 text-center text-emerald-300">Bez zásadních chyb – dobrá práce.</p>
+            : <div className="mt-6 space-y-4">{feedbackItems}</div>;
         return <section className="mx-auto max-w-4xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6"><div className="text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900/50 text-zinc-300"><FileText className="h-6 w-6" /></div><h2 className="mt-3 text-lg font-semibold text-zinc-100">Co mělo znít lépe</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">AI coachingová zpětná vazba – konkrétní opravy bez bodování. Projděte si, přidejte vlastní poznámky a zkuste to znovu.</p></div>{noFeedback}<div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-center text-sm text-zinc-400">Zavřete toto okno a zkuste to znovu, nebo pokračujte do recenze Team Leadera.</div><div className="mt-6 flex justify-center"><button type="button" onClick={resetTraining} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><ClipboardList className="h-4 w-4" />Vybrat další cvičení</button></div></section>;
       })()}
     </div>
