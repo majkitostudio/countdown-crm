@@ -43,22 +43,6 @@ export type ComplianceFinding = {
   occurrences: number;
 };
 
-export type TrainingScorecard = {
-  overallScore: number;
-  grade: "A" | "B" | "C" | "D";
-  passed: boolean;
-  discoveryScore: number;
-  scriptScore: number;
-  offerScore: number;
-  closingScore: number;
-  complianceScore: number;
-  complianceFindings: ComplianceFinding[];
-  strengths: string[];
-  improvements: string[];
-  summaryFeedback: string;
-};
-
-/** Nová coachingová zpětná vazba – nahradí TrainingScorecard. */
 export type TrainingFeedback = {
   type: "objection" | "direction" | "closing" | "compliance" | "other";
   operatorText: string;      // co operátor řekl
@@ -142,38 +126,6 @@ export function findComplianceFindings(messages: TrainingMessage[]): ComplianceF
     if (matches.length === 0) return [];
     return [{ phrase: matches[0][0], reason: rule.reason, saferAlternative: rule.saferAlternative, severity: rule.severity, occurrences: matches.length }];
   });
-}
-
-function includesAny(text: string, terms: string[]): boolean {
-  return terms.some((term) => text.includes(term));
-}
-
-export function evaluateTrainingSession(scenario: TrainingScenario, history: TrainingMessage[]): TrainingScorecard {
-  const operatorText = history.filter((message) => message.sender === "user").map((message) => message.text.toLocaleLowerCase("cs-CZ")).join(" ");
-  const findings = findComplianceFindings(history);
-  const discoveryScore = includesAny(operatorText, ["jak dlouho", "omezuje", "co by se změnilo", "v čem"]) ? 100 : 55;
-  const scriptScore = includesAny(operatorText, ["vzorek", "program", "nabíd"]) ? 90 : 55;
-  const offerScore = includesAny(operatorText, ["zdarma", "nabíz", "mohu vám poslat"]) ? 90 : 60;
-  const closingScore = includesAny(operatorText, ["adresa", "doruč", "děkuji", "rozlou"]) ? 100 : 45;
-  const complianceScore = findings.length === 0 ? 100 : Math.max(0, 45 - findings.reduce((total, finding) => total + Math.max(0, finding.occurrences - 1) * 15, 0));
-  const overallScore = Math.round((discoveryScore + scriptScore + offerScore + closingScore + complianceScore) / 5);
-  const passed = findings.length === 0 && overallScore >= 70;
-  const grade: TrainingScorecard["grade"] = overallScore >= 85 ? "A" : overallScore >= 70 ? "B" : overallScore >= 55 ? "C" : "D";
-  const strengths: string[] = [];
-  if (discoveryScore >= 90) strengths.push("Položil/a jste otázku, která pomáhá pochopit situaci zákazníka.");
-  if (closingScore >= 90) strengths.push("Hovor jste přirozeně dovedl/a k ověření doručovacích údajů.");
-  if (findings.length === 0) strengths.push("Nevyskytlo se žádné závažné zakázané tvrzení.");
-  const improvements: string[] = [];
-  if (discoveryScore < 90) improvements.push("Nejdřív zjistěte, jak situace zákazníka vypadá a co pro něj změna znamená.");
-  if (closingScore < 90) improvements.push("Po souhlasu nezapomeňte nabídku uzavřít ověřením adresy a poděkováním.");
-  if (findings.length > 0) improvements.push("Závažné právní tvrzení musí příště nahradit bezpečná formulace uvedená níže.");
-  return {
-    overallScore, grade, passed, discoveryScore, scriptScore, offerScore, closingScore, complianceScore,
-    complianceFindings: findings, strengths, improvements,
-    summaryFeedback: passed
-      ? `Cvičný P2 hovor se zákazníkem ${scenario.customer.name} je splněn. Výsledek je tréninkový; nevznikla objednávka ani úkol pro ostrý provoz.`
-      : "Cvičení je zaznamenáno, ale ještě není splněno. Projděte konkrétní zpětnou vazbu a zkuste jej znovu.",
-  };
 }
 
 

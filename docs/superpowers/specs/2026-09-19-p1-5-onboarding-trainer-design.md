@@ -1,5 +1,11 @@
 # P1.5 Onboarding trenér — návrh
 
+> **Historická specifikace (aktualizováno 23. 9. 2026):** Tato stránka
+> obsahuje původní návrh scorecardu a slouží jako historie rozhodnutí.
+> Aktuální implementace používá coachingový `TrainingFeedback` bez skóre,
+> známek a `passed/failed`. Pro aktuální stav používej
+> `docs/AKTUALNI_STAV_A_DESATERO.md`.
+
 **Stav:** návrh k produktovému schválení, ne implementace
 **Datum:** 19. 9. 2026
 **Vstupní podmínky:** uzavřený Team Checkpoint (hotovo 19. 9. 2026),

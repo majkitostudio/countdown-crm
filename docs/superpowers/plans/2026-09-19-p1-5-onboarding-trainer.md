@@ -1,8 +1,15 @@
 # P1.5 Onboarding trenér — implementační plán
 
 **Specifikace:** `docs/superpowers/specs/2026-09-19-p1-5-onboarding-trainer-design.md`
-**Stav:** schváleno k implementaci
+**Stav:** historický plán — implementace je dokončena částečně, ověření pilotu pokračuje
 **Cíl:** Sandbox only; Production se nemění
+
+> **Aktualizace 23. 9. 2026:** Tento plán zachovává původní acceptance checklist,
+> ale některé body už nepopisují aktuální kontrakt. `TrainingScorecard`,
+> známky a `passed/failed` byly nahrazeny coachingovým `TrainingFeedback`.
+> Aktuální stav a rozhodnutí se řídí `docs/AKTUALNI_STAV_A_DESATERO.md` a
+> závěrečným ověřovacím reportem; tato stránka neslouží jako důkaz, že pilot je
+> kompletně uzavřený.
 
 ## Zásady
 
@@ -25,7 +32,7 @@
 
 ## Fáze 1 — serverová základa coachingové zpětné vazby
 
-- [ ] nový typ `TrainingFeedback` (místo `TrainingScorecard`):
+- [x] nový typ `TrainingFeedback` (místo `TrainingScorecard`):
   ```ts
   type TrainingFeedback = {
     type: "objection" | "direction" | "closing" | "compliance" | "other";
@@ -35,13 +42,13 @@
     severity: "critical" | "warning" | "info";
   }
   ```
-- [ ] nová serverová funkce `generateTrainingFeedback(scenario, history)`:
+- [x] nová serverová funkce `generateTrainingFeedback(scenario, history)`:
   - volá AI (Gemini `gemini-3.6-flash` / OpenAI) s promptem: přepis + skript + compliance pravidla → pole `TrainingFeedback[]` (max 7)
   - redakce kontaktních údajů, limit délky odesílaného textu
   - atomický claim proti duplicitám (stejný pattern jako AI kontrola kvality hovorů)
   - `unavailable` při chybě AI, zachovat dostupnost ostatních dat
   - žádný fallback na pravidlový engine (ten se maže)
-- [ ] `saveTrainingSessionAction` uloží `feedback: TrainingFeedback[]` místo `scorecard: TrainingScorecard`
+- [x] `saveTrainingSessionAction` uloží `feedback: TrainingFeedback[]` místo `scorecard: TrainingScorecard`
 - [ ] `training_session_turns` zůstává beze změny (přepis tahů)
 
 **Testy:** AI validace odpovědi (timeout, neplatná odpověď, opakované spuštění, chybějící přepis, compliance nález, špatný objection handling, chybějící adresa, úspěšný průchod). Anonymizované volání AI v Sandboxu s klíčem z runtime prostředí.

@@ -141,13 +141,13 @@ export async function generateTrainingFeedback(
       try {
         parsed = JSON.parse(rawText);
       } catch {
-        console.error("Failed to parse feedback JSON:", rawText);
+        console.error("Failed to parse feedback JSON.");
         throw new Error("AI returned invalid feedback JSON.");
       }
 
       const result = parsed as { feedback?: unknown };
       if (!result || !Array.isArray(result.feedback) || result.feedback.length > 7) {
-        console.error("Invalid feedback shape:", parsed);
+        console.error("Invalid feedback shape.");
         throw new Error("AI returned invalid feedback shape.");
       }
 
