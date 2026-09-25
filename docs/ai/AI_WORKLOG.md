@@ -48,4 +48,4 @@ Zavést sdílenou AI memory layer pro Countdown CRM bez změny aplikace, databá
 
 ### Status
 
-Dokumentační memory layer vytvořena; čeká na ověření diffu a integraci na `main`.
+Dokumentační memory layer vytvořena, strukturálně ověřena, otestována v aktuálním pracovním stromu a integrována na `main` v commitu `97ff31a`.
