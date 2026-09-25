@@ -48,6 +48,17 @@ Tato složka obsahuje pouze aktuální dokumentaci, která pomáhá Countdown CR
 | [superpowers/reports/2026-09-19-team-checkpoint-verification.md](superpowers/reports/2026-09-19-team-checkpoint-verification.md) | Plný průchod novinek Team Checkpointu (overdue odznak, detail, claim → resolve, tři role). |
 | [superpowers/reports/2026-09-20-team-checkpoint-layout-verification.md](superpowers/reports/2026-09-20-team-checkpoint-layout-verification.md) | Ověření Macaly layoutu checkpointu (sekce Callbacky/Kvalita, detail, 12/12 smoke). |
 
+## Sdílená AI paměť
+
+| Dokument | Účel |
+|---|---|
+| [ai/README.md](ai/README.md) | Návod pro AI agenty, jak sdílenou paměť číst a udržovat. |
+| [ai/CURRENT_STATE.md](ai/CURRENT_STATE.md) | Stručný ověřený stav produktu, architektury, obrazovek a validace. |
+| [ai/AI_WORKLOG.md](ai/AI_WORKLOG.md) | Stručný chronologický audit významné práce AI agentů. |
+| [ai/DECISIONS.md](ai/DECISIONS.md) | Aktivní a historická rozhodnutí s dopadem na další práci. |
+| [ai/OPEN_QUESTIONS.md](ai/OPEN_QUESTIONS.md) | Nevyřešené otázky, rozpory a informace čekající na ověření. |
+| [ai/PRODUCT_DIRECTION.md](ai/PRODUCT_DIRECTION.md) | Produktová identita, pracovní smyčka a směr odvozený ze zdrojů projektu. |
+
 ## Pořadí zdrojů pravdy
 
 1. aktuální kód, migrace a skutečné ověření cílového prostředí,
