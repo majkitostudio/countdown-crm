@@ -1,52 +1,28 @@
 # Countdown CRM
 
-Countdown CRM je workspace-scoped CRM pro výkonnostní call centra a tele-sales. Hlavní pracovní plocha je Operator Console: operátor dostane lead, rychle pochopí zákaznický kontext, věnuje se klientovi na telefonu, uloží výsledek a pokračuje callbackem, objednávkou nebo dalším leadem. Produkt má operátorovi zjednodušit práci v citlivém rozhovoru, ne přidávat administrativní kroky.
+Countdown CRM je komplexní all-in-one CRM systém na míru pro telemarketingové call centrum zaměřené na prodej doplňků stravy.
 
-Projekt je ve stabilizaci před interním pilotem. Aktuální rozsah a otevřené kroky jsou v [PROJECT.md](PROJECT.md) a v [aktuálním To-Do](docs/AKTUALNI_STAV_A_DESATERO.md).
+Nejde o generické AI CRM ani pouze o Operator Console. Systém propojuje operátory, Team Leadery a administrátory s leady, zákazníky, hovory, produkty, objednávkami, kvalitou, tréninkem, reportingem a správou provozu.
 
-## Co je v projektu
-
-- workspace-scoped leady, zákaznický profil, timeline a produkty,
-- serverem řízená fronta leadů, assignment, callback a recovery,
-- Operator Console s read-only Klientským profilem v nové kartě, rozbalitelným Product Scriptem, sdílenými poznámkami u skriptu, recent context řádkem, `Operator Next Action` a callback recovery inboxem,
-- call outcome workflow, objednávky, callbacky a auditní stopa,
-- Team Checkpoint pro Team Leadera: asistence s 5minutovou hranicí naléhavosti, klikací výsledky s detailem operátora a read-only předání směny,
-- Product Scripts a objection cards,
-- role `operator`, `team_leader` a `administrator`,
-- Supabase Auth, PostgreSQL, serverové guardy a Row Level Security,
-- training/simulator workflow,
-- wallet ledger, bonusy a provizní přehled,
-- připravený Telnyx WebRTC foundation; živé zapnutí čeká na číslo, environment a webhook.
-
-Simulovaný softphone, training a dosud nepřipojené externí providery se v UI nesmí vydávat za produkční telefonii nebo live AI. Přepis hovorů a post-call AI s Gemini jsou plánované další kroky, nikoli hotová funkce.
-
-U zdravotně citlivých témat, například bolestí kloubů nebo sexuálního zdraví,
-musí operátor pracovat se schváleným textem. CRM nemá diagnostikovat,
-slibovat léčbu ani vytvářet neověřená tvrzení; jeho role je dodat správný
-kontext, osnovu a další krok ve chvíli, kdy je operátor potřebuje.
+Začněte v [START_HERE.md](START_HERE.md). Aktuální vize, pracovní pravidla a kompaktní historie jsou v [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md), [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) a [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md).
 
 ## Technologický základ
 
 - Next.js App Router, React, TypeScript a Tailwind CSS
-- Supabase PostgreSQL + Auth
-- Telnyx WebRTC SDK pro budoucí živé hovory
+- Supabase PostgreSQL, Auth a RLS
+- Telefonní integrační vrstva s Telnyx jako budoucím produkčním providerem
 - Vitest, ESLint a TypeScript pro automatické kontroly
 
 ## Lokální spuštění
 
-Požadavky: Node.js a přístup k vývojovému Supabase projektu.
+Požadavky: Node.js a podle režimu lokální demo nebo vývojové Supabase prostředí.
 
 ```bash
 npm install
-```
-
-Vytvoř `.env.local` podle [`.env.example`](.env.example). Tajné klíče patří pouze do serverového environmentu a nikdy do `NEXT_PUBLIC_*` proměnných.
-
-```bash
 npm run dev
 ```
 
-Aplikace se standardně otevře na `http://localhost:3000`.
+Demo režim používá syntetická data a nesmí být zaměňován za produkční přístup. Tajné hodnoty patří pouze do ignorovaného lokálního prostředí a nikdy do `NEXT_PUBLIC_*` proměnných.
 
 ## Kontroly před předáním změny
 
@@ -57,32 +33,16 @@ npm run typecheck
 npm run build
 ```
 
-Pro databázovou změnu navíc ověř migration history, cílové schéma, RLS a autentizovaný read-back. Podrobnosti jsou v [pracovním postupu](docs/DEVELOPMENT_WORKFLOW.md) a [Telnyx setupu](docs/TELEPHONY_TELNYX_SETUP.md).
-
-## Hlavní plochy
+## Hlavní produktové plochy
 
 | Oblast | Cesta |
 |---|---|
 | Operator Console | `/workspace` |
-| Leady a detail klienta | `/leads`, `/leads/[leadId]` |
-| Hovory | `/calls` |
+| Leady a zákazníci | `/leads`, `/leads/[leadId]` |
+| Hovory a telefonie | `/calls`, `/telephony` |
 | Kalendář a callbacky | `/calendar` |
-| Objednávky | `/orders` |
-| Produkty a skripty | `/products`, `/settings/scripts` |
-| Tým a audit | `/team`, `/audit` |
-| Dashboard a analytika | `/`, `/analytics` |
+| Produkty a objednávky | `/products`, `/orders` |
+| Tým, výjimky a audit | `/team`, `/exceptions`, `/audit` |
+| Reporting | `/dashboard`, `/analytics` |
 | Training | `/training`, `/training/reviews` |
-| Wallet | `/wallet` |
-
-## Dokumentace
-
-- [PROJECT.md](PROJECT.md) — kanonický projektový kontext a hranice scope,
-- [Aktuální stav a To-Do](docs/AKTUALNI_STAV_A_DESATERO.md) — hotové části, otevřené kroky a release checklist,
-- [Development workflow](docs/DEVELOPMENT_WORKFLOW.md) — stručný týmový postup pro změny,
-- [Telnyx setup](docs/TELEPHONY_TELNYX_SETUP.md) — konfigurace telefonní vrstvy bez tajných hodnot,
-- [Dokumentační index](docs/README.md) — vysvětlení, co do nové `/docs` patří.
-- [Entry, Dashboard a Workspace state completeness — specifikace](docs/superpowers/specs/2026-09-12-entry-workspace-state-completeness-design.md)
-- [Entry, Dashboard a Workspace state completeness — plán](docs/superpowers/plans/2026-09-12-entry-workspace-state-completeness.md)
-- [Entry, Dashboard a Workspace state completeness — ověření](docs/superpowers/reports/2026-09-12-entry-workspace-state-completeness-verification.md)
-
-Historické Codex postupy, staré roadmapy, auditní protokoly a jednorázové handoffy nejsou součástí nové aktivní `/docs`. Pokud bude potřeba obnovit konkrétní důkaz, přidá se jako samostatný, aktuální dokument s jasným datem a účelem.
+| Administrace | `/settings`, `/settings/users`, `/settings/scripts` |
