@@ -82,3 +82,26 @@
    - Odemčená správa uživatelů a 3 týmů (`/settings/users`) i produktových skriptů (`/settings/scripts`).
    - Dashboard v celofiremním rozsahu (`scope="workspace"`).
    - 0 konzolových chyb, 0 síťových chyb napříč všemi běhy.
+
+---
+
+## 7. Fáze 2 — Role & navigace (commit 3bb2268)
+- **Zúžení menu Team Leadera:** Odstraněny moduly *Deals & Pipelines* a *Workflows* (ponechány pouze administrátorům), menu zkráceno ze 17 na 15 položek.
+- **Přejmenování Security Audit Log:** Přejmenován na výstižný **Audit Log** (v navigaci) a **Audit Log & Activity Tracker** (v záhlaví stránky).
+- **Výchozí landing page Administrátora:** Změněna z `/readiness` na standardní `/dashboard`.
+- **Přejmenování Control Checkpoint:** Přesměrováno z `/readiness` na čistou URL `/controls` se zachováním serverového HTTP 308 permanent redirectu.
+
+---
+
+## 8. Fáze 3 — Operator ergonomie & Call Workflow (5. října 2026)
+- **Diferencovaný Fail outcome:**
+  - U rychlých odmítnutí klienta ihned po představení (`no_interest`, `alternative_solution`, `health_concern`, `needs_time`) je poznámka **nepovinná** – operátor může hovor bleskově uzavřít bez nutnosti psát text.
+  - U skutečných prodejních námitek (`price`, `distrust`, `other`) zůstává poznámka **povinná** pro zachování kontextu pro budoucí P4 frontu.
+  - UI formuláře dynamicky zobrazuje `(required)` vs. `(optional)` s odpovídajícím placeholderem.
+- **Pauza / Online stav:** Potvrzeno stávající manuální vytáčení hovorů pro MVP (hovory nepadají do ucha automaticky).
+- **Ergonomie konzole:**
+  - **PageHeader:** Globální zúžení horní lišty (`p-4 sm:p-5`) napříč celým CRM pro kompaktnější zobrazení na 13"–15" noteboocích.
+  - **OperatorLeadHeader:** Zmenšení jména zákazníka na `text-xl` a paddingů na `p-4`.
+  - **Prověření ovládání hovoru:** Karta zákazníka se nelepí k hornímu okraji (nezakrývá skript). Ovládání hovoru při scrollování je zajištěno komponentou `FloatingCallController` v pravém dolním rohu.
+  - **Pravý panel:** Zachováno plné přehledné rozložení (poznámky, recent context a timeline zákazníka pod sebou bez klikání na taby).
+

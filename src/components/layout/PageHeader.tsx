@@ -48,7 +48,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex flex-col gap-5 p-6 sm:p-8",
+        "flex flex-col gap-4 p-4 sm:p-5",
         actionsLayout === "inline" && "md:flex-row md:items-center md:justify-between",
         getPageHeaderSurfaceClassName(),
         className

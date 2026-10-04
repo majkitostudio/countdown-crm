@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
-import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, validateFailDetails } from "@/lib/postCall";
+import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, isNoteRequiredForFailReason, validateFailDetails } from "@/lib/postCall";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
@@ -184,7 +184,9 @@ export function CallOutcomePanel({
             </select>
           </div>
           <div>
-            <label htmlFor="fail-note" className="text-[11px] font-semibold text-rose-100">Short note</label>
+            <label htmlFor="fail-note" className="text-[11px] font-semibold text-rose-100">
+              {isNoteRequiredForFailReason(failReason) ? "Short note (required)" : "Short note (optional)"}
+            </label>
             <textarea
               id="fail-note"
               value={failNote}
@@ -194,7 +196,7 @@ export function CallOutcomePanel({
               }}
               rows={3}
               maxLength={2_000}
-              placeholder="What prevented the conversion?"
+              placeholder={isNoteRequiredForFailReason(failReason) ? "What prevented the conversion? Describe offered bundles..." : "Optional context for future contact..."}
               className="mt-1.5 w-full resize-y rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
             />
           </div>

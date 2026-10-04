@@ -110,12 +110,12 @@ export function OperatorLeadHeader({
       data-state={leadState}
       aria-labelledby="operator-lead-title"
     >
-    <section className="p-5">
+    <section className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Assigned customer</p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h2 id="operator-lead-title" className="text-2xl font-semibold tracking-tight text-white">{activeLead.full_name}</h2>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Assigned customer</p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h2 id="operator-lead-title" className="text-xl font-semibold tracking-tight text-white">{activeLead.full_name}</h2>
             <Link
               href={`/leads/${encodeURIComponent(activeLead.id)}`}
               target="_blank"
@@ -130,7 +130,7 @@ export function OperatorLeadHeader({
               {activeLead.status || "New lead"}
             </StatusBadge>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] font-medium text-zinc-200">
+          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-zinc-200">
             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
               <Phone className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
               {activeLead.phone}
@@ -142,7 +142,7 @@ export function OperatorLeadHeader({
               </span>
             )}
           </div>
-          <p className="mt-3 font-mono text-[10px] text-zinc-600">Lead ID: {activeLead.id}</p>
+          <p className="mt-1.5 font-mono text-[10px] text-zinc-600">Lead ID: {activeLead.id}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">

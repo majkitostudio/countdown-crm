@@ -35,10 +35,11 @@ describe("post-call fail details", () => {
     expect(isFailReason(null)).toBe(false);
   });
 
-  it("requires both a reason and a note before a fail can be saved", () => {
+  it("requires both a reason and a note for pitch objections, but allows optional note for cold refusals", () => {
     expect(validateFailDetails({ failReason: "", note: "" })).toBe("Select a fail reason.");
     expect(validateFailDetails({ failReason: "price", note: "  " })).toBe("Add a short note for this fail.");
     expect(validateFailDetails({ failReason: "price", note: "Client considers the price too high." })).toBeNull();
+    expect(validateFailDetails({ failReason: "no_interest", note: "" })).toBeNull();
   });
 
   it("renames the negative outcome to Fail", () => {

@@ -23,9 +23,21 @@ export function getFailReasonLabel(reason: FailReason): string {
   return FAIL_REASON_OPTIONS.find((option) => option.value === reason)?.label || reason;
 }
 
+const NOTE_REQUIRED_FAIL_REASONS: ReadonlySet<FailReason> = new Set([
+  "price",
+  "distrust",
+  "other",
+]);
+
+export function isNoteRequiredForFailReason(reason: unknown): boolean {
+  return typeof reason === "string" && NOTE_REQUIRED_FAIL_REASONS.has(reason as FailReason);
+}
+
 export function validateFailDetails(details: { failReason: unknown; note: string }): string | null {
   if (!isFailReason(details.failReason)) return "Select a fail reason.";
-  if (!details.note.trim()) return "Add a short note for this fail.";
+  if (isNoteRequiredForFailReason(details.failReason) && !details.note.trim()) {
+    return "Add a short note for this fail.";
+  }
   if (details.note.trim().length > 2_000) return "Fail note must contain at most 2,000 characters.";
   return null;
 }

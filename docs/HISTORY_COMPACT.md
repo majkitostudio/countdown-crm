@@ -50,6 +50,7 @@ Pokud někdy bude potřeba detailní důkaz konkrétního historického scéná�
 ## Říjen 2026 — Stabilizace a tříúrovňový browserový audit rolí
 - **Fáze 0 (Stabilizace):** opraven dokumentační test `p0-3-remote-db-evidence.test.ts`, jazyková oprava v `training/page.tsx` (commit `8b4355f`), test suite 147/147 test souborů (687/687 testů) a TypeScript čistý.
 - **Fáze 1 (Operator Browser Audit & Hardening):** reálný průchod operátora hovorem, zápisem poznámek a outcome flow. Proveden security hardening v commitu `ce1e77c` (vyřešen HTTP 500 na `/audit`, skryto tlačítko `Create Order` mimo hovor, sjednoceny zamčené hlášky).
-- **Fáze 2 (Team Leader Browser Audit):** prověřeno 17 položek v navigaci, scope `team`, `Team Leader Daily Brief`, výjimky a taby na `/team`. Hermeticky ověřeny autorizační hranice (zamčeno `/readiness`, `/settings/scripts`, `/settings/users`).
-- **Fáze 3 (Administrator Browser Audit):** prověřeno 18 položek v navigaci, automatické přesměrování na `/readiness`, odemčený plný `Control Checkpoint` (5 Ready, 4 Attention, 1 Blocked), funkční správa týmů a členství (`/settings/users`), správa skriptů (`/settings/scripts`), celoworkspace dashboard (`scope="workspace"`). Vše bez konzolových a síťových chyb.
+- **Fáze 2 (Role & navigace):** zúženo menu Team Leadera ze 17 na 15 položek (odstraněny generické moduly Deals & Pipelines a Workflows), přejmenován Security Audit Log na Audit Log, změněna výchozí adresa Administrátora na /dashboard, Control Checkpoint přesunut na /controls s HTTP 308 redirectem (commit `3bb2268`).
+- **Fáze 3 (Operator ergonomie & Call Workflow):** diferencovaný Fail outcome (nepovinná poznámka pro rychlá odmítnutí klienta ihned po představení vs. povinná poznámka pro námitky ceny a důvěry pro kontext P4 fronty), globální zúžení PageHeader (p-4 sm:p-5), zmenšení záhlaví zákazníka v konzoli a zachování plovoucího ovládání hovoru bez nechtěného lepení prvků k hornímu okraji.
+
 
