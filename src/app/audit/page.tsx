@@ -128,9 +128,9 @@ export default function AuditPage() {
       <div className="mx-auto max-w-xl">
         <Surface variant="empty" className="w-full">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h1 className="text-base font-semibold text-zinc-100">Security Audit Log unavailable</h1>
+          <h1 className="text-base font-semibold text-zinc-100">Audit Log unavailable</h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            Security audit logs are available to Team Leaders and Administrators only.
+            Audit logs are available to Team Leaders and Administrators only.
           </p>
         </Surface>
       </div>
@@ -141,9 +141,9 @@ export default function AuditPage() {
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={ShieldAlert}
-        title="Security Audit Log & Activity Tracker"
+        title="Audit Log & Activity Tracker"
         badge={{ label: loadError ? "Unavailable" : "System Audit", tone: loadError ? "unavailable" : "neutral" }}
-        description="Kompletní protokol bezpečnostních událostí, exportů dat, změn v CRM a aktivních relací operátorů."
+        description="Kompletní protokol událostí, exportů dat, změn v CRM a aktivních relací operátorů."
         actions={
           <>
             <Button

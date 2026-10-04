@@ -11,8 +11,8 @@ describe("role-aware sidebar navigation", () => {
     expect(operatorPaths).not.toContain("/objects/deals");
   });
 
-  it("keeps custom objects available to team leaders and administrators", () => {
-    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).toContain("/objects/deals");
+  it("keeps custom objects available only to administrators", () => {
+    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).not.toContain("/objects/deals");
     expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/objects/deals");
   });
 

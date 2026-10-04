@@ -48,12 +48,12 @@ describe("role-aware navigation parity", () => {
     expect(sidebarPaths("administrator")).toContain("/dashboard");
   });
 
-  it("shows Workspace Readiness only to administrators", () => {
-    expect(sidebarPaths("operator")).not.toContain("/readiness");
-    expect(sidebarPaths("team_leader")).not.toContain("/readiness");
-    expect(sidebarPaths("administrator")).toContain("/readiness");
-    expect(commandPaths("operator")).not.toContain("/readiness");
-    expect(commandPaths("team_leader")).not.toContain("/readiness");
-    expect(commandPaths("administrator")).toContain("/readiness");
+  it("shows Control Checkpoint only to administrators", () => {
+    expect(sidebarPaths("operator")).not.toContain("/controls");
+    expect(sidebarPaths("team_leader")).not.toContain("/controls");
+    expect(sidebarPaths("administrator")).toContain("/controls");
+    expect(commandPaths("operator")).not.toContain("/controls");
+    expect(commandPaths("team_leader")).not.toContain("/controls");
+    expect(commandPaths("administrator")).toContain("/controls");
   });
 });

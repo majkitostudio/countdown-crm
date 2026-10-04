@@ -17,7 +17,7 @@ describe("management route visual contract", () => {
   });
 
   it("uses shared surfaces for management unavailable states and wallet metrics", () => {
-    const readiness = source("src/app/readiness/page.tsx");
+    const readiness = source("src/app/controls/page.tsx");
     const team = source("src/app/team/page.tsx");
     const telephony = source("src/app/telephony/page.tsx");
     const wallet = source("src/app/wallet/page.tsx");

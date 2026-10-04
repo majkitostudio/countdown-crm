@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const pagePath = resolve(process.cwd(), "src/app/readiness/page.tsx");
+const pagePath = resolve(process.cwd(), "src/app/controls/page.tsx");
 const panelPath = resolve(process.cwd(), "src/components/readiness/WorkspaceReadinessPanel.tsx");
 const navigationPath = resolve(process.cwd(), "src/components/layout/navigation.ts");
 

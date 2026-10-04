@@ -3,7 +3,7 @@ import type { WorkspaceRole } from "@/lib/auth/roles";
 const ROLE_HOME_PATHS: Record<WorkspaceRole, string> = {
   operator: "/workspace",
   team_leader: "/exceptions",
-  administrator: "/readiness",
+  administrator: "/dashboard",
 };
 
 export function getRoleHomePath(role: WorkspaceRole): string {
