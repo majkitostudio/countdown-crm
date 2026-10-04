@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
       
       <PageHeader
         icon={BarChart3}
-        title="Team Leader BI & Revenue Analytics"
+        title={status === "forbidden" ? "Analytics unavailable" : "Team Leader BI & Revenue Analytics"}
         badge={{
           label: status === "loading"
             ? "Loading"

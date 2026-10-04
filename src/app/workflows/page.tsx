@@ -14,7 +14,7 @@ export default async function WorkflowsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <PageHeader
           icon={Zap}
-          title="Workflows & Automations"
+          title={isForbidden ? "Workflow management unavailable" : "Workflows unavailable"}
           description="Workflow management is restricted to authorized workspace roles."
           badge={{ label: "Unavailable", tone: "unavailable" }}
         />

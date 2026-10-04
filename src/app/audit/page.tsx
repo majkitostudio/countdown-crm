@@ -7,8 +7,10 @@ import {
   Download,
   Activity,
   Filter,
-  RefreshCw
+  RefreshCw,
+  LockKeyhole,
 } from "lucide-react";
+import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import {
   auditActionLabel,
   AuditLogEntry,
@@ -62,6 +64,7 @@ export function AuditDetailCell({ log }: { log: AuditLogEntry }) {
 }
 
 export default function AuditPage() {
+  const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all");
@@ -69,6 +72,7 @@ export default function AuditPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadLogs = () => {
+    if (identity?.role === "operator") return;
     void getAuditLogs()
       .then(setLogs)
       .catch((error) => {
@@ -78,8 +82,9 @@ export default function AuditPage() {
   };
 
   useEffect(() => {
+    if (isIdentityLoading || identity?.role === "operator") return;
     loadLogs();
-  }, []);
+  }, [identity?.role, isIdentityLoading]);
 
   const handleRefresh = () => {
     setLoadError(null);
@@ -108,6 +113,29 @@ export default function AuditPage() {
   const criticalCount = logs.filter((l) => l.severity === "critical" || l.severity === "high").length;
   const exportCount = logs.filter((l) => l.actionType === "EXPORT_DATA").length;
   const activeOperatorsCount = new Set(logs.map((l) => l.operatorName)).size;
+
+  if (isIdentityLoading) {
+    return (
+      <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-400">
+        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+        Načítám oprávnění workspace…
+      </div>
+    );
+  }
+
+  if (identity?.role === "operator") {
+    return (
+      <div className="mx-auto max-w-xl">
+        <Surface variant="empty" className="w-full">
+          <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
+          <h1 className="text-base font-semibold text-zinc-100">Security Audit Log unavailable</h1>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
+            Security audit logs are available to Team Leaders and Administrators only.
+          </p>
+        </Surface>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto">

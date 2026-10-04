@@ -9,8 +9,17 @@ import type {
   CreateAuditLogInput,
 } from "@/lib/dal/audit";
 
+import { isDataAccessError } from "@/lib/dal/errors";
+
 export async function listAuditLogsAction(): Promise<AuditLogDTO[]> {
-  return listAuditLogsForWorkspace();
+  try {
+    return await listAuditLogsForWorkspace();
+  } catch (error) {
+    if (isDataAccessError(error) && error.code === "FORBIDDEN") {
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function createAuditLogAction(

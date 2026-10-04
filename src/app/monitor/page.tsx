@@ -13,7 +13,7 @@ export default async function TeamMonitorPage() {
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <PageHeader
           icon={Radio}
-          title="Live Team Operator Monitor"
+          title={isForbidden ? "Live monitor unavailable" : "Live Team Operator Monitor"}
           description="Live team monitoring is restricted to authorized workspace roles."
           badge={{ label: "Unavailable", tone: "unavailable" }}
         />

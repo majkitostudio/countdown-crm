@@ -48,13 +48,15 @@ export default async function OrdersPage() {
             ? "Track assigned orders and next delivery steps."
             : "Review workspace orders and operator ownership."}
           actions={
-            <Link
-              href="/orders/new"
-              className={getButtonClassName("primary")}
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Create Order
-            </Link>
+            role === "operator" ? undefined : (
+              <Link
+                href="/orders/new"
+                className={getButtonClassName("primary")}
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Create Order
+              </Link>
+            )
           }
         />
 
