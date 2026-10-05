@@ -9,6 +9,10 @@ import {
   Sparkles,
   Zap,
   X,
+  AlertCircle,
+  Tag,
+  BookOpen,
+  ShieldAlert,
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
@@ -21,6 +25,11 @@ import {
   EMPTY_DELIVERY_ADDRESS_DRAFT,
   toDeliveryAddressSnapshot,
 } from "@/components/orders/DeliveryAddressFields";
+import {
+  getProductPricingLadder,
+  getOperatorPitch,
+  PACKAGE_DURATION_OPTIONS,
+} from "@/lib/pricingLadder";
 import type { DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 
 export interface OrderPlacementResult {
@@ -57,7 +66,19 @@ export function ProductOrderPanel({
   const [selectedProductId, setSelectedProductId] = useState<string>(products[0]?.id || "");
   const [bundleProduct, setBundleProduct] = useState<Product | null>(null);
 
-  const [quantity, setQuantity] = useState<number>(1);
+  const effectiveProductId = selectedProductId || products[0]?.id || "";
+  const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];
+
+  const pricingLadder = React.useMemo(() => getProductPricingLadder(selectedProduct), [selectedProduct]);
+  const [selectedTier, setSelectedTier] = useState<"standard" | "bonus" | "floor" | "custom">("standard");
+  const [quantity, setQuantity] = useState<number>(4);
+  const [unitPrice, setUnitPrice] = useState<number>(() => pricingLadder.standardUnitPrice);
+
+  React.useEffect(() => {
+    setUnitPrice(pricingLadder.standardUnitPrice);
+    setSelectedTier("standard");
+  }, [pricingLadder]);
+
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [callOutcome, setCallOutcome] = useState<string>("order_placed");
   const [wrapUpNotes, setWrapUpNotes] = useState<string>("");
@@ -69,6 +90,17 @@ export function ProductOrderPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_DELIVERY_ADDRESS_DRAFT);
   const leadNotesInitializedRef = React.useRef(false);
+
+  // Prefill delivery address from active lead if available
+  React.useEffect(() => {
+    if (!activeLead) return;
+    setDeliveryAddress((prev) => ({
+      ...prev,
+      recipient_name: prev.recipient_name || activeLead.full_name || "",
+      city: prev.city || activeLead.city || "",
+      country: prev.country || "CZ",
+    }));
+  }, [activeLead]);
 
   const formattedLeadNotes = leadNotes
     .map((note) => {
@@ -89,19 +121,41 @@ export function ProductOrderPanel({
     }
   }, [formattedLeadNotes, orderMode]);
 
-  const effectiveProductId = selectedProductId || products[0]?.id || "";
-  const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];
-
   const crossSellRecs = getCrossSellRecommendations(selectedProduct, products);
   const topRec: Recommendation | undefined = crossSellRecs[0];
 
-  const primarySubtotal = selectedProduct ? selectedProduct.price * quantity : 0;
+  const primarySubtotal = unitPrice * quantity;
   const bundleSubtotal = bundleProduct ? topRec?.bundlePrice || bundleProduct.price : 0;
   
   const rawSubtotal = primarySubtotal + bundleSubtotal;
   const discountAmount = (rawSubtotal * discountPercent) / 100;
   const grandTotal = Math.max(0, rawSubtotal - discountAmount);
+  const anchorSubtotal = pricingLadder.anchorUnitPrice * quantity;
+  const clientSavings = Math.max(0, anchorSubtotal - primarySubtotal);
+  const isBelowFloor = unitPrice < pricingLadder.floorUnitPrice;
+
+  const pitch = getOperatorPitch({
+    tierId: selectedTier,
+    quantity,
+    unitPrice,
+    anchorPrice: pricingLadder.anchorUnitPrice,
+    currency: pricingLadder.currency,
+    productTitle: selectedProduct?.title,
+  });
+
   const deliveryAddressSnapshot = toDeliveryAddressSnapshot(deliveryAddress);
+
+  const handleSelectTier = (tier: "standard" | "bonus" | "floor") => {
+    setSelectedTier(tier);
+    if (tier === "standard") setUnitPrice(pricingLadder.standardUnitPrice);
+    if (tier === "bonus") setUnitPrice(pricingLadder.bonusUnitPrice);
+    if (tier === "floor") setUnitPrice(pricingLadder.floorUnitPrice);
+  };
+
+  const handleManualPriceChange = (val: number) => {
+    setUnitPrice(val);
+    setSelectedTier("custom");
+  };
 
   const handleAddBundleItem = (rec: Recommendation) => {
     setBundleProduct(rec.recommendedProduct);
@@ -120,7 +174,7 @@ export function ProductOrderPanel({
     try {
       const items: CallOrderItemInput[] = buildCallOrderItems({
         product_id: selectedProduct.id,
-        unit_price: selectedProduct.price,
+        unit_price: unitPrice,
         quantity,
         discount_percent: discountPercent,
         bundle: bundleProduct
@@ -146,7 +200,6 @@ export function ProductOrderPanel({
       }
 
       setIsSuccessAlert(true);
-
       setTimeout(() => setIsSuccessAlert(false), 5000);
     } finally {
       setIsSubmitting(false);
@@ -164,7 +217,7 @@ export function ProductOrderPanel({
           </div>
           <div>
             <h2 id="order-dialog-title" className="text-sm font-semibold text-zinc-100">
-              {orderMode === "manual" ? "Create Order" : "Sales Checkout & Cross-Sell"}
+              {orderMode === "manual" ? "Create Order" : "Sales Checkout & Negotiation"}
             </h2>
             <p className="text-[11px] text-zinc-400">
               {orderMode === "manual"
@@ -201,11 +254,17 @@ export function ProductOrderPanel({
         </div>
       )}
 
+      {/* Doručovací adresa s vyhledáváním a potvrzením */}
       <DeliveryAddressFields
         value={deliveryAddress}
         onChange={setDeliveryAddress}
         disabled={isSubmitting}
         idPrefix="workspace-delivery-address"
+        leadContext={activeLead ? {
+          recipient_name: activeLead.full_name,
+          city: activeLead.city,
+          country: "CZ",
+        } : null}
       />
 
       {/* Primary Product Selector */}
@@ -214,7 +273,7 @@ export function ProductOrderPanel({
           Primary Product Selection
         </label>
 
-      <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
           {products.map((prod) => {
             const isSelected = prod.id === selectedProductId;
             return (
@@ -246,16 +305,222 @@ export function ProductOrderPanel({
         </div>
       </div>
 
+      {/* CENOVÉ MANTINELY & VYJEDNÁVACÍ SCHODY (Price Ladder) */}
+      <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-4">
+        
+        {/* Banner mantinelů */}
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+          <div className="flex items-center gap-1.5">
+            <Tag className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xs font-semibold text-zinc-200">Cenové mantinely produktu:</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] font-mono">
+            <span className="text-zinc-500 line-through" title="Běžná webová cena z e-shopu">
+              Web: {pricingLadder.anchorUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
+            </span>
+            <span className="text-zinc-600">·</span>
+            <span className="text-amber-300 font-semibold" title="Běžná nabídka v hovoru">
+              Telefon: {pricingLadder.standardUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
+            </span>
+            <span className="text-zinc-600">·</span>
+            <span className="text-rose-400 font-semibold" title="Minimální limit (podlaha)">
+              Dno: {pricingLadder.floorUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
+            </span>
+          </div>
+        </div>
+
+        {/* 1. Volba délky kúry (Počet balení) */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[10px]">
+              Délka kúry (počet balení):
+            </span>
+            <span className="text-amber-400 text-[11px] font-medium">Cíl operátora: 4 balení (plná kúra)</span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-1.5">
+            {PACKAGE_DURATION_OPTIONS.map((opt) => {
+              const isSelected = quantity === opt.quantity;
+              return (
+                <button
+                  key={opt.quantity}
+                  type="button"
+                  onClick={() => setQuantity(opt.quantity)}
+                  className={`p-2 rounded-lg border text-center transition-all cursor-pointer ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40 text-amber-200 font-bold"
+                      : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-700"
+                  }`}
+                >
+                  <div className="text-xs font-semibold">{opt.label}</div>
+                  <div className="text-[10px] text-zinc-500 mt-0.5">{opt.months} měs.</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 2. Cenové schody vyjednávání */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[10px]">
+              Cenový schod pro vyjednávání v hovoru:
+            </span>
+            <span className="text-zinc-500 text-[11px]">Zvolte podle reakce klienta</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            
+            {/* Schod 1: Standard nabídka */}
+            <button
+              type="button"
+              onClick={() => handleSelectTier("standard")}
+              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                selectedTier === "standard"
+                  ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40"
+                  : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
+              }`}
+            >
+              <div className="text-xs font-bold text-amber-300">🥇 1. Standard nabídka</div>
+              <div className="mt-1 font-mono font-bold text-sm text-zinc-100">
+                {pricingLadder.standardUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
+              </div>
+              <div className="text-[10px] text-zinc-400 mt-0.5">Výchozí start v hovoru</div>
+            </button>
+
+            {/* Schod 2: Bonus E-knihy */}
+            <button
+              type="button"
+              onClick={() => handleSelectTier("bonus")}
+              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                selectedTier === "bonus"
+                  ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40"
+                  : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
+              }`}
+            >
+              <div className="text-xs font-bold text-indigo-300">🥈 2. Sleva + E-knihy</div>
+              <div className="mt-1 font-mono font-bold text-sm text-zinc-100">
+                {pricingLadder.bonusUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
+              </div>
+              <div className="text-[10px] text-indigo-300/80 mt-0.5">+ 2x E-kniha zdarma</div>
+            </button>
+
+            {/* Schod 3: Manažerská záchrana */}
+            <button
+              type="button"
+              onClick={() => handleSelectTier("floor")}
+              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                selectedTier === "floor"
+                  ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40"
+                  : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
+              }`}
+            >
+              <div className="text-xs font-bold text-rose-300">🥉 3. Dno / Záchrana</div>
+              <div className="mt-1 font-mono font-bold text-sm text-zinc-100">
+                {pricingLadder.floorUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
+              </div>
+              <div className="text-[10px] text-rose-400 mt-0.5">Minimální limit (Dno)</div>
+            </button>
+
+          </div>
+        </div>
+
+        {/* 3. Manuální úprava počtu kusů a ceny operátorem */}
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 space-y-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+            Manuální úprava operátora (podle potřeby):
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="text-zinc-400 block text-[11px] mb-1">Počet balení (ks):</label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="p-1 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-16 text-center font-mono font-bold text-zinc-100 bg-zinc-950 border border-zinc-800 rounded-md py-1 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="p-1 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-zinc-400 block text-[11px] mb-1">Cena za 1 balení:</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={unitPrice}
+                  onChange={(e) => handleManualPriceChange(Math.max(0, Number(e.target.value) || 0))}
+                  className={`w-full font-mono font-bold bg-zinc-950 border rounded-md py-1 px-2.5 text-xs ${
+                    isBelowFloor
+                      ? "border-rose-500 text-rose-300 ring-1 ring-rose-500/40"
+                      : "border-zinc-800 text-zinc-100"
+                  }`}
+                />
+                <span className="font-mono text-zinc-500 text-xs shrink-0">{pricingLadder.currency}</span>
+              </div>
+            </div>
+          </div>
+
+          {isBelowFloor && (
+            <div className="flex items-center gap-1.5 text-rose-300 text-[11px] bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+              <span>
+                Upozornění: Cena {unitPrice} {pricingLadder.currency} je pod minimálním limitem ({pricingLadder.floorUnitPrice} {pricingLadder.currency})!
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Tahák do telefonu (Operator Pitch) */}
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs space-y-1.5">
+          <div className="flex items-center justify-between font-semibold text-amber-300 text-xs">
+            <span className="flex items-center gap-1.5">
+              <span>📞</span>
+              <span>{pitch.title}</span>
+            </span>
+            <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-300 font-mono">Tahák</span>
+          </div>
+          <p className="text-zinc-100 leading-relaxed italic text-xs">
+            {pitch.text}
+          </p>
+          {pitch.bonusText && (
+            <div className="flex items-center gap-1.5 pt-1 text-[11px] text-indigo-300 font-medium">
+              <BookOpen className="w-3 h-3 text-indigo-400" />
+              <span>{pitch.bonusText}</span>
+            </div>
+          )}
+        </div>
+
+      </div>
+
       {/* AI Cross-Sell Recommendation Card */}
       {topRec && (
         <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-3.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-              <span>AI Recommended Cross-Sell Bundle</span>
+              <span>Doplňkový produkt (Cross-Sell)</span>
             </div>
             <span className="px-2 py-0.5 bg-zinc-900 text-zinc-300 text-[10px] font-medium rounded-md border border-zinc-800">
-              Save 15%
+              Sleva 15%
             </span>
           </div>
 
@@ -278,15 +543,16 @@ export function ProductOrderPanel({
 
             {bundleProduct?.id === topRec.recommendedProduct.id ? (
               <span className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium rounded-lg flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Added
+                <CheckCircle2 className="w-3.5 h-3.5" /> Přidáno
               </span>
             ) : (
               <button
+                type="button"
                 onClick={() => handleAddBundleItem(topRec)}
                 className="px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Add Bundle</span>
+                <span>+ Přidat</span>
               </button>
             )}
           </div>
@@ -297,102 +563,90 @@ export function ProductOrderPanel({
         </div>
       )}
 
-
-      {/* Quantity & Discount Controls */}
+      {/* Volitelná dodatečná promo sleva */}
       <div className="space-y-3 pt-2 border-t border-zinc-800">
         <div className="flex items-center justify-between text-xs">
-          <label className="text-zinc-400">Quantity:</label>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
-            >
-              <Minus className="w-3 h-3" />
-            </button>
-            <span className="font-mono text-zinc-200 font-semibold w-6 text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="p-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
-            >
-              <Plus className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between text-xs">
-          <label className="text-zinc-400">Apply Promo Discount:</label>
+          <label className="text-zinc-400">Dodatečná promo sleva (volitelně):</label>
           <select
             value={discountPercent}
             onChange={(e) => setDiscountPercent(Number(e.target.value))}
             className="bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-xs text-zinc-200 focus:outline-none"
           >
-            <option value={0}>0% No Discount</option>
-            <option value={5}>5% First Order</option>
-            <option value={10}>10% Special Promo</option>
-            <option value={15}>15% VIP / Bundle Discount</option>
-            <option value={25}>25% Multi-Pack Special</option>
+            <option value={0}>0% Bez dodatečné slevy</option>
+            <option value={5}>5% První objednávka</option>
+            <option value={10}>10% Mimořádný promo kód</option>
+            <option value={15}>15% VIP zákazník</option>
           </select>
         </div>
 
-        {/* Price Breakdown */}
-        <div className="pt-2 border-t border-zinc-800 space-y-1 text-xs">
+        {/* Finanční rekapitulace objednávky */}
+        <div className="pt-2 border-t border-zinc-800 space-y-1.5 text-xs">
           <div className="flex justify-between text-zinc-400">
-            <span>Primary Item:</span>
-            <span className="font-mono">{formatCurrencyAmount(primarySubtotal, selectedProduct?.currency || "USD")}</span>
+            <span>Vybraný produkt ({quantity} ks × {unitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}):</span>
+            <span className="font-mono text-zinc-200">{formatCurrencyAmount(primarySubtotal, selectedProduct?.currency || "CZK")}</span>
           </div>
+
+          <div className="flex justify-between text-zinc-400">
+            <span>Běžná hodnota z e-shopu (kotva):</span>
+            <span className="font-mono line-through text-zinc-500">{formatCurrencyAmount(anchorSubtotal, selectedProduct?.currency || "CZK")}</span>
+          </div>
+
+          {clientSavings > 0 && (
+            <div className="flex justify-between text-emerald-400 font-semibold">
+              <span>Úspora pro klienta v hovoru:</span>
+              <span className="font-mono">-{formatCurrencyAmount(clientSavings, selectedProduct?.currency || "CZK")}</span>
+            </div>
+          )}
 
           {bundleProduct && (
             <div className="flex justify-between text-zinc-300 font-medium">
-              <span>Bundle (+{bundleProduct.title.substring(0, 15)}...):</span>
-              <span className="font-mono">{formatCurrencyAmount(bundleSubtotal, bundleProduct.currency || selectedProduct?.currency || "USD")}</span>
+              <span>Doplňkový produkt (+{bundleProduct.title.substring(0, 15)}...):</span>
+              <span className="font-mono">{formatCurrencyAmount(bundleSubtotal, bundleProduct.currency || selectedProduct?.currency || "CZK")}</span>
             </div>
           )}
 
           {discountPercent > 0 && (
             <div className="flex justify-between text-zinc-300">
-              <span>Discount ({discountPercent}%):</span>
-              <span className="font-mono">-{formatCurrencyAmount(discountAmount, selectedProduct?.currency || "USD")}</span>
+              <span>Extra sleva ({discountPercent}%):</span>
+              <span className="font-mono">-{formatCurrencyAmount(discountAmount, selectedProduct?.currency || "CZK")}</span>
             </div>
           )}
 
-          <div className="flex justify-between font-bold text-sm text-zinc-100 pt-1 border-t border-zinc-800">
-            <span>Total Payable:</span>
-            <span className="font-mono text-zinc-100">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "USD")}</span>
+          <div className="flex justify-between font-bold text-sm text-zinc-100 pt-2 border-t border-zinc-800">
+            <span>Konečná cena k úhradě klientem:</span>
+            <span className="font-mono text-amber-400 text-base">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "CZK")}</span>
           </div>
         </div>
 
-        {/* Order Action Buttons */}
+        {/* Tlačítka pro dokončení */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
           <button
             type="button"
             onClick={handlePlaceOrder}
             disabled={!selectedProduct || !activeLead || isSubmitting || !deliveryAddressSnapshot}
             aria-busy={isSubmitting}
-            className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+            className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            <span>{isSubmitting ? "Saving Order…" : "Place Order"}</span>
+            <span>{isSubmitting ? "Ukládám objednávku…" : `Zaznamenat objednávku (${formatCurrencyAmount(grandTotal, selectedProduct?.currency || "CZK")})`}</span>
           </button>
 
           <div
             role="status"
             className="w-full py-2.5 bg-zinc-950/60 border border-zinc-800 text-zinc-500 font-medium rounded-lg text-xs flex items-center justify-center gap-1.5"
-            title="SMS Pay-Link requires an approved messaging integration"
+            title="SMS platební odkaz vyžaduje napojení platební brány"
           >
             <Zap className="w-3.5 h-3.5 text-zinc-600" />
-            <span>SMS Pay-Link unavailable</span>
+            <span>SMS platební brána nedostupná</span>
           </div>
         </div>
-        <p className="text-[11px] text-zinc-500">
-          SMS Pay-Link is not connected. The order above is still saved through the real CRM workflow.
-        </p>
       </div>
 
       {leadNotes.length > 0 && (
         <section className="space-y-2 border-t border-zinc-800 pt-3">
           <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Lead notes from consultation</h3>
-            <p className="mt-1 text-[11px] text-zinc-500">Existing notes are carried into this order flow for context.</p>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Poznámky k leadu z konzultace</h3>
+            <p className="mt-1 text-[11px] text-zinc-500">Předchozí poznámky pro kontext objednávky.</p>
           </div>
           <div className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3 text-xs leading-relaxed text-zinc-300">
             {formattedLeadNotes}
@@ -400,11 +654,11 @@ export function ProductOrderPanel({
         </section>
       )}
 
-      {/* Post-Call Wrap Up Section */}
+      {/* Wrap Up & Notes */}
       {orderMode === "manual" && (
         <div className="space-y-2 pt-2 border-t border-zinc-800">
           <label htmlFor="order-source" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-            Order source
+            Zdroj objednávky (Order source)
           </label>
           <select
             id="order-source"
@@ -412,50 +666,52 @@ export function ProductOrderPanel({
             onChange={(event) => setOrderSource(event.target.value as OrderSource)}
             className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
           >
-            <option value="manual">Manual / administrative entry</option>
-            <option value="previous_call">Previous call</option>
+            <option value="manual">Manuální / administrativní záznam</option>
+            <option value="previous_call">Předchozí hovor</option>
             <option value="email">E-mail</option>
-            <option value="web_form">Web form</option>
-            <option value="other">Other</option>
+            <option value="web_form">Webový formulář</option>
+            <option value="other">Jiné</option>
           </select>
           <label htmlFor="order-note" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-            Order note
+            Poznámka k objednávce
           </label>
           <textarea
             id="order-note"
             rows={2}
             value={sourceNote}
             onChange={(event) => setSourceNote(event.target.value)}
-            placeholder="Optional note about the order or consultation..."
+            placeholder="Doplňující poznámka k objednávce nebo dohodnuté specifikaci..."
             className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
           />
         </div>
       )}
 
-      {orderMode === "call" && <div className="space-y-2 pt-2 border-t border-zinc-800">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-          Post-call outcome & notes
-        </label>
+      {orderMode === "call" && (
+        <div className="space-y-2 pt-2 border-t border-zinc-800">
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
+            Výsledek hovoru & Poznámky k uzavření
+          </label>
 
-        <select
-          value={callOutcome}
-          onChange={(e) => setCallOutcome(e.target.value)}
-          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
-        >
-          <option value="order_placed">Order Placed — Sale Completed</option>
-          <option value="followup_scheduled">Follow-up Scheduled</option>
-          <option value="objection_handled">Objection Handled / Pending</option>
-          <option value="no_answer">No Answer / Voicemail</option>
-        </select>
+          <select
+            value={callOutcome}
+            onChange={(e) => setCallOutcome(e.target.value)}
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
+          >
+            <option value="order_placed">Objednávka vytvořena — Prodej úspěšně dokončen</option>
+            <option value="followup_scheduled">Naplánován další follow-up</option>
+            <option value="objection_handled">Námitka vyřešena / Čeká na potvrzení</option>
+            <option value="no_answer">Nezvedá / Hlasová schránka</option>
+          </select>
 
-        <textarea
-          rows={3}
-          value={wrapUpNotes}
-          onChange={(e) => setWrapUpNotes(e.target.value)}
-          placeholder="Record notes regarding customer reaction, agreed follow-up or objections..."
-          className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
-        />
-      </div>}
+          <textarea
+            rows={3}
+            value={wrapUpNotes}
+            onChange={(e) => setWrapUpNotes(e.target.value)}
+            placeholder="Poznamenejte reakci zákazníka, domluvené termíny doručení..."
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+          />
+        </div>
+      )}
 
     </div>
   );

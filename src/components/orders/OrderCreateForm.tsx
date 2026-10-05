@@ -301,6 +301,11 @@ export function OrderCreateForm({
               onChange={setDeliveryAddress}
               disabled={isPending}
               idPrefix="order-delivery-address"
+              leadContext={selectedLead ? {
+                recipient_name: selectedLead.full_name,
+                city: selectedLead.city,
+                country: "CZ",
+              } : null}
             />
           </section></Surface>
 

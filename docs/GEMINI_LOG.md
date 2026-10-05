@@ -121,4 +121,26 @@
   - Vytvořen unit/integrační test `tests/operator-focus-layout.test.ts` ověřující zobrazení bublin v běžném režimu a jejich schování / přepnutí na drawer trigger v extended režimu.
   - Všech 147 testovacích souborů (688 testů) prochází na 100 %, TypeScript je bez chyb (`tsc --noEmit`).
 
+---
+
+## 10. Fáze 4 — Slice 4.2: Cenové schody, vyjednávání v objednávce & chytrá adresa (5. října 2026)
+- **Cenové schody a mantinely vyjednávání (`ProductOrderPanel` & `pricingLadder.ts`):**
+  - **Cenové mantinely:** Jasné zobrazení webové kotvy (např. 1 399 Kč), výchozí telefonní akce (1 199 Kč) a minimálního limitu/dna (799 Kč).
+  - **Délka kúry:** Rychlá tlačítka na počet balení: 4 balení (Doporučená plná kúra), 3 balení, 2 balení, 1 balení.
+  - **Cenové schody (Price Ladder):**
+    - 🥇 *1. Standard nabídka (1 199 Kč / bal.)* – cíl 4 balení na začátku hovoru.
+    - 🥈 *2. Sleva + E-knihy (999 Kč / bal.)* – psychologický balíček při námitce ceny (+ 2x e-kniha o zdraví a doživotní přístup do e-knihovny zdarma).
+    - 🥉 *3. Dno / Manažerská záchrana (799 Kč / bal.)* – spodní limit pro záchranu hovoru.
+  - **Plná manuální úprava:** Operátor může kdykoliv ručně přepsat počet balení i cenu za 1 balení. Pokud cena klesne pod minimální limit, systém zobrazí varování, ale operátora neblokuje.
+  - **Dynamický tahák do ucha (Operator Pitch):** Pokaždé generuje přesnou formulaci přizpůsobenou počtu balení a cenovému schodu.
+  - **Cenový rozpad:** Jasné vyčíslení úspory zákazníka oproti webové kotvě a přesný výpočet celkové částky k úhradě.
+- **Chytré vyhledávání, doplnění a potvrzení adresy (`DeliveryAddressFields.tsx`):**
+  - **Rychlé hledání / One-line adresa:** Vyhledávací pole umožňující zadat nebo zkopírovat celou adresu v jednom řádku (např. *Nádražní 45, 602 00 Brno*) s inteligentním našeptávačem českých/slovenských měst a rozpadem do polí ulice, město, PSČ, země.
+  - **Doplnění z kontaktu:** Tlačítko pro okamžité dosazení jména a známého města z aktivního leadu.
+  - **Potvrzení adresy s klientem:** Zaškrtávací pole *„Adresa ověřena a zkontrolována s klientem do telefonu“* s vizuálním potvrzovacím odznakem pro expedici.
+  - Plně integrováno jak do `ProductOrderPanel` (Operator Console), tak do `OrderCreateForm` (`/orders/new`).
+- **Testy a kvalita:**
+  - Přidán `tests/pricing-ladder.test.ts` (3 testy) a `tests/delivery-address-search.test.ts` (4 testy).
+  - Všech 149 testovacích souborů (695 testů) prochází na 100 %, `tsc --noEmit` je bez chyb.
+
 
