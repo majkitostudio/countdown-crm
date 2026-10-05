@@ -25,6 +25,12 @@ import { softphoneController, type CallSession } from "@/lib/telephony/softphone
 import { getActiveTelephonyAdapterClient } from "@/lib/telephony/telephonyAdapterClient";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
+import {
+  createContinuousSpeechRecognition,
+  isBrowserSpeechRecognitionSupported,
+  type ContinuousSpeechRecognition,
+} from "@/lib/speechRecognition";
+import type { TranscriptEntry } from "@/lib/callTranscript";
 import { completeCallAction } from "@/app/actions/crm";
 import { requestAssistanceAction } from "@/app/actions/assistance";
 import { listScheduledCallbacksAction } from "@/app/actions/calendar";
@@ -64,7 +70,7 @@ interface PostCallSummary {
   outcomeLabel: string;
   durationSeconds: number;
   orderStatus: "created" | "not_created";
-  transcriptStatus: "unavailable";
+  transcriptStatus: "unavailable" | "captured";
   orderId?: string;
   failReasonLabel?: string;
   operatorNote?: string;
@@ -85,6 +91,7 @@ interface WorkspaceCompletionRetryPayload {
   orderItems?: import("@/lib/callOrder").CallOrderItemInput[];
   operatorNote?: string;
   failReason?: FailReason;
+  preservedTranscript?: string | null;
 }
 
 type CompletionExecutor = (payload: WorkspaceCompletionRetryPayload) => Promise<{ callId: string; orderId?: string } | null>;
@@ -152,6 +159,9 @@ function WorkspaceContent() {
   const completionExecutorRef = React.useRef<CompletionExecutor | null>(null);
   const activeQueueItemIdRef = React.useRef<string | null>(null);
   const identityRoleRef = React.useRef<string | null>(null);
+  const speechRecognitionRef = React.useRef<ContinuousSpeechRecognition | null>(null);
+  const transcriptEntriesRef = React.useRef<TranscriptEntry[]>([]);
+  const lastSessionIdRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const {
     preferences: userPreferences,
@@ -236,6 +246,76 @@ function WorkspaceContent() {
 
 
   useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
+
+  useEffect(() => {
+    if (softphoneSession.id && softphoneSession.id !== lastSessionIdRef.current) {
+      lastSessionIdRef.current = softphoneSession.id;
+      transcriptEntriesRef.current = [];
+    }
+  }, [softphoneSession.id]);
+
+  // Silent background speech recognition during active call
+  useEffect(() => {
+    if (!isCallActive) {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch {
+          // silent fallback
+        }
+        speechRecognitionRef.current = null;
+      }
+      return;
+    }
+
+    if (!isBrowserSpeechRecognitionSupported()) return;
+
+    if (!speechRecognitionRef.current) {
+      try {
+        const continuous = createContinuousSpeechRecognition({
+          language: "cs-CZ",
+          onStart: () => {},
+          onInterimResult: () => {},
+          onFinalResult: (transcript) => {
+            if (softphoneSession.isMuted) return;
+            const cleanText = transcript.trim();
+            if (!cleanText) return;
+            const startTime = softphoneSession.startTime ? softphoneSession.startTime.getTime() : Date.now();
+            const elapsedSec = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
+            const mins = String(Math.floor(elapsedSec / 60)).padStart(2, "0");
+            const secs = String(elapsedSec % 60).padStart(2, "0");
+            transcriptEntriesRef.current.push({
+              speaker: "operator",
+              text: cleanText,
+              timestamp: `${mins}:${secs}`,
+            });
+          },
+          onError: (err) => {
+            // Completely silent background operation per operator requirements
+            console.debug("[SpeechRecognition] Silent notification:", err.error);
+          },
+          onEnd: () => {},
+        });
+        if (continuous) {
+          continuous.start();
+          speechRecognitionRef.current = continuous;
+        }
+      } catch (err) {
+        console.debug("[SpeechRecognition] Silent init failure:", err);
+      }
+    }
+
+    return () => {
+      if (speechRecognitionRef.current) {
+        try {
+          speechRecognitionRef.current.stop();
+        } catch {
+          // silent fallback
+        }
+        speechRecognitionRef.current = null;
+      }
+    };
+  }, [isCallActive, softphoneSession.isMuted, softphoneSession.startTime]);
 
   useEffect(() => {
     if (isIdentityLoading || !identity) return;
@@ -427,6 +507,7 @@ function WorkspaceContent() {
     callSessionId = softphoneSession.id,
     queueItemId = activeQueueItemId,
     preservedDurationSeconds?: number,
+    preservedTranscript?: string | null,
   ): Promise<{ callId: string; orderId?: string } | null> => {
     if (!activeLead || completionInFlightRef.current) return null;
 
@@ -436,6 +517,10 @@ function WorkspaceContent() {
     const durationSeconds = preservedDurationSeconds ?? (callDurationSeconds || (callStartedAt
       ? Math.max(0, Math.round((Date.parse(new Date().toISOString()) - Date.parse(callStartedAt)) / 1000))
       : softphoneSession.durationSeconds));
+    const recordedTranscript = preservedTranscript ?? (transcriptEntriesRef.current.length > 0
+      ? JSON.stringify(transcriptEntriesRef.current)
+      : null);
+    const transcriptStatus: PostCallSummary["transcriptStatus"] = recordedTranscript ? "captured" : "unavailable";
     try {
       if (identity?.role === "operator") {
         if (!queueItemId) {
@@ -452,7 +537,7 @@ function WorkspaceContent() {
           order_items: orderItems || null,
           order_product_id: orderProductId || null,
           order_total_amount: orderProductId ? orderValue : null,
-          transcript: null,
+          transcript: recordedTranscript,
           callback_scheduled_at: queueOutcome === "followup_scheduled" ? callbackScheduledAt || null : null,
           operator_note: operatorNote?.trim() || null,
           fail_reason: failReason || null,
@@ -476,13 +561,14 @@ function WorkspaceContent() {
           outcomeLabel,
           durationSeconds: completion.duration_seconds,
           orderStatus,
-          transcriptStatus: "unavailable",
+          transcriptStatus,
           orderId: completion.order_id || undefined,
           failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined,
           operatorNote: operatorNote?.trim() || undefined,
           workflowEntries,
           workflowDispatches: completion.workflowDispatches,
         });
+        transcriptEntriesRef.current = [];
         setCompletionSaveState("saved");
         retryCompletionRef.current = null;
         setActivityRefreshToken((current) => current + 1);
@@ -498,7 +584,7 @@ function WorkspaceContent() {
         order_items: orderItems || null,
         order_product_id: orderProductId,
         order_total_amount: orderProductId ? orderValue : null,
-        transcript: null,
+        transcript: recordedTranscript,
         operator_note: operatorNote?.trim() || null,
         fail_reason: failReason || null,
         callback_scheduled_at: outcome === "followup_scheduled" ? callbackScheduledAt || null : null,
@@ -520,13 +606,14 @@ function WorkspaceContent() {
         outcomeLabel,
         durationSeconds,
         orderStatus,
-        transcriptStatus: "unavailable",
+        transcriptStatus,
         orderId: completion.order_id || undefined,
         failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined,
         operatorNote: operatorNote?.trim() || undefined,
         workflowEntries,
         workflowDispatches: completion.workflowDispatches,
       });
+      transcriptEntriesRef.current = [];
       setCompletionSaveState("saved");
       retryCompletionRef.current = null;
       setActivityRefreshToken((current) => current + 1);
@@ -548,6 +635,7 @@ function WorkspaceContent() {
           orderItems,
           operatorNote,
           failReason,
+          preservedTranscript: recordedTranscript,
         },
       );
       setPostCallSummary({
@@ -555,7 +643,7 @@ function WorkspaceContent() {
         outcomeLabel,
         durationSeconds,
         orderStatus,
-        transcriptStatus: "unavailable",
+        transcriptStatus,
         failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined,
         operatorNote: operatorNote?.trim() || undefined,
         workflowEntries: [],
@@ -587,6 +675,7 @@ function WorkspaceContent() {
       payload.callSessionId,
       payload.queueItemId,
       payload.durationSeconds,
+      payload.preservedTranscript,
     );
     return () => {
       completionExecutorRef.current = null;

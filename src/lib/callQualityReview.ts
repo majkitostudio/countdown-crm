@@ -1,3 +1,5 @@
+import { parseCallTranscript } from "@/lib/callTranscript";
+
 export type CallQualityReviewStatus = "pending" | "ok" | "review" | "unavailable";
 
 export type CallQualitySection =
@@ -177,7 +179,16 @@ export function sanitizeCallQualityText(value: string | null | undefined, maxLen
 
 export function buildCallQualityPrompt(input: CallQualityInput): string {
   const note = sanitizeCallQualityText(input.operatorNote, MAX_NOTE_CHARS) || "(poznámka chybí)";
-  const transcript = sanitizeCallQualityText(input.transcript, MAX_TRANSCRIPT_CHARS) || "(přepis není k dispozici)";
+  const parsedTranscript = parseCallTranscript(input.transcript);
+  let transcriptText = "(přepis není k dispozici)";
+  if (parsedTranscript.kind === "structured") {
+    transcriptText = parsedTranscript.entries
+      .map((entry) => `[${entry.timestamp}] ${entry.speaker === "operator" ? "Operátor" : "Klient"}: ${entry.text}`)
+      .join("\n");
+  } else if (parsedTranscript.kind === "plain_text") {
+    transcriptText = parsedTranscript.text;
+  }
+  const transcript = sanitizeCallQualityText(transcriptText, MAX_TRANSCRIPT_CHARS) || "(přepis není k dispozici)";
   const failReason = normalized(input.failReason) || "(neuveden)";
 
   return `

@@ -143,4 +143,28 @@
   - Přidán `tests/pricing-ladder.test.ts` (3 testy) a `tests/delivery-address-search.test.ts` (4 testy).
   - Všech 149 testovacích souborů (695 testů) prochází na 100 %, `tsc --noEmit` je bez chyb.
 
+---
+
+## 11. Fáze 5 — Slice 5.1: Tichý přepis hovoru (Speech-to-Text) & AI Quality Review (5. října 2026)
+- **Tiché rozpoznávání řeči na pozadí (`src/app/workspace/page.tsx`):**
+  - Integrováno kontinuální rozpoznávání hlasu (`createContinuousSpeechRecognition`) v českém jazyce (`cs-CZ`).
+  - **Zcela tichý chod:** Běží v tichosti na pozadí během aktivního hovoru (`isCallActive`), operátora ničím nerozptyluje ani neobtěžuje chybovými hláškami.
+  - **Respektování mute:** Pokud má operátor ztlumený mikrofon (`isMuted`), promluvy se do přepisu nezaznamenávají.
+  - **Časové značky:** Každá promluva má přesný čas od začátku hovoru ve formátu `mm:ss` (např. `00:15`) a označeného mluvčího (`speaker: "operator"`).
+- **Předání do databáze a přehledu po hovoru:**
+  - V `completeCall` nahrazeno natvrdo zakódované `transcript: null` reálným serializovaným přepisem v JSON formátu (nebo `null` při absenci přepisu).
+  - Přepis je bezpečně předáván jak do `completeLeadCallAction`, tak do `completeCallAction`, a zachován i v případě selhání v retry payloadu (`preservedTranscript`).
+  - `PostCallSummaryCard` byl rozšířen o stav `transcriptStatus: "captured"`, který po dokončení hovoru zobrazuje jemné zelené potvrzení o zachycení přepisu pro vyhodnocení kvality.
+- **Formátování pro Gemini AI Quality Review (`src/lib/callQualityReview.ts`):**
+  - Funkce `buildCallQualityPrompt` nyní automaticky detekuje a rozbaluje strukturovaný JSON přepis hovoru do přirozeného dialogu s časovými razítky:
+    `[00:05] Operátor: Dobrý den, volám ohledně...`
+  - Text prochází hygienou a redakcí citlivých údajů (`sanitizeCallQualityText` maže e-maily a telefonní čísla).
+  - Gemini AI tak v kontrole kvality hovorů konečně hodnotí reálný průběh rozhovoru a může Team Leaderovi poskytnout přesné doporučení opřené o fakta.
+- **Kvalita a testy:**
+  - Vytvořen testovací soubor `tests/workspace-speech-transcript.test.ts` (4 testy).
+  - Rozšířen integrační test `tests/call-quality-review.test.ts` a `tests/post-call-completion-runtime.test.ts`.
+  - Vyřešeny ESLint varování v `ObjectionDrawer.tsx`, `ProductOrderPanel.tsx` a `audit/page.tsx`.
+  - Všech 150 testovacích souborů (702 testů) prochází na 100 %, `tsc --noEmit` je čistý (0 chyb), `npm run lint` je čistý (0 chyb, 0 varování).
+
+
 

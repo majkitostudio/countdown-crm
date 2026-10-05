@@ -99,4 +99,34 @@ describe("call quality review", () => {
     expect(prompt).toContain("nevydávej lékařský nebo právní závěr");
     expect(prompt).toContain("recommendation");
   });
+
+  it("formats structured JSON transcript into dialogue with speaker and timestamps", () => {
+    const rawStructured = JSON.stringify([
+      { speaker: "operator", timestamp: "00:05", text: "Dobrý den, volám z Countdown CRM." },
+      { speaker: "customer", timestamp: "00:12", text: "Dobrý den, copak nabízíte?" },
+    ]);
+
+    const prompt = buildCallQualityPrompt({
+      operatorNote: "Klient si vyslechl nabídku.",
+      transcript: rawStructured,
+      durationSeconds: 75,
+      outcome: "order_placed",
+      failReason: null,
+    });
+
+    expect(prompt).toContain("[00:05] Operátor: Dobrý den, volám z Countdown CRM.");
+    expect(prompt).toContain("[00:12] Klient: Dobrý den, copak nabízíte?");
+  });
+
+  it("indicates unavailable transcript when null or empty", () => {
+    const prompt = buildCallQualityPrompt({
+      operatorNote: "Rychlý hovor bez přepisu.",
+      transcript: null,
+      durationSeconds: 15,
+      outcome: "no_answer",
+      failReason: null,
+    });
+
+    expect(prompt).toContain("(přepis není k dispozici)");
+  });
 });

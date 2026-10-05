@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ShieldAlert,
   Search,
@@ -71,7 +71,7 @@ export default function AuditPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadLogs = () => {
+  const loadLogs = useCallback(() => {
     if (identity?.role === "operator") return;
     void getAuditLogs()
       .then(setLogs)
@@ -79,12 +79,12 @@ export default function AuditPage() {
         setLogs([]);
         setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
       });
-  };
+  }, [identity?.role]);
 
   useEffect(() => {
     if (isIdentityLoading || identity?.role === "operator") return;
     loadLogs();
-  }, [identity?.role, isIdentityLoading]);
+  }, [identity?.role, isIdentityLoading, loadLogs]);
 
   const handleRefresh = () => {
     setLoadError(null);

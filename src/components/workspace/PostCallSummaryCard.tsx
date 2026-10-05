@@ -31,7 +31,7 @@ interface PostCallSummaryCardProps {
     outcomeLabel: string;
     durationSeconds: number;
     orderStatus: "created" | "not_created";
-    transcriptStatus: "unavailable";
+    transcriptStatus: "unavailable" | "captured";
     orderId?: string;
     failReasonLabel?: string;
     operatorNote?: string;
@@ -164,6 +164,13 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
         <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
           <strong className="font-semibold">Call transcript unavailable.</strong>
           <span className="ml-1 text-amber-300/80">This call did not capture a verified speech transcript or recording.</span>
+        </div>
+      )}
+
+      {summary.transcriptStatus === "captured" && (
+        <div className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-200" role="status">
+          <strong className="font-semibold">Call transcript captured.</strong>
+          <span className="ml-1 text-emerald-300/80">A speech transcript was recorded and linked for quality review.</span>
         </div>
       )}
 

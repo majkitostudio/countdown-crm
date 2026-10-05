@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Tag,
   BookOpen,
-  ShieldAlert,
 } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Lead } from "@/lib/leads";
@@ -70,14 +69,16 @@ export function ProductOrderPanel({
   const selectedProduct = products.find((p) => p.id === effectiveProductId) || products[0];
 
   const pricingLadder = React.useMemo(() => getProductPricingLadder(selectedProduct), [selectedProduct]);
+  const [prevPricingLadder, setPrevPricingLadder] = useState(pricingLadder);
   const [selectedTier, setSelectedTier] = useState<"standard" | "bonus" | "floor" | "custom">("standard");
   const [quantity, setQuantity] = useState<number>(4);
   const [unitPrice, setUnitPrice] = useState<number>(() => pricingLadder.standardUnitPrice);
 
-  React.useEffect(() => {
+  if (pricingLadder !== prevPricingLadder) {
+    setPrevPricingLadder(pricingLadder);
     setUnitPrice(pricingLadder.standardUnitPrice);
     setSelectedTier("standard");
-  }, [pricingLadder]);
+  }
 
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [callOutcome, setCallOutcome] = useState<string>("order_placed");
@@ -88,19 +89,23 @@ export function ProductOrderPanel({
   const [orderError, setOrderError] = useState<string | null>(null);
   const [lastOrderId, setLastOrderId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_DELIVERY_ADDRESS_DRAFT);
-  const leadNotesInitializedRef = React.useRef(false);
-
-  // Prefill delivery address from active lead if available
-  React.useEffect(() => {
-    if (!activeLead) return;
+  const [deliveryAddress, setDeliveryAddress] = useState(() => ({
+    ...EMPTY_DELIVERY_ADDRESS_DRAFT,
+    recipient_name: activeLead?.full_name || "",
+    city: activeLead?.city || "",
+    country: activeLead?.country || "CZ",
+  }));
+  const [prevLeadId, setPrevLeadId] = useState(activeLead?.id);
+  if (activeLead && activeLead.id !== prevLeadId) {
+    setPrevLeadId(activeLead.id);
     setDeliveryAddress((prev) => ({
       ...prev,
       recipient_name: prev.recipient_name || activeLead.full_name || "",
       city: prev.city || activeLead.city || "",
       country: prev.country || "CZ",
     }));
-  }, [activeLead]);
+  }
+  const leadNotesInitializedRef = React.useRef(false);
 
   const formattedLeadNotes = leadNotes
     .map((note) => {

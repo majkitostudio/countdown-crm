@@ -70,6 +70,36 @@ describe("post-call completion runtime contract", () => {
     });
   });
 
+  it("forwards verified speech transcript to the database completion RPC and quality review", async () => {
+    const rpc = vi.fn()
+      .mockResolvedValueOnce({
+        data: { call_id: "call-transcript-1", order_id: null, queue_state: "closed", duration_seconds: 90, next_lead: null, lead_id: "lead-1", lead_name: "Test Lead" },
+        error: null,
+      });
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    const structuredTranscript = JSON.stringify([
+      { speaker: "operator", timestamp: "00:05", text: "Dobrý den, volám z Countdown CRM." },
+    ]);
+
+    await completeLeadCallForWorkspace({
+      queue_item_id: "queue-1",
+      call_session_id: callSessionId,
+      duration_seconds: 90,
+      outcome: "followup_scheduled",
+      callback_scheduled_at: "2026-09-06T10:00:00.000Z",
+      transcript: structuredTranscript,
+      operator_note: "Zákazník si vyžádal další hovor.",
+      fail_reason: null,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("complete_lead_call_with_order_items_idempotent", expect.objectContaining({
+      call_transcript: structuredTranscript,
+      call_session_id: callSessionId,
+    }));
+    expect(mocks.reviewCompletedCallForWorkspace).toHaveBeenCalledWith("call-transcript-1", "workspace-1");
+  });
+
   it("rejects a direct completion without a server-authorized session identity", async () => {
     await expect(completeCallForWorkspace({
       lead_id: "lead-1",

@@ -23,6 +23,13 @@ interface ObjectionDrawerProps {
 
 export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsAvailable = true, onClose, onProductUpdated, onEditObjection }: ObjectionDrawerProps) {
   const [objections, setObjections] = useState<Objection[]>([]);
+  const [prevProduct, setPrevProduct] = useState(product);
+  if (product !== prevProduct) {
+    setPrevProduct(product);
+    if (product?.objections && product.objections.length > 0) {
+      setObjections(product.objections);
+    }
+  }
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newArgs, setNewArgs] = useState("");
@@ -30,11 +37,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
-    if (!product) return;
-    if (product.objections && product.objections.length > 0) {
-      setObjections(product.objections);
-      return;
-    }
+    if (!product || (product.objections && product.objections.length > 0)) return;
 
     let cancelled = false;
     void listObjectionsAction({ productId: product.id })
