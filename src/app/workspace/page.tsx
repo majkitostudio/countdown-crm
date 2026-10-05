@@ -14,6 +14,7 @@ import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
 import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
+import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
 import { getFailReasonLabel, type FailReason } from "@/lib/postCall";
@@ -140,6 +141,7 @@ function WorkspaceContent() {
   const [isEndCallPending, setIsEndCallPending] = useState(false);
   const [isCompletionPending, setIsCompletionPending] = useState(false);
   const [isScriptExpanded, setIsScriptExpanded] = useState(false);
+  const [isObjectionCatalogOpen, setIsObjectionCatalogOpen] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
   const [telephonyAdapter, setTelephonyAdapter] = useState<TelephonyAdapter>("simulation");
   const stopAudioRef = React.useRef<(() => void) | null>(null);
@@ -1050,7 +1052,14 @@ function WorkspaceContent() {
         product={products[0]}
         activeSnapshot={softphoneSession.scriptSnapshot}
         isExpanded={isScriptExpanded}
-        onToggleExpand={() => setIsScriptExpanded((current) => !current)}
+        onToggleExpand={() => {
+          setIsScriptExpanded((current) => {
+            const next = !current;
+            if (!next) setIsObjectionCatalogOpen(false);
+            return next;
+          });
+        }}
+        onOpenObjections={() => setIsObjectionCatalogOpen(true)}
         discoveryQuestions={getProductScript(products[0]).discoveryQuestions}
       />
     </div>
@@ -1200,6 +1209,15 @@ function WorkspaceContent() {
         }}
         onSchedule={handleScheduleCallback}
       />
+
+      {products[0] && (
+        <ObjectionDrawer
+          product={products[0]}
+          isOpen={isObjectionCatalogOpen && Boolean(isScriptExpanded)}
+          canManage={false}
+          onClose={() => setIsObjectionCatalogOpen(false)}
+        />
+      )}
 
     </div>
   );

@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, CircleHelp, Maximize2, Minimize2, ShieldCheck, Type } from "lucide-react";
+import { ChevronRight, CircleHelp, Maximize2, Minimize2, ShieldAlert, ShieldCheck, Type } from "lucide-react";
 import { getProductScriptAction } from "@/app/actions/productScripts";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Product } from "@/lib/products";
+import { getProductScript } from "@/lib/productScripts";
 import { buildDefaultScriptHtml } from "@/lib/scriptContent";
 import type { ScriptSnapshotDTO } from "@/lib/dal/productScripts";
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 interface ProductScriptPanelProps {
   product?: Product;
@@ -16,10 +18,68 @@ interface ProductScriptPanelProps {
   activeSnapshot?: ScriptSnapshotDTO | null;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  onOpenObjections?: () => void;
   discoveryQuestions?: string[];
 }
 
-export function ProductScriptPanel({ product, isCallActive, activeSnapshot = null, isExpanded = false, onToggleExpand, discoveryQuestions = [] }: ProductScriptPanelProps) {
+export function ProductScriptPanel({
+  product,
+  isCallActive,
+  activeSnapshot = null,
+  isExpanded = false,
+  onToggleExpand,
+  onOpenObjections,
+  discoveryQuestions = [],
+}: ProductScriptPanelProps) {
+  const [selectedQuickObjectionId, setSelectedQuickObjectionId] = useState<string | null>(null);
+
+  const quickObjections = useMemo(() => {
+    const script = getProductScript(product);
+    const scriptResponses = script.objectionResponses || {};
+    return [
+      {
+        id: "price",
+        icon: "💰",
+        label: "Drahé / Cena",
+        title: "Námitka: Vysoká cena / „Nemám peníze“",
+        response:
+          scriptResponses.price ||
+          "Naprosto vám rozumím. Pojďme se nejprve ujistit, zda vám produkt skutečně vyřeší potíže, a pak společně projdeme možnosti a zvýhodněné ceny.",
+      },
+      {
+        id: "effectiveness",
+        icon: "🛡️",
+        label: "Nevěřím účinku",
+        title: "Námitka: Nedůvěra / „Nevěřím, že to pomůže“",
+        response:
+          scriptResponses.effectiveness ||
+          "Chápu vaši otázku. Mohu vám vysvětlit schválené složení a jak přípravek v těle působí, ale nechci vám slibovat zázraky, které nelze garantovat.",
+      },
+      {
+        id: "hesitation",
+        icon: "⏳",
+        label: "Chci čas / Porada",
+        title: "Námitka: Váhání / „Musím si to promyslet“",
+        response:
+          scriptResponses.hesitation ||
+          "To je samozřejmě rozumné. Jaké další informace by vám pomohly udělat pro sebe příjemné a pohodlné rozhodnutí?",
+      },
+      {
+        id: "delivery",
+        icon: "📦",
+        label: "Doprava / Doručení",
+        title: "Námitka: Poštovné a doručení",
+        response:
+          scriptResponses.delivery ||
+          "Rád vám potvrdím cenu dopravy i přesný termín doručení na vaši adresu ještě předtím, než budeme pokračovat.",
+      },
+    ];
+  }, [product]);
+
+  const activeQuickObjection = useMemo(() => {
+    if (!selectedQuickObjectionId) return null;
+    return quickObjections.find((item) => item.id === selectedQuickObjectionId) || null;
+  }, [quickObjections, selectedQuickObjectionId]);
   const [scriptResource, setScriptResource] = useState<{
     productId: string | null;
     html: string | null;
@@ -94,6 +154,17 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
           <StatusBadge tone="neutral">
             {isCallActive ? "Active" : "Ready"}
           </StatusBadge>
+          {isExpanded && onOpenObjections && (
+            <Button
+              variant="secondary"
+              onClick={onOpenObjections}
+              aria-label="Open objection catalog"
+              title="Open objection catalog"
+            >
+              <ShieldAlert className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+              Katalog námitek
+            </Button>
+          )}
           {onToggleExpand && (
             <Button
               variant="secondary"
@@ -152,6 +223,58 @@ export function ProductScriptPanel({ product, isCallActive, activeSnapshot = nul
               </li>
             ))}
           </ol>
+        </div>
+      )}
+
+      {!isExpanded && (
+        <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-3" data-testid="script-quick-objections">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+              <div>
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-300">Rychlé námitky (Quick Objections)</h3>
+                <p className="mt-0.5 text-[10px] text-zinc-500">Klikněte pro zobrazení schválené odpovědi do telefonu</p>
+              </div>
+            </div>
+            {selectedQuickObjectionId && (
+              <button
+                type="button"
+                onClick={() => setSelectedQuickObjectionId(null)}
+                className="text-[11px] text-zinc-400 hover:text-zinc-200"
+              >
+                Zavřít
+              </button>
+            )}
+          </div>
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {quickObjections.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSelectedQuickObjectionId((prev) => (prev === item.id ? null : item.id))}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
+                  selectedQuickObjectionId === item.id
+                    ? "border-amber-500/80 bg-amber-500/20 text-amber-200 shadow-sm ring-1 ring-amber-500/30"
+                    : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-700 hover:text-white"
+                )}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+          {activeQuickObjection && (
+            <div className="mt-2.5 rounded-lg border border-amber-500/30 bg-amber-950/20 p-3 text-xs text-zinc-200">
+              <div className="flex items-center justify-between border-b border-amber-500/20 pb-1.5 text-xs font-semibold text-amber-300">
+                <span>{activeQuickObjection.title}</span>
+                <span className="rounded bg-amber-500/20 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-400">Battle-card</span>
+              </div>
+              <p className="mt-2 leading-relaxed text-zinc-100">
+                {activeQuickObjection.response}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

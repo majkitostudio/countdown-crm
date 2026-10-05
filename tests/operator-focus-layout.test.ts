@@ -101,4 +101,35 @@ describe("operator client-profile and script focus layout", () => {
     expect(markup).toContain("Save Note");
     expect(markup).toContain("No notes for this lead yet.");
   });
+
+  it("renders quick objections in standard view and switches to drawer trigger in extended view", () => {
+    const standardMarkup = renderToStaticMarkup(
+      React.createElement(ProductScriptPanel, {
+        product,
+        isCallActive: false,
+        isExpanded: false,
+        onToggleExpand: vi.fn(),
+        onOpenObjections: vi.fn(),
+      }),
+    );
+
+    expect(standardMarkup).toContain('data-testid="script-quick-objections"');
+    expect(standardMarkup).toContain("Drahé / Cena");
+    expect(standardMarkup).toContain("Nevěřím účinku");
+    expect(standardMarkup).not.toContain('aria-label="Open objection catalog"');
+
+    const extendedMarkup = renderToStaticMarkup(
+      React.createElement(ProductScriptPanel, {
+        product,
+        isCallActive: false,
+        isExpanded: true,
+        onToggleExpand: vi.fn(),
+        onOpenObjections: vi.fn(),
+      }),
+    );
+
+    expect(extendedMarkup).not.toContain('data-testid="script-quick-objections"');
+    expect(extendedMarkup).toContain('aria-label="Open objection catalog"');
+    expect(extendedMarkup).toContain("Katalog námitek");
+  });
 });

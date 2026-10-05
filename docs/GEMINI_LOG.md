@@ -105,3 +105,20 @@
   - **Prověření ovládání hovoru:** Karta zákazníka se nelepí k hornímu okraji (nezakrývá skript). Ovládání hovoru při scrollování je zajištěno komponentou `FloatingCallController` v pravém dolním rohu.
   - **Pravý panel:** Zachováno plné přehledné rozložení (poznámky, recent context a timeline zákazníka pod sebou bez klikání na taby).
 
+---
+
+## 9. Fáze 4 — Slice 4.1: Řešení námitek v Operator Console (5. října 2026)
+- **Standardní (normální) režim skriptu (`!isExpanded`):**
+  - Pod čtecím oknem skriptu jsou umístěny rychlé klikací bubliny nejčastějších námitek (`[ 💰 Drahé / Cena ]`, `[ 🛡️ Nevěřím účinku ]`, `[ ⏳ Chci čas / Porada ]`, `[ 📦 Doprava / Doručení ]`).
+  - Po kliknutí se operátorovi bleskově rozbalí schválená odpověď do telefonu (battle-card), aniž by cokoliv zakrývalo pravý sloupec s poznámkami a historií leadu.
+  - Tlačítko pro vysunutí velkého bočního šuplíku (Drawer) je v tomto režimu skryto, aby operátora nerušilo.
+- **Extended (rozbalený / focus) režim skriptu (`isExpanded`):**
+  - Rychlé bubliny pod skriptem zmizí, aby skript zabíral maximum vertikálního prostoru pro plynulé čtení.
+  - V horní liště skriptu se zobrazí tlačítko `[ 🛡️ Katalog námitek ]`.
+  - Kliknutím na toto tlačítko se zprava vysune boční šuplík `ObjectionDrawer` s fulltextovým vyhledáváním a kompletním přehledem všech evidovaných námitek pro daný produkt v bezpečném *read-only* režimu (`canManage={false}`).
+  - Při sbalení skriptu zpět (`Collapse`) se katalog námitek automaticky bezpečně uzavře.
+- **Testy a kvalita:**
+  - Vytvořen unit/integrační test `tests/operator-focus-layout.test.ts` ověřující zobrazení bublin v běžném režimu a jejich schování / přepnutí na drawer trigger v extended režimu.
+  - Všech 147 testovacích souborů (688 testů) prochází na 100 %, TypeScript je bez chyb (`tsc --noEmit`).
+
+

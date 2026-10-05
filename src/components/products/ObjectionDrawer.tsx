@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { X, ShieldAlert, Sparkles, Plus, MessageSquareQuote, Pencil } from "lucide-react";
-import { createObjectionAction } from "@/app/actions/objections";
+import { createObjectionAction, listObjectionsAction } from "@/app/actions/objections";
 import { Product, Objection } from "@/lib/products";
+import { getProductScript } from "@/lib/productScripts";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { FieldLabel, TextAreaField, TextField } from "@/components/ui/Field";
@@ -16,8 +17,8 @@ interface ObjectionDrawerProps {
   canManage?: boolean;
   objectionsAvailable?: boolean;
   onClose: () => void;
-  onProductUpdated: () => void;
-  onEditObjection: (id: string) => void;
+  onProductUpdated?: () => void;
+  onEditObjection?: (id: string) => void;
 }
 
 export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsAvailable = true, onClose, onProductUpdated, onEditObjection }: ObjectionDrawerProps) {
@@ -29,11 +30,65 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
-    if (product) {
-      // This local draft must follow the selected product before edits begin.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setObjections(product.objections || []);
+    if (!product) return;
+    if (product.objections && product.objections.length > 0) {
+      setObjections(product.objections);
+      return;
     }
+
+    let cancelled = false;
+    void listObjectionsAction({ productId: product.id })
+      .then((items) => {
+        if (cancelled) return;
+        if (items && items.length > 0) {
+          setObjections(
+            items.map((i) => ({
+              id: i.id,
+              product_id: i.product_id,
+              objection_title: i.objection_title,
+              rebuttal_args: i.rebuttal_args,
+            }))
+          );
+        } else {
+          const script = getProductScript(product);
+          const fallbackList: Objection[] = Object.entries(script.objectionResponses).map(
+            ([key, value]) => ({
+              id: `fallback-${key}`,
+              product_id: product.id,
+              objection_title:
+                key === "price"
+                  ? "Price is too high / Cannot afford"
+                  : key === "effectiveness"
+                    ? "Skeptical of effectiveness / Tried other solutions"
+                    : key === "delivery"
+                      ? "Shipping cost / Delivery timing"
+                      : key === "hesitation"
+                        ? "Needs time to decide / Consult family"
+                        : key,
+              rebuttal_args: [value],
+            })
+          );
+          setObjections(fallbackList);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          const script = getProductScript(product);
+          const fallbackList: Objection[] = Object.entries(script.objectionResponses).map(
+            ([key, value]) => ({
+              id: `fallback-${key}`,
+              product_id: product.id,
+              objection_title: key.charAt(0).toUpperCase() + key.slice(1),
+              rebuttal_args: [value],
+            })
+          );
+          setObjections(fallbackList);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [product]);
 
   if (!isOpen || !product) return null;
@@ -64,7 +119,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
         rebuttal_args: created.rebuttal_args,
       };
       setObjections((current) => [...current, newObj]);
-      onProductUpdated();
+      onProductUpdated?.();
       setNewTitle("");
       setNewArgs("");
       setShowAddForm(false);
@@ -203,7 +258,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                         </span>
                       </div>
 
-                      {canManage && <Button
+                      {canManage && onEditObjection && <Button
                         variant="quiet"
                         type="button"
                         onClick={() => onEditObjection(obj.id)}
