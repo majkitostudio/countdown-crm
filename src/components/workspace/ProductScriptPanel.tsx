@@ -195,7 +195,7 @@ export function ProductScriptPanel({
         <Surface variant="inset" className="w-full">
           <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
           <div
-            className="operator-script-reading-flow min-h-[360px] max-w-4xl p-5 text-[15px] leading-7 text-zinc-200 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_mark]:rounded [&_mark]:bg-yellow-300 [&_mark]:px-0.5 [&_p]:mb-4 [&_p:last-child]:mb-0"
+            className="operator-script-reading-flow min-h-[360px] max-w-4xl p-5 text-[15px] leading-7 text-zinc-200 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_mark]:rounded [&_mark]:bg-amber-500/20 [&_mark]:text-amber-200 [&_mark]:border [&_mark]:border-amber-500/30 [&_mark]:px-1 [&_mark]:font-medium [&_p]:mb-4 [&_p:last-child]:mb-0"
             dangerouslySetInnerHTML={{ __html: scriptHtml }}
           />
           </div>

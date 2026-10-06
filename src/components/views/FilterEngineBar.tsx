@@ -38,7 +38,7 @@ const STORAGE_KEY = "countdown_saved_views";
 const DEFAULT_SAVED_VIEWS: SavedView[] = [
   {
     id: "view-high-score",
-    name: "🔥 Vysoký AI Skóre (> 80)",
+    name: "Vysoké AI skóre (> 80)",
     filters: [
       {
         id: "f-1",
@@ -51,7 +51,7 @@ const DEFAULT_SAVED_VIEWS: SavedView[] = [
   },
   {
     id: "view-qualified",
-    name: "⭐ Qualified Leadi",
+    name: "Kvalifikované leady",
     filters: [
       {
         id: "f-2",

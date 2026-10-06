@@ -169,7 +169,9 @@ export function CommandPalette() {
                   </span>
                   <span className="flex items-center gap-2">
                     <StatusBadge tone="neutral">Score: {lead.ai_score}</StatusBadge>
-                    <span className="text-[10px] text-zinc-500 uppercase">Call Client ➔</span>
+                    <span className="flex items-center gap-1 text-[10px] text-zinc-500 uppercase">
+                      Zavolat <ArrowRight className="w-3 h-3" />
+                    </span>
                   </span>
                   </span>
                 </Button>

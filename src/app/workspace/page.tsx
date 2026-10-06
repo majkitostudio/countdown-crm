@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PhoneCall, RefreshCw } from "lucide-react";
+import { PhoneCall, RefreshCw, X } from "lucide-react";
 import { Lead, getLeads } from "@/lib/leads";
 import { Product, getProducts } from "@/lib/products";
 import { getProductScript } from "@/lib/productScripts";
@@ -1241,7 +1241,9 @@ function WorkspaceContent() {
         <StatusAlert tone="neutral" className="w-full" role="status" aria-live="polite">
           <div className="flex items-center justify-between text-xs font-semibold text-zinc-100">
           <span>{notificationToast}</span>
-          <Button variant="quiet" onClick={() => setNotificationToast(null)} aria-label="Dismiss notification">✕</Button>
+          <Button variant="quiet" onClick={() => setNotificationToast(null)} aria-label="Dismiss notification">
+            <X className="w-3.5 h-3.5" />
+          </Button>
           </div>
         </StatusAlert>
       )}

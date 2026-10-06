@@ -15,6 +15,7 @@ import {
   ShoppingCart,
   UserPlus,
   Globe,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -423,12 +424,12 @@ export function RuleBuilderModal({
                         <div className="min-w-0">
                           <p
                             className={cn(
-                              "text-xs font-semibold",
+                              "text-xs font-semibold flex items-center gap-1",
                               isAdded ? "text-zinc-100" : "text-zinc-300"
                             )}
                           >
-                            {a.label}
-                            {isAdded && " ✓"}
+                            <span>{a.label}</span>
+                            {isAdded && <Check className="w-3.5 h-3.5 text-zinc-400" />}
                           </p>
                           <p className="text-[11px] text-zinc-500 mt-0.5 leading-tight">
                             {a.description}
@@ -542,7 +543,7 @@ export function RuleBuilderModal({
               onClick={handleSave}
               disabled={!canSave}
             >
-              {editingRule ? "Uložit změny" : "Vytvořit pravidlo"} ✓
+              {editingRule ? "Uložit změny" : "Vytvořit pravidlo"}
             </Button>
           )}
         </div>

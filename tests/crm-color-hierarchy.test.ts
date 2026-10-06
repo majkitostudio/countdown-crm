@@ -41,4 +41,37 @@ describe("CRM color hierarchy", () => {
 
     expect(controls).toContain("border-sky-300 bg-sky-950/60 text-sky-100");
   });
+
+  it("strictly separates fail alerts from informational training call notes in CallDetailDrawer", () => {
+    const drawer = source("src/components/calls/CallDetailDrawer.tsx");
+
+    // Fails use danger, while training notes use info
+    expect(drawer).toContain('tone="danger"');
+    expect(drawer).toContain('tone={call.record_kind === "training" ? "info" : "neutral"}');
+    expect(drawer).toContain('Informace o tréninkovém hovoru');
+  });
+
+  it("enforces no decorative emojis across UI components and saved views ('NECHCEME CIRKUS')", () => {
+    const filterEngine = source("src/components/views/FilterEngineBar.tsx");
+    const ruleBuilder = source("src/components/workflows/RuleBuilderModal.tsx");
+    const workspace = source("src/app/workspace/page.tsx");
+    const scriptPanel = source("src/components/workspace/ProductScriptPanel.tsx");
+    const blueprints = source("src/lib/blueprints/registry.ts");
+
+    const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+
+    expect(emojiRegex.test(filterEngine)).toBe(false);
+    expect(emojiRegex.test(ruleBuilder)).toBe(false);
+    expect(emojiRegex.test(workspace)).toBe(false);
+    expect(emojiRegex.test(blueprints)).toBe(false);
+
+    // No raw checkmark or unicode arrows used as buttons/actions
+    expect(ruleBuilder).not.toContain("✓");
+    expect(workspace).not.toContain("✕");
+
+    // Script panel uses subdued amber highlight, never neon yellow
+    expect(scriptPanel).not.toContain("bg-yellow-300");
+    expect(scriptPanel).toContain("bg-amber-500/20");
+  });
 });
+

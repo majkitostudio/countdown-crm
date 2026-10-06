@@ -81,7 +81,7 @@ export const INDUSTRY_BLUEPRINTS: IndustryBlueprint[] = [
           {
             type: "notify_manager",
             config: {
-              message: "🎉 Významný prodej: {{lead_name}} zakoupil za {{order_value}} Kč!",
+              message: "Významný prodej: {{lead_name}} zakoupil za {{order_value}} Kč!",
             },
           },
         ],
@@ -163,7 +163,7 @@ export const INDUSTRY_BLUEPRINTS: IndustryBlueprint[] = [
           {
             type: "notify_manager",
             config: {
-              message: "💼 B2B Lead {{lead_name}} byl kvalifikován pro Demo!",
+              message: "B2B Lead {{lead_name}} byl kvalifikován pro Demo!",
             },
           },
         ],
@@ -240,7 +240,7 @@ export const INDUSTRY_BLUEPRINTS: IndustryBlueprint[] = [
           {
             type: "notify_manager",
             config: {
-              message: "🌟 VIP Zákazník {{lead_name}} právě vytvořil objednávku za {{order_value}} Kč!",
+              message: "VIP Zákazník {{lead_name}} právě vytvořil objednávku za {{order_value}} Kč!",
             },
           },
           {
