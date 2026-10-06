@@ -146,7 +146,7 @@ export function getOperatorPitch({
     return {
       title: "Při námitce ceny – Sleva + E-knihy zdarma (2. úroveň):",
       text: `„Naprosto vám rozumím. Pojďme udělat kompromis: snížím vám cenu na ${unitPrice.toLocaleString("cs-CZ")} ${curr} za balení a navíc vám k objednávce ZDARMA přibalím 2 odborné publikace o zdraví a vitalitě a přístup do naší e-knihovny. Za celou kúru ${quantity} balení zaplatíte jen ${total.toLocaleString("cs-CZ")} ${curr}.“`,
-      bonusText: "🎁 Aktivní psychologický bonus: 2x E-kniha a přístup do e-knihovny ZDARMA.",
+      bonusText: "Bonus ke schodu: 2x E-kniha a přístup do e-knihovny zdarma.",
     };
   }
 
@@ -154,7 +154,7 @@ export function getOperatorPitch({
     return {
       title: "Poslední záchrana hovoru – Dno ceníku (3. úroveň):",
       text: `„Nechci, abyste o své zdraví přišel jen kvůli penězům. Mám tady k dispozici mimořádnou manažerskou výjimku a mohu vám cenu stáhnout na absolutní minimum ${unitPrice.toLocaleString("cs-CZ")} ${curr} za balení – níže už opravdu jít nesmím. Za ${quantity} balení i s e-knihami je to pouhých ${total.toLocaleString("cs-CZ")} ${curr}. Platí to ale pouze teď v hovoru.“`,
-      bonusText: "🛡️ Manažerská záchranná cena na minimálním limitu.",
+      bonusText: "Manažerská záchranná cena na minimálním limitu.",
     };
   }
 

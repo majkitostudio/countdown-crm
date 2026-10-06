@@ -209,14 +209,14 @@ export function DeliveryAddressFields({
       <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3 space-y-2">
         <div className="flex items-center justify-between">
           <label htmlFor={`${idPrefix}-search`} className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-            <Search className="h-3.5 w-3.5 text-amber-400" />
+            <Search className="h-3.5 w-3.5 text-zinc-400" />
             <span>Rychlé hledání adresy / One-line adresa:</span>
           </label>
           {leadContext?.recipient_name && !value.recipient_name && (
             <button
               type="button"
               onClick={handlePrefillFromLead}
-              className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-medium cursor-pointer"
+              className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium cursor-pointer transition-colors"
             >
               <UserCheck className="h-3 w-3" />
               <span>Doplnit z kontaktu ({leadContext.recipient_name})</span>
@@ -355,7 +355,7 @@ export function DeliveryAddressFields({
           id={`${idPrefix}-confirmed`}
           checked={isConfirmedWithClient}
           onChange={handleToggleConfirmed}
-          className="mt-0.5 h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-amber-500 cursor-pointer"
+          className="mt-0.5 h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-zinc-100 accent-zinc-500 focus:ring-zinc-500 cursor-pointer"
         />
         <label htmlFor={`${idPrefix}-confirmed`} className="text-xs text-zinc-300 leading-relaxed cursor-pointer select-none">
           <span className="font-semibold text-zinc-200">Adresa ověřena a zkontrolována s klientem do telefonu</span>
@@ -373,9 +373,9 @@ export function DeliveryAddressFields({
             <span>Adresa je kompletní a schválená pro odeslání do expedice.</span>
           </div>
         ) : isComplete ? (
-          <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-300">
-            <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
-            <span>Adresa je vyplněna. Přečtěte ji prosím klientovi a zaškrtněte ověření výše.</span>
+          <div className="flex items-center gap-2 rounded-lg bg-zinc-900/80 border border-zinc-800 p-2.5 text-xs text-zinc-400">
+            <AlertCircle className="h-4 w-4 text-zinc-500 shrink-0" />
+            <span>Adresa je vyplněna. Přečtěte ji prosím klientovi a potvrďte ověření výše.</span>
           </div>
         ) : (
           <div className="text-[11px] text-zinc-500">

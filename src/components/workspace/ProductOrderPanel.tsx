@@ -316,19 +316,19 @@ export function ProductOrderPanel({
         {/* Banner mantinelů */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
           <div className="flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-xs font-semibold text-zinc-200">Cenové mantinely produktu:</span>
+            <Tag className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="text-xs font-semibold text-zinc-300">Cenové mantinely:</span>
           </div>
           <div className="flex items-center gap-2 text-[11px] font-mono">
             <span className="text-zinc-500 line-through" title="Běžná webová cena z e-shopu">
               Web: {pricingLadder.anchorUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
             </span>
-            <span className="text-zinc-600">·</span>
-            <span className="text-amber-300 font-semibold" title="Běžná nabídka v hovoru">
+            <span className="text-zinc-700">·</span>
+            <span className="text-zinc-200 font-medium" title="Běžná nabídka v hovoru">
               Telefon: {pricingLadder.standardUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
             </span>
-            <span className="text-zinc-600">·</span>
-            <span className="text-rose-400 font-semibold" title="Minimální limit (podlaha)">
+            <span className="text-zinc-700">·</span>
+            <span className="text-zinc-400 font-medium" title="Minimální limit (podlaha)">
               Dno: {pricingLadder.floorUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
             </span>
           </div>
@@ -340,7 +340,7 @@ export function ProductOrderPanel({
             <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[10px]">
               Délka kúry (počet balení):
             </span>
-            <span className="text-amber-400 text-[11px] font-medium">Cíl operátora: 4 balení (plná kúra)</span>
+            <span className="text-zinc-400 text-[11px]">Doporučeno: 4 balení (plná kúra)</span>
           </div>
 
           <div className="grid grid-cols-4 gap-1.5">
@@ -353,11 +353,11 @@ export function ProductOrderPanel({
                   onClick={() => setQuantity(opt.quantity)}
                   className={`p-2 rounded-lg border text-center transition-all cursor-pointer ${
                     isSelected
-                      ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40 text-amber-200 font-bold"
-                      : "border-zinc-800 bg-zinc-900/60 text-zinc-300 hover:border-zinc-700"
+                      ? "border-zinc-500 bg-zinc-800 text-zinc-100 font-semibold ring-1 ring-zinc-500/30 shadow-sm"
+                      : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
                   }`}
                 >
-                  <div className="text-xs font-semibold">{opt.label}</div>
+                  <div className="text-xs">{opt.label}</div>
                   <div className="text-[10px] text-zinc-500 mt-0.5">{opt.months} měs.</div>
                 </button>
               );
@@ -382,12 +382,12 @@ export function ProductOrderPanel({
               onClick={() => handleSelectTier("standard")}
               className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                 selectedTier === "standard"
-                  ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40"
+                  ? "border-zinc-500 bg-zinc-800 ring-1 ring-zinc-500/30 shadow-sm"
                   : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
               }`}
             >
-              <div className="text-xs font-bold text-amber-300">🥇 1. Standard nabídka</div>
-              <div className="mt-1 font-mono font-bold text-sm text-zinc-100">
+              <div className="text-xs font-semibold text-zinc-200">1. Standard nabídka</div>
+              <div className="mt-1 font-mono font-semibold text-sm text-zinc-100">
                 {pricingLadder.standardUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
               </div>
               <div className="text-[10px] text-zinc-400 mt-0.5">Výchozí start v hovoru</div>
@@ -399,15 +399,15 @@ export function ProductOrderPanel({
               onClick={() => handleSelectTier("bonus")}
               className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                 selectedTier === "bonus"
-                  ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40"
+                  ? "border-zinc-500 bg-zinc-800 ring-1 ring-zinc-500/30 shadow-sm"
                   : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
               }`}
             >
-              <div className="text-xs font-bold text-indigo-300">🥈 2. Sleva + E-knihy</div>
-              <div className="mt-1 font-mono font-bold text-sm text-zinc-100">
+              <div className="text-xs font-semibold text-zinc-200">2. Sleva + E-knihy</div>
+              <div className="mt-1 font-mono font-semibold text-sm text-zinc-100">
                 {pricingLadder.bonusUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
               </div>
-              <div className="text-[10px] text-indigo-300/80 mt-0.5">+ 2x E-kniha zdarma</div>
+              <div className="text-[10px] text-zinc-400 mt-0.5">+ 2x E-kniha zdarma</div>
             </button>
 
             {/* Schod 3: Manažerská záchrana */}
@@ -416,15 +416,15 @@ export function ProductOrderPanel({
               onClick={() => handleSelectTier("floor")}
               className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                 selectedTier === "floor"
-                  ? "border-amber-500 bg-amber-500/15 ring-1 ring-amber-500/40"
+                  ? "border-zinc-500 bg-zinc-800 ring-1 ring-zinc-500/30 shadow-sm"
                   : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
               }`}
             >
-              <div className="text-xs font-bold text-rose-300">🥉 3. Dno / Záchrana</div>
-              <div className="mt-1 font-mono font-bold text-sm text-zinc-100">
+              <div className="text-xs font-semibold text-zinc-200">3. Dno / Záchrana</div>
+              <div className="mt-1 font-mono font-semibold text-sm text-zinc-100">
                 {pricingLadder.floorUnitPrice.toLocaleString("cs-CZ")} {pricingLadder.currency}
               </div>
-              <div className="text-[10px] text-rose-400 mt-0.5">Minimální limit (Dno)</div>
+              <div className="text-[10px] text-zinc-400 mt-0.5">Minimální limit (Dno)</div>
             </button>
 
           </div>
@@ -495,20 +495,17 @@ export function ProductOrderPanel({
         </div>
 
         {/* 4. Tahák do telefonu (Operator Pitch) */}
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs space-y-1.5">
-          <div className="flex items-center justify-between font-semibold text-amber-300 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span>📞</span>
-              <span>{pitch.title}</span>
-            </span>
-            <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] text-amber-300 font-mono">Tahák</span>
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/80 p-3 text-xs space-y-1.5">
+          <div className="flex items-center justify-between font-semibold text-zinc-300 text-xs">
+            <span>{pitch.title}</span>
+            <span className="rounded bg-zinc-800 border border-zinc-700/60 px-1.5 py-0.5 text-[10px] text-zinc-400 font-mono">Tahák</span>
           </div>
-          <p className="text-zinc-100 leading-relaxed italic text-xs">
+          <p className="text-zinc-200 leading-relaxed italic text-xs">
             {pitch.text}
           </p>
           {pitch.bonusText && (
-            <div className="flex items-center gap-1.5 pt-1 text-[11px] text-indigo-300 font-medium">
-              <BookOpen className="w-3 h-3 text-indigo-400" />
+            <div className="flex items-center gap-1.5 pt-1 text-[11px] text-zinc-400">
+              <BookOpen className="w-3 h-3 text-zinc-500 shrink-0" />
               <span>{pitch.bonusText}</span>
             </div>
           )}
@@ -619,7 +616,7 @@ export function ProductOrderPanel({
 
           <div className="flex justify-between font-bold text-sm text-zinc-100 pt-2 border-t border-zinc-800">
             <span>Konečná cena k úhradě klientem:</span>
-            <span className="font-mono text-amber-400 text-base">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "CZK")}</span>
+            <span className="font-mono text-zinc-100 text-base">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "CZK")}</span>
           </div>
         </div>
 
