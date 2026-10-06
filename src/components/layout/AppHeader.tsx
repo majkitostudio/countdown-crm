@@ -11,6 +11,7 @@ import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/client";
 import { Button, getButtonClassName } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
+import { OperatorCommissionBadge } from "./OperatorCommissionBadge";
 
 function getHeaderSearchPlaceholder(role: Parameters<typeof isTeamLeaderOrAdministrator>[0], isLoading: boolean): string {
   if (isLoading) return "Open pages and commands... (Ctrl + K)";
@@ -107,6 +108,8 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <OperatorCommissionBadge />
+
         {canManageBlueprints && (
           <Button
             variant="secondary"

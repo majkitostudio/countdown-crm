@@ -205,6 +205,13 @@ export function ProductOrderPanel({
       }
 
       setIsSuccessAlert(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("countdown:order_commission_earned", {
+            detail: { amount: 150, orderId: result.orderId },
+          }),
+        );
+      }
       setTimeout(() => setIsSuccessAlert(false), 5000);
     } finally {
       setIsSubmitting(false);

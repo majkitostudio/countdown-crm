@@ -128,27 +128,45 @@ class SoundEffects {
   }
 
   /**
+   * Wall Street Terminal dopamine chime for closed sales / earned commission
+   * Resonant G4 (392 Hz) -> C5 (523.25 Hz) Rhodes/terminal chord with warm decay
+   */
+  public playWallStreetChime(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    // 1. note: G4 (392 Hz)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(392.00, now);
+    gain1.gain.setValueAtTime(0.2, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.16);
+
+    // 2. note: C5 (523.25 Hz) - upward quartet leap
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(523.25, now + 0.08);
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.setValueAtTime(0.26, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 0.6);
+  }
+
+  /**
    * Plays upbeat success chime tone for completed order
    */
   public playSuccessSound(): void {
-    const ctx = this.getContext();
-    if (!ctx) return;
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
-
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.5);
+    this.playWallStreetChime();
   }
 }
 

@@ -43,3 +43,17 @@ export async function addWalletManualAdjustmentAction(input: {
   revalidatePath("/wallet");
   return result;
 }
+
+export async function getCurrentOperatorCommissionAction(): Promise<{
+  balance: number;
+  currency: string;
+}> {
+  try {
+    const overview = await getWalletOverview();
+    const balance = overview.balances.find((b) => b.user_id === overview.currentUserId)?.balance ?? 0;
+    const currency = overview.settings?.currency ?? "CZK";
+    return { balance, currency };
+  } catch {
+    return { balance: 0, currency: "CZK" };
+  }
+}

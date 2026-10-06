@@ -213,6 +213,13 @@ export function OrderCreateForm({
           if (!completion.order_id) {
             throw new Error("Call completion succeeded without creating an order.");
           }
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("countdown:order_commission_earned", {
+                detail: { amount: 150, orderId: completion.order_id },
+              }),
+            );
+          }
           router.push(`/orders/${completion.order_id}?origin=workspace`);
           return;
         }
@@ -225,6 +232,13 @@ export function OrderCreateForm({
           status: "in_progress",
           delivery_address_snapshot: deliveryAddressSnapshot,
         });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("countdown:order_commission_earned", {
+              detail: { amount: 150, orderId: order.id },
+            }),
+          );
+        }
         router.push(`/orders/${order.id}?origin=${initialOrigin}`);
       } catch (error) {
         setErrorMessage(
