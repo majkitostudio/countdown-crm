@@ -127,18 +127,42 @@ export default function AudioPreviewPage() {
     playNegativeSound(variant);
   };
 
+  const animRef = React.useRef<number | null>(null);
+
   const handleTriggerSale = () => {
     playWallStreetPositive();
-    setCurrentCommission((prev) => prev + 150);
     setBumpType("positive");
-    setTimeout(() => setBumpType(null), 2200);
+    setTimeout(() => setBumpType(null), 1800);
+
+    const startVal = currentCommission;
+    const targetVal = currentCommission + 150;
+    const startTime = performance.now();
+    const duration = 750;
+
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(startVal + (targetVal - startVal) * easeOut);
+      setCurrentCommission(current);
+
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(step);
+      } else {
+        setCurrentCommission(targetVal);
+      }
+    };
+
+    animRef.current = requestAnimationFrame(step);
   };
 
   const handleTriggerPenalty = () => {
     playNegativeSound(selectedNegVariant);
     setCurrentCommission((prev) => Math.max(0, prev - 100));
     setBumpType("negative");
-    setTimeout(() => setBumpType(null), 2200);
+    setTimeout(() => setBumpType(null), 1800);
   };
 
   return (
@@ -173,33 +197,46 @@ export default function AudioPreviewPage() {
               <div
                 className={`relative flex items-center gap-2 rounded-xl border px-3.5 py-1.5 transition-all duration-300 ${
                   bumpType === "positive"
-                    ? "border-emerald-500/50 bg-emerald-950/40 ring-2 ring-emerald-500/70 scale-105"
+                    ? "border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/40 shadow-sm"
                     : bumpType === "negative"
-                    ? "border-rose-500/50 bg-rose-950/40 ring-2 ring-rose-500/70 scale-105"
+                    ? "border-rose-500/60 bg-rose-950/40 ring-1 ring-rose-500/40 shadow-sm"
                     : "border-zinc-800 bg-zinc-900"
                 }`}
               >
-                <span className="text-sm">🪙</span>
+                <TrendingUp
+                  className={`h-3.5 w-3.5 shrink-0 transition-colors duration-300 ${
+                    bumpType === "positive"
+                      ? "text-emerald-400"
+                      : bumpType === "negative"
+                      ? "text-rose-400"
+                      : "text-zinc-400"
+                  }`}
+                  aria-hidden="true"
+                />
                 <div>
-                  <span className="block text-[10px] uppercase font-semibold text-zinc-400 leading-none">
-                    Dnešní provize
+                  <span
+                    className={`block text-[9px] uppercase font-semibold tracking-wider leading-none transition-colors duration-300 ${
+                      bumpType === "positive"
+                        ? "text-emerald-400/80"
+                        : bumpType === "negative"
+                        ? "text-rose-400/80"
+                        : "text-zinc-400"
+                    }`}
+                  >
+                    Provize
                   </span>
-                  <span className="text-sm font-bold font-mono text-zinc-100">
+                  <span
+                    className={`text-xs font-bold font-mono tabular-nums leading-tight transition-colors duration-300 ${
+                      bumpType === "positive"
+                        ? "text-emerald-300"
+                        : bumpType === "negative"
+                        ? "text-rose-300"
+                        : "text-zinc-100"
+                    }`}
+                  >
                     {currentCommission.toLocaleString("cs-CZ")} Kč
                   </span>
                 </div>
-
-                {bumpType === "positive" && (
-                  <span className="absolute -top-3 -right-2 rounded-full bg-emerald-500/20 border border-emerald-500/60 px-2 py-0.5 text-xs font-bold font-mono text-emerald-300 animate-bounce">
-                    +150 Kč
-                  </span>
-                )}
-
-                {bumpType === "negative" && (
-                  <span className="absolute -top-3 -right-2 rounded-full bg-rose-500/20 border border-rose-500/60 px-2 py-0.5 text-xs font-bold font-mono text-rose-300 animate-bounce">
-                    -100 Kč
-                  </span>
-                )}
               </div>
             </div>
           </div>
