@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Coins } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { sounds } from "@/lib/audio";
 import { getCurrentOperatorCommissionAction } from "@/app/actions/wallet";
 
@@ -68,15 +68,18 @@ export function OperatorCommissionBadge() {
     <Link
       href="/wallet"
       title="Zobrazit přehled provizí a peněženku"
-      className={`relative flex items-center gap-1.5 sm:gap-2 rounded-xl border px-2.5 sm:px-3 py-1 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+      className={`relative flex items-center gap-2 rounded-xl border px-3 py-1.5 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
         isBumping
-          ? "border-emerald-500/60 bg-emerald-950/40 ring-2 ring-emerald-500/60 scale-105 shadow-lg shadow-emerald-950/50"
-          : "border-zinc-800 bg-zinc-900/90 hover:border-zinc-700 hover:bg-zinc-800/80"
+          ? "border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/50 shadow-lg shadow-emerald-950/40"
+          : "border-zinc-800 bg-zinc-900/70 hover:border-zinc-700 hover:bg-zinc-800/60"
       }`}
     >
-      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-zinc-950/80 border border-zinc-800 text-amber-400 shrink-0">
-        <Coins className="h-3.5 w-3.5" aria-hidden="true" />
-      </div>
+      <TrendingUp
+        className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+          isBumping ? "text-emerald-400" : "text-zinc-400"
+        }`}
+        aria-hidden="true"
+      />
 
       <div className="min-w-0">
         <span className="hidden sm:block text-[9px] font-semibold uppercase tracking-wider text-zinc-400 leading-none">
@@ -89,7 +92,7 @@ export function OperatorCommissionBadge() {
 
       {/* Plovoucí dopaminový odznak při připsání */}
       {isBumping && (
-        <span className="absolute -top-3 -right-2 rounded-full bg-emerald-500/25 border border-emerald-500/60 px-1.5 py-0.5 text-[10px] font-bold font-mono text-emerald-300 animate-bounce shadow-md">
+        <span className="absolute -top-2.5 -right-2 rounded-full bg-emerald-500/20 border border-emerald-500/50 px-1.5 py-0.5 text-[10px] font-bold font-mono text-emerald-300 shadow-md animate-in fade-in zoom-in duration-150">
           +{lastBonus} {currencySymbol}
         </span>
       )}
