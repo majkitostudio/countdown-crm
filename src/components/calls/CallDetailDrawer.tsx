@@ -116,17 +116,28 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
           </div>
 
-          {(call.fail_reason || call.operator_note) && (
+          {call.fail_reason ? (
             <StatusAlert tone="danger">
               <span className="block text-[10px] font-semibold uppercase tracking-wider text-rose-300/80">Fail details</span>
-              {call.fail_reason && (
-                <p className="text-sm font-semibold text-rose-100">
-                  {isFailReason(call.fail_reason) ? getFailReasonLabel(call.fail_reason) : call.fail_reason}
+              <p className="text-sm font-semibold text-rose-100">
+                {isFailReason(call.fail_reason) ? getFailReasonLabel(call.fail_reason) : call.fail_reason}
+              </p>
+              {call.operator_note && (
+                <p className="whitespace-pre-wrap text-xs leading-relaxed text-rose-200/80 mt-1.5 pt-1.5 border-t border-rose-500/20">
+                  {call.operator_note}
                 </p>
               )}
-              {call.operator_note && <p className="whitespace-pre-wrap text-xs leading-relaxed text-rose-200/80">{call.operator_note}</p>}
             </StatusAlert>
-          )}
+          ) : call.operator_note ? (
+            <StatusAlert tone={call.record_kind === "training" ? "info" : "neutral"}>
+              <span className={`block text-[10px] font-semibold uppercase tracking-wider ${call.record_kind === "training" ? "text-sky-300/90" : "text-zinc-400"}`}>
+                {call.record_kind === "training" ? "Informace o tréninkovém hovoru" : "Poznámka k hovoru"}
+              </span>
+              <p className={`whitespace-pre-wrap text-xs leading-relaxed mt-1 ${call.record_kind === "training" ? "text-sky-100" : "text-zinc-200"}`}>
+                {call.operator_note}
+              </p>
+            </StatusAlert>
+          ) : null}
 
           {/* Audio recording state */}
           <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 space-y-3">
