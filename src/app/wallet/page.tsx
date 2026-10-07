@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { LockKeyhole, WalletCards } from "lucide-react";
-import { getWalletOverview } from "@/lib/dal/wallet";
+import { getMonthlySettlementSummary, getWalletOverview } from "@/lib/dal/wallet";
 import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
+import { WalletSettlementPanel } from "@/components/wallet/WalletSettlementPanel";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert } from "@/components/ui/Status";
@@ -92,6 +93,29 @@ export default async function WalletPage() {
   const debitsTone = totalDebits === null ? "neutral" : "danger";
   const presentationCurrency = data.settings?.currency || data.transactions[0]?.currency || "CZK";
 
+  let settlementSummary = null;
+  const availableMonths: Array<{ label: string; value: string; isPast: boolean }> = [];
+
+  if (data.canManage) {
+    try {
+      settlementSummary = await getMonthlySettlementSummary();
+    } catch {
+      settlementSummary = null;
+    }
+
+    const now = new Date();
+    const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+      const value = d.toISOString().slice(0, 10);
+      const monthName = new Intl.DateTimeFormat("cs-CZ", { month: "long", year: "numeric" }).format(d);
+      const label = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+      const isPast = d.getTime() < currentMonthStart.getTime();
+      availableMonths.push({ label, value, isPast });
+    }
+  }
+
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
@@ -122,7 +146,15 @@ export default async function WalletPage() {
       {data.canManage && isUnavailable(data.sections.profiles) && <SectionWarning title="Some member names are unavailable" state={data.sections.profiles} />}
 
       {data.canManage && managerSettingsAvailable && managerMembersAvailable && data.settings && (
-        <WalletManagerPanel mode="adjustment" settings={data.settings} rules={data.rules} members={data.members} />
+        <>
+          {settlementSummary && (
+            <WalletSettlementPanel
+              initialSummary={settlementSummary}
+              availableMonths={availableMonths}
+            />
+          )}
+          <WalletManagerPanel mode="adjustment" settings={data.settings} rules={data.rules} members={data.members} />
+        </>
       )}
 
       <Surface variant="page">

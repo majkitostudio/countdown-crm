@@ -264,6 +264,9 @@ Projekt má rozsáhlý funkční základ, ale **produktový audit teprve probíh
 - Wallet podporuje currency: `CZK`, `EUR`, `PLN`
 - Bonus rules: minimum_order_amount + bonus_amount + effective_from
 - Transakce: credits, debits, manual adjustments
+- **Měsíční uzávěrka provizí:** Team Leader a Administrátor provádí uzávěrku za uzavřené měsíce přes `finalize_wallet_monthly_commission` nebo hromadně přes `finalize_workspace_monthly_settlement`.
+- **Odečet vratek:** Celkový obrat operátora tvoří pouze `delivered` objednávky, od nichž se odečítají vratky `returned` (`net_delivered_total := greatest(delivered_total - returned_total, 0)`). Z čistého obratu se vypočte měsíční provize podle `monthly_commission_rate` a zapíše se auditovaná, idempotentní transakce.
+- **Export podkladů pro mzdy:** Z panelu `/wallet` lze stáhnout kompletní mzdový přehled v CSV pro Microsoft Excel (s UTF-8 BOM): Operátor, počet doručených zásilek a vratek, celkový a čistý obrat, fixní bonusy za objednávky, procentuální provize, manuální úpravy a celková částka k výplatě včetně součtu za celý tým.
 
 ---
 
@@ -506,9 +509,9 @@ Browser (React Client Components)
 
 ### Confirmed Issues
 
-1. **Telnyx vždy blokovaný** — `isTelnyxActivationBlocked()` vždy vrací `true` bez ohledu na konfiguraci.
+1. **Telnyx blokovaný (Záměrně odložený Milník 3)** — `isTelnyxActivationBlocked()` vrací `true`.
    - Soubor: `src/lib/telephony/telephonyAdapterShared.ts`, řádek 17: `return adapter === "telnyx";`
-   - Dopad: Telnyx nelze aktivovat ani s platnou konfigurací
+   - Kontext: Na základě rozhodnutí PM z 7. října 2026 je Milník 3 (Live VoIP) pozastaven do neurčité budoucnosti kvůli absenci financí na nákup českého telefonního čísla a kreditu. Blokace je záměrná pojistka zabraňující neautorizovaným nákladům.
 
 2. **Supabase generovaný typ zastaralý** — TypeScript typy pro DB jsou out-of-date, mutace builders vrací `never`.
    - Soubor: `src/lib/dal/db.ts`, komentář popisuje problém
@@ -608,9 +611,8 @@ Understand → Plan → Small Change → Test → Verify → Review → Continue
 - Projít každou stránku a odpovědět: kdo ji používá, jaký úkol dokončuje, co je zbytečné
 - **Proč:** `START_HERE.md` to explicitně uvádí jako aktuální prioritu
 
-### 4. Opravit Telnyx blokaci (pokud je Telnyx budoucnost)
-- `isTelnyxActivationBlocked()` vždy vrací `true` — zvážit, zda a jak zpřístupnit konfigurační cestu
-- **Proč:** Je to confirmed bug v kódu, který blokuje funkci
+### 4. Milník 3 (Telnyx Live VoIP) — Odloženo
+- Odloženo do neurčité budoucnosti z rozhodnutí PM (vyžaduje rozpočet na koupi telefonního čísla a odchozí kredit). Systém používá simulační režim a bezplatný Local SIP.
 
 ### 5. Obnovit Supabase TypeScript typy
 - Regnerovat typy z live schématu: `supabase gen types typescript`

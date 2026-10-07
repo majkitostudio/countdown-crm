@@ -39,7 +39,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Operator Console", href: "/workspace", icon: PhoneCall },
   { label: "Orders", href: "/orders", icon: ShoppingBag },
   { label: "Wallet", href: "/wallet", icon: WalletCards },
-  { label: "My Calendar", href: "/calendar", icon: CalendarDays },
+  { label: "Plánovač", href: "/calendar", icon: CalendarDays },
   { label: "AI Training", href: "/training", icon: GraduationCap },
   { label: "Team Leader Review", href: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
   { label: "Exception Queue", href: "/exceptions", icon: ShieldAlert, roles: ["team_leader", "administrator"] },

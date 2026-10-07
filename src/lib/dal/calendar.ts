@@ -49,7 +49,7 @@ function mapCallbackEntries(callbacks: Awaited<ReturnType<typeof listScheduledCa
   return callbacks.map((callback) => ({
     id: callback.id,
     type: "callback",
-    title: `Callback: ${callback.lead.full_name}`,
+    title: `Schedule: ${callback.lead.full_name}`,
     starts_at: callback.scheduled_at,
     remind_at: null,
     status: "scheduled",

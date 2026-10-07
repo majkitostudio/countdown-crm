@@ -59,7 +59,6 @@ import { ConversationBriefCard } from "@/components/workspace/ConversationBriefC
 import {
   OperatorNextActionPanel,
 } from "@/components/workspace/OperatorNextActionPanel";
-import { OperatorScheduledCallbacksBanner } from "@/components/workspace/OperatorScheduledCallbacksBanner";
 import type {
   OperatorCallbackSignal,
   OperatorNextActionState,
@@ -1231,12 +1230,6 @@ function WorkspaceContent() {
     return (
       <div className="mx-auto max-w-none space-y-4 px-3 sm:px-4">
         {pageHeader}
-        <OperatorScheduledCallbacksBanner
-          callbacks={scheduledCallbacks}
-          isLoading={isCallbacksLoading}
-          onRefresh={() => void refreshCallbackInbox()}
-          onClaimCallback={handleNextAction}
-        />
       </div>
     );
   }
@@ -1244,15 +1237,6 @@ function WorkspaceContent() {
   return (
       <div className="mx-auto min-w-0 max-w-none space-y-4 px-3 sm:px-4" data-testid="operator-console" data-state={operatorConsoleState}>
       {pageHeader}
-
-      {identity?.role === "operator" && (
-        <OperatorScheduledCallbacksBanner
-          callbacks={scheduledCallbacks}
-          isLoading={isCallbacksLoading}
-          onRefresh={() => void refreshCallbackInbox()}
-          onClaimCallback={handleNextAction}
-        />
-      )}
       
       {/* Toast Notification Banner */}
       {notificationToast && (

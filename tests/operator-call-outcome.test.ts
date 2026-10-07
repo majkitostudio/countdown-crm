@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   getCallOutcomeButtonClassName,
+  getCallOutcomeLabel,
   selectCallOutcome,
 } from "@/components/workspace/OperatorCallControls";
 
 describe("post-call outcome selection", () => {
+  it("labels schedule outcome as Schedule instead of Callback", () => {
+    expect(getCallOutcomeLabel("schedule")).toBe("Schedule");
+  });
+
   it("keeps selection local and allows exactly one selected value", () => {
     expect(selectCallOutcome(null, "call_later", false)).toBe("call_later");
     expect(selectCallOutcome("call_later", "fail", false)).toBe("fail");

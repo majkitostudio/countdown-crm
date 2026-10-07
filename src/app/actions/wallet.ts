@@ -4,9 +4,33 @@ import { revalidatePath } from "next/cache";
 import {
   addWalletBonusRule,
   addWalletManualAdjustment,
+  finalizeWalletMonthlyCommission,
+  finalizeWorkspaceMonthlySettlement,
+  getMonthlySettlementSummary,
   getWalletOverview,
   updateWalletSettings,
 } from "@/lib/dal/wallet";
+
+export async function getMonthlySettlementSummaryAction(periodStart?: string) {
+  return getMonthlySettlementSummary({ periodStart });
+}
+
+export async function finalizeWalletMonthlyCommissionAction(input: {
+  userId: string;
+  periodStart: string;
+}) {
+  const result = await finalizeWalletMonthlyCommission(input);
+  revalidatePath("/wallet");
+  return result;
+}
+
+export async function finalizeWorkspaceMonthlySettlementAction(input: {
+  periodStart: string;
+}) {
+  const result = await finalizeWorkspaceMonthlySettlement(input);
+  revalidatePath("/wallet");
+  return result;
+}
 
 export async function getWalletOverviewAction() {
   return getWalletOverview();

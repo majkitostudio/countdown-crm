@@ -1840,6 +1840,13 @@ export interface Database {
         };
         Returns: Database["public"]["Tables"]["wallet_transactions"]["Row"];
       };
+      finalize_workspace_monthly_settlement: {
+        Args: {
+          p_workspace_id: string;
+          p_period_start: string;
+        };
+        Returns: Json;
+      };
     };
   };
 }

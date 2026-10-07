@@ -319,3 +319,250 @@ export async function addWalletManualAdjustment(input: {
   if (error || !data) throw new DataAccessError("DATABASE", "Wallet adjustment could not be saved.");
   return (Array.isArray(data) ? data[0] : data) as WalletTransactionRow;
 }
+
+export interface OperatorSettlementDTO {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  deliveredCount: number;
+  deliveredTotal: number;
+  returnedCount: number;
+  returnedTotal: number;
+  netTurnover: number;
+  fixedBonuses: number;
+  commissionRate: number;
+  commissionAmount: number;
+  manualAdjustments: number;
+  totalPayout: number;
+  isFinalized: boolean;
+  transactionId: string | null;
+}
+
+export interface MonthlySettlementSummaryDTO {
+  periodStart: string;
+  periodEnd: string;
+  currency: string;
+  commissionRate: number;
+  totalDeliveredTotal: number;
+  totalReturnedTotal: number;
+  totalNetTurnover: number;
+  totalFixedBonuses: number;
+  totalCommission: number;
+  totalManualAdjustments: number;
+  totalPayout: number;
+  operators: OperatorSettlementDTO[];
+  canFinalize: boolean;
+}
+
+export async function finalizeWalletMonthlyCommission(input: {
+  userId: string;
+  periodStart: string;
+}): Promise<WalletTransactionRow | null> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+  if (!input.userId?.trim()) {
+    throw new DataAccessError("VALIDATION", "User ID is required.");
+  }
+  if (!/^\d{4}-\d{2}-01$/.test(input.periodStart)) {
+    throw new DataAccessError("VALIDATION", "Period start must be the first day of the month (YYYY-MM-01).");
+  }
+
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("finalize_wallet_monthly_commission", {
+    p_workspace_id: context.workspaceId,
+    p_user_id: input.userId,
+    p_period_start: input.periodStart,
+  } as never);
+
+  if (error) {
+    throw new DataAccessError("DATABASE", error.message || "Monthly commission could not be finalized.");
+  }
+  return data as WalletTransactionRow | null;
+}
+
+export async function finalizeWorkspaceMonthlySettlement(input: {
+  periodStart: string;
+}): Promise<{
+  period_start: string;
+  finalized_count: number;
+  total_commission: number;
+  settlements: Array<{
+    user_id: string;
+    user_name: string;
+    amount: number;
+    currency: string;
+    transaction_id: string;
+  }>;
+}> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+  if (!/^\d{4}-\d{2}-01$/.test(input.periodStart)) {
+    throw new DataAccessError("VALIDATION", "Period start must be the first day of the month (YYYY-MM-01).");
+  }
+
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("finalize_workspace_monthly_settlement", {
+    p_workspace_id: context.workspaceId,
+    p_period_start: input.periodStart,
+  } as never);
+
+  if (error || !data) {
+    throw new DataAccessError("DATABASE", error?.message || "Monthly workspace settlement could not be completed.");
+  }
+  return data as {
+    period_start: string;
+    finalized_count: number;
+    total_commission: number;
+    settlements: Array<{
+      user_id: string;
+      user_name: string;
+      amount: number;
+      currency: string;
+      transaction_id: string;
+    }>;
+  };
+}
+
+export async function getMonthlySettlementSummary(input?: {
+  periodStart?: string;
+}): Promise<MonthlySettlementSummaryDTO> {
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+  const supabase = await createDataClient();
+
+  // Default to 1st of previous month
+  const now = new Date();
+  const prevMonthDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const periodStart = input?.periodStart || prevMonthDate.toISOString().slice(0, 10);
+  
+  const [yearStr, monthStr] = periodStart.split("-");
+  const year = parseInt(yearStr, 10);
+  const month = parseInt(monthStr, 10);
+  const periodEndDate = new Date(Date.UTC(year, month, 1));
+  const periodEnd = periodEndDate.toISOString().slice(0, 10);
+
+  const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10);
+  const canFinalize = periodStart < currentMonthStart;
+
+  const pStartIso = new Date(`${periodStart}T00:00:00.000Z`).toISOString();
+  const pEndIso = new Date(`${periodEnd}T00:00:00.000Z`).toISOString();
+
+  const [settings, operators, ordersRes, transactionsRes, periodBonusTxnsRes] = await Promise.all([
+    loadWalletSettings(context.workspaceId, supabase).catch(() => ({
+      currency: "CZK" as const,
+      monthly_commission_rate: 8,
+      workspace_id: context.workspaceId,
+      updated_by: null,
+      created_at: null,
+      updated_at: null,
+    })),
+    listWorkspaceOperators(),
+    supabase
+      .from("orders")
+      .select("id, agent_id, total_amount, currency, status, delivered_at, returned_at")
+      .eq("workspace_id", context.workspaceId)
+      .in("status", ["delivered", "returned"])
+      .gte("created_at", new Date(Date.UTC(year - 1, month, 1)).toISOString()), // broad enough to catch deliveries
+    supabase
+      .from("wallet_transactions")
+      .select("id, user_id, amount, source_period_start, source_type")
+      .eq("workspace_id", context.workspaceId)
+      .eq("source_type", "commission_period")
+      .eq("source_period_start", periodStart),
+    supabase
+      .from("wallet_transactions")
+      .select("id, user_id, amount, transaction_type, created_at")
+      .eq("workspace_id", context.workspaceId)
+      .in("transaction_type", ["order_bonus", "reversal", "manual_adjustment"])
+      .gte("created_at", pStartIso)
+      .lt("created_at", pEndIso),
+  ]);
+
+  const existingTransactionsByUser = new Map<string, { id: string; amount: number }>();
+  for (const txn of transactionsRes.data || []) {
+    existingTransactionsByUser.set(txn.user_id, { id: txn.id, amount: Number(txn.amount) });
+  }
+
+  const operatorSummaries: OperatorSettlementDTO[] = operators.map((operator) => {
+    let deliveredCount = 0;
+    let deliveredTotal = 0;
+    let returnedCount = 0;
+    let returnedTotal = 0;
+
+    for (const order of ordersRes.data || []) {
+      if (order.agent_id !== operator.user_id) continue;
+      if (order.status === "delivered" && order.delivered_at && order.delivered_at >= pStartIso && order.delivered_at < pEndIso) {
+        deliveredCount++;
+        deliveredTotal += Number(order.total_amount) || 0;
+      } else if (order.status === "returned") {
+        const returnedInPeriod = order.returned_at && order.returned_at >= pStartIso && order.returned_at < pEndIso;
+        const deliveredInPeriod = order.delivered_at && order.delivered_at >= pStartIso && order.delivered_at < pEndIso;
+        if (returnedInPeriod || deliveredInPeriod) {
+          returnedCount++;
+          returnedTotal += Number(order.total_amount) || 0;
+        }
+      }
+    }
+
+    let fixedBonuses = 0;
+    let manualAdjustments = 0;
+
+    for (const txn of periodBonusTxnsRes.data || []) {
+      if (txn.user_id !== operator.user_id) continue;
+      const amt = Number(txn.amount) || 0;
+      if (txn.transaction_type === "order_bonus" || txn.transaction_type === "reversal") {
+        fixedBonuses += amt;
+      } else if (txn.transaction_type === "manual_adjustment") {
+        manualAdjustments += amt;
+      }
+    }
+
+    const netTurnover = Math.max(0, deliveredTotal - returnedTotal);
+    const commissionRate = settings.monthly_commission_rate;
+    const computedCommission = Math.round((netTurnover * commissionRate) / 100 * 100) / 100;
+
+    const existingTxn = existingTransactionsByUser.get(operator.user_id);
+    const isFinalized = Boolean(existingTxn);
+    const commissionAmount = existingTxn ? existingTxn.amount : computedCommission;
+    const totalPayout = Math.max(0, Math.round((fixedBonuses + commissionAmount + manualAdjustments) * 100) / 100);
+
+    return {
+      userId: operator.user_id,
+      userName: operator.full_name,
+      userEmail: operator.email,
+      deliveredCount,
+      deliveredTotal,
+      returnedCount,
+      returnedTotal,
+      netTurnover,
+      fixedBonuses: Math.round(fixedBonuses * 100) / 100,
+      commissionRate,
+      commissionAmount,
+      manualAdjustments: Math.round(manualAdjustments * 100) / 100,
+      totalPayout,
+      isFinalized,
+      transactionId: existingTxn?.id || null,
+    };
+  });
+
+  const totalDeliveredTotal = operatorSummaries.reduce((sum, o) => sum + o.deliveredTotal, 0);
+  const totalReturnedTotal = operatorSummaries.reduce((sum, o) => sum + o.returnedTotal, 0);
+  const totalNetTurnover = operatorSummaries.reduce((sum, o) => sum + o.netTurnover, 0);
+  const totalFixedBonuses = operatorSummaries.reduce((sum, o) => sum + o.fixedBonuses, 0);
+  const totalCommission = operatorSummaries.reduce((sum, o) => sum + o.commissionAmount, 0);
+  const totalManualAdjustments = operatorSummaries.reduce((sum, o) => sum + o.manualAdjustments, 0);
+  const totalPayout = operatorSummaries.reduce((sum, o) => sum + o.totalPayout, 0);
+
+  return {
+    periodStart,
+    periodEnd,
+    currency: settings.currency,
+    commissionRate: settings.monthly_commission_rate,
+    totalDeliveredTotal,
+    totalReturnedTotal,
+    totalNetTurnover,
+    totalFixedBonuses,
+    totalCommission,
+    totalManualAdjustments,
+    totalPayout,
+    operators: operatorSummaries,
+    canFinalize,
+  };
+}

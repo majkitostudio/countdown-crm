@@ -358,5 +358,146 @@
   - Celá testovací sada: **166 testovacích souborů (781 testů) prochází na 100 %**.
   - TypeScript `tsc --noEmit` a `eslint` hlásí 0 chyb.
 
+---
+
+## 21. Milník 2 — Úkol 2.3: Scheduled hovory bez prodlení v kampani, vyčištění konzole a Plánovač (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Přejít ze starého konceptu "Callback = osobní zamykání operátora s 15min prodlevou" na moderní tele-sales princip: zákazníkovi byl slíben čas (např. 16:00), kdo má volné ruce v kampani, ten v 16:00 volá. Odstranit lištu z konzole, sjednotit tlačítko na "Schedule" a přetvořit Kalendář na čistý Plánovač (Schedules & Reminders).
+
+- **1. Pravidlo č. 3 & SQL Migrace (`supabase/migrations/20261007160000_scheduled_instant_fallback_routing.sql`):**
+  - Ověřeno schéma tabulek `lead_queue_items` a `operator_presence` v `src/lib/supabase/types.ts`.
+  - Upravena funkce `private.claim_next_lead_impl(target_workspace_id)`:
+    - **Odstranění 15minutové prodlevy:** Žádné čekání – jakmile `scheduled_at <= NOW()`, hovor je ihned odbavitelný.
+    - **Prioritní řazení v kampani (ORDER BY):**
+      - Tier 0: Původní operátor (pokud v 16:00 žádá o kontakt, dostane svůj naplánovaný hovor přednostně).
+      - Tier 1: Lead specificky preferovaný pro operátora.
+      - Tier 2: Naplánovaný hovor z dané kampaně/týmu (`waiting_callback` splatný nyní – bere volný kolega z linky).
+      - Tier 3: Běžné nové leady z fronty.
+    - **Striktní hranice linek (P1–P4):** Podmínka `queue_item.team_id = operator_team_id` zabraňuje jakémukoliv přelévání leadů mezi cizími odděleními (např. prodejní linka P1 vs. inbound linka P4).
+- **2. Vyčištění konzole operátora (`src/app/workspace/page.tsx`):**
+  - Kompletně odstraněn banner `OperatorScheduledCallbacksBanner` jak z prázdného stavu, tak z hlavní plochy konzole operátora. Operátor se soustředí výhradně na hovor a systém mu leady dávkuje sám.
+- **3. Sjednocení výsledkového tlačítka na „Schedule“ (`OperatorCallControls.tsx`, `CallbackScheduleModal.tsx`):**
+  - Popisek výsledku po hovoru přejmenován na čisté **„Schedule“** (místo původního Callback).
+  - V dialogu nastaveny texty: *Schedule Call*, *Scheduled date and time* a tlačítko *Schedule*.
+- **4. Redesign na Plánovač (`navigation.ts`, `calendar/page.tsx`, `OperatorCalendar.tsx`, `dal/calendar.ts`):**
+  - V levém menu i v Ctrl+K vyhledávači položka přejmenována na **„Plánovač“**.
+  - Hlavička stránky `/calendar`: **Plánovač** – *Přehled naplánovaných hovorů (Schedules) a osobních připomínek (Reminders)*.
+  - Filtry: **Vše** | **Schedules** | **Reminders**.
+  - V DAL zachováno, že operátor vidí výhradně své vlastní naplánované leady a své osobní úkoly/připomínky.
+- **5. Ověření a testy:**
+  - `tests/callback-priority-routing-migration.test.ts`: ověřuje prioritu 0, prioritu 2 v týmu a absenci 15minutového čekání.
+  - `tests/planner-navigation-contract.test.ts`: nový test ověřující vystavení položky „Plánovač“ v menu a absenci „My Calendar“.
+  - `tests/operator-call-outcome.test.ts`: ověřuje nový label „Schedule“.
+  - Celá testovací sada: **167 testovacích souborů (786 testů) prochází na 100 %**.
+  - TypeScript `tsc --noEmit` a `eslint` hlásí 0 chyb.
+
+---
+
+## 22. Milník 3: Propojení reálné telefonie (Live VoIP Pilot) — Odloženo / Pozastaveno (7. října 2026)
+**Rozhodnutí Produktového Manažera:**
+Milník 3 byl po produktové a rozpočtové analýze **odložen do neurčité budoucnosti**.
+
+### Důvod pozastavení:
+Ostré vytáčení z prohlížeče na reálná telefonní čísla zákazníků v ČR přes Telnyx WebRTC vyžaduje:
+1. Nákup reálného českého telefonního čísla (DID s předvolbou +420).
+2. Kredit pro odchozí hovory (minutové tarify do mobilních sítí).
+3. Formální ověření identity a anti-spoofing registraci.
+
+Vzhledem k absenci rozpočtu na nákup čísla zůstává aktivace Telnyxu zablokována bezpečnostní pojistkou (`isTelnyxActivationBlocked() => true`, `TELNYX_BLOCKER_COPY`).
+
+### Rozsah odloženého milníku:
+- **3.1 Testovací hovor přes Telnyx WebRTC s reálným číslem:**
+  - Nastavení klíčů v `.env.local` (`TELNYX_API_KEY`, `TELNYX_CONNECTION_ID`, odchozí CLI).
+  - Otestování audio spojení z prohlížeče na reálné mobilní číslo.
+- **3.2 Záznam hovoru a uložení nahrávky:**
+  - Uložení odkazu na audio nahrávku do `telephony_call_sessions.recording_url`.
+  - Přehrávač hovoru pro Team Leadera v obrazovce hodnocení kvality (`/calls/[callId]/review`).
+- **3.3 Graceful fallback při výpadku VoIP linky:**
+  - Okamžitá nabídka manuálního dopsání výsledku operátorovi bez zablokování konzole při výpadku spojení.
+
+### Aktuální stav systému:
+Projekt plnohodnotně funguje v **simulačním režimu** (zdarma a spolehlivě pokrývá všechny hovorové, košíkové i expediční procesy CRM) s možností volitelného interního testování zvuku přes bezplatný **Local SIP (Asterisk v Dockeru)**.
+
+---
+
+## 23. Milník 4 (Úkol 4.1) — Měsíční uzávěrka pro Team Leadera na /wallet (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Umožnit Team Leaderovi na `/wallet` provést měsíční uzávěrku provizí pro operátory za uzavřené kalendářní měsíce. Zohlednit odečet vratek (`returned`) z doručeného obratu, zajistit idempotenci, auditabilitu a neměnný zápis do peněženky.
+
+- **1. Databázová bezpečnost (Pravidlo č. 3) & SQL Migrace (`supabase/migrations/20261007213000_wallet_monthly_settlement_manager_access.sql`):**
+  - Před úpravou ověřeny všechny sloupce v `src/lib/supabase/types.ts`: `orders(status, delivered_at, returned_at, total_amount, currency, agent_id, workspace_id)` a `wallet_transactions`.
+  - Upravena uložená procedura `public.finalize_wallet_monthly_commission`:
+    - Zpřístupněna pro Team Leadera i Administrátora přes bezpečnostní kontrolu `private.is_workspace_manager_or_admin(p_workspace_id)` i pro `service_role`.
+    - **Odečet vratek z obratu:** `net_delivered_total := greatest(delivered_total - returned_total, 0)`.
+    - Vypočte měsíční provizi jako procento z čistého doručeného obratu podle nastavení peněženky (`settings_row.monthly_commission_rate`).
+    - Zapisuje auditní záznam do `audit_logs` s popisem a ID Team Leadera.
+    - Vytvoří neměnnou transakci v `wallet_transactions` s unikátním `source_event_id` (`format('monthly-commission:%s:%s:%s', p_workspace_id, p_user_id, p_period_start)`). Zajištěna 100% idempotence – opakované volání nic nerozbije.
+  - Vytvořena hromadná procedura `public.finalize_workspace_monthly_settlement(p_workspace_id, p_period_start)`:
+    - V jednom kroku provede bezpečnou uzávěrku všech operátorů daného workspace a vrátí přehledný JSON souhrn.
+  - Přidána oprávnění `GRANT EXECUTE ... TO authenticated, service_role`.
+- **2. DAL Vrstva & Server Actions (`src/lib/dal/wallet.ts`, `src/app/actions/wallet.ts`):**
+  - Implementována funkce `getMonthlySettlementSummary({ periodStart })`:
+    - Načte nastavení workspace peněženky, seznam operátorů, doručené a vrácené objednávky za daný měsíc a existující transakce.
+    - Vrátí DTO: doručeno celkem, vratky celkem, čistý obrat, vypočtená provize k vyplacení a rozpad po jednotlivých operátorech.
+  - Implementovány funkce `finalizeWalletMonthlyCommission` a `finalizeWorkspaceMonthlySettlement`.
+  - Exportovány serverové akce `getMonthlySettlementSummaryAction`, `finalizeWalletMonthlyCommissionAction`, `finalizeWorkspaceMonthlySettlementAction` s revalidací cesty `/wallet`.
+- **3. Uživatelské rozhraní (`src/components/wallet/WalletSettlementPanel.tsx`, `src/app/wallet/page.tsx`):**
+  - Klientská komponenta `WalletSettlementPanel`:
+    - Výběr období: uzavřené předchozí měsíce i probíhající měsíc s vizuálním označením.
+    - Metriky: Doručené objednávky, Vrácené objednávky (s odečtem), Čistý obrat k provizi, Celková provize k výplatě.
+    - Tabulka operátorů: Jméno, doručené objednávky, vratky, čistý obrat, sazba a částka provize, stav (Uzavřeno & vyplaceno / K uzávěrce / Nulový nárok) a individuální tlačítko pro schválení.
+    - Tlačítko hromadného schválení: „Schválit a uzavřít měsíc pro všechny“.
+    - Vysvětlující přehled pravidel pro Team Leadera (transparentní odečet vratek, auditabilita, okamžité připsání).
+  - Zapojeno na stránku `/wallet` pro uživatele s oprávněním Team Leader / Administrátor.
+- **4. Ověření a testy:**
+  - Vytvořen nový testovací soubor `tests/wallet-monthly-settlement.test.ts` (11 testů).
+  - Testován kontrakt migrace, RLS, matematický odečet vratek, ošetření nulového nároku, DAL kontrola rolí i přítomnost UI panelu.
+  - `tests/wallet-contract.test.ts` prochází beze změny.
+  - **Celá testovací sada: 168 testovacích souborů (797 testů) prochází na 100 %**.
+  - TypeScript `tsc --noEmit` čistý bez jakýchkoliv chyb.
+
+---
+
+## 24. Milník 4 (Úkol 4.2) — Export podkladů pro mzdy (Payroll Export) (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Propojit měsíční uzávěrku provizí s mzdovým účetnictvím call centra. Poskytnout přehled a CSV export s požadovanou strukturou: Operátor | Počet objednávek | Celkový obrat | Fixní bonusy | Procentuální provize | K výplatě.
+
+- **1. Mzdový exportní modul (`src/lib/payrollExport.ts`):**
+  - Funkce `buildPayrollCsv`:
+    - Generuje mzdový přehled s oddělovačem středník (`;`) pro nativní české rozdělení sloupců v aplikaci Microsoft Excel.
+    - Přesná struktura sloupců: *Operátor, Email, Období, Doručené objednávky (ks), Vratky (ks), Čisté objednávky (ks), Hrubý doručený obrat, Vratky (částka), Čistý obrat, Fixní bonusy, Sazba provize (%), Procentuální provize, Manuální úpravy, K výplatě, Měna, Stav uzávěrky, ID transakce*.
+    - Na konci tabulky souhrnný řádek `CELKEM TÝM` se součty všech objednávek, obratů, bonusů a celkovou částkou k vyplacení.
+    - Zabezpečené RFC 4180 escapování hodnot (`escapeCsvField`).
+  - Funkce `exportPayrollToCsv`:
+    - Vkládá UTF-8 BOM (`\uEF\uBB\uBF`) pro zaručení správného kódování české diakritiky na Windows.
+    - Triggne klientské stažení souboru `podklady_pro_mzdy_YYYY-MM_czk.csv`.
+- **2. DAL Vrstva & Výpočet mzdových položek (`src/lib/dal/wallet.ts`):**
+  - Rozšířeny interface `OperatorSettlementDTO` a `MonthlySettlementSummaryDTO` o:
+    - `userEmail`: e-mail pro párování s účetním/mzdovým softwarem.
+    - `fixedBonuses`: součet bonusů za jednotlivé doručené objednávky (`order_bonus` a vratky `reversal`) v daném měsíci.
+    - `manualAdjustments`: schválené manuální korekce / prémie / srážky od Team Leadera.
+    - `totalPayout`: celková částka ke mzdě (`Math.max(0, fixedBonuses + commissionAmount + manualAdjustments)`).
+  - V `getMonthlySettlementSummary` doplněn dotaz na transakce daného období a napočteny týmové součty `totalFixedBonuses`, `totalManualAdjustments`, `totalPayout`.
+- **3. UI Integrace v `WalletSettlementPanel.tsx`:**
+  - Přidáno tlačítko **„Exportovat mzdy (CSV)“** s ikonou stažení přímo v ovládací liště období.
+  - Tabulka operátorů upravena na kompletní mzdový přehled:
+    - *Operátor* (jméno a e-mail),
+    - *Počet objednávek* (čisté / doručeno / vratky),
+    - *Celkový obrat* (čistý obrat po odečtení vratek),
+    - *Fixní bonusy* (ze zásilek),
+    - *Procentuální provize* (z obratu),
+    - *K výplatě* (zvýrazněná zelená mzdová částka),
+    - *Stav* & *Akce*.
+  - Rozšířeny karty metrik v záhlaví na 5 klíčových ukazatelů: Doručené objednávky, Vratky, Čistý obrat, Fixní bonusy z obj. a K výplatě celkem.
+- **4. Ověření a testy:**
+  - Vytvořen nový testovací soubor `tests/payroll-export.test.ts` (8 testů).
+  - Testováno generování CSV, escapování, souhrnný řádek, DAL typy i přítomnost UI prvků.
+  - `tests/wallet-monthly-settlement.test.ts` a `tests/wallet-contract.test.ts` procházejí na 100 %.
+  - **Celá testovací sada: 169 testovacích souborů (805 testů) prochází na 100 %**.
+  - TypeScript `tsc --noEmit` hlásí 0 chyb.
+
+
+
+
 
 

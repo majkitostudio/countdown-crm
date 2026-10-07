@@ -25,7 +25,7 @@ const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   shortcut: string;
 }> = [
   { value: "call_later", label: "Inaccessible", icon: PhoneMissed, shortcut: "1" },
-  { value: "schedule", label: "Callback", icon: CalendarClock, shortcut: "2" },
+  { value: "schedule", label: "Schedule", icon: CalendarClock, shortcut: "2" },
   { value: "fail", label: "Failed", icon: XCircle, shortcut: "3" },
   { value: "order", label: "Create Order", icon: ShoppingBag, shortcut: "4" },
 ];

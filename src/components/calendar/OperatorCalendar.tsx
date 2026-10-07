@@ -92,7 +92,7 @@ function toIso(localValue: string, label: string): string {
 }
 
 const SOURCE_LABELS = {
-  callbacks: "Callbacks",
+  callbacks: "Schedules",
   reminders: "Reminders",
 } satisfies Record<keyof CalendarLoadResult["sources"], string>;
 
@@ -227,7 +227,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
         <div>
           <div className="flex items-center gap-3">
             <CalendarDays className="h-4 w-4 text-zinc-400" />
-            <h2 className="text-sm font-semibold text-zinc-100">Upcoming work</h2>
+            <h2 className="text-sm font-semibold text-zinc-100">Naplánované hovory a úkoly</h2>
           </div>
           <p className="mt-1 text-xs leading-relaxed text-zinc-500">
             Zobrazení obsahuje minulých 7 dní a následujících 14 dní. Časová zóna: {Intl.DateTimeFormat().resolvedOptions().timeZone}.
@@ -238,7 +238,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
             <RefreshCw className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} /> Refresh
           </Button>
           <Button type="button" onClick={openCreate}>
-            <Plus className="h-3.5 w-3.5" /> New reminder
+            <Plus className="h-3.5 w-3.5" /> Nová připomínka
           </Button>
         </div>
       </div>
@@ -249,13 +249,13 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
       <div className="flex flex-wrap gap-2">
         {(["all", "callback", "reminder"] as CalendarFilter[]).map((value) => (
           <button key={value} type="button" onClick={() => setFilter(value)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${filter === value ? "border-zinc-600 bg-zinc-800 text-zinc-100" : "border-zinc-800 bg-zinc-950 text-zinc-500 hover:text-zinc-300"}`}>
-            {value === "all" ? "All" : value === "callback" ? "Callbacks" : "Reminders"}
+            {value === "all" ? "Vše" : value === "callback" ? "Schedules" : "Reminders"}
           </button>
         ))}
       </div>
 
       {visibleEntries.length === 0 ? (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-10 text-center text-xs text-zinc-500">Žádné callbacky ani reminders v tomto období.</div>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-10 text-center text-xs text-zinc-500">Žádné naplánované hovory ani připomínky v tomto období.</div>
       ) : (
         <div className="space-y-3">
           {visibleEntries.map((entry) => {
