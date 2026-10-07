@@ -8,6 +8,10 @@ import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
 import { parseDeliveryAddressSnapshot } from "@/lib/deliveryAddress";
+import { CarrierExportDropdown } from "@/components/orders/CarrierExportDropdown";
+import { OrderTrackingCard } from "@/components/orders/OrderTrackingCard";
+import { ShipmentTimelineCard } from "@/components/orders/ShipmentTimelineCard";
+import { updateOrderTrackingAction } from "@/app/actions/crm";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -103,15 +107,20 @@ export default async function OrderDetailPage({
         badge={{ label: statusLabel(order.status), tone: order.status === "completed" || order.status === "delivered" ? "success" : order.status === "pending" ? "warning" : "neutral" }}
         backLink={{ href: backHref, label: requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
         description={`Order #${order.id} · Created ${formatDate(order.created_at)}`}
-        actions={canEditDetails ? (
-          <Link
-            href={`/orders/${order.id}/edit${requestedOrigin === "workspace" ? "?origin=workspace" : ""}`}
-            className={getButtonClassName("secondary")}
-          >
-            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-            Edit details
-          </Link>
-        ) : undefined}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <CarrierExportDropdown orders={[order]} label="Exportovat štítek" variant="secondary" />
+            {canEditDetails && (
+              <Link
+                href={`/orders/${order.id}/edit${requestedOrigin === "workspace" ? "?origin=workspace" : ""}`}
+                className={getButtonClassName("secondary")}
+              >
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                Edit details
+              </Link>
+            )}
+          </div>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -153,6 +162,23 @@ export default async function OrderDetailPage({
               <p className="text-xs text-zinc-500">No delivery address snapshot is available for this order.</p>
             )}
           </section>
+
+          <OrderTrackingCard
+            orderId={order.id}
+            trackingNumber={order.tracking_number || null}
+            carrier={order.carrier || null}
+            isManager={isManager}
+            onUpdateTracking={updateOrderTrackingAction}
+          />
+
+          <ShipmentTimelineCard
+            orderCreatedAt={order.created_at}
+            orderStatus={order.status}
+            packageLocation={order.package_location || null}
+            trackingNumber={order.tracking_number || null}
+            carrier={order.carrier || null}
+            events={order.tracking_events || []}
+          />
 
           <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">

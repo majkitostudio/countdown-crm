@@ -1,20 +1,25 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createLeadForWorkspace, createLeadsForWorkspace, listLeadsForWorkspace, updateLeadStatusForWorkspace } from "@/lib/dal/leads";
 import type { CreateLeadInput, LeadDTO } from "@/lib/dal/leads";
 import {
+  bulkUpdateOrderStatusForWorkspace,
   createOrderForWorkspace,
   listOrderProductCountsForWorkspace,
   reassignOrdersProductForWorkspace,
   updateOrderDetailsForWorkspace,
   updateOrderStatusForWorkspace,
+  updateOrderTrackingForWorkspace,
 } from "@/lib/dal/orders";
 import type {
+  BulkUpdateOrderStatusResult,
   CreateOrderInput,
   OrderDTO,
   ReassignOrdersResult,
   UpdateOrderDetailsInput,
   UpdateOrderStatusInput,
+  UpdateOrderTrackingInput,
 } from "@/lib/dal/orders";
 import { createCallForWorkspace } from "@/lib/dal/calls";
 import type { CallDTO, CreateCallInput } from "@/lib/dal/calls";
@@ -85,10 +90,29 @@ export async function updateOrderStatusAction(
   return updateOrderStatusForWorkspace({ orderId, status, note });
 }
 
+export async function bulkUpdateOrderStatusAction(
+  orderIds: string[],
+  status: UpdateOrderStatusInput["status"],
+  note?: string | null,
+): Promise<BulkUpdateOrderStatusResult> {
+  const result = await bulkUpdateOrderStatusForWorkspace({ orderIds, status, note });
+  revalidatePath("/orders");
+  return result;
+}
+
 export async function updateOrderDetailsAction(
   input: UpdateOrderDetailsInput,
 ): Promise<OrderDTO> {
   return updateOrderDetailsForWorkspace(input);
+}
+
+export async function updateOrderTrackingAction(
+  input: UpdateOrderTrackingInput,
+): Promise<{ id: string; status: string; tracking_number: string | null; carrier: string | null; revision: number }> {
+  const result = await updateOrderTrackingForWorkspace(input);
+  revalidatePath("/orders");
+  revalidatePath(`/orders/${input.orderId}`);
+  return result;
 }
 
 export async function reassignOrdersProductAction(

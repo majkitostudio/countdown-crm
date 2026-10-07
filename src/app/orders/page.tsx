@@ -6,6 +6,7 @@ import { OrderPipeline } from "@/components/orders/OrderPipeline";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
+import { bulkUpdateOrderStatusAction } from "@/app/actions/crm";
 
 type OrdersLoadResult =
   | { orders: Awaited<ReturnType<typeof listWorkspaceOrders>>; role: Awaited<ReturnType<typeof requireWorkspaceContext>>["role"] }
@@ -60,7 +61,11 @@ export default async function OrdersPage() {
           }
         />
 
-        <OrderPipeline orders={orders} />
+        <OrderPipeline
+          orders={orders}
+          role={role}
+          onBulkStatusUpdate={bulkUpdateOrderStatusAction}
+        />
       </div>
   );
 }

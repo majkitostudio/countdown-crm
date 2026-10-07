@@ -16,5 +16,8 @@ CREATE INDEX IF NOT EXISTS orders_agent_created_at_desc_idx
 CREATE INDEX IF NOT EXISTS leads_workspace_created_at_desc_idx
   ON public.leads (workspace_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS leads_assigned_status_idx
-  ON public.leads (assigned_to, status);
+CREATE INDEX IF NOT EXISTS leads_workspace_status_idx
+  ON public.leads (workspace_id, status);
+
+CREATE INDEX IF NOT EXISTS lead_queue_items_assigned_state_idx
+  ON public.lead_queue_items (assigned_operator_id, state);

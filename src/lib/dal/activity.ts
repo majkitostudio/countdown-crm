@@ -39,6 +39,16 @@ export type WorkspaceCallDTO = {
   created_at: string;
 };
 
+export type ShipmentTrackingEvent = {
+  id: string;
+  occurred_at: string;
+  status: string;
+  title: string;
+  location?: string | null;
+  description?: string | null;
+  source?: "carrier" | "manual" | "system";
+};
+
 export type WorkspaceOrderDTO = {
   id: string;
   team_id?: string | null;
@@ -54,6 +64,10 @@ export type WorkspaceOrderDTO = {
   status: OrderRow["status"];
   order_source: OrderRow["order_source"];
   source_note: string | null;
+  tracking_number?: string | null;
+  carrier?: string | null;
+  package_location?: string | null;
+  tracking_events?: ShipmentTrackingEvent[];
   delivery_address_snapshot: OrderRow["delivery_address_snapshot"];
   delivered_at: string | null;
   status_history: WorkspaceOrderStatusHistoryDTO[];
@@ -87,6 +101,10 @@ type DirectOrderPayload = {
   status: OrderRow["status"];
   order_source: OrderRow["order_source"];
   source_note: string | null;
+  tracking_number?: string | null;
+  carrier?: string | null;
+  package_location?: string | null;
+  tracking_events?: ShipmentTrackingEvent[];
   delivery_address_snapshot: OrderRow["delivery_address_snapshot"];
   delivered_at: string | null;
   status_history?: WorkspaceOrderStatusHistoryDTO[];
@@ -281,6 +299,10 @@ function mapDirectOrder(payload: DirectOrderPayload): WorkspaceOrderDTO {
     status: payload.status,
     order_source: payload.order_source,
     source_note: payload.source_note,
+    tracking_number: payload.tracking_number || null,
+    carrier: payload.carrier || null,
+    package_location: payload.package_location || null,
+    tracking_events: Array.isArray(payload.tracking_events) ? payload.tracking_events : [],
     delivery_address_snapshot: payload.delivery_address_snapshot,
     delivered_at: payload.delivered_at,
     status_history: payload.status_history || [],
@@ -493,6 +515,12 @@ function toWorkspaceOrderDTO(
     status: order.status,
     order_source: order.order_source,
     source_note: order.source_note,
+    tracking_number: order.tracking_number || null,
+    carrier: order.carrier || null,
+    package_location: order.package_location || null,
+    tracking_events: Array.isArray(order.tracking_events)
+      ? (order.tracking_events as unknown as ShipmentTrackingEvent[])
+      : [],
     delivery_address_snapshot: order.delivery_address_snapshot,
     delivered_at: order.delivered_at,
     status_history: statusHistory.map((entry) => ({

@@ -10,7 +10,15 @@ import { Surface } from "@/components/ui/Surface";
 
 type OrderStatus = "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
 
-const allStatuses: OrderStatus[] = ["pending", "in_progress", "sent", "cancelled", "completed"];
+const managerStatuses: OrderStatus[] = [
+  "pending",
+  "in_progress",
+  "sent",
+  "delivered",
+  "returned",
+  "cancelled",
+  "completed",
+];
 const operatorTransitions: Record<OrderStatus, OrderStatus[]> = {
   pending: ["in_progress", "cancelled"],
   in_progress: ["sent", "cancelled"],
@@ -40,7 +48,7 @@ export function OrderStatusEditor({ orderId, currentStatus, canEdit, isManager }
   const [note, setNote] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const options = useMemo(
-    () => (isManager ? allStatuses : operatorTransitions[currentStatus]),
+    () => (isManager ? managerStatuses : (operatorTransitions[currentStatus] || [])),
     [currentStatus, isManager],
   );
 
@@ -114,7 +122,7 @@ export function OrderStatusEditor({ orderId, currentStatus, canEdit, isManager }
           </Button>
         </form>
       ) : (
-        <p className="text-xs leading-relaxed text-zinc-500">{currentStatus === "sent" || currentStatus === "delivered" ? "Delivery and return states are controlled by the fulfillment system." : `There are no further status changes available from ${statusLabel(currentStatus).toLowerCase()}.`}</p>
+        <p className="text-xs leading-relaxed text-zinc-500">{currentStatus === "sent" || currentStatus === "delivered" ? "Delivery and return states are managed by team leadership and fulfillment." : `There are no further status changes available from ${statusLabel(currentStatus).toLowerCase()}.`}</p>
       )}
       </div>
     </Surface>

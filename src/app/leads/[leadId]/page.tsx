@@ -4,6 +4,7 @@ import { getDirectLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Customer360RetentionCard } from "@/components/leads/Customer360RetentionCard";
+import { LeadOrdersSection } from "@/components/leads/LeadOrdersSection";
 import { LeadNotesSection } from "@/components/workspace/LeadNotesSection";
 import { listWorkspaceLeadActivity } from "@/lib/dal/activity";
 import { listLeadNotesForWorkspace } from "@/lib/dal/leadNotes";
@@ -106,6 +107,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
       </div>
 
       <Customer360RetentionCard lead={lead} activity={activity} activityUnavailable={activityUnavailable} />
+      {!activityUnavailable && (
+        <LeadOrdersSection orders={activity.orders} leadId={lead.id} />
+      )}
       {context?.role === "operator" ? (
         <StatusAlert tone="neutral">This customer profile is read-only for Operators. Orders and call history can be opened from here.</StatusAlert>
       ) : notesUnavailable ? (

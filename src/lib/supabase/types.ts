@@ -1017,6 +1017,10 @@ export interface Database {
           status: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note: string | null;
+          tracking_number: string | null;
+          carrier: string | null;
+          package_location: string | null;
+          tracking_events: Json | null;
           revision: number;
           delivery_address_snapshot: Json | null;
           delivered_at: string | null;
@@ -1036,6 +1040,10 @@ export interface Database {
           status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
+          tracking_number?: string | null;
+          carrier?: string | null;
+          package_location?: string | null;
+          tracking_events?: Json | null;
           revision?: number;
           delivery_address_snapshot?: Json | null;
           delivered_at?: string | null;
@@ -1053,6 +1061,10 @@ export interface Database {
           status?: "completed" | "pending" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
           order_source?: "previous_call" | "email" | "web_form" | "manual" | "other";
           source_note?: string | null;
+          tracking_number?: string | null;
+          carrier?: string | null;
+          package_location?: string | null;
+          tracking_events?: Json | null;
           revision?: number;
           delivery_address_snapshot?: Json | null;
           delivered_at?: string | null;
@@ -1734,6 +1746,45 @@ export interface Database {
           p_reason: string;
         };
         Returns: Database["public"]["Tables"]["team_leader_exception_actions"]["Row"][];
+      };
+      update_order_status_with_history: {
+        Args: {
+          p_order_id: string;
+          p_status: string;
+          p_note?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["orders"]["Row"];
+      };
+      update_order_tracking: {
+        Args: {
+          p_order_id: string;
+          p_tracking_number?: string | null;
+          p_carrier?: string | null;
+        };
+        Returns: {
+          id: string;
+          status: string;
+          tracking_number: string | null;
+          carrier: string | null;
+          revision: number;
+        };
+      };
+      record_order_tracking_event: {
+        Args: {
+          p_order_id: string;
+          p_status: string;
+          p_title: string;
+          p_location?: string | null;
+          p_description?: string | null;
+          p_occurred_at?: string | null;
+        };
+        Returns: {
+          id: string;
+          status: string;
+          package_location: string | null;
+          tracking_events: Json;
+          revision: number;
+        };
       };
       update_wallet_settings: {
         Args: {

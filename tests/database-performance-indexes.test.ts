@@ -20,6 +20,7 @@ describe("Database Performance Composite Indexes Contract", () => {
     expect(migrationContent).toContain("orders (workspace_id, created_at DESC)");
     expect(migrationContent).toContain("orders (agent_id, created_at DESC)");
     expect(migrationContent).toContain("leads (workspace_id, created_at DESC)");
-    expect(migrationContent).toContain("leads (assigned_to, status)");
+    expect(migrationContent).toContain("leads (workspace_id, status)");
+    expect(migrationContent).toContain("lead_queue_items (assigned_operator_id, state)");
   });
 });

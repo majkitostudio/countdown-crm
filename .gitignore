@@ -35,6 +35,7 @@ docker/asterisk/*.pem
 docker/asterisk/pjsip.local.conf
 docker/asterisk/pjsip.runtime.conf
 *.code-workspace
+.idea/
 
 # debug
 npm-debug.log*

@@ -166,5 +166,111 @@
   - Vyřešeny ESLint varování v `ObjectionDrawer.tsx`, `ProductOrderPanel.tsx` a `audit/page.tsx`.
   - Všech 150 testovacích souborů (702 testů) prochází na 100 %, `tsc --noEmit` je čistý (0 chyb), `npm run lint` je čistý (0 chyb, 0 varování).
 
+---
 
+## 12. Fáze 6 — Hardening, CI & Databázové indexy (6. října 2026)
+- **GitHub Actions CI (`.github/workflows/ci.yml`):**
+  - Automatizovaný integrační pipeline spouštějící linting, typecheck a kompletní sadu Vitest testů při každém push/PR do větve `main`.
+- **Next.js Error Boundaries & 404 (`src/app/error.tsx`, `src/app/global-error.tsx`, `src/app/not-found.tsx`):**
+  - Odolné zachycení neošetřených runtime chyb a 404 stránek s možností bezpečného zotavení (`Reset`) bez nutnosti tvrdého obnovení prohlížeče.
+- **Centralizovaná Observabilita & Logger (`src/lib/observability.ts`):**
+  - Strukturovaný logger s automatickou sanitizací PII (maskování e-mailů, telefonních čísel a odstraňování auth tokenů z diagnostiky).
+- **Kompozitní indexy pro vysokou zátěž:**
+  - Vytvoření indexů na tabulkách `calls`, `orders`, `leads` pro rychlé filtrování podle workspace a řazení podle `created_at DESC`.
+
+---
+
+## 13. Fáze 7 — Manažerská responzivita & Gamifikace (6.–7. října 2026)
+- **Manažerská responzivita na mobilních zařízeních (`tests/manager-mobile-responsiveness-contract.test.ts`):**
+  - Ověření a vymáhání responzivního chování pro Team Leadery a administrátory na telefonech a tabletech.
+- **Odznak provizí operátora (`src/components/layout/OperatorCommissionBadge.tsx`):**
+  - Vytrvalý odznak v hlavičce zobrazující aktuální stav provize operátora.
+  - Dynamický animovaný roll-up ticker při připsání provize z objednávky (`countdown:order_commission_earned`).
+  - Wall Street dopaminový signál zvuku (`sounds.playWallStreetChime`).
+- **Harmonizace UI designu:**
+  - Odstranění nadbytečných emoji z tlačítek a stavových odznaků, nahrazení čistými Lucide ikonami a přísným sémantickým tokenovým kontraktem.
+
+---
+
+## 14. Seniorní audit databáze & Náprava migrací (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Důkladná prověrka RLS, migrací a databázové vrstvy za poslední měsíc.
+
+- **Nalezená a opravená chyba v migraci:**
+  - V migraci `20261006120000_performance_composite_indexes.sql` byl definován index na neexistujícím sloupci `leads(assigned_to, status)`.
+  - Opraveno na platné sloupce podle reálného schématu: `leads (workspace_id, status)` a `lead_queue_items (assigned_operator_id, state)`.
+  - Příslušně aktualizován smluvní test `tests/database-performance-indexes.test.ts`.
+- **Vyčištění stromu projektu:**
+  - Trvale odstraněn redundantní netrackovaný adresář `countdown-frontend/` (stará záloha ze září).
+- **Výsledek auditu:**
+  - 155 testovacích souborů (719 testů) prochází na 100 %.
+  - TypeScript `tsc --noEmit` a `next build` probíhají bez chyb.
+
+---
+
+## 15. Milník 1 (Úkol 1.1) — Manažerská správa stavů objednávek & Provizní trigger (7. října 2026)
+- **SQL Migrace (`supabase/migrations/20261007120000_manager_order_fulfillment_status_updates.sql`):**
+  - Funkce `update_order_status_with_history` rozšířena o manažerské oprávnění pro přechod do stavů `delivered` a `returned`.
+  - Při změně na `delivered` nebo `returned` transakce automaticky nastaví transakční kontext `countdown.fulfillment_event_id`, čímž projde bezpečnostní guard `orders_guard_fulfillment_status`.
+  - Změna na `delivered` automaticky spustí databázový trigger `orders_post_wallet_reward`, který vyhledá pravidla odměn a připíše provizní bonus do tabulky `wallet_transactions`.
+  - Pokud manažer zadá poznámku ke stavu, uloží se přímo do `order_status_history.note`.
+  - Operátoři mají tyto logistické stavy přísně zablokované (mohou pouze procházet své povolené prodejní stavy).
+- **Backend DAL & Server Actions (`src/lib/dal/orders.ts`, `src/app/actions/crm.ts`):**
+  - Přidána funkce `bulkUpdateOrderStatusForWorkspace` a serverová akce `bulkUpdateOrderStatusAction`.
+  - Automatická revalidace cesty `/orders` přes `revalidatePath`.
+- **UI pro detail i hromadnou správu (`OrderStatusEditor.tsx`, `OrderPipeline.tsx`, `orders/page.tsx`):**
+  - V detailu objednávky (`/orders/[id]`) mají Team Leader a Administrátor k dispozici stavy `pending`, `sent`, `delivered`, `returned`, `cancelled`, `completed`.
+  - V seznamu objednávek (`/orders`) mají manažeři checkboxy pro výběr řádků i hromadnou lištu (Bulk Action Bar) pro okamžité označení vybraných objednávek jako `Sent`, `Delivered`, `Returned` nebo `Cancelled`.
+- **Ověření a testy (`tests/order-fulfillment-lifecycle.test.ts`):**
+  - Všech 156 testovacích souborů (728 testů) prochází na 100 %, TypeScript i ESLint jsou naprosto čisté.
+
+---
+
+## 16. Milník 1 (Úkol 1.2) — Export dat pro dopravce (Zásilkovna / Balíkovna / GLS / Univerzální CSV) (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Jednoduchý a robustní export schválených a vyfiltrovaných objednávek do standardních CSV formátů pro tisk balíkových štítků.
+
+- **Expediční modul (`src/lib/carrierExport.ts`):**
+  - Podpora 4 standardních formátů:
+    1. **Zásilkovna (Packeta):** reference, jméno, příjmení, ulice, číslo domu, město, PSČ, stát, dobírka, měna, hodnota, obsah.
+    2. **Česká pošta (Balíkovna):** podání online formát (VS, jméno, ulice a č.p., PSČ, dobírka, obsah, poznámka).
+    3. **GLS:** MyGLS / GLS Connect CSV formát.
+    4. **Univerzální expediční CSV:** kompletní tabulkový export pro interní sklad a Microsoft Excel.
+  - Využívá neměnný snapshot adresy `delivery_address_snapshot` (inteligentní rozpad na ulici a číslo popisné, vyčištění mezer z PSČ, robustní zpracování JSON i serializovaného stringu).
+  - Přidán UTF-8 BOM (`\uEF\uBB\uBF`), který zaručuje bezchybné zobrazení české diakritiky (č, ř, ž, š, ď, ť, ň) v Microsoft Excelu na Windows.
+  - Zabezpečené RFC 4180 escapování hodnot (`escapeCsvField`).
+- **UI Komponenty & Integrace:**
+  - `CarrierExportDropdown.tsx`: Znovupoužitelná klientská komponenta s výběrem přepravce, počtem exportovaných objednávek a stažením souboru.
+  - `OrderPipeline.tsx`: Integrováno do hromadné lišty (Bulk Action Bar) pro export vybraných objednávek i do záhlaví tabulky pro export všech zobrazených/filtrovaných zakázek.
+  - `orders/[orderId]/page.tsx`: Integrováno do hlavičky detailu objednávky pro okamžitý tisk štítku konkrétní zakázky.
+- **Ověření a testy (`tests/carrier-export.test.ts`):**
+  - Všech 157 testovacích souborů (738 testů) prošlo na 100 %.
+  - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
+
+---
+
+## 17. Milník 1 (Úkol 1.3) — Sledovací číslo (Tracking Number), kurýrní vazba & Zobrazení v klientském profilu (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Evidence čísla zásilky (tracking number) a dopravce s přímým proklikem na kurýrní sledování v detailu objednávky a v klientském profilu (Customer Profile).
+
+- **Pravidlo č. 3 & SQL Migrace (`supabase/migrations/20261007130000_order_tracking_and_carrier.sql`):**
+  - Ověřeno, že sloupce v DB dosud neexistovaly.
+  - Přidány sloupce `tracking_number TEXT` a `carrier TEXT` do `public.orders`.
+  - Vytvořen index `orders_workspace_tracking_idx` na `(workspace_id, tracking_number)`.
+  - Vytvořena manažerská RPC funkce `update_order_tracking(p_order_id, p_tracking_number, p_carrier)` s kontrolou role a automatickým zápisem do `order_status_history.note`.
+  - Aktualizovány databázové RPC funkce `get_workspace_order_detail`, `list_workspace_orders` a `get_workspace_lead_activity_detail`, aby vracely `tracking_number` a `carrier`.
+- **Typový systém & DAL (`types.ts`, `src/lib/dal/activity.ts`, `src/lib/dal/orders.ts`):**
+  - Typy `orders.Row`, `Insert`, `Update` a `Functions` rozšířeny o nová pole a RPC.
+  - `WorkspaceOrderDTO` a `DirectOrderPayload` rozšířeny o `tracking_number` a `carrier`.
+  - Přidána DAL funkce `updateOrderTrackingForWorkspace` a Server Action `updateOrderTrackingAction` s `revalidatePath`.
+- **Pomocný modul pro sledování zásilek (`src/lib/tracking.ts`):**
+  - Podpora dopravců: Zásilkovna (Packeta), Česká pošta (Balíkovna), Česká pošta, GLS, DPD, PPL, Jiný dopravce.
+  - Automatické generování přímých sledovacích odkazů (tracking URL).
+  - Inteligentní auto-detekce dopravce podle formátu kódu ze čtečky čárových kódů.
+- **UI Integrace:**
+  - `OrderTrackingCard.tsx` v detailu objednávky (`/orders/[orderId]`): zobrazení dopravce a kódu, tlačítko pro kopírování, přímý odkaz „Sledovat balíček online ↗“ a pro manažery inline editor pro zadání/změnu čísla zásilky.
+  - `LeadOrdersSection.tsx` v klientském profilu (`/leads/[leadId]`): přehled nákupů zákazníka, stav expedice, částky, číslo zásilky a okamžitý proklik na sledování balíku pro operátora v hovoru.
+- **Ověření a testy (`tests/order-tracking.test.ts`):**
+  - Všech 158 testovacích souborů (748 testů) prošlo na 100 %.
+  - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
 

@@ -130,7 +130,17 @@ export async function updateOrderStatusForWorkspace(
 
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) {
-    throw new DataAccessError("DATABASE", "Order status update failed");
+    const message = error?.message || "Order status update failed";
+    if (
+      message.includes("not available") ||
+      message.includes("Only workspace managers") ||
+      message.includes("already has this status") ||
+      message.includes("too long") ||
+      message.includes("Unsupported order status")
+    ) {
+      throw new DataAccessError("VALIDATION", message);
+    }
+    throw new DataAccessError("DATABASE", message);
   }
 
   if ((row as OrderRow).workspace_id !== context.workspaceId) {
@@ -138,6 +148,55 @@ export async function updateOrderStatusForWorkspace(
   }
 
   return row as OrderDTO;
+}
+
+export interface BulkUpdateOrderStatusInput {
+  orderIds: string[];
+  status: OrderStatus;
+  note?: string | null;
+}
+
+export interface BulkUpdateOrderStatusResult {
+  successCount: number;
+  failureCount: number;
+  errors: string[];
+}
+
+export async function bulkUpdateOrderStatusForWorkspace(
+  input: BulkUpdateOrderStatusInput,
+): Promise<BulkUpdateOrderStatusResult> {
+  if (!Array.isArray(input.orderIds) || input.orderIds.length === 0) {
+    throw new DataAccessError("VALIDATION", "At least one order must be selected");
+  }
+  if (input.orderIds.length > 100) {
+    throw new DataAccessError("VALIDATION", "Cannot update more than 100 orders at once");
+  }
+  if (!input.status) {
+    throw new DataAccessError("VALIDATION", "Order status is required");
+  }
+
+  await requireWorkspaceRole(["team_leader", "administrator"]);
+
+  let successCount = 0;
+  let failureCount = 0;
+  const errors: string[] = [];
+
+  for (const orderId of input.orderIds) {
+    try {
+      await updateOrderStatusForWorkspace({
+        orderId,
+        status: input.status,
+        note: input.note,
+      });
+      successCount++;
+    } catch (err) {
+      failureCount++;
+      const message = err instanceof Error ? err.message : `Failed to update order ${orderId}`;
+      errors.push(`${orderId}: ${message}`);
+    }
+  }
+
+  return { successCount, failureCount, errors };
 }
 
 function orderDetailsError(error: { message?: string } | null): DataAccessError {
@@ -280,4 +339,113 @@ export async function reassignOrdersProductForWorkspace(
     targetProductId: row.target_product_id,
     movedOrderIds: row.moved_order_ids || [],
   } as ReassignOrdersResult;
+}
+
+export interface UpdateOrderTrackingInput {
+  orderId: string;
+  trackingNumber?: string | null;
+  carrier?: string | null;
+}
+
+export async function updateOrderTrackingForWorkspace(
+  input: UpdateOrderTrackingInput,
+  requestedWorkspaceId?: string
+): Promise<{ id: string; status: string; tracking_number: string | null; carrier: string | null; revision: number }> {
+  if (!input.orderId.trim()) {
+    throw new DataAccessError("VALIDATION", "Order id is required");
+  }
+  if (input.trackingNumber && input.trackingNumber.trim().length > 100) {
+    throw new DataAccessError("VALIDATION", "Tracking number is too long");
+  }
+  if (input.carrier && input.carrier.trim().length > 50) {
+    throw new DataAccessError("VALIDATION", "Carrier identifier is too long");
+  }
+
+  await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("update_order_tracking", {
+    p_order_id: input.orderId,
+    p_tracking_number: input.trackingNumber?.trim() || null,
+    p_carrier: input.carrier?.trim() || null,
+  } as never);
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
+    const message = error?.message || "Order tracking update failed";
+    if (
+      message.includes("Only workspace managers") ||
+      message.includes("Access forbidden") ||
+      message.includes("Order not found")
+    ) {
+      throw new DataAccessError("VALIDATION", message);
+    }
+    throw new DataAccessError("DATABASE", message);
+  }
+
+  return row as {
+    id: string;
+    status: string;
+    tracking_number: string | null;
+    carrier: string | null;
+    revision: number;
+  };
+}
+
+export interface RecordOrderTrackingEventInput {
+  orderId: string;
+  status?: string | null;
+  title: string;
+  location?: string | null;
+  description?: string | null;
+  occurredAt?: string | null;
+}
+
+export async function recordOrderTrackingEventForWorkspace(
+  input: RecordOrderTrackingEventInput,
+  requestedWorkspaceId?: string
+): Promise<{
+  id: string;
+  status: string;
+  package_location: string | null;
+  tracking_events: unknown;
+  revision: number;
+}> {
+  if (!input.orderId?.trim()) {
+    throw new DataAccessError("VALIDATION", "Order id is required");
+  }
+  if (!input.title?.trim()) {
+    throw new DataAccessError("VALIDATION", "Tracking event title is required");
+  }
+
+  await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.rpc("record_order_tracking_event", {
+    p_order_id: input.orderId,
+    p_status: input.status?.trim() || null,
+    p_title: input.title.trim(),
+    p_location: input.location?.trim() || null,
+    p_description: input.description?.trim() || null,
+    p_occurred_at: input.occurredAt?.trim() || null,
+  } as never);
+
+  const row = Array.isArray(data) ? data[0] : data;
+  if (error || !row) {
+    const message = error?.message || "Recording tracking event failed";
+    if (
+      message.includes("Access forbidden") ||
+      message.includes("Order not found") ||
+      message.includes("Unsupported status transition")
+    ) {
+      throw new DataAccessError("VALIDATION", message);
+    }
+    throw new DataAccessError("DATABASE", message);
+  }
+
+  return row as {
+    id: string;
+    status: string;
+    package_location: string | null;
+    tracking_events: unknown;
+    revision: number;
+  };
 }

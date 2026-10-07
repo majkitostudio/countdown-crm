@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+
 import { OrderPipeline, getOrderStatusTone } from "@/components/orders/OrderPipeline";
 import { StatusBadge } from "@/components/ui/Status";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
