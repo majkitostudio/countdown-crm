@@ -7,6 +7,7 @@ import {
 
 describe("P4 fail recycling taxonomy and cooldown", () => {
   it("classifies approved recyclable fail reasons into P4 queue", () => {
+    expect(isFailReasonRecyclable("unsuccessful_sale")).toBe(true);
     expect(isFailReasonRecyclable("needs_time")).toBe(true);
     expect(isFailReasonRecyclable("price")).toBe(true);
     expect(isFailReasonRecyclable("distrust")).toBe(true);
@@ -14,14 +15,16 @@ describe("P4 fail recycling taxonomy and cooldown", () => {
     expect(isFailReasonRecyclable("other")).toBe(true);
   });
 
-  it("strictly excludes health concerns and cold rejections from P4 retargeting", () => {
+  it("strictly excludes health concerns, cold rejections, and invalid leads from P4 retargeting", () => {
     expect(isFailReasonRecyclable("health_concern")).toBe(false);
     expect(isFailReasonRecyclable("no_interest")).toBe(false);
+    expect(isFailReasonRecyclable("invalid_lead")).toBe(false);
     expect(isFailReasonRecyclable("unknown")).toBe(false);
     expect(isFailReasonRecyclable(null)).toBe(false);
   });
 
   it("calculates cooling-off intervals per fail reason", () => {
+    expect(getFailReasonCooldownDays("unsuccessful_sale")).toBe(1);
     expect(getFailReasonCooldownDays("needs_time")).toBe(3);
     expect(getFailReasonCooldownDays("price")).toBe(14);
     expect(getFailReasonCooldownDays("other")).toBe(14);
@@ -30,10 +33,13 @@ describe("P4 fail recycling taxonomy and cooldown", () => {
   });
 
   it("provides operator-friendly Czech labels for call context", () => {
+    expect(getFailReasonCzechLabel("unsuccessful_sale")).toBe("Neúspěšný prodej");
+    expect(getFailReasonCzechLabel("no_interest")).toBe("Bez zájmu");
+    expect(getFailReasonCzechLabel("invalid_lead")).toBe("Invalidní přihláška");
+    expect(getFailReasonCzechLabel("health_concern")).toBe("Zdravotní důvody");
     expect(getFailReasonCzechLabel("needs_time")).toBe("Rozmyšlená");
     expect(getFailReasonCzechLabel("price")).toBe("Cena");
     expect(getFailReasonCzechLabel("distrust")).toBe("Nedůvěra");
     expect(getFailReasonCzechLabel("alternative_solution")).toBe("Konkurenční řešení");
-    expect(getFailReasonCzechLabel("health_concern")).toBe("Zdravotní důvody");
   });
 });

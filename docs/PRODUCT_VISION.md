@@ -13,7 +13,7 @@ Countdown proto není generický CRM produkt pro libovolné podnikání. Je to s
 1. **Leads a zákazníci** — evidence, kontext, historie, segmentace a další kontakt.
 2. **Calls a telephony** — telefonní proces, call session, stav, výsledek a návazné kroky.
 3. **Products a orders** — nabídka doplňků stravy, objednávky, prodejní tok a stav zákazníka.
-4. **Operator Console** — pracovní plocha operátora pro aktuální lead a hovor.
+4. **Operator Console** — pracovní plocha operátora pro aktuální lead a hovor. Její obsah a rozhraní se přizpůsobují podle oddělení (např. prodejní oddělení vs. Oddělení P4 pro retargeting odmítnutých prodejů a Sent/Returns).
 5. **Team Operations** — fronty, výjimky, pomoc, směny, týmový dohled a řízení práce.
 6. **Quality a coaching** — hodnocení hovorů, zpětná vazba, compliance a rozvoj lidí.
 7. **Training** — onboarding a průběžné procvičování schválených scénářů.
@@ -26,7 +26,7 @@ Tyto oblasti představují celkový produktový prostor. Neznamenají, že všec
 
 ### Operátor
 
-Řeší zákazníka, který je právě na řadě. Potřebuje rychle pochopit kontext, použít schválený skript, vést hovor, zaznamenat výsledek, vytvořit objednávku nebo callback a pokračovat dalším případem.
+Řeší zákazníka, který je právě na řadě. Potřebuje rychle pochopit kontext, použít schválený skript, vést hovor, zaznamenat výsledek, vytvořit objednávku nebo callback a pokračovat dalším případem. Obsah Operator Console je mírně diferencován podle oddělení (prodejní linka vs. P4 retargeting a sent/returny).
 
 ### Team Leader
 

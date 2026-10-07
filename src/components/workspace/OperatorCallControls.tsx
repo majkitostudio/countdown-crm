@@ -24,9 +24,9 @@ const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   icon: typeof PhoneMissed;
   shortcut: string;
 }> = [
-  { value: "call_later", label: "Call Later", icon: PhoneMissed, shortcut: "1" },
-  { value: "schedule", label: "Schedule Callback", icon: CalendarClock, shortcut: "2" },
-  { value: "fail", label: "Fail", icon: XCircle, shortcut: "3" },
+  { value: "call_later", label: "Inaccessible", icon: PhoneMissed, shortcut: "1" },
+  { value: "schedule", label: "Callback", icon: CalendarClock, shortcut: "2" },
+  { value: "fail", label: "Failed", icon: XCircle, shortcut: "3" },
   { value: "order", label: "Create Order", icon: ShoppingBag, shortcut: "4" },
 ];
 
@@ -194,7 +194,7 @@ export function CallOutcomePanel({
               disabled={isCompletionPending}
               className="rounded-lg bg-rose-200 px-3 py-2 text-[11px] font-semibold text-rose-950 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Save Fail
+              Save Failed
             </button>
           </div>
         </div>

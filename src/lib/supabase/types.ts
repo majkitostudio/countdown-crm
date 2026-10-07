@@ -805,7 +805,7 @@ export interface Database {
           agent_id: string | null;
           duration_seconds: number;
           outcome: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
-          fail_reason: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
+          fail_reason: "unsuccessful_sale" | "no_interest" | "invalid_lead" | "health_concern" | "price" | "distrust" | "alternative_solution" | "needs_time" | "other" | null;
           operator_note: string | null;
           callback_scheduled_at: string | null;
           transcript: string | null;
@@ -820,7 +820,7 @@ export interface Database {
           agent_id?: string | null;
           duration_seconds?: number;
           outcome?: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
-          fail_reason?: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
+          fail_reason?: "unsuccessful_sale" | "no_interest" | "invalid_lead" | "health_concern" | "price" | "distrust" | "alternative_solution" | "needs_time" | "other" | null;
           operator_note?: string | null;
           callback_scheduled_at?: string | null;
           transcript?: string | null;
@@ -833,7 +833,7 @@ export interface Database {
           agent_id?: string | null;
           duration_seconds?: number;
           outcome?: "order_placed" | "followup_scheduled" | "objection" | "no_answer" | "completed";
-          fail_reason?: "price" | "distrust" | "alternative_solution" | "health_concern" | "no_interest" | "needs_time" | "other" | null;
+          fail_reason?: "unsuccessful_sale" | "no_interest" | "invalid_lead" | "health_concern" | "price" | "distrust" | "alternative_solution" | "needs_time" | "other" | null;
           operator_note?: string | null;
           callback_scheduled_at?: string | null;
           transcript?: string | null;

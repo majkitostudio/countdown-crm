@@ -298,4 +298,33 @@
   - Všech 163 testovacích souborů (773 testů) prochází na 100 %.
   - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
 
+---
+
+## 19. Milník 2 — Úkol 2.1: Taxonomie Call Outcomes & Automatická pravidla recyklace kontaktů (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Sjednocení a zjednodušení výsledků hovorů (Call Outcomes) podle specifikace produktového manažera a implementace automatických recyklačních pravidel pro `no_answer` (30 min) a `unsuccessful_sale` (24 h do fronty P4).
+
+- **1. Diferenciace Operator Console v produktové vizi:**
+  - Zapsáno do `docs/PRODUCT_VISION.md`, že Operator Console se adaptuje na specifika oddělení (prodejní linka vs. Oddělení P4 pro retargeting a senty/returny).
+- **2. Schválená taxonomie Call Outcomes v Operator Console:**
+  - **Create Order** (`order_placed`): Prodej úspěšný, tvorba objednávky doplňků stravy.
+  - **Inaccessible** (`no_answer`): Nedostupný / nezvedá $\rightarrow$ pravidlo 30 minut.
+  - **Callback** (`followup_scheduled`): Nastavení data a času pro plánovaný hovor.
+  - **Failed** (`objection`): Pod sebou nabízí čisté důvody:
+    - *Neúspěch (ukončeno bez finalizace)* (`unsuccessful_sale`): Kompletní hovor proběhl, klient nekoupil $\rightarrow$ recyklovat do P4 po **24 hodinách**, vyžaduje krátkou poznámku pro kontext P4 operátora.
+    - *Bez zájmu (ukončeno)* (`no_interest`): Rychlé ukončení klienta $\rightarrow$ trvale uzavřeno (`closed / unresponsive`).
+    - *Invalidní přihláška (nesprávné údaje)* (`invalid_lead`): Špatné číslo, neplatný kontakt $\rightarrow$ trvale uzavřeno (`closed / unresponsive`).
+    - *Zdravotní důvody (alergie, intolerance)* (`health_concern`): Nevhodné ze zdravotních důvodů $\rightarrow$ trvale uzavřeno (`closed / unresponsive`).
+- **3. Pravidlo č. 3 & SQL Migrace (`supabase/migrations/20261007150000_recycling_rules_30m_24h.sql`):**
+  - V `private.complete_lead_call_impl` upraven čas pro `no_answer` z 15 minut na **30 minut** (`available_at = NOW() + INTERVAL '30 minutes'`).
+  - V `public.complete_lead_call_with_order_items` přidána podpora pro `unsuccessful_sale` s cooldownem **24 hodin** (`available_at = NOW() + INTERVAL '24 hours'`, uvolnění operátora, zařazení do P4 týmu s prioritou `-4`).
+  - `no_interest`, `invalid_lead` a `health_concern` zůstávají trvale uzavřeny jako `unresponsive`.
+- **4. Typy a DAL (`src/lib/supabase/types.ts`, `src/lib/postCall.ts`, `src/lib/dal/savedViews.ts`):**
+  - `fail_reason` rozšířen o `unsuccessful_sale` a `invalid_lead` při plném zachování zpětné kompatibility.
+  - `isFailReason` a `validateQualityViewInput` podporují všechny platné důvody.
+  - Popisky outcome tlačítek v konzoli synchronizovány na `Inaccessible`, `Callback`, `Failed`, `Create Order`.
+- **5. Ověření a testy:**
+  - Všech 164 testovacích souborů (775 testů) prochází na 100 %.
+  - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
+
 

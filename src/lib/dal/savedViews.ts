@@ -3,7 +3,7 @@ import "server-only";
 import { DataAccessError } from "@/lib/dal/errors";
 import { createDataClient } from "@/lib/dal/db";
 import { requireWorkspaceRole } from "@/lib/dal/workspace";
-import { FAIL_REASON_OPTIONS } from "@/lib/postCall";
+import { isFailReason } from "@/lib/postCall";
 
 export const SAVED_VIEW_TYPE_QUALITY = "quality";
 
@@ -70,7 +70,7 @@ export function validateQualityViewInput(input: {
   }
   if (
     failReason !== "all"
-    && !FAIL_REASON_OPTIONS.some((option) => option.value === failReason)
+    && !isFailReason(failReason)
   ) {
     throw new DataAccessError("VALIDATION", "Unsupported fail reason filter.");
   }

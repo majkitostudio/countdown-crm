@@ -1,14 +1,25 @@
 export const FAIL_REASON_OPTIONS = [
-  { value: "price", label: "Price" },
-  { value: "distrust", label: "Trust or doubts" },
-  { value: "alternative_solution", label: "Already uses another solution" },
-  { value: "health_concern", label: "Health concern or not suitable" },
-  { value: "no_interest", label: "No interest" },
-  { value: "needs_time", label: "Wants to think" },
-  { value: "other", label: "Other reason" },
+  { value: "no_interest", label: "Bez zájmu (ukončeno)" },
+  { value: "unsuccessful_sale", label: "Neúspěch (ukončeno bez finalizace)" },
+  { value: "invalid_lead", label: "Invalidní přihláška (nesprávné údaje)" },
+  { value: "health_concern", label: "Zdravotní důvody (alergie, intolerance)" },
 ] as const;
 
-export type FailReason = (typeof FAIL_REASON_OPTIONS)[number]["value"];
+const LEGACY_FAIL_REASONS = new Set([
+  "price",
+  "distrust",
+  "alternative_solution",
+  "needs_time",
+  "other",
+]);
+
+export type FailReason =
+  | (typeof FAIL_REASON_OPTIONS)[number]["value"]
+  | "price"
+  | "distrust"
+  | "alternative_solution"
+  | "needs_time"
+  | "other";
 
 export interface FailDetails {
   failReason: FailReason;
@@ -16,14 +27,20 @@ export interface FailDetails {
 }
 
 export function isFailReason(value: unknown): value is FailReason {
-  return typeof value === "string" && FAIL_REASON_OPTIONS.some((option) => option.value === value);
+  return typeof value === "string" && (
+    FAIL_REASON_OPTIONS.some((option) => option.value === value) ||
+    LEGACY_FAIL_REASONS.has(value)
+  );
 }
 
 export function getFailReasonLabel(reason: FailReason): string {
-  return FAIL_REASON_OPTIONS.find((option) => option.value === reason)?.label || reason;
+  const match = FAIL_REASON_OPTIONS.find((option) => option.value === reason);
+  if (match) return match.label;
+  return getFailReasonCzechLabel(reason);
 }
 
 const NOTE_REQUIRED_FAIL_REASONS: ReadonlySet<FailReason> = new Set([
+  "unsuccessful_sale",
   "price",
   "distrust",
   "other",
@@ -52,6 +69,7 @@ export function validateCallFailFields(details: { outcome: string; failReason: u
 }
 
 const RECYCLABLE_FAIL_REASONS: ReadonlySet<FailReason> = new Set([
+  "unsuccessful_sale",
   "needs_time",
   "price",
   "distrust",
@@ -65,6 +83,8 @@ export function isFailReasonRecyclable(reason: unknown): boolean {
 
 export function getFailReasonCooldownDays(reason: FailReason): number {
   switch (reason) {
+    case "unsuccessful_sale":
+      return 1;
     case "needs_time":
       return 3;
     case "price":
@@ -75,12 +95,20 @@ export function getFailReasonCooldownDays(reason: FailReason): number {
     case "alternative_solution":
       return 30;
     default:
-      return 14;
+      return 1;
   }
 }
 
 export function getFailReasonCzechLabel(reason: FailReason): string {
   switch (reason) {
+    case "unsuccessful_sale":
+      return "Neúspěšný prodej";
+    case "no_interest":
+      return "Bez zájmu";
+    case "invalid_lead":
+      return "Invalidní přihláška";
+    case "health_concern":
+      return "Zdravotní důvody";
     case "needs_time":
       return "Rozmyšlená";
     case "price":
@@ -89,10 +117,6 @@ export function getFailReasonCzechLabel(reason: FailReason): string {
       return "Nedůvěra";
     case "alternative_solution":
       return "Konkurenční řešení";
-    case "health_concern":
-      return "Zdravotní důvody";
-    case "no_interest":
-      return "Nezájem";
     case "other":
       return "Jiný důvod";
     default:

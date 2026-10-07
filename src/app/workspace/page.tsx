@@ -937,9 +937,9 @@ function WorkspaceContent() {
     }
 
     const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CompletionOutcome, string]> = {
-      call_later: ["no_answer", "No answer"],
-      schedule: ["followup_scheduled", "Follow-up scheduled"],
-      fail: ["objection_handled", "Fail"],
+      call_later: ["no_answer", "Inaccessible"],
+      schedule: ["followup_scheduled", "Callback"],
+      fail: ["objection_handled", "Failed"],
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
     void completeCall(callOutcome, outcomeLabel, "not_created", 0, undefined, undefined, undefined, failDetails?.note, failDetails?.failReason);
