@@ -13,6 +13,8 @@ export interface OperatorCallbackSignal {
   id: string;
   leadName: string;
   scheduledAt: string;
+  phone?: string | null;
+  leadId?: string;
 }
 
 export interface OperatorNextAction {

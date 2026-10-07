@@ -327,4 +327,36 @@
   - Všech 164 testovacích souborů (775 testů) prochází na 100 %.
   - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
 
+---
+
+## 20. Milník 2 — Úkol 2.2: Přehled odložených hovorů (Scheduled Callbacks Banner) & Prioritní routování na operátora (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Zviditelnit naplánované hovory přímo na nástěnce operátora v daný čas (např. lišta *„Máte 2 hovory k vyřízení na dnešní dopoledne“*) a zajistit striktní prioritní routování zpět na operátora, který s klientem mluvil původně (`preferred_operator_id`).
+
+- **1. Logika českých časových oken a skloňování (`src/lib/scheduledCallbacksBanner.ts`):**
+  - Funkce `formatCzechCallbackCount`: přesná česká gramatika pro jednotná i množná čísla (*1 hovor*, *2–4 hovory*, *5+ hovorů*).
+  - Funkce `getScheduledCallbacksBannerState`: inteligentní dělení na dopolední (< 12:00) a odpolední (>= 12:00) hovory naplánované na dnešní den, detekce hovorů po termínu (`overdue`) a generování přirozených českých hlášek (*„Máte 2 hovory k vyřízení na dnešní dopoledne“*, *„Máte 3 hovory k vyřízení na dnešní odpoledne“*, *„Máte 1 hovor čekající na vyřízení právě teď“*).
+  - Předpočítaný parametr `isOverdue` v DTO, který zaručuje čistotu renderu (purity) v Reactu bez nečistých volání `Date.now()` uvnitř JSX.
+- **2. UI Komponenta lišty na nástěnce (`src/components/workspace/OperatorScheduledCallbacksBanner.tsx`):**
+  - Výrazná informační lišta pod hlavičkou operátora s amber (urgentní/po termínu) nebo sky (plánované dopoledne/odpoledne) akcentem.
+  - Zobrazuje headline s počtem, nejbližšího klienta a čas schůzky.
+  - Možnost rozbalit detailní přehled všech čekajících odložených hovorů (jméno klienta, telefonní číslo, formátovaný čas, odznak stavu termínu).
+  - Tlačítko pro rychlý refresh a tlačítko „Vyřídit další lead“, které ihned zvedne prioritní hovor z fronty.
+- **3. Integrace do Operator Workspace (`src/app/workspace/page.tsx`, `operatorNextAction.ts`):**
+  - Banner je zobrazen jak v klidovém stavu (čekání na lead / prázdná fronta), tak přímo v aktivní konzoli operátora, aby operátor neztratil pojem o blížících se domluvených hovorech.
+  - `OperatorCallbackSignal` rozšířen o volitelná pole `leadId` a `phone` pro detailnější zobrazení.
+- **4. Pravidlo č. 3 & SQL Migrace (`supabase/migrations/20261007153000_scheduled_callback_priority_routing.sql`):**
+  - Ověřena existence sloupců `preferred_operator_id`, `state`, `available_at`, `priority` v `lead_queue_items`.
+  - Upravena jádrová funkce `private.claim_next_lead_impl(target_workspace_id)`:
+    - **Ochrana před cizím operátorem:** Odstraněna dřívější nežádoucí podmínka `OR EXISTS (preferred_membership)`, která umožňovala kolegům v týmu předbíhat a brát si cizí domluvené hovory.
+    - **Rezervace pro původního operátora:** Dokud je původní operátor přítomen v systému (má status `available` s čerstvým heartbeatem za posledních 5 minut), lead je zamčený výhradně pro něj.
+    - **Fallback:** Teprve v případě, že původní operátor je offline, má hovor nebo je callback více než 15 minut po termínu, je povolen fallback na jiného člena týmu.
+    - **Absolutní přednost:** V `ORDER BY` má původní operátor pro své odložené hovory absolutní prioritu (`tier 0`), takže je dostane dříve než jakékoliv jiné leady z fronty.
+- **5. Ověření a testy:**
+  - `tests/scheduled-callbacks-banner.test.ts`: 4 testy pokrývající české skloňování, dopolední a odpolední rozdělení i zpožděné hovory.
+  - `tests/callback-priority-routing-migration.test.ts`: smluvní testy ověřující SQL definici tier 0 a ochranu `preferred_operator_id`.
+  - Celá testovací sada: **166 testovacích souborů (781 testů) prochází na 100 %**.
+  - TypeScript `tsc --noEmit` a `eslint` hlásí 0 chyb.
+
+
 
