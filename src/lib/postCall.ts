@@ -50,3 +50,52 @@ export function validateCallFailFields(details: { outcome: string; failReason: u
   }
   return null;
 }
+
+const RECYCLABLE_FAIL_REASONS: ReadonlySet<FailReason> = new Set([
+  "needs_time",
+  "price",
+  "distrust",
+  "alternative_solution",
+  "other",
+]);
+
+export function isFailReasonRecyclable(reason: unknown): boolean {
+  return typeof reason === "string" && RECYCLABLE_FAIL_REASONS.has(reason as FailReason);
+}
+
+export function getFailReasonCooldownDays(reason: FailReason): number {
+  switch (reason) {
+    case "needs_time":
+      return 3;
+    case "price":
+    case "other":
+      return 14;
+    case "distrust":
+      return 21;
+    case "alternative_solution":
+      return 30;
+    default:
+      return 14;
+  }
+}
+
+export function getFailReasonCzechLabel(reason: FailReason): string {
+  switch (reason) {
+    case "needs_time":
+      return "Rozmyšlená";
+    case "price":
+      return "Cena";
+    case "distrust":
+      return "Nedůvěra";
+    case "alternative_solution":
+      return "Konkurenční řešení";
+    case "health_concern":
+      return "Zdravotní důvody";
+    case "no_interest":
+      return "Nezájem";
+    case "other":
+      return "Jiný důvod";
+    default:
+      return reason;
+  }
+}

@@ -24,7 +24,7 @@ const operatorTransitions: Record<OrderStatus, OrderStatus[]> = {
   in_progress: ["sent", "cancelled"],
   sent: ["cancelled"],
   delivered: [],
-  returned: [],
+  returned: ["pending"],
   cancelled: [],
   completed: ["in_progress", "cancelled"],
 };
@@ -83,6 +83,35 @@ export function OrderStatusEditor({ orderId, currentStatus, canEdit, isManager }
         </div>
         <RefreshCw className="h-4 w-4 text-zinc-500" />
       </div>
+
+      {currentStatus === "returned" && (
+        <div className="mb-4 rounded-xl border border-sky-900/60 bg-sky-950/20 p-3">
+          <p className="text-[11px] font-semibold text-sky-200">Znovu odeslat balíček (P4)</p>
+          <p className="mt-1 text-[10px] text-sky-300/80">Klient souhlasil s opětovným doručením. Objednávka se vrátí do expedice.</p>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={isPending}
+            onClick={() => {
+              startTransition(async () => {
+                try {
+                  await updateOrderStatusAction(
+                    orderId,
+                    "pending",
+                    "Přebalení zásilky a opětovné odeslání po domluvě s klientem (P4)",
+                  );
+                  router.refresh();
+                } catch (error) {
+                  setErrorMessage(error instanceof Error ? error.message : "Status update failed.");
+                }
+              });
+            }}
+            className="mt-2.5 w-full text-xs text-sky-200 border-sky-800 hover:bg-sky-950/50"
+          >
+            {isPending ? "Odesílám…" : "↻ Znovu odeslat balíček (Re-ship)"}
+          </Button>
+        </div>
+      )}
       {options.length > 0 ? (
         <form className="space-y-3" onSubmit={submit}>
           <label className="block text-xs text-zinc-400">

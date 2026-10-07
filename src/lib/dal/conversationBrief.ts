@@ -8,6 +8,7 @@ import { getCurrentLeadForWorkspace, type LeadQueueSnapshot } from "./leadQueue"
 import { listLeadNotesForWorkspace } from "./leadNotes";
 import { listProductScriptsForWorkspace } from "./productScripts";
 import { requireWorkspaceRole } from "./workspace";
+import { getFailReasonCzechLabel, type FailReason } from "@/lib/postCall";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -269,8 +270,15 @@ async function loadLatestOrder(
   return data ? { ...(data as ConversationBriefOrderSource), total_amount: Number(data.total_amount) } : null;
 }
 
-function routingContextFromAssignment(assignment: LeadQueueSnapshot): string {
+function routingContextFromAssignment(
+  assignment: LeadQueueSnapshot,
+  call?: ConversationBriefCallSource | null,
+): string {
   if (assignment.scheduled_at) return "Scheduled callback";
+  if (call?.outcome === "objection" && call?.fail_reason) {
+    const czechReason = getFailReasonCzechLabel(call.fail_reason as FailReason);
+    return `P4 Retargeting — předchozí námitka: ${czechReason}`;
+  }
   if (assignment.attempt_count > 1) return "Follow-up attempt";
   return "New queue assignment";
 }
@@ -304,11 +312,13 @@ export async function getConversationBriefForWorkspace(
     listProductScriptsForWorkspace(context.workspaceId).then((scripts) => scripts.map(({ id }) => ({ id }))),
   ]);
 
+  const resolvedCall = call.status === "fulfilled" ? call.value : null;
+
   return buildConversationBrief(assignment, {
     call,
     note,
     order,
-    queueReason: { status: "fulfilled", value: routingContextFromAssignment(assignment) },
+    queueReason: { status: "fulfilled", value: routingContextFromAssignment(assignment, resolvedCall) },
     productScripts,
   });
 }

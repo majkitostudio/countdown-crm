@@ -274,3 +274,28 @@
   - Všech 158 testovacích souborů (748 testů) prošlo na 100 %.
   - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
 
+---
+
+## 18. Milník 2 — Fronta P4: Recyklace odmítnutých hovorů (Retargeting) & Oddělení P4 (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Zužitkovat nově diferencované důvody odmítnutí (`fail_reason`) pro plánované znovuvolání a vybudovat podporu pro specializované Oddělení P4 (recyklace failových leadů z ostatních prodejních oddělení + obvolávání Sent/Returns celého CC).
+
+- **Pravidlo č. 3 & SQL Migrace (`supabase/migrations/20261007140000_p4_queue_recycling.sql`):**
+  - Založen tým `Oddělení P4` (`slug = 'p4'`, `name = 'Oddělení P4'`) pro každý existující workspace.
+  - Vylepšena funkce `complete_lead_call_with_order_items`:
+    - Odmítnuté hovory (`objection`) s recyklovatelnými důvody (`needs_time`, `price`, `distrust`, `alternative_solution`, `other`) se již nezahazují jako `closed/unresponsive`.
+    - Automaticky se přeřazují do oddělení P4 (`team_id = p4_team_id`), nastavují se jako `available` s prioritou `-4` a posunutým `available_at` (cooldown).
+    - Odpárován původní operátor (`preferred_operator_id = NULL`), aby kontakt po vychladnutí zvedl nový operátor z P4 oddělení.
+    - Specifické cooldown lhůty: `needs_time` (3 dny), `price` (14 dní), `other` (14 dní), `distrust` (21 dní), `alternative_solution` (30 dní).
+    - Zdravotní důvody (`health_concern`) a studené odmítnutí (`no_interest`) zůstávají trvale uzavřené (`closed/unresponsive`).
+- **Kontext v Operator Console (`src/lib/dal/conversationBrief.ts` & `src/lib/postCall.ts`):**
+  - Funkce `isFailReasonRecyclable`, `getFailReasonCooldownDays` a `getFailReasonCzechLabel`.
+  - Operátor v kartě kontextu hned vidí: `Why this lead: P4 Retargeting — předchozí námitka: Cena`, včetně přesné poznámky a důvodu z minulého hovoru.
+- **Senty & Returny celého CC (`src/components/orders/OrderStatusEditor.tsx` & `OrderPipeline.tsx`):**
+  - V `OrderStatusEditor.tsx` povolen operátorský přechod ze stavu `returned` do `pending`.
+  - Přidáno rychlé tlačítko pro **Re-ship (Znovu odeslat balíček)** s předvyplněnou poznámkou o domluvě s klientem pro P4 operátory.
+- **Ověření a testy (`tests/p4-recycling.test.ts`, `tests/p4-migration-contract.test.ts`, `tests/conversation-brief-p4.test.ts`, `tests/order-reship-action.test.ts`):**
+  - Všech 163 testovacích souborů (773 testů) prochází na 100 %.
+  - 0 chyb v TypeScriptu (`tsc --noEmit`), 0 chyb v linteru (`eslint`).
+
+
