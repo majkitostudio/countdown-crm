@@ -74,7 +74,10 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
               </div>
             </div>
             <p className="mt-5 max-w-2xl text-xs leading-relaxed text-zinc-500">
-              Tato administrace mění membership roli v aktuálním workspace. Přihlášení a Auth identity se spravují odděleně; pozvánkový flow není součástí tohoto pilotního slice.
+              Správa rolí a členství v aktuálním workspace. Kompletní přehled pracovníků, pozvánky a přiřazení k prodejním linkám můžete spravovat v{" "}
+              <a href="/settings/users" className="text-zinc-300 underline underline-offset-2 hover:text-zinc-100">
+                Centru správy uživatelů (/settings/users)
+              </a>.
             </p>
           </div>
           <span className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-1 text-[10px] font-mono text-zinc-300">Pouze administrátor</span>

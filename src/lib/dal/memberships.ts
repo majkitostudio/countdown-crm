@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
 import type { WorkspaceRole } from "@/lib/auth/roles";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceRole } from "./workspace";
@@ -11,6 +13,21 @@ type ProfileRow = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],
   "id" | "full_name" | "email" | "avatar_url"
 >;
+
+export interface InviteOrProvisionMemberInput {
+  email: string;
+  fullName: string;
+  role: WorkspaceRole;
+  teamId?: string | null;
+  deliveryMethod?: "invite" | "password";
+  password?: string;
+}
+
+export interface InviteOrProvisionMemberResult {
+  action: "invited" | "created" | "attached";
+  member: WorkspaceMemberDTO;
+  assignedTeamId: string | null;
+}
 
 export interface WorkspaceMemberDTO {
   workspace_id: string;
@@ -252,4 +269,162 @@ export async function deleteWorkspaceMember(userId: string): Promise<void> {
   if (error) {
     throw new DataAccessError("DATABASE", "Workspace member could not be removed");
   }
+}
+
+export async function inviteOrProvisionWorkspaceMember(
+  input: InviteOrProvisionMemberInput,
+  requestedWorkspaceId?: string,
+): Promise<InviteOrProvisionMemberResult> {
+  const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
+
+  const email = (input.email || "").trim().toLowerCase();
+  const fullName = (input.fullName || "").trim();
+  const role = input.role;
+  const deliveryMethod = input.deliveryMethod || "invite";
+  const password = input.password?.trim();
+  const teamId = input.teamId?.trim() || null;
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new DataAccessError("VALIDATION", "Zadejte platnou e-mailovou adresu.");
+  }
+  if (!fullName || fullName.length < 2 || fullName.length > 100) {
+    throw new DataAccessError("VALIDATION", "Jméno a příjmení musí mít 2 až 100 znaků.");
+  }
+  if (!["operator", "team_leader", "administrator"].includes(role)) {
+    throw new DataAccessError("VALIDATION", "Zvolte platnou roli v CRM.");
+  }
+  if (deliveryMethod === "password" && (!password || password.length < 8)) {
+    throw new DataAccessError("VALIDATION", "Heslo musí obsahovat alespoň 8 znaků.");
+  }
+
+  // Demo mode fallback / simulation
+  if (isDemoAuthEnabled()) {
+    const demoUserId = `simulated-${Date.now()}`;
+    const simulatedMember: WorkspaceMemberDTO = {
+      workspace_id: context.workspaceId,
+      user_id: demoUserId,
+      role,
+      full_name: fullName,
+      email,
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    return {
+      action: deliveryMethod === "password" ? "created" : "invited",
+      member: simulatedMember,
+      assignedTeamId: teamId,
+    };
+  }
+
+  let adminClient: ReturnType<typeof createAdminClient>;
+  try {
+    adminClient = createAdminClient();
+  } catch (err) {
+    throw new DataAccessError("DATABASE", err instanceof Error ? err.message : "Správa účtů není dostupná.");
+  }
+
+  let userId: string | null = null;
+  let action: "invited" | "created" | "attached" = "invited";
+
+  try {
+    const { data: listData, error: listError } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (!listError && listData?.users) {
+      const existing = listData.users.find((u) => u.email?.toLowerCase() === email);
+      if (existing) {
+        userId = existing.id;
+        action = "attached";
+      }
+    }
+  } catch {
+    // Proceed to create/invite if lookup fails
+  }
+
+  if (userId) {
+    const { data: existingMember, error: existingError } = await adminClient
+      .from("workspace_members")
+      .select("role")
+      .eq("workspace_id", context.workspaceId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingError) {
+      throw new DataAccessError("DATABASE", "Nepodařilo se ověřit stávající členství.");
+    }
+    if (existingMember) {
+      throw new DataAccessError("VALIDATION", "Uživatel s tímto e-mailem již je členem tohoto call centra.");
+    }
+  } else {
+    if (deliveryMethod === "password") {
+      const { data: createData, error: createError } = await adminClient.auth.admin.createUser({
+        email,
+        password: password!,
+        email_confirm: true,
+        user_metadata: { full_name: fullName },
+      });
+      if (createError || !createData.user) {
+        throw new DataAccessError("VALIDATION", `Nepodařilo se vytvořit uživatele: ${createError?.message || "chyba auth"}`);
+      }
+      userId = createData.user.id;
+      action = "created";
+    } else {
+      const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+        data: { full_name: fullName },
+      });
+      if (inviteError || !inviteData.user) {
+        throw new DataAccessError("VALIDATION", `Nepodařilo se odeslat pozvánku: ${inviteError?.message || "chyba auth"}`);
+      }
+      userId = inviteData.user.id;
+      action = "invited";
+    }
+  }
+
+  const { error: memberInsertError } = await adminClient.from("workspace_members").insert({
+    workspace_id: context.workspaceId,
+    user_id: userId,
+    role,
+  });
+
+  if (memberInsertError) {
+    throw new DataAccessError("DATABASE", `Nepodařilo se přiřadit člena do call centra: ${memberInsertError.message}`);
+  }
+
+  await adminClient.from("profiles").upsert(
+    {
+      id: userId,
+      email,
+      full_name: fullName,
+      role,
+      status: "ready",
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" },
+  );
+
+  let assignedTeamId: string | null = null;
+  if (teamId) {
+    const { data: team } = await adminClient
+      .from("teams")
+      .select("id")
+      .eq("id", teamId)
+      .eq("workspace_id", context.workspaceId)
+      .maybeSingle();
+
+    if (team) {
+      const membershipRole = role === "team_leader" ? "leader" : "member";
+      const { error: teamMembershipError } = await adminClient.from("team_memberships").insert({
+        workspace_id: context.workspaceId,
+        team_id: team.id,
+        user_id: userId,
+        membership_role: membershipRole,
+        active_from: new Date().toISOString(),
+      });
+      if (!teamMembershipError) {
+        assignedTeamId = team.id;
+      }
+    }
+  }
+
+  const member = await loadMember(context.workspaceId, userId, adminClient as unknown as Awaited<ReturnType<typeof createDataClient>>);
+  return { action, member, assignedTeamId };
 }

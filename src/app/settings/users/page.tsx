@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { loadTeamManagementAction } from "@/app/actions/teams";
+import { UsersHubPanel } from "@/components/team/UsersHubPanel";
 import { TeamManagementPanel } from "@/components/team/TeamManagementPanel";
 import { TeamOwnershipPanel } from "@/components/team/TeamOwnershipPanel";
 
@@ -30,9 +31,10 @@ export default async function UsersAndPermissionsPage() {
       <PageHeader
         icon={Users}
         title="Users & Permissions"
-        description="Spravujte týmy, členství a odpovědnost za leady. Týmové omezení leadů a fronty je v Sandboxu aktivní; záznamy bez týmu zůstávají administrátorským úkolem."
+        description="Kompletní správa pracovníků call centra, rolí, linek a odpovědnosti za leady."
         badge={{ label: "Administrator only", tone: "neutral" }}
       />
+      <UsersHubPanel initialData={data} currentUserId={context.userId} />
       <TeamManagementPanel initialData={data} />
       <TeamOwnershipPanel initialData={data} />
     </div>

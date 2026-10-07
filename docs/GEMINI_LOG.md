@@ -561,6 +561,53 @@ Projekt plnohodnotně funguje v **simulačním režimu** (zdarma a spolehlivě p
   - TypeScript `tsc --noEmit` i ESLint: **0 chyb, 0 varování**.
   - Produkční build `npm run build`: **všech 41 Next.js tras sestaveno bez chyb**.
 
+---
+
+## 27. Milník 5 (Úkol 5.3) — Vypnutí DEMO_AUTH & Centrum správy uživatelů (User Hub) (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Vypnout simulační režim `NEXT_PUBLIC_DEMO_AUTH` a zabezpečit přístup do CRM přes reálné přihlašování a pozvánky do call centra. Vyhovět požadavku produktového manažera na vybudování efektivního, sjednoceného centra správy uživatelů přímo v administračním rozhraní `/settings/users`, aby administrátor nemusel manuálně zasahovat do databáze či psát SQL dotazy.
+
+- **1. Serverová provizní a zvací vrstva (`src/lib/dal/memberships.ts` & `src/app/actions/workspace.ts`):**
+  - Implementována funkce `inviteOrProvisionWorkspaceMember({ email, fullName, role, teamId, deliveryMethod, password })`:
+    - Využívá `createAdminClient()` (`@/lib/supabase/admin`) napojený na Supabase Auth Service Role.
+    - Pro metodu `deliveryMethod === "invite"` volá `auth.admin.inviteUserByEmail`, která zašle oficiální onboarding e-mail s odkazem na nastavení hesla.
+    - Pro metodu `deliveryMethod === "password"` volá `auth.admin.createUser` s okamžitým potvrzením e-mailu a výchozím heslem pro interní zaškolení na pracovišti.
+    - Automaticky zajistí záznam v `workspace_members`, profil v `profiles` a volitelně přiřadí operátora do příslušné linky týmu (`team_memberships`, např. P1–P4).
+    - Pokud běží demo režim, transparentně simuluje proces a vrací validní data; při reálném režimu vrací standardizované chybové kódy (duplicitní uživatel, slabé heslo, neplatný formát e-mailu).
+  - Vystavena serverová akce `inviteOrProvisionWorkspaceMemberAction` s autorizací administrátora a automatickou revalidací cest `/settings/users` a `/team`.
+- **2. Onboardingový modální dialog (`src/components/team/UserOnboardingModal.tsx`):**
+  - Vytvořen přístupný dialog postavený na firemním designovém systému (`Dialog`, `Surface`, `TextField`, `SelectField`, `Button`).
+  - Podporuje:
+    - Zvolení jména a pracovního e-mailu,
+    - Výběr role (Operátor, Team Leader, Administrátor),
+    - Výběr týmové linky (Fronta P1–P4),
+    - Přepínač metody doručení: E-mailová pozvánka vs. Přímé počáteční heslo.
+- **3. Sjednocený User Hub Panel (`src/components/team/UsersHubPanel.tsx`):**
+  - Integrován přímo na stránku `/settings/users` jako hlavní řídicí panel pracovníků.
+  - 4 přehledné KPI karty s živými počty:
+    - *Celkem pracovníků*,
+    - *Operátoři*,
+    - *Team Leadeři*,
+    - *Administrátoři*.
+  - Vyhledávací pole s okamžitou filtrací dle jména i e-mailu.
+  - Dropdown filtry pro role a týmové linky.
+  - Tlačítko akce `+ Pozvat / Přidat pracovníka`.
+  - Přehledná tabulka pracovníků s avatary, inline přepínačem role, inline přiřazením k týmové lince a bezpečným smazáním uživatele (s ochranou proti smazání vlastního účtu přihlášeného admina).
+- **4. Automatizační CLI nástroj (`scripts/provision-user.mjs` & `package.json`):**
+  - Vytvořen CLI skript pro hromadné či skriptované nasazení uživatelů:
+    - `npm run provision:user -- --email=novak@callcentrum.cz --name="Petr Novák" --role=operator --password=Heslo123!`
+    - Podporuje přepínače `--invite`, `--role`, `--team` a `--cleanup`.
+- **5. Zabezpečení produkčního přihlašování & Ochrana tras:**
+  - Jakmile je `NEXT_PUBLIC_DEMO_AUTH="false"`, proxy a middleware vyžadují platnou Supabase Auth session, neověření uživatelé jsou směrováni na `/login`.
+  - Vytvořena provázanost mezi `/team` a `/settings/users` pro maximální ergonomii manažerů.
+- **6. Ověření a testy:**
+  - Vytvořen unit test `tests/user-management-hub.test.ts` (4 testy pro DAL pozvánky a provizní logiku).
+  - Vytvořen komponentní test `tests/users-hub-panel.test.tsx` (2 testy pro UI, KPI karty, filtrování a zobrazení).
+  - `npm run lint`: **0 chyb, 0 varování**.
+  - `npm run typecheck`: **0 chyb**.
+  - Celá testovací sada: **173 testovacích souborů (817 testů) prochází na 100 %**.
+
+
 
 
 

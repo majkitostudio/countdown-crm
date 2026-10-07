@@ -11,6 +11,7 @@
     "verify:linked-security": "node scripts/p0-3-remote-db-evidence.mjs",
     "verify:migrations": "node scripts/verify-all-migrations.mjs",
     "seed:catalog": "node scripts/seed-catalog.mjs",
+    "provision:user": "node scripts/provision-user.mjs",
     "provision:test-team-leader": "node scripts/provision-test-team-leader.mjs",
     "lint": "eslint src tests vitest.config.mts",
     "typecheck": "tsc --noEmit",

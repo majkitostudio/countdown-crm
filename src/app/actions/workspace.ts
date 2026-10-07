@@ -3,9 +3,12 @@
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import {
   deleteWorkspaceMember,
+  inviteOrProvisionWorkspaceMember,
   listWorkspaceMembers,
   listWorkspaceOperators,
   updateWorkspaceMemberRole,
+  type InviteOrProvisionMemberInput,
+  type InviteOrProvisionMemberResult,
 } from "@/lib/dal/memberships";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
@@ -43,4 +46,10 @@ export async function updateWorkspaceMemberRoleAction(
 
 export async function removeWorkspaceMemberAction(userId: string): Promise<void> {
   return deleteWorkspaceMember(userId);
+}
+
+export async function inviteOrProvisionWorkspaceMemberAction(
+  input: InviteOrProvisionMemberInput,
+): Promise<InviteOrProvisionMemberResult> {
+  return inviteOrProvisionWorkspaceMember(input);
 }
