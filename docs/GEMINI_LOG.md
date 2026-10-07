@@ -524,6 +524,43 @@ Projekt plnohodnotně funguje v **simulačním režimu** (zdarma a spolehlivě p
   - Celá testovací sada: **170 testovacích souborů (808 testů) prochází na 100 %**.
   - TypeScript `tsc --noEmit` a ESLint: **0 chyb, 0 varování**.
 
+---
+
+## 26. Milník 5 (Úkol 5.2) — Seeding reálných katalogových dat & Šablona doplňků stravy (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Vytvořit pro produktového manažera přehlednou a snadno editovatelnou šablonu pro nahrání reálných doplňků stravy, schválených prodejních skriptů a námitek. Připravit automatický validační proces a generování idempotentního SQL seed souboru (`supabase/seed.sql`).
+
+- **1. Editovatelná šablona pro PM (`data/seeds/catalog-seed-template.json`):**
+  - Obsahuje 3 reálné produkty doplňků stravy:
+    - *ArthroFlex Active Forte* (Kloubní komplex s kolagenem, MSM a glukosaminem; 1 199 Kč),
+    - *CardioVital Max* (Koncentrované Omega-3 s koenzymem Q10; 999 Kč),
+    - *Magnesium Bisglycinát + B6* (Chelátový hořčík pro spánek a regeneraci bez projímavých účinků; 890 Kč).
+  - Každý produkt má kompletní strukturovaný skript pro hovor:
+    - *Úvodní navázání kontaktu*,
+    - *Diagnostické otázky na potřeby klienta*,
+    - *Představení řešení a schválené benefity*,
+    - *Cenová nabídka & cenové schody (web vs. hovor vs. kúra)*,
+    - *Závěrečný pozitivní dojem a potvrzení dobírky*,
+    - *Bezpečnostní mantinely (Guardrails)* – zákaz slibování lékařských uzdravení či nepravdivých slev.
+  - Obsahuje 7 reálných námitek do telefonu s věcnými protiargumenty (Cena, Konzultace s rodinou/lékařem, Špatná předchozí zkušenost, Levnější konkurence, Obavy ze snášenlivosti).
+- **2. Dokumentace šablony (`data/seeds/KATALOG_PRODUKTU_SABLONA.md`):**
+  - Uživatelsky přívětivý manuál vysvětlující jednotlivá pole a postup pro PM.
+- **3. Validační a kompilační skript (`scripts/seed-catalog.mjs`):**
+  - Načítá a validuje JSON šablonu (UUID, délky textů, číselné hodnoty, povolené kategorie).
+  - Bezpečně sestavuje a sanitizuje HTML pro skripty hovorů podle runtime specifikace CRM.
+  - Generuje `supabase/seed.sql`:
+    - Zajišťuje existenci organizace a hlavního workspace,
+    - Zajišťuje existenci administrátorského profilu a členství ve workspace,
+    - Provádí idempotentní upsert do `products`, `product_scripts`, `product_script_versions` (se stavem `published`) a `objections`.
+- **4. NPM integrace & Kontraktový test:**
+  - Přidán npm příkaz `"seed:catalog": "node scripts/seed-catalog.mjs"`.
+  - Vytvořen nový testovací soubor `tests/catalog-seed-template.test.ts` (3 testy).
+- **5. Ověření a testy:**
+  - `npm run seed:catalog`: 3 produkty, 7 námitek úspěšně zvalidováno a vygenerován `supabase/seed.sql` (21,8 kB).
+  - Celá testovací sada: **171 testovacích souborů (811 testů) prochází na 100 %**.
+  - TypeScript `tsc --noEmit` i ESLint: **0 chyb, 0 varování**.
+  - Produkční build `npm run build`: **všech 41 Next.js tras sestaveno bez chyb**.
+
 
 
 

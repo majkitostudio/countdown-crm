@@ -1,0 +1,149 @@
+{
+  "$schema": "./catalog-seed-schema.json",
+  "workspaceId": "00000000-0000-0000-0000-000000000001",
+  "products": [
+    {
+      "id": "11111111-0000-0000-0000-000000000001",
+      "title": "ArthroFlex Active Forte",
+      "category": "supplements",
+      "price": 1199,
+      "currency": "CZK",
+      "description": "Prémiový třísložkový kloubní komplex s glukosaminem, MSM a rybím kolagenem typu II. Určeno pro regeneraci chrupavek, ranní hybnost a úlevu při zátěži.",
+      "image_url": "/images/products/arthroflex.png",
+      "in_stock": true,
+      "script": {
+        "opening": "Dobrý den, pane/paní, volám ze zákaznického centra Countdown ohledně Vašeho zájmu o podporu kloubů a hybnosti. Než se podíváme na samotný doplněk, smím se zeptat, jaké potíže Vás v poslední době nejvíce omezují?",
+        "discoveryQuestions": [
+          "Trápí Vás spíše ranní ztuhlost nebo ostrá bolest při chůzi do schodů a delším stání?",
+          "Jak dlouho již tyto obtíže pociťujete a zkoušel(a) jste již nějaké masti nebo doplňky z lékárny?",
+          "Co je pro Vás při výběru nejdůležitější – rychlost nástupu úlevy, nebo čisté přírodní složení bez chemie?"
+        ],
+        "approvedBenefits": [
+          "Synergické složení s vysokou biologickou dostupností – kombinace glukosamin sulfátu a hydrolyzovaného kolagenu typu II vyživuje chrupavku zevnitř.",
+          "Jednoduché dávkování – pouze 2 kapsle denně ráno k jídlu bez podráždění žaludku.",
+          "Doporučená délka kúry je 3 až 4 měsíce pro dlouhodobou obnovu kloubního pouzdra a synoviální tekutiny."
+        ],
+        "pricingOffer": "Běžná katalogová cena na e-shopu je 1 399 Kč. Dnes Vám v rámci telefonické akce nabízím balení za 1 199 Kč. Při volbě plné 3–4měsíční kúry cena klesá na 999 Kč za balení a navíc přidáváme 2 odborné e-knihy o pohybovém aparátu a dopravu zdarma.",
+        "closing": "Pokud s touto péčí souhlasíte, balíček Vám odešleme ještě dnes na dobírku. Žádné placení předem, zaplatíte až při převzetí u kurýra. Můžeme potvrdit Vaši doručovací adresu?",
+        "guardrails": [
+          "Nikdy neslibovat lékařské uzdravení, vymizení těžké artrózy 4. stupně ani okamžitý účinek do 24 hodin.",
+          "Nezamlčovat podmínky dopravy a platby na dobírku.",
+          "Neprezentovat se jako ošetřující lékař, ale jako odborný specialista zákaznické linky."
+        ]
+      },
+      "objections": [
+        {
+          "title": "Cena je příliš vysoká",
+          "rebuttals": [
+            "Naprosto Vám rozumím. Při rozpočítání na denní dávku to však vychází na zhruba 33 Kč – což je méně než jedna běžná káva v restauraci.",
+            "V běžné lékárně byste musel(a) koupit 3 různé preparáty, abyste získal(a) stejnou dávku kolagenu, glukosaminu a MSM, a zaplatil(a) byste více.",
+            "V případě objednávky zvýhodněného balíčku máte dopravu zdarma a navíc bonusové materiály."
+          ]
+        },
+        {
+          "title": "Musím se nejdříve poradit s rodinou nebo lékařem",
+          "rebuttals": [
+            "To je zcela v pořádku a rozumný přístup. Právě proto posíláme balíček na dobírku – zásilka Vám dorazí za 2 dny a do té doby si můžete v klidu projít příbalový leták i složení.",
+            "Složení je 100% přírodní a notifikované, takže je bezpečné i při běžných lécích na tlak.",
+            "Mohu Vám mezitím rezervovat dnešní zvýhodněnou cenu, abyste o akci nepřišel(a)?"
+          ]
+        },
+        {
+          "title": "Už jsem zkoušel(a) jiné věci a nic nepomohlo",
+          "rebuttals": [
+            "To slýcháme často od klientů, kteří zkoušeli levné produkty s minimálním obsahem aktivních látek. ArthroFlex obsahuje vstřebatelnou formu MSM a kolagenní peptidy s garantovanou čistotou.",
+            "U kloubů je klíčová pravidelnost – většina lidí skončí po 2 týdnech, přičemž obnova chrupavky vyžaduje 60 až 90 dní stabilního přísunu živin."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11111111-0000-0000-0000-000000000002",
+      "title": "CardioVital Max (Omega-3 & Q10)",
+      "category": "supplements",
+      "price": 999,
+      "currency": "CZK",
+      "description": "Vysoce koncentrovaný rybí olej s vysokým podílem EPA a DHA mastných kyselin obohacený o koenzym Q10 a vitamín E pro zdravé srdce, cévy a normální krevní tlak.",
+      "image_url": "/images/products/cardiovital.png",
+      "in_stock": true,
+      "script": {
+        "opening": "Dobrý den, pane/paní, volám ze zákaznického servisu ohledně Vašeho zájmu o podporu kardiovaskulárního systému a zdraví cév. Mohu se zeptat, co Vás vedlo k zájmu o tento doplněk?",
+        "discoveryQuestions": [
+          "Řešíte v rodině spíše podporu krevního tlaku a cévní pružnosti, nebo celkovou únavu a vitalitu?",
+          "Konzumujete pravidelně mořské ryby alespoň 2–3x týdně, nebo hledáte spolehlivý zdroj kvalitních Omega-3?",
+          "Hledáte kapsle bez nepříjemné rybí pachuti v ústech?"
+        ],
+        "approvedBenefits": [
+          "Garantovaná čistota – molekulárně destilovaný olej z divoce žijících ryb bez těžkých kovů a mikroplastů.",
+          "Silný synergický efekt – spojení Omega-3 s koenzymem Q10 přímo zásobuje srdeční sval buněčnou energií.",
+          "Enterosolventní kapsle – vstřebávají se až ve střevech, takže nezpůsobují žádný nepříjemný rybí zápach."
+        ],
+        "pricingOffer": "Běžná prodejní cena v lékárnách je 1 199 Kč. Pro Vás máme dnes akční telefonickou cenu 999 Kč. U rodinného balení 3 kusů nabízíme cenu 799 Kč za kus s dopravou zdarma.",
+        "closing": "Balíček Vám odešleme kurýrem na dobírku, zaplatíte až při bezpečném předání. Mohu poprosit o kontrolu Vašeho PSČ a adresy?",
+        "guardrails": [
+          "Nikdy neslibovat vysazení léků na tlak nebo léků na ředění krve (Warfarin apod.).",
+          "Doporučit konzultaci s ošetřujícím lékařem při současném užívání silných antikoagulancií.",
+          "Uvádět pouze schválená zdravotní tvrzení dle EFSA (příznivý vliv EPA a DHA na normální činnost srdce)."
+        ]
+      },
+      "objections": [
+        {
+          "title": "Omega-3 si mohu koupit levněji v supermarketu",
+          "rebuttals": [
+            "Máte pravdu, že levné oleje existují. Ty však často mívají nízký podíl účinných kyselin EPA/DHA a bývají zoxidované, což poznáte podle zápachu.",
+            "V jedné kapsli CardioVital získáte trojnásobnou koncentraci a navíc drahý koenzym Q10, který v běžných produktech zcela chybí."
+          ]
+        },
+        {
+          "title": "Bojím se, že mi bude po rybím oleji těžko",
+          "rebuttals": [
+            "Právě proto používáme speciální enterosolventní kapsle, které se rozpouští až v tenkém střevě, nikoli v žaludku. Žádné říhání ani rybí pachuť nehrozí."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11111111-0000-0000-0000-000000000003",
+      "title": "Magnesium Bisglycinát + B6",
+      "category": "supplements",
+      "price": 890,
+      "currency": "CZK",
+      "description": "Prémiová chelátová forma hořčíku s maximální vstřebatelností (až 80 %) v kombinaci s aktivním vitamínem B6. Podporuje nervovou soustavu, hluboký spánek a svalové uvolnění bez projímavých účinků.",
+      "image_url": "/images/products/magnesium.png",
+      "in_stock": true,
+      "script": {
+        "opening": "Dobrý den, volám ohledně Vaší poptávky na vysoce vstřebatelný hořčík pro lepší spánek a regeneraci. Smím se zeptat, jaké příznaky nedostatku hořčíku na sobě nejvíce pozorujete?",
+        "discoveryQuestions": [
+          "Bývají to spíše noční křeče v lýtkách, nebo neklidný přerušovaný spánek a ranní únava?",
+          "Už jste někdy užíval(a) běžný hořčík z lékárny a měl(a) po něm zažívací potíže?",
+          "Hledáte formu, která se užívá večer před spaním pro rychlé zklidnění organismu?"
+        ],
+        "approvedBenefits": [
+          "Chelátová vazba bisglycinátu – nejlépe využitelná forma na trhu s minimálním zatížením žaludku a bez průjmů.",
+          "Rychlý nástup – díky aminokyselině glycin přirozeně navozuje klidný a hluboký spánek.",
+          "Obohaceno o aktivní vitamín B6, který pomáhá buňkám vstřebat hořčík přímo do tkání."
+        ],
+        "pricingOffer": "Běžná cena za 90 kapslí je 990 Kč. Dnes máme pro volající zvýhodněnou cenu 890 Kč. Při objednání balíčku na 6 měsíců je cena 690 Kč za kus včetně doručení zdarma.",
+        "closing": "Objednávku připravíme a pošleme ještě dnes. Platíte hotově nebo kartou kurýrovi při převzetí. Je uvedená doručovací adresa v pořádku?",
+        "guardrails": [
+          "Nenahrazovat lékařskou péči při vážných neurologických onemocněních.",
+          "Dodržovat doporučené denní dávkování 2 kapsle denně večer."
+        ]
+      },
+      "objections": [
+        {
+          "title": "Hořčík mi vždycky způsobil průjem",
+          "rebuttals": [
+            "To je přesně důvod, proč lidé přecházejí na bisglycinát. Průjem způsobují levné formy jako oxid nebo citrát hořečnatý. Chelátový bisglycinát se vstřebává přes aminokyselinové kanály a žaludek vůbec nedráždí."
+          ]
+        },
+        {
+          "title": "Užívám jiné vitamíny, nebude se to bít?",
+          "rebuttals": [
+            "Naopak, hořčík funguje v těle jako katalyzátor pro více než 300 biochemických reakcí a skvěle se doplňuje s vitamínem D i běžnými multivitaminy."
+          ]
+        }
+      ]
+    }
+  ]
+}
