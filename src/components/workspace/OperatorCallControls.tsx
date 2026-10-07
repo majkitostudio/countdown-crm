@@ -17,8 +17,6 @@ import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import { FAIL_REASON_OPTIONS, type FailDetails, type FailReason, isNoteRequiredForFailReason, validateFailDetails } from "@/lib/postCall";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { Button } from "@/components/ui/Button";
-import { StatusAlert } from "@/components/ui/Status";
-import { Surface } from "@/components/ui/Surface";
 
 const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   value: CallOutcome;
@@ -116,58 +114,46 @@ export function CallOutcomePanel({
   };
 
   return (
-    <Surface
-      variant="page"
-      className="p-3"
+    <div
+      className="mt-4 rounded-xl border border-amber-900/60 bg-amber-950/20 p-3"
       data-testid="call-outcome-panel"
-      aria-labelledby="call-outcome-panel-title"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p id="call-outcome-panel-title" className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Post-call outcome required</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Post-call outcome required</p>
           <p className="mt-1 text-[11px] text-amber-300/80">
             {recoveryRequired ? "The call was interrupted. This lead remains assigned to you for recovery." : "Choose one explicit outcome to finish this call."}
           </p>
         </div>
-        <span role="status" aria-live="polite" className="text-right text-[10px] text-amber-200">
-          {isCompletionPending
-            ? "Saving outcome…"
-            : selectedOutcome
-            ? `${CALL_OUTCOME_OPTIONS.find((option) => option.value === selectedOutcome)?.label} selected locally — not saved yet.`
-            : "No outcome selected yet."}
-        </span>
+        {isCompletionPending && <span className="text-[10px] text-amber-200">Saving…</span>}
       </div>
-      <p className="mt-2 text-[11px] text-zinc-500" id="call-outcome-panel-help">
-        Selection is local until the completion action succeeds. Keyboard focus is shown separately.
-      </p>
+
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Post-call outcome options">
         {CALL_OUTCOME_OPTIONS.map(({ value, label, icon: Icon, shortcut }) => {
           const isSelected = selectedOutcome === value;
           return (
-            <Button
+            <button
               key={value}
               id={value === "fail" ? "call-outcome-fail" : undefined}
               type="button"
               disabled={isCompletionPending}
               aria-busy={isCompletionPending && isSelected}
               aria-pressed={isSelected}
-              aria-describedby="call-outcome-panel-help"
               aria-keyshortcuts={shortcut}
               data-selected={isSelected ? "true" : "false"}
               onClick={() => handleOutcomeSelect(value)}
-              variant={isSelected ? "primary" : "secondary"}
-              className={`min-h-10 gap-1.5 ${value === "order" ? "font-semibold" : ""}`}
+              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-[11px] transition-[border-color,background-color,box-shadow,color] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 ${getCallOutcomeButtonClassName(isSelected)} ${value === "order" ? "font-semibold" : ""}`}
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-              <kbd className="rounded border border-zinc-700/80 bg-zinc-950/70 px-1 font-mono text-[10px] text-zinc-500">{shortcut}</kbd>
               <span>{label}</span>
               {isSelected && <span className="sr-only">Selected</span>}
-            </Button>
+            </button>
           );
         })}
       </div>
+
       {selectedOutcome === "fail" && (
-        <Surface variant="inset" className="mt-3 p-3" data-testid="fail-details-panel">
+        <div className="mt-3 space-y-3 rounded-lg border border-rose-900/60 bg-rose-950/20 p-3" data-testid="fail-details-panel">
           <div>
             <label htmlFor="fail-reason" className="text-[11px] font-semibold text-rose-100">Fail reason</label>
             <select
@@ -200,21 +186,20 @@ export function CallOutcomePanel({
               className="mt-1.5 w-full resize-y rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
             />
           </div>
-          {failValidationError && <StatusAlert tone="danger" className="text-[11px]">{failValidationError}</StatusAlert>}
+          {failValidationError && <p role="alert" className="text-[11px] text-rose-300">{failValidationError}</p>}
           <div className="flex justify-end">
-            <Button
+            <button
               type="button"
               onClick={handleFailSubmit}
               disabled={isCompletionPending}
-              variant="danger"
-              className="text-[11px] py-2"
+              className="rounded-lg bg-rose-200 px-3 py-2 text-[11px] font-semibold text-rose-950 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Save Fail
-            </Button>
+            </button>
           </div>
-        </Surface>
+        </div>
       )}
-    </Surface>
+    </div>
   );
 }
 
