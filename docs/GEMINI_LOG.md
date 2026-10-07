@@ -496,6 +496,34 @@ Projekt plnohodnotně funguje v **simulačním režimu** (zdarma a spolehlivě p
   - **Celá testovací sada: 169 testovacích souborů (805 testů) prochází na 100 %**.
   - TypeScript `tsc --noEmit` hlásí 0 chyb.
 
+---
+
+## 25. Milník 5 (Úkol 5.1) — Čistá migrační zkouška & Verifikace 127 migrací (7. října 2026)
+**Agent:** Senior Lead Developer (Opencode)  
+**Úkol:** Provést čistou migrační zkoušku (obdoba `supabase db reset`) pro všech 127 SQL migrací v `supabase/migrations/`. Ověřit, že od prázdné databáze až po nejnovější stav proběhne aplikace bez chybějících tabulek či sloupců, bez závislostních konfliktů a se správně definovanými složenými indexy.
+
+- **1. Analyzátor a simulátor sekvenčních migrací (`scripts/verify-all-migrations.mjs`):**
+  - Prochází všech 127 migračních souborů v přesném chronologickém pořadí.
+  - Simuluje inkrementální stav databáze od nuly:
+    - Eviduje vytváření tabulek (`CREATE TABLE`).
+    - Parcuje změny schématu (`ALTER TABLE ... ADD COLUMN`, včetně více sloupců oddělených čárkou).
+    - Eviduje vytváření a nahrazování procedur/funkcí (`CREATE OR REPLACE FUNCTION`).
+    - Kontroluje vyváženost ohraničení těla procedur (`$$`).
+    - Přísně validuje indexy (`CREATE INDEX ... ON table (cols)`): ověřuje, že cílová tabulka existuje a že všechny indexované sloupce v ní byly dříve definovány.
+  - Prověřil klíčové složené indexy z nedávného auditu: `leads(workspace_id, status)` a `lead_queue_items(assigned_operator_id, state)`.
+  - Výsledek auditu celého řetězce: **127 souborů zkontrolováno, 49 tabulek sledováno, 115 funkcí ověřeno, 0 chyb, 0 varování**.
+- **2. Kontraktový regresní test (`tests/migrations-clean-reset-contract.test.ts`):**
+  - Zahrnut přímo do standardní testovací sady (`npm test`):
+    - Test 1: Chronologie a pojmenování (YYYYMMDDHHMMSS) bez mezer či zpětných skoků.
+    - Test 2: Syntaktická vyváženost bloků `$$` pro všechny uložené procedury.
+    - Test 3: Sekvenční integrita tabulek, sloupců a indexů (zajišťuje, že žádná budoucí migrace neodkáže na neexistující sloupec či tabulku).
+- **3. NPM skript integrace (`package.json`):**
+  - Přidán příkaz `"verify:migrations": "node scripts/verify-all-migrations.mjs"` pro rychlé spuštění v CI/CD a před deploymentem.
+- **4. Ověření a testy:**
+  - `npm run verify:migrations`: 127/127 souborů OK (0 chyb).
+  - Celá testovací sada: **170 testovacích souborů (808 testů) prochází na 100 %**.
+  - TypeScript `tsc --noEmit` a ESLint: **0 chyb, 0 varování**.
+
 
 
 
