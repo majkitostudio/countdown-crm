@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { createDataClient } from "./db";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceRole } from "./workspace";
@@ -49,6 +50,13 @@ function isUuid(value: string): boolean {
 }
 
 export async function listTeamOwnershipRecords(): Promise<TeamOwnershipData> {
+  if (isDemoAuthEnabled()) {
+    return {
+      leads: [],
+      queueItems: [],
+    };
+  }
+
   const context = await requireWorkspaceRole(["administrator"]);
   const supabase = await createDataClient();
 

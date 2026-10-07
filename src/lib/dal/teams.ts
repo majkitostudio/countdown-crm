@@ -1,10 +1,13 @@
 import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { createDataClient } from "./db";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceRole } from "./workspace";
 import { normalizeTeamSlug } from "@/lib/teamModel";
+
+const DEMO_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
 
 type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
 type TeamMembershipRow = Database["public"]["Tables"]["team_memberships"]["Row"];
@@ -57,7 +60,41 @@ function mapTeamMembership(
   };
 }
 
+export const DEMO_TEAMS: TeamDTO[] = [
+  {
+    id: "demo-team-p1",
+    workspace_id: DEMO_WORKSPACE_ID,
+    name: "Fronta P1 (Hlavní prodejní linka)",
+    slug: "fronta-p1",
+    status: "active",
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+  {
+    id: "demo-team-p2",
+    workspace_id: DEMO_WORKSPACE_ID,
+    name: "Fronta P2 (Ranní směna)",
+    slug: "fronta-p2",
+    status: "active",
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+  {
+    id: "demo-team-p4",
+    workspace_id: DEMO_WORKSPACE_ID,
+    name: "Oddělení P4 (Retargeting & Recyklace)",
+    slug: "oddeleni-p4",
+    status: "active",
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+];
+
 export async function listAccessibleTeams(requestedWorkspaceId?: string): Promise<TeamDTO[]> {
+  if (isDemoAuthEnabled()) {
+    return DEMO_TEAMS;
+  }
+
   const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data, error } = await supabase
@@ -83,6 +120,10 @@ const TEAM_SELECT_COLUMNS = "id, workspace_id, name, slug, status, created_at, u
  * every team-scoped query.
  */
 export async function listSelectableWorkspaceTeams(requestedWorkspaceId?: string): Promise<TeamDTO[]> {
+  if (isDemoAuthEnabled()) {
+    return DEMO_TEAMS;
+  }
+
   const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
 
@@ -174,6 +215,28 @@ export async function listTeamMemberships(
 ): Promise<TeamMembershipDTO[]> {
   if (!teamId.trim()) {
     throw new DataAccessError("VALIDATION", "A team is required");
+  }
+
+  if (isDemoAuthEnabled()) {
+    if (teamId === "demo-team-p1") {
+      return [
+        {
+          id: "membership-op-1",
+          workspace_id: DEMO_WORKSPACE_ID,
+          team_id: "demo-team-p1",
+          user_id: "demo-op-1",
+          membership_role: "member",
+          active_from: "2026-09-01T08:00:00.000Z",
+          active_until: null,
+          created_at: "2026-09-01T08:00:00.000Z",
+          updated_at: "2026-09-01T08:00:00.000Z",
+          full_name: "Jan Kačmář",
+          email: "countdown@majkito.com",
+          avatar_url: null,
+        },
+      ];
+    }
+    return [];
   }
 
   const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);

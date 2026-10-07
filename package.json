@@ -13,6 +13,7 @@
     "seed:catalog": "node scripts/seed-catalog.mjs",
     "provision:user": "node scripts/provision-user.mjs",
     "provision:test-team-leader": "node scripts/provision-test-team-leader.mjs",
+    "test:smoke": "node scripts/playwright-smoke-test.mjs",
     "lint": "eslint src tests vitest.config.mts",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm run build"

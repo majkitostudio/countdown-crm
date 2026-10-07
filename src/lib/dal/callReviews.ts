@@ -2,6 +2,7 @@ import "server-only";
 
 import { parseCallTranscript, type CallTranscript } from "@/lib/callTranscript";
 import type { Database } from "@/lib/supabase/types";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { createDataClient } from "@/lib/dal/db";
 import { DataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceRole, type WorkspaceContext } from "@/lib/dal/workspace";
@@ -94,7 +95,7 @@ export async function listCallReviewStatuses(
   }
 
   const statuses = new Map<string, CallReviewStatus>(callIds.map((callId) => [callId, "not_reviewed"]));
-  if (callIds.length === 0) return statuses;
+  if (callIds.length === 0 || isDemoAuthEnabled()) return statuses;
 
   const supabase = await createDataClient();
   const { data, error } = await supabase

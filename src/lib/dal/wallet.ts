@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
@@ -58,6 +59,17 @@ async function loadWalletSettings(
   workspaceId: string,
   supabase: Awaited<ReturnType<typeof createDataClient>>,
 ): Promise<WalletSettingsRow> {
+  if (isDemoAuthEnabled()) {
+    return {
+      workspace_id: workspaceId,
+      currency: "CZK",
+      monthly_commission_rate: 8,
+      updated_by: null,
+      created_at: "2026-09-01T08:00:00.000Z",
+      updated_at: "2026-09-01T08:00:00.000Z",
+    };
+  }
+
   const { data, error } = await supabase
     .from("wallet_settings")
     .select("workspace_id, currency, monthly_commission_rate, updated_by, created_at, updated_at")
@@ -74,6 +86,10 @@ async function loadWalletRules(
   workspaceId: string,
   supabase: Awaited<ReturnType<typeof createDataClient>>,
 ): Promise<WalletBonusRuleRow[]> {
+  if (isDemoAuthEnabled()) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("wallet_bonus_rules")
     .select("id, workspace_id, currency, minimum_order_amount, bonus_amount, effective_from, created_by, created_at")
@@ -95,6 +111,28 @@ async function loadWalletTransactions(
   canManage: boolean,
   supabase: Awaited<ReturnType<typeof createDataClient>>,
 ): Promise<WalletTransactionRow[]> {
+  if (isDemoAuthEnabled()) {
+    return [
+      {
+        id: "demo-tx-1",
+        workspace_id: workspaceId,
+        user_id: "demo-op-1",
+        amount: 3344,
+        currency: "CZK",
+        transaction_type: "monthly_commission",
+        source_type: "commission_period",
+        source_event_id: "demo-event-1",
+        source_order_id: null,
+        source_period_start: "2026-09-01",
+        reason: "Měsíční provize za září 2026",
+        author_id: "demo-user",
+        audit_log_id: null,
+        rule_snapshot: {},
+        created_at: "2026-10-01T10:00:00.000Z",
+      },
+    ];
+  }
+
   let query = supabase
     .from("wallet_transactions")
     .select("id, workspace_id, user_id, amount, currency, transaction_type, source_type, source_event_id, source_order_id, source_period_start, reason, author_id, audit_log_id, rule_snapshot, created_at")
@@ -116,6 +154,27 @@ async function loadWalletBalances(
   workspaceId: string,
   supabase: Awaited<ReturnType<typeof createDataClient>>,
 ): Promise<Array<Record<string, unknown>>> {
+  if (isDemoAuthEnabled()) {
+    return [
+      {
+        user_id: "demo-op-1",
+        balance: 6244,
+        total_credits: 6244,
+        total_debits: 0,
+        transaction_count: 5,
+        user_name: "Jan Kačmář",
+      },
+      {
+        user_id: "demo-op-2",
+        balance: 4384,
+        total_credits: 4384,
+        total_debits: 0,
+        transaction_count: 3,
+        user_name: "Lucie Nováková",
+      },
+    ];
+  }
+
   const { data, error } = await supabase.rpc("get_wallet_balances", { p_workspace_id: workspaceId } as never);
 
   if (error) {
@@ -424,9 +483,6 @@ export async function finalizeWorkspaceMonthlySettlement(input: {
 export async function getMonthlySettlementSummary(input?: {
   periodStart?: string;
 }): Promise<MonthlySettlementSummaryDTO> {
-  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
-  const supabase = await createDataClient();
-
   // Default to 1st of previous month
   const now = new Date();
   const prevMonthDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
@@ -440,6 +496,64 @@ export async function getMonthlySettlementSummary(input?: {
 
   const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString().slice(0, 10);
   const canFinalize = periodStart < currentMonthStart;
+
+  if (isDemoAuthEnabled()) {
+    const demoOperators: OperatorSettlementDTO[] = [
+      {
+        userId: "demo-op-1",
+        userName: "Jan Kačmář",
+        userEmail: "countdown@majkito.com",
+        deliveredCount: 24,
+        deliveredTotal: 45600,
+        returnedCount: 2,
+        returnedTotal: 3800,
+        netTurnover: 41800,
+        fixedBonuses: 2400,
+        commissionRate: 8,
+        commissionAmount: 3344,
+        manualAdjustments: 500,
+        totalPayout: 6244,
+        isFinalized: false,
+        transactionId: null,
+      },
+      {
+        userId: "demo-op-2",
+        userName: "Lucie Nováková",
+        userEmail: "lucie.novakova@countdowncrm.local",
+        deliveredCount: 18,
+        deliveredTotal: 34200,
+        returnedCount: 1,
+        returnedTotal: 1900,
+        netTurnover: 32300,
+        fixedBonuses: 1800,
+        commissionRate: 8,
+        commissionAmount: 2584,
+        manualAdjustments: 0,
+        totalPayout: 4384,
+        isFinalized: false,
+        transactionId: null,
+      },
+    ];
+
+    return {
+      periodStart,
+      periodEnd,
+      currency: "CZK",
+      commissionRate: 8,
+      totalDeliveredTotal: 79800,
+      totalReturnedTotal: 5700,
+      totalNetTurnover: 74100,
+      totalFixedBonuses: 4200,
+      totalCommission: 5928,
+      totalManualAdjustments: 500,
+      totalPayout: 10628,
+      operators: demoOperators,
+      canFinalize: true,
+    };
+  }
+
+  const context = await requireWorkspaceRole(["team_leader", "administrator"]);
+  const supabase = await createDataClient();
 
   const pStartIso = new Date(`${periodStart}T00:00:00.000Z`).toISOString();
   const pEndIso = new Date(`${periodEnd}T00:00:00.000Z`).toISOString();

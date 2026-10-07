@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
+import { isDemoAuthEnabled } from "@/lib/auth/config";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { getScopedLeadForWorkspace } from "./leadQueue";
@@ -355,6 +356,117 @@ function buildLookups(rows: ActivityRows) {
   };
 }
 
+const DEMO_CALLS: WorkspaceCallDTO[] = [
+  {
+    id: "demo-call-1",
+    lead_id: "demo-lead-1",
+    lead_name: "František Dvořák",
+    agent_id: "demo-op-1",
+    agent_name: "Jan Kačmář",
+    duration_seconds: 245,
+    outcome: "order_placed",
+    fail_reason: null,
+    operator_note: "Zájem o plnou kúru 4 balení na klouby. Domluvena platba dobírkou.",
+    sentiment: "Positive",
+    order_value: 3596,
+    transcript: "Operátor: Dobrý den, volám ohledně... Klient: Ano, mám zájem.",
+    created_at: "2026-10-06T14:25:00.000Z",
+  },
+];
+
+const DEMO_ORDERS: WorkspaceOrderDTO[] = [
+  {
+    id: "demo-order-1",
+    team_id: "demo-team-p1",
+    lead_id: "demo-lead-1",
+    lead_name: "František Dvořák",
+    product_id: "demo-prod-1",
+    product_title: "ArthroFlex Active Forte (4 balení)",
+    agent_id: "demo-op-1",
+    agent_name: "Jan Kačmář",
+    total_amount: 3596,
+    currency: "CZK",
+    items: [
+      {
+        id: "item-1",
+        product_id: "demo-prod-1",
+        product_title: "ArthroFlex Active Forte",
+        unit_price: 899,
+        minimum_unit_price: 799,
+        quantity: 4,
+        line_total: 3596,
+        currency: "CZK",
+      },
+    ],
+    status: "sent",
+    order_source: "previous_call",
+    source_note: "Ověřená objednávka z hovoru",
+    tracking_number: "Z123456789CZ",
+    carrier: "Packeta",
+    package_location: null,
+    tracking_events: [],
+    delivery_address_snapshot: {
+      fullName: "František Dvořák",
+      street: "Nádražní 45",
+      city: "Brno",
+      postalCode: "60200",
+      country: "CZ",
+      phone: "+420777123456",
+      verifiedWithCustomer: true,
+    },
+    delivered_at: null,
+    status_history: [],
+    revision: 1,
+    created_at: "2026-10-06T14:30:00.000Z",
+    can_manage: true,
+  },
+  {
+    id: "demo-order-2",
+    team_id: "demo-team-p1",
+    lead_id: "demo-lead-2",
+    lead_name: "Marie Svobodová",
+    product_id: "demo-prod-2",
+    product_title: "CardioVital Max (2 balení)",
+    agent_id: "demo-op-1",
+    agent_name: "Jan Kačmář",
+    total_amount: 1998,
+    currency: "CZK",
+    items: [
+      {
+        id: "item-2",
+        product_id: "demo-prod-2",
+        product_title: "CardioVital Max",
+        unit_price: 999,
+        minimum_unit_price: 799,
+        quantity: 2,
+        line_total: 1998,
+        currency: "CZK",
+      },
+    ],
+    status: "delivered",
+    order_source: "previous_call",
+    source_note: "Doručeno a zaplaceno dobírkou",
+    tracking_number: "BA123456789CZ",
+    carrier: "Balikovna",
+    package_location: null,
+    tracking_events: [],
+    delivery_address_snapshot: {
+      fullName: "Marie Svobodová",
+      street: "Václavské náměstí 1",
+      city: "Praha",
+      postalCode: "11000",
+      country: "CZ",
+      phone: "+420777987654",
+      verifiedWithCustomer: true,
+    },
+    delivered_at: "2026-10-07T10:00:00.000Z",
+    status_history: [],
+    revision: 1,
+    created_at: "2026-10-05T09:15:00.000Z",
+    can_manage: true,
+  },
+];
+
 export async function listWorkspaceCalls(
   requestedWorkspaceId?: string,
   limit?: number
@@ -371,6 +483,10 @@ export async function listWorkspaceCallsInContext(
   context: WorkspaceContext,
   limit?: number
 ): Promise<WorkspaceCallDTO[]> {
+  if (isDemoAuthEnabled()) {
+    return limit === undefined ? DEMO_CALLS : DEMO_CALLS.slice(0, limit);
+  }
+
   const rows = await loadActivityRows(context.workspaceId, undefined, true, false, limit);
   const { customerNameFor, operatorNameFor } = buildLookups(rows);
 
@@ -434,6 +550,10 @@ export async function listWorkspaceOrdersInContext(
   context: WorkspaceContext,
   limit?: number
 ): Promise<WorkspaceOrderDTO[]> {
+  if (isDemoAuthEnabled()) {
+    return limit === undefined ? DEMO_ORDERS : DEMO_ORDERS.slice(0, limit);
+  }
+
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("list_workspace_orders", {
     target_workspace_id: context.workspaceId,

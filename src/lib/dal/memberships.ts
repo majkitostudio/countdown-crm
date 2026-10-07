@@ -8,6 +8,8 @@ import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceRole } from "./workspace";
 
+const DEMO_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
+
 type MembershipRow = Database["public"]["Tables"]["workspace_members"]["Row"];
 type ProfileRow = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],
@@ -112,7 +114,54 @@ async function loadMember(
   };
 }
 
+const DEMO_MEMBERS: WorkspaceMemberDTO[] = [
+  {
+    workspace_id: DEMO_WORKSPACE_ID,
+    user_id: "demo-user",
+    role: "administrator",
+    full_name: "Demo Administrátor",
+    email: "admin@countdowncrm.local",
+    avatar_url: null,
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+  {
+    workspace_id: DEMO_WORKSPACE_ID,
+    user_id: "demo-tl-1",
+    role: "team_leader",
+    full_name: "Jan Manažer (TL)",
+    email: "tl@countdowncrm.local",
+    avatar_url: null,
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+  {
+    workspace_id: DEMO_WORKSPACE_ID,
+    user_id: "demo-op-1",
+    role: "operator",
+    full_name: "Jan Kačmář",
+    email: "countdown@majkito.com",
+    avatar_url: null,
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+  {
+    workspace_id: DEMO_WORKSPACE_ID,
+    user_id: "demo-op-2",
+    role: "operator",
+    full_name: "Lucie Nováková",
+    email: "lucie.novakova@countdowncrm.local",
+    avatar_url: null,
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+];
+
 export async function listWorkspaceMembers(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
+  if (isDemoAuthEnabled()) {
+    return DEMO_MEMBERS;
+  }
+
   const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   const { data: memberships, error } = await supabase
@@ -129,6 +178,10 @@ export async function listWorkspaceMembers(requestedWorkspaceId?: string): Promi
 }
 
 export async function listWorkspaceOperators(requestedWorkspaceId?: string): Promise<WorkspaceMemberDTO[]> {
+  if (isDemoAuthEnabled()) {
+    return DEMO_MEMBERS.filter((m) => m.role === "operator");
+  }
+
   const context = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
   const supabase = await createDataClient();
   let operatorQuery = supabase
