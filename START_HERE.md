@@ -8,29 +8,36 @@ Countdown CRM je komplexní all-in-one CRM systém vytvořený na míru pro konk
 
 Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. Je to specializovaný provozní systém, který má propojit práci s leady, zákazníky, hovory, produkty, objednávkami, týmy, kvalitou, tréninkem, reportingem a administrací do jednoho použitelného prostředí.
 
-## Role v systému
+## Organizační hierarchie
 
-- **Operátor** — pracuje s leadem, zákazníkem, hovorem, skriptem, výsledkem a dalším krokem.
-- **Team Leader** — řídí tým, fronty, výjimky, pomoc operátorům, kvalitu a výsledky.
-- **Administrátor** — spravuje workspace, uživatele, role, týmy, skripty a provozní nastavení.
+- **Workspace = Systém firmy:** Globální prostředí konkrétního call centra.
+- **Kampaň = Oddělení (P1–P4):**
+  - **P1:** Senior Sales / Hot Leads (elitní prodejci, prioritní kontakty, maximalizace košíku).
+  - **P2:** Standard Sales / Mass Outbound (masové databáze z různých zdrojů, běžní operátoři).
+  - **P3:** Retence & Upsell (automaticky po 3 týdnech / 21 dnech od převzetí balíčku do ruky klienta).
+  - **P4:** Poslední záchrana (faily po 24h na druhý den, vratky na Re-ship, zásilky ležící na výdejně > 3 dny bez hovoru).
+- **Týmy = Rozdělení Kampaně:** Jednotlivé směny a operační jednotky (např. ranní směna, směna A).
+- **Team Leader = Supervisor & Trenér:** Stará se o svůj Tým, trénuje, pomáhá při hovorech a řídí kvalitu.
+- **Administrátor:** Řídí a spravuje celý Workspace.
+- **Operátor:** Pracuje na lince ve svém Týmu a Kampani.
 
-Operator Console je jeden hlavní workflow scope, nikoli definice celého produktu.
+## Kde je projekt nyní (stav k 9. 10. 2026)
 
-## Kde je projekt nyní
+Projekt má postavenou pevnou, modulární kostru dat a byznys logiky:
+- **100% test pass rate:** 823+ testů ve 174 souborech, 128 čistých migrací bez závislostních chyb.
+- **Ověřená kostra kampaní:** Oddělení P1 až P4, 24h cooldown pro faily, 21 dní pro retenci P3 a záchrana zásilek pro P4.
+- **Expedice a kurýři:** CSV exporty pro Zásilkovnu, Balíkovnu, GLS, sledovací čísla a linky na kurýry.
+- **Provize a Mzdy:** Měsíční uzávěrka pro Team Leadera na `/wallet` a export podkladů pro mzdy v CSV.
+- **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování, systém funguje se simulovaným/standardním workflow.
 
-Projekt má rozsáhlý funkční základ, role-aware navigaci, Operator Console, týmové pracovní plochy, správu uživatelů a týmů, objednávky, telefonní integrační vrstvy, trénink a AI podporu kvality. Některé části jsou ověřené automatickými nebo browser testy, jiné stále vyžadují produktový audit a ověření v souvislém pracovním dni.
+## Aktuální roadmapa k reálnému MVP
 
-Demo režim slouží k rychlému lokálnímu ověření bez živé databáze. Není náhradou produkční autentizace ani skutečných provozních dat.
+K reálnému a použitelnému MVP nás čeká doladění a začištění systému:
+1. **Pročištění systému:** Odstranění zbytných/nepoužívaných částí (generické dealy v `/objects`, slepé uličky).
+2. **Analýza mezer pro zlepšení:** Kontrola To-Do listů a nedodělků v jednotlivých workflow.
+3. **UI/UX Upgrade & Sjednocení designu:** Zpřehlednění ovládání pro operátora i Team Leadera, jednotné komponenty a čistý moderní vzhled.
+4. **Příprava na napojení ostrých leadů:** Automatizovaný přísun dat do kampaní P1 a P2 přes API.
 
-## Aktuální hlavní úkol
-
-Vrátit systému jasnou identitu a strukturu bez dalšího nekontrolovaného přidávání funkcí:
-
-1. zvalidovat všechny současné produktové oblasti a obrazovky;
-2. oddělit důležité pracovní prostory od podpůrných a administrativních nástrojů;
-3. zjednodušit navigaci bez ochuzení potřeb call centra;
-4. auditovat použitelnost jednotlivých workflow;
-5. teprve potom redesignovat obrazovky, které to skutečně potřebují.
 
 ## Co právě nemáme dělat
 

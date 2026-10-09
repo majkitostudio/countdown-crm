@@ -273,8 +273,15 @@ async function loadLatestOrder(
 function routingContextFromAssignment(
   assignment: LeadQueueSnapshot,
   call?: ConversationBriefCallSource | null,
+  order?: ConversationBriefOrderSource | null,
 ): string {
   if (assignment.scheduled_at) return "Scheduled callback";
+  if (order?.status === "returned") {
+    return "P4 Záchrana — vrácený balíček (Re-ship)";
+  }
+  if (order?.status === "delivered") {
+    return "P3 Retence — kontrola spokojenosti po doručení & nabídka kůry";
+  }
   if (call?.outcome === "objection" && call?.fail_reason) {
     const czechReason = getFailReasonCzechLabel(call.fail_reason as FailReason);
     return `P4 Retargeting — předchozí námitka: ${czechReason}`;
@@ -313,12 +320,13 @@ export async function getConversationBriefForWorkspace(
   ]);
 
   const resolvedCall = call.status === "fulfilled" ? call.value : null;
+  const resolvedOrder = order.status === "fulfilled" ? order.value : null;
 
   return buildConversationBrief(assignment, {
     call,
     note,
     order,
-    queueReason: { status: "fulfilled", value: routingContextFromAssignment(assignment, resolvedCall) },
+    queueReason: { status: "fulfilled", value: routingContextFromAssignment(assignment, resolvedCall, resolvedOrder) },
     productScripts,
   });
 }

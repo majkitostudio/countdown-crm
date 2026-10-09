@@ -55,6 +55,7 @@ export interface CallOutcomePanelProps {
   isAwaitingOutcome: boolean;
   isCompletionPending?: boolean;
   recoveryRequired?: boolean;
+  callEndedInSession?: boolean;
   onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback: () => void;
 }
@@ -76,6 +77,7 @@ export function CallOutcomePanel({
   isAwaitingOutcome,
   isCompletionPending = false,
   recoveryRequired = false,
+  callEndedInSession = false,
   onCallOutcome,
   onScheduleCallback,
 }: CallOutcomePanelProps) {
@@ -84,7 +86,7 @@ export function CallOutcomePanel({
   const [failNote, setFailNote] = useState("");
   const [failValidationError, setFailValidationError] = useState<string | null>(null);
 
-  if (!isAwaitingOutcome) return null;
+  if (!isAwaitingOutcome || (!callEndedInSession && !recoveryRequired)) return null;
 
   const handleOutcomeSelect = (outcome: CallOutcome) => {
     if (isCompletionPending) return;

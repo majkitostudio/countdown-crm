@@ -29,7 +29,7 @@ describe("team assistance signal", () => {
   it("offers the simple operator signal and manager actions", () => {
     expect(action).toContain("requestAssistanceAction");
     expect(operatorHeader).toContain("Request Help");
-    expect(operatorHeader).toContain('onRequestHelp("sos")');
+    expect(operatorHeader).toContain('onRequestHelp("help")');
     expect(operatorHeader).toContain("const assistanceControls");
     expect(operatorHeader).toContain("{assistanceControls}");
     expect(teamPanel).toContain("Co vyžaduje pozornost");

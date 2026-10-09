@@ -23,13 +23,13 @@ describe("P4 fail recycling taxonomy and cooldown", () => {
     expect(isFailReasonRecyclable(null)).toBe(false);
   });
 
-  it("calculates cooling-off intervals per fail reason", () => {
+  it("calculates cooling-off intervals per fail reason (next day / 1 day for all recyclable objections)", () => {
     expect(getFailReasonCooldownDays("unsuccessful_sale")).toBe(1);
-    expect(getFailReasonCooldownDays("needs_time")).toBe(3);
-    expect(getFailReasonCooldownDays("price")).toBe(14);
-    expect(getFailReasonCooldownDays("other")).toBe(14);
-    expect(getFailReasonCooldownDays("distrust")).toBe(21);
-    expect(getFailReasonCooldownDays("alternative_solution")).toBe(30);
+    expect(getFailReasonCooldownDays("needs_time")).toBe(1);
+    expect(getFailReasonCooldownDays("price")).toBe(1);
+    expect(getFailReasonCooldownDays("other")).toBe(1);
+    expect(getFailReasonCooldownDays("distrust")).toBe(1);
+    expect(getFailReasonCooldownDays("alternative_solution")).toBe(1);
   });
 
   it("provides operator-friendly Czech labels for call context", () => {

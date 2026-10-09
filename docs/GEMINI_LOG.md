@@ -607,6 +607,64 @@ Projekt plnohodnotně funguje v **simulačním režimu** (zdarma a spolehlivě p
   - `npm run typecheck`: **0 chyb**.
   - Celá testovací sada: **173 testovacích souborů (817 testů) prochází na 100 %**.
 
+---
+
+## 28. Playwright Browser Smoke Test, Ergonomie Operator Console & Komplexní audit (8.–9. října 2026)
+**Agent:** Senior Lead Developer & Pair Programmer (Antigravity)  
+**Úkol:** Projít celý systém, ověřit end-to-end integritu všech tras v reálném headless prohlížeči, doladit ergonomii Operator Console a zhodnotit aktuální stav před pilotním provozem.
+
+- **1. Playwright E2E Smoke Test (`scripts/playwright-smoke-test.mjs` & `package.json`):**
+  - Vytvořen samostatný automatizovaný testovací skript pro Chromium browser (`npm run test:smoke`).
+  - Spouští Next.js instanci na portu 3005 s `NEXT_PUBLIC_ALLOW_DEMO_AUTH="true"`.
+  - Prochází 21 produkčních tras (Login, Operator Console, Plánovač, Objednávky, Produkty, Hovory, AI Trénink, Tým, Výjimky, Analytika, Peněženka, Dashboard, Kontrolní stanoviště, Nastavení, User Hub, Skripty, Leady, Audit Log, Telefonie, Workflows).
+  - Testuje specifické interakce:
+    - User Hub (`/settings/users`): přítomnost KPI karet, vyhledávání a onboarding tlačítka.
+    - Objednávky (`/orders`): přítomnost Carrier export dropdownu (Zásilkovna, Balíkovna, GLS, CSV).
+    - Plánovač (`/calendar`): přítomnost schedules a osobních připomínek.
+    - Peněženka & Mzdy (`/wallet`): mzdová uzávěrka, karty metrik a CSV export do mezd.
+  - Výsledek: **21 / 21 tras úspěšně prošlo (0 JS pádů, 0 chyb)**.
+- **2. Ergonomie a ochrana chyb operátora v Operator Console (`src/app/workspace/page.tsx`):**
+  - Odstraněno redundantní tlačítko `SOS` z `OperatorLeadHeader.tsx`, zachováno čisté a profesionální `Request Help` (`tests/team-assistance.test.ts` aktualizován).
+  - Ochrana proti předčasnému ukončení: stav `callEndedInSession` v `OperatorCallControls.tsx` a `workspace/page.tsx` zajišťuje, že tlačítka pro volbu výsledku hovoru (Create Order, Inaccessible, Schedule, Failed) se zobrazí až poté, co operátor hovor reálně zavěsí nebo je vyžadována obnova (`recoveryRequired`).
+  - Optimalizace výšky a scrollování: hlavní pracovní plocha (`operator-primary-work-area`) využívá plnou výšku viewportu (`h-[calc(100vh-12rem)]`), skript má vlastní scrollovací zónu a pravý kontextový panel zákazníka (`focus-client-details`) scrolluje nezávisle bez dvojitých posuvníků.
+  - V `ConversationBriefCard.tsx` sjednoceny rámečky a poloměry na tokeny designového systému.
+- **3. Stav celého systému:**
+  - `npm test`: **173 testovacích souborů, 817 testů (100 % pass rate)**.
+  - `npm run typecheck`: **0 chyb v celém TypeScript projektu**.
+  - `npm run lint`: **0 chyb, 0 varování (ESLint 9)**.
+  - `npm run verify:migrations`: **127 SQL migrací, 49 tabulek, 115 funkcí, 0 chyb**.
+  - `npm run build`: **41 tras zkompilováno a optimalizováno Turbopackem bez chyb**.
+  - `npm run test:smoke`: **21 / 21 browser tras úspěšně ověřeno v Playwright**.
+
+---
+
+### 29. Zavedení univerzální hierarchie kampaní a oddělení P1–P4 (9. října 2026)
+
+- **1. Definice organizační hierarchie a rolí (dle produktového zadání PM):**
+  - **Workspace:** Systém celé firmy / organizace call centra.
+  - **Kampaň (Oddělení P1–P4):**
+    - **P1 (Senior Sales / Hot Leads):** Prioritní linka pro seniorní prodejce, horké poptávky a maximalizaci košíku.
+    - **P2 (Standard Sales / Mass Outbound):** Běžná linka pro masové databáze z různých zdrojů a standardní operátory.
+    - **P3 (Retence, Upsell & Péče):** Automatizovaný přechod přesně 3 týdny (21 dní) od převzetí balíčku zákazníkem (`delivered`).
+    - **P4 (Poslední záchrana & Retargeting):** Faily z P1/P2 po 24 hodinách (na 2. den), vratky na Re-ship, balíčky na výdejně > 3 dny bez hovoru.
+  - **Týmy:** Operační jednotky v rámci kampaně (směny, operační týmy A/B).
+  - **Team Leader:** Supervisor a trenér týmu, správa směn, asistence při hovorech, schvalování výjimek a kontrola kvality.
+  - **Administrátor:** Správa celého workspace, integrací, uživatelů a globálních pravidel.
+  - **Operátor:** Obsluha hovorů ve svém přiděleném týmu a kampani.
+- **2. Databázová migrace a typová konzistence (Rule 3):**
+  - Vytvořena migrace `20261009120000_p4_next_day_and_p3_retention.sql` (128 čistých migrací):
+    - Seeding týmu `Oddělení P3 (Retence)` pro všechny workspaces.
+    - Doplnění sloupců `package_arrived_at` a `pickup_call_completed_at` do `orders`.
+    - Aktualizace `complete_lead_call_with_order_items` na 24h cooldown pro recyklovatelné námitky.
+    - Trigger `orders_lifecycle_department_routing_trg` pro automatický routing do P3 (21 dní) a P4 (vratky a výdejny).
+  - Typy `src/lib/supabase/types.ts` a `DEMO_TEAMS` v `src/lib/dal/teams.ts` plně zaktualizovány.
+- **3. Testy a verifikace:**
+  - `tests/p4-recycling.test.ts` aktualizován na 1denní cooldown.
+  - `tests/conversation-brief-p4.test.ts` rozšířen o kontext P3 retence a P4 záchrany.
+  - Vytvořen nový smluvní test `tests/department-p3-p4-lifecycle-contract.test.ts` (6 testů).
+  - Celkem: **174 testovacích souborů, 823 testů prochází na 100 %**.
+
+
 
 
 

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { AlertTriangle, ExternalLink, HandHelping, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings } from "lucide-react";
+import { ExternalLink, HandHelping, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
@@ -29,6 +29,7 @@ interface OperatorLeadHeaderProps {
   isAwaitingOutcome?: boolean;
   recoveryRequired?: boolean;
   isCompletionPending?: boolean;
+  callEndedInSession?: boolean;
   onCallOutcome?: (outcome: CallOutcome, details?: FailDetails) => void;
   onScheduleCallback?: () => void;
   onRequestHelp?: (requestType: "help" | "sos") => void;
@@ -52,6 +53,7 @@ export function OperatorLeadHeader({
   isAwaitingOutcome = false,
   recoveryRequired = false,
   isCompletionPending = false,
+  callEndedInSession = false,
   onCallOutcome,
   onScheduleCallback,
   onRequestHelp,
@@ -78,30 +80,16 @@ export function OperatorLeadHeader({
           ? "call_failed"
           : "ready";
   const assistanceControls = onRequestHelp ? (
-    <>
-      <Button
-        variant="secondary"
-        type="button"
-        disabled={assistancePending}
-        onClick={() => onRequestHelp("help")}
-        title={assistancePending ? "Žádost o pomoc čeká na Team Leadera" : "Požádat o pomoc k přiřazenému leadu"}
-      >
-        <HandHelping className="h-4 w-4" />
-        {assistancePending ? "Pomoc čeká" : "Request Help"}
-      </Button>
-      {!assistancePending && (
-        <Button
-          variant="danger"
-          type="button"
-          onClick={() => onRequestHelp("sos")}
-          title="Urgentní žádost o pomoc k přiřazenému leadu"
-          aria-label="Urgentní žádost o pomoc"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          SOS
-        </Button>
-      )}
-    </>
+    <Button
+      variant="secondary"
+      type="button"
+      disabled={assistancePending}
+      onClick={() => onRequestHelp("help")}
+      title={assistancePending ? "Žádost o pomoc čeká na Team Leadera" : "Požádat o pomoc k přiřazenému leadu"}
+    >
+      <HandHelping className="h-4 w-4" />
+      {assistancePending ? "Pomoc čeká" : "Request Help"}
+    </Button>
   ) : null;
   return (
     <Surface
@@ -242,6 +230,7 @@ export function OperatorLeadHeader({
           isAwaitingOutcome={isAwaitingOutcome}
           recoveryRequired={recoveryRequired}
           isCompletionPending={isCompletionPending}
+          callEndedInSession={callEndedInSession}
           onCallOutcome={onCallOutcome}
           onScheduleCallback={onScheduleCallback}
         />

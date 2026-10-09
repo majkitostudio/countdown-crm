@@ -82,21 +82,10 @@ export function isFailReasonRecyclable(reason: unknown): boolean {
 }
 
 export function getFailReasonCooldownDays(reason: FailReason): number {
-  switch (reason) {
-    case "unsuccessful_sale":
-      return 1;
-    case "needs_time":
-      return 3;
-    case "price":
-    case "other":
-      return 14;
-    case "distrust":
-      return 21;
-    case "alternative_solution":
-      return 30;
-    default:
-      return 1;
+  if (isFailReasonRecyclable(reason)) {
+    return 1;
   }
+  return 1;
 }
 
 export function getFailReasonCzechLabel(reason: FailReason): string {

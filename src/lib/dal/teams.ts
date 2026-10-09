@@ -80,6 +80,15 @@ export const DEMO_TEAMS: TeamDTO[] = [
     updated_at: "2026-09-01T08:00:00.000Z",
   },
   {
+    id: "demo-team-p3",
+    workspace_id: DEMO_WORKSPACE_ID,
+    name: "Oddělení P3 (Retence & Péče o zákazníky)",
+    slug: "oddeleni-p3",
+    status: "active",
+    created_at: "2026-09-01T08:00:00.000Z",
+    updated_at: "2026-09-01T08:00:00.000Z",
+  },
+  {
     id: "demo-team-p4",
     workspace_id: DEMO_WORKSPACE_ID,
     name: "Oddělení P4 (Retargeting & Recyklace)",

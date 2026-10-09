@@ -1025,6 +1025,8 @@ export interface Database {
           delivery_address_snapshot: Json | null;
           delivered_at: string | null;
           returned_at: string | null;
+          package_arrived_at: string | null;
+          pickup_call_completed_at: string | null;
           fulfillment_event_id: string | null;
           created_at: string;
         };
@@ -1043,6 +1045,8 @@ export interface Database {
           tracking_number?: string | null;
           carrier?: string | null;
           package_location?: string | null;
+          package_arrived_at?: string | null;
+          pickup_call_completed_at?: string | null;
           tracking_events?: Json | null;
           revision?: number;
           delivery_address_snapshot?: Json | null;
@@ -1064,6 +1068,8 @@ export interface Database {
           tracking_number?: string | null;
           carrier?: string | null;
           package_location?: string | null;
+          package_arrived_at?: string | null;
+          pickup_call_completed_at?: string | null;
           tracking_events?: Json | null;
           revision?: number;
           delivery_address_snapshot?: Json | null;

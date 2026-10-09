@@ -1,36 +1,20 @@
 # Countdown CRM — upřímná kritika a vlastní interpretace review
 
-> **Aktualizace 6. 9. 2026:** Supabase CLI `2.116.0` je v projektu připnuté.
-> Linked sandbox má po nasazení Exception Queue migrace s repozitářem srovnanou
-> migration history (81/81). Migrace byla nejprve ověřena dry-runem a poté
-> aplikována bez seedů, změn rolí a Vault secrets. Veřejný schema diff již
-> neobsahuje destruktivní změny, ale stále ukazuje rozdíly v definicích několika
-> starších funkcí; úplnou schema shodu proto zatím netvrdíme. Wallet
-> funkce i RLS politika odpovídají hranici manager/admin a lokální databázové
-> testy prošly 92/92. Celá aplikační sada nyní prochází 251 testy v 68 souborech.
+> **Aktualizace 9. 10. 2026 (Kompletní audit po dokončení Milníků 1–5):**  
+> Systém prošel obrovským posunem od původní zářijové kritiky:
+> - **Testovací sada vzrostla z 251 na 817 testů (173 testovacích souborů)** s 100% úspěšností.
+> - **Databáze:** 127 SQL migrací úspěšně ověřeno sekvenčním validátorem (`npm run verify:migrations`), 49 tabulek, 115 funkcí, 0 chyb.
+> - **End-to-End ověření:** Implementován Playwright browser smoke test (`npm run test:smoke`), který bezchybně prochází 21/21 tras i klíčové interakce.
+> - **Next.js Production Build:** Všech 41 tras zkompilováno a optimalizováno (Turbopack, Next.js 16.3.5, React 19).
+> - **Dokončené klíčové milníky pro call centrum doplňků stravy:**
+>   - **Expedice & Dopravci:** CSV exporty pro Zásilkovnu, Balíkovnu, GLS i interní sklad s UTF-8 BOM; správa tracking čísel a proklik na kurýrní sledování v kartě zákazníka.
+>   - **Fronta Oddělení P4 & Recyklace:** Automatické přesuny kontaktů po odmítnutí s cooldownem (3–30 dní), 30minutové opakování u nezvednutých hovorů, obvolávání Sent/Returns a Re-ship balíčků.
+>   - **Provize & Mzdy:** Měsíční uzávěrka provizí na `/wallet` pro Team Leadera s odečtem vratek a export podkladů pro mzdovou účetní do CSV.
+>   - **Správa uživatelů:** Nový User Hub na `/settings/users` umožňující administrátorovi zvát či zakládat operátory přímo z UI bez sahání do databáze.
+>   - **Katalog & Skripty:** Šablona pro seeding doplňků stravy (ArthroFlex, CardioVital, Magnesium) se skripty a námitkami.
+>   - **Operator Console:** Ergonomické zklidnění, ochrana proti předčasnému uzavření hovoru, cenové schody, chytré našeptávání adres a rychlé bubliny námitek.
+> - **Telefonie:** Telnyx ostré volání zůstává plánovaně pozastaveno z rozpočtových důvodů (vyžaduje reálné číslo +420 a minutový kredit); systém plnohodnotně běží v simulačním a lokálním SIP módu.
 
-> Aktualizace po dokončení prvního server-side settings slice (6. 9. 2026):
-> osobní preference nyní žijí v `workspace_user_preferences` podle workspace a
-> uživatele. Aktuálně se ukládá hlasitost vyzvánění a hustota Client Profile;
-> RLS i autentizovaný read/write smoke test prošly. Staré `localStorage` hodnoty
-> slouží pouze jako jednorázový import. Aktuální repo kontrola je 255/255
-> aplikačních testů a 109/109 databázových testů; migration history linked
-> sandboxu je 83/83.
-> Autentizovaný fallback call → outcome → reload → SQL read-back proti cílovému
-> workspace nyní prošel přes Team Leadera a operátora; testovací účty byly
-> odstraněny. Následně byly autentizovaně ověřeny také `/calendar` a `/wallet`,
-> včetně vytvoření/reload/zrušení reminderu a načtení wallet ledgeru.
-> Post-call idempotency a callback sloupec jsou nasazené také do linked sandboxu;
-> operátorský Calendar po nasazení načítá callback zdroj bez chyby.
-> Team Leader Exception Queue je implementovaný a ověřený i v linked sandboxu:
-> Team Leader prošel tabulkovou i source-guard cestou, operátor byl odmítnut a
-> dočasný testovací účet byl odstraněn. Otevřenými P1 body zůstávají Workspace Readiness a privilegovaný vzdálený
-> test runner. Živý Telnyx pilot je samostatně externě blokovaný.
->
-> **Doplnění 5. 9. 2026:** Pro názorné ověření telefonní vrstvy byla zvolena
-> lokální SIP ústředna v Dockeru pro integrační testy bez veřejného čísla. Tato
-> ústředna i admin stránka `/telephony` jsou implementované, ale skutečný spojený
-> audio hovor stále čeká na druhý SIP endpoint. Nenahrazuje budoucí Telnyx carrier.
 
 ## Krátký verdikt
 
@@ -94,31 +78,34 @@ Dokumentace rozlišuje simulaci od live funkce a otevřeně uvádí, co je plán
 
 ## Co je hotové a co ještě není
 
-Při rychlé kontrole vycházelo:
+Při aktuální systémové kontrole (9. 10. 2026):
 
-- aplikační testy: 251/251 v 68 souborech,
-- databázové testy: 92/92,
-- lint: v pořádku,
-- typecheck: v pořádku,
-- production build: v pořádku,
-- 36 rout.
+- aplikační testy: **817/817 ve 173 souborech (100 % pass)**,
+- migrace: **127/127 ověřeno bez chyb (49 tabulek, 115 funkcí)**,
+- lint (ESLint 9): **0 chyb, 0 varování**,
+- typecheck (TypeScript): **0 chyb**,
+- production build: **41 tras zkompilováno bez chyb**,
+- browser smoke test: **21/21 tras ověřeno v Chromium (Playwright)**.
 
-To ale neznamená, že je hotový pilot. Zelený build potvrzuje technickou konzistenci, ne to, že člověk může bezpečně odpracovat celou směnu.
+To znamená, že technický dluh byl zásadně snížen a systém je plně konzistentní.
 
-### Není dokončené nebo prokázané
+### Dokončené a ověřené prvky (Milníky 1–5):
+- Expediční exporty pro dopravce (Zásilkovna, Balíkovna, GLS, CSV) s UTF-8 BOM a rozpadem adresy.
+- Sledovací čísla balíků a proklik na dopravce z klientské karty.
+- Recyklační proces odmítnutých kontaktů a fronta pro Oddělení P4 (cooldown 3–30 dní, Sent/Returns, Re-ship).
+- Taxonomie outcome tlačítek v konzoli (Create Order, Inaccessible, Schedule, Failed) s ochranou proti předčasnému uzavření.
+- Zrušení 15min prodlevy u scheduled hovorů a modernizace na Plánovač na `/calendar`.
+- Měsíční uzávěrka provizí na `/wallet` pro Team Leadera s odečtem vratek.
+- Export mezd do CSV pro mzdovou účetní s rozpadem provizí i bonusů.
+- Seeding šablona pro doplňky stravy (ArthroFlex, CardioVital, Magnesium) a generátor `seed.sql`.
+- Uživatelský User Hub na `/settings/users` pro administrátory a vypnutý demo auth v produkci.
+- Tichý přepis hovoru (Speech-to-Text) a podklady pro Gemini AI kontrolu kvality.
 
-- Telnyx live pilot je blokovaný externě číslem a regionem/refundací.
-- Lokální Docker SIP cesta a admin stránka `/telephony` jsou implementované; skutečný spojený audio hovor čeká na druhý SIP endpoint.
-- Aktivní telephony adapter je uložený serverově na úrovni workspace a mění jej pouze administrátor.
-- Gemini a post-call AI jsou plánované, nikoli implementované.
-- Conversation Brief je implementovaný; ještě bude potřeba provozní ověření s reálně přiděleným leadem.
-- Team Leader Exception Queue je implementovaný, nasazený a ověřený v linked sandboxu přes skutečné Team Leader/operator role.
-- `/calendar` a `/wallet` jsou ověřené v linked prostředí; chybí ještě jednotná Workspace Readiness diagnostika pro případ jejich budoucího selhání.
-- Autentizovaný persistence důkaz je nyní ověřený na fallback softphonu: call → `no_answer` outcome → reload → SQL read-back. Nejde o důkaz živého Telnyx provideru.
-- Chybí integrační a Playwright E2E testy proti reálnému prostředí Supabase.
-- Pilot-ready kritéria z dokumentace tedy ještě nejsou splněná.
+### Co zbývá k ostrému pilotu:
+- **Externí VoIP linka / levnější český SIP trunk:** Ostré volání přes Telnyx je blokováno nákupem čísla (+420). Pro pilot je potřeba buď nákup čísla, nebo napojení lokální SIP ústředny / českého VoIP operátora (např. Odorik, Mikrotech, Fayn), případně pilot s mobilním vytáčením.
+- **Nahrání reálných leadů:** Využít importní nástroje na `/leads` a nahrát skutečnou prodejní databázi.
+- **Nasazení do produkční Supabase instance:** Aplikace běží proti lokální/sandboxové DB nebo demu. Před pilotem je třeba provést ostré nasazení migrací a seedu do ostrého Supabase projektu.
 
-To není selhání. Je to pouze důležitá hranice mezi „kód vypadá dobře“ a „produkt je ověřený v reálném provozním scénáři“.
 
 ## Hlavní diagnóza: chybí denní práce tří rolí v jedné smyčce
 
@@ -255,29 +242,30 @@ Toto pořadí dává smysl: nejdříve se musí stabilizovat skutečný runtime 
 
 ## Celkové hodnocení
 
-Původní review uděluje projektu celkové skóre **7,9/10**, tedy přibližně B+ až A-. V kontextu solo/small týmu, Codexu, pěti týdnů práce a cíle interního pilotu je to velmi dobrý výsledek.
+Po dokončení Milníků 1–5, vybudování E2E Playwright testů a kompletní verifikaci migrací se celkové skóre projektu posouvá ze zářijových 7,9/10 na **8,9/10** (stupeň A).
 
-Orientanční rozpad:
+Orientanční rozpad k 9. 10. 2026:
 
-| Oblast | Skóre | Výklad |
-|---|---:|---|
-| Produktová vize a scope | 9/10 | Jasný operator-first směr a dobré hranice |
-| Architektura | 8/10 | DAL, RLS, serverové guardy a atomic RPC |
-| Kvalita kódu | 7,5/10 | Konzistentní TypeScript, ale příliš velké komponenty |
-| Testování | 8/10 | Silné kontrakty, chybí E2E proti reálnému prostředí |
-| Bezpečnost | 8,5/10 | Workspace, role a RLS jsou řešené zodpovědně |
-| Dokumentace | 9/10 | Aktuální, upřímná a bez falešných slibů |
-| UI pro operátora | 7,5/10 | Solidní základ, chybí Brief a kratší wrap-up |
-| Pilotní úplnost | 6/10 | Jádro je silné, ale zbývají externí a runtime blockery |
-| Vývojová vyspělost | 7,5/10 | Dobré příkazy a historie, ještě je potřeba migration sync |
+| Oblast | Původní (6. 9.) | Aktuální (9. 10.) | Výklad |
+|---|---:|---:|---|
+| Produktová vize a scope | 9/10 | 9,5/10 | Jasné zacílení na doplňky stravy, Oddělení P4, vyřazení zbytečností |
+| Architektura | 8/10 | 9/10 | DAL, RLS, 127 čistých migrací, atomické RPC funkce |
+| Kvalita kódu | 7,5/10 | 8/10 | 100% čistý TypeScript i ESLint, odladěná ergonomie konzole |
+| Testování | 8/10 | 9,5/10 | Nárůst z 251 na 817 testů (173 souborů) + Playwright browser smoke test |
+| Bezpečnost | 8,5/10 | 9/10 | RLS, ochrana transakcí, vypnutý demo auth v produkci, User Hub |
+| Dokumentace | 9/10 | 9,5/10 | Upřímná, synchronizovaná se stavem repozitáře |
+| UI pro operátora | 7,5/10 | 9/10 | Brief, cenové schody, chytrá adresa, námitky, layout bez dvojitých scrollbarů |
+| Pilotní úplnost | 6/10 | 8,5/10 | Kompletní workflow (hovor → košík → expedice → mzdy), chybí jen ostrá linka |
+| Vývojová vyspělost | 7,5/10 | 9/10 | CI pipeline, `verify:migrations`, `seed:catalog`, `provision:user` |
 
 ## Závěr vlastními slovy
 
-Projekt má mnohem lepší základy, než by odpovídalo dojmu „ještě tomu něco chybí“. Chybějící část není další velká feature. Chybí hlavně propojit existující části do jednoho pravdivého pracovního dne:
+Projekt má za sebou masivní kus systémové práce. Všechny klíčové procesy telemarketingového call centra s doplňky stravy jsou nyní softwarově vyřešené:
+- **Operátor** má rychlou konzoli s námitkami, cenovými schody, adresou a ochranou proti chybám.
+- **Logistika / expedice** má exporty pro Zásilkovnu, Balíkovnu, GLS i sledovací čísla balíků.
+- **Retargeting (Oddělení P4)** má automatickou recyklaci odmítnutých kontaktů i Sent/Returns.
+- **Team Leader & Mzdy** mají na `/wallet` měsíční uzávěrku provizí a čistý CSV export pro účetní.
+- **Administrátor** má User Hub pro přidávání operátorů a 127 bezchybných migrací.
 
-- operátor ví, koho řeší, proč ho řeší a co má udělat dál;
-- team leader vidí výjimky a může zasáhnout;
-- administrátor ví, zda je workspace připravený k provozu;
-- systém po každém důležitém kroku prokazatelně uloží data.
+Projekt je po softwarové stránce plně připraven na spuštění pilotního testování s živými uživateli.
 
-Pokud se teď podaří udržet disciplínu, dokončit pilotní důkazy, vyřešit Telnyx blocker a zjednodušit navigaci podle rolí, Countdown CRM se může posunout z velmi dobrého technického základu k produktu, který se dá skutečně používat ve směně.

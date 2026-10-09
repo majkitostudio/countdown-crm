@@ -45,12 +45,7 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
   const unavailable = unavailableMessages(brief);
 
   return (
-    <Surface
-      variant="inset"
-      aria-labelledby="conversation-brief-title"
-      data-testid="conversation-brief-compact"
-    >
-      <section className="p-3">
+    <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-3" aria-labelledby="conversation-brief-title" data-testid="conversation-brief-compact">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Call context</p>
@@ -83,6 +78,5 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
           </StatusAlert>
         )}
       </section>
-    </Surface>
-  );
+    );
 }

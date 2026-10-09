@@ -147,6 +147,7 @@ function WorkspaceContent() {
   const [isCallStartPending, setIsCallStartPending] = useState(false);
   const [isEndCallPending, setIsEndCallPending] = useState(false);
   const [isCompletionPending, setIsCompletionPending] = useState(false);
+  const [callEndedInSession, setCallEndedInSession] = useState(false);
   const [isScriptExpanded, setIsScriptExpanded] = useState(false);
   const [isObjectionCatalogOpen, setIsObjectionCatalogOpen] = useState(false);
   const [softphoneSession, setSoftphoneSession] = useState<CallSession>(() => softphoneController.getSession());
@@ -618,6 +619,7 @@ function WorkspaceContent() {
       transcriptEntriesRef.current = [];
       setCompletionSaveState("saved");
       retryCompletionRef.current = null;
+      setCallEndedInSession(false);
       setActivityRefreshToken((current) => current + 1);
       return { callId: completion.call_id, orderId: completion.order_id || undefined };
     } catch (error) {
@@ -714,6 +716,7 @@ function WorkspaceContent() {
         void endLeadCallAction(activeQueueItemId)
           .then((endedAssignment) => {
             softphoneController.hangup();
+            setCallEndedInSession(true);
             setAssignmentState(endedAssignment.assignment_state);
             setRecoveryRequired(endedAssignment.recovery_required);
             setCallDurationSeconds(
@@ -754,6 +757,7 @@ function WorkspaceContent() {
           setNotificationToast("Call start recovery is still in progress. Wait for it to finish or reload the workspace.");
           return;
         }
+        setCallEndedInSession(false);
         callStartPendingRef.current = true;
         setIsCallStartPending(true);
         void (async () => {
@@ -1105,6 +1109,7 @@ function WorkspaceContent() {
       isAwaitingOutcome={isAwaitingOutcome}
       recoveryRequired={recoveryRequired}
       isCompletionPending={isCompletionPending}
+      callEndedInSession={callEndedInSession}
       onToggleCall={handleToggleCall}
       onToggleMute={() => softphoneController.toggleMute()}
       onRequestHelp={identity?.role === "operator" ? requestAssistance : undefined}
@@ -1273,14 +1278,16 @@ function WorkspaceContent() {
             {supportingContextRail}
           </div>
         </div>
-      ) : (
-        <div className="grid min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
+) : (
+        <div className="grid h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <section className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
             {operatorLeadHeader}
             {conversationBriefCard}
             {productScriptPanel}
           </section>
-          {supportingContextRail}
+          <div className="min-w-0 h-full overflow-y-auto" data-testid="focus-client-details">
+            {supportingContextRail}
+          </div>
         </div>
       )}
 

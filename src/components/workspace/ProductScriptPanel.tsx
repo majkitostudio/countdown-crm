@@ -130,7 +130,7 @@ export function ProductScriptPanel({
 
   return (
     <Surface variant="page" className="w-full" data-testid="operator-script-context" aria-labelledby="product-script-title">
-      <section className="flex h-full min-h-0 flex-col space-y-4 overflow-hidden p-5">
+      <section className="flex flex-col min-h-0 space-y-4 overflow-hidden p-5">
       <div className="flex items-start justify-between gap-3 border-b border-zinc-800/80 pb-3">
         <div className="flex items-start gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 bg-zinc-950 text-zinc-300">
@@ -192,8 +192,8 @@ export function ProductScriptPanel({
       {isLoadingScript && <p className="text-[11px] text-zinc-400">Checking for the latest approved script…</p>}
 
       {scriptStatus !== "error" && (
-        <Surface variant="inset" className="w-full">
-          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
+        <Surface variant="inset" className="w-full flex-1 min-h-0">
+          <div className="h-full min-h-0 overflow-y-auto [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
           <div
             className="operator-script-reading-flow min-h-[360px] max-w-4xl p-5 text-[15px] leading-7 text-zinc-200 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_mark]:rounded [&_mark]:bg-amber-500/20 [&_mark]:text-amber-200 [&_mark]:border [&_mark]:border-amber-500/30 [&_mark]:px-1 [&_mark]:font-medium [&_p]:mb-4 [&_p:last-child]:mb-0"
             dangerouslySetInnerHTML={{ __html: scriptHtml }}
