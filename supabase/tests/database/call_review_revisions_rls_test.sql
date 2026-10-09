@@ -26,15 +26,26 @@ values
   ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '53333333-3333-4333-8333-333333333333', 'operator'),
   ('5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '54444444-4444-4444-8444-444444444444', 'team_leader');
 
+insert into public.teams (id, workspace_id, name, slug)
+values
+  ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Review Team A', 'review-team-a'),
+  ('5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb11', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Review Team B', 'review-team-b');
+
+insert into public.team_memberships (team_id, workspace_id, user_id, membership_role)
+values
+  ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '51111111-1111-4111-8111-111111111111', 'leader'),
+  ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '53333333-3333-4333-8333-333333333333', 'member'),
+  ('5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb11', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '54444444-4444-4444-8444-444444444444', 'leader');
+
 insert into public.leads (id, workspace_id, full_name, phone)
 values
   ('57777777-7777-4777-8777-777777777777', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Review Lead A', '+420700000011'),
   ('58888888-8888-4888-8888-888888888888', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Review Lead B', '+420700000012');
 
-insert into public.calls (id, workspace_id, lead_id, agent_id, duration_seconds, outcome, transcript)
+insert into public.calls (id, workspace_id, lead_id, team_id, agent_id, duration_seconds, outcome, transcript)
 values
-  ('5c111111-1111-4111-8111-111111111111', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '57777777-7777-4777-8777-777777777777', '53333333-3333-4333-8333-333333333333', 90, 'completed', 'Operátor: Dobrý den'),
-  ('5c222222-2222-4222-8222-222222222222', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '58888888-8888-4888-8888-888888888888', '54444444-4444-4444-8444-444444444444', 60, 'completed', null);
+  ('5c111111-1111-4111-8111-111111111111', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '57777777-7777-4777-8777-777777777777', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '53333333-3333-4333-8333-333333333333', 90, 'completed', 'Operátor: Dobrý den'),
+  ('5c222222-2222-4222-8222-222222222222', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '58888888-8888-4888-8888-888888888888', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb11', '54444444-4444-4444-8444-444444444444', 60, 'completed', null);
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"51111111-1111-4111-8111-111111111111"}', true);

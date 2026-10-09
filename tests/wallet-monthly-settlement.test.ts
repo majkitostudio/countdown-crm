@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { calculateMonthlySettlementOrderTotals } from "../src/lib/monthlySettlement";
 
 const migration = readFileSync(
   new URL("../supabase/migrations/20261007213000_wallet_monthly_settlement_manager_access.sql", import.meta.url),
@@ -9,6 +10,10 @@ const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.u
 const walletPage = readFileSync(new URL("../src/app/wallet/page.tsx", import.meta.url), "utf8");
 const walletActions = readFileSync(new URL("../src/app/actions/wallet.ts", import.meta.url), "utf8");
 const settlementPanel = readFileSync(new URL("../src/components/wallet/WalletSettlementPanel.tsx", import.meta.url), "utf8");
+const hardeningMigration = readFileSync(
+  new URL("../supabase/migrations/20261008230000_tracking_and_monthly_settlement_hardening.sql", import.meta.url),
+  "utf8",
+);
 
 describe("Milník 4.1: Měsíční uzávěrka pro Team Leadera", () => {
   describe("SQL migrace 20261007213000_wallet_monthly_settlement_manager_access.sql", () => {
@@ -98,6 +103,136 @@ describe("Milník 4.1: Měsíční uzávěrka pro Team Leadera", () => {
 
       const commission = Math.round((netTurnover * commissionRate) / 100 * 100) / 100;
       expect(commission).toBe(0);
+    });
+
+    it("zahrne doručenou a později vrácenou objednávku do hrubého i vratkového součtu stejného měsíce", () => {
+      const totals = calculateMonthlySettlementOrderTotals(
+        [{
+          agent_id: "operator-1",
+          total_amount: "12000.00",
+          currency: "CZK",
+          status: "returned",
+          delivered_at: "2026-09-10T10:00:00.000Z",
+          returned_at: "2026-09-15T10:00:00.000Z",
+        }],
+        "operator-1",
+        "2026-09-01T00:00:00.000Z",
+        "2026-10-01T00:00:00.000Z",
+        "CZK",
+      );
+
+      expect(totals).toEqual({
+        deliveredCount: 1,
+        deliveredTotal: 12000,
+        returnedCount: 1,
+        returnedTotal: 12000,
+      });
+      expect(Math.max(0, totals.deliveredTotal - totals.returnedTotal)).toBe(0);
+    });
+
+    it("počítá do měsíčního přehledu jen objednávky daného operátora a období", () => {
+      const totals = calculateMonthlySettlementOrderTotals(
+        [
+          {
+            agent_id: "operator-1",
+            total_amount: 10000,
+            currency: "CZK",
+            status: "delivered",
+            delivered_at: "2026-09-10T10:00:00.000Z",
+            returned_at: null,
+          },
+          {
+            agent_id: "operator-1",
+            total_amount: 5000,
+            currency: "CZK",
+            status: "delivered",
+            delivered_at: "2026-10-01T00:00:00.000Z",
+            returned_at: null,
+          },
+          {
+            agent_id: "operator-2",
+            total_amount: 7000,
+            currency: "CZK",
+            status: "delivered",
+            delivered_at: "2026-09-10T10:00:00.000Z",
+            returned_at: null,
+          },
+        ],
+        "operator-1",
+        "2026-09-01T00:00:00.000Z",
+        "2026-10-01T00:00:00.000Z",
+        "CZK",
+      );
+
+      expect(totals).toEqual({
+        deliveredCount: 1,
+        deliveredTotal: 10000,
+        returnedCount: 0,
+        returnedTotal: 0,
+      });
+    });
+
+    it("does not combine orders in another currency into the configured-currency settlement", () => {
+      const totals = calculateMonthlySettlementOrderTotals(
+        [
+          {
+            agent_id: "operator-1",
+            total_amount: 10000,
+            currency: "CZK",
+            status: "delivered",
+            delivered_at: "2026-09-10T10:00:00.000Z",
+            returned_at: null,
+          },
+          {
+            agent_id: "operator-1",
+            total_amount: 500,
+            currency: "EUR",
+            status: "delivered",
+            delivered_at: "2026-09-12T10:00:00.000Z",
+            returned_at: null,
+          },
+        ],
+        "operator-1",
+        "2026-09-01T00:00:00.000Z",
+        "2026-10-01T00:00:00.000Z",
+        "czk",
+      );
+
+      expect(totals).toEqual({
+        deliveredCount: 1,
+        deliveredTotal: 10000,
+        returnedCount: 0,
+        returnedTotal: 0,
+      });
+    });
+
+    it("fails instead of presenting fallback or incomplete settlement data as a valid result", () => {
+      expect(walletDal).toContain("Monthly settlement orders could not be loaded.");
+      expect(walletDal).toContain("Finalized commission transactions could not be loaded.");
+      expect(walletDal).toContain("Monthly bonus transactions could not be loaded.");
+      expect(walletDal).toContain("Monthly settlement contains wallet entries in another currency.");
+      expect(walletDal).not.toContain("loadWalletSettings(context.workspaceId, supabase).catch");
+      expect(walletActions).not.toContain('return { balance: 0, currency: "CZK" }');
+    });
+  });
+
+  describe("Nová dopředná migrace: týmové oprávnění a výpočet", () => {
+    it("vynucuje oprávnění pro tým objednávky v tracking RPC", () => {
+      expect(hardeningMigration).toContain(
+        "private.can_manage_team_resource(v_order.workspace_id, v_order.team_id)",
+      );
+      expect(hardeningMigration).toContain("USING ERRCODE = '42501'");
+    });
+
+    it("omezuje vedoucí týmů na operátory z jejich aktivních týmů", () => {
+      expect(hardeningMigration).toContain("private.is_team_leader(team.id)");
+      expect(hardeningMigration).toContain("The operator is outside your active teams");
+      expect(hardeningMigration).toContain("AND operator_team.active_from <= now()");
+    });
+
+    it("započítá vrácené objednávky do hrubého doručeného součtu před odečtem vratek", () => {
+      expect(hardeningMigration).toContain("order_row.status IN ('delivered', 'returned')");
+      expect(hardeningMigration).toContain("net_delivered_total := greatest(delivered_total - returned_total, 0)");
     });
   });
 });

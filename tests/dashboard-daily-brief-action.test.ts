@@ -81,7 +81,7 @@ describe("dashboard Daily Brief scope", () => {
   it("uses team scope for Team Leaders and passes the authorized workspace", async () => {
     const result = await loadDashboardDailyBriefAction();
 
-    expect(result).toMatchObject({ status: "ready", brief: { scope: "team", scopeLabel: "Týmová data" } });
+    expect(result).toMatchObject({ status: "ready", brief: { scope: "team", scopeLabel: "Moje týmy" } });
     expect(mocks.getAnalyticsData).toHaveBeenCalledWith("workspace-1");
     expect(mocks.listOperatorCalendarEntriesForWorkspace).toHaveBeenCalledWith(undefined, undefined, "workspace-1");
     expect(mocks.listWorkspaceCallsInContext).toHaveBeenCalledWith(teamLeaderContext);
@@ -110,9 +110,9 @@ describe("dashboard Daily Brief scope", () => {
       expect(result.brief.todayCallbacks).toBe(0);
       expect(result.brief.workspaceWalletBalance).toBeNull();
       expect(result.warnings).toEqual(expect.arrayContaining([
-        "Callbacky a reminders nejsou dostupné.",
-        "Wallet souhrn není dostupný.",
-        "Review fronta není dostupná.",
+        "Naplánovaná volání a připomínky nejsou dostupné.",
+        "Souhrn peněženky není dostupný.",
+        "Fronta hovorů ke kontrole není dostupná.",
       ]));
     }
   });

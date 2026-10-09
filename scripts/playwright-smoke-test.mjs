@@ -55,11 +55,11 @@ async function run() {
   console.log(`Port: ${PORT} | Base URL: ${BASE_URL}`);
   console.log("==================================================\n");
 
-  // 1. Spuštění Next.js serveru v produkčním módu (předtím proběhl next build)
-  console.log("1. Spouštím Next.js server na pozadí...");
+  // This is a development-server/demo-auth smoke test, not a production build/auth check.
+  console.log("1. Spouštím Next.js vývojový server (demo přihlášení; nejde o produkční test)...");
   const serverProcess = spawn(
-    "npx",
-    ["next", "dev", "-p", String(PORT)],
+    process.execPath,
+    [path.resolve(process.cwd(), "node_modules", "next", "dist", "bin", "next"), "dev", "-p", String(PORT)],
     {
       cwd: process.cwd(),
       env: {
@@ -68,7 +68,7 @@ async function run() {
         NEXT_PUBLIC_ALLOW_DEMO_AUTH: "true",
         PORT: String(PORT),
       },
-      shell: true,
+      shell: false,
       stdio: "pipe",
     }
   );
@@ -95,12 +95,18 @@ async function run() {
     console.log("2. Spouštím Chromium prohlížeč (headless: true)...");
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
+      viewport: { width: 1920, height: 1080 },
     });
     const page = await context.newPage();
 
     const results = [];
+    const interactionResults = [];
     let hasFailure = false;
+    const recordInteractionResult = (name, passed, error = "") => {
+      interactionResults.push({ name, passed, error });
+      if (!passed) hasFailure = true;
+      console.log(` ${passed ? "✅ OK" : "❌ CHYBA"} | ${name}${error ? `: ${error}` : ""}`);
+    };
 
     console.log("\n3. Procházím jednotlivé trasy aplikace:\n");
 
@@ -183,19 +189,27 @@ async function run() {
       const hasInviteBtn = await page.locator("button:has-text('Pozvat')").count();
       const hasSearch = await page.locator("input[placeholder*='Hledat']").count();
 
-      const hubOk = hasInviteBtn > 0 && hasSearch > 0;
-      console.log(` ${hubOk ? "✅ OK" : "❌ CHYBA"} | User Hub (/settings/users) - Tlačítko pozvat & vyhledávání přítomno`);
+      const hubOk = Boolean(userHubHeader && hasInviteBtn > 0 && hasSearch > 0);
+      recordInteractionResult(
+        "User Hub (/settings/users) - nadpis, pozvání a vyhledávání",
+        hubOk,
+        hubOk ? "" : "Expected page heading, invite button and search field",
+      );
     } catch (err) {
-      console.log(` ❌ CHYBA | User Hub interakce: ${err.message}`);
+      recordInteractionResult("User Hub (/settings/users)", false, err.message);
     }
 
     // 4.2 Objednávky na /orders: Ověření Carrier export dropdownu
     try {
       await page.goto(`${BASE_URL}/orders`, { waitUntil: "networkidle" });
       const hasExportBtn = await page.locator("button:has-text('Export')").count();
-      console.log(` ${hasExportBtn > 0 ? "✅ OK" : "❌ CHYBA"} | Objednávky (/orders) - Export pro dopravce (CSV/Zásilkovna) přítomen`);
+      recordInteractionResult(
+        "Objednávky (/orders) - export pro dopravce",
+        hasExportBtn > 0,
+        hasExportBtn > 0 ? "" : "Export button not found",
+      );
     } catch (err) {
-      console.log(` ❌ CHYBA | Orders interakce: ${err.message}`);
+      recordInteractionResult("Objednávky (/orders)", false, err.message);
     }
 
     // 4.3 Plánovač na /calendar
@@ -203,9 +217,13 @@ async function run() {
       await page.goto(`${BASE_URL}/calendar`, { waitUntil: "networkidle" });
       const calendarText = await page.content();
       const hasPlanner = calendarText.includes("Plánovač") || calendarText.includes("Schedules");
-      console.log(` ${hasPlanner ? "✅ OK" : "❌ CHYBA"} | Plánovač (/calendar) - Zobrazení schedules a reminders přítomno`);
+      recordInteractionResult(
+        "Plánovač (/calendar) - zobrazení plánovače",
+        hasPlanner,
+        hasPlanner ? "" : "Planner content not found",
+      );
     } catch (err) {
-      console.log(` ❌ CHYBA | Calendar interakce: ${err.message}`);
+      recordInteractionResult("Plánovač (/calendar)", false, err.message);
     }
 
     // 4.4 Mzdy na /wallet
@@ -213,9 +231,13 @@ async function run() {
       await page.goto(`${BASE_URL}/wallet`, { waitUntil: "networkidle" });
       const walletText = await page.content();
       const hasSettlement = walletText.includes("Měsíční uzávěrka") || walletText.includes("Exportovat mzdy");
-      console.log(` ${hasSettlement ? "✅ OK" : "❌ CHYBA"} | Peněženka & Mzdy (/wallet) - Mzdový přehled a CSV export přítomen`);
+      recordInteractionResult(
+        "Peněženka (/wallet) - přehled mezd nebo uzávěrky",
+        hasSettlement,
+        hasSettlement ? "" : "Settlement or payroll export content not found",
+      );
     } catch (err) {
-      console.log(` ❌ CHYBA | Wallet interakce: ${err.message}`);
+      recordInteractionResult("Peněženka (/wallet)", false, err.message);
     }
 
     await browser.close();
@@ -223,6 +245,8 @@ async function run() {
     console.log("\n==================================================");
     const passedCount = results.filter((r) => r.passed).length;
     console.log(`🏁 VÝSLEDEK SMOKE TESTU: ${passedCount} / ${results.length} tras prošlo úspěšně!`);
+    const passedInteractions = interactionResults.filter((result) => result.passed).length;
+    console.log(`Interakce: ${passedInteractions} / ${interactionResults.length} prošlo úspěšně.`);
     console.log("==================================================\n");
 
     if (hasFailure) {
@@ -230,12 +254,9 @@ async function run() {
     }
   } finally {
     console.log("Zastavuji Next.js testovací server...");
-    if (serverProcess.pid) {
-      if (process.platform === "win32") {
-        spawn("taskkill", ["/pid", String(serverProcess.pid), "/T", "/F"], { shell: true, stdio: "ignore" });
-      } else {
-        serverProcess.kill("SIGTERM");
-      }
+    if (serverProcess.exitCode === null && !serverProcess.killed) {
+      serverProcess.kill("SIGTERM");
+      await new Promise((resolve) => serverProcess.once("exit", resolve));
     }
   }
 }

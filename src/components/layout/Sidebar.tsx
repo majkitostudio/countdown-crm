@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Fragment } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
@@ -121,7 +122,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
         {!isCollapsed && (
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
+            className="hidden min-h-10 min-w-10 items-center justify-center rounded-md p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? (
@@ -134,43 +135,53 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       </div>
 
       {/* Navigation Links */}
-      <nav id="primary-navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Primary navigation">
-        {getAllowedSidebarNavigationItems(isIdentityLoading ? null : identity?.role).map((item) => {
+      <nav id="primary-navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Hlavní navigace">
+        {getAllowedSidebarNavigationItems(isIdentityLoading ? null : identity?.role).map((item, index, items) => {
           const Icon = item.icon;
+          const startsSection = index === 0 || items[index - 1]?.section !== item.section;
           const isActive =
             item.href === "/"
               ? pathname === "/"
               : pathname.startsWith(item.href);
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => onMobileOpenChange(false)}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
-                isActive
-                  ? "bg-zinc-800/80 text-zinc-100 border border-zinc-700/50 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+            <Fragment key={item.href}>
+              {startsSection && !isCompact && (
+                <p className={cn(
+                  "px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500",
+                  index > 0 && "pt-3",
+                )}>
+                  {item.section}
+                </p>
               )}
-            >
-              <Icon
+              <Link
+                href={item.href}
+                onClick={() => onMobileOpenChange(false)}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "w-4 h-4 shrink-0 transition-colors",
+                  "flex min-h-11 items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
+                  startsSection && isCompact && index > 0 && "mt-3 border-t border-zinc-800/60 pt-3",
                   isActive
-                    ? "text-zinc-100"
-                    : "text-zinc-400 group-hover:text-zinc-200"
+                    ? "bg-zinc-800/80 text-zinc-100 border border-zinc-700/50 shadow-sm"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
                 )}
-              />
-              {!isCompact && (
-                <span className="truncate">{item.label}</span>
-              )}
-              {isCompact && (
-                <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                  {item.label}
-                </div>
-              )}
-            </Link>
+              >
+                <Icon
+                  className={cn(
+                    "w-4 h-4 shrink-0 transition-colors",
+                    isActive
+                      ? "text-zinc-100"
+                      : "text-zinc-400 group-hover:text-zinc-200"
+                  )}
+                />
+                {!isCompact && <span className="truncate">{item.label}</span>}
+                {isCompact && (
+                  <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                    {item.label}
+                  </div>
+                )}
+              </Link>
+            </Fragment>
           );
         })}
       </nav>

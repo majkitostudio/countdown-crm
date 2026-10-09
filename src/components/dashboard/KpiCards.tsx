@@ -6,9 +6,11 @@ import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 import { formatCurrencyAmounts } from "@/lib/currency";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert } from "@/components/ui/Status";
+import { Button } from "@/components/ui/Button";
 
 export function KpiCards({ compact = false, scope = "workspace" }: { compact?: boolean; scope?: "team" | "workspace" }) {
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,28 +37,40 @@ export function KpiCards({ compact = false, scope = "workspace" }: { compact?: b
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryKey]);
 
   const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";
 
   return (
     <div className="space-y-3">
       {result && !result.ok && (
-        <StatusAlert tone={feedbackTone}>
-          {result.code === "FORBIDDEN" ? "Analytics access is restricted: " : "Analytics unavailable: "}{result.message}
-        </StatusAlert>
+        <div className="space-y-3">
+          <StatusAlert tone={feedbackTone}>
+            {result.code === "FORBIDDEN" ? "Přístup k analytice není povolen: " : "Analytický přehled není dostupný: "}{result.message}
+          </StatusAlert>
+          {result.code !== "FORBIDDEN" && (
+            <Button variant="secondary" onClick={() => {
+              setResult(null);
+              setRetryKey((key) => key + 1);
+            }}>
+              Načíst znovu
+            </Button>
+          )}
+        </div>
       )}
       {result === null ? (
-        <StatusAlert tone="neutral" role="status">
-          Loading workspace analytics...
-        </StatusAlert>
+        <div role="status" aria-label="Načítám analytický přehled" className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="h-24 animate-pulse rounded-xl border border-zinc-800/60 bg-zinc-950/60 motion-reduce:animate-none" />
+          ))}
+        </div>
       ) : result.ok ? (
       <div className={`grid grid-cols-2 gap-3 ${compact ? "" : "sm:grid-cols-2 lg:grid-cols-4 sm:gap-6"}`}>
         {[
-          { id: "calls", label: scope === "team" ? "Team Calls" : "Workspace Calls", value: String(result.data.totalCalls), detail: scope === "team" ? "all calls in your team" : "all calls in the workspace" },
-          { id: "conversion", label: scope === "team" ? "Team Conversion Rate" : "Workspace Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, detail: scope === "team" ? "team orders / calls" : "workspace orders / calls" },
-          { id: "revenue", label: scope === "team" ? "Team Revenue" : "Workspace Revenue", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: scope === "team" ? "team completed orders; currencies separate" : "workspace completed orders; currencies separate" },
-          { id: "operators", label: scope === "team" ? "Operators in Team" : "Operators in Workspace", value: "—", detail: scope === "team" ? "team presence unavailable" : "workspace presence unavailable" },
+          { id: "calls", label: scope === "team" ? "Hovory · moje týmy" : "Hovory · celý workspace", value: String(result.data.totalCalls), detail: "Za celé dostupné období" },
+          { id: "conversion", label: "Úspěšnost hovorů", value: `${result.data.conversionRate.toFixed(1)} %`, detail: "Objednávky ÷ hovory · celé období" },
+          { id: "revenue", label: "Tržby", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: `Dokončené objednávky · ${scope === "team" ? "moje týmy" : "celý workspace"}` },
+          { id: "operators", label: scope === "team" ? "Operátoři · moje týmy" : "Operátoři · celý workspace", value: "—", detail: "Online přítomnost není dostupná" },
         ].map((kpi) => <MetricCard key={kpi.id} label={kpi.label} value={kpi.value} detail={kpi.detail} />)}
       </div>
       ) : null}

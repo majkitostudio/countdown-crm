@@ -97,6 +97,11 @@ interface WorkspaceCompletionRetryPayload {
 type CompletionExecutor = (payload: WorkspaceCompletionRetryPayload) => Promise<{ callId: string; orderId?: string } | null>;
 
 const CALL_START_SERVER_TIMEOUT_MS = 10_000;
+const MISSING_ACTIVE_TEAM_ERROR = "Operator is not assigned to an active team";
+
+function isMissingActiveTeamError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes(MISSING_ACTIVE_TEAM_ERROR);
+}
 
 type OperatorConsoleState =
   | "loading"
@@ -128,6 +133,7 @@ function WorkspaceContent() {
   
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [teamAssignmentRequired, setTeamAssignmentRequired] = useState(false);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [completionSaveState, setCompletionSaveState] = useState<"saving" | "saved" | "failed">("saved");
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
@@ -444,14 +450,15 @@ function WorkspaceContent() {
     async function loadData() {
       setIsLoading(true);
       setLoadError(null);
+      setTeamAssignmentRequired(false);
       try {
         if (!identity) {
           throw new Error("Authenticated workspace role is unavailable");
         }
 
         if (identity.role === "operator") {
-          const fetchedProducts = await getProducts();
           let currentAssignment = await getCurrentLeadAction();
+          const fetchedProducts = await getProducts();
 
           if (!currentAssignment) {
             await setOperatorPresenceAction("available");
@@ -489,7 +496,12 @@ function WorkspaceContent() {
           setActiveLead(fetchedLeads[0]);
         }
       } catch (error) {
-        setLoadError(error instanceof Error ? error.message : "Workspace data could not be loaded");
+        if (identity?.role === "operator" && isMissingActiveTeamError(error)) {
+          setTeamAssignmentRequired(true);
+          setLoadError("Konzoli můžeš použít až po přiřazení k aktivnímu týmu. Požádej administrátora o přiřazení.");
+        } else {
+          setLoadError(error instanceof Error ? error.message : "Workspace data could not be loaded");
+        }
       }
       setIsLoading(false);
     }
@@ -1196,7 +1208,7 @@ function WorkspaceContent() {
       description="Handle the assigned customer with the brief, approved script, and outcome in one place."
       badge={pageHeaderBadge}
       actionsLayout="stacked"
-      actions={operatorNextActionPanel}
+      actions={isLoading || loadError ? null : operatorNextActionPanel}
     />
   );
 
@@ -1218,7 +1230,9 @@ function WorkspaceContent() {
         {pageHeader}
         <StatusAlert tone="danger" className="w-full">
           <div className="mx-auto max-w-xl text-sm text-rose-200">
-            <h2 className="font-semibold">Workspace data could not be loaded</h2>
+            <h2 className="font-semibold">
+              {teamAssignmentRequired ? "Přístup do konzole není povolen" : "Workspace data could not be loaded"}
+            </h2>
             <p className="mt-2 text-xs text-rose-300">{loadError}</p>
           </div>
         </StatusAlert>

@@ -20,6 +20,12 @@ values
   ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '71111111-1111-4111-8111-111111111111', 'operator'),
   ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '71222222-2222-4222-8222-222222222222', 'operator');
 
+insert into public.teams (id, workspace_id, name, slug)
+values ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa41', '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Completion Team', 'completion-team');
+
+insert into public.team_memberships (team_id, workspace_id, user_id, membership_role)
+values ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa41', '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '71111111-1111-4111-8111-111111111111', 'member');
+
 insert into public.operator_presence (workspace_id, operator_id, state, last_heartbeat_at)
 values (
   '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
@@ -34,12 +40,13 @@ values
   ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa12', '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Direct Completion Lead', '+420700000072');
 
 insert into public.lead_queue_items (
-  id, workspace_id, lead_id, assigned_operator_id, state, claimed_at
+  id, workspace_id, lead_id, team_id, assigned_operator_id, state, claimed_at
 )
 values (
   '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa21',
   '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
   '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11',
+  '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa41',
   '71111111-1111-4111-8111-111111111111',
   'awaiting_outcome',
   now()

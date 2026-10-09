@@ -8,25 +8,25 @@ export function CallActivityChart() {
       <div>
         <div className="flex items-center gap-2">
           <BarChart2 className="w-4 h-4 text-zinc-400" />
-          <h3 className="text-sm font-semibold text-zinc-100">Call Volume & Hourly Activity</h3>
+          <h3 className="text-sm font-semibold text-zinc-100">Počet hovorů během dne</h3>
         </div>
         <p className="text-xs text-zinc-400 mt-0.5">
-          Hourly activity requires a persisted time-series source that is not connected to this pilot yet.
+          Graf bude dostupný po připojení skutečných časů uskutečněných hovorů.
         </p>
       </div>
 
       <div className="min-h-48 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex items-center justify-center p-6">
         <div className="max-w-sm text-center space-y-2">
-          <p className="text-xs font-medium text-zinc-200">Hourly activity unavailable</p>
+          <p className="text-xs font-medium text-zinc-200">Graf zatím není k dispozici</p>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            No synthetic bars or peak-hour assumptions are shown until the dashboard can read real persisted call timestamps.
+            Zatím nezobrazujeme odhadované hodnoty. Graf se naplní po propojení s uloženými časy hovorů.
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-1 text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/40">
         <Info className="w-3 h-3" />
-        <span>Connect persisted call activity to enable this view.</span>
+        <span>Pro zobrazení je potřeba připojit skutečnou aktivitu hovorů.</span>
       </div>
     </div>
   );

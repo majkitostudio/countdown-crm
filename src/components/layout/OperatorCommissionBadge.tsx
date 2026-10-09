@@ -9,7 +9,7 @@ import { getCurrentOperatorCommissionAction } from "@/app/actions/wallet";
 export function OperatorCommissionBadge() {
   const [balance, setBalance] = useState<number | null>(null);
   const [displayBalance, setDisplayBalance] = useState<number | null>(null);
-  const [currency, setCurrency] = useState("CZK");
+  const [currency, setCurrency] = useState<string | null>(null);
   const [isBumping, setIsBumping] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -28,8 +28,8 @@ export function OperatorCommissionBadge() {
       .catch((err) => {
         console.warn("[OperatorCommissionBadge] Could not load initial balance:", err);
         if (!cancelled) {
-          setBalance(0);
-          setDisplayBalance(0);
+          setBalance(null);
+          setDisplayBalance(null);
         }
       });
 
@@ -126,7 +126,7 @@ export function OperatorCommissionBadge() {
             isBumping ? "text-emerald-300" : "text-zinc-100"
           }`}
         >
-          {displayBalance === null ? "—" : `${formattedAmount} ${currencySymbol}`}
+          {displayBalance === null || !currency ? "—" : `${formattedAmount} ${currencySymbol}`}
         </span>
       </div>
     </Link>

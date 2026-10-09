@@ -94,13 +94,17 @@ export default async function WalletPage() {
   const presentationCurrency = data.settings?.currency || data.transactions[0]?.currency || "CZK";
 
   let settlementSummary = null;
+  let settlementError: string | null = null;
   const availableMonths: Array<{ label: string; value: string; isPast: boolean }> = [];
 
   if (data.canManage) {
     try {
       settlementSummary = await getMonthlySettlementSummary();
-    } catch {
+    } catch (error) {
       settlementSummary = null;
+      settlementError = error instanceof Error
+        ? error.message
+        : "The monthly settlement could not be loaded.";
     }
 
     const now = new Date();
@@ -147,6 +151,12 @@ export default async function WalletPage() {
 
       {data.canManage && managerSettingsAvailable && managerMembersAvailable && data.settings && (
         <>
+          {settlementError && (
+            <StatusAlert tone="warning" role="status">
+              <h2 className="text-sm font-semibold">Měsíční uzávěrka není dostupná</h2>
+              <p className="mt-1 text-xs text-amber-200/80">{settlementError}</p>
+            </StatusAlert>
+          )}
           {settlementSummary && (
             <WalletSettlementPanel
               initialSummary={settlementSummary}

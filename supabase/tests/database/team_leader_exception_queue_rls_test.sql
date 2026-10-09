@@ -26,6 +26,15 @@ values
   ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '49999999-9999-4999-8999-999999999999', 'operator'),
   ('4bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '43333333-3333-4333-8333-333333333333', 'administrator');
 
+insert into public.teams (id, workspace_id, name, slug)
+values ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Exception Team A', 'exception-team-a');
+
+insert into public.team_memberships (team_id, workspace_id, user_id, membership_role)
+values
+  ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '41111111-1111-4111-8111-111111111111', 'leader'),
+  ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '42222222-2222-4222-8222-222222222222', 'member'),
+  ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '49999999-9999-4999-8999-999999999999', 'member');
+
 insert into public.leads (id, workspace_id, full_name, phone)
 values
   (
@@ -45,6 +54,7 @@ insert into public.lead_queue_items (
   id,
   workspace_id,
   lead_id,
+  team_id,
   assigned_operator_id,
   state,
   lease_expires_at
@@ -54,6 +64,7 @@ values
     '44444444-4444-4444-8444-444444444444',
     '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
     '48888888-8888-4888-8888-888888888888',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11',
     '42222222-2222-4222-8222-222222222222',
     'assigned',
     now() - interval '1 hour'
@@ -62,6 +73,7 @@ values
     '45555555-5555-4555-8555-555555555555',
     '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
     '47777777-7777-4777-8777-777777777777',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11',
     '49999999-9999-4999-8999-999999999999',
     'awaiting_outcome',
     null

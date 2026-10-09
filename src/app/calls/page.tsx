@@ -85,7 +85,6 @@ export default function CallLogsPage() {
   };
 
   const totalCallsCount = calls.length;
-  const totalSalesVolume = calls.reduce((acc, c) => acc + c.order_value, 0);
   const avgDuration = totalCallsCount > 0
     ? Math.round(calls.reduce((acc, c) => acc + c.duration_seconds, 0) / totalCallsCount)
     : 0;
@@ -132,7 +131,11 @@ actions={
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Logged calls" value={totalCallsCount} />
         <MetricCard label="Average handling" value={formatDuration(avgDuration)} />
-        <MetricCard label="Revenue" value={`$${totalSalesVolume.toFixed(2)}`} />
+        <MetricCard
+          label="Tržby z hovorů"
+          value="Nedostupné"
+          detail="Částka ani měna nejsou propojené s hovorem."
+        />
         <MetricCard label="Conversion" value={`${conversionRate}%`} />
       </div>
 
@@ -211,7 +214,7 @@ actions={
                 <th className="px-5 py-3">Operator</th>
                 <th className="px-5 py-3">Duration</th>
                 <th className="px-5 py-3">Outcome</th>
-                <th className="px-5 py-3">Revenue</th>
+                <th className="px-5 py-3">Hodnota objednávky</th>
                 <th className="px-5 py-3">Call review</th>
               </tr>
             </thead>
@@ -246,8 +249,8 @@ actions={
                       {formatCallOutcome(c.outcome)}
                     </span>
                   </td>
-                  <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
-                    ${c.order_value.toFixed(2)}
+                  <td className="px-5 py-3 text-zinc-500" aria-label="Hodnota objednávky není dostupná">
+                    —
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-between gap-2">

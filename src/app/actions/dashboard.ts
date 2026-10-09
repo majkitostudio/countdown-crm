@@ -44,15 +44,15 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
 
     const warnings: string[] = [];
     const calendar = calendarResult.status === "fulfilled" ? calendarResult.value : null;
-    if (calendarResult.status === "rejected") warnings.push("Callbacky a reminders nejsou dostupné.");
+    if (calendarResult.status === "rejected") warnings.push("Naplánovaná volání a připomínky nejsou dostupné.");
     if (calendar?.sources.callbacks.state === "unavailable") {
       warnings.push(`Callbacky nejsou dostupné: ${calendar.sources.callbacks.message}`);
     }
     if (calendar?.sources.reminders.state === "unavailable") {
-      warnings.push(`Reminders nejsou dostupné: ${calendar.sources.reminders.message}`);
+      warnings.push(`Připomínky nejsou dostupné: ${calendar.sources.reminders.message}`);
     }
-    if (walletResult.status === "rejected") warnings.push("Wallet souhrn není dostupný.");
-    if (reviewsResult.status === "rejected") warnings.push("Review fronta není dostupná.");
+    if (walletResult.status === "rejected") warnings.push("Souhrn peněženky není dostupný.");
+    if (reviewsResult.status === "rejected") warnings.push("Fronta hovorů ke kontrole není dostupná.");
 
     const calendarEntries = calendar?.entries ?? [];
     const callbacks = calendarEntries

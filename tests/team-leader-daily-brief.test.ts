@@ -44,7 +44,7 @@ describe("Team Leader Daily Brief", () => {
     });
 
     expect(brief.scope).toBe("team");
-    expect(brief.scopeLabel).toBe("Týmová data");
+    expect(brief.scopeLabel).toBe("Moje týmy");
     expect(brief.todayCallbacks).toBe(1);
     expect(brief.overdueCallbacks).toBe(1);
     expect(brief.openReminders).toBe(1);

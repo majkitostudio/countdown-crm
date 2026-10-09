@@ -27,4 +27,15 @@ describe("Call Logs truthful transcript copy", () => {
     expect(source).not.toContain("c.sentiment");
     expect(source).toContain("reviewStatusLabel(c.review_status)");
   });
+
+  it("does not present an unlinked call amount as USD revenue", () => {
+    expect(source).toContain('label="Tržby z hovorů"');
+    expect(source).toContain('value="Nedostupné"');
+    expect(source).toContain("Částka ani měna nejsou propojené s hovorem.");
+    expect(source).toContain(">Hodnota objednávky</th>");
+    expect(source).toContain('aria-label="Hodnota objednávky není dostupná"');
+    expect(source).not.toContain("totalSalesVolume");
+    expect(source).not.toContain("$${");
+    expect(source).not.toContain("${c.order_value.toFixed(2)}");
+  });
 });

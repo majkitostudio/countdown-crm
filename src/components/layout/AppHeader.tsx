@@ -12,14 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button, getButtonClassName } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
 import { OperatorCommissionBadge } from "./OperatorCommissionBadge";
-
-function getHeaderSearchPlaceholder(role: Parameters<typeof isTeamLeaderOrAdministrator>[0], isLoading: boolean): string {
-  if (isLoading) return "Open pages and commands... (Ctrl + K)";
-  return role === "operator"
-    ? "Search products or pages... (Ctrl + K)"
-    : "Search leads, products, or pages... (Ctrl + K)";
-}
-
+import { getHeaderSearchPlaceholder } from "./navigation";
 export { getHeaderSearchPlaceholder };
 
 export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }) {

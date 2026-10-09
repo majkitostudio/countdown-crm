@@ -54,6 +54,7 @@ local-dev*.log
 # local recovery and connector state
 /supabase/.temp/
 /.superpowers/
+/.impeccable/hook.cache.json
 
 # vscode
 .vscode/

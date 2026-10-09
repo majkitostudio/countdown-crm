@@ -69,8 +69,12 @@ describe("Catalog Seed Template Contract", () => {
     expect(dollarCount % 2).toBe(0);
 
     // Contains required tables
+    expect(sql).not.toContain("INSERT INTO auth.users");
+    expect(sql).toContain("Catalog seed requires an existing workspace administrator created through Supabase Auth.");
     expect(sql).toContain("INSERT INTO public.workspaces");
+    expect(sql).toContain("ON CONFLICT (organization_id, slug) DO UPDATE SET name = EXCLUDED.name");
     expect(sql).toContain("INSERT INTO public.products");
+    expect(sql).not.toContain("::public.product_category");
     expect(sql).toContain("INSERT INTO public.product_scripts");
     expect(sql).toContain("INSERT INTO public.product_script_versions");
     expect(sql).toContain("INSERT INTO public.objections");

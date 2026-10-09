@@ -1,5 +1,5 @@
 -- ============================================================================
--- COUNTDOWN CRM - PRODUCTION & DEMO CATALOG SEED
+-- COUNTDOWN CRM - AUTHENTICATED WORKSPACE CATALOG SEED
 -- Generated automatically from data/seeds/catalog-seed-template.json
 -- Target Workspace: 00000000-0000-0000-0000-000000000001
 -- ============================================================================
@@ -8,7 +8,7 @@ DO $$
 DECLARE
   v_org_id UUID;
   v_ws_id UUID := '00000000-0000-0000-0000-000000000001'::UUID;
-  v_admin_id UUID := '00000000-0000-0000-0000-000000000001'::UUID;
+  v_admin_id UUID;
 BEGIN
   -- 1. Ensure Organization exists
   INSERT INTO public.organizations (name, slug)
@@ -23,25 +23,27 @@ BEGIN
   -- 2. Ensure Target Workspace exists
   INSERT INTO public.workspaces (id, organization_id, name, slug)
   VALUES (v_ws_id, v_org_id, 'Hlavní linka CC', 'main')
-  ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, organization_id = v_org_id;
+  ON CONFLICT (organization_id, slug) DO UPDATE SET name = EXCLUDED.name
+  RETURNING id INTO v_ws_id;
 
-  -- 3. Ensure System Admin Profile exists
-  INSERT INTO public.profiles (id, email, full_name, role, status)
-  VALUES (v_admin_id, 'admin@countdown-crm.local', 'Systémový Administrátor', 'administrator', 'ready')
-  ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = 'administrator';
+  -- Catalog scripts require a real, already-authorized workspace administrator.
+  SELECT user_id INTO v_admin_id
+  FROM public.workspace_members
+  WHERE workspace_id = v_ws_id AND role = 'administrator'
+  ORDER BY created_at
+  LIMIT 1;
 
-  -- 4. Ensure Workspace Membership exists
-  INSERT INTO public.workspace_members (workspace_id, user_id, role)
-  VALUES (v_ws_id, v_admin_id, 'administrator')
-  ON CONFLICT (workspace_id, user_id) DO UPDATE SET role = 'administrator';
+  IF v_admin_id IS NULL THEN
+    RAISE EXCEPTION 'Catalog seed requires an existing workspace administrator created through Supabase Auth.';
+  END IF;
 
-  -- 5. Seed Catalog Products
+  -- 6. Seed Catalog Products
   INSERT INTO public.products (id, workspace_id, title, category, price, currency, description, image_url, in_stock)
   VALUES (
     '11111111-0000-0000-0000-000000000001'::UUID,
     v_ws_id,
     'ArthroFlex Active Forte',
-    'supplements'::public.product_category,
+    'supplements',
     1199,
     'CZK',
     'Prémiový třísložkový kloubní komplex s glukosaminem, MSM a rybím kolagenem typu II. Určeno pro regeneraci chrupavek, ranní hybnost a úlevu při zátěži.',
@@ -63,7 +65,7 @@ BEGIN
     '11111111-0000-0000-0000-000000000002'::UUID,
     v_ws_id,
     'CardioVital Max (Omega-3 & Q10)',
-    'supplements'::public.product_category,
+    'supplements',
     999,
     'CZK',
     'Vysoce koncentrovaný rybí olej s vysokým podílem EPA a DHA mastných kyselin obohacený o koenzym Q10 a vitamín E pro zdravé srdce, cévy a normální krevní tlak.',
@@ -85,7 +87,7 @@ BEGIN
     '11111111-0000-0000-0000-000000000003'::UUID,
     v_ws_id,
     'Magnesium Bisglycinát + B6',
-    'supplements'::public.product_category,
+    'supplements',
     890,
     'CZK',
     'Prémiová chelátová forma hořčíku s maximální vstřebatelností (až 80 %) v kombinaci s aktivním vitamínem B6. Podporuje nervovou soustavu, hluboký spánek a svalové uvolnění bez projímavých účinků.',
@@ -102,7 +104,7 @@ BEGIN
     image_url = EXCLUDED.image_url,
     in_stock = EXCLUDED.in_stock;
 
-  -- 6. Seed Product Scripts and Published Versions
+  -- 7. Seed Product Scripts and Published Versions
   -- Script for: ArthroFlex Active Forte
   INSERT INTO public.product_scripts (workspace_id, product_id, content_html, updated_by, updated_at)
   VALUES (
@@ -199,7 +201,7 @@ BEGIN
     published_by = EXCLUDED.published_by,
     published_at = now();
 
-  -- 7. Seed Objections Catalog
+  -- 8. Seed Objections Catalog
   DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '11111111-0000-0000-0000-000000000001'::UUID;
   DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '11111111-0000-0000-0000-000000000002'::UUID;
   DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '11111111-0000-0000-0000-000000000003'::UUID;

@@ -20,12 +20,13 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(dashboard).toContain("<KpiCards compact scope={scope} />");
     expect(dashboard).toContain("dashboard-team-attention");
     expect(dashboard).toContain("scopeLabel");
-    expect(dashboard).toContain("No synthetic priorities");
+    expect(dashboard).toContain("Podle dostupných dat");
+    expect(dashboard).not.toContain("P2 / P3");
     expect(dashboard).toContain("<NextBestActionCard scope={scope} />");
     expect(nextBestAction).toContain('data-testid="next-best-action"');
     expect(dashboard).toContain("<TeamLeaderDailyBriefCard />");
     expect(dailyBrief).toContain('data-testid="team-leader-daily-brief"');
-    expect(dailyBrief).toContain("Needs review");
+    expect(dailyBrief).toContain("Hovory ke kontrole");
     expect(dailyBrief).toContain("Celofiremní peněženka");
     expect(dailyBrief).toContain("scopeLabel");
     expect(dailyBrief).toContain('href="/calls?review=unreviewed"');
@@ -37,15 +38,15 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(reorderWidget).toContain("loadReorderOpportunitiesAction");
     expect(reorderWidget).not.toContain("getReorderOpportunities");
     expect(dailyBrief).toContain('font-mono text-lg font-semibold text-zinc-100');
-    expect(kpis).toContain('scope === "team" ? "Team Calls" : "Workspace Calls"');
-    expect(kpis).toContain('scope === "team" ? "Team Conversion Rate" : "Workspace Conversion Rate"');
-    expect(kpis).toContain('scope === "team" ? "Team Revenue" : "Workspace Revenue"');
-    expect(kpis).toContain('scope === "team" ? "Operators in Team" : "Operators in Workspace"');
+    expect(kpis).toContain('scope === "team" ? "Hovory · moje týmy" : "Hovory · celý workspace"');
+    expect(kpis).toContain('label: "Úspěšnost hovorů"');
+    expect(kpis).toContain('label: "Tržby"');
+    expect(kpis).toContain('scope === "team" ? "Operátoři · moje týmy" : "Operátoři · celý workspace"');
     expect(kpis).toContain("compact = false");
     expect(kpis).not.toContain('label: "My Calls"');
     for (const component of [kpis, topPerformers, recentActivity]) {
       expect(component).toContain('const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";');
-      expect(component).toContain("access is restricted");
+      expect(component).toContain("Načíst znovu");
     }
   });
 });

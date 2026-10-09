@@ -28,7 +28,8 @@ function source(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
-const migration = source("supabase/migrations/20261007140000_shipment_timeline_and_courier_webhook.sql").replace(/\s+/g, " ");
+const migration = source("supabase/migrations/20261007140100_shipment_timeline_and_courier_webhook.sql").replace(/\s+/g, " ");
+const authorizationMigration = source("supabase/migrations/20261008230000_tracking_and_monthly_settlement_hardening.sql").replace(/\s+/g, " ");
 
 describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
   beforeEach(() => {
@@ -50,6 +51,14 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
       expect(migration).toContain("p_location TEXT");
       expect(migration).toContain("p_description TEXT");
       expect(migration).toContain("p_occurred_at TIMESTAMPTZ");
+    });
+
+    it("requires team-scoped permissions for authenticated tracking RPC calls", () => {
+      expect(authorizationMigration).toContain(
+        "private.can_manage_team_resource(v_order.workspace_id, v_order.team_id)",
+      );
+      expect(authorizationMigration).toContain("USING ERRCODE = '42501'");
+      expect(authorizationMigration).toContain("TO authenticated, service_role");
     });
 
     it("automatically transitions order status and sets fulfillment context", () => {
@@ -152,6 +161,39 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
   });
 
   describe("Carrier Webhook Route Handler (/api/carriers/webhook)", () => {
+    it("rejects requests when the webhook secret is not configured without creating an admin client", async () => {
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tracking_number: "Z123" }),
+      });
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(503);
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed event bodies without creating an admin client", async () => {
+      process.env.CARRIER_WEBHOOK_SECRET = "test-carrier-webhook-secret";
+
+      for (const body of ["null", "42", JSON.stringify({ tracking_number: 123 }), JSON.stringify([null])]) {
+        const req = new Request("http://localhost:3000/api/carriers/webhook", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.CARRIER_WEBHOOK_SECRET}`,
+          },
+          body,
+        });
+
+        const res = await POST(req);
+        expect(res.status).toBe(400);
+      }
+
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
     it("rejects unauthorized request when CARRIER_WEBHOOK_SECRET is set and token is missing or invalid", async () => {
       const originalSecret = process.env.CARRIER_WEBHOOK_SECRET;
       process.env.CARRIER_WEBHOOK_SECRET = "super-secret-key";
@@ -178,6 +220,7 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
     });
 
     it("successfully processes event matching order by tracking_number and calls RPC", async () => {
+      process.env.CARRIER_WEBHOOK_SECRET = "test-carrier-webhook-secret";
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
       const mockAdmin = {
         from: vi.fn().mockReturnValue({
@@ -199,7 +242,10 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
 
       const req = new Request("http://localhost:3000/api/carriers/webhook", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer test-carrier-webhook-secret",
+        },
         body: JSON.stringify({
           tracking_number: "Z123456789",
           carrier_status: "doruceno",
@@ -225,6 +271,7 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
     });
 
     it("handles batch webhook events and reports partial failures gracefully", async () => {
+      process.env.CARRIER_WEBHOOK_SECRET = "test-carrier-webhook-secret";
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
       const mockAdmin = {
         from: vi.fn().mockReturnValue({
@@ -251,7 +298,10 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
 
       const req = new Request("http://localhost:3000/api/carriers/webhook", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer test-carrier-webhook-secret",
+        },
         body: JSON.stringify([
           {
             tracking_number: "Z_EXISTS",

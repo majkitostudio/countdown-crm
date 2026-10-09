@@ -6,6 +6,7 @@ import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import { listWorkspaceOperators, type WorkspaceMemberDTO } from "./memberships";
+import { calculateMonthlySettlementOrderTotals } from "@/lib/monthlySettlement";
 
 type WalletSettingsRow = Database["public"]["Tables"]["wallet_settings"]["Row"];
 type WalletBonusRuleRow = Database["public"]["Tables"]["wallet_bonus_rules"]["Row"];
@@ -559,14 +560,7 @@ export async function getMonthlySettlementSummary(input?: {
   const pEndIso = new Date(`${periodEnd}T00:00:00.000Z`).toISOString();
 
   const [settings, operators, ordersRes, transactionsRes, periodBonusTxnsRes] = await Promise.all([
-    loadWalletSettings(context.workspaceId, supabase).catch(() => ({
-      currency: "CZK" as const,
-      monthly_commission_rate: 8,
-      workspace_id: context.workspaceId,
-      updated_by: null,
-      created_at: null,
-      updated_at: null,
-    })),
+    loadWalletSettings(context.workspaceId, supabase),
     listWorkspaceOperators(),
     supabase
       .from("orders")
@@ -576,18 +570,40 @@ export async function getMonthlySettlementSummary(input?: {
       .gte("created_at", new Date(Date.UTC(year - 1, month, 1)).toISOString()), // broad enough to catch deliveries
     supabase
       .from("wallet_transactions")
-      .select("id, user_id, amount, source_period_start, source_type")
+      .select("id, user_id, amount, currency, source_period_start, source_type")
       .eq("workspace_id", context.workspaceId)
       .eq("source_type", "commission_period")
       .eq("source_period_start", periodStart),
     supabase
       .from("wallet_transactions")
-      .select("id, user_id, amount, transaction_type, created_at")
+      .select("id, user_id, amount, currency, transaction_type, created_at")
       .eq("workspace_id", context.workspaceId)
       .in("transaction_type", ["order_bonus", "reversal", "manual_adjustment"])
       .gte("created_at", pStartIso)
       .lt("created_at", pEndIso),
   ]);
+
+  if (ordersRes.error) {
+    throw new DataAccessError("DATABASE", "Monthly settlement orders could not be loaded.");
+  }
+  if (transactionsRes.error) {
+    throw new DataAccessError("DATABASE", "Finalized commission transactions could not be loaded.");
+  }
+  if (periodBonusTxnsRes.error) {
+    throw new DataAccessError("DATABASE", "Monthly bonus transactions could not be loaded.");
+  }
+
+  const configuredCurrency = settings.currency.toUpperCase();
+  const hasMismatchedLedgerCurrency = [
+    ...(transactionsRes.data || []),
+    ...(periodBonusTxnsRes.data || []),
+  ].some((transaction) => transaction.currency.toUpperCase() !== configuredCurrency);
+  if (hasMismatchedLedgerCurrency) {
+    throw new DataAccessError(
+      "VALIDATION",
+      "Monthly settlement contains wallet entries in another currency. Review the transaction ledger before exporting payroll.",
+    );
+  }
 
   const existingTransactionsByUser = new Map<string, { id: string; amount: number }>();
   for (const txn of transactionsRes.data || []) {
@@ -595,25 +611,14 @@ export async function getMonthlySettlementSummary(input?: {
   }
 
   const operatorSummaries: OperatorSettlementDTO[] = operators.map((operator) => {
-    let deliveredCount = 0;
-    let deliveredTotal = 0;
-    let returnedCount = 0;
-    let returnedTotal = 0;
-
-    for (const order of ordersRes.data || []) {
-      if (order.agent_id !== operator.user_id) continue;
-      if (order.status === "delivered" && order.delivered_at && order.delivered_at >= pStartIso && order.delivered_at < pEndIso) {
-        deliveredCount++;
-        deliveredTotal += Number(order.total_amount) || 0;
-      } else if (order.status === "returned") {
-        const returnedInPeriod = order.returned_at && order.returned_at >= pStartIso && order.returned_at < pEndIso;
-        const deliveredInPeriod = order.delivered_at && order.delivered_at >= pStartIso && order.delivered_at < pEndIso;
-        if (returnedInPeriod || deliveredInPeriod) {
-          returnedCount++;
-          returnedTotal += Number(order.total_amount) || 0;
-        }
-      }
-    }
+    const { deliveredCount, deliveredTotal, returnedCount, returnedTotal } =
+      calculateMonthlySettlementOrderTotals(
+        ordersRes.data || [],
+        operator.user_id,
+        pStartIso,
+        pEndIso,
+        configuredCurrency,
+      );
 
     let fixedBonuses = 0;
     let manualAdjustments = 0;

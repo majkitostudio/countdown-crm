@@ -158,11 +158,9 @@ export function validateAndCompileCatalog(data) {
 
 export function generateSeedSql(compiled) {
   const { workspaceId, compiledProducts, compiledObjections } = compiled;
-  const adminId = "00000000-0000-0000-0000-000000000001";
-
   const lines = [
     "-- ============================================================================",
-    "-- COUNTDOWN CRM - PRODUCTION & DEMO CATALOG SEED",
+    "-- COUNTDOWN CRM - AUTHENTICATED WORKSPACE CATALOG SEED",
     `-- Generated automatically from data/seeds/catalog-seed-template.json`,
     `-- Target Workspace: ${workspaceId}`,
     "-- ============================================================================",
@@ -171,7 +169,7 @@ export function generateSeedSql(compiled) {
     "DECLARE",
     "  v_org_id UUID;",
     `  v_ws_id UUID := '${workspaceId}'::UUID;`,
-    `  v_admin_id UUID := '${adminId}'::UUID;`,
+    "  v_admin_id UUID;",
     "BEGIN",
     "  -- 1. Ensure Organization exists",
     "  INSERT INTO public.organizations (name, slug)",
@@ -186,29 +184,31 @@ export function generateSeedSql(compiled) {
     "  -- 2. Ensure Target Workspace exists",
     "  INSERT INTO public.workspaces (id, organization_id, name, slug)",
     "  VALUES (v_ws_id, v_org_id, 'Hlavní linka CC', 'main')",
-    "  ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, organization_id = v_org_id;",
+    "  ON CONFLICT (organization_id, slug) DO UPDATE SET name = EXCLUDED.name",
+    "  RETURNING id INTO v_ws_id;",
     "",
-    "  -- 3. Ensure System Admin Profile exists",
-    "  INSERT INTO public.profiles (id, email, full_name, role, status)",
-    "  VALUES (v_admin_id, 'admin@countdown-crm.local', 'Systémový Administrátor', 'administrator', 'ready')",
-    "  ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = 'administrator';",
+    "  -- Catalog scripts require a real, already-authorized workspace administrator.",
+    "  SELECT user_id INTO v_admin_id",
+    "  FROM public.workspace_members",
+    "  WHERE workspace_id = v_ws_id AND role = 'administrator'",
+    "  ORDER BY created_at",
+    "  LIMIT 1;",
     "",
-    "  -- 4. Ensure Workspace Membership exists",
-    "  INSERT INTO public.workspace_members (workspace_id, user_id, role)",
-    "  VALUES (v_ws_id, v_admin_id, 'administrator')",
-    "  ON CONFLICT (workspace_id, user_id) DO UPDATE SET role = 'administrator';",
+    "  IF v_admin_id IS NULL THEN",
+    "    RAISE EXCEPTION 'Catalog seed requires an existing workspace administrator created through Supabase Auth.';",
+    "  END IF;",
     "",
   ];
 
   // Insert Products
-  lines.push("  -- 5. Seed Catalog Products");
+  lines.push("  -- 6. Seed Catalog Products");
   for (const p of compiledProducts) {
     lines.push(`  INSERT INTO public.products (id, workspace_id, title, category, price, currency, description, image_url, in_stock)`);
     lines.push(`  VALUES (`);
     lines.push(`    '${p.id}'::UUID,`);
     lines.push(`    v_ws_id,`);
     lines.push(`    ${escapeSqlString(p.title)},`);
-    lines.push(`    ${escapeSqlString(p.category)}::public.product_category,`);
+    lines.push(`    ${escapeSqlString(p.category)},`);
     lines.push(`    ${p.price},`);
     lines.push(`    ${escapeSqlString(p.currency)},`);
     lines.push(`    ${escapeSqlString(p.description)},`);
@@ -228,7 +228,7 @@ export function generateSeedSql(compiled) {
   }
 
   // Insert Scripts and Script Versions
-  lines.push("  -- 6. Seed Product Scripts and Published Versions");
+  lines.push("  -- 7. Seed Product Scripts and Published Versions");
   for (const p of compiledProducts) {
     if (!p.scriptHtml) continue;
 
@@ -268,7 +268,7 @@ export function generateSeedSql(compiled) {
   }
 
   // Clean old objections for seeded products to prevent duplication upon re-seed
-  lines.push("  -- 7. Seed Objections Catalog");
+  lines.push("  -- 8. Seed Objections Catalog");
   for (const p of compiledProducts) {
     lines.push(`  DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '${p.id}'::UUID;`);
   }

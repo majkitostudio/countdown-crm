@@ -58,9 +58,9 @@ select is(
      and tablename = 'call_review_revisions'
      and cmd = 'INSERT'
      and roles = array['authenticated']::name[]
-     and with_check::text like '%is_workspace_manager_or_admin%'),
+     and with_check like '%can_access_call_review%'),
   1,
-  'one manager INSERT policy checks workspace role'
+  'one manager INSERT policy checks access to the reviewed call'
 );
 
 select is(

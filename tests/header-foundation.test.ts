@@ -26,12 +26,12 @@ describe("unified authenticated header foundations", () => {
     expect(leaderPaths).toContain("/team");
     expect(administratorPaths).toContain("/exceptions");
     expect(administratorPaths).toContain("/team");
-    expect(getAllowedNavigationCommands("team_leader").find((item) => item.path === "/team")?.label).toBe("Team Workspace");
+    expect(getAllowedNavigationCommands("team_leader").find((item) => item.path === "/team")?.label).toBe("Týmový přehled");
   });
 
   it("uses truthful role-aware search copy and canonical status recipes", () => {
-    expect(getCommandPalettePlaceholder("operator")).toBe("Type a product or page...");
-    expect(getCommandPalettePlaceholder("administrator")).toContain("lead name");
+    expect(getCommandPalettePlaceholder("operator")).toBe("Hledej produkt nebo stránku…");
+    expect(getCommandPalettePlaceholder("administrator")).toContain("kontakt");
     expect(getPageHeaderBadgeClassName("unavailable")).toBe(getStatusClassName("neutral"));
     expect(getPageHeaderBadgeClassName("success")).toBe(getStatusClassName("success"));
     expect(getPageHeaderBadgeClassName("warning")).toBe(getStatusClassName("warning"));

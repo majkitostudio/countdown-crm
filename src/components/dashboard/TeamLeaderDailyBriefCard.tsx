@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarClock, CheckCircle2, ClipboardList, Coins, PhoneCall } from "lucide-react";
 import { loadDashboardDailyBriefAction, type DashboardDailyBriefActionResult } from "@/app/actions/dashboard";
 import { formatCurrencyAmounts } from "@/lib/currency";
+import { Button } from "@/components/ui/Button";
 
 type BriefState = DashboardDailyBriefActionResult | { status: "loading" };
 
@@ -22,6 +23,7 @@ function formatDate(date: string): string {
 
 export function TeamLeaderDailyBriefCard() {
   const [state, setState] = useState<BriefState>({ status: "loading" });
+  const [retryKey, setRetryKey] = useState(0);
   const readyState = state.status === "ready" ? state : null;
 
   useEffect(() => {
@@ -30,9 +32,7 @@ export function TeamLeaderDailyBriefCard() {
     async function loadBrief() {
       try {
         const result = await loadDashboardDailyBriefAction();
-        setState({
-          ...result,
-        });
+        if (!cancelled) setState(result);
       } catch {
         if (!cancelled) setState({ status: "unavailable", message: "Daily Brief není momentálně dostupný." });
       }
@@ -42,7 +42,7 @@ export function TeamLeaderDailyBriefCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryKey]);
 
   return (
     <section className="space-y-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6" data-testid="team-leader-daily-brief">
@@ -52,40 +52,54 @@ export function TeamLeaderDailyBriefCard() {
             <ClipboardList className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Team Leader Daily Brief</h2>
-            <p className="mt-0.5 text-xs text-zinc-400">Přehled dnešních aktivit v rozsahu: {readyState?.brief.scopeLabel ?? "ověřuji rozsah"}. Peněženka je společná za celý workspace.</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Denní přehled</h2>
+            <p className="mt-0.5 text-xs text-zinc-400">
+              Dnešní aktivity · {readyState?.brief.scopeLabel ?? "ověřuji rozsah"}. Peněženka zobrazuje souhrn celého workspace.
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {readyState && <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-400">{readyState.brief.scopeLabel}</span>}
-          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Read-only</span>
+          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-500">Pouze ke čtení</span>
         </div>
       </div>
 
       {state.status === "loading" ? (
-        <div className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Načítám dnešní brief…</div>
+        <div role="status" aria-label="Načítám denní přehled" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="h-24 animate-pulse rounded-xl border border-zinc-800/60 bg-zinc-950/60 motion-reduce:animate-none" />
+          ))}
+        </div>
       ) : state.status === "forbidden" ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Daily Brief je dostupný pouze Team Leaderům a Administrátorům.</div>
+        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Tento přehled je dostupný pouze vedoucím týmů a administrátorům.</div>
       ) : state.status === "unavailable" ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Daily Brief není dostupný: {state.message}</div>
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">
+          <span>Souhrn se nepodařilo načíst. {state.message}</span>
+          <Button variant="secondary" onClick={() => {
+            setState({ status: "loading" });
+            setRetryKey((key) => key + 1);
+          }}>
+            Zkusit znovu
+          </Button>
+        </div>
       ) : readyState ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <BriefMetric label="Calls today" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
-            <BriefMetric label="Orders today" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
-            <BriefMetric label="Revenue today" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
-            <BriefMetric label="Callback attention" value={String(readyState.brief.callbacksToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueCallbacks} po termínu`} />
+            <BriefMetric label="Dnešní hovory" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
+            <BriefMetric label="Dokončené objednávky" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
+            <BriefMetric label="Tržby dnes" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
+            <BriefMetric label="Naplánovaná volání" value={String(readyState.brief.callbacksToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueCallbacks} po termínu`} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-4">
-            <BriefDetail label="Today" value={`${formatDate(readyState.brief.daily.date)} • ${readyState.brief.daily.conversionRate.toFixed(1)}% conversion`} />
-            <BriefDetail label="Open reminders" value={String(readyState.brief.openReminders)} href="/calendar" />
+            <BriefDetail label="Úspěšnost · dnes" value={`${formatDate(readyState.brief.daily.date)} · ${readyState.brief.daily.conversionRate.toFixed(1)} %`} />
+            <BriefDetail label="Otevřené připomínky" value={String(readyState.brief.openReminders)} href="/calendar" />
             <BriefDetail
-              label="Needs review"
+              label="Hovory ke kontrole"
               value={readyState.brief.pendingReviews === null
-                ? "Unavailable"
+                ? "Nedostupné"
                 : readyState.brief.pendingReviews === 0
-                  ? "All calls reviewed"
+                  ? "Všechny hovory zkontrolovány"
                   : String(readyState.brief.pendingReviews)}
               href="/calls?review=unreviewed"
             />
@@ -96,7 +110,7 @@ export function TeamLeaderDailyBriefCard() {
             )}
           </div>
 
-          {readyState.warnings.length > 0 && <p role="status" className="text-[11px] text-amber-300/80">Částečný brief: {readyState.warnings.join(" ")}</p>}
+          {readyState.warnings.length > 0 && <p role="status" className="text-[11px] text-amber-300/80">Částečný přehled: {readyState.warnings.join(" ")}</p>}
         </>
       ) : null}
     </section>

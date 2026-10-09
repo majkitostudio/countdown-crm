@@ -22,24 +22,24 @@ export default async function DashboardPage() {
   }
 
   const scope = context.role === "administrator" ? "workspace" : "team";
-  const scopeLabel = scope === "workspace" ? "Celý workspace" : "Týmová data";
+  const scopeLabel = scope === "workspace" ? "Celý workspace" : "Moje týmy";
 
   return (
     <div className="mx-auto min-w-0 max-w-screen-2xl space-y-6 px-4 sm:px-6" data-testid="dashboard" data-scope={scope}>
       <PageHeader
         icon={LayoutDashboard}
-        title="Dashboard Overview"
-        description={`Persisted ${scope === "workspace" ? "workspace-wide" : "team-scoped"} metrics and activity; live telephony and presence remain unavailable in this pilot.`}
+        title="Přehled"
+        description={`Souhrn uložených dat: ${scopeLabel.toLowerCase()}. Online přítomnost a živé hovory zatím nejsou dostupné.`}
         badge={{ label: scopeLabel, tone: "neutral" }}
         actions={
           <>
             <Link href="/leads?create=1" className={getButtonClassName("secondary")}>
               <Plus className="h-4 w-4" aria-hidden="true" />
-              Add Lead
+              Přidat kontakt
             </Link>
             <Link href="/workspace" className={getButtonClassName("primary")}>
               <PhoneCall className="h-4 w-4" aria-hidden="true" />
-              Launch Operator Console
+              Otevřít operátorskou konzoli
             </Link>
           </>
         }
@@ -51,10 +51,9 @@ export default async function DashboardPage() {
         <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
           <div className="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team attention</p>
-              <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Next opportunities from {scope === "workspace" ? "workspace" : "team"} data</h2>
+              <h2 id="dashboard-team-attention-title" className="text-sm font-semibold text-zinc-100">Co si zaslouží pozornost</h2>
             </div>
-            <span className="text-[10px] text-zinc-600">No synthetic priorities</span>
+            <span className="text-xs text-zinc-500">Podle dostupných dat · {scopeLabel}</span>
           </div>
           <ReorderWidget scope={scope} />
           <NextBestActionCard scope={scope} />
@@ -63,8 +62,7 @@ export default async function DashboardPage() {
         <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
           <div className="flex flex-wrap items-end justify-between gap-3 px-1">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team activity</p>
-              <h2 id="dashboard-team-overview-title" className="mt-1 text-sm font-semibold text-zinc-100">{scopeLabel} performance at a glance</h2>
+              <h2 id="dashboard-team-overview-title" className="text-sm font-semibold text-zinc-100">Výsledky · {scopeLabel}</h2>
             </div>
             <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">{scopeLabel}</span>
           </div>
@@ -75,10 +73,9 @@ export default async function DashboardPage() {
       <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-supporting-title" data-testid="dashboard-supporting-analytics">
         <div className="flex items-end justify-between gap-3 px-1">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
-            <h2 id="dashboard-supporting-title" className="mt-1 text-sm font-semibold text-zinc-100">Team performance and activity</h2>
+            <h2 id="dashboard-supporting-title" className="text-sm font-semibold text-zinc-100">Výkon týmu a aktivita</h2>
           </div>
-          <span className="text-[10px] text-zinc-600">P2 / P3</span>
+          <span className="text-xs text-zinc-500">Další přehledy</span>
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
@@ -91,7 +88,7 @@ export default async function DashboardPage() {
       </section></Surface>
 
       <section aria-labelledby="dashboard-recent-activity-title" data-testid="dashboard-recent-activity">
-        <h2 id="dashboard-recent-activity-title" className="sr-only">Recent {scope === "workspace" ? "workspace" : "team"} activity</h2>
+        <h2 id="dashboard-recent-activity-title" className="sr-only">Poslední aktivita · {scopeLabel}</h2>
         <RecentActivityFeed scope={scope} />
       </section>
     </div>

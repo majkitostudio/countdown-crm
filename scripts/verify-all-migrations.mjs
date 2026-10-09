@@ -128,5 +128,5 @@ if (errors.length > 0) {
   }
   process.exit(1);
 } else {
-  console.log("\nALL 127 MIGRATIONS PASSED STRUCTURAL INTEGRITY CHECK! No invalid tables or missing columns in indexes.");
+  console.log(`\nALL ${files.length} MIGRATIONS PASSED STRUCTURAL INTEGRITY CHECK! No invalid tables or missing columns in indexes.`);
 }
