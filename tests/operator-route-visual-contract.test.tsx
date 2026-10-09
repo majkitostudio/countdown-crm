@@ -27,7 +27,7 @@ const baseOrder = {
 
 describe("daily operator route rendering", () => {
   it("renders the orders filter as accessible shared buttons while keeping normal order status neutral", () => {
-    const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} />);
+    const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} initialViewMode="table" />);
 
     expect(markup).toContain("In-Progress");
     expect(markup).toContain("border-status-neutral-border bg-status-neutral text-status-neutral-text");
@@ -37,10 +37,19 @@ describe("daily operator route rendering", () => {
   });
 
   it("keeps delivered confirmation as the approved semantic success state", () => {
-    const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "delivered" } as WorkspaceOrderDTO]} />);
+    const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "delivered" } as WorkspaceOrderDTO]} initialViewMode="table" />);
 
     expect(markup).toContain("Delivered");
     expect(markup).toContain("border-status-success-border bg-status-success text-status-success-text");
     expect(getOrderStatusTone("delivered")).toBe("success");
+  });
+
+  it("renders the Kanban pipeline by default with dedicated stage columns", () => {
+    const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} />);
+
+    expect(markup).toContain("Expedice / V přípravě");
+    expect(markup).toContain("Čeká na zpracování");
+    expect(markup).toContain("Kanban");
+    expect(markup).toContain("Tabulka");
   });
 });

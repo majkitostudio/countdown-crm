@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ClipboardList, LoaderCircle, MapPin, PhoneCall, Search } from "lucide-react";
+import { ArrowRight, ClipboardList, Columns3, List, LoaderCircle, MapPin, PhoneCall, Search } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { WorkspaceRole } from "@/lib/auth/roles";
@@ -9,7 +9,9 @@ import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Sta
 import { Button } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
 import { CarrierExportDropdown } from "@/components/orders/CarrierExportDropdown";
+import { OrderKanban } from "@/components/orders/OrderKanban";
 
+type ViewMode = "table" | "kanban";
 type PipelineStatus = "all" | "sent_and_returned" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
 
 const filters: Array<{ value: PipelineStatus; label: string }> = [
@@ -42,6 +44,7 @@ export function OrderPipeline({
   orders,
   role,
   onBulkStatusUpdate,
+  initialViewMode = "kanban",
 }: {
   orders: WorkspaceOrderDTO[];
   role?: WorkspaceRole;
@@ -50,7 +53,9 @@ export function OrderPipeline({
     status: "sent" | "delivered" | "returned" | "cancelled",
     note?: string | null
   ) => Promise<{ successCount: number; failureCount: number; errors: string[] }>;
+  initialViewMode?: ViewMode;
 }) {
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [activeFilter, setActiveFilter] = useState<PipelineStatus>("all");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -224,7 +229,75 @@ export function OrderPipeline({
         </Surface>
       )}
 
-      <Surface variant="table">
+      <div className="space-y-4">
+        {/* view toggle & search toolbar */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Kanban / Table toggle */}
+          <div className="flex items-center rounded-xl border border-zinc-800 bg-zinc-950/60 p-1 gap-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("kanban")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === "kanban"
+                  ? "bg-zinc-800 text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+              aria-pressed={viewMode === "kanban"}
+            >
+              <Columns3 className="h-3.5 w-3.5" />
+              Kanban
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === "table"
+                  ? "bg-zinc-800 text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+              aria-pressed={viewMode === "table"}
+            >
+              <List className="h-3.5 w-3.5" />
+              Tabulka
+            </button>
+          </div>
+
+          {/* Search + Export */}
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="relative block sm:w-64">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
+              <span className="sr-only">Hledat v objednávkách</span>
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Hledat klienta, produkt..."
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-950/60 py-2 pl-9 pr-3 text-xs text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
+              />
+            </label>
+            <CarrierExportDropdown
+              orders={visibleOrders}
+              label="Export pro dopravce"
+              variant="secondary"
+              align="right"
+              dataTestId="pipeline-carrier-export"
+              onExport={(format, count) => {
+                setMessage({
+                  text: `Exportováno ${count} ${count === 1 ? "objednávka" : "objednávek"} pro ${format.toUpperCase()}.`,
+                  tone: "success",
+                });
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Kanban view */}
+        {viewMode === "kanban" && (
+          <OrderKanban orders={search ? visibleOrders : orders} role={role} />
+        )}
+
+        {/* Table view */}
+        {viewMode === "table" && (
+        <Surface variant="table">
         <div className="flex flex-col gap-3 border-b border-zinc-800/80 p-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap gap-2">
             {filters.map((filter) => {
@@ -246,38 +319,13 @@ export function OrderPipeline({
               );
             })}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="relative block lg:w-64">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
-              <span className="sr-only">Search orders</span>
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search orders"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950/60 py-2 pl-9 pr-3 text-xs text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
-              />
-            </label>
-            <CarrierExportDropdown
-              orders={visibleOrders}
-              label="Export pro dopravce"
-              variant="secondary"
-              align="right"
-              dataTestId="pipeline-carrier-export"
-              onExport={(format, count) => {
-                setMessage({
-                  text: `Exportováno ${count} ${count === 1 ? "objednávka" : "objednávek"} pro ${format.toUpperCase()}.`,
-                  tone: "success",
-                });
-              }}
-            />
-          </div>
         </div>
 
         {visibleOrders.length === 0 ? (
           <div className="p-12 text-center">
             <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
-            <h2 className="text-sm font-semibold text-zinc-200">No matching orders</h2>
-            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-500">Try another status or search term.</p>
+            <h2 className="text-sm font-semibold text-zinc-200">Žádné odpovídající objednávky</h2>
+            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-500">Zkus jiný status nebo vyhledávací výraz.</p>
           </div>
         ) : (
           <>
@@ -423,6 +471,8 @@ export function OrderPipeline({
           </>
         )}
       </Surface>
+        )}
+      </div>
     </div>
   );
 }

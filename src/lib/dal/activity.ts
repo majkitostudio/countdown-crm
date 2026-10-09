@@ -68,6 +68,8 @@ export type WorkspaceOrderDTO = {
   tracking_number?: string | null;
   carrier?: string | null;
   package_location?: string | null;
+  package_arrived_at?: string | null;
+  pickup_call_completed_at?: string | null;
   tracking_events?: ShipmentTrackingEvent[];
   delivery_address_snapshot: OrderRow["delivery_address_snapshot"];
   delivered_at: string | null;
@@ -105,6 +107,8 @@ type DirectOrderPayload = {
   tracking_number?: string | null;
   carrier?: string | null;
   package_location?: string | null;
+  package_arrived_at?: string | null;
+  pickup_call_completed_at?: string | null;
   tracking_events?: ShipmentTrackingEvent[];
   delivery_address_snapshot: OrderRow["delivery_address_snapshot"];
   delivered_at: string | null;
@@ -303,6 +307,8 @@ function mapDirectOrder(payload: DirectOrderPayload): WorkspaceOrderDTO {
     tracking_number: payload.tracking_number || null,
     carrier: payload.carrier || null,
     package_location: payload.package_location || null,
+    package_arrived_at: payload.package_arrived_at || null,
+    pickup_call_completed_at: payload.pickup_call_completed_at || null,
     tracking_events: Array.isArray(payload.tracking_events) ? payload.tracking_events : [],
     delivery_address_snapshot: payload.delivery_address_snapshot,
     delivered_at: payload.delivered_at,
@@ -403,7 +409,9 @@ const DEMO_ORDERS: WorkspaceOrderDTO[] = [
     source_note: "Ověřená objednávka z hovoru",
     tracking_number: "Z123456789CZ",
     carrier: "Packeta",
-    package_location: null,
+    package_location: "Zásilkovna — Nádražní 45, Brno",
+    package_arrived_at: "2026-10-06T10:00:00.000Z",
+    pickup_call_completed_at: null,
     tracking_events: [],
     delivery_address_snapshot: {
       fullName: "František Dvořák",
@@ -638,6 +646,8 @@ function toWorkspaceOrderDTO(
     tracking_number: order.tracking_number || null,
     carrier: order.carrier || null,
     package_location: order.package_location || null,
+    package_arrived_at: order.package_arrived_at || null,
+    pickup_call_completed_at: order.pickup_call_completed_at || null,
     tracking_events: Array.isArray(order.tracking_events)
       ? (order.tracking_events as unknown as ShipmentTrackingEvent[])
       : [],
