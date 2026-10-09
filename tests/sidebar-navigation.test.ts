@@ -4,16 +4,16 @@ import { describe, expect, it } from "vitest";
 import { getAllowedSidebarNavigationItems } from "@/components/layout/sidebarNavigation";
 
 describe("role-aware sidebar navigation", () => {
-  it("does not advertise custom objects to operators", () => {
+  it("does not advertise administrator-only workflows to operators", () => {
     const operatorPaths = getAllowedSidebarNavigationItems("operator").map((item) => item.href);
 
     expect(operatorPaths).toContain("/workspace");
-    expect(operatorPaths).not.toContain("/objects/deals");
+    expect(operatorPaths).not.toContain("/workflows");
   });
 
-  it("keeps custom objects available only to administrators", () => {
-    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).not.toContain("/objects/deals");
-    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/objects/deals");
+  it("keeps workflows available only to administrators", () => {
+    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).not.toContain("/workflows");
+    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/workflows");
   });
 
   it("shows the exception queue only to team leaders and administrators", () => {

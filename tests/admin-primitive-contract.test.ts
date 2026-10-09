@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 const ADMIN_COMPONENTS = [
   "src/components/exceptions/ExceptionQueue.tsx",
   "src/components/schema/AddCustomFieldModal.tsx",
-  "src/components/schema/ObjectBuilderModal.tsx",
   "src/components/blueprints/BlueprintPickerModal.tsx",
   "src/components/views/FilterEngineBar.tsx",
   "src/components/views/KanbanBoard.tsx",

@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  Briefcase,
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
@@ -44,7 +43,6 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Team Leader Review", href: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
   { label: "Exception Queue", href: "/exceptions", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
   { label: "Leads & Contacts", href: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
-  { label: "Deals & Pipelines", href: "/objects/deals", icon: Briefcase, roles: ["administrator"] },
   { label: "Product Catalog", href: "/products", icon: Package },
   { label: "Call Logs", href: "/calls", icon: History },
   { label: "Workflows", href: "/workflows", icon: Workflow, roles: ["administrator"] },

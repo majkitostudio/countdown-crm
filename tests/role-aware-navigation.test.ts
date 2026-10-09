@@ -25,8 +25,6 @@ describe("role-aware navigation parity", () => {
       "/analytics",
       "/exceptions",
       "/leads",
-      "/monitor",
-      "/objects/deals",
       "/settings/scripts",
       "/team",
       "/training/reviews",

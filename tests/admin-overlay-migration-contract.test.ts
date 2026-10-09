@@ -8,7 +8,6 @@ function source(path: string): string {
 
 const DIALOG_OVERLAYS = [
   "src/components/blueprints/BlueprintPickerModal.tsx",
-  "src/components/schema/ObjectBuilderModal.tsx",
   "src/components/workflows/RuleBuilderModal.tsx",
   "src/components/leads/CreateLeadModal.tsx",
   "src/components/leads/CsvImportModal.tsx",
