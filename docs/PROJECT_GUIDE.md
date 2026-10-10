@@ -9,7 +9,8 @@ Tento soubor obsahuje pouze aktuální pravidla pro práci. Historické plány a
 - `PRODUCT_VISION.md` definuje produktovou identitu a oblasti.
 - Tento soubor definuje bezpečný pracovní postup.
 - Demo data nejsou produkční data.
-- Starší historický záznam není automaticky platné zadání.
+- Historické audity, exporty a starší stavové záznamy nejsou automaticky platné zadání.
+- Aktuální priority průběžně určuje PM; roadmapa není závazek dokončit MVP.
 
 ## Jak postupovat při každém úkolu
 
@@ -45,14 +46,15 @@ Audit má oddělit tři věci: problém v navigaci, problém v návrhu obrazovky
 - Před GitHubem se kontroluje rozdíl souborů, tajné hodnoty, testy, lint, typy a build.
 - Velká refaktorizace se nedělá současně s redesignem a změnou business logiky.
 
-## Aktuální pořadí práce
+## Iterační způsob práce
 
-1. Stabilizovat a ověřit lokální demo prostředí.
-2. Zmapovat produktové oblasti, role, navigaci a hlavní workflow.
-3. Provést UX audit celého produktu, ne pouze Operator Console.
-4. Navrhnout novou informační architekturu.
-5. Vybrat první workflow k funkčnímu zlepšení.
-6. Teprve potom provádět cílený redesign a implementaci.
+Projekt se průběžně stabilizuje, rozšiřuje a ladí. Před každou změnou stanovte její rozsah společně s PM; nedoplňujte automaticky další úkoly z historických roadmap.
+
+- Vzhled a použitelnost se mohou iterovat i tehdy, když jiné oblasti zůstávají rozpracované.
+- Skutečný zdroj leadů ani produkční telefonie nejsou předpokladem pro vývoj obecné kostry či ostatních workflow.
+- Nezobrazujte ani neimplementujte vstupní data, která PM nemá; rozhraní a datový model mají být připravené na budoucí integraci.
+- Při úpravě obrazovky zvažte roli, četnost, rozhodnutí ponechat/sjednotit/smazat, důležitost a alternativní UI/UX.
+- Historickou poznámku nebo výsledek auditu nejprve porovnejte s aktuálním kódem.
 
 ## Kdy je práce hotová
 

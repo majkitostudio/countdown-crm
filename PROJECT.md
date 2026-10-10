@@ -9,6 +9,9 @@ Aktuální zdroje:
 - [START_HERE.md](START_HERE.md) — co je důležité právě teď;
 - [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md) — produktová identita a oblasti;
 - [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) — pracovní a technická pravidla;
-- [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) — zkrácená historie.
+- [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) — stručná historie rozhodnutí a vývoje;
+- [docs/PROJECT_ASSESSMENT_2026-10-10.md](docs/PROJECT_ASSESSMENT_2026-10-10.md) — ověřená zjištění a možné další kroky.
+
+Projekt se průběžně stabilizuje a vylepšuje; není na něj kladen tlak dokončit nebo prodávat MVP. Pořadí práce se domlouvá průběžně podle potřeb PM.
 
 Tento soubor je krátký kompatibilní odkaz pro nástroje, které hledají `PROJECT.md`. Nenahrazuje zdrojový kód, testy ani aktuální ověření runtime.

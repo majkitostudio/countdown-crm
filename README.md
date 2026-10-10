@@ -4,13 +4,13 @@ Countdown CRM je komplexní all-in-one CRM systém na míru pro telemarketingov�
 
 Nejde o generické AI CRM ani pouze o Operator Console. Systém propojuje operátory, Team Leadery a administrátory s leady, zákazníky, hovory, produkty, objednávkami, kvalitou, tréninkem, reportingem a správou provozu.
 
-Začněte v [START_HERE.md](START_HERE.md). Aktuální vize, pracovní pravidla a kompaktní historie jsou v [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md), [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) a [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md).
+Začněte v [START_HERE.md](START_HERE.md). Závazným kontextem jsou také [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md), [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md), [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) a aktuální záznam zjištění [docs/PROJECT_ASSESSMENT_2026-10-10.md](docs/PROJECT_ASSESSMENT_2026-10-10.md). Starší AI audity a exportované bundle soubory nejsou zdrojem aktuálního stavu.
 
 ## Technologický základ
 
 - Next.js App Router, React, TypeScript a Tailwind CSS
 - Supabase PostgreSQL, Auth a RLS
-- Telefonní integrační vrstva s Telnyx jako budoucím produkčním providerem
+- Simulovaný pracovní tok; produkční VoIP/Telnyx je odloženo a není aktuální priorita
 - Vitest, ESLint a TypeScript pro automatické kontroly
 
 ## Lokální spuštění
@@ -39,7 +39,7 @@ npm run build
 |---|---|
 | Operator Console | `/workspace` |
 | Leady a zákazníci | `/leads`, `/leads/[leadId]` |
-| Hovory a telefonie | `/calls`, `/telephony` |
+| Hovory a telefonní nastavení (telefonie odložena) | `/calls`, `/telephony` |
 | Kalendář a callbacky | `/calendar` |
 | Produkty a objednávky | `/products`, `/orders` |
 | Tým, výjimky a audit | `/team`, `/exceptions`, `/audit` |

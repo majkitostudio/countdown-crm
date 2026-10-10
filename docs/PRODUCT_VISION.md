@@ -32,12 +32,12 @@ Systém je postaven na jasné, modulární a škálovatelné hierarchii pro velk
 
 2. **Kampaň = Rozdělení Workspace na jednotlivá oddělení (P1 až P4)**
    - Definuje hlavní provozní pilíře a fáze životního cyklu leadu:
-     - **P1 — Senior Sales / Hot Leads:** Prioritní linka pro zkušené a vyskillované prodejce. Směřují sem vysoce konverzní kontakty, horké poptávky a náročné kampaně vyžadující vysoké prodejní dovednosti a maximalizaci hodnoty košíku.
-     - **P2 — Standard Sales / Mass Outbound:** Běžná odchozí linka pro masové databáze z různých zdrojů. Zde začínají standardní operátoři a nováčci odbavující vysoký denní objem kontaktů.
+     - **P1 — Senior Sales / Hot Leads:** Prioritní linka pro zkušenější prodejce a složitější či prioritní práci. Konkrétní zdroj leadu, produkt nebo akce nejsou pevně dané.
+     - **P2 — Standard Sales / Mass Outbound:** Běžná odchozí linka pro standardní práci a operátory. Lead může přijít z různých budoucích zdrojů; do kódu se nehardcoduje konkrétní databáze ani nabídka.
      - **P3 — Retence, Upsell & Péče o zákazníka:** Plně automatizovaný přesun po doručení. Lead vstoupí do fronty P3 přesně **3 týdny (21 dní) od doručení balíčku do ruky klienta (`delivered`)**. Účelem je kontrola spokojenosti s užíváním doplňků po 3 týdnech, udržení zákazníka a nabídka pokračovací kůry nebo doplňkových synergických produktů.
      - **P4 — Poslední záchrana & Retargeting:** Záchranné záchyty pro kontakty a zásilky, které by jinak propadly:
        - *Faily z P1/P2:* Recyklovatelné námitky (cena, nedůvěra, neúspěch) jdou do P4 **hned na druhý den (cooldown 24 hodin)**.
-       - *Vratky (Returns):* Nepřevzatý balíček od kurýra (`returned`) jde okamžitě do P4 pro záchranu a Re-ship.
+       - *Vratky (Returns):* Nepřevzatý balíček od kurýra (`returned`) jde okamžitě do P4 pro záchranu a Re-ship. Úspěšná záchrana/nová objednávka navazuje retenční péčí v P3.
        - *Rizikové balíčky na výdejně:* Zásilka leží na výdejně/boxu déle než **3 dny a dosud nebyla obvolána**.
 
 3. **Týmy = Rozdělení Kampaně do konkrétních týmů**
@@ -73,6 +73,8 @@ Prodejní hodnota nevzniká počtem komponent. Vzniká tím, že systém:
 - je spolehlivý, školitelný a použitelný při běžném provozu;
 - dovoluje budoucí rozšíření bez dalšího chaosu.
 
-## Aktuální strategická priorita
+## Jak se vize používá
 
-Nejdříve zvalidovat produktovou architekturu a použitelnost celku. Potom určit pořadí stabilizace a redesignu. Nová funkce má vzniknout až tehdy, když je jasné, do které produktové oblasti patří, komu slouží a jak se ověří její přínos.
+Countdown se vyvíjí iterativně. Cílem není za každou cenu dokončit ani prodávat MVP; cílem je postupně stabilizovat systém, zpřesňovat jeho působnost a zlepšovat design, estetiku a použitelnost. Produktová rozhodnutí a nové úpravy jsou očekávanou součástí práce.
+
+Při návrhu každé změny ujasníme, komu slouží, jaký pracovní problém řeší a jak poznáme, že je přínosná. To pomáhá držet systém srozumitelný, ale nebrání rozšiřovat jeho schopnosti podle vize. Reálný zdroj leadů ani produkční telefonie nejsou podmínkou pro iterování nad zbytkem systému.
