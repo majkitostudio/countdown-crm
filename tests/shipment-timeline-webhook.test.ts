@@ -28,7 +28,7 @@ function source(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
-const migration = source("supabase/migrations/20261007140000_shipment_timeline_and_courier_webhook.sql").replace(/\s+/g, " ");
+const migration = source("supabase/migrations/20261007141000_shipment_timeline_and_courier_webhook.sql").replace(/\s+/g, " ");
 
 describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
   beforeEach(() => {
