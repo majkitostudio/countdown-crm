@@ -14,7 +14,7 @@ describe("telephony admin route contract", () => {
 
     expect(page).toContain('requireWorkspaceRole(["administrator"])');
     expect(page).toContain("TelephonyAdminPanel");
-    expect(page).toContain("/settings#telephony-adapter");
+    expect(page).toContain("/admin/settings#telephony-adapter");
     expect(page).toContain("Local SIP is not active");
   });
 

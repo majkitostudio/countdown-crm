@@ -45,7 +45,7 @@ export default async function ProductScriptsPage() {
           icon={FileText}
           title="Script Administration"
           badge={{ label: "Administrator only", tone: "neutral" }}
-          backLink={{ href: "/settings", label: "Back to Settings" }}
+          backLink={{ href: "/admin", label: "Back to Admin Hub" }}
           description="Edit one continuous script per product, save a draft, then publish the reviewed version to operators."
         />
         <ProductScriptManager
@@ -83,11 +83,11 @@ export default async function ProductScriptsPage() {
           : "The approved product scripts could not be loaded right now."}
       </p>
 <Link
-          href="/settings"
+          href="/admin"
           className={getButtonClassName("secondary")}
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Settings
+          Back to Admin Hub
         </Link>
       </Surface>
     </div>

@@ -56,9 +56,9 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
     icon: Workflow,
   },
   {
-    href: "/settings",
+    href: "/admin/settings",
     label: "Workspace Settings",
-    description: "Wallet rules, commissions and workspace preferences.",
+    description: "Wallet rules, commissions and the telephony adapter.",
     legacyPath: "/settings",
     icon: WalletCards,
   },

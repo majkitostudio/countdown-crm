@@ -93,7 +93,7 @@ export function TelephonyAdapterSettings() {
               Open Local SIP console
             </Link>
           ) : (
-            <Link href="/settings#telephony-adapter" className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200">
+            <Link href="/admin/settings#telephony-adapter" className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200">
               <ShieldAlert className="h-3.5 w-3.5" />
               Local SIP is not active. Enable Local SIP in Admin Settings to use this page.
             </Link>

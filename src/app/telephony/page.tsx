@@ -45,7 +45,7 @@ export default async function TelephonyPage() {
         <h1 className="text-base font-semibold text-zinc-100">Local SIP is not active.</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Enable Local SIP in Admin Settings to use this page.</p>
         <Link
-          href="/settings#telephony-adapter"
+          href="/admin/settings#telephony-adapter"
           className={getButtonClassName("secondary")}
         >
           Open Telephony adapter settings
@@ -57,7 +57,7 @@ export default async function TelephonyPage() {
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
-      <PageHeader icon={Phone} title="Local SIP" badge={{ label: "Administrator only", tone: "neutral" }} backLink={{ href: "/settings#telephony-adapter", label: "Back to Settings" }} description="Local Asterisk console for internal CRM telephony testing." />
+      <PageHeader icon={Phone} title="Local SIP" badge={{ label: "Administrator only", tone: "neutral" }} backLink={{ href: "/admin/settings#telephony-adapter", label: "Back to Workspace Settings" }} description="Local Asterisk console for internal CRM telephony testing." />
       <TelephonyAdminPanel settings={result.settings} />
     </div>
   );

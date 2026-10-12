@@ -13,6 +13,7 @@ const rlsMigration = readFileSync(
 const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.url), "utf8");
 const walletPage = readFileSync(new URL("../src/app/wallet/page.tsx", import.meta.url), "utf8");
 const settingsPage = readFileSync(new URL("../src/app/settings/page.tsx", import.meta.url), "utf8");
+const workspaceSettingsPanel = readFileSync(new URL("../src/components/settings/WorkspaceSettingsPanel.tsx", import.meta.url), "utf8");
 
 describe("user wallet MVP contract", () => {
   it("keeps the wallet as an immutable, workspace-scoped ledger", () => {
@@ -61,11 +62,12 @@ describe("user wallet MVP contract", () => {
     expect(walletPage).toContain("state === \"unavailable\"");
     expect(walletPage).toContain("Derived from posted ledger transactions");
     expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
-    expect(settingsPage).toContain('WalletManagerPanel mode="settings"');
-    expect(settingsPage).toContain('data-testid="wallet-settings-boundary"');
-    expect(settingsPage).toContain('walletOverview.sections.settings.state');
-    expect(settingsPage).toContain('walletOverview.sections.rules.state');
-    expect(settingsPage).toContain("Wallet bonus rules unavailable");
+    expect(workspaceSettingsPanel).toContain('WalletManagerPanel mode="settings"');
+    expect(workspaceSettingsPanel).toContain('data-testid="wallet-settings-boundary"');
+    expect(workspaceSettingsPanel).toContain('walletOverview.sections.settings.state');
+    expect(workspaceSettingsPanel).toContain('walletOverview.sections.rules.state');
+    expect(workspaceSettingsPanel).toContain("Wallet bonus rules unavailable");
+    expect(settingsPage).not.toContain('WalletManagerPanel mode="settings"');
     expect(rlsMigration).toContain("Workspace managers can view wallet settings");
     expect(rlsMigration).toContain("Workspace managers can view wallet bonus rules");
     expect(rlsMigration).toContain("private.is_workspace_manager_or_admin(workspace_id)");

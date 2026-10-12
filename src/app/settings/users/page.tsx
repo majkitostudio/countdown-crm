@@ -33,6 +33,7 @@ export default async function UsersAndPermissionsPage() {
         title="Users & Permissions"
         description="Kompletní správa pracovníků call centra, rolí, linek a odpovědnosti za leady."
         badge={{ label: "Administrator only", tone: "neutral" }}
+        backLink={{ href: "/admin", label: "Back to Admin Hub" }}
       />
       <UsersHubPanel initialData={data} currentUserId={context.userId} />
       <TeamManagementPanel initialData={data} />

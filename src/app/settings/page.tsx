@@ -1,24 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import {
   Settings as SettingsIcon,
   User,
   Volume2,
   Save,
   Play,
-  FileText,
 } from "lucide-react";
 import { sounds } from "@/lib/audio";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { getOperatorRoleLabel } from "@/lib/operatorIdentity";
-import { isAdministrator, isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getWalletOverviewAction } from "@/app/actions/wallet";
-import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
-import type { WalletOverviewDTO } from "@/lib/dal/wallet";
-import { TelephonyAdapterSettings } from "@/components/settings/TelephonyAdapterSettings";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
@@ -28,8 +21,6 @@ export default function SettingsPage() {
   const [isSavedAlert, setIsSavedAlert] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
-  const [walletOverview, setWalletOverview] = useState<WalletOverviewDTO | null>(null);
-  const [walletError, setWalletError] = useState<string | null>(null);
   const {
     preferences: settings,
     setPreferences: setSettings,
@@ -38,29 +29,6 @@ export default function SettingsPage() {
     save: savePreferences,
   } = useUserPreferences();
   const { identity, isLoading: isOperatorLoading } = useOperatorIdentity();
-  const canManageWorkspaceSchema = isTeamLeaderOrAdministrator(identity?.role);
-  const canManageProductScripts = isAdministrator(identity?.role);
-  const walletSettingsAvailable = walletOverview?.sections.settings.state === "available";
-  const walletRulesAvailable = walletOverview?.sections.rules.state === "available";
-
-  useEffect(() => {
-    if (!canManageWorkspaceSchema) {
-      return;
-    }
-
-    let isCurrent = true;
-    void getWalletOverviewAction()
-      .then((overview) => {
-        if (isCurrent) setWalletOverview(overview);
-      })
-      .catch((error) => {
-        if (isCurrent) setWalletError(error instanceof Error ? error.message : "Wallet settings could not be loaded.");
-      });
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [canManageWorkspaceSchema]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,33 +57,9 @@ export default function SettingsPage() {
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={SettingsIcon}
-        title={canManageWorkspaceSchema ? "Operator & Workspace Settings" : "Operator Settings"}
-        badge={{ label: "Config Active", tone: "neutral" }}
-        description={canManageWorkspaceSchema
-          ? "Configure operator audio feedback, wallet settings, and workspace preferences"
-          : "Configure your personal operator preferences"}
-        actions={
-          <>
-          {canManageProductScripts && (
-            <>
-              <Link
-                href="/settings/users"
-                className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-500 hover:text-zinc-100"
-              >
-                <User className="h-4 w-4" />
-                <span>Users & Permissions</span>
-              </Link>
-              <Link
-                href="/settings/scripts"
-                className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-xs font-semibold text-zinc-200 transition-all hover:border-zinc-500 hover:text-zinc-100"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Product Scripts</span>
-              </Link>
-            </>
-          )}
-          </>
-        }
+        title="Settings"
+        badge={{ label: "Personal", tone: "neutral" }}
+        description="Configure your personal operator preferences"
       />
 
       {/* Success Notification Alert */}
@@ -136,31 +80,6 @@ export default function SettingsPage() {
           Preferences unavailable: {preferencesError}
         </StatusAlert>
       )}
-
-      {canManageWorkspaceSchema && (
-        <section data-testid="wallet-settings-boundary" className="space-y-4">
-          {walletOverview === null && !walletError ? (
-            <Surface variant="inset"><div className="p-5 text-xs text-zinc-400">Loading workspace wallet settings...</div></Surface>
-          ) : walletError ? (
-            <StatusAlert tone="danger">Wallet settings unavailable: {walletError}</StatusAlert>
-          ) : walletOverview && !walletSettingsAvailable ? (
-            <StatusAlert tone="danger">
-              Wallet settings unavailable: {walletOverview.sections.settings.state === "unavailable" ? walletOverview.sections.settings.message : "Wallet settings are not available."}
-            </StatusAlert>
-          ) : walletOverview?.settings ? (
-            <>
-              {!walletRulesAvailable && (
-                <StatusAlert tone="warning">
-                  Wallet bonus rules unavailable: {walletOverview.sections.rules.state === "unavailable" ? walletOverview.sections.rules.message : "Wallet bonus rules are not available."}
-                </StatusAlert>
-              )}
-              <WalletManagerPanel mode="settings" settings={walletOverview.settings} rules={walletOverview.rules} members={[]} rulesAvailable={walletRulesAvailable} />
-            </>
-          ) : null}
-        </section>
-      )}
-
-      {canManageProductScripts && <TelephonyAdapterSettings />}
 
       <form onSubmit={handleSave} className="space-y-8">
         {/* Section 1: Operator Profile */}

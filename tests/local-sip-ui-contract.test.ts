@@ -17,15 +17,17 @@ describe("Local SIP settings UI contract", () => {
     expect(component).toContain("Telnyx adapter");
     expect(component).toContain("disabled");
     expect(component).toContain("href=\"/telephony\"");
-    expect(component).toContain("/settings#telephony-adapter");
+    expect(component).toContain("/admin/settings#telephony-adapter");
   });
 
   it("keeps the adapter out of local user preferences", () => {
     const settings = readSource("src/lib/settings.ts");
-    const page = readSource("src/app/settings/page.tsx");
+    const personalSettings = readSource("src/app/settings/page.tsx");
+    const workspaceSettings = readSource("src/components/settings/WorkspaceSettingsPanel.tsx");
 
     expect(settings).not.toContain("telephony");
-    expect(page).toContain("TelephonyAdapterSettings");
-    expect(page).not.toContain("saveUserSettings({ ...settings, active_adapter");
+    expect(workspaceSettings).toContain("TelephonyAdapterSettings");
+    expect(personalSettings).not.toContain("TelephonyAdapterSettings");
+    expect(personalSettings).not.toContain("saveUserSettings({ ...settings, active_adapter");
   });
 });
