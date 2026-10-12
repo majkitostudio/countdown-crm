@@ -33,8 +33,8 @@ export default async function CalendarPage() {
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={CalendarDays}
-        title="Plánovač"
-        description="Přehled naplánovaných hovorů (Schedules) a osobních připomínek (Reminders)."
+        title="Schedule"
+        description="Naplánované callbacky a vlastní připomínky operátora."
       />
       <OperatorCalendar initialCalendar={calendar!} />
     </div>

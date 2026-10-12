@@ -59,7 +59,7 @@ export default function SettingsPage() {
         icon={SettingsIcon}
         title="Settings"
         badge={{ label: "Personal", tone: "neutral" }}
-        description="Configure your personal operator preferences"
+        description="Osobní nastavení operátora."
       />
 
       {/* Success Notification Alert */}

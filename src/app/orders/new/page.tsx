@@ -104,8 +104,8 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
         badge={{ label: flow === "call" ? "Complete call" : "Not saved", tone: "neutral" }}
         backLink={{ href: origin === "workspace" ? "/workspace" : "/orders", label: origin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
         description={flow === "call"
-          ? "Complete the current call by reviewing and placing the order."
-          : "Create an order and continue its delivery lifecycle from Orders."}
+          ? "Dokončete aktuální hovor kontrolou a vytvořením objednávky."
+          : "Vytvořte objednávku a pokračujte jejím doručovacím cyklem v Orders."}
       />
       <OrderCreateForm
         leads={leads}

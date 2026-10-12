@@ -34,7 +34,7 @@ describe("Exception Queue page", () => {
 
     const html = renderToStaticMarkup(await ExceptionsPage());
 
-    expect(html).toContain("Team Leader Exception Queue");
+    expect(html).toContain("Exception Queue");
     expect(html).toContain("Nothing needs attention");
   });
 

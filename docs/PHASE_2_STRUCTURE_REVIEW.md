@@ -195,6 +195,12 @@ triggerů a (b) implementaci akcí.
 
 Po každé vlně: `lint` · `typecheck` · `test` · `build` zelené, a teprve pak commit.
 
+**Stav k 13. 10. 2026:** ✅ **Vlna 1 hotová** — každá stránka má anglický titulek a český popis; překlopení
+Admin Hub → **Management** (sekce Administration zůstává); dále přejmenováno: `Call Logs`, `Schedule`,
+`Automations`, `Exception Queue`, `AI Training`, `Product Catalog`, `Users & Teams`, `Readiness`,
+`Audit Log`, `Analysis` (Analytics), `Order Detail`, `Edit Order`, `Call Review`. Generické akce v Automations
+jsou anglicky (`Edit`, `Disable`, `Enable`, `Delete`). Smluvní testy aktualizovány na nové texty.
+
 ---
 
 ## 7. Otevřené body

@@ -22,7 +22,7 @@ describe("workflow server-boundary UI contract", () => {
     const workflowsPage = readFileSync(path.join(projectRoot, "src", "app", "workflows", "page.tsx"), "utf8");
     expect(workflowsPage).not.toContain('"use client"');
     expect(workflowsPage).toContain('requireWorkspaceRole(["team_leader", "administrator"])');
-    expect(workflowsPage).toContain("Workflow rules and execution data are available to Team Leaders and Administrators only.");
+    expect(workflowsPage).toContain("Pravidla automatizací a data o jejich běhu jsou dostupné jen Team Leaderům a administrátorům.");
     expect(workflowsPage).toContain("return <WorkflowsManagementClient />");
   });
 

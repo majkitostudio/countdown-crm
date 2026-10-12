@@ -22,7 +22,7 @@ describe("workspace readiness UI contract", () => {
     if (!existsSync(panelPath)) return;
     const panel = readFileSync(panelPath, "utf8");
 
-    expect(panel).toContain('title="Control Checkpoint"');
+    expect(panel).toContain('title="Readiness"');
     expect(panel).toContain("Attention");
     expect(panel).toContain("Blocked");
     expect(panel).toContain("<details");
@@ -45,13 +45,13 @@ describe("workspace readiness UI contract", () => {
     expect(summary).toContain("<ReadinessStatusBadge status={check.status} />");
   });
 
-  it("names the administrative surface Control Checkpoint everywhere it is displayed", () => {
+  it("names the administrative surface Readiness everywhere it is displayed", () => {
     const page = readFileSync(pagePath, "utf8");
     const navigation = readFileSync(navigationPath, "utf8");
 
-    expect(page).toContain('title="Control Checkpoint"');
-    expect(page).toContain("Control Checkpoint unavailable");
-    expect(navigation).not.toContain('label: "Control Checkpoint"');
+    expect(page).toContain('title="Readiness"');
+    expect(page).toContain("Readiness unavailable");
+    expect(navigation).not.toContain('label: "Readiness"');
     expect(navigation).not.toContain('label: "Workspace Readiness"');
   });
 });

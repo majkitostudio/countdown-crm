@@ -16,7 +16,7 @@ export default async function AdminWorkspaceSettingsPage() {
             Workspace Settings are available to administrators only
           </h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            Personal preferences stay in Settings; workspace-wide configuration belongs to the Admin Hub.
+            Osobní nastavení zůstává v Settings; nastavení celého workspace patří do Managementu.
           </p>
         </Surface>
       </div>
@@ -29,8 +29,8 @@ export default async function AdminWorkspaceSettingsPage() {
         icon={WalletCards}
         title="Workspace Settings"
         badge={{ label: "Administrator only", tone: "neutral" }}
-        backLink={{ href: "/admin", label: "Back to Admin Hub" }}
-        description="Workspace-wide wallet rules, commissions and the telephony adapter."
+        backLink={{ href: "/admin", label: "Back to Management" }}
+        description="Pravidla a provize walletu pro celý workspace a telefonní adaptér."
       />
       <WorkspaceSettingsPanel />
     </div>

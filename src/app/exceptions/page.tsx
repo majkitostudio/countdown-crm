@@ -41,8 +41,8 @@ export default async function ExceptionsPage() {
     <div className="mx-auto max-w-screen-2xl space-y-6">
       <PageHeader
         icon={ShieldAlert}
-        title="Team Leader Exception Queue"
-        description="A focused list of callbacks, queue recovery, workflow failures and missing scripts that need a manager decision."
+        title="Exception Queue"
+        description="Fronta callbacků, obnovy front, selhání automatizací a chybějících skriptů, které potřebují rozhodnutí manažera."
         badge={{ label: "Workspace operations", tone: result.data.items.some((item) => item.priority === "critical") ? "unavailable" : "neutral" }}
       />
       <ExceptionQueue initialData={result.data} />

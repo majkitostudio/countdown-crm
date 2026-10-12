@@ -9,8 +9,8 @@ describe("Call Logs truthful transcript copy", () => {
   it("does not promise a full or real-time transcript for every call", () => {
     expect(source).not.toContain("full speech transcript protocols");
     expect(source).not.toContain("Real-time call history logs");
-    expect(source).toContain("any verified captured transcripts");
-    expect(source).toContain("A record may not include audio or a transcript.");
+    expect(source).toContain("ověřené zachycené přepisy");
+    expect(source).toContain("Záznam nemusí obsahovat audio ani přepis.");
   });
 
   it("shows transcript evidence without making the row action promise a transcript", () => {

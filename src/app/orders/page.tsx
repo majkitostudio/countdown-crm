@@ -46,8 +46,8 @@ export default async function OrdersPage() {
           title="Orders"
           badge={{ label: `${orders.length} total`, tone: "neutral" }}
           description={role === "operator"
-            ? "Track assigned orders and next delivery steps."
-            : "Review workspace orders and operator ownership."}
+            ? "Sledujte přiřazené objednávky a další kroky doručení."
+            : "Přehled objednávek workspace a přiřazení operátorů."}
           actions={
             role === "operator" ? undefined : (
               <Link

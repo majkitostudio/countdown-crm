@@ -203,8 +203,8 @@ export default function WorkflowsPage() {
     <div className="min-h-screen space-y-6">
       <PageHeader
         icon={Zap}
-        title="Workflows & Automations"
-        description="Automatizujte opakující se procesy pomocí událostních pravidlových sekvencí"
+        title="Automations"
+        description="Automatizujte opakující se procesy pomocí pravidel spouštěných událostmi."
         actions={
           <>
           <Button
@@ -383,12 +383,12 @@ export default function WorkflowsPage() {
                         variant="quiet"
                         onClick={() => handleEdit(rule)}
                       >
-                        Upravit
+                        Edit
                       </Button>
                       <Button
                         variant="quiet"
                         onClick={() => handleToggle(rule.id)}
-                        title={rule.enabled ? "Deaktivovat" : "Aktivovat"}
+                        title={rule.enabled ? "Disable" : "Enable"}
                       >
                         {rule.enabled ? (
                           <ToggleRight className="w-6 h-6 text-zinc-200" />
@@ -399,7 +399,7 @@ export default function WorkflowsPage() {
                       <Button
                         variant="danger"
                         onClick={() => handleDelete(rule.id)}
-                        title="Smazat"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

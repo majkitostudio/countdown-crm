@@ -103,10 +103,10 @@ export default async function OrderDetailPage({
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={ShoppingCart}
-        title="Order detail"
+        title="Order Detail"
         badge={{ label: statusLabel(order.status), tone: order.status === "completed" || order.status === "delivered" ? "success" : order.status === "pending" ? "warning" : "neutral" }}
         backLink={{ href: backHref, label: requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
-        description={`Order #${order.id} · Created ${formatDate(order.created_at)}`}
+        description={`Objednávka #${order.id} · Vytvořeno ${formatDate(order.created_at)}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <CarrierExportDropdown orders={[order]} label="Exportovat štítek" variant="secondary" />

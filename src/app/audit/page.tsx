@@ -141,7 +141,7 @@ export default function AuditPage() {
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={ShieldAlert}
-        title="Audit Log & Activity Tracker"
+        title="Audit Log"
         badge={{ label: loadError ? "Unavailable" : "System Audit", tone: loadError ? "unavailable" : "neutral" }}
         description="Kompletní protokol událostí, exportů dat, změn v CRM a aktivních relací operátorů."
         actions={

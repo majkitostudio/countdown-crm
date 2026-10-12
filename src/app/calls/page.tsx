@@ -104,9 +104,9 @@ export default function CallLogsPage() {
       
       <PageHeader
         icon={PhoneCall}
-        title="Calls"
+        title="Call Logs"
         badge={{ label: `${totalCallsCount} logged`, tone: "neutral" }}
-        description="Recorded call outcomes and any verified captured transcripts. A record may not include audio or a transcript."
+        description="Zaznamenané výsledky hovorů a ověřené zachycené přepisy. Záznam nemusí obsahovat audio ani přepis."
 actions={
           <div className="flex items-center gap-2">
             {canReview && (

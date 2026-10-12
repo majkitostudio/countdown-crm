@@ -10,7 +10,7 @@ import { Surface } from "@/components/ui/Surface";
 
 /**
  * Workspace-wide settings that used to sit inside the personal Settings page.
- * They now live behind the Admin Hub as a single administrator surface.
+ * They now live behind the Management hub as a single administrator surface.
  */
 export function WorkspaceSettingsPanel() {
   const [walletOverview, setWalletOverview] = useState<WalletOverviewDTO | null>(null);

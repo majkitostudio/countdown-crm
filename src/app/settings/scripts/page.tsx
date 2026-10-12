@@ -43,10 +43,10 @@ export default async function ProductScriptsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <PageHeader
           icon={FileText}
-          title="Script Administration"
+          title="Products & Scripts"
           badge={{ label: "Administrator only", tone: "neutral" }}
-          backLink={{ href: "/admin", label: "Back to Admin Hub" }}
-          description="Edit one continuous script per product, save a draft, then publish the reviewed version to operators."
+          backLink={{ href: "/admin", label: "Back to Management" }}
+          description="Jeden souvislý skript na produkt: uložte koncept a publikujte zkontrolovanou verzi operátorům."
         />
         <ProductScriptManager
           products={result.products.map((product) => ({
@@ -76,7 +76,7 @@ export default async function ProductScriptsPage() {
       ) : (
         <FileText className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
       )}
-      <h1 className="text-base font-semibold text-zinc-100">Script administration unavailable</h1>
+      <h1 className="text-base font-semibold text-zinc-100">Products & Scripts unavailable</h1>
       <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
         {isForbidden
           ? "Only a workspace Administrator can edit approved product scripts."
@@ -87,7 +87,7 @@ export default async function ProductScriptsPage() {
           className={getButtonClassName("secondary")}
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Admin Hub
+          Back to Management
         </Link>
       </Surface>
     </div>

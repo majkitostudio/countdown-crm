@@ -28,8 +28,8 @@ export default async function DashboardPage() {
     <div className="mx-auto min-w-0 max-w-screen-2xl space-y-6 px-4 sm:px-6" data-testid="dashboard" data-scope={scope}>
       <PageHeader
         icon={LayoutDashboard}
-        title="Dashboard Overview"
-        description={`Persisted ${scope === "workspace" ? "workspace-wide" : "team-scoped"} metrics and activity; live telephony and presence remain unavailable in this pilot.`}
+        title="Dashboard"
+        description={`Uložené metriky a aktivita za ${scope === "workspace" ? "celý workspace" : "tým"}; živá telefonie a presence zatím v pilotu nejsou dostupné.`}
         badge={{ label: scopeLabel, tone: "neutral" }}
         actions={
           <>

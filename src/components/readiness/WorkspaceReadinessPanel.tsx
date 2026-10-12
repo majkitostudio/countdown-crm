@@ -122,9 +122,9 @@ export function WorkspaceReadinessPanel({ initialData }: { initialData: Workspac
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={ClipboardCheck}
-        title="Control Checkpoint"
+        title="Readiness"
         badge={{ label: STATUS_COPY[data.overallStatus].label, tone: data.overallStatus === "ready" ? "success" : "unavailable" }}
-        description="A truthful operational checklist. Missing evidence is shown as attention or blocked, never as a fake Ready state."
+        description="Provozní kontrola připravenosti aktivního workspace. Chybějící podklady se hlásí jako pozornost nebo blokace, nikdy ne jako nepravdivý stav Ready."
         actions={
           <Button
             variant="secondary"

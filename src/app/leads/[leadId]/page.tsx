@@ -75,7 +75,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
         title={lead.full_name}
         badge={{ label: "Read-only contact view", tone: "neutral" }}
         backLink={{ href: "/workspace", label: "Back to workspace" }}
-        description={`Updated ${formatDate(lead.updated_at)}`}
+        description={`Aktualizováno ${formatDate(lead.updated_at)}`}
         actions={
           <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-400">
             <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />

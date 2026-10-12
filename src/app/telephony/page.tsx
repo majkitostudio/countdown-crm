@@ -57,7 +57,7 @@ export default async function TelephonyPage() {
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
-      <PageHeader icon={Phone} title="Local SIP" badge={{ label: "Administrator only", tone: "neutral" }} backLink={{ href: "/admin/settings#telephony-adapter", label: "Back to Workspace Settings" }} description="Local Asterisk console for internal CRM telephony testing." />
+      <PageHeader icon={Phone} title="Local SIP" badge={{ label: "Administrator only", tone: "neutral" }} backLink={{ href: "/admin/settings#telephony-adapter", label: "Back to Workspace Settings" }} description="Lokální Asterisk konzole pro interní testování telefonie v CRM." />
       <TelephonyAdminPanel settings={result.settings} />
     </div>
   );

@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
       
       <PageHeader
         icon={BarChart3}
-        title={status === "forbidden" ? "Analytics unavailable" : "Team Leader BI & Revenue Analytics"}
+        title={status === "forbidden" ? "Analytics unavailable" : "Analytics"}
         badge={{
           label: status === "loading"
             ? "Loading"
@@ -134,7 +134,7 @@ export default function AnalyticsPage() {
           tone: status === "success" ? "neutral" : "unavailable",
         }}
         description={result?.ok
-          ? `${scopeLabel} — revenue and call metrics visible to this role. Forecasts and attribution require additional persisted sources.`
+          ? `${scopeLabel} — příjmy a metriky hovorů viditelné pro tuto roli. Prognózy a atribuce vyžadují další uložené zdroje.`
           : "Ověřuji rozsah analytiky a dostupnost dat pro tuto roli."}
         actions={
           result?.ok ? (

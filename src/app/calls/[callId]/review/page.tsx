@@ -61,8 +61,8 @@ export default async function CallReviewPage({
     <div className="mx-auto max-w-6xl space-y-5">
       <PageHeader
         icon={ShieldCheck}
-        title="Call review"
-        description={`Review recorded evidence for call #${review.call.id}.`}
+        title="Call Review"
+        description={`Kontrola zaznamenaných podkladů k hovoru #${review.call.id}.`}
         badge={{ label: context.role === "operator" || review.canReview === false ? "Read-only call evidence" : "Real call evidence", tone: "neutral" }}
         actions={
           <Link

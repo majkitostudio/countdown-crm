@@ -1198,7 +1198,7 @@ function WorkspaceContent() {
     <PageHeader
       icon={PhoneCall}
       title="Operator Console"
-      description="Handle the assigned customer with the brief, approved script, and outcome in one place."
+      description="Obsluha přiřazeného zákazníka na jednom místě — podklad, schválený skript a výsledek hovoru."
       badge={pageHeaderBadge}
       actionsLayout="stacked"
       actions={operatorNextActionPanel}

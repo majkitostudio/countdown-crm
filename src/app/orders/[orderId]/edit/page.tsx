@@ -120,10 +120,10 @@ export default async function OrderEditPage({
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={Package}
-        title="Edit order details"
+        title="Edit Order"
         badge={{ label: `Revision ${result.order.revision}`, tone: "neutral" }}
         backLink={{ href: backHref, label: result.origin === "workspace" ? "Back to Operator Console" : "Back to order" }}
-        description={`Status is currently ${result.order.status === "in_progress" ? "In-Progress" : result.order.status.charAt(0).toUpperCase() + result.order.status.slice(1)}. Customer, assigned operator and status stay read-only here.`}
+        description={`Stav je nyní ${result.order.status === "in_progress" ? "In-Progress" : result.order.status.charAt(0).toUpperCase() + result.order.status.slice(1)}. Zákazník, přiřazený operátor a stav jsou zde pouze pro čtení.`}
       />
       <OrderEditForm
         order={result.order}

@@ -30,42 +30,42 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
   {
     href: "/controls",
     label: "Readiness",
-    description: "Operational readiness checklist for the active workspace.",
+    description: "Provozní kontrola připravenosti aktivního workspace.",
     legacyPath: "/controls",
     icon: ClipboardCheck,
   },
   {
     href: "/settings/users",
     label: "Users & Teams",
-    description: "Members, workspace roles and team ownership.",
+    description: "Členové, role ve workspace a odpovědnosti za týmy.",
     legacyPath: "/settings/users",
     icon: Users,
   },
   {
     href: "/settings/scripts",
     label: "Products & Scripts",
-    description: "Product catalog and the approved scripts operators read.",
+    description: "Katalog produktů a schválené skripty, které čtou operátoři.",
     legacyPath: "/settings/scripts",
     icon: FileText,
   },
   {
     href: "/workflows",
-    label: "Workflows & Automations",
-    description: "Event rules and automated sequences.",
+    label: "Automations",
+    description: "Automatická pravidla a webhooky spouštěné událostmi.",
     legacyPath: "/workflows",
     icon: Workflow,
   },
   {
     href: "/admin/settings",
     label: "Workspace Settings",
-    description: "Wallet rules, commissions and the telephony adapter.",
+    description: "Pravidla a provize walletu a telefonní adaptér.",
     legacyPath: "/settings",
     icon: WalletCards,
   },
   {
     href: "/telephony",
     label: "Telephony",
-    description: "Local SIP console for internal telephony testing.",
+    description: "Lokální SIP konzole pro interní testování telefonie.",
     legacyPath: "/telephony",
     icon: Zap,
   },
@@ -80,10 +80,10 @@ export default async function AdminHubPage() {
         <Surface variant="empty">
           <LockKeyhole className="mx-auto h-8 w-8 text-zinc-500" />
           <h1 className="mt-4 text-base font-semibold text-zinc-100">
-            Admin Hub is available to administrators only
+            Management is available to administrators only
           </h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            Workspace administration is not part of operator or Team Leader work.
+            Správa workspace nepatří k práci operátora ani Team Leadera.
           </p>
         </Surface>
       </div>
@@ -94,8 +94,8 @@ export default async function AdminHubPage() {
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={ShieldCheck}
-        title="Admin Hub"
-        description="One place for workspace administration: readiness, members, products and scripts, automations, settings and telephony."
+        title="Management"
+        description="Jedno místo pro správu workspace: připravenost, členové, produkty a skripty, automatizace, nastavení a telefonie."
         badge={{ label: "Administrator only", tone: "neutral" }}
       />
 

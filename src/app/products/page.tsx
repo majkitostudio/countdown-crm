@@ -19,9 +19,9 @@ export default async function ProductsPage() {
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={Package}
-        title="Product Catalog & Objection Engine"
+        title="Product Catalog"
         badge={badge}
-        description="Manage multi-category inventory, sales battle-cards, and cross-sell rules for call center operators."
+        description="Katalog produktů, skriptů a námitkových karet pro operátory."
       />
       <ProductCatalogClient role={context.role} initialCatalog={initialCatalog} />
     </div>

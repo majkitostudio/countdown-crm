@@ -111,7 +111,7 @@ function LeadsPageContent() {
         icon={Users}
         title="Leads"
         badge={{ label: `${totalLeads} contacts`, tone: "neutral" }}
-        description="Review contacts, assignments, and next actions."
+        description="Kontakty, přiřazení a další kroky."
         actions={
           <>
           <Button

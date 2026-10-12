@@ -39,7 +39,7 @@ export default async function TrainingReviewsPage() {
       <div className="mx-auto max-w-2xl">
       <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Kontrola tréninků není dostupná</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Training Reviews nejsou dostupné</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
         <Link
           href="/training"
@@ -57,7 +57,7 @@ export default async function TrainingReviewsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-8">
         <PageHeader
           icon={ClipboardList}
-          title="Kontrola tréninků"
+          title="Training Reviews"
           badge={{ label: "Training only", tone: "neutral" }}
           description="Kontrola dokončených tréninků oddělená od ostrých hovorů."
           actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} {sessions.length === 1 ? "relace" : "relací"}</span>}

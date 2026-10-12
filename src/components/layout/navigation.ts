@@ -23,7 +23,7 @@ import type { WorkspaceRole } from "@/lib/auth/roles";
  * Both the sidebar and the command palette read from this list. A page may
  * still protect itself on the server, but it must not be advertised here to a
  * role that cannot use it. Destinations that are now reached from the Admin
- * Hub (Workflows, Control Checkpoint, Users, Scripts, Telephony) are
+ * Hub (Workflows, Readiness, Users, Scripts, Telephony) are
  * intentionally omitted from this top-level list.
  */
 export type WorkspaceNavigationSection =
@@ -91,7 +91,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Product Catalog", href: "/products", icon: Package, section: "learn" },
 
   // Administration
-  { label: "Admin Hub", href: "/admin", icon: ShieldCheck, section: "administration", roles: ["administrator"] },
+  { label: "Management", href: "/admin", icon: ShieldCheck, section: "administration", roles: ["administrator"] },
 
   // Account
   { label: "Settings", href: "/settings", icon: Settings, section: "account" },
