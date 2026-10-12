@@ -25,15 +25,15 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
 
-- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). Aktuálně běží **Fáze 0 — dokončení pročištění**.
-- **Testy:** Při poslední čisté kontrole prošlo 823 testů ve 173 souborech. Probíhající pročištění testovací sadu mění (mazání nadbytečných testů), přesná čísla je potřeba ověřit před commitem.
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění) je hotová**; aktuálně jsme na začátku **Fáze 1 — sjednocení navigace a Admin Hub**.
+- **Testy:** 815 testů ve 171 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
 - **Migrace:** 128 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript ale stále hlásí zastaralé „ALL 127 MIGRATIONS“ a duplicity sám nekontroluje.
 - **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice; přehled front v UI zatím chybí.
 - **Expedice a kurýři:** CSV exporty pro Zásilkovnu, Balíkovnu, GLS, sledovací čísla a linky na kurýry.
 - **Provize a mzdy:** Měsíční uzávěrka pro Team Leadera na `/wallet` a export podkladů pro mzdy v CSV.
 - **Objednávky:** `/orders` už nabízí Kanban i tabulku.
 - **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování.
-- **Probíhající pročištění:** První vlna je hotová (slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder jsou pryč). Druhá vlna — odstranění blueprints, custom schema polí a kanbanu/filtrů u leadů — je rozepsaná a potřebuje dokončit (pracovní kopie teď není zkompilovatelná).
+- **Pročištění (Fáze 0):** hotovo — odstraněny slepé routy, blueprints, custom schema i kanban/filtry u leadů; navigace neobsahuje mrtvé odkazy.
 
 ## Jak chápat P1–P4
 

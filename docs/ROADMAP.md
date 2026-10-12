@@ -23,15 +23,12 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 **Hotovo:**
 - Odstraněny slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder.
+- Odstraněny **blueprints** (multi-industry šablony), **custom schema / Attio pole** a **kanban + filtry + přepínač pohledu u leadů**.
 - Opravena duplicitní verze migrace `20261007140000`.
+- Opraveny rozbité editace (`LeadsTable.tsx`, `AppHeader.tsx`), uklizeny tři testy odkazující na smazané soubory a smazáno pracovní smetí.
+- Ověřeno: `lint`, `typecheck`, `test` (815 testů) a `build` zelené; navigace neobsahuje mrtvé odkazy.
 
-**Rozepsané — nutno dokončit:**
-- Odstranění **blueprints** (multi-industry šablony), **custom schema / Attio polí** a **kanbanu + filtrů u leadů**.
-- Aktuální pracovní kopie je přitom **rozbitá** (nekompiluje se): `LeadsTable.tsx`, tři testy odkazující na smazané soubory a zbylé pracovní smetí.
-
-**Ověření:** `lint` · `typecheck` · `test` · `build` zelené; žádný odkaz na smazaný soubor; commit + push.
-
-**Stav:** 🔄 probíhá.
+**Stav:** ✅ hotovo (12. 10. 2026).
 
 ---
 
@@ -146,12 +143,9 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 ## Okamžitý další krok
 
-Jsme na **Fázi 0**. První konkrétní krok je dovést rozepsané pročištění do zeleného stavu:
+**Fáze 0 je hotová.** Pokračujeme **Fází 1 — Sjednocení navigace a Admin Hub**.
 
-1. Opravit `src/components/leads/LeadsTable.tsx`.
-2. Uklidit tři testy odkazující na smazané soubory.
-3. Smazat pracovní smetí (`scripts/tmp-clean-leadstable.cjs`, `src/components/leads/LeadsTable.tsx.bak`).
-4. Projít `lint` → `typecheck` → `test` → `build` do zelena.
-5. Commitnout a pushnout jako jeden jasný celek.
-
-Teprve potom má smysl otevírat Fázi 1 (navigace / Admin Hub).
+První konkrétní krok Fáze 1: projít současných 17 položek navigace podle role a četnosti a rozdělit
+je na „ponechat / sloučit / skrýt / odstranit“, s cílem jednoho **Admin Hubu** místo roztroušených
+administrativních odkazů. Tento krok je designové rozhodnutí — nejdřív ho projít s PM, teprve pak
+implementovat.
