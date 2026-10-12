@@ -51,15 +51,19 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 **Cíl:** každá role má jeden jasný pracovní prostor: jeden hlavní pohled, jeden úkolový tok, jeden přehled stavu.
 
-**Kroky:**
-- **Operátor:** zůstává v Operator Console (`/workspace`), bez zbytečného odskakování do Dashboardu, Deals a Trainingu.
-- **Team Leader:** týmový cockpit s frontou a výjimkami (navazuje na hotovou Exception Queue).
-- **Admin:** správa systému na jednom místě.
-- Přepsat navigaci podle skutečné práce, ne podle „náhledů“.
+**Konkrétní plán:** [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md) — inventura všech obrazovek
+(role, četnost, stav), **pravidlo pojmenování** (název anglicky · popis česky · obsah česky · obecná
+tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
-**Ověření:** operátor nevidí admin nastavení; TL vidí týmové fronty a výjimky; admin má správu v jednom místě.
+**Kroky (po vlnách):**
+- **Vlna 1 — názvy a popisy:** srovnat titulky a popisy všech stránek podle pravidla pojmenování (bez zásahu do logiky a URL).
+- **Vlna 2 — sloučení:** Products & Scripts (`/products` + `/settings/scripts`), Reports (`/dashboard` + `/analytics`), Team Workspace záložky (`/team` + `/exceptions` + reviews), health strip místo `/controls`, **Automations** místo Workflows, zaparkovat telefonii.
+- **Vlna 3 — URL:** nové cesty (`/console`, `/schedule`, `/call-logs`, `/reports`, `/automations`, `/admin/users`, `/team/*`) + přesměrování starých cest.
+- **Role workspaces:** operátor zůstává v Operator Console, TL má týmový cockpit se záložkami (Overview · Exceptions · Training Reviews), admin má správu na jednom místě (Administration).
 
-**Stav:** ⏳ čeká (část základů už existuje: Exception Queue, role-aware navigace).
+**Ověření:** operátor nevidí admin nastavení; TL vidí týmové fronty a výjimky na jedné ploše; admin má správu v jednom místě; žádná stránka nemá duplicitní protějšek.
+
+**Stav:** 🔄 probíhá — revize struktury schválena PM (13. 10. 2026), implementace po vlnách.
 
 ---
 
@@ -141,9 +145,17 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 ---
 
+## Odložené samostatné featury
+
+- **Refactor trenažéru (AI Training)** — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md). Vyňato z Fáze 2, proběhne jako velké samostatné přepracování.
+- **Produktová karta (editor)** — viz sloučení A v [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md); nejdřív zmapovat datový model produktu/skriptu.
+- **Schedule — nový koncept osobní agendy** — viz část 7 tamtéž.
+
+---
+
 ## Okamžitý další krok
 
-**Fáze 0 a Fáze 1 jsou hotové.** Pokračujeme **Fází 2 — Role-based UX pass**.
+**Fáze 0 a Fáze 1 jsou hotové.** Běží **Fáze 2 — Role-based UX pass**: schválená revize struktury je v
+[PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md), začínáme **vlnou 1 (názvy a popisy stránek)**.
 
-Samostatný krok, který jsme si odložili: revize **názvů stránek a URL adres** (PM se nelíbí současné
-názvy). Teprve po něm dává smysl řešit další sjednocování obrazovek.
+**Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).

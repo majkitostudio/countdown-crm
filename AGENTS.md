@@ -38,3 +38,14 @@ U každé obrazovky, funkce nebo prvku, který revidujeme, vždy projít tyto kr
 
 - Česky, jednoduše, „po lopatě“ — uživatel je projektový manažer, ne programátor.
 - Při nejasnosti se ptát, nedomýšlet. Pokud je návrh PM podle mého názoru horší, říct to přímo a navrhnout lepší.
+
+## 6. Pojmenování a jazyk UI
+
+Napříč celým CRM platí jednotné pravidlo (PM, 13. 10. 2026):
+
+- **Název stránky** (titulek) = **anglicky** (např. `Schedule`, `Call Logs`, `Product Catalog`).
+- **Popis** pod názvem = **česky**.
+- **Obsah** stránky = **česky** (texty, tabulky, sloupce, hlášky).
+- **Obecná tlačítka a štítky** = **anglicky** (`Submit`, `Back`, `Call`, `Schedule`, `Save`, `Cancel`).
+- **URL adresa** = **anglicky** (`/console`, `/call-logs`, `/reports`).
+- **Menu a názvy sekcí** = **anglicky** (`Work`, `Team`, `Reporting`, `Administration`).

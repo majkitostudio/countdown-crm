@@ -21,11 +21,11 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 - **Administrátor:** Řídí a spravuje celý Workspace.
 - **Operátor:** Pracuje na lince ve svém Týmu a Kampani.
 
-## Kde jsme teď (stav k 12. 10. 2026)
+## Kde jsme teď (stav k 13. 10. 2026)
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
 
-- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění) i Fáze 1 (navigace + Admin Hub) jsou hotové**; aktuálně jsme na začátku **Fáze 2 — Role-based UX pass**.
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění) i Fáze 1 (navigace + Admin Hub) jsou hotové**; běží **Fáze 2 — Role-based UX pass** (schválená revize struktury: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md)).
 - **Testy:** 815 testů ve 171 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
 - **Migrace:** 128 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript ale stále hlásí zastaralé „ALL 127 MIGRATIONS“ a duplicity sám nekontroluje.
 - **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice; přehled front v UI zatím chybí.
@@ -35,6 +35,8 @@ Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a v
 - **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování.
 - **Pročištění (Fáze 0):** hotovo — odstraněny slepé routy, blueprints, custom schema i kanban/filtry u leadů; navigace neobsahuje mrtvé odkazy.
 - **Navigace (Fáze 1):** hotovo — levé menu rozdělené do sekcí (Work · Team · Reporting · Learn · Administration · Account), anglické názvy, Team Leader Review jako záložka v Team Workspace, Call Logs skryté operátorům a jedna položka **Admin Hub** (`/admin`) pro admina. Detaily: [docs/PHASE_1_NAVIGATION_REVIEW.md](docs/PHASE_1_NAVIGATION_REVIEW.md).
+- **Struktura a názvy (Fáze 2):** běží — schválená revize všech obrazovek (role, četnost, sloučení A–F), **pravidlo pojmenování** (název anglicky · popis česky · obsah česky · obecná tlačítka a URL anglicky) a plán ve třech vlnách: názvy → sloučení → URL. Detaily: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md).
+- **Trenažér (AI Training):** čeká velký samostatný refactor (vyňat z Fáze 2). Plán: [docs/TRAINING_REFACTOR.md](docs/TRAINING_REFACTOR.md).
 
 ## Jak chápat P1–P4
 
@@ -86,6 +88,8 @@ Před každou změnou si odpověz:
 Živé zdroje (aktuální):
 
 - **[docs/ROADMAP.md](docs/ROADMAP.md)** — plán dalších fází a jejich stav.
+- [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md) — revize struktury, názvů a sloučení obrazovek (Fáze 2).
+- [docs/TRAINING_REFACTOR.md](docs/TRAINING_REFACTOR.md) — plánovaný refactor trenažéru (AI Training).
 - [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md) — produktová identita a oblasti.
 - [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) — pracovní a technická pravidla.
 - [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) — stručná historie rozhodnutí a vývoje.
