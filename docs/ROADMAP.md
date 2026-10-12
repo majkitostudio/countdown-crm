@@ -43,7 +43,7 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 **Ověření:** maximálně jeden Admin Hub; u každé položky je jasné „kdo ji používá a proč“; základní správa do 3 kliknutí.
 
-**Stav:** ⏳ čeká.
+**Stav:** ✅ hotovo (12. 10. 2026). Menu je rozdělené do sekcí Work · Team · Reporting · Learn · Administration · Account, všechny názvy jsou anglicky, Team Leader Review je záložkou v Team Workspace, Call Logs je skryté operátorům a správa je v jednom Admin Hubu (`/admin`) pro admina. Detaily a rozhodnutí: [PHASE_1_NAVIGATION_REVIEW.md](PHASE_1_NAVIGATION_REVIEW.md).
 
 ---
 
@@ -143,9 +143,7 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 ## Okamžitý další krok
 
-**Fáze 0 je hotová.** Pokračujeme **Fází 1 — Sjednocení navigace a Admin Hub**.
+**Fáze 0 a Fáze 1 jsou hotové.** Pokračujeme **Fází 2 — Role-based UX pass**.
 
-První konkrétní krok Fáze 1: projít současných 17 položek navigace podle role a četnosti a rozdělit
-je na „ponechat / sloučit / skrýt / odstranit“, s cílem jednoho **Admin Hubu** místo roztroušených
-administrativních odkazů. Tento krok je designové rozhodnutí — nejdřív ho projít s PM, teprve pak
-implementovat.
+Samostatný krok, který jsme si odložili: revize **názvů stránek a URL adres** (PM se nelíbí současné
+názvy). Teprve po něm dává smysl řešit další sjednocování obrazovek.

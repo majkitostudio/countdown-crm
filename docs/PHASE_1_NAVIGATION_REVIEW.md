@@ -1,6 +1,6 @@
 # Fáze 1 — Revize navigace a návrh Admin Hubu
 
-**Typ:** návrh k odsouhlasení (před implementací).
+**Typ:** návrh k odsouhlasení → **implementováno** (12. 10. 2026).
 **Datum:** 12. 10. 2026.
 **Metoda:** podle pravidel projektu (AGENTS, bod 4) — u každé plochy zjišťujeme roli a četnost,
 rozhodujeme ponechat / sloučit / skrýt / odstranit, řadíme podle důležitosti a zvažujeme
@@ -188,3 +188,47 @@ Workflows & Automations · Workspace Settings · Telephony.
 8. Ověření po každém kroku: `lint` · `typecheck` · `test` · `build`.
 
 **Samostatný krok později:** revize názvů stránek a URL adres (PM se nelíbí současné názvy).
+
+---
+
+## 8. Výsledek implementace (12. 10. 2026)
+
+Implementováno ve dvou commitech (`c93b62f` navigace, `e35e0bd` rozdělení Settings). Po každém kroku
+proběhlo ověření: `lint` · `typecheck` · `test` (815/815) · `build` — vše zelené.
+
+**Oprava oproti původnímu návrhu:** mockup u Team Leadera a admina omylem vynechal `Wallet`,
+`Schedule`, `AI Training`, `Product Catalog` a `Call Logs`. V implementaci zůstaly, protože je role
+dnes používají (např. měsíční uzávěrka Team Leadera je na `/wallet`). **Nic se neskrývá** — mění se
+jen seskupení a vstupní body, proto jsou reálné počty vyšší než původní odhad.
+
+| Role | Před | Po |
+|---|---|---|
+| Operátor | 8 | **7** |
+| Team Leader | 15 | **14** |
+| Administrátor | 17 | **15** |
+
+### Skutečné cílové menu
+
+**Operator (7):** Work → Operator Console · Orders · Schedule · Wallet; Learn → AI Training ·
+Product Catalog; Account → Settings.
+
+**Team Leader (14):** jako operátor, navíc Team → Team Workspace (+ záložka Training Reviews) ·
+Exception Queue · Leads; Reporting → Dashboard · Analytics · Audit Log · Call Logs.
+
+**Administrator (15):** jako Team Leader + Administration → **Admin Hub** (`/admin`).
+
+**Admin Hub (`/admin`, jen admin):** Readiness (`/controls`) · Users & Teams (`/settings/users`) ·
+Products & Scripts (`/settings/scripts`) · Workflows & Automations (`/workflows`) ·
+Workspace Settings (`/admin/settings`) · Telephony (`/telephony`).
+
+### Rozhodnutí o walletu (PM, 12. 10. 2026)
+
+- **Wallet rules & commissions = jen admin** → v Admin Hubu (`/admin/settings`).
+- **Ruční připisování/odečítání bonusů = TL i admin** → na `/wallet` (`canManage`), beze změny.
+- Team Leader tak má plnou kontrolu nad bonusy svého týmu, ale **Admin Hub nevidí a nepotřebuje**.
+
+### Co zůstalo beze změny
+
+- Žádná routa se nemaže ani nepřesouvá (kromě vzniku nových `/admin` a `/admin/settings`).
+- Nemění se práva ani serverové hlídání — jen viditelnost a vstupní body.
+- Názvy stránek a URL adresy = **samostatný krok až později** (odloženo).

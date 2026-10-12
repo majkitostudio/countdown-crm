@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Countdown CRM — Proposed navigation (Phase 1)</title>
+<title>Countdown CRM — navigation (Phase 1, implemented)</title>
 <style>
   :root{
     --bg:#09090b; --panel:#0d0d10; --panel2:#111114; --line:#27272a; --line2:#1c1c20;
@@ -66,11 +66,11 @@
 </head>
 <body>
 
-<h1>Countdown CRM — proposed navigation</h1>
-<p class="sub">Phase 1 concept · sections in the sidebar + one Admin Hub · all labels in English</p>
+<h1>Countdown CRM — navigation</h1>
+<p class="sub">Phase 1 result · sections in the sidebar + one Admin Hub · all labels in English</p>
 <div class="legend">
   <span><span class="dot"></span>highlighted = where you land now</span>
-  <span>Operator <b>6</b> · Team Leader <b>8</b> · Administrator <b>9</b> (+ Settings)</span>
+  <span>Operator <b>7</b> · Team Leader <b>14</b> · Administrator <b>15</b></span>
   <span>nothing is deleted — only regrouped</span>
 </div>
 
@@ -80,7 +80,7 @@
   <section class="board">
     <header>
       <h2>Operator</h2>
-      <span class="rolechip">OPERATOR · <span class="count">8 → 6</span></span>
+      <span class="rolechip">OPERATOR · <span class="count">8 → 7</span></span>
     </header>
     <div class="sidebar">
       <div class="brand">
@@ -98,9 +98,8 @@
       <div class="item"><svg viewBox="0 0 24 24"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>AI Training</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4-9-4Z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/></svg>Product Catalog</div>
 
-      <div class="foot">
-        <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
-      </div>
+      <div class="sec"><span>Account</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
     </div>
   </section>
 
@@ -108,7 +107,7 @@
   <section class="board">
     <header>
       <h2>Team Leader</h2>
-      <span class="rolechip">TEAM LEADER · <span class="count">15 → 8</span></span>
+      <span class="rolechip">TEAM LEADER · <span class="count">15 → 14</span></span>
     </header>
     <div class="sidebar">
       <div class="brand">
@@ -119,6 +118,8 @@
       <div class="sec"><span>Work</span></div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M6 3h3l2 5-2 1.5a12 12 0 0 0 5.5 5.5L16 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z"/></svg>Operator Console</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Schedule</div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h13M16 14h2"/></svg>Wallet <span class="tag">team bonuses</span></div>
 
       <div class="sec"><span>Team</span></div>
       <div class="item active"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/></svg>Team Workspace <span class="tag">+ Reviews</span></div>
@@ -129,10 +130,14 @@
       <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>Dashboard</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analytics</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Audit Log</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M8 4h9a2 2 0 0 1 2 2v14l-4-2-3 2-3-2-4 2V6a2 2 0 0 1 2-2Z"/><path d="M9 9h7M9 13h7"/></svg>Call Logs</div>
 
-      <div class="foot">
-        <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
-      </div>
+      <div class="sec"><span>Learn</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>AI Training</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4-9-4Z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/></svg>Product Catalog</div>
+
+      <div class="sec"><span>Account</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
     </div>
   </section>
 
@@ -140,7 +145,7 @@
   <section class="board">
     <header>
       <h2>Administrator</h2>
-      <span class="rolechip">ADMIN · <span class="count">17 → 9</span></span>
+      <span class="rolechip">ADMIN · <span class="count">17 → 15</span></span>
     </header>
     <div class="sidebar">
       <div class="brand">
@@ -151,6 +156,8 @@
       <div class="sec"><span>Work</span></div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M6 3h3l2 5-2 1.5a12 12 0 0 0 5.5 5.5L16 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z"/></svg>Operator Console</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Schedule</div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h13M16 14h2"/></svg>Wallet <span class="tag">team bonuses</span></div>
 
       <div class="sec"><span>Team</span></div>
       <div class="item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/></svg>Team Workspace <span class="tag">+ Reviews</span></div>
@@ -161,13 +168,17 @@
       <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>Dashboard</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analytics</div>
       <div class="item"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Audit Log</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M8 4h9a2 2 0 0 1 2 2v14l-4-2-3 2-3-2-4 2V6a2 2 0 0 1 2-2Z"/><path d="M9 9h7M9 13h7"/></svg>Call Logs</div>
+
+      <div class="sec"><span>Learn</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>AI Training</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4-9-4Z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/></svg>Product Catalog</div>
 
       <div class="sec"><span>Administration</span></div>
       <div class="item hub"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.4 8.3-8 9-4.6-.7-8-4-8-9V7l8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Admin Hub <span class="tag">1 entry</span></div>
 
-      <div class="foot">
-        <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
-      </div>
+      <div class="sec"><span>Account</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
     </div>
   </section>
 
@@ -210,7 +221,7 @@
     </div>
     <div class="card">
       <h3>Workspace Settings</h3>
-      <p>Wallet rules, commissions and workspace preferences.</p>
+      <p>Wallet rules, commissions and the telephony adapter (admin only).</p>
       <code>was part of /settings</code>
     </div>
     <div class="card">
@@ -223,29 +234,29 @@
 
 <footer>
   <div class="note">
-    <h4>What changes</h4>
+    <h4>What changed</h4>
     <ul>
-      <li>Flat list → <b>4 sections</b>: Work · Team · Reporting · Administration</li>
-      <li>Team Leader Review becomes a <b>tab in Team Workspace</b></li>
-      <li>5 admin surfaces collapse into <b>one Admin Hub</b></li>
+      <li>Flat list → <b>sections</b>: Work · Team · Reporting · Learn · Administration · Account</li>
+      <li>Team Leader Review became a <b>tab in Team Workspace</b> (Training Reviews)</li>
+      <li>5 admin surfaces collapsed into <b>one Admin Hub</b></li>
       <li><b>Call Logs hidden from operators</b> (kept for TL/admin)</li>
-      <li>Settings split: personal stays for everyone, workspace part moves to Admin Hub</li>
+      <li>Settings split: personal stays for everyone, workspace part goes to Admin Hub</li>
     </ul>
   </div>
   <div class="note">
-    <h4>What does NOT change</h4>
+    <h4>Wallet (decided)</h4>
     <ul>
-      <li>No page is deleted — routes stay, only where you enter them changes</li>
-      <li>No permission or server-guard changes</li>
-      <li>No new features</li>
-      <li>P1–P4 queues come later (Phase 4); a spot is reserved</li>
+      <li><b>Wallet rules &amp; commissions → admin only</b> (Admin Hub)</li>
+      <li><b>Manual bonus add/deduct → TL and admin</b>, on the Wallet page</li>
+      <li>Team Leader keeps <b>full team bonus control</b> without Admin Hub</li>
+      <li>Nothing is deleted — routes stay, only where you enter them changes</li>
     </ul>
   </div>
   <div class="note">
-    <h4>Next (after approval)</h4>
+    <h4>Next (separate pass)</h4>
     <ul>
-      <li>Then a separate pass: <b>rename pages and clean up URLs</b></li>
-      <li>Implement sections + Admin Hub one step at a time</li>
+      <li>Rename pages and clean up URLs</li>
+      <li>Reduce nested tabs where it helps</li>
       <li>Verify after each step: lint · typecheck · test · build</li>
     </ul>
   </div>

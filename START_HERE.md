@@ -25,7 +25,7 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
 
-- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění) je hotová**; aktuálně jsme na začátku **Fáze 1 — sjednocení navigace a Admin Hub**.
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění) i Fáze 1 (navigace + Admin Hub) jsou hotové**; aktuálně jsme na začátku **Fáze 2 — Role-based UX pass**.
 - **Testy:** 815 testů ve 171 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
 - **Migrace:** 128 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript ale stále hlásí zastaralé „ALL 127 MIGRATIONS“ a duplicity sám nekontroluje.
 - **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice; přehled front v UI zatím chybí.
@@ -34,6 +34,7 @@ Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a v
 - **Objednávky:** `/orders` už nabízí Kanban i tabulku.
 - **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování.
 - **Pročištění (Fáze 0):** hotovo — odstraněny slepé routy, blueprints, custom schema i kanban/filtry u leadů; navigace neobsahuje mrtvé odkazy.
+- **Navigace (Fáze 1):** hotovo — levé menu rozdělené do sekcí (Work · Team · Reporting · Learn · Administration · Account), anglické názvy, Team Leader Review jako záložka v Team Workspace, Call Logs skryté operátorům a jedna položka **Admin Hub** (`/admin`) pro admina. Detaily: [docs/PHASE_1_NAVIGATION_REVIEW.md](docs/PHASE_1_NAVIGATION_REVIEW.md).
 
 ## Jak chápat P1–P4
 
