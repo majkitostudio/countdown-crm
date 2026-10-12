@@ -80,7 +80,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Leads", href: "/leads", icon: Contact, section: "team", roles: MANAGER_ROLES },
 
   // Reporting
-  { label: "Reports", href: "/dashboard", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Reports", href: "/reports", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
   { label: "Audit Log", href: "/audit", icon: History, section: "reporting", roles: MANAGER_ROLES },
   { label: "Call Logs", href: "/calls", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
 

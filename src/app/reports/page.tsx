@@ -18,11 +18,11 @@ import { Surface } from "@/components/ui/Surface";
 import { cn } from "@/lib/utils";
 
 const REPORTS_TABS = [
-  { key: "overview", label: "Overview", href: "/dashboard" },
-  { key: "revenue", label: "Revenue & Team", href: "/dashboard?tab=revenue" },
+  { key: "overview", label: "Overview", href: "/reports" },
+  { key: "revenue", label: "Revenue & Team", href: "/reports?tab=revenue" },
 ] as const;
 
-export default async function DashboardPage(
+export default async function ReportsPage(
   props: { searchParams?: Promise<{ tab?: string }> } = {},
 ) {
   const context = await requireWorkspaceContext();

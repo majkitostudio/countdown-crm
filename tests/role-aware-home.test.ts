@@ -23,7 +23,7 @@ describe("role-aware home routing", () => {
   it.each([
     ["operator", "/workspace"],
     ["team_leader", "/exceptions"],
-    ["administrator", "/dashboard"],
+    ["administrator", "/reports"],
   ] as const)("sends %s to %s", async (role, destination) => {
     mocks.requireWorkspaceContext.mockResolvedValue({
       userId: "user-1",

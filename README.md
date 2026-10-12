@@ -43,6 +43,6 @@ npm run build
 | Kalendář a callbacky | `/calendar` |
 | Produkty a objednávky | `/products`, `/orders` |
 | Tým, výjimky a audit | `/team`, `/exceptions`, `/audit` |
-| Reporting | `/dashboard`, `/analytics` |
+| Reporting | `/reports` |
 | Training | `/training`, `/training/reviews` |
 | Administrace | `/settings`, `/settings/users`, `/settings/scripts` |

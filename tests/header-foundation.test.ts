@@ -21,7 +21,7 @@ describe("unified authenticated header foundations", () => {
     const administratorPaths = getAllowedNavigationCommands("administrator").map((item) => item.path);
 
     expect(leaderPaths).toContain("/leads");
-    expect(leaderPaths).toContain("/dashboard");
+    expect(leaderPaths).toContain("/reports");
     expect(leaderPaths).toContain("/exceptions");
     expect(leaderPaths).toContain("/team");
     expect(administratorPaths).toContain("/exceptions");

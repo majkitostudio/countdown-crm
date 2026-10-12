@@ -13,7 +13,7 @@ vi.mock("@/lib/dal/workspace", () => ({
   requireWorkspaceContext: mocks.requireWorkspaceContext,
 }));
 
-import DashboardPage from "@/app/dashboard/page";
+import DashboardPage from "@/app/reports/page";
 
 describe("manager dashboard role boundary", () => {
   it("returns an operator to the operator home without a server error", async () => {

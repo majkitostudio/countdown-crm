@@ -21,7 +21,7 @@ describe("entry and workspace state contract", () => {
   });
 
   it("requires shared primitives and narrow-layout protection on entry and workspace surfaces", () => {
-    for (const path of ["src/app/login/page.tsx", "src/app/dashboard/page.tsx"]) {
+    for (const path of ["src/app/login/page.tsx", "src/app/reports/page.tsx"]) {
       const content = source(path);
       expect(content).toContain("@/components/ui/");
       expect(content).toMatch(/px-4|sm:px-6|min-w-0/);

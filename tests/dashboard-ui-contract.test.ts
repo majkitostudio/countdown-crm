@@ -6,7 +6,7 @@ const projectRoot = path.resolve(__dirname, "..");
 
 describe("Dashboard team hierarchy UI contract", () => {
   it("keeps team and workspace context explicit", () => {
-    const dashboard = readFileSync(path.join(projectRoot, "src", "app", "dashboard", "page.tsx"), "utf8");
+    const dashboard = readFileSync(path.join(projectRoot, "src", "app", "reports", "page.tsx"), "utf8");
     const kpis = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "KpiCards.tsx"), "utf8");
     const topPerformers = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "TopPerformers.tsx"), "utf8");
     const recentActivity = readFileSync(path.join(projectRoot, "src", "components", "dashboard", "RecentActivityFeed.tsx"), "utf8");

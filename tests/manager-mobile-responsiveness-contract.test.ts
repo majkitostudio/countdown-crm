@@ -8,7 +8,7 @@ function readSource(relativePath: string): string {
 
 describe("Manager mobile and tablet responsiveness contract (Phase 7)", () => {
   it("ensures Dashboard page uses responsive layouts for mobile and tablet screens", () => {
-    const dashboard = readSource("src/app/dashboard/page.tsx");
+    const dashboard = readSource("src/app/reports/page.tsx");
     const kpiCards = readSource("src/components/dashboard/KpiCards.tsx");
 
     // Dashboard grid stacks on small screens and expands on large

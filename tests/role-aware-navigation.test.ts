@@ -41,9 +41,9 @@ describe("role-aware navigation parity", () => {
       expect(commandPaths(role)).not.toContain("/");
     }
 
-    expect(sidebarPaths("operator")).not.toContain("/dashboard");
-    expect(sidebarPaths("team_leader")).toContain("/dashboard");
-    expect(sidebarPaths("administrator")).toContain("/dashboard");
+    expect(sidebarPaths("operator")).not.toContain("/reports");
+    expect(sidebarPaths("team_leader")).toContain("/reports");
+    expect(sidebarPaths("administrator")).toContain("/reports");
   });
 
   it("shows the Admin Hub only to administrators", () => {
