@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Layers, LogOut, Menu, Search, ShieldCheck } from "lucide-react";
-import { blueprintEngine } from "@/lib/blueprints/engine";
-import { BlueprintPickerModal } from "@/components/blueprints/BlueprintPickerModal";
+import { ChevronDown, LogOut, Menu, Search, ShieldCheck } from "lucide-react";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
 import { getOperatorInitials, getOperatorRoleLabel } from "@/lib/operatorIdentity";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
@@ -25,8 +23,6 @@ export { getHeaderSearchPlaceholder };
 export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }) {
   const router = useRouter();
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
-  const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
-  const [activeBlueprintName, setActiveBlueprintName] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSignOutPending, setIsSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -37,20 +33,6 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
   const rawOperatorName = identity?.name || (isIdentityLoading ? "Loading operator" : "Unknown operator");
   const initials = getOperatorInitials(rawOperatorName);
   const roleLabel = getOperatorRoleLabel(identity?.role || null);
-  const canManageBlueprints = isTeamLeaderOrAdministrator(identity?.role);
-
-  useEffect(() => {
-    if (isIdentityLoading || !identity) return;
-    let cancelled = false;
-    void blueprintEngine.hydrateFromServer().then((blueprint) => {
-      if (!cancelled && blueprint) setActiveBlueprintName(blueprint.name);
-    }).catch((error) => {
-      console.warn("[AppHeader] Active blueprint is unavailable:", error);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [identity, isIdentityLoading]);
 
   useEffect(() => {
     if (!isUserMenuOpen) return;
@@ -110,18 +92,6 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <OperatorCommissionBadge />
 
-        {canManageBlueprints && (
-          <Button
-            variant="secondary"
-            onClick={() => setIsBlueprintModalOpen(true)}
-            title="Change CRM industry blueprint"
-          >
-            <Layers className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
-            <span className="hidden truncate whitespace-nowrap xl:inline">{activeBlueprintName ?? "Blueprint"}</span>
-            <span className="sr-only xl:hidden">Change CRM industry blueprint</span>
-          </Button>
-        )}
-
         <div className="relative" ref={userMenuRef}>
           <button
             ref={userMenuButtonRef}
@@ -178,12 +148,6 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
           )}
         </div>
       </div>
-
-      <BlueprintPickerModal
-        isOpen={isBlueprintModalOpen}
-        onClose={() => setIsBlueprintModalOpen(false)}
-        onBlueprintApplied={(blueprint) => setActiveBlueprintName(blueprint.name)}
-      />
     </header>
   );
 }

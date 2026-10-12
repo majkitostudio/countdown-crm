@@ -52,18 +52,14 @@ describe("CRM color hierarchy", () => {
   });
 
   it("enforces no decorative emojis across UI components and saved views ('NECHCEME CIRKUS')", () => {
-    const filterEngine = source("src/components/views/FilterEngineBar.tsx");
     const ruleBuilder = source("src/components/workflows/RuleBuilderModal.tsx");
     const workspace = source("src/app/workspace/page.tsx");
     const scriptPanel = source("src/components/workspace/ProductScriptPanel.tsx");
-    const blueprints = source("src/lib/blueprints/registry.ts");
 
     const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
 
-    expect(emojiRegex.test(filterEngine)).toBe(false);
     expect(emojiRegex.test(ruleBuilder)).toBe(false);
     expect(emojiRegex.test(workspace)).toBe(false);
-    expect(emojiRegex.test(blueprints)).toBe(false);
 
     // No raw checkmark or unicode arrows used as buttons/actions
     expect(ruleBuilder).not.toContain("✓");

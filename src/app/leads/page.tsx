@@ -9,9 +9,6 @@ import { LeadsTable } from "@/components/leads/LeadsTable";
 import { LeadDetailDrawer } from "@/components/leads/LeadDetailDrawer";
 import { CsvImportModal } from "@/components/leads/CsvImportModal";
 import { CreateLeadModal } from "@/components/leads/CreateLeadModal";
-import { ViewSwitcher, ViewMode } from "@/components/views/ViewSwitcher";
-import { KanbanBoard } from "@/components/views/KanbanBoard";
-import { FilterEngineBar, ActiveFilter } from "@/components/views/FilterEngineBar";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
 import { canManageLeads } from "@/lib/auth/roles";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -30,8 +27,6 @@ function LeadsPageContent() {
   const [isCreateModalManuallyOpen, setIsCreateModalManuallyOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
-  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
   const canManageLeadRecords = canManageLeads(identity?.role);
   const shouldOpenCreateModal = searchParams.get("create") === "1";
@@ -101,31 +96,8 @@ function LeadsPageContent() {
     loadLeads();
   };
 
-  // Filter leads based on ActiveFilters
-  const filteredLeads = leads.filter((lead) => {
-    if (activeFilters.length === 0) return true;
-
-    return activeFilters.every((filter) => {
-      const val = (lead as unknown as Record<string, unknown>)[filter.fieldKey] ?? "";
-      const valStr = String(val).toLowerCase();
-      const filterValStr = filter.value.toLowerCase();
-
-      switch (filter.operator) {
-        case "equals":
-          return valStr === filterValStr;
-        case "not_equals":
-          return valStr !== filterValStr;
-        case "contains":
-          return valStr.includes(filterValStr);
-        case "greater_than":
-          return parseFloat(String(val)) > parseFloat(filter.value);
-        case "less_than":
-          return parseFloat(String(val)) < parseFloat(filter.value);
-        default:
-          return true;
-      }
-    });
-  });
+  // Leads are shown directly; table handles local search, status filter and sorting.
+  const filteredLeads = leads;
 
   // Metrics (computed from filteredLeads)
   const totalLeads = filteredLeads.length;
@@ -142,9 +114,6 @@ function LeadsPageContent() {
         description="Review contacts, assignments, and next actions."
         actions={
           <>
-          {/* View Switcher (Table / Kanban) */}
-          <ViewSwitcher mode={viewMode} onModeChange={setViewMode} />
-
           <Button
             onClick={loadLeads}
             variant="secondary"
@@ -181,25 +150,13 @@ function LeadsPageContent() {
         <MetricCard label="Average score" value={`${avgScore}/100`} />
       </div>
 
-      {/* Advanced Filter Engine & Saved Views Bar */}
-      <FilterEngineBar onFiltersChange={setActiveFilters} />
-
-      {/* Main Content View (Table vs. Kanban Board) */}
-      {viewMode === "table" ? (
-        <LeadsTable
-          leads={filteredLeads}
-          onSelectLead={handleSelectLead}
-          onStartCall={handleStartCall}
-          onOpenImportModal={() => setIsImportModalOpen(true)}
-        />
-      ) : (
-        <KanbanBoard
-          leads={filteredLeads}
-          onSelectLead={handleSelectLead}
-          onStartCall={handleStartCall}
-          onLeadUpdated={loadLeads}
-        />
-      )}
+      {/* Main Content View (table only; kanban removed for high-volume lead queues) */}
+      <LeadsTable
+        leads={filteredLeads}
+        onSelectLead={handleSelectLead}
+        onStartCall={handleStartCall}
+        onOpenImportModal={() => setIsImportModalOpen(true)}
+      />
 
       {/* Slide-over Detail Drawer */}
       <LeadDetailDrawer

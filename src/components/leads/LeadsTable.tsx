@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   Search,
-  Sparkles,
   Phone,
   Eye,
   Building,
@@ -11,12 +10,8 @@ import {
   UserPlus
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
-import { AttributeDefinition } from "@/lib/schema/types";
-import { useWorkspaceSchema } from "@/lib/schema/useWorkspaceSchema";
-import { saveAttributeAction } from "@/app/actions/schema";
-import { AddCustomFieldModal } from "@/components/schema/AddCustomFieldModal";
 import { Button } from "@/components/ui/Button";
-import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
 interface LeadsTableProps {
@@ -35,20 +30,6 @@ export function LeadsTable({
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "score" | "name">("score");
-  const [isAddCustomFieldOpen, setIsAddCustomFieldOpen] = useState(false);
-  const [schemaError, setSchemaError] = useState<string | null>(null);
-  const { schema, isLoading: isSchemaLoading, refresh: refreshSchema } = useWorkspaceSchema("leads");
-
-  const handleAddField = async (newAttr: AttributeDefinition) => {
-    setSchemaError(null);
-    try {
-      await saveAttributeAction("leads", newAttr);
-      await refreshSchema();
-    } catch (cause) {
-      setSchemaError(cause instanceof Error ? cause.message : "Vlastní pole se nepodařilo uložit.");
-      throw cause;
-    }
-  };
 
   // Filter & Sort Logic
   const filteredLeads = leads
@@ -88,10 +69,10 @@ export function LeadsTable({
 
   return (
     <Surface variant="table">
-      
+
       {/* Controls Bar: Search, Filters & Import Button */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800/80 p-4">
-        
+
         {/* Left Side: Search + Status Filter Pills */}
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[300px]">
           {/* Search Box */}
@@ -137,16 +118,6 @@ export function LeadsTable({
             </select>
           </div></Surface>
 
-          {/* Add Custom Field CTA (Attio Schema) */}
-          <Button
-            onClick={() => setIsAddCustomFieldOpen(true)}
-            variant="secondary"
-            title="Add dynamic custom attribute to schema"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-            <span>+ Custom Field</span>
-          </Button>
-
           {/* Import CSV CTA */}
           <Button
             onClick={onOpenImportModal}
@@ -157,23 +128,6 @@ export function LeadsTable({
         </div>
 
       </div>
-
-      {/* Modal for adding custom Attio fields */}
-      <AddCustomFieldModal
-        isOpen={isAddCustomFieldOpen}
-        onClose={() => setIsAddCustomFieldOpen(false)}
-        onAddField={handleAddField}
-      />
-
-      {schemaError && <StatusAlert tone="danger">{schemaError}</StatusAlert>}
-
-      {isSchemaLoading && (
-        <div className="border-b border-zinc-800/80 px-4 py-2 text-[11px] text-zinc-500" role="status">
-          Načítám workspace schéma…
-        </div>
-      )}
-
-      {!isSchemaLoading && !schema && <StatusAlert tone="warning" role="status">Custom fields are unavailable because the workspace schema did not load.</StatusAlert>}
 
       {/* Table Body */}
       <div className="overflow-x-auto">
