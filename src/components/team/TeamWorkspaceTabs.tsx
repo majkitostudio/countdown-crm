@@ -6,13 +6,14 @@ import { cn } from "@/lib/utils";
 
 const TEAM_WORKSPACE_TABS = [
   { href: "/team", label: "Team Overview" },
+  { href: "/exceptions", label: "Exceptions" },
   { href: "/training/reviews", label: "Training Reviews" },
 ] as const;
 
 /**
- * Top-level navigation for the Team Workspace area. "Training Reviews" used to
- * be its own sidebar entry; it now lives as a sibling tab so Team Leaders reach
- * both team management and its training reviews from a single destination.
+ * Top-level navigation for the Team Workspace area. Exceptions and Training
+ * Reviews used to be standalone sidebar entries; they now live as sibling tabs
+ * so Team Leaders run teams, exception queue and reviews from one destination.
  */
 export function TeamWorkspaceTabs() {
   const pathname = usePathname();
@@ -20,7 +21,9 @@ export function TeamWorkspaceTabs() {
   return (
     <nav aria-label="Team Workspace sections" className="flex flex-wrap items-center gap-2">
       {TEAM_WORKSPACE_TABS.map((tab) => {
-        const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+        const isActive =
+          pathname != null &&
+          (pathname === tab.href || pathname.startsWith(`${tab.href}/`));
         return (
           <Link
             key={tab.href}

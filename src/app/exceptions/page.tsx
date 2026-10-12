@@ -1,5 +1,6 @@
 import { LockKeyhole, ShieldAlert } from "lucide-react";
 import { ExceptionQueue } from "@/components/exceptions/ExceptionQueue";
+import { TeamWorkspaceTabs } from "@/components/team/TeamWorkspaceTabs";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 import { isDataAccessError } from "@/lib/dal/errors";
@@ -45,6 +46,7 @@ export default async function ExceptionsPage() {
         description="Fronta callbacků, obnovy front, selhání automatizací a chybějících skriptů, které potřebují rozhodnutí manažera."
         badge={{ label: "Workspace operations", tone: result.data.items.some((item) => item.priority === "critical") ? "unavailable" : "neutral" }}
       />
+      <TeamWorkspaceTabs />
       <ExceptionQueue initialData={result.data} />
     </div>
   );
