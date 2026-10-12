@@ -257,18 +257,23 @@ export function RuleBuilderModal({
                   {TRIGGER_REGISTRY.map((t) => {
                     const Icon = getIcon(t.icon);
                     const isSelected = trigger === t.type;
+                    const isLocked = t.serverDispatch === "unavailable" && !isSelected;
                     return (
                       <button
                         key={t.type}
                         onClick={() => {
+                          if (isLocked) return;
                           setTrigger(t.type);
                           setConditions([]); // Reset conditions when trigger changes
                         }}
+                        disabled={isLocked}
                         className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer",
+                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
                           isSelected
-                            ? "bg-zinc-900 border-zinc-700 shadow-xs"
-                            : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
+                            ? "bg-zinc-900 border-zinc-700 shadow-xs cursor-pointer"
+                            : isLocked
+                              ? "bg-zinc-950 border-zinc-800 opacity-50 cursor-not-allowed"
+                              : "bg-zinc-950 border-zinc-800 hover:border-zinc-700 cursor-pointer"
                         )}
                       >
                         <div
@@ -284,11 +289,16 @@ export function RuleBuilderModal({
                         <div className="min-w-0">
                           <p
                             className={cn(
-                              "text-xs font-semibold",
+                              "flex flex-wrap items-center gap-1.5 text-xs font-semibold",
                               isSelected ? "text-zinc-100" : "text-zinc-300"
                             )}
                           >
                             {t.label}
+                            {t.serverDispatch === "unavailable" && (
+                              <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[9px] font-mono uppercase tracking-wide text-amber-300">
+                                Coming soon
+                              </span>
+                            )}
                           </p>
                           <p className="text-[11px] text-zinc-500 mt-0.5 leading-tight">
                             {t.description}
@@ -393,22 +403,25 @@ export function RuleBuilderModal({
               {/* Action Picker */}
               <div className="space-y-2">
                 <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Dostupné akce
+                  Katalog akcí
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {ACTION_REGISTRY.map((a) => {
                     const Icon = getIcon(a.icon);
                     const isAdded = actions.some((act) => act.type === a.type);
+                    const isLocked = a.availability === "coming_soon" && !isAdded;
                     return (
                       <button
                         key={a.type}
                         onClick={() => addAction(a.type)}
-                        disabled={isAdded}
+                        disabled={isAdded || isLocked}
                         className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all cursor-pointer",
+                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
                           isAdded
                             ? "bg-zinc-900 border-zinc-700 opacity-70 cursor-not-allowed"
-                            : "bg-zinc-950 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900"
+                            : isLocked
+                              ? "bg-zinc-950 border-zinc-800 opacity-50 cursor-not-allowed"
+                              : "bg-zinc-950 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900 cursor-pointer"
                         )}
                       >
                         <div
@@ -424,12 +437,19 @@ export function RuleBuilderModal({
                         <div className="min-w-0">
                           <p
                             className={cn(
-                              "text-xs font-semibold flex items-center gap-1",
+                              "text-xs font-semibold flex items-center gap-1 flex-wrap",
                               isAdded ? "text-zinc-100" : "text-zinc-300"
                             )}
                           >
                             <span>{a.label}</span>
-                            {isAdded && <Check className="w-3.5 h-3.5 text-zinc-400" />}
+                            {isLocked && (
+                              <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[9px] font-mono uppercase tracking-wide text-amber-300">
+                                Coming soon
+                              </span>
+                            )}
+                            {isAdded && (
+                              <Check className="w-3.5 h-3.5 text-zinc-400" />
+                            )}
                           </p>
                           <p className="text-[11px] text-zinc-500 mt-0.5 leading-tight">
                             {a.description}
@@ -439,6 +459,12 @@ export function RuleBuilderModal({
                     );
                   })}
                 </div>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Dnes funguje webhook ven (Zapier, Make, n8n, Slack). Ostatní akce
+                  jsou „coming soon“ — aktivují se, až je serverové runtime umí
+                  opravdu provést. Existující pravidla se staršími akcemi zůstávají
+                  viditelná, jen se nespouštějí.
+                </p>
               </div>
 
               {/* Active Actions & Config */}

@@ -204,7 +204,7 @@ export default function WorkflowsPage() {
       <PageHeader
         icon={Zap}
         title="Automations"
-        description="Automatizujte opakující se procesy pomocí pravidel spouštěných událostmi."
+        description={'Pravidla „když → tak“ pro opakující se procesy. Dnes posílají data ven webhookem (Zapier, Make, n8n, Slack); další akce a spouštěče přibudou postupně.'}
         actions={
           <>
           <Button
@@ -360,10 +360,20 @@ export default function WorkflowsPage() {
                             return (
                               <span
                                 key={action.type}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-900 text-zinc-300 text-[10px] font-mono border border-zinc-800 rounded-md"
+                                className={cn(
+                                  "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono border rounded-md",
+                                  actionDef?.availability === "coming_soon"
+                                    ? "bg-amber-950/20 text-amber-300/80 border-amber-900/50"
+                                    : "bg-zinc-900 text-zinc-300 border-zinc-800"
+                                )}
                               >
                                 <ActionIcon className="w-3 h-3 text-zinc-400" />
                                 {actionDef?.label}
+                                {actionDef?.availability === "coming_soon" && (
+                                  <span className="uppercase tracking-wide text-[8px] text-amber-300/70">
+                                    · soon
+                                  </span>
+                                )}
                               </span>
                             );
                           })}

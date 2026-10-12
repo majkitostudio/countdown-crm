@@ -80,6 +80,8 @@ export interface ActionDefinition {
   label: string;
   description: string;
   icon: string;
+  /** Whether the workflow server runtime can actually execute this action today. */
+  availability: "available" | "coming_soon";
   /** Parameter keys this action expects (for config UI) */
   configFields?: ActionConfigField[];
 }
@@ -99,12 +101,14 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
     label: "Generate AI Summary",
     description: "Unavailable until a verified AI provider is configured; never claims a generated summary",
     icon: "Sparkles",
+    availability: "coming_soon",
   },
   {
     type: "send_email_followup",
     label: "Send Follow-up Email",
     description: "Unavailable until a verified email provider is configured; never claims delivery",
     icon: "Mail",
+    availability: "coming_soon",
     configFields: [
       { key: "template", label: "Email Template", type: "select", options: [
         { label: "Thank You (Post-Order)", value: "thank_you" },
@@ -118,6 +122,7 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
     label: "Update Lead Status",
     description: "Unavailable in the workflow server runtime until a safe mutation provider is enabled",
     icon: "RefreshCw",
+    availability: "coming_soon",
     configFields: [
       { key: "target_status", label: "Target Status", type: "select", options: [
         { label: "Contacted", value: "contacted" },
@@ -132,6 +137,7 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
     label: "Notify Team Leader",
     description: "Unavailable until a verified manager-notification provider is configured",
     icon: "Bell",
+    availability: "coming_soon",
     configFields: [
       { key: "message", label: "Notification Message", type: "text", placeholder: "E.g. High-value order placed by {{lead_name}}" },
     ],
@@ -141,6 +147,7 @@ export const ACTION_REGISTRY: ActionDefinition[] = [
     label: "HTTP Webhook (Zapier/Make)",
     description: "Sends real-time event payload to an external Webhook URL (Zapier, Make, n8n, Slack)",
     icon: "Globe",
+    availability: "available",
     configFields: [
       { key: "webhook_url", label: "Webhook Endpoint URL", type: "text", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
       { key: "method", label: "HTTP Method", type: "select", options: [
