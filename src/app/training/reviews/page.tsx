@@ -3,6 +3,7 @@ import { ArrowRight, ClipboardList, LockKeyhole, RefreshCw } from "lucide-react"
 import { getTrainingSessionReviews } from "@/lib/dal/trainingSessions";
 import { isDataAccessError } from "@/lib/dal/errors";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TeamWorkspaceTabs } from "@/components/team/TeamWorkspaceTabs";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
 
@@ -61,6 +62,8 @@ export default async function TrainingReviewsPage() {
           description="Kontrola dokončených tréninků oddělená od ostrých hovorů."
           actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} {sessions.length === 1 ? "relace" : "relací"}</span>}
         />
+
+        <TeamWorkspaceTabs />
 
         {sessions.length === 0 ? (
           <Surface variant="empty">

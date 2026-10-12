@@ -1,6 +1,7 @@
 import { LockKeyhole, Users } from "lucide-react";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { TeamPageContent } from "@/components/team/TeamPageContent";
+import { TeamWorkspaceTabs } from "@/components/team/TeamWorkspaceTabs";
 import { loadTeamPageData } from "@/lib/dal/teamPage";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
@@ -30,6 +31,7 @@ export default async function TeamPage() {
         description="Přehled a každodenní řízení svěřených týmů a jejich operátorů."
         badge={{ label: context.role === "administrator" ? "Administrator access" : "Team Leader access", tone: "neutral" }}
       />
+      <TeamWorkspaceTabs />
       <TeamPageContent currentUserId={context.userId} role={context.role} data={data} />
     </div>
   );

@@ -46,12 +46,12 @@ describe("role-aware navigation parity", () => {
     expect(sidebarPaths("administrator")).toContain("/dashboard");
   });
 
-  it("shows Control Checkpoint only to administrators", () => {
-    expect(sidebarPaths("operator")).not.toContain("/controls");
-    expect(sidebarPaths("team_leader")).not.toContain("/controls");
-    expect(sidebarPaths("administrator")).toContain("/controls");
-    expect(commandPaths("operator")).not.toContain("/controls");
-    expect(commandPaths("team_leader")).not.toContain("/controls");
-    expect(commandPaths("administrator")).toContain("/controls");
+  it("shows the Admin Hub only to administrators", () => {
+    expect(sidebarPaths("operator")).not.toContain("/admin");
+    expect(sidebarPaths("team_leader")).not.toContain("/admin");
+    expect(sidebarPaths("administrator")).toContain("/admin");
+    expect(commandPaths("operator")).not.toContain("/admin");
+    expect(commandPaths("team_leader")).not.toContain("/admin");
+    expect(commandPaths("administrator")).toContain("/admin");
   });
 });

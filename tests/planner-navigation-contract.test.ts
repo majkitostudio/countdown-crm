@@ -3,13 +3,13 @@ import { getAllowedWorkspaceNavigationItems } from "@/components/layout/navigati
 
 describe("Planner navigation and renaming contract", () => {
   it.each(["operator", "team_leader", "administrator"] as const)(
-    "exposes /calendar under the label 'Plánovač' for role %s",
+    "exposes /calendar under the label 'Schedule' for role %s",
     (role) => {
       const items = getAllowedWorkspaceNavigationItems(role);
       const plannerItem = items.find((item) => item.href === "/calendar");
 
       expect(plannerItem).toBeDefined();
-      expect(plannerItem?.label).toBe("Plánovač");
+      expect(plannerItem?.label).toBe("Schedule");
     },
   );
 

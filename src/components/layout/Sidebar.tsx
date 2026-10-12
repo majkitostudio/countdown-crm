@@ -11,7 +11,7 @@ import { CountdownMark } from "@/components/brand/CountdownMark";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/Button";
-import { getAllowedSidebarNavigationItems } from "./sidebarNavigation";
+import { getAllowedSidebarNavigationSections } from "./sidebarNavigation";
 import { getSidebarAccessibilityProps, getSidebarClassName } from "./sidebarLayout";
 
 export type OperatorStatus = "ready" | "in_call" | "break";
@@ -134,45 +134,54 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       </div>
 
       {/* Navigation Links */}
-      <nav id="primary-navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Primary navigation">
-        {getAllowedSidebarNavigationItems(isIdentityLoading ? null : identity?.role).map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Primary navigation">
+        {getAllowedSidebarNavigationSections(isIdentityLoading ? null : identity?.role).map((group) => (
+          <div key={group.section} className="space-y-1">
+            {!isCompact && (
+              <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                {group.label}
+              </div>
+            )}
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => onMobileOpenChange(false)}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
-                isActive
-                  ? "bg-zinc-800/80 text-zinc-100 border border-zinc-700/50 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "w-4 h-4 shrink-0 transition-colors",
-                  isActive
-                    ? "text-zinc-100"
-                    : "text-zinc-400 group-hover:text-zinc-200"
-                )}
-              />
-              {!isCompact && (
-                <span className="truncate">{item.label}</span>
-              )}
-              {isCompact && (
-                <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                  {item.label}
-                </div>
-              )}
-            </Link>
-          );
-        })}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => onMobileOpenChange(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
+                    isActive
+                      ? "bg-zinc-800/80 text-zinc-100 border border-zinc-700/50 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "w-4 h-4 shrink-0 transition-colors",
+                      isActive
+                        ? "text-zinc-100"
+                        : "text-zinc-400 group-hover:text-zinc-200"
+                    )}
+                  />
+                  {!isCompact && (
+                    <span className="truncate">{item.label}</span>
+                  )}
+                  {isCompact && (
+                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                      {item.label}
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Operator Status Badge & Quick Control */}

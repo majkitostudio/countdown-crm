@@ -51,7 +51,7 @@ describe("workspace readiness UI contract", () => {
 
     expect(page).toContain('title="Control Checkpoint"');
     expect(page).toContain("Control Checkpoint unavailable");
-    expect(navigation).toContain('label: "Control Checkpoint"');
+    expect(navigation).not.toContain('label: "Control Checkpoint"');
     expect(navigation).not.toContain('label: "Workspace Readiness"');
   });
 });

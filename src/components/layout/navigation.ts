@@ -1,20 +1,19 @@
 import {
   BarChart3,
   CalendarDays,
-  ClipboardCheck,
-  ClipboardList,
+  Contact,
   GraduationCap,
   History,
   LayoutDashboard,
   Package,
   PhoneCall,
+  ScrollText,
   Settings,
   ShieldAlert,
+  ShieldCheck,
   ShoppingBag,
-
   Users,
   WalletCards,
-  Workflow,
 } from "lucide-react";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 
@@ -23,40 +22,97 @@ import type { WorkspaceRole } from "@/lib/auth/roles";
  *
  * Both the sidebar and the command palette read from this list. A page may
  * still protect itself on the server, but it must not be advertised here to a
- * role that cannot use it. Pilot surfaces without a connected data source,
- * such as Live Monitor, are intentionally omitted.
+ * role that cannot use it. Destinations that are now reached from the Admin
+ * Hub (Workflows, Control Checkpoint, Users, Scripts, Telephony) are
+ * intentionally omitted from this top-level list.
  */
+export type WorkspaceNavigationSection =
+  | "work"
+  | "team"
+  | "reporting"
+  | "learn"
+  | "administration"
+  | "account";
+
 export interface WorkspaceNavigationItem {
   label: string;
   href: string;
   icon: typeof LayoutDashboard;
+  section: WorkspaceNavigationSection;
   roles?: WorkspaceRole[];
 }
 
+export interface WorkspaceNavigationSectionGroup {
+  section: WorkspaceNavigationSection;
+  label: string;
+  items: WorkspaceNavigationItem[];
+}
+
+export const NAVIGATION_SECTION_LABELS: Record<WorkspaceNavigationSection, string> = {
+  work: "Work",
+  team: "Team",
+  reporting: "Reporting",
+  learn: "Learn",
+  administration: "Administration",
+  account: "Account",
+};
+
+export const NAVIGATION_SECTION_ORDER: readonly WorkspaceNavigationSection[] = [
+  "work",
+  "team",
+  "reporting",
+  "learn",
+  "administration",
+  "account",
+];
+
+const MANAGER_ROLES: WorkspaceRole[] = ["team_leader", "administrator"];
+
 const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["team_leader", "administrator"] },
-  { label: "Operator Console", href: "/workspace", icon: PhoneCall },
-  { label: "Orders", href: "/orders", icon: ShoppingBag },
-  { label: "Wallet", href: "/wallet", icon: WalletCards },
-  { label: "Plánovač", href: "/calendar", icon: CalendarDays },
-  { label: "AI Training", href: "/training", icon: GraduationCap },
-  { label: "Team Leader Review", href: "/training/reviews", icon: ClipboardList, roles: ["team_leader", "administrator"] },
-  { label: "Exception Queue", href: "/exceptions", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
-  { label: "Leads & Contacts", href: "/leads", icon: Users, roles: ["team_leader", "administrator"] },
-  { label: "Product Catalog", href: "/products", icon: Package },
-  { label: "Call Logs", href: "/calls", icon: History },
-  { label: "Workflows", href: "/workflows", icon: Workflow, roles: ["administrator"] },
-  { label: "Analytics", href: "/analytics", icon: BarChart3, roles: ["team_leader", "administrator"] },
-  { label: "Audit Log", href: "/audit", icon: ShieldAlert, roles: ["team_leader", "administrator"] },
-  { label: "Control Checkpoint", href: "/controls", icon: ClipboardCheck, roles: ["administrator"] },
-  { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Team Workspace", href: "/team", icon: Users, roles: ["team_leader", "administrator"] },
+  // Work
+  { label: "Operator Console", href: "/workspace", icon: PhoneCall, section: "work" },
+  { label: "Orders", href: "/orders", icon: ShoppingBag, section: "work" },
+  { label: "Schedule", href: "/calendar", icon: CalendarDays, section: "work" },
+  { label: "Wallet", href: "/wallet", icon: WalletCards, section: "work" },
+
+  // Team
+  { label: "Team Workspace", href: "/team", icon: Users, section: "team", roles: MANAGER_ROLES },
+  { label: "Exception Queue", href: "/exceptions", icon: ShieldAlert, section: "team", roles: MANAGER_ROLES },
+  { label: "Leads", href: "/leads", icon: Contact, section: "team", roles: MANAGER_ROLES },
+
+  // Reporting
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Analytics", href: "/analytics", icon: BarChart3, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Audit Log", href: "/audit", icon: History, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Call Logs", href: "/calls", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
+
+  // Learn
+  { label: "AI Training", href: "/training", icon: GraduationCap, section: "learn" },
+  { label: "Product Catalog", href: "/products", icon: Package, section: "learn" },
+
+  // Administration
+  { label: "Admin Hub", href: "/admin", icon: ShieldCheck, section: "administration", roles: ["administrator"] },
+
+  // Account
+  { label: "Settings", href: "/settings", icon: Settings, section: "account" },
 ];
 
 export function getAllowedWorkspaceNavigationItems(
   role: WorkspaceRole | null | undefined,
 ): WorkspaceNavigationItem[] {
   return NAVIGATION_ITEMS.filter((item) => !item.roles || (role != null && item.roles.includes(role)));
+}
+
+export function getAllowedWorkspaceNavigationSections(
+  role: WorkspaceRole | null | undefined,
+): WorkspaceNavigationSectionGroup[] {
+  const allowed = getAllowedWorkspaceNavigationItems(role);
+
+  return NAVIGATION_SECTION_ORDER.map((section) => ({
+    section,
+    label: NAVIGATION_SECTION_LABELS[section],
+    items: allowed.filter((item) => item.section === section),
+  })).filter((group) => group.items.length > 0);
 }
 
 export function getCommandPalettePlaceholder(role: WorkspaceRole | null | undefined): string {

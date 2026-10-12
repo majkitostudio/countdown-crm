@@ -11,9 +11,14 @@ describe("role-aware sidebar navigation", () => {
     expect(operatorPaths).not.toContain("/workflows");
   });
 
-  it("keeps workflows available only to administrators", () => {
-    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).not.toContain("/workflows");
-    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/workflows");
+  it("moves administrator-only workflows behind the Admin Hub", () => {
+    const teamLeaderPaths = getAllowedSidebarNavigationItems("team_leader").map((item) => item.href);
+    const administratorPaths = getAllowedSidebarNavigationItems("administrator").map((item) => item.href);
+
+    expect(teamLeaderPaths).not.toContain("/workflows");
+    expect(teamLeaderPaths).not.toContain("/admin");
+    expect(administratorPaths).not.toContain("/workflows");
+    expect(administratorPaths).toContain("/admin");
   });
 
   it("shows the exception queue only to team leaders and administrators", () => {
