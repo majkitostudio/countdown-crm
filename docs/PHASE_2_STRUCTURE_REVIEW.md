@@ -201,6 +201,24 @@ Admin Hub → **Management** (sekce Administration zůstává); dále přejmenov
 `Audit Log`, `Analysis` (Analytics), `Order Detail`, `Edit Order`, `Call Review`. Generické akce v Automations
 jsou anglicky (`Edit`, `Disable`, `Enable`, `Delete`). Smluvní testy aktualizovány na nové texty.
 
+✅ **Vlna 2 hotová (sloučení A–F), bez změny URL** (URL přejdou ve vlně 3). Commity `337ab95`, `7c3d568`,
+`0a5581c`, `550993c`, `9bacb59`, `6e633a3`:
+
+- **A) Products & Scripts** — `/products` má pro admina záložky **Catalog · Scripts** (existující editor
+  skriptů); `/settings/scripts` přesměrovává na `/products?tab=scripts`. Operátor vidí jen katalog.
+  Produktová karta (editor) zůstává samostatný krok.
+- **B) Reports** — `/dashboard` = **Overview · Revenue & Team** (původní Analytics přesunut do panelu);
+  `/analytics` přesměrovává; v navigaci jedna položka **Reports** místo Dashboard + Analytics.
+- **C) Team Workspace** — záložky **Team Overview · Exceptions · Training Reviews** (sdílená tab navigace).
+- **D) Telefonie zaparkována** — karta v Managementu i adaptér v nastavení skryté (`/telephony` zůstává).
+- **E) Readiness** — `/controls` zrušeno, v Managementu je **health strip** jen s akčními byznys kontrolami
+  (kalendář, wallet, fronta, skripty, workflows, kritické chyby); technické kontroly (migrace, RLS, Telnyx,
+  Local SIP) odstraněny. `/readiness` → `/admin`.
+- **F) Automations** — nedostupné triggery/akce označené **Coming soon** a nelze je vybrat; popis míří na
+  webhooky. Data (existující pravidla se staršími akcemi) zůstávají viditelná.
+
+Po vlně 2: `lint` · `typecheck` · `test` (172 souborů / 817 testů) · `build` zelené.
+
 ---
 
 ## 7. Otevřené body
