@@ -5,9 +5,12 @@
 Tento soubor je jen krátká navigace, ne samostatná kopie produktové dokumentace:
 
 1. `START_HERE.md` — aktuální kontext a vysvětlení systému.
-2. `docs/PRODUCT_VISION.md` — produktová vize.
-3. `docs/PROJECT_GUIDE.md` — pravidla práce.
-4. `docs/HISTORY_COMPACT.md` — stabilní rozhodnutí a stručný vývoj.
+2. `docs/ROADMAP.md` — plán dalších fází a jejich stav.
+3. `docs/PRODUCT_VISION.md` — produktová vize.
+4. `docs/PROJECT_GUIDE.md` — pravidla práce.
+5. `docs/HISTORY_COMPACT.md` — stabilní rozhodnutí a stručný vývoj.
+
+Historické dokumenty v `docs/archive/` jsou jen kontext, ne zdroj aktuálního stavu.
 
 Zdrojový kód a testy jsou pravda o implementaci. Starší reporty, exportované NotebookLM bundle soubory a texty generované AI nemusí odpovídat současnému stavu.
 

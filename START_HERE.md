@@ -21,17 +21,19 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 - **Administrátor:** Řídí a spravuje celý Workspace.
 - **Operátor:** Pracuje na lince ve svém Týmu a Kampani.
 
-## Kde je projekt nyní (stav k 10. 10. 2026)
+## Kde jsme teď (stav k 12. 10. 2026)
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
-- **Testy:** Při poslední kontrole prošlo 823 testů ve 173 souborech.
-- **Kostru kampaní P1–P4:** Implementované jsou pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4; provozní nasazení je potřeba ověřit samostatně.
-- **Migrace:** V repozitáři je 128 souborů. Statická kontrola prochází, ale dvě migrace sdílejí verzi `20261007140000`; čistý běh na databázi zatím není touto kontrolou potvrzen.
+
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). Aktuálně běží **Fáze 0 — dokončení pročištění**.
+- **Testy:** Při poslední čisté kontrole prošlo 823 testů ve 173 souborech. Probíhající pročištění testovací sadu mění (mazání nadbytečných testů), přesná čísla je potřeba ověřit před commitem.
+- **Migrace:** 128 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript ale stále hlásí zastaralé „ALL 127 MIGRATIONS“ a duplicity sám nekontroluje.
+- **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice; přehled front v UI zatím chybí.
 - **Expedice a kurýři:** CSV exporty pro Zásilkovnu, Balíkovnu, GLS, sledovací čísla a linky na kurýry.
-- **Provize a Mzdy:** Měsíční uzávěrka pro Team Leadera na `/wallet` a export podkladů pro mzdy v CSV.
-- **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování, systém funguje se simulovaným/standardním workflow.
-- **Pročištění:** Odstraněné slepé routy a generický Object Builder jsou pryč.
-- **Objednávky:** `/orders` už nabízí Kanban i tabulku; Kanban není čekající návrh.
+- **Provize a mzdy:** Měsíční uzávěrka pro Team Leadera na `/wallet` a export podkladů pro mzdy v CSV.
+- **Objednávky:** `/orders` už nabízí Kanban i tabulku.
+- **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování.
+- **Probíhající pročištění:** První vlna je hotová (slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder jsou pryč). Druhá vlna — odstranění blueprints, custom schema polí a kanbanu/filtrů u leadů — je rozepsaná a potřebuje dokončit (pracovní kopie teď není zkompilovatelná).
 
 ## Jak chápat P1–P4
 
@@ -56,8 +58,7 @@ Zdroj dat může být budoucí API nebo webhook; jeho připojení není podmínk
 
 ## Současný způsob práce
 
-Projekt se iterativně stabilizuje a rozvíjí: ladíme působnost systému, vzhled, estetiku a každodenní použitelnost. Prioritu určujeme podle aktuální potřeby, ne podle tlaku na termín MVP. Další možná zjištění jsou v [docs/PROJECT_ASSESSMENT_2026-10-10.md](docs/PROJECT_ASSESSMENT_2026-10-10.md); pořadí je orientační, ne závazný plán.
-
+Projekt se iterativně stabilizuje a rozvíjí: ladíme působnost systému, vzhled, estetiku a každodenní použitelnost. Prioritu určujeme podle aktuální potřeby, ne podle tlaku na termín MVP. Plán dalších fází je v [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Co právě nemáme dělat
 
@@ -79,4 +80,15 @@ Před každou změnou si odpověz:
 4. Jak poznáme, že je řešení použitelné?
 5. Neexistuje už stejná funkce jinde?
 
-Podrobnější vize je v [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md), aktuální provozní pravidla v [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md), kompaktní historii v [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) a analýza mezer s doporučenými akcemi v [docs/PROJECT_ASSESSMENT_2026-10-10.md](docs/PROJECT_ASSESSMENT_2026-10-10.md).
+## Dokumentace
+
+Živé zdroje (aktuální):
+
+- **[docs/ROADMAP.md](docs/ROADMAP.md)** — plán dalších fází a jejich stav.
+- [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md) — produktová identita a oblasti.
+- [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) — pracovní a technická pravidla.
+- [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) — stručná historie rozhodnutí a vývoje.
+- [docs/P0_3_REMOTE_DB_RUNNER.md](docs/P0_3_REMOTE_DB_RUNNER.md) — technický runbook pro ověření linked databáze.
+- [docs/ai/AI_STUDIO_BASE_PROMPT.md](docs/ai/AI_STUDIO_BASE_PROMPT.md) — kontext pro AI Studio.
+
+Historické (není zdroj aktuálního stavu, pouze kontext): [docs/archive/](docs/archive/).

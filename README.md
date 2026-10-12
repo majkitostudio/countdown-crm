@@ -4,7 +4,7 @@ Countdown CRM je komplexní all-in-one CRM systém na míru pro telemarketingov�
 
 Nejde o generické AI CRM ani pouze o Operator Console. Systém propojuje operátory, Team Leadery a administrátory s leady, zákazníky, hovory, produkty, objednávkami, kvalitou, tréninkem, reportingem a správou provozu.
 
-Začněte v [START_HERE.md](START_HERE.md). Závazným kontextem jsou také [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md), [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md), [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md) a aktuální záznam zjištění [docs/PROJECT_ASSESSMENT_2026-10-10.md](docs/PROJECT_ASSESSMENT_2026-10-10.md). Starší AI audity a exportované bundle soubory nejsou zdrojem aktuálního stavu.
+Začněte v [START_HERE.md](START_HERE.md). Závazným kontextem jsou také [docs/ROADMAP.md](docs/ROADMAP.md) (plán dalších fází), [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md), [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) a [docs/HISTORY_COMPACT.md](docs/HISTORY_COMPACT.md). Starší AI audity, review a exportované bundle soubory jsou v [docs/archive/](docs/archive/) a nejsou zdrojem aktuálního stavu.
 
 ## Technologický základ
 

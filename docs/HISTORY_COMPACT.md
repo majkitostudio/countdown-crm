@@ -10,6 +10,8 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 - **Prodej a expedice:** vznikly položky objednávek, historie stavů, sledování zásilek a exporty pro dopravce.
 - **P1–P4:** byla doplněna obecná kostra kampaní/oddělení a časových pravidel pro standardní odchozí práci, retenci a záchranu vybraných případů.
 - **Říjen 2026 — zjednodušení:** odstraněny slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder. Obrazovka objednávek nyní nabízí Kanban i tabulkový pohled.
+- **Říjen 2026 — druhá vlna pročištění (probíhá):** odstranění generických funkcí, které nepatří ke specializovanému call-center produktu — blueprints (multi-industry šablony), custom schema / „Attio“ pole a obecný kanban/filtry u leadů. Zároveň opravena duplicitní verze migrace.
+- **Říjen 2026 — roadmapa:** další práce se řídí fázemi 0–7 v [ROADMAP.md](ROADMAP.md); dokumentace byla sjednocena a historické audity přesunuty do `docs/archive/`.
 
 ## Trvalá produktová rozhodnutí
 
@@ -25,4 +27,4 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 
 - Historické audity a AI worklogy mohou obsahovat staré cesty, návrhy i tehdejší počty testů. Nepoužívat je jako aktuální popis produktu.
 - Úspěšná automatická testovací sada dokládá pouze pokryté scénáře; nedokládá sama o sobě použitelnost, živé napojení ani čisté nasazení databáze.
-- Starší audit uváděl konkrétní problémy a návrhy, které se od té doby změnily. Aktuální zjištění jsou v [PROJECT_ASSESSMENT_2026-10-10.md](PROJECT_ASSESSMENT_2026-10-10.md).
+- Starší audit uváděl konkrétní problémy a návrhy, které se od té doby změnily. Aktuální plán dalších fází je v [ROADMAP.md](ROADMAP.md); detailní historická zjištění jsou v [archive/](archive/).
