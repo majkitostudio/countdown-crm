@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Countdown CRM — Proposed navigation (Phase 1)</title>
+<style>
+  :root{
+    --bg:#09090b; --panel:#0d0d10; --panel2:#111114; --line:#27272a; --line2:#1c1c20;
+    --text:#e4e4e7; --muted:#a1a1aa; --faint:#52525b; --accent:#e4e4e7;
+    --hi:#1f1f23; --hiedge:#3f3f46;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  body{padding:40px 44px 56px}
+  h1{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:12.5px;margin:0}
+  .legend{display:flex;gap:18px;margin:22px 0 30px;font-size:11.5px;color:var(--muted)}
+  .legend b{color:var(--text);font-weight:600}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:3px;background:var(--hi);border:1px solid var(--hiedge);margin-right:6px;vertical-align:middle}
+
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
+  .board{background:var(--panel);border:1px solid var(--line2);border-radius:16px;overflow:hidden}
+  .board > header{padding:14px 16px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between}
+  .board h2{font-size:13px;font-weight:600;margin:0;letter-spacing:.01em}
+  .rolechip{font-size:10px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px;letter-spacing:.04em}
+  .count{font-size:10.5px;color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .sidebar{padding:12px 10px 14px}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 12px}
+  .mark{width:30px;height:30px;border-radius:9px;background:#18181b;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text)}
+  .brand .nm{font-size:12.5px;font-weight:600;line-height:1.1}
+  .brand .vr{font-size:9.5px;color:var(--faint);font-family:ui-monospace,monospace;letter-spacing:.08em}
+
+  .sec{margin:12px 0 4px;padding:0 10px}
+  .sec span{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .sec:first-of-type{margin-top:6px}
+
+  .item{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:9px;color:var(--muted);font-size:12.5px;margin:1px 0}
+  .item svg{width:16px;height:16px;flex:0 0 16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;color:#71717a}
+  .item.active{background:var(--hi);border:1px solid var(--hiedge);color:var(--text)}
+  .item .tag{margin-left:auto;font-size:9px;color:var(--faint);border:1px solid var(--line2);border-radius:5px;padding:1px 5px;font-family:ui-monospace,monospace}
+  .item.hub{color:var(--text);background:linear-gradient(90deg,#1a1a1f,#141417);border:1px solid var(--hiedge)}
+
+  .foot{margin-top:12px;padding:10px 10px 0;border-top:1px solid var(--line2)}
+
+  .hub{margin-top:30px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;overflow:hidden}
+  .hub > header{padding:15px 20px;border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between}
+  .hub h2{margin:0;font-size:13px;font-weight:600}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;padding:16px 20px 0}
+  .tab{font-size:11.5px;color:var(--muted);border:1px solid var(--line2);background:var(--panel2);border-radius:8px;padding:7px 12px}
+  .tab.on{color:var(--text);background:var(--hi);border-color:var(--hiedge)}
+  .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:18px 20px 22px}
+  .card{background:var(--panel2);border:1px solid var(--line2);border-radius:11px;padding:13px 14px}
+  .card h3{margin:0 0 4px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .card p{margin:0;font-size:11px;color:var(--muted);line-height:1.5}
+  .card code{font-family:ui-monospace,monospace;font-size:10px;color:var(--faint)}
+
+  footer{margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+  .note{background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:14px 16px}
+  .note h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--faint)}
+  .note ul{margin:0;padding-left:16px;color:var(--muted);font-size:11.5px;line-height:1.7}
+  .note b{color:var(--text);font-weight:600}
+</style>
+</head>
+<body>
+
+<h1>Countdown CRM — proposed navigation</h1>
+<p class="sub">Phase 1 concept · sections in the sidebar + one Admin Hub · all labels in English</p>
+<div class="legend">
+  <span><span class="dot"></span>highlighted = where you land now</span>
+  <span>Operator <b>6</b> · Team Leader <b>8</b> · Administrator <b>9</b> (+ Settings)</span>
+  <span>nothing is deleted — only regrouped</span>
+</div>
+
+<div class="grid">
+
+  <!-- OPERATOR -->
+  <section class="board">
+    <header>
+      <h2>Operator</h2>
+      <span class="rolechip">OPERATOR · <span class="count">8 → 6</span></span>
+    </header>
+    <div class="sidebar">
+      <div class="brand">
+        <div class="mark"><svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div><div class="nm">COUNTDOWN</div><div class="vr">AI CRM v0.1</div></div>
+      </div>
+
+      <div class="sec"><span>Work</span></div>
+      <div class="item active"><svg viewBox="0 0 24 24"><path d="M6 3h3l2 5-2 1.5a12 12 0 0 0 5.5 5.5L16 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z"/></svg>Operator Console</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Schedule</div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h13M16 14h2"/></svg>Wallet</div>
+
+      <div class="sec"><span>Learn</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg>AI Training</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4-9-4Z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/></svg>Product Catalog</div>
+
+      <div class="foot">
+        <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM LEADER -->
+  <section class="board">
+    <header>
+      <h2>Team Leader</h2>
+      <span class="rolechip">TEAM LEADER · <span class="count">15 → 8</span></span>
+    </header>
+    <div class="sidebar">
+      <div class="brand">
+        <div class="mark"><svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div><div class="nm">COUNTDOWN</div><div class="vr">AI CRM v0.1</div></div>
+      </div>
+
+      <div class="sec"><span>Work</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M6 3h3l2 5-2 1.5a12 12 0 0 0 5.5 5.5L16 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z"/></svg>Operator Console</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</div>
+
+      <div class="sec"><span>Team</span></div>
+      <div class="item active"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/></svg>Team Workspace <span class="tag">+ Reviews</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>Exception Queue</div>
+      <div class="item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M4 20a5 5 0 0 1 10 0"/><path d="M16 6h5M16 10h5M16 14h3"/></svg>Leads</div>
+
+      <div class="sec"><span>Reporting</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>Dashboard</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analytics</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Audit Log</div>
+
+      <div class="foot">
+        <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section class="board">
+    <header>
+      <h2>Administrator</h2>
+      <span class="rolechip">ADMIN · <span class="count">17 → 9</span></span>
+    </header>
+    <div class="sidebar">
+      <div class="brand">
+        <div class="mark"><svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div><div class="nm">COUNTDOWN</div><div class="vr">AI CRM v0.1</div></div>
+      </div>
+
+      <div class="sec"><span>Work</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M6 3h3l2 5-2 1.5a12 12 0 0 0 5.5 5.5L16 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z"/></svg>Operator Console</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</div>
+
+      <div class="sec"><span>Team</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/></svg>Team Workspace <span class="tag">+ Reviews</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 3l9 16H3L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>Exception Queue</div>
+      <div class="item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M4 20a5 5 0 0 1 10 0"/><path d="M16 6h5M16 10h5M16 14h3"/></svg>Leads</div>
+
+      <div class="sec"><span>Reporting</span></div>
+      <div class="item"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>Dashboard</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Analytics</div>
+      <div class="item"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>Audit Log</div>
+
+      <div class="sec"><span>Administration</span></div>
+      <div class="item hub"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.4 8.3-8 9-4.6-.7-8-4-8-9V7l8-4Z"/><path d="M9 12l2 2 4-4"/></svg>Admin Hub <span class="tag">1 entry</span></div>
+
+      <div class="foot">
+        <div class="item"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="17" r="2"/></svg>Settings <span class="tag">personal</span></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ADMIN HUB -->
+<section class="hub">
+  <header>
+    <h2>Admin Hub — everything administrators manage, in one place</h2>
+    <span class="rolechip">ADMIN ONLY · replaces 5 scattered entry points</span>
+  </header>
+  <div class="tabs">
+    <div class="tab on">Readiness</div>
+    <div class="tab">Users &amp; Teams</div>
+    <div class="tab">Products &amp; Scripts</div>
+    <div class="tab">Workflows &amp; Automations</div>
+    <div class="tab">Workspace Settings</div>
+    <div class="tab">Telephony</div>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <h3>Readiness</h3>
+      <p>Operational checklist for the active workspace.</p>
+      <code>was /controls</code>
+    </div>
+    <div class="card">
+      <h3>Users &amp; Teams</h3>
+      <p>Members, roles and team assignment.</p>
+      <code>was /settings/users</code>
+    </div>
+    <div class="card">
+      <h3>Products &amp; Scripts</h3>
+      <p>Product catalog and approved call scripts.</p>
+      <code>was /settings/scripts</code>
+    </div>
+    <div class="card">
+      <h3>Workflows &amp; Automations</h3>
+      <p>Event rules and automated sequences.</p>
+      <code>was /workflows</code>
+    </div>
+    <div class="card">
+      <h3>Workspace Settings</h3>
+      <p>Wallet rules, commissions and workspace preferences.</p>
+      <code>was part of /settings</code>
+    </div>
+    <div class="card">
+      <h3>Telephony</h3>
+      <p>Local SIP console for internal telephony testing.</p>
+      <code>was /telephony</code>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="note">
+    <h4>What changes</h4>
+    <ul>
+      <li>Flat list → <b>4 sections</b>: Work · Team · Reporting · Administration</li>
+      <li>Team Leader Review becomes a <b>tab in Team Workspace</b></li>
+      <li>5 admin surfaces collapse into <b>one Admin Hub</b></li>
+      <li><b>Call Logs hidden from operators</b> (kept for TL/admin)</li>
+      <li>Settings split: personal stays for everyone, workspace part moves to Admin Hub</li>
+    </ul>
+  </div>
+  <div class="note">
+    <h4>What does NOT change</h4>
+    <ul>
+      <li>No page is deleted — routes stay, only where you enter them changes</li>
+      <li>No permission or server-guard changes</li>
+      <li>No new features</li>
+      <li>P1–P4 queues come later (Phase 4); a spot is reserved</li>
+    </ul>
+  </div>
+  <div class="note">
+    <h4>Next (after approval)</h4>
+    <ul>
+      <li>Then a separate pass: <b>rename pages and clean up URLs</b></li>
+      <li>Implement sections + Admin Hub one step at a time</li>
+      <li>Verify after each step: lint · typecheck · test · build</li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>

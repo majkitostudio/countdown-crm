@@ -9,6 +9,9 @@ alternativní UI s vlastním doporučením.
 > Tento dokument je pracovní. Po odsouhlasení a implementaci se jeho výsledek zapíše do
 > [ROADMAP.md](ROADMAP.md) a dokument se zařadí mezi historické.
 
+**Vizuální návrh:** [phase-1-menu-mockup.html](phase-1-menu-mockup.html) (otevři v prohlížeči)
+nebo obrázek [phase-1-menu-mockup.png](phase-1-menu-mockup.png).
+
 ---
 
 ## 1. Současný stav
@@ -132,18 +135,31 @@ do jednoho hubu klesne adminovi i TL počet položek a zmizí překryvy z bodu 2
 
 ---
 
-## 5. Otevřené otázky (s mým doporučením)
+## 5. Rozhodnutí (PM, 12. 10. 2026)
 
-1. **Jazyk názvů.** Doporučuji sjednotit **vše na češtinu** (dnes je mix). Je to český produkt
-   a uživatel je český operátor. → *Návrh: sjednotit na češtinu.*
-2. **Vidí operátor Call Logs a Product Catalog?** Operátor má skript v Console. → *Návrh: Product
-   Catalog ano (podklady při hovoru), Call Logs spíš přesunout k vedoucím, u operátora skrýt.*
-3. **Team Leader Review zůstane samostatně, nebo jako záložka v Team Workspace?** → *Návrh: záložka,
-   méně položek a logické spojení „tým → jeho tréninky".*
-4. **Analytics sloučit s Dashboardem?** Obojí je reporting. → *Návrh: nechat dvě plochy, ale obě
-   v sekci Reporting a časem zvážit sloučení (mimo tuto fázi).*
-5. **`/settings` rozdělit?** → *Návrh: osobní nastavení zůstane všem; workspace nastavení (wallet,
-   telephony) se přesune do Admin Hubu.*
+1. **Koncept:** sekce v menu **+** jeden Admin Hub (doporučení B + C). PM chtěl nejdřív vidět
+   vizuální návrh → [phase-1-menu-mockup.html](phase-1-menu-mockup.html).
+2. **Jazyk:** všechny **názvy a nadpisy v angličtině**, napříč celým CRM systémem.
+   Přejmenování stránek a úprava URL adres proběhne jako **samostatný krok** až po redukci menu.
+3. **Team Leader Review:** **sloučit** do Team Workspace jako záložku.
+4. **Operátor:** Product Catalog **ano**, Call Logs **skrýt** (zůstává pro TL/admin).
+5. **Settings:** **rozdělit** — osobní nastavení zůstane všem, workspace nastavení (wallet,
+   telephony) se přesune do Admin Hubu.
+6. **Analytics:** zatím ponechat jako samostatnou plochu v sekci Reporting (sloučení s Dashboardem
+   mimo tuto fázi).
+
+### Odsouhlasené cílové menu (anglické názvy)
+
+**Operator (6):** Work → Operator Console · Orders · Schedule · Wallet; Learn → AI Training ·
+Product Catalog; + Settings (personal).
+
+**Team Leader (8):** Work → Operator Console · Orders; Team → Team Workspace (Reviews jako záložka) ·
+Exception Queue · Leads; Reporting → Dashboard · Analytics · Audit Log; + Settings (personal).
+
+**Administrator (9):** jako Team Leader + Administration → **Admin Hub**; + Settings (personal).
+
+**Admin Hub (jen admin):** Readiness · Users & Teams · Products & Scripts ·
+Workflows & Automations · Workspace Settings · Telephony.
 
 ---
 
@@ -158,9 +174,17 @@ do jednoho hubu klesne adminovi i TL počet položek a zmizí překryvy z bodu 2
 
 ## 7. Návrh implementace (po odsouhlasení)
 
-1. Do `navigation.ts` přidat pole `section` a seskupit položky; sidebar vykreslit po sekcích.
-2. Vytvořit `/admin` (Admin Hub) se záložkami a přesunout do něj: `/settings/users`,
-   `/settings/scripts`, `/workflows`, `/controls`, `/telephony` (stránky zůstanou, mění se jen vstup).
-3. Z `/settings` odstranit workspace a telephony část; nechat osobní nastavení.
-4. Aktualizovat testy, které čtou `navigation.ts` / sledují položky menu.
-5. Ověřit role: operátor nesmí vidět Admin Hub; TL vidí sekci Reporting, ne Admin Hub.
+1. Do `navigation.ts` přidat pole `section` a přejmenovat položky na anglické názvy
+   (Operator Console · Orders · Schedule · Wallet · AI Training · Product Catalog · Team Workspace ·
+   Exception Queue · Leads · Dashboard · Analytics · Audit Log · Admin Hub · Settings).
+2. Sidebar vykreslit po sekcích; **Call Logs skrýt operátorovi** (zůstává pro TL/admin).
+3. Vytvořit `/admin` (Admin Hub) se záložkami: Readiness · Users & Teams · Products & Scripts ·
+   Workflows & Automations · Workspace Settings · Telephony. Stránky zůstanou, mění se jen vstup
+   (`/controls`, `/settings/users`, `/settings/scripts`, `/workflows`, `/telephony`, wallet část).
+4. Z `/settings` odstranit workspace a telephony část; nechat osobní nastavení.
+5. Sloučit **Team Leader Review** do **Team Workspace** jako záložku.
+6. Aktualizovat testy, které čtou `navigation.ts` / sledují položky menu.
+7. Ověřit role: operátor nesmí vidět Admin Hub; TL vidí sekci Reporting, ne Admin Hub.
+8. Ověření po každém kroku: `lint` · `typecheck` · `test` · `build`.
+
+**Samostatný krok později:** revize názvů stránek a URL adres (PM se nelíbí současné názvy).
