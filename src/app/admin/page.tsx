@@ -7,7 +7,6 @@ import {
   Users,
   WalletCards,
   Workflow,
-  Zap,
 } from "lucide-react";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -58,16 +57,9 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
   {
     href: "/admin/settings",
     label: "Workspace Settings",
-    description: "Pravidla a provize walletu a telefonní adaptér.",
+    description: "Pravidla a provize walletu pro celý workspace.",
     legacyPath: "/settings",
     icon: WalletCards,
-  },
-  {
-    href: "/telephony",
-    label: "Telephony",
-    description: "Lokální SIP konzole pro interní testování telefonie.",
-    legacyPath: "/telephony",
-    icon: Zap,
   },
 ];
 
@@ -95,7 +87,7 @@ export default async function AdminHubPage() {
       <PageHeader
         icon={ShieldCheck}
         title="Management"
-        description="Jedno místo pro správu workspace: připravenost, členové, produkty a skripty, automatizace, nastavení a telefonie."
+        description="Jedno místo pro správu workspace: členové, produkty a skripty, automatizace a nastavení."
         badge={{ label: "Administrator only", tone: "neutral" }}
       />
 

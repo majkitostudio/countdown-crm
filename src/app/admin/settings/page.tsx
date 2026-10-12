@@ -30,7 +30,7 @@ export default async function AdminWorkspaceSettingsPage() {
         title="Workspace Settings"
         badge={{ label: "Administrator only", tone: "neutral" }}
         backLink={{ href: "/admin", label: "Back to Management" }}
-        description="Pravidla a provize walletu pro celý workspace a telefonní adaptér."
+        description="Pravidla a provize walletu pro celý workspace."
       />
       <WorkspaceSettingsPanel />
     </div>

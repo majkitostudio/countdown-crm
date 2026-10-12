@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { getWalletOverviewAction } from "@/app/actions/wallet";
 import { WalletManagerPanel } from "@/components/wallet/WalletManagerPanel";
 import type { WalletOverviewDTO } from "@/lib/dal/wallet";
-import { TelephonyAdapterSettings } from "@/components/settings/TelephonyAdapterSettings";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -58,8 +57,6 @@ export function WorkspaceSettingsPanel() {
           </>
         ) : null}
       </section>
-
-      <TelephonyAdapterSettings />
     </div>
   );
 }

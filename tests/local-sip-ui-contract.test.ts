@@ -20,13 +20,13 @@ describe("Local SIP settings UI contract", () => {
     expect(component).toContain("/admin/settings#telephony-adapter");
   });
 
-  it("keeps the adapter out of local user preferences", () => {
+  it("keeps the parked adapter out of local user preferences and workspace settings", () => {
     const settings = readSource("src/lib/settings.ts");
     const personalSettings = readSource("src/app/settings/page.tsx");
     const workspaceSettings = readSource("src/components/settings/WorkspaceSettingsPanel.tsx");
 
     expect(settings).not.toContain("telephony");
-    expect(workspaceSettings).toContain("TelephonyAdapterSettings");
+    expect(workspaceSettings).not.toContain("TelephonyAdapterSettings");
     expect(personalSettings).not.toContain("TelephonyAdapterSettings");
     expect(personalSettings).not.toContain("saveUserSettings({ ...settings, active_adapter");
   });
