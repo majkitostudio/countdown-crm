@@ -23,6 +23,11 @@ describe("PageHeader route rollout", () => {
     expect(authenticatedPages.length).toBeGreaterThan(0);
     for (const filePath of authenticatedPages) {
       const source = readFileSync(filePath, "utf8");
+      // Redirect-only routes render no PageHeader by design; they forward an old
+      // URL to the merged surface that owns the heading (e.g. /analytics -> Reports).
+      if (source.includes("redirect(") && !source.includes("PageHeader")) {
+        continue;
+      }
       expect(source, path.relative(projectRoot, filePath)).toContain("PageHeader");
     }
   });

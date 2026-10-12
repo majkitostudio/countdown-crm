@@ -64,7 +64,7 @@ describe("management route visual contract", () => {
   });
 
   it("announces neutral analytics loading and empty states without interrupting assistive technology", () => {
-    const analytics = source("src/app/analytics/page.tsx");
+    const analytics = source("src/components/analytics/AnalyticsPanel.tsx");
 
     expect(analytics).toContain('<StatusAlert tone="neutral" role="status">Loading analytics scope...</StatusAlert>');
     expect(analytics).toContain('<StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available in this analytics scope yet.</StatusAlert>');

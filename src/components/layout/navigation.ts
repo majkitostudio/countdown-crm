@@ -1,5 +1,4 @@
 import {
-  BarChart3,
   CalendarDays,
   Contact,
   GraduationCap,
@@ -81,8 +80,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   { label: "Leads", href: "/leads", icon: Contact, section: "team", roles: MANAGER_ROLES },
 
   // Reporting
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
-  { label: "Analytics", href: "/analytics", icon: BarChart3, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Reports", href: "/dashboard", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
   { label: "Audit Log", href: "/audit", icon: History, section: "reporting", roles: MANAGER_ROLES },
   { label: "Call Logs", href: "/calls", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
 

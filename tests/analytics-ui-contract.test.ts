@@ -6,7 +6,7 @@ const projectRoot = path.resolve(__dirname, "..");
 
 describe("analytics UI authorization states", () => {
   it("does not turn forbidden or empty results into the initial zero-data success view", () => {
-    const source = readFileSync(path.join(projectRoot, "src", "app", "analytics", "page.tsx"), "utf8");
+    const source = readFileSync(path.join(projectRoot, "src", "components", "analytics", "AnalyticsPanel.tsx"), "utf8");
 
     expect(source).toContain('status === "forbidden"');
     expect(source).toContain('? "Restricted"');
@@ -20,7 +20,7 @@ describe("analytics UI authorization states", () => {
   });
 
   it("uses the server-provided scope for the page and export instead of guessing in the browser", () => {
-    const source = readFileSync(path.join(projectRoot, "src", "app", "analytics", "page.tsx"), "utf8");
+    const source = readFileSync(path.join(projectRoot, "src", "components", "analytics", "AnalyticsPanel.tsx"), "utf8");
 
     expect(source).toContain("const scopeLabel = data.scopeLabel;");
     expect(source).toContain("data.scope === \"team\"");

@@ -1,4 +1,4 @@
-import { LayoutDashboard, PhoneCall, Plus } from "lucide-react";
+import { BarChart3, PhoneCall, Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -9,17 +9,29 @@ import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import { ReorderWidget } from "@/components/dashboard/ReorderWidget";
 import { NextBestActionCard } from "@/components/dashboard/NextBestActionCard";
 import { TeamLeaderDailyBriefCard } from "@/components/dashboard/TeamLeaderDailyBriefCard";
+import { AnalyticsPanel } from "@/components/analytics/AnalyticsPanel";
 import { getRoleHomePath } from "@/lib/auth/roleHome";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { getButtonClassName } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
+import { cn } from "@/lib/utils";
 
-export default async function DashboardPage() {
+const REPORTS_TABS = [
+  { key: "overview", label: "Overview", href: "/dashboard" },
+  { key: "revenue", label: "Revenue & Team", href: "/dashboard?tab=revenue" },
+] as const;
+
+export default async function DashboardPage(
+  props: { searchParams?: Promise<{ tab?: string }> } = {},
+) {
   const context = await requireWorkspaceContext();
   if (!isTeamLeaderOrAdministrator(context.role)) {
     redirect(getRoleHomePath(context.role));
   }
+
+  const params = props.searchParams ? await props.searchParams : undefined;
+  const activeTab = params?.tab === "revenue" ? "revenue" : "overview";
 
   const scope = context.role === "administrator" ? "workspace" : "team";
   const scopeLabel = scope === "workspace" ? "Celý workspace" : "Týmová data";
@@ -27,73 +39,102 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto min-w-0 max-w-screen-2xl space-y-6 px-4 sm:px-6" data-testid="dashboard" data-scope={scope}>
       <PageHeader
-        icon={LayoutDashboard}
-        title="Dashboard"
-        description={`Uložené metriky a aktivita za ${scope === "workspace" ? "celý workspace" : "tým"}; živá telefonie a presence zatím v pilotu nejsou dostupné.`}
+        icon={BarChart3}
+        title="Reports"
+        description={`Uložené metriky, příjmy a výkon za ${scope === "workspace" ? "celý workspace" : "tým"}; živá telefonie a presence zatím v pilotu nejsou dostupné.`}
         badge={{ label: scopeLabel, tone: "neutral" }}
         actions={
-          <>
-            <Link href="/leads?create=1" className={getButtonClassName("secondary")}>
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Add Lead
-            </Link>
-            <Link href="/workspace" className={getButtonClassName("primary")}>
-              <PhoneCall className="h-4 w-4" aria-hidden="true" />
-              Launch Operator Console
-            </Link>
-          </>
+          activeTab === "overview" ? (
+            <>
+              <Link href="/leads?create=1" className={getButtonClassName("secondary")}>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Add Lead
+              </Link>
+              <Link href="/workspace" className={getButtonClassName("primary")}>
+                <PhoneCall className="h-4 w-4" aria-hidden="true" />
+                Launch Operator Console
+              </Link>
+            </>
+          ) : undefined
         }
       />
 
-      <TeamLeaderDailyBriefCard />
+      <nav aria-label="Reports sections" className="flex flex-wrap items-center gap-2">
+        {REPORTS_TABS.map((tab) => {
+          const isActive = tab.key === activeTab;
+          return (
+            <Link
+              key={tab.key}
+              href={tab.href}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors",
+                isActive
+                  ? "border-zinc-700 bg-zinc-800 text-zinc-100"
+                  : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200",
+              )}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+      </nav>
 
-      <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,.85fr)]">
-        <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
-          <div className="flex flex-wrap items-end justify-between gap-3 px-1">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team attention</p>
-              <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Next opportunities from {scope === "workspace" ? "workspace" : "team"} data</h2>
+      {activeTab === "revenue" ? (
+        <AnalyticsPanel />
+      ) : (
+        <>
+          <TeamLeaderDailyBriefCard />
+
+          <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,.85fr)]">
+            <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
+              <div className="flex flex-wrap items-end justify-between gap-3 px-1">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team attention</p>
+                  <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Next opportunities from {scope === "workspace" ? "workspace" : "team"} data</h2>
+                </div>
+                <span className="text-[10px] text-zinc-600">No synthetic priorities</span>
+              </div>
+              <ReorderWidget scope={scope} />
+              <NextBestActionCard scope={scope} />
+            </section></Surface>
+
+            <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
+              <div className="flex flex-wrap items-end justify-between gap-3 px-1">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team activity</p>
+                  <h2 id="dashboard-team-overview-title" className="mt-1 text-sm font-semibold text-zinc-100">{scopeLabel} performance at a glance</h2>
+                </div>
+                <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">{scopeLabel}</span>
+              </div>
+              <KpiCards compact scope={scope} />
+            </section></Surface>
+          </div>
+
+          <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-supporting-title" data-testid="dashboard-supporting-analytics">
+            <div className="flex items-end justify-between gap-3 px-1">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
+                <h2 id="dashboard-supporting-title" className="mt-1 text-sm font-semibold text-zinc-100">Team performance and activity</h2>
+              </div>
+              <span className="text-[10px] text-zinc-600">P2 / P3</span>
             </div>
-            <span className="text-[10px] text-zinc-600">No synthetic priorities</span>
-          </div>
-          <ReorderWidget scope={scope} />
-          <NextBestActionCard scope={scope} />
-        </section></Surface>
-
-        <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
-          <div className="flex flex-wrap items-end justify-between gap-3 px-1">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team activity</p>
-              <h2 id="dashboard-team-overview-title" className="mt-1 text-sm font-semibold text-zinc-100">{scopeLabel} performance at a glance</h2>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <TopPerformers scope={scope} />
+              </div>
+              <div>
+                <CallActivityChart />
+              </div>
             </div>
-            <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">{scopeLabel}</span>
-          </div>
-          <KpiCards compact scope={scope} />
-        </section></Surface>
-      </div>
+          </section></Surface>
 
-      <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-supporting-title" data-testid="dashboard-supporting-analytics">
-        <div className="flex items-end justify-between gap-3 px-1">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
-            <h2 id="dashboard-supporting-title" className="mt-1 text-sm font-semibold text-zinc-100">Team performance and activity</h2>
-          </div>
-          <span className="text-[10px] text-zinc-600">P2 / P3</span>
-        </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <TopPerformers scope={scope} />
-          </div>
-          <div>
-            <CallActivityChart />
-          </div>
-        </div>
-      </section></Surface>
-
-      <section aria-labelledby="dashboard-recent-activity-title" data-testid="dashboard-recent-activity">
-        <h2 id="dashboard-recent-activity-title" className="sr-only">Recent {scope === "workspace" ? "workspace" : "team"} activity</h2>
-        <RecentActivityFeed scope={scope} />
-      </section>
+          <section aria-labelledby="dashboard-recent-activity-title" data-testid="dashboard-recent-activity">
+            <h2 id="dashboard-recent-activity-title" className="sr-only">Recent {scope === "workspace" ? "workspace" : "team"} activity</h2>
+            <RecentActivityFeed scope={scope} />
+          </section>
+        </>
+      )}
     </div>
   );
 }
