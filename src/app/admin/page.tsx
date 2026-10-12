@@ -36,7 +36,7 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
     icon: Users,
   },
   {
-    href: "/settings/scripts",
+    href: "/products?tab=scripts",
     label: "Products & Scripts",
     description: "Katalog produktů a schválené skripty, které čtou operátoři.",
     legacyPath: "/settings/scripts",

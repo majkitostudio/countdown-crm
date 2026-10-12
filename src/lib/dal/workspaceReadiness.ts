@@ -244,7 +244,7 @@ function buildPublishedScriptsCheck(
       "Published scripts are unavailable.",
       probe.message,
       checkedAt,
-      "/settings/scripts",
+      "/products?tab=scripts",
     );
   }
 
@@ -277,7 +277,7 @@ function buildPublishedScriptsCheck(
       `${missingProducts.length} product${missingProducts.length === 1 ? " lacks" : "s lack"} a published script.`,
       `Products needing a published version: ${productNames}${suffix}.`,
       checkedAt,
-      "/settings/scripts",
+      "/products?tab=scripts",
     );
   }
 
@@ -288,7 +288,7 @@ function buildPublishedScriptsCheck(
     "Every catalog product has a published script.",
     `${probe.value.products.length} product${probe.value.products.length === 1 ? "" : "s"} has a published version available to operators.`,
     checkedAt,
-    "/settings/scripts",
+    "/products?tab=scripts",
   );
 }
 
