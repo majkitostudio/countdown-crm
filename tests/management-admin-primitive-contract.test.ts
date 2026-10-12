@@ -8,15 +8,12 @@ function source(path: string): string {
 
 describe("management admin primitive contract", () => {
   it("uses shared UI primitives for the remaining management panels", () => {
-    const readiness = source("src/components/readiness/WorkspaceReadinessPanel.tsx");
+    const healthStrip = source("src/components/admin/WorkspaceHealthStrip.tsx");
     const scripts = source("src/components/settings/ProductScriptManager.tsx");
     const telephony = source("src/components/settings/TelephonyAdapterSettings.tsx");
     const ruleBuilder = source("src/components/workflows/RuleBuilderModal.tsx");
 
-    expect(readiness).toContain('from "@/components/ui/Surface"');
-    expect(readiness).toContain('from "@/components/ui/Button"');
-    expect(readiness).toContain('from "@/components/ui/Status"');
-    expect(readiness).toContain('from "@/components/ui/MetricCard"');
+    expect(healthStrip).toContain('from "@/components/ui/Surface"');
     expect(scripts).toContain('from "@/components/ui/Surface"');
     expect(scripts).toContain('from "@/components/ui/Button"');
     expect(scripts).toContain('from "@/components/ui/Status"');

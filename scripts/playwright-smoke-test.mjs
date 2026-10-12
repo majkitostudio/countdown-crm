@@ -20,7 +20,7 @@ const ROUTES_TO_TEST = [
   { path: "/analytics", name: "Analytika prodeje (Analytics)", expectedRole: "manager" },
   { path: "/wallet", name: "Peněženka & Mzdová uzávěrka (Wallet & Settlement)", expectedRole: "manager" },
   { path: "/dashboard", name: "Hlavní manažerský přehled (Executive Dashboard)", expectedRole: "admin" },
-  { path: "/controls", name: "Kontrolní stanoviště (Control Checkpoint)", expectedRole: "admin" },
+  { path: "/admin", name: "Administrace (Management)", expectedRole: "admin" },
   { path: "/settings", name: "Nastavení systému (Settings)", expectedRole: "admin" },
   { path: "/settings/users", name: "Centrum správy uživatelů (User Hub)", expectedRole: "admin" },
   { path: "/settings/scripts", name: "Správa prodejních skriptů (Scripts)", expectedRole: "admin" },

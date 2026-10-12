@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  ClipboardCheck,
   FileText,
   LockKeyhole,
   ShieldCheck,
@@ -9,6 +8,9 @@ import {
   Workflow,
 } from "lucide-react";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
+import { getWorkspaceReadinessForWorkspace } from "@/lib/dal/workspaceReadiness";
+import type { WorkspaceReadinessCheck } from "@/lib/dal/workspaceReadiness";
+import { WorkspaceHealthStrip } from "@/components/admin/WorkspaceHealthStrip";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 
@@ -26,13 +28,6 @@ interface AdminHubCard {
  * the way administrators reach it changes.
  */
 const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
-  {
-    href: "/controls",
-    label: "Readiness",
-    description: "Provozní kontrola připravenosti aktivního workspace.",
-    legacyPath: "/controls",
-    icon: ClipboardCheck,
-  },
   {
     href: "/settings/users",
     label: "Users & Teams",
@@ -66,6 +61,14 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
 export default async function AdminHubPage() {
   const context = await requireWorkspaceContext();
 
+  let healthChecks: WorkspaceReadinessCheck[] | null = null;
+  try {
+    const readiness = await getWorkspaceReadinessForWorkspace();
+    healthChecks = readiness.checks;
+  } catch {
+    healthChecks = null;
+  }
+
   if (context.role !== "administrator") {
     return (
       <div className="mx-auto max-w-xl">
@@ -90,6 +93,17 @@ export default async function AdminHubPage() {
         description="Jedno místo pro správu workspace: členové, produkty a skripty, automatizace a nastavení."
         badge={{ label: "Administrator only", tone: "neutral" }}
       />
+
+      {healthChecks ? (
+        <WorkspaceHealthStrip checks={healthChecks} />
+      ) : (
+        <Surface variant="empty" className="w-full">
+          <p className="text-sm font-semibold text-zinc-100">Workspace health is unavailable</p>
+          <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+            Provozní kontroly se nepodařilo načíst — zkuste to prosím později.
+          </p>
+        </Surface>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {ADMIN_HUB_CARDS.map((card) => {

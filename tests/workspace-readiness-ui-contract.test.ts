@@ -2,55 +2,59 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const pagePath = resolve(process.cwd(), "src/app/controls/page.tsx");
-const panelPath = resolve(process.cwd(), "src/components/readiness/WorkspaceReadinessPanel.tsx");
-const navigationPath = resolve(process.cwd(), "src/components/layout/navigation.ts");
+function readSource(relativePath: string): string {
+  const path = resolve(process.cwd(), relativePath);
+  expect(existsSync(path), `${relativePath} should exist`).toBe(true);
+  return readFileSync(path, "utf8");
+}
 
-describe("workspace readiness UI contract", () => {
-  it("keeps the page administrator-only and server-rendered", () => {
-    expect(existsSync(pagePath)).toBe(true);
-    if (!existsSync(pagePath)) return;
-    const page = readFileSync(pagePath, "utf8");
+describe("workspace health strip UI contract", () => {
+  it("is a server component and surfaces only actionable business checks", () => {
+    const strip = readSource("src/components/admin/WorkspaceHealthStrip.tsx");
 
-    expect(page).not.toMatch(/^"use client";/);
-    expect(page).toContain("getWorkspaceReadinessForWorkspace");
-    expect(page).toContain("WorkspaceReadinessPanel");
+    expect(strip).not.toMatch(/^"use client";/);
+    expect(strip).toContain("WorkspaceHealthStrip");
+    for (const businessKey of [
+      "calendar",
+      "wallet",
+      "lead_queue",
+      "published_scripts",
+      "workflows",
+      "critical_errors",
+    ]) {
+      expect(strip).toContain(`"${businessKey}"`);
+    }
+    for (const technicalKey of [
+      "local_sip",
+      "telnyx",
+      "migration_history",
+      "role_boundaries",
+    ]) {
+      expect(strip).not.toContain(`"${technicalKey}"`);
+    }
+    expect(strip).toContain("actionHref");
+    expect(strip).toContain('from "@/components/ui/Surface"');
   });
 
-  it("shows truthful status, details-on-demand, refresh and next actions", () => {
-    expect(existsSync(panelPath)).toBe(true);
-    if (!existsSync(panelPath)) return;
-    const panel = readFileSync(panelPath, "utf8");
+  it("lives on the Management page instead of the retired /controls checkpoint", () => {
+    const adminPage = readSource("src/app/admin/page.tsx");
 
-    expect(panel).toContain('title="Readiness"');
-    expect(panel).toContain("Attention");
-    expect(panel).toContain("Blocked");
-    expect(panel).toContain("<details");
-    expect(panel).toContain("getWorkspaceReadinessAction");
-    expect(panel).toContain("actionHref");
-    expect(panel).toContain("checkedAt");
+    expect(adminPage).toContain("WorkspaceHealthStrip");
+    expect(adminPage).toContain("getWorkspaceReadinessForWorkspace");
+    expect(adminPage).toContain("Workspace health is unavailable");
+
+    const retiredPagePath = resolve(process.cwd(), "src/app/controls/page.tsx");
+    const retiredPanelPath = resolve(
+      process.cwd(),
+      "src/components/readiness/WorkspaceReadinessPanel.tsx",
+    );
+    expect(existsSync(retiredPagePath)).toBe(false);
+    expect(existsSync(retiredPanelPath)).toBe(false);
   });
 
-  it("uses concise status copy and keeps the status icon only in the right badge", () => {
-    expect(existsSync(panelPath)).toBe(true);
-    if (!existsSync(panelPath)) return;
-    const panel = readFileSync(panelPath, "utf8");
-    const summary = panel.slice(panel.indexOf("<summary"), panel.indexOf("</summary>"));
+  it("keeps the health surface out of global navigation while Management stays the hub", () => {
+    const navigation = readSource("src/components/layout/navigation.ts");
 
-    expect(panel).toContain('label: "Attention"');
-    expect(panel).not.toContain('label: "Needs attention"');
-    expect(panel).toContain('<MetricCard label="Attention"');
-    expect(panel).toContain('<SharedStatusBadge tone={tone} className="gap-2.5">');
-    expect(summary).not.toContain("<StatusIcon status={check.status} />");
-    expect(summary).toContain("<ReadinessStatusBadge status={check.status} />");
-  });
-
-  it("names the administrative surface Readiness everywhere it is displayed", () => {
-    const page = readFileSync(pagePath, "utf8");
-    const navigation = readFileSync(navigationPath, "utf8");
-
-    expect(page).toContain('title="Readiness"');
-    expect(page).toContain("Readiness unavailable");
     expect(navigation).not.toContain('label: "Readiness"');
     expect(navigation).not.toContain('label: "Workspace Readiness"');
   });

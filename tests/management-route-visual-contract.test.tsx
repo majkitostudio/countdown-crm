@@ -17,13 +17,13 @@ describe("management route visual contract", () => {
   });
 
   it("uses shared surfaces for management unavailable states and wallet metrics", () => {
-    const readiness = source("src/app/controls/page.tsx");
+    const management = source("src/app/admin/page.tsx");
     const team = source("src/app/team/page.tsx");
     const telephony = source("src/app/telephony/page.tsx");
     const wallet = source("src/app/wallet/page.tsx");
 
-    expect(readiness).toContain('import { Surface } from "@/components/ui/Surface"');
-    expect(readiness).toContain('variant="empty"');
+    expect(management).toContain('import { Surface } from "@/components/ui/Surface"');
+    expect(management).toContain('variant="empty"');
     expect(team).toContain('import { Surface } from "@/components/ui/Surface"');
     expect(team).toContain('variant="empty"');
     expect(telephony).toContain('import { Surface } from "@/components/ui/Surface"');
