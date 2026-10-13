@@ -6,7 +6,7 @@ const projectRoot = path.resolve(__dirname, "..");
 
 describe("workflow server-boundary UI contract", () => {
   it("does not dispatch production workflow events from browser state", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     expect(workspacePage).not.toContain("workflowEngine.emit");
     expect(workspacePage).toContain("completion.workflowDispatches");
   });
@@ -33,7 +33,7 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("bounds Operator call start and keeps late server recovery explicit", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     expect(workspacePage).toContain("startRequest = startLeadCallAction(activeQueueItemId)");
     expect(workspacePage).toContain("const startedAssignment = await withTimeout(");
     expect(workspacePage).toContain("const audioReady = await withTimeout(");
@@ -42,7 +42,7 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("keeps the Operator Console primary hierarchy explicit", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     const leadHeader = readFileSync(path.join(projectRoot, "src", "components", "workspace", "OperatorLeadHeader.tsx"), "utf8");
     const summary = readFileSync(path.join(projectRoot, "src", "components", "workspace", "PostCallSummaryCard.tsx"), "utf8");
 
@@ -57,7 +57,7 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("keeps the post-call summary visible when no next assignment is available", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8").replaceAll("\r\n", "\n");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8").replaceAll("\r\n", "\n");
 
     expect(workspacePage).toContain('postCallSummary\n        ? "post_call_summary"');
     expect(workspacePage).toContain("identity?.role === \"operator\" && !activeLead && !postCallSummary");
@@ -73,7 +73,7 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("opens operator order completion as a full-page flow", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     const orderPage = readFileSync(path.join(projectRoot, "src", "app", "orders", "new", "page.tsx"), "utf8");
     const orderForm = readFileSync(path.join(projectRoot, "src", "components", "orders", "OrderCreateForm.tsx"), "utf8");
 

@@ -47,7 +47,7 @@ export function FloatingCallController() {
         <div className="mt-3 rounded-xl border border-amber-900/70 bg-amber-950/30 p-3" role="status">
           <p className="text-xs font-semibold text-amber-100">Post-call outcome required</p>
           <p className="mt-1 text-[11px] text-amber-200/80">Return to the workspace to complete this call. The lead remains assigned.</p>
-          <Link href="/workspace" className="mt-3 inline-flex min-h-9 items-center rounded-lg bg-amber-100 px-3 py-2 text-[11px] font-semibold text-amber-950 hover:bg-white">Open workspace</Link>
+          <Link href="/console" className="mt-3 inline-flex min-h-9 items-center rounded-lg bg-amber-100 px-3 py-2 text-[11px] font-semibold text-amber-950 hover:bg-white">Open workspace</Link>
         </div>
       ) : (
         <div className="mt-3 flex items-center gap-2" role="group" aria-label="Call controls">

@@ -69,9 +69,9 @@ const MANAGER_ROLES: WorkspaceRole[] = ["team_leader", "administrator"];
 
 const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   // Work
-  { label: "Operator Console", href: "/workspace", icon: PhoneCall, section: "work" },
+  { label: "Operator Console", href: "/console", icon: PhoneCall, section: "work" },
   { label: "Orders", href: "/orders", icon: ShoppingBag, section: "work" },
-  { label: "Schedule", href: "/calendar", icon: CalendarDays, section: "work" },
+  { label: "Schedule", href: "/schedule", icon: CalendarDays, section: "work" },
   { label: "Wallet", href: "/wallet", icon: WalletCards, section: "work" },
 
   // Team
@@ -82,7 +82,7 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   // Reporting
   { label: "Reports", href: "/reports", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
   { label: "Audit Log", href: "/audit", icon: History, section: "reporting", roles: MANAGER_ROLES },
-  { label: "Call Logs", href: "/calls", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Call Logs", href: "/call-logs", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
 
   // Learn
   { label: "AI Training", href: "/training", icon: GraduationCap, section: "learn" },

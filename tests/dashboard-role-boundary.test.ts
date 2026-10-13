@@ -25,6 +25,6 @@ describe("manager dashboard role boundary", () => {
 
     await DashboardPage();
 
-    expect(mocks.redirect).toHaveBeenCalledWith("/workspace");
+    expect(mocks.redirect).toHaveBeenCalledWith("/console");
   });
 });

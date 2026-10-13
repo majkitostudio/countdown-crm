@@ -24,6 +24,26 @@ const nextConfig: NextConfig = {
         destination: "/reports?tab=revenue",
         permanent: true,
       },
+      {
+        source: "/workspace",
+        destination: "/console",
+        permanent: true,
+      },
+      {
+        source: "/calendar",
+        destination: "/schedule",
+        permanent: true,
+      },
+      {
+        source: "/calls",
+        destination: "/call-logs",
+        permanent: true,
+      },
+      {
+        source: "/calls/:path*",
+        destination: "/call-logs/:path*",
+        permanent: true,
+      },
     ];
   },
 };

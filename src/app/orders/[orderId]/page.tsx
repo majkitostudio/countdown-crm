@@ -60,7 +60,7 @@ export default async function OrderDetailPage({
   const { orderId } = await params;
   const query = searchParams ? await searchParams : {};
   const requestedOrigin = Array.isArray(query.origin) ? query.origin[0] : query.origin;
-  const backHref = requestedOrigin === "workspace" ? "/workspace" : "/orders";
+  const backHref = requestedOrigin === "workspace" ? "/console" : "/orders";
   const result = await loadOrder(orderId);
 
   if ("error" in result) {

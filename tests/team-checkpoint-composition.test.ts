@@ -60,7 +60,7 @@ describe("team checkpoint follow-ups (recent calls and upcoming callbacks)", () 
     expect(workspaceDal).toContain("TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR");
     expect(workspaceDal).toContain("duration_seconds");
     expect(detail).toContain("Poslední hovory");
-    expect(detail).toContain("/calls/${call.id}/review");
+    expect(detail).toContain("/call-logs/${call.id}/review");
     expect(detail).not.toContain("posledních 10");
     expect(detail).not.toContain("Posledních 10");
     expect(content).toContain("recentCallsByOperator[selectedOperatorId]");

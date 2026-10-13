@@ -66,7 +66,7 @@ export default async function OrderEditPage({
     );
   }
 
-  const backHref = result.origin === "workspace" ? "/workspace" : `/orders/${orderId}`;
+  const backHref = result.origin === "workspace" ? "/console" : `/orders/${orderId}`;
   if (!result.order) {
     return (
       <Surface variant="empty" className="w-full">

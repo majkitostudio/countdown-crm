@@ -119,7 +119,7 @@ export function TeamOperatorDetailPanel({
                   <span className="text-zinc-500">{formatDate(call.createdAt)}</span>
                   <StatusBadge tone="neutral">{outcomeLabel(call.outcome)}</StatusBadge>
                   <span className="font-mono text-zinc-400">{formatCallDuration(call.durationSeconds)}</span>
-                  <Link href={`/calls/${call.id}/review`} className="ml-auto font-semibold text-zinc-300 hover:text-zinc-100">
+                  <Link href={`/call-logs/${call.id}/review`} className="ml-auto font-semibold text-zinc-300 hover:text-zinc-100">
                     Otevřít kontrolu →
                   </Link>
                 </li>

@@ -28,7 +28,7 @@ export default async function CallReviewPage({
   searchParams: Promise<{ return?: string | string[] | undefined }>;
 }) {
   const query = await searchParams;
-  const returnToCallsHref = query.return === "unreviewed" ? "/calls?review=unreviewed" : "/calls";
+  const returnToCallsHref = query.return === "unreviewed" ? "/call-logs?review=unreviewed" : "/call-logs";
 
   let context: Awaited<ReturnType<typeof requireWorkspaceRole>>;
   try {

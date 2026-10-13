@@ -27,7 +27,7 @@ describe("call-start async timeout contract", () => {
 
   it("threads the selected product and returned snapshot through the live call state", () => {
     const softphone = readFileSync("src/lib/telephony/softphone.ts", "utf8");
-    const workspace = readFileSync("src/app/workspace/page.tsx", "utf8");
+    const workspace = readFileSync("src/app/console/page.tsx", "utf8");
 
     expect(softphone).toContain("productId?: string | null");
     expect(softphone).toContain("scriptSnapshot: ScriptSnapshotDTO | null");

@@ -91,7 +91,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
       !selectedProductIds.has(product.id) &&
       (resolvedItems.length === 0 || product.currency === orderCurrency),
   );
-  const backHref = initialOrigin === "workspace" ? "/workspace" : `/orders/${order.id}`;
+  const backHref = initialOrigin === "workspace" ? "/console" : `/orders/${order.id}`;
 
   const addItem = () => {
     const product = products.find((candidate) => candidate.id === productToAdd);

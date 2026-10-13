@@ -41,7 +41,7 @@ describe("call review server actions", () => {
     await expect(recordCallReviewAction(input)).resolves.toBe(revision);
     expect(mocks.recordCallReview).toHaveBeenCalledWith(input);
     expect(mocks.revalidatePath.mock.calls).toEqual([
-      ["/calls/call-1/review"],
+      ["/call-logs/call-1/review"],
       ["/exceptions"],
       ["/audit"],
     ]);

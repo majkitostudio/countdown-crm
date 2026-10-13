@@ -13,7 +13,7 @@ export async function getCallReviewAction(callId: string) {
 
 export async function recordCallReviewAction(input: RecordCallReviewInput) {
   const result = await recordCallReview(input);
-  revalidatePath(`/calls/${result.callId}/review`);
+  revalidatePath(`/call-logs/${result.callId}/review`);
   revalidatePath("/exceptions");
   revalidatePath("/audit");
   return result;

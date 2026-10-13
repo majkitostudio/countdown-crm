@@ -79,7 +79,7 @@ export function TeamLeaderDailyBriefCard() {
 
           <div className="grid gap-3 md:grid-cols-4">
             <BriefDetail label="Today" value={`${formatDate(readyState.brief.daily.date)} • ${readyState.brief.daily.conversionRate.toFixed(1)}% conversion`} />
-            <BriefDetail label="Open reminders" value={String(readyState.brief.openReminders)} href="/calendar" />
+            <BriefDetail label="Open reminders" value={String(readyState.brief.openReminders)} href="/schedule" />
             <BriefDetail
               label="Needs review"
               value={readyState.brief.pendingReviews === null
@@ -87,7 +87,7 @@ export function TeamLeaderDailyBriefCard() {
                 : readyState.brief.pendingReviews === 0
                   ? "All calls reviewed"
                   : String(readyState.brief.pendingReviews)}
-              href="/calls?review=unreviewed"
+              href="/call-logs?review=unreviewed"
             />
             {readyState.brief.workspaceWalletBalance === null ? (
               <BriefDetail label="Celofiremní peněženka" value="Nedostupná" href="/wallet" />

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const source = readFileSync(resolve(process.cwd(), "src/app/calls/page.tsx"), "utf8");
+const source = readFileSync(resolve(process.cwd(), "src/app/call-logs/page.tsx"), "utf8");
 
 describe("manager review affordances in Call Logs", () => {
   it("offers a manager-only unreviewed filter and an icon-only neutral review action", () => {

@@ -18,7 +18,7 @@ interface AppShellProps {
 
 export function AppShell({ children, initialIdentity = null }: AppShellProps) {
   const pathname = usePathname();
-  const isOperatorConsole = pathname === "/workspace";
+  const isOperatorConsole = pathname === "/console";
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 

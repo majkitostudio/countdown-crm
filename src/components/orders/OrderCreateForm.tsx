@@ -97,7 +97,7 @@ export function OrderCreateForm({
     () => leads.find((lead) => lead.id === leadId) || null,
     [leadId, leads],
   );
-  const backHref = initialOrigin === "workspace" ? "/workspace" : "/orders";
+  const backHref = initialOrigin === "workspace" ? "/console" : "/orders";
   const isCallFlow = flow === "call";
   const resolvedItems = useMemo(
     () =>

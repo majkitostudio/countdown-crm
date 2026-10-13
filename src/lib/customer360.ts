@@ -59,7 +59,7 @@ export function buildCustomer360Snapshot(
     nextAction = {
       title: "Start first outreach",
       description: "Lead zatím nemá uložený hovor ani objednávku.",
-      href: `/workspace?leadId=${encodeURIComponent(lead.id)}`,
+      href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lastOrder && ["pending", "in_progress", "sent"].includes(lastOrder.status)) {
     nextAction = {
@@ -71,13 +71,13 @@ export function buildCustomer360Snapshot(
     nextAction = {
       title: "Honor the scheduled follow-up",
       description: "Poslední hovor obsahuje naplánovaný follow-up.",
-      href: `/workspace?leadId=${encodeURIComponent(lead.id)}`,
+      href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lastCall?.outcome === "no_answer") {
     nextAction = {
       title: "Try a new outreach window",
       description: "Poslední pokus skončil bez spojení.",
-      href: `/workspace?leadId=${encodeURIComponent(lead.id)}`,
+      href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lastCall?.outcome === "objection") {
     nextAction = {
@@ -89,13 +89,13 @@ export function buildCustomer360Snapshot(
     nextAction = {
       title: "Continue qualification",
       description: "Lead má kontaktovanou historii, ale zatím žádnou objednávku.",
-      href: `/workspace?leadId=${encodeURIComponent(lead.id)}`,
+      href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lead.status === "customer") {
     nextAction = {
       title: "Review repeat-purchase opportunity",
       description: `Poslední dokončená objednávka: ${lastFulfilledOrder?.product_title || lastOrder.product_title}.`,
-      href: `/workspace?leadId=${encodeURIComponent(lead.id)}`,
+      href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else {
     nextAction = {

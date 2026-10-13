@@ -63,7 +63,7 @@ describe("Calls review entry authorization", () => {
     await expect(listCallsAction()).resolves.toEqual([
       expect.objectContaining({
         id: "call-1",
-        review_href: "/calls/call-1/review",
+        review_href: "/call-logs/call-1/review",
         review_status: "not_reviewed",
       }),
     ]);
@@ -84,8 +84,8 @@ describe("Calls review entry authorization", () => {
 
   it("renders only a server-supplied review URL", () => {
     const managerHtml = renderToStaticMarkup(React.createElement(CallDetailDrawer, {
-      call: { ...callRecord, review_href: "/calls/call-1/review" },
-      reviewHref: "/calls/call-1/review",
+      call: { ...callRecord, review_href: "/call-logs/call-1/review" },
+      reviewHref: "/call-logs/call-1/review",
       isOpen: true,
       onClose: vi.fn(),
     }));
@@ -97,8 +97,8 @@ describe("Calls review entry authorization", () => {
     }));
 
     expect(managerHtml).toContain("Open Team Leader Review");
-    expect(managerHtml).toContain('/calls/call-1/review');
+    expect(managerHtml).toContain('/call-logs/call-1/review');
     expect(operatorHtml).not.toContain("Open Team Leader Review");
-    expect(operatorHtml).not.toContain('/calls/call-1/review');
+    expect(operatorHtml).not.toContain('/call-logs/call-1/review');
   });
 });

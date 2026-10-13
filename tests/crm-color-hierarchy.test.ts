@@ -53,7 +53,7 @@ describe("CRM color hierarchy", () => {
 
   it("enforces no decorative emojis across UI components and saved views ('NECHCEME CIRKUS')", () => {
     const ruleBuilder = source("src/components/workflows/RuleBuilderModal.tsx");
-    const workspace = source("src/app/workspace/page.tsx");
+    const workspace = source("src/app/console/page.tsx");
     const scriptPanel = source("src/components/workspace/ProductScriptPanel.tsx");
 
     const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;

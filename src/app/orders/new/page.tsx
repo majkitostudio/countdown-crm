@@ -85,7 +85,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
             : "The create order workspace data could not be loaded."}
         </p>
         <Link
-          href="/workspace"
+          href="/console"
           className={getButtonClassName("secondary")}
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -102,7 +102,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
         icon={ShoppingCart}
         title="Create Order"
         badge={{ label: flow === "call" ? "Complete call" : "Not saved", tone: "neutral" }}
-        backLink={{ href: origin === "workspace" ? "/workspace" : "/orders", label: origin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
+        backLink={{ href: origin === "workspace" ? "/console" : "/orders", label: origin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
         description={flow === "call"
           ? "Dokončete aktuální hovor kontrolou a vytvořením objednávky."
           : "Vytvořte objednávku a pokračujte jejím doručovacím cyklem v Orders."}

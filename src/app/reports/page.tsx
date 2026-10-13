@@ -50,7 +50,7 @@ export default async function ReportsPage(
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Add Lead
               </Link>
-              <Link href="/workspace" className={getButtonClassName("primary")}>
+              <Link href="/console" className={getButtonClassName("primary")}>
                 <PhoneCall className="h-4 w-4" aria-hidden="true" />
                 Launch Operator Console
               </Link>

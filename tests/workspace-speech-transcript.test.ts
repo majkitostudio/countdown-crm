@@ -11,7 +11,7 @@ const projectRoot = path.resolve(__dirname, "..");
 
 describe("workspace silent speech transcription and quality review integration", () => {
   it("implements silent speech recognition lifecycle in workspace page", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
 
     // Continuous speech recognition initialized during active calls
     expect(workspacePage).toContain("createContinuousSpeechRecognition");

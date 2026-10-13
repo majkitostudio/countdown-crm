@@ -16,7 +16,7 @@ describe("operator next action UI contract", () => {
   });
 
   it("keeps the next action and callback inbox in the operator workspace", () => {
-    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     const nextActionPanel = readFileSync(path.join(projectRoot, "src", "components", "workspace", "OperatorNextActionPanel.tsx"), "utf8");
 
     expect(workspacePage).toContain("OperatorNextActionPanel");

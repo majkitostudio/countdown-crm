@@ -43,7 +43,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
         <h1 className="text-base font-semibold text-zinc-100">Contact unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
         <Link
-          href="/workspace"
+          href="/console"
           className={getButtonClassName("secondary")}
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Operator Console
@@ -74,7 +74,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
         icon={UserRound}
         title={lead.full_name}
         badge={{ label: "Read-only contact view", tone: "neutral" }}
-        backLink={{ href: "/workspace", label: "Back to workspace" }}
+        backLink={{ href: "/console", label: "Back to workspace" }}
         description={`Aktualizováno ${formatDate(lead.updated_at)}`}
         actions={
           <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-400">

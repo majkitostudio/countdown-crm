@@ -156,7 +156,7 @@ export function CommandPalette() {
                 <Button
                   key={lead.id}
                   variant="quiet"
-                  onClick={() => navigateTo(`/workspace?leadId=${lead.id}`)}
+                  onClick={() => navigateTo(`/console?leadId=${lead.id}`)}
                   className="w-full"
                 >
                   <span className="flex w-full items-center justify-between">

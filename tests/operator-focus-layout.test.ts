@@ -60,7 +60,7 @@ describe("operator client-profile and script focus layout", () => {
   });
 
   it("keeps the normal workspace layout and moves the same context below the script in focus mode", () => {
-    const workspace = readFileSync(path.join(projectRoot, "src", "app", "workspace", "page.tsx"), "utf8");
+    const workspace = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
 
     expect(workspace).toContain("isScriptExpanded");
     expect(workspace).toContain('data-testid="operator-focus-workspace"');

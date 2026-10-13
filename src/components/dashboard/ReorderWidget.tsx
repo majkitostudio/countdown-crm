@@ -103,7 +103,7 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
               </div>
 
               <Link
-                href={`/workspace?leadId=${op.lead_id}`}
+                href={`/console?leadId=${op.lead_id}`}
                 className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium transition-colors flex items-center gap-1.5 shrink-0"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-zinc-300" />

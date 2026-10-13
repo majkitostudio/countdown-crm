@@ -12,7 +12,7 @@ describe("role-aware page authorization", () => {
 
   it("guards real call review at the server page boundary", () => {
     const callReviewPage = readFileSync(
-      resolve(process.cwd(), "src/app/calls/[callId]/review/page.tsx"),
+      resolve(process.cwd(), "src/app/call-logs/[callId]/review/page.tsx"),
       "utf8",
     );
 

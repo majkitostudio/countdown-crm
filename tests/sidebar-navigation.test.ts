@@ -7,7 +7,7 @@ describe("role-aware sidebar navigation", () => {
   it("does not advertise administrator-only workflows to operators", () => {
     const operatorPaths = getAllowedSidebarNavigationItems("operator").map((item) => item.href);
 
-    expect(operatorPaths).toContain("/workspace");
+    expect(operatorPaths).toContain("/console");
     expect(operatorPaths).not.toContain("/workflows");
   });
 

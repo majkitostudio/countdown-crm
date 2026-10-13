@@ -20,7 +20,7 @@ describe("next best action presentation states", () => {
         kind: "reorder",
         title: "Doplnit objednávku: Petr Svoboda",
         description: "Test product • odhad spotřeby za 1 dní.",
-        href: "/workspace?leadId=lead-2",
+        href: "/console?leadId=lead-2",
         source: "re-order estimate",
         source_id: "reorder-1",
       },
@@ -29,7 +29,7 @@ describe("next best action presentation states", () => {
     });
 
     expect(html).toContain("Doplnit objednávku: Petr Svoboda");
-    expect(html).toContain('href="/workspace?leadId=lead-2"');
+    expect(html).toContain('href="/console?leadId=lead-2"');
     expect(html).toContain("Scheduled callbacks could not be loaded.");
     expect(html).toContain("Partial recommendation");
   });
@@ -41,7 +41,7 @@ describe("next best action presentation states", () => {
         kind: "callback",
         title: "Navázat na callback: Jana Nováková",
         description: "Callback za 60 min.",
-        href: "/workspace?leadId=lead-1",
+        href: "/console?leadId=lead-1",
         source: "scheduled callback",
         source_id: "callback-1",
       },
@@ -72,14 +72,14 @@ describe("next best action presentation states", () => {
         kind: "queue",
         title: "Claim next lead",
         description: "Nejsou k dispozici urgentní callbacky ani re-order odhady.",
-        href: "/workspace",
+        href: "/console",
         source: "lead queue",
         source_id: null,
       },
     });
 
     expect(html).toContain("Claim next lead");
-    expect(html).toContain('href="/workspace"');
+    expect(html).toContain('href="/console"');
     expect(html).not.toContain("Partial recommendation");
   });
 });

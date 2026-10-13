@@ -89,7 +89,7 @@ function LeadsPageContent() {
   };
 
   const handleStartCall = (lead: Lead) => {
-    router.push(`/workspace?leadId=${encodeURIComponent(lead.id)}`);
+    router.push(`/console?leadId=${encodeURIComponent(lead.id)}`);
   };
 
   const handleImportComplete = () => {

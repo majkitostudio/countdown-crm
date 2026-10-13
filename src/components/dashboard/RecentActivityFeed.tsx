@@ -99,7 +99,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
         </div>
 
         <a
-          href="/calls"
+          href="/call-logs"
           className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors"
         >
           <span>View All Calls</span>

@@ -52,7 +52,7 @@ export default function CallLogsPage() {
       params.delete("review");
     }
     const query = params.toString();
-    window.history.replaceState(null, "", query ? `/calls?${query}` : "/calls");
+    window.history.replaceState(null, "", query ? `/call-logs?${query}` : "/call-logs");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
@@ -111,14 +111,14 @@ actions={
           <div className="flex items-center gap-2">
             {canReview && (
               <Link
-                href="/calls?review=unreviewed"
+                href="/call-logs?review=unreviewed"
                 className={getButtonClassName("secondary")}
               >
                 Unreviewed: {unreviewedCount}
               </Link>
             )}
             <Link
-              href="/workspace"
+              href="/console"
               className={getButtonClassName("primary")}
             >
               <PhoneCall className="h-4 w-4" aria-hidden="true" />

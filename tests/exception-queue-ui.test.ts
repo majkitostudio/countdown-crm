@@ -23,7 +23,7 @@ const data: ExceptionQueueDTO = {
     occurred_at: "2026-09-06T09:00:00.000Z",
     due_at: "2026-09-06T09:30:00.000Z",
     next_action: { label: "Open queue operations", href: "/team" },
-    callReview: { kind: "linked", callId: "call-1", href: "/calls/call-1/review" },
+    callReview: { kind: "linked", callId: "call-1", href: "/call-logs/call-1/review" },
   }],
   history: [],
   sources: {
@@ -46,7 +46,7 @@ describe("Exception Queue UI", () => {
     expect(html).toContain("Critical");
     expect(html).toContain("Open queue operations");
     expect(html).toContain("Open call review");
-    expect(html).toContain('/calls/call-1/review');
+    expect(html).toContain('/call-logs/call-1/review');
     expect(html).toContain("Mark handled");
     expect(html).toContain("Snooze");
     expect(html).toContain("Workflow failure checks could not be loaded.");

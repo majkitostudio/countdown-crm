@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe("role-aware home routing", () => {
   it.each([
-    ["operator", "/workspace"],
+    ["operator", "/console"],
     ["team_leader", "/exceptions"],
     ["administrator", "/reports"],
   ] as const)("sends %s to %s", async (role, destination) => {

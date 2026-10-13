@@ -6,7 +6,7 @@ describe("Planner navigation and renaming contract", () => {
     "exposes /calendar under the label 'Schedule' for role %s",
     (role) => {
       const items = getAllowedWorkspaceNavigationItems(role);
-      const plannerItem = items.find((item) => item.href === "/calendar");
+      const plannerItem = items.find((item) => item.href === "/schedule");
 
       expect(plannerItem).toBeDefined();
       expect(plannerItem?.label).toBe("Schedule");

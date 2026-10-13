@@ -154,7 +154,7 @@ export async function listCallsAction(workspaceId?: string): Promise<WorkspaceCa
     : new Map<string, CallReviewStatus>();
   return calls.map((call) => ({
     ...call,
-    review_href: canReview ? `/calls/${call.id}/review` : null,
+    review_href: canReview ? `/call-logs/${call.id}/review` : null,
     review_status: canReview ? reviewStatuses.get(call.id) || "not_reviewed" : null,
   }));
 }

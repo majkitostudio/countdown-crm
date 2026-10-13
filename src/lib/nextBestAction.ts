@@ -74,7 +74,7 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
       kind: "callback",
       title: `Navázat na callback: ${dueCallback.lead_name}`,
       description: formatCallbackTiming(dueCallback.scheduled_at, now),
-      href: `/workspace?leadId=${encodeURIComponent(dueCallback.lead_id)}`,
+      href: `/console?leadId=${encodeURIComponent(dueCallback.lead_id)}`,
       source: "scheduled callback",
       source_id: dueCallback.id,
     };
@@ -91,7 +91,7 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
       kind: "reorder",
       title: `Doplnit objednávku: ${reorder.lead_name}`,
       description: `${reorder.product_title} • odhad spotřeby za ${Math.max(0, reorder.days_remaining)} dní.`,
-      href: `/workspace?leadId=${encodeURIComponent(reorder.lead_id)}`,
+      href: `/console?leadId=${encodeURIComponent(reorder.lead_id)}`,
       source: "re-order estimate",
       source_id: reorder.id,
     };
@@ -101,7 +101,7 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
     kind: "queue",
     title: "Claim next lead",
     description: "Nejsou k dispozici urgentní callbacky ani re-order odhady.",
-    href: "/workspace",
+    href: "/console",
     source: "lead queue",
     source_id: null,
   };

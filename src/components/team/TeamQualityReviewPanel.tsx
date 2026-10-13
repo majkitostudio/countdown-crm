@@ -331,7 +331,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
                       Operátor: {review.operator?.name || "Neznámý operátor"} · {formatDuration(review.call.durationSeconds)} · {new Date(review.call.createdAt).toLocaleString("cs-CZ")}
                     </p>
                   </div>
-                  <a href={`/calls/${review.callId}/review`} className="text-xs font-semibold text-sky-300 hover:text-sky-200">Otevřít hovor a poznámku →</a>
+                  <a href={`/call-logs/${review.callId}/review`} className="text-xs font-semibold text-sky-300 hover:text-sky-200">Otevřít hovor a poznámku →</a>
                 </div>
 
                 {review.signals.length > 0 && (

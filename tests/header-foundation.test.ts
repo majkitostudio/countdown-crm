@@ -7,7 +7,7 @@ describe("unified authenticated header foundations", () => {
   it("keeps privileged command destinations out of the Operator palette", () => {
     const operatorPaths = getAllowedNavigationCommands("operator").map((item) => item.path);
 
-    expect(operatorPaths).toContain("/workspace");
+    expect(operatorPaths).toContain("/console");
     expect(operatorPaths).toContain("/products");
     expect(operatorPaths).not.toContain("/leads");
     expect(operatorPaths).not.toContain("/analytics");

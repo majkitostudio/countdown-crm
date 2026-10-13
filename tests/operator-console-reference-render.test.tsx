@@ -25,7 +25,7 @@ const mocks = vi.hoisted(() => ({
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/workspace",
+  usePathname: () => "/console",
   useRouter: () => ({ push: mocks.push }),
 }));
 

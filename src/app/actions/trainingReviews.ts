@@ -13,6 +13,6 @@ export async function recordTrainingReviewAction(input: {
   const revision = await recordTrainingReviewRevision(input);
   revalidatePath(`/training/reviews/${input.sessionId}`);
   revalidatePath("/training/reviews");
-  revalidatePath("/calls");
+  revalidatePath("/call-logs");
   return revision;
 }

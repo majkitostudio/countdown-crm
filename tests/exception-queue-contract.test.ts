@@ -151,7 +151,7 @@ describe("Team Leader Exception Queue", () => {
     expect(item?.callReview).toEqual({
       kind: "linked",
       callId: "call-a",
-      href: "/calls/call-a/review",
+      href: "/call-logs/call-a/review",
     });
   });
 
@@ -325,7 +325,7 @@ describe("Team Leader Exception Queue", () => {
     expect(result.items.find((item) => item.type === "outcome_recovery")?.callReview).toEqual({
       kind: "linked",
       callId: "call-a",
-      href: "/calls/call-a/review",
+      href: "/call-logs/call-a/review",
     });
   });
 

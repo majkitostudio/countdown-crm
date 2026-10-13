@@ -116,7 +116,7 @@ function buildCalendarCheck(
       "Calendar is unavailable.",
       probe.message,
       checkedAt,
-      "/calendar",
+      "/schedule",
     );
   }
 
@@ -132,7 +132,7 @@ function buildCalendarCheck(
       "Calendar is only partially available.",
       unavailableSources.join(" "),
       checkedAt,
-      "/calendar",
+      "/schedule",
     );
   }
 
@@ -143,7 +143,7 @@ function buildCalendarCheck(
     "Calendar sources are available.",
     `${probe.value.entries.length} calendar entries were returned by callbacks and reminders.`,
     checkedAt,
-    "/calendar",
+    "/schedule",
   );
 }
 
@@ -213,7 +213,7 @@ function buildQueueCheck(
       "Lead queue is unavailable.",
       probe.message,
       checkedAt,
-      "/workspace",
+      "/console",
     );
   }
 
@@ -228,7 +228,7 @@ function buildQueueCheck(
     queueLabel,
     "The server returned the current workspace queue without fabricating assignments.",
     checkedAt,
-    "/workspace",
+    "/console",
   );
 }
 

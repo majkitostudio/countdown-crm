@@ -25,7 +25,7 @@ describe("next best action", () => {
 
     expect(result.kind).toBe("callback");
     expect(result.source_id).toBe("callback-1");
-    expect(result.href).toBe("/workspace?leadId=lead-1");
+    expect(result.href).toBe("/console?leadId=lead-1");
   });
 
   it("falls back to the urgent re-order estimate", () => {
@@ -55,7 +55,7 @@ describe("next best action", () => {
     const result = getNextBestAction({ now });
 
     expect(result.kind).toBe("queue");
-    expect(result.href).toBe("/workspace");
+    expect(result.href).toBe("/console");
     expect(result.source_id).toBeNull();
   });
 

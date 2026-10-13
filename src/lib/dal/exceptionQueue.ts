@@ -191,7 +191,7 @@ function callReviewForQueueItem(
   if (exactCallIds.size !== 1) return { kind: "not_recorded" };
 
   const callId = [...exactCallIds][0];
-  return { kind: "linked", callId, href: `/calls/${callId}/review` };
+  return { kind: "linked", callId, href: `/call-logs/${callId}/review` };
 }
 
 function buildQueueExceptions(

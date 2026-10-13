@@ -8,7 +8,7 @@ const migration = readFileSync(
 );
 const normalizedMigration = migration.replace(/\s+/g, " ");
 const completionDal = readFileSync(resolve(process.cwd(), "src/lib/dal/callCompletion.ts"), "utf8");
-const workspacePage = readFileSync(resolve(process.cwd(), "src/app/workspace/page.tsx"), "utf8");
+const workspacePage = readFileSync(resolve(process.cwd(), "src/app/console/page.tsx"), "utf8");
 const summaryCard = readFileSync(resolve(process.cwd(), "src/components/workspace/PostCallSummaryCard.tsx"), "utf8");
 const idempotencyMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20260905163258_harden_post_call_completion_idempotency.sql"),
