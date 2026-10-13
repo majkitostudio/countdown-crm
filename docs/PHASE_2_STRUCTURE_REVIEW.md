@@ -195,7 +195,7 @@ triggerů a (b) implementaci akcí.
 
 Po každé vlně: `lint` · `typecheck` · `test` · `build` zelené, a teprve pak commit.
 
-**Stav k 13. 10. 2026:** ✅ **Vlna 1 hotová** — každá stránka má anglický titulek a český popis; překlopení
+**Stav k 14. 10. 2026:** ✅ **Vlna 1 hotová** — každá stránka má anglický titulek a český popis; překlopení
 Admin Hub → **Management** (sekce Administration zůstává); dále přejmenováno: `Call Logs`, `Schedule`,
 `Automations`, `Exception Queue`, `AI Training`, `Product Catalog`, `Users & Teams`, `Readiness`,
 `Audit Log`, `Analysis` (Analytics), `Order Detail`, `Edit Order`, `Call Review`. Generické akce v Automations
@@ -218,6 +218,18 @@ jsou anglicky (`Edit`, `Disable`, `Enable`, `Delete`). Smluvní testy aktualizov
   webhooky. Data (existující pravidla se staršími akcemi) zůstávají viditelná.
 
 Po vlně 2: `lint` · `typecheck` · `test` (172 souborů / 817 testů) · `build` zelené.
+
+🔄 **Vlna 3 — URL + přesměrování (probíhá, stav k 14. 10. 2026).** Nové cesty a přesměrování starých
+(aby nepraskly záložky, interní odkazy ani testy). Aktuální stav:
+
+- ✅ **`/reports`** — `/dashboard` i `/analytics` přesměrovány (commit `cc43152`).
+- ✅ **`/console`** — `/workspace` přesměrováno; **`/schedule`** — `/calendar` přesměrováno;
+  **`/call-logs`** (včetně `/call-logs/[callId]/review`) — `/calls` přesměrováno. Přesměrování jsou
+  v `next.config.ts`; zrušená prázdná složka `/controls` je smazaná.
+- ⬜ **Zbývá:** `/workflows` → **`/automations`**, `/settings/users` → **`/admin/users`**,
+  `/exceptions` → **`/team/exceptions`** a `/training/reviews` → **`/team/reviews`** (obojí pod `/team/*`).
+
+Po dokončení vlny 3: `lint` · `typecheck` · `test` · `build` zelené a teprve pak commit.
 
 ---
 

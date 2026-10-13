@@ -12,6 +12,7 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 - **Říjen 2026 — zjednodušení:** odstraněny slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder. Obrazovka objednávek nyní nabízí Kanban i tabulkový pohled.
 - **Říjen 2026 — druhá vlna pročištění (hotovo):** odstraněny generické funkce, které nepatří ke specializovanému call-center produktu — blueprints (multi-industry šablony), custom schema / „Attio“ pole a obecný kanban/filtry u leadů. Zároveň opravena duplicitní verze migrace.
 - **Říjen 2026 — roadmapa:** další práce se řídí fázemi 0–7 v [ROADMAP.md](ROADMAP.md); dokumentace byla sjednocena a historické audity přesunuty do `docs/archive/`.
+- **Říjen 2026 — navigace a struktura (Fáze 1 a 2):** levé menu je rozdělené do sekcí (Work · Team · Reporting · Learn · Administration · Account) s jedním **Management** (`/admin`) pro administrátora. Fáze 2 srovnala názvy (titulky anglicky, popisy česky) a sloučila obrazovky (Products & Scripts, Reports, Team Workspace); ve vlně 3 se mění URL na `/console`, `/schedule`, `/call-logs`, `/reports` včetně přesměrování starých cest. Zbývá dokončit `/automations`, `/admin/users` a cesty pod `/team/*`.
 
 ## Trvalá produktová rozhodnutí
 

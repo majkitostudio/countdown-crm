@@ -63,7 +63,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** operátor nevidí admin nastavení; TL vidí týmové fronty a výjimky na jedné ploše; admin má správu v jednom místě; žádná stránka nemá duplicitní protějšek.
 
-**Stav:** 🔄 probíhá — revize struktury schválena PM (13. 10. 2026), implementace po vlnách.
+**Stav:** 🔄 probíhá — vlny 1 (názvy a popisy) a 2 (sloučení obrazovek A–F) hotové; běží **vlna 3 (URL + přesměrování)**. Revize struktury schválena PM (13. 10. 2026).
 
 ---
 
@@ -155,7 +155,10 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0 a Fáze 1 jsou hotové.** Běží **Fáze 2 — Role-based UX pass**: schválená revize struktury je v
-[PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md), začínáme **vlnou 1 (názvy a popisy stránek)**.
+**Fáze 0 a Fáze 1 jsou hotové.** Ve **Fázi 2 — Role-based UX pass** jsou hotové vlny 1 (názvy a popisy)
+a 2 (sloučení obrazovek A–F); běží **vlna 3 (URL + přesměrování)**. Hotové jsou nové cesty `/reports`,
+`/console`, `/schedule` a `/call-logs` (+ přesměrování starých cest). **Zbývá dokončit** `/workflows` →
+`/automations`, `/settings/users` → `/admin/users` a cesty pod `/team/*` (`/exceptions`, `/training/reviews`).
+Detail: [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md).
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).
