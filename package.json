@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
+    "test:changed": "vitest run --changed --passWithNoTests",
+    "test:quiet": "vitest run --reporter=dot --silent",
     "verify:linked-functions": "node scripts/verify-linked-function-catalog.mjs",
     "verify:linked-security": "node scripts/p0-3-remote-db-evidence.mjs",
     "verify:migrations": "node scripts/verify-all-migrations.mjs",
@@ -16,7 +18,8 @@
     "test:smoke": "node scripts/playwright-smoke-test.mjs",
     "lint": "eslint src tests vitest.config.mts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run build",
+    "verify:all": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",
