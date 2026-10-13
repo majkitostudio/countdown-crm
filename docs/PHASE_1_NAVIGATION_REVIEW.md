@@ -9,6 +9,11 @@ alternativní UI s vlastním doporučením.
 > Tento dokument je pracovní. Po odsouhlasení a implementaci se jeho výsledek zapíše do
 > [ROADMAP.md](ROADMAP.md) a dokument se zařadí mezi historické.
 
+> **Poznámka (14. 10. 2026):** dokument popisuje stav **před Fází 2**. Cesty níže jsou tehdejší;
+> aktuální URL vznikly ve Fázi 2 — viz [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md)
+> (např. `/workspace` → `/console`, `/dashboard` → `/reports`, `/exceptions` → `/team/exceptions`,
+> `/workflows` → `/automations`, `/settings/users` → `/admin/users`).
+
 **Vizuální návrh:** [phase-1-menu-mockup.html](phase-1-menu-mockup.html) (otevři v prohlížeči)
 nebo obrázek [phase-1-menu-mockup.png](phase-1-menu-mockup.png).
 

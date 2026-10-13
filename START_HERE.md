@@ -25,7 +25,7 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
 
-- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění) i Fáze 1 (navigace + Admin Hub) jsou hotové**; běží **Fáze 2 — Role-based UX pass** (schválená revize struktury: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md)).
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění), Fáze 1 (navigace + Admin Hub) i Fáze 2 (názvy, sloučení obrazovek a nové URL) jsou hotové**; na řadě je **Fáze 3 — Objednávky** (revize struktury: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md)).
 - **Testy:** 817 testů ve 172 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
 - **Migrace:** 128 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript ale stále hlásí zastaralé „ALL 127 MIGRATIONS“ a duplicity sám nekontroluje.
 - **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice; přehled front v UI zatím chybí.
@@ -35,7 +35,7 @@ Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a v
 - **Telefonie:** **Odložena na neurčito.** Žádné zbytečné výdaje na Telnyx ani složité VoIP nastavování.
 - **Pročištění (Fáze 0):** hotovo — odstraněny slepé routy, blueprints, custom schema i kanban/filtry u leadů; navigace neobsahuje mrtvé odkazy.
 - **Navigace (Fáze 1):** hotovo — levé menu rozdělené do sekcí (Work · Team · Reporting · Learn · Administration · Account), anglické názvy, Team Leader Review jako záložka v Team Workspace, Call Logs skryté operátorům a jedna položka **Admin Hub** (`/admin`) pro admina. Detaily: [docs/PHASE_1_NAVIGATION_REVIEW.md](docs/PHASE_1_NAVIGATION_REVIEW.md).
-- **Struktura a názvy (Fáze 2):** běží — schválená revize všech obrazovek (role, četnost, sloučení A–F), **pravidlo pojmenování** (název anglicky · popis česky · obsah česky · obecná tlačítka a URL anglicky) a plán ve třech vlnách: názvy → sloučení → URL. **Vlny 1 (názvy a popisy) a 2 (sloučení obrazovek) jsou hotové, běží vlna 3** — nové cesty `/console`, `/schedule`, `/call-logs`, `/reports` včetně přesměrování starých cest; zbývá dokončit `/automations`, `/admin/users` a cesty pod `/team/*`. Detaily: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md).
+- **Struktura a názvy (Fáze 2):** ✅ hotovo — revize všech obrazovek (role, četnost, sloučení A–F), **pravidlo pojmenování** (název anglicky · popis česky · obsah česky · obecná tlačítka a URL anglicky) a tři vlny: názvy → sloučení → URL. Nové cesty jsou `/console`, `/schedule`, `/call-logs`, `/reports`, `/automations`, `/admin/users` a `/team/*`, staré cesty přesměrované. Otevřené body (produktová karta, koncept Schedule) pokračují samostatně. Detaily: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md).
 - **Trenažér (AI Training):** čeká velký samostatný refactor (vyňat z Fáze 2). Plán: [docs/TRAINING_REFACTOR.md](docs/TRAINING_REFACTOR.md).
 
 ## Jak chápat P1–P4

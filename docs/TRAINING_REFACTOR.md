@@ -26,7 +26,7 @@ Chystá se tedy **velké přepracování**, ne dílčí úprava. Do té doby se 
 - **Obtížnost:** `easy` a `standard`.
 - **AI zákazník:** zdroje `gemini-flash` / `openai-responses` / `rule-engine` (fallback).
 - **Vyhodnocení:** seznam „oprav" (`TrainingFeedback`); při nedostupnosti AI ruční kontrola.
-- **Uložení:** tréninková session se ukládá pro kontrolu Team Leaderem (`/training/reviews`).
+- **Uložení:** tréninková session se ukládá pro kontrolu Team Leaderem (`/team/reviews`).
 - **UI:** jedna chatovací obrazovka se startem, během hovoru a výsledkem.
 
 Zdroj: `src/app/training/page.tsx`, `src/lib/training.ts`.
@@ -70,6 +70,6 @@ Zdroj: `src/app/training/page.tsx`, `src/lib/training.ts`.
    procvičování** bez tlaku?
 3. Má vycházet **z produktových karet** (reálné složení/účinky/námitky), nebo ze samostatných scénářů?
 4. Má ho používat **jen operátor sám**, nebo do něj má vstupovat i **Team Leader** (zadávat úkoly,
-   hodnotit)? Dnes existuje kontrola v `/training/reviews`.
+   hodnotit)? Dnes existuje kontrola v `/team/reviews`.
 5. Priorita: děláme refactor trenažéru **hned po Fázi 2**, nebo později (např. po produktové kartě,
    ze které by těžil obsah)?

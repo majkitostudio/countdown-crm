@@ -37,12 +37,13 @@ npm run build
 
 | Oblast | Cesta |
 |---|---|
-| Operator Console | `/workspace` |
+| Operator Console | `/console` |
 | Leady a zákazníci | `/leads`, `/leads/[leadId]` |
-| Hovory a telefonní nastavení (telefonie odložena) | `/calls`, `/telephony` |
-| Kalendář a callbacky | `/calendar` |
+| Hovory (log a kontrola kvality) | `/call-logs`, `/call-logs/[callId]/review` |
+| Schedule a callbacky | `/schedule` |
 | Produkty a objednávky | `/products`, `/orders` |
-| Tým, výjimky a audit | `/team`, `/exceptions`, `/audit` |
-| Reporting | `/reports` |
-| Training | `/training`, `/training/reviews` |
-| Administrace | `/settings`, `/settings/users`, `/settings/scripts` |
+| Tým a výjimky | `/team`, `/team/exceptions`, `/team/reviews` |
+| Reporting a audit | `/reports`, `/audit` |
+| Training (trenažér) | `/training` |
+| Management (správa) | `/admin`, `/admin/users`, `/automations`, `/settings`, `/settings/scripts` |
+| Telefonie (odloženo) | `/telephony` |

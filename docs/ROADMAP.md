@@ -63,7 +63,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** operátor nevidí admin nastavení; TL vidí týmové fronty a výjimky na jedné ploše; admin má správu v jednom místě; žádná stránka nemá duplicitní protějšek.
 
-**Stav:** 🔄 probíhá — vlny 1 (názvy a popisy) a 2 (sloučení obrazovek A–F) hotové; běží **vlna 3 (URL + přesměrování)**. Revize struktury schválena PM (13. 10. 2026).
+**Stav:** ✅ hotovo (14. 10. 2026) — vlny 1 (názvy a popisy), 2 (sloučení obrazovek A–F) a 3 (URL + přesměrování) dokončené. Revize struktury schválena PM (13. 10. 2026). Otevřené body (produktová karta, koncept Schedule, náplň Automations) pokračují jako samostatné úkoly — viz [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md), část 7.
 
 ---
 
@@ -129,7 +129,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled.
 
-**Stav:** ⏳ čeká (základ `/dashboard` a `/team` existuje).
+**Stav:** ⏳ čeká (základ `/reports` a `/team` existuje).
 
 ---
 
@@ -155,10 +155,10 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0 a Fáze 1 jsou hotové.** Ve **Fázi 2 — Role-based UX pass** jsou hotové vlny 1 (názvy a popisy)
-a 2 (sloučení obrazovek A–F); běží **vlna 3 (URL + přesměrování)**. Hotové jsou nové cesty `/reports`,
-`/console`, `/schedule` a `/call-logs` (+ přesměrování starých cest). **Zbývá dokončit** `/workflows` →
-`/automations`, `/settings/users` → `/admin/users` a cesty pod `/team/*` (`/exceptions`, `/training/reviews`).
-Detail: [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md).
+**Fáze 0, 1 a 2 jsou hotové.** Fáze 2 dokončila všechny tři vlny (názvy, sloučení obrazovek i nové URL
+`/console`, `/schedule`, `/call-logs`, `/reports`, `/automations`, `/admin/users` a `/team/*`
+s přesměrováním starých cest).
+
+**Další na řadě je Fáze 3 — Objednávky** (stabilizace Kanbanu a toku stavů). Konkrétní prioritu vždy volí PM.
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).

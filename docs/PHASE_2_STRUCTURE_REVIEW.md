@@ -219,17 +219,22 @@ jsou anglicky (`Edit`, `Disable`, `Enable`, `Delete`). Smluvní testy aktualizov
 
 Po vlně 2: `lint` · `typecheck` · `test` (172 souborů / 817 testů) · `build` zelené.
 
-🔄 **Vlna 3 — URL + přesměrování (probíhá, stav k 14. 10. 2026).** Nové cesty a přesměrování starých
-(aby nepraskly záložky, interní odkazy ani testy). Aktuální stav:
+✅ **Vlna 3 hotová — URL + přesměrování (stav k 14. 10. 2026).** Nové cesty a přesměrování starých
+(aby nepraskly záložky, interní odkazy ani testy):
 
 - ✅ **`/reports`** — `/dashboard` i `/analytics` přesměrovány (commit `cc43152`).
-- ✅ **`/console`** — `/workspace` přesměrováno; **`/schedule`** — `/calendar` přesměrováno;
-  **`/call-logs`** (včetně `/call-logs/[callId]/review`) — `/calls` přesměrováno. Přesměrování jsou
-  v `next.config.ts`; zrušená prázdná složka `/controls` je smazaná.
-- ⬜ **Zbývá:** `/workflows` → **`/automations`**, `/settings/users` → **`/admin/users`**,
-  `/exceptions` → **`/team/exceptions`** a `/training/reviews` → **`/team/reviews`** (obojí pod `/team/*`).
+- ✅ **`/console`** — `/workspace` přesměrováno; **`/schedule`** — `/calendar` přesměrováno.
+- ✅ **`/call-logs`** (včetně `/call-logs/[callId]/review`) — `/calls` přesměrováno.
+- ✅ **`/automations`** — `/workflows` přesměrováno (název v UI byl „Automations" už dřív).
+- ✅ **`/admin/users`** — `/settings/users` přesměrováno.
+- ✅ **`/team/exceptions`** a **`/team/reviews`** (včetně `/team/reviews/[sessionId]`) — `/exceptions`
+  a `/training/reviews` přesměrovány.
+- ✅ Zrušená prázdná složka `/controls` smazána. Všechna přesměrování jsou v `next.config.ts`.
 
-Po dokončení vlny 3: `lint` · `typecheck` · `test` · `build` zelené a teprve pak commit.
+Po vlně 3: `lint` · `typecheck` · `test` (172 souborů / 817 testů) · `build` zelené.
+
+**Fáze 2 je tím dokončená** (revize struktury + vlny 1–3). Otevřené body z části 7 (produktová karta,
+nový koncept Schedule, náplň Automations) zůstávají jako samostatné úkoly.
 
 ---
 
