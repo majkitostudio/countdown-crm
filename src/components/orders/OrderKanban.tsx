@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
-  Clock,
+  MapPin,
   Package,
   PackageCheck,
   PackageX,
@@ -16,6 +16,7 @@ import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
 
 // --- helpers ---
 
@@ -36,14 +37,10 @@ function formatShortDate(dateStr: string): string {
 }
 
 // --- column definitions ---
+// Columns mirror the package lifecycle stages (see @/lib/orderStage), so every
+// order — including freshly created "completed" ones — lands in a visible column.
 
-type ColumnId =
-  | "pending"
-  | "in_progress"
-  | "sent"
-  | "delivered"
-  | "returned"
-  | "cancelled";
+type ColumnId = OrderStage;
 
 interface KanbanColumn {
   id: ColumnId;
@@ -55,43 +52,43 @@ interface KanbanColumn {
 
 const COLUMNS: KanbanColumn[] = [
   {
-    id: "pending",
-    label: "Čeká na zpracování",
-    icon: Clock,
-    accentClass: "border-amber-500/40 bg-amber-500/5",
-    countTone: "warning",
-  },
-  {
-    id: "in_progress",
-    label: "Expedice / V přípravě",
+    id: "processing",
+    label: ORDER_STAGE_LABELS.processing,
     icon: Package,
     accentClass: "border-sky-500/40 bg-sky-500/5",
     countTone: "neutral",
   },
   {
     id: "sent",
-    label: "Odesláno",
+    label: ORDER_STAGE_LABELS.sent,
     icon: Truck,
     accentClass: "border-indigo-500/40 bg-indigo-500/5",
     countTone: "neutral",
   },
   {
+    id: "awaiting_pickup",
+    label: ORDER_STAGE_LABELS.awaiting_pickup,
+    icon: MapPin,
+    accentClass: "border-amber-500/40 bg-amber-500/5",
+    countTone: "warning",
+  },
+  {
     id: "delivered",
-    label: "Doručeno / Převzato",
+    label: ORDER_STAGE_LABELS.delivered,
     icon: PackageCheck,
     accentClass: "border-emerald-500/40 bg-emerald-500/5",
     countTone: "success",
   },
   {
     id: "returned",
-    label: "Vráceno / Re-ship",
+    label: ORDER_STAGE_LABELS.returned,
     icon: RotateCcw,
     accentClass: "border-rose-500/40 bg-rose-500/5",
     countTone: "danger",
   },
   {
     id: "cancelled",
-    label: "Zrušeno",
+    label: ORDER_STAGE_LABELS.cancelled,
     icon: PackageX,
     accentClass: "border-zinc-600/40 bg-zinc-600/5",
     countTone: "neutral",
@@ -237,9 +234,9 @@ export function OrderKanban({
   orders: WorkspaceOrderDTO[];
   role?: WorkspaceRole;
 }) {
-  // group orders by status
+  // group orders by lifecycle stage (every status maps to exactly one column)
   const grouped = Object.fromEntries(
-    COLUMNS.map((col) => [col.id, orders.filter((o) => o.status === col.id)])
+    COLUMNS.map((col) => [col.id, orders.filter((o) => getOrderStage(o) === col.id)])
   ) as Record<ColumnId, WorkspaceOrderDTO[]>;
 
   // count pickup alerts across entire board

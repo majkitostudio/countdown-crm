@@ -10,18 +10,20 @@ import { Button } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
 import { CarrierExportDropdown } from "@/components/orders/CarrierExportDropdown";
 import { OrderKanban } from "@/components/orders/OrderKanban";
+import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
 
 type ViewMode = "table" | "kanban";
-type PipelineStatus = "all" | "sent_and_returned" | "in_progress" | "sent" | "cancelled" | "delivered" | "returned";
+type PipelineStatus = "all" | "sent_and_returned" | OrderStage;
 
 const filters: Array<{ value: PipelineStatus; label: string }> = [
   { value: "all", label: "All" },
   { value: "sent_and_returned", label: "🔥 Senty & Returny" },
-  { value: "in_progress", label: "In-Progress" },
-  { value: "sent", label: "Sent" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "delivered", label: "Delivered" },
-  { value: "returned", label: "Returned" },
+  { value: "processing", label: ORDER_STAGE_LABELS.processing },
+  { value: "sent", label: ORDER_STAGE_LABELS.sent },
+  { value: "awaiting_pickup", label: ORDER_STAGE_LABELS.awaiting_pickup },
+  { value: "delivered", label: ORDER_STAGE_LABELS.delivered },
+  { value: "returned", label: ORDER_STAGE_LABELS.returned },
+  { value: "cancelled", label: ORDER_STAGE_LABELS.cancelled },
 ];
 
 function formatDate(value: string): string {
@@ -72,7 +74,7 @@ export function OrderPipeline({
           activeFilter === "all" ||
           (activeFilter === "sent_and_returned"
             ? order.status === "sent" || order.status === "returned"
-            : order.status === activeFilter);
+            : getOrderStage(order) === activeFilter);
         const matchesSearch =
           !normalizedSearch ||
           [order.id, order.lead_name, order.product_title, order.agent_name]
@@ -306,7 +308,7 @@ export function OrderPipeline({
                   ? orders.length
                   : filter.value === "sent_and_returned"
                   ? orders.filter((order) => order.status === "sent" || order.status === "returned").length
-                  : orders.filter((order) => order.status === filter.value).length;
+                  : orders.filter((order) => getOrderStage(order) === filter.value).length;
               return (
                 <Button
                   key={filter.value}

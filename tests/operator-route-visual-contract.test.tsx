@@ -47,8 +47,8 @@ describe("daily operator route rendering", () => {
   it("renders the Kanban pipeline by default with dedicated stage columns", () => {
     const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} />);
 
-    expect(markup).toContain("Expedice / V přípravě");
-    expect(markup).toContain("Čeká na zpracování");
+    expect(markup).toContain("Processing");
+    expect(markup).toContain("Awaiting Pickup");
     expect(markup).toContain("Kanban");
     expect(markup).toContain("Tabulka");
   });
