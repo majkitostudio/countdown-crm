@@ -29,7 +29,7 @@ interface AdminHubCard {
  */
 const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
   {
-    href: "/settings/users",
+    href: "/admin/users",
     label: "Users & Teams",
     description: "Členové, role ve workspace a odpovědnosti za týmy.",
     legacyPath: "/settings/users",
@@ -43,7 +43,7 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
     icon: FileText,
   },
   {
-    href: "/workflows",
+    href: "/automations",
     label: "Automations",
     description: "Automatická pravidla a webhooky spouštěné událostmi.",
     legacyPath: "/workflows",

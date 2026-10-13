@@ -278,7 +278,7 @@ function buildWorkflowExceptions(rows: WorkflowSourceRow[]): ExceptionQueueItemD
       source: { table: "workflow_executions" as const, id: row.id },
       occurred_at: row.created_at,
       due_at: null,
-      next_action: { label: "Open workflows", href: "/workflows" },
+      next_action: { label: "Open automations", href: "/automations" },
       callReview: null,
     }];
   });

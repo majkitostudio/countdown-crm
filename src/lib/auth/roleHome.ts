@@ -2,7 +2,7 @@ import type { WorkspaceRole } from "@/lib/auth/roles";
 
 const ROLE_HOME_PATHS: Record<WorkspaceRole, string> = {
   operator: "/console",
-  team_leader: "/exceptions",
+  team_leader: "/team/exceptions",
   administrator: "/reports",
 };
 

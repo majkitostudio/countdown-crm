@@ -8,23 +8,23 @@ describe("role-aware sidebar navigation", () => {
     const operatorPaths = getAllowedSidebarNavigationItems("operator").map((item) => item.href);
 
     expect(operatorPaths).toContain("/console");
-    expect(operatorPaths).not.toContain("/workflows");
+    expect(operatorPaths).not.toContain("/automations");
   });
 
   it("moves administrator-only workflows behind the Admin Hub", () => {
     const teamLeaderPaths = getAllowedSidebarNavigationItems("team_leader").map((item) => item.href);
     const administratorPaths = getAllowedSidebarNavigationItems("administrator").map((item) => item.href);
 
-    expect(teamLeaderPaths).not.toContain("/workflows");
+    expect(teamLeaderPaths).not.toContain("/automations");
     expect(teamLeaderPaths).not.toContain("/admin");
-    expect(administratorPaths).not.toContain("/workflows");
+    expect(administratorPaths).not.toContain("/automations");
     expect(administratorPaths).toContain("/admin");
   });
 
   it("shows the exception queue only to team leaders and administrators", () => {
-    expect(getAllowedSidebarNavigationItems("operator").map((item) => item.href)).not.toContain("/exceptions");
-    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).toContain("/exceptions");
-    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/exceptions");
+    expect(getAllowedSidebarNavigationItems("operator").map((item) => item.href)).not.toContain("/team/exceptions");
+    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).toContain("/team/exceptions");
+    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/team/exceptions");
   });
 
   it("keeps ordinary operator-presence states neutral", () => {

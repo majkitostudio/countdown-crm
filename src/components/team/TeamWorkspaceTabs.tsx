@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 const TEAM_WORKSPACE_TABS = [
   { href: "/team", label: "Team Overview" },
-  { href: "/exceptions", label: "Exceptions" },
-  { href: "/training/reviews", label: "Training Reviews" },
+  { href: "/team/exceptions", label: "Exceptions" },
+  { href: "/team/reviews", label: "Training Reviews" },
 ] as const;
 
 /**
@@ -18,12 +18,18 @@ const TEAM_WORKSPACE_TABS = [
 export function TeamWorkspaceTabs() {
   const pathname = usePathname();
 
+  // A nested tab (/team/exceptions) must win over its parent (/team), so the
+  // active tab is the longest matching href, not the first prefix match.
+  const activeHref = pathname
+    ? [...TEAM_WORKSPACE_TABS]
+        .filter((tab) => pathname === tab.href || pathname.startsWith(`${tab.href}/`))
+        .sort((a, b) => b.href.length - a.href.length)[0]?.href
+    : undefined;
+
   return (
     <nav aria-label="Team Workspace sections" className="flex flex-wrap items-center gap-2">
       {TEAM_WORKSPACE_TABS.map((tab) => {
-        const isActive =
-          pathname != null &&
-          (pathname === tab.href || pathname.startsWith(`${tab.href}/`));
+        const isActive = tab.href === activeHref;
         return (
           <Link
             key={tab.href}

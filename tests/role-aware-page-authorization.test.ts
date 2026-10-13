@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const workflowsPage = readFileSync(resolve(process.cwd(), "src/app/workflows/page.tsx"), "utf8");
+const workflowsPage = readFileSync(resolve(process.cwd(), "src/app/automations/page.tsx"), "utf8");
 
 describe("role-aware page authorization", () => {
   it("guards workflows at the server page boundary", () => {

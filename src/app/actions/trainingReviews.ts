@@ -11,8 +11,8 @@ export async function recordTrainingReviewAction(input: {
   correctionReason?: string | null;
 }) {
   const revision = await recordTrainingReviewRevision(input);
-  revalidatePath(`/training/reviews/${input.sessionId}`);
-  revalidatePath("/training/reviews");
+  revalidatePath(`/team/reviews/${input.sessionId}`);
+  revalidatePath("/team/reviews");
   revalidatePath("/call-logs");
   return revision;
 }

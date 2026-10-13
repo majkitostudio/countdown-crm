@@ -23,12 +23,12 @@ describe("role-aware navigation parity", () => {
     const restrictedPaths = [
       "/audit",
       "/analytics",
-      "/exceptions",
+      "/team/exceptions",
       "/leads",
       "/settings/scripts",
       "/team",
-      "/training/reviews",
-      "/workflows",
+      "/team/reviews",
+      "/automations",
     ];
 
     expect(operatorPaths).toEqual(expect.not.arrayContaining(restrictedPaths));

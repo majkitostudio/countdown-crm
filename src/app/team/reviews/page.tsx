@@ -115,7 +115,7 @@ export default async function TrainingReviewsPage() {
                         <td className="px-5 py-4 font-mono text-zinc-300">{session.turn_count}</td>
                         <td className="px-5 py-4 text-right">
                           <Link
-                            href={`/training/reviews/${session.id}`}
+                            href={`/team/reviews/${session.id}`}
                             className={getButtonClassName("secondary")}
                           >
                             Otevřít kontrolu

@@ -12,7 +12,7 @@ vi.mock("@/lib/dal/exceptionQueue", async (importOriginal) => ({
   listTeamLeaderExceptions: mocks.listTeamLeaderExceptions,
 }));
 
-import ExceptionsPage from "@/app/exceptions/page";
+import ExceptionsPage from "@/app/team/exceptions/page";
 
 beforeEach(() => {
   vi.clearAllMocks();

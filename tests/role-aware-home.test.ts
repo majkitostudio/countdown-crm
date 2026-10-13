@@ -22,7 +22,7 @@ beforeEach(() => {
 describe("role-aware home routing", () => {
   it.each([
     ["operator", "/console"],
-    ["team_leader", "/exceptions"],
+    ["team_leader", "/team/exceptions"],
     ["administrator", "/reports"],
   ] as const)("sends %s to %s", async (role, destination) => {
     mocks.requireWorkspaceContext.mockResolvedValue({

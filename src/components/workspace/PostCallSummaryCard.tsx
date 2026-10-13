@@ -281,7 +281,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           {new Date().toLocaleString("cs-CZ")}
         </span>
         <div className="flex items-center gap-3">
-          <a href="/workflows" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors">
+          <a href="/automations" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors">
             View automations →
           </a>
           <Button onClick={onNextLead}>

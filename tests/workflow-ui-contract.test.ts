@@ -12,14 +12,14 @@ describe("workflow server-boundary UI contract", () => {
   });
 
   it("labels the manual workflow action as test-only simulation", () => {
-    const workflowsClient = readFileSync(path.join(projectRoot, "src", "app", "workflows", "WorkflowsManagementClient.tsx"), "utf8");
+    const workflowsClient = readFileSync(path.join(projectRoot, "src", "app", "automations", "WorkflowsManagementClient.tsx"), "utf8");
     expect(workflowsClient).toContain("Test-only simulation: Call Ended");
     expect(workflowsClient).toContain("TEST_ONLY_CALL");
     expect(workflowsClient).not.toContain("Demo test transcript");
   });
 
   it("guards the management route before rendering its client controls", () => {
-    const workflowsPage = readFileSync(path.join(projectRoot, "src", "app", "workflows", "page.tsx"), "utf8");
+    const workflowsPage = readFileSync(path.join(projectRoot, "src", "app", "automations", "page.tsx"), "utf8");
     expect(workflowsPage).not.toContain('"use client"');
     expect(workflowsPage).toContain('requireWorkspaceRole(["team_leader", "administrator"])');
     expect(workflowsPage).toContain("Pravidla automatizací a data o jejich běhu jsou dostupné jen Team Leaderům a administrátorům.");

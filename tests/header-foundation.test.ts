@@ -12,7 +12,7 @@ describe("unified authenticated header foundations", () => {
     expect(operatorPaths).not.toContain("/leads");
     expect(operatorPaths).not.toContain("/analytics");
     expect(operatorPaths).not.toContain("/monitor");
-    expect(operatorPaths).not.toContain("/workflows");
+    expect(operatorPaths).not.toContain("/automations");
     expect(operatorPaths).not.toContain("/team");
   });
 
@@ -22,9 +22,9 @@ describe("unified authenticated header foundations", () => {
 
     expect(leaderPaths).toContain("/leads");
     expect(leaderPaths).toContain("/reports");
-    expect(leaderPaths).toContain("/exceptions");
+    expect(leaderPaths).toContain("/team/exceptions");
     expect(leaderPaths).toContain("/team");
-    expect(administratorPaths).toContain("/exceptions");
+    expect(administratorPaths).toContain("/team/exceptions");
     expect(administratorPaths).toContain("/team");
     expect(getAllowedNavigationCommands("team_leader").find((item) => item.path === "/team")?.label).toBe("Team Workspace");
   });

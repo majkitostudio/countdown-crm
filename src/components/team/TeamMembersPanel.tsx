@@ -75,8 +75,8 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
             </div>
             <p className="mt-5 max-w-2xl text-xs leading-relaxed text-zinc-500">
               Správa rolí a členství v aktuálním workspace. Kompletní přehled pracovníků, pozvánky a přiřazení k prodejním linkám můžete spravovat v{" "}
-              <a href="/settings/users" className="text-zinc-300 underline underline-offset-2 hover:text-zinc-100">
-                Centru správy uživatelů (/settings/users)
+              <a href="/admin/users" className="text-zinc-300 underline underline-offset-2 hover:text-zinc-100">
+                Centru správy uživatelů (/admin/users)
               </a>.
             </p>
           </div>

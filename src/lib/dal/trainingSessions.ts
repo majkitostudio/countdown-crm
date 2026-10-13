@@ -199,7 +199,7 @@ export async function listTrainingCallLogRecords(): Promise<TrainingCallLogRecor
     durationSeconds: session.duration_seconds,
     transcript: JSON.stringify((bySession.get(session.id) || []).map((turn) => ({ speaker: turn.speaker === "operator" ? "operator" : "customer", text: turn.text, timestamp: turn.occurred_at }))),
     createdAt: session.created_at,
-    reviewHref: canReview ? `/training/reviews/${session.id}` : null,
+    reviewHref: canReview ? `/team/reviews/${session.id}` : null,
     feedback: session.feedback,
   }));
 }

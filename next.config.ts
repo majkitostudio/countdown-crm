@@ -44,6 +44,31 @@ const nextConfig: NextConfig = {
         destination: "/call-logs/:path*",
         permanent: true,
       },
+      {
+        source: "/workflows",
+        destination: "/automations",
+        permanent: true,
+      },
+      {
+        source: "/settings/users",
+        destination: "/admin/users",
+        permanent: true,
+      },
+      {
+        source: "/exceptions",
+        destination: "/team/exceptions",
+        permanent: true,
+      },
+      {
+        source: "/training/reviews",
+        destination: "/team/reviews",
+        permanent: true,
+      },
+      {
+        source: "/training/reviews/:path*",
+        destination: "/team/reviews/:path*",
+        permanent: true,
+      },
     ];
   },
 };

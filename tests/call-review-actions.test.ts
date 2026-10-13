@@ -42,7 +42,7 @@ describe("call review server actions", () => {
     expect(mocks.recordCallReview).toHaveBeenCalledWith(input);
     expect(mocks.revalidatePath.mock.calls).toEqual([
       ["/call-logs/call-1/review"],
-      ["/exceptions"],
+      ["/team/exceptions"],
       ["/audit"],
     ]);
   });

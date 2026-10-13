@@ -343,7 +343,7 @@ function buildWorkflowsCheck(
       "Workflows are unavailable.",
       probe.message,
       checkedAt,
-      "/workflows",
+      "/automations",
     );
   }
 
@@ -362,7 +362,7 @@ function buildWorkflowsCheck(
       "Some active workflow triggers are unavailable.",
       `Unavailable active triggers: ${Array.from(new Set(unavailableTriggers)).join(", ")}.`,
       checkedAt,
-      "/workflows",
+      "/automations",
     );
   }
 
@@ -373,7 +373,7 @@ function buildWorkflowsCheck(
     "Workflow rules are readable.",
     `${probe.value.length} workflow rule${probe.value.length === 1 ? "" : "s"} were returned from the workspace.`,
     checkedAt,
-    "/workflows",
+    "/automations",
   );
 }
 
