@@ -15,24 +15,23 @@ v samostatné session). Slouží k tomu, aby se dalo plynule navázat.
 
 PM upřesnil organizační hierarchii:
 
-- **Kampaň (P1–P4)** = typ práce, kterou operátoři volají:
+- **Department (P1–P4)** = typ práce, kterou operátoři volají (anglicky „Department Pn“):
   - P1 — doobjednávky z e-shopu, hot leads, top leads (odchozí linka)
   - P2 — klasické prodejní oddělení (odchozí linka)
   - P3 — retence, doobjednávky (odchozí linka)
   - P4 — poslední záchrana, podpora
-- **Tým** = skupina operátorů pod kampaní; každý tým má jednoho Team Leadera.
-  Týmů může být na kampani několik, např. P1A, P1B, P1C (písmeno = iniciála TL).
-- **Operátor** pracuje v týmu, tým patří pod kampaň.
+- **Tým** = skupina operátorů pod departmentem; každý tým má jednoho Team Leadera.
+  Výchozí název týmu = department + iniciála příjmení TL (např. P1K = P1 + Kačmář).
+- **Operátor** pracuje v týmu, tým patří pod department.
 - **P1 a P2 v reálném workspace úplně chybí** → v přehledu je zobrazit prázdné (bez migrace).
 
-## Co je otevřené (Fáze 4)
+## Fáze 4 — doplněná rozhodnutí (15. 10. 2026)
 
-- Kam umístit přehled front: nový view v Team Workspace (doporučeno) vs. samostatná
-  stránka `/queues` vs. `/reports`.
-- Název pro P1–P4: „Kampaň" vs. „Oddělení" vs. jiný.
-- Koncept: manažerský souhrn kampaní vs. seznam leadů (lead pool) vs. obojí.
-- Datová nekonzistence: dnes jsou P3/P4 v datech vedené jako „týmy" a samostatná
-  kampaň neexistuje; sjednotí se při migracích ve Fázi 5.
+- Umístění přehledu front: **nový view v Team Workspace**.
+- Název pro P1–P4: **Department** (anglicky); slovo „kampaň“ se nepoužívá.
+- Koncept: **obojí** — manažerský souhrn oddělení + seznam leadů.
+- Datová nekonzistence: dnes jsou P3/P4 v datech vedené jako „týmy“ a samostatný
+  department neexistuje; sjednotí se při migracích ve Fázi 5.
 
 ## Návrh Fáze 4 (k diskusi, žádný kód zatím)
 

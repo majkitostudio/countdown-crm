@@ -173,7 +173,7 @@ Workflows & Automations · Workspace Settings · Telephony.
 - Nemění **práva ani serverové hlídání** — jen viditelnost, skupiny a jeden Admin Hub.
 - Nepřidává **žádné nové funkce**.
 - Přesuny rout děláme **až po schválení, po jednom, s ověřením** (lint / typecheck / test / build).
-- **Fronty P1–P4** přijdou až ve Fázi 4 — v menu pro ně necháme místo (sekce „Kampaně").
+- **Fronty P1–P4** přijdou až ve Fázi 4 — v menu pro ně necháme místo (sekce „Team").
 
 ---
 

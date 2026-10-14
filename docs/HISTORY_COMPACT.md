@@ -8,7 +8,7 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 - **Operator Console:** sjednocená pracovní plocha pro práci s přiděleným leadem, prodejním kontextem, výsledkem hovoru a navazující akcí.
 - **Týmový provoz:** přibyly týmová správa, výjimky, žádosti o pomoc, kontrola kvality a trénink.
 - **Prodej a expedice:** vznikly položky objednávek, historie stavů, sledování zásilek a exporty pro dopravce.
-- **P1–P4:** byla doplněna obecná kostra kampaní/oddělení a časových pravidel pro standardní odchozí práci, retenci a záchranu vybraných případů.
+- **P1–P4:** byla doplněna obecná kostra oddělení (departments) a časových pravidel pro standardní odchozí práci, retenci a záchranu vybraných případů.
 - **Říjen 2026 — zjednodušení:** odstraněny slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder. Obrazovka objednávek nyní nabízí Kanban i tabulkový pohled.
 - **Říjen 2026 — druhá vlna pročištění (hotovo):** odstraněny generické funkce, které nepatří ke specializovanému call-center produktu — blueprints (multi-industry šablony), custom schema / „Attio“ pole a obecný kanban/filtry u leadů. Zároveň opravena duplicitní verze migrace.
 - **Říjen 2026 — roadmapa:** další práce se řídí fázemi 0–7 v [ROADMAP.md](ROADMAP.md); dokumentace byla sjednocena a historické audity přesunuty do `docs/archive/`.

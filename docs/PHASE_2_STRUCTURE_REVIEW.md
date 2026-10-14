@@ -23,7 +23,7 @@ PM zpřesnil dřívější „vše anglicky" na tuhle podobu. Držíme ji např�
 | **URL adresa** | **anglicky** | `/console`, `/call-logs`, `/reports` |
 | **Menu a názvy sekcí** | **anglicky** | `Work`, `Team`, `Reporting`, `Administration` |
 
-Doménové názvy (produkt, kampaň, obchodní pojmy) zůstávají tam, kde dávají smysl česky.
+Doménové názvy (produkt, oddělení, obchodní pojmy) zůstávají tam, kde dávají smysl česky.
 
 ---
 

@@ -11,24 +11,24 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 ## Organizační hierarchie
 
 - **Workspace = Systém firmy:** Globální prostředí konkrétního call centra.
-- **Kampaň = Oddělení (P1–P4):**
+- **Department = Oddělení (P1–P4):** Anglický název „Department P1“–„Department P4“, v datech slug `p1`–`p4`.
   - **P1:** Senior Sales / Hot Leads (elitní prodejci, prioritní kontakty, maximalizace košíku).
   - **P2:** Standard Sales / Mass Outbound (masové databáze z různých zdrojů, běžní operátoři).
   - **P3:** Retence & Upsell (automaticky po 3 týdnech / 21 dnech od převzetí balíčku do ruky klienta).
   - **P4:** Poslední záchrana (faily po 24h na druhý den, vratky na Re-ship, zásilky ležící na výdejně > 3 dny bez hovoru).
-- **Týmy = Rozdělení Kampaně:** Jednotlivé směny a operační jednotky (např. ranní směna, směna A).
+- **Týmy = Rozdělení Departmentu:** Výchozí název týmu = department + iniciála příjmení Team Leadera (např. `P1K`).
 - **Team Leader = Supervisor & Trenér:** Stará se o svůj Tým, trénuje, pomáhá při hovorech a řídí kvalitu.
 - **Administrátor:** Řídí a spravuje celý Workspace.
-- **Operátor:** Pracuje na lince ve svém Týmu a Kampani.
+- **Operátor:** Pracuje na lince ve svém Týmu a Departmentu.
 
-## Kde jsme teď (stav k 14. 10. 2026)
+## Kde jsme teď (stav k 15. 10. 2026)
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
 
-- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění), Fáze 1 (navigace + Admin Hub) i Fáze 2 (názvy, sloučení obrazovek a nové URL) jsou hotové**; na řadě je **Fáze 3 — Objednávky** (revize struktury: [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md)).
-- **Testy:** 817 testů ve 172 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
-- **Migrace:** 128 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript ale stále hlásí zastaralé „ALL 127 MIGRATIONS“ a duplicity sám nekontroluje.
-- **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice; přehled front v UI zatím chybí.
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění), Fáze 1 (navigace + Admin Hub), Fáze 2 (názvy, sloučení obrazovek a nové URL) i Fáze 3 (Objednávky) jsou hotové**; na řadě je **Fáze 4 — P1–P4 jako provozní model** (sdílený model oddělení hotový, UI přehled front čeká).
+- **Testy:** 840 testů ve 176 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
+- **Migrace:** 130 souborů, **0 duplicit** — kolize verze `20261007140000` byla opravena 11. 10. Kontrolní skript už hlásí skutečný počet migrací (opraveno 15. 10.); kontrolu duplicit ještě nemá.
+- **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice. Rozhodnutí k Fázi 4: oddělení = **Department P1–P4** (anglicky), přehled front bude nový view v Team Workspace; sdílený model `src/lib/department.ts` je hotový, UI přehled front ještě čeká.
 - **Expedice a kurýři:** CSV exporty pro Zásilkovnu, Balíkovnu, GLS, sledovací čísla a linky na kurýry.
 - **Provize a mzdy:** Měsíční uzávěrka pro Team Leadera na `/wallet` a export podkladů pro mzdy v CSV.
 - **Objednávky:** `/orders` už nabízí Kanban i tabulku.

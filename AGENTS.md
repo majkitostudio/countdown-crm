@@ -5,21 +5,21 @@ Pravidla se doplňují po každém použití `/learn`. Nové pravidlo se vždy p
 ## 1. Organizační hierarchie call centra
 
 - **Workspace = Systém firmy.** Globální prostředí konkrétního call centra (data, produkty, integrace, uživatelé).
-- **Kampaň = Rozdělení Workspace na oddělení (P1–P4):**
+- **Department = Oddělení Workspace (P1–P4).** Anglicky „Department P1“–„Department P4“, v datech slug `p1`–`p4`:
   - **P1** — Senior Sales / Hot Leads (zkušení prodejci, prioritní leady, maximalizace košíku).
   - **P2** — Standard Sales / Leady z různých zdrojů (masové databáze, standardní operátoři).
   - **P3** — Retence, Upsell, udržení zákazníka. Lead vstupuje automaticky přesně 21 dní (3 týdny) od převzetí balíčku zákazníkem (`orders.delivered_at`).
   - **P4** — Poslední záchrana. Faily z P1/P2 jdou do P4 na druhý den (24 h); vratky (`returned`) na Re-ship; balíčky na výdejně déle než 3 dny, které dosud nebyly obvolány.
-- **Tým = Rozdělení Kampaně** (např. ranní směna, tým A/B).
+- **Tým = Rozdělení Departmentu.** Výchozí název týmu = department + iniciála příjmení Team Leadera (např. department P1 s TL Janem Kačmářem = `P1K`).
 - **Team Leader = Supervisor a trenér** svého Týmu (dohled, koučink, pomoc při hovorech, kvalita).
 - **Administrátor = Řídí a spravuje celý Workspace.**
-- **Operátor = Pracuje na lince ve svém Týmu a Kampani.**
+- **Operátor = Pracuje na lince ve svém Týmu a Departmentu.**
 
 ## 2. Modulární kostra, ne hardcodované případy
 
 - Call centrum zpracovává velké množství leadů denně, import je plně automatizovaný (API/webhooky), nikdo nic nenahrává ručně.
 - Nikdy nehardcodovat konkrétní sortiment, akci nebo zdroj do kódu či SQL. Příklady od PM (vzorečky, web objednávky apod.) jsou jen ilustrace.
-- Stavět obecnou kostru: stavy leadu/objednávky, kampaně, týmy, zdroje leadů a časové intervaly.
+- Stavět obecnou kostru: stavy leadu/objednávky, oddělení (departments), týmy, zdroje leadů a časové intervaly.
 
 ## 3. Telefonie
 

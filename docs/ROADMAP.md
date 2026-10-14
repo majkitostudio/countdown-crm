@@ -38,7 +38,7 @@ Stav: ✅ hotovo · 🔄 probíhá · ⏳ čeká
 
 **Kroky:**
 - Seskupit navigaci podle role: Operátor / Team Leader / Admin.
-- Zavést jeden **Admin Hub** se sekcemi: Uživatelé a týmy · Pravidla a automatizace · Kampaně a pravidla příjmu · Audit a monitoring.
+- Zavést jeden **Admin Hub** se sekcemi: Uživatelé a týmy · Pravidla a automatizace · Oddělení a pravidla příjmu · Audit a monitoring.
 - Přesunout technické nastavení pod jednu strukturu; skrýt/odstranit duplicity.
 
 **Ověření:** maximálně jeden Admin Hub; u každé položky je jasné „kdo ji používá a proč“; základní správa do 3 kliknutí.
@@ -97,13 +97,13 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 **Hotovo (databázová logika):** 24h cooldown pro faily, retence P3 po 21 dnech, recyklace P4 a záchrany zásilek.
 
 **Kroky:**
-- Abstraktní model: zdroj leadu · kampaň/oddělení · tým · stav · fronta · důvod · výsledek.
-- Připravit fronty P1–P4 bez hardcodovaných produktů nebo konkrétních kampaní.
+- Abstraktní model: zdroj leadu · department (oddělení) · tým · stav · fronta · důvod · výsledek.
+- Připravit fronty P1–P4 bez hardcodovaných produktů nebo konkrétních zdrojů.
 - V UI zobrazit P1–P4 jednotně i bez skutečných dat.
 
 **Ověření:** systém zařadí lead do fronty podle pravidel, ne podle konkrétního zdroje; schéma připravené na API/webhook bez přepisování logiky.
 
-**Stav:** 🔄 databáze hotová, UI přehled front čeká.
+**Stav:** 🔄 databáze hotová, sdílený model oddělení (`src/lib/department.ts`) hotový; UI přehled front čeká.
 
 ---
 
@@ -111,10 +111,10 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Cíl:** odstranit technické riziko skryté za „všechno funguje“.
 
-**Hotovo:** duplicitní timestamp migrace vyřešen; 128 souborů migrací, 0 duplicit.
+**Hotovo:** duplicitní timestamp migrace vyřešen; 130 souborů migrací, 0 duplicit.
 
 **Kroky:**
-- Doplnit kontrolu **duplicitních verzí** do `scripts/verify-all-migrations.mjs` (teď hlásí zastarale „ALL 127 MIGRATIONS“ a duplicity nekontroluje).
+- Doplnit kontrolu **duplicitních verzí** do `scripts/verify-all-migrations.mjs` (počet migrací už hlásí správně — opraveno 15. 10. 2026; kontrolu duplicit zatím nemá).
 - Ověřit **čistý běh** celého řetězce na čisté PostgreSQL/Supabase databázi — včetně migrací Fáze 3 `20261014120000_team_leader_exception_pickup_risk.sql` a `20261014130000_orders_pickup_risk_index.sql`, které se ve vývojovém prostředí nespouští.
 - Změřit výkon `EXPLAIN` na objemu dat u dotazů Fáze 3 (rizikové zásilky na výdejně, Exception Queue) — indexy existují, ale nejsou ověřené na datech.
 - Zavést kontrolu „migration parity“ před dalším větším rozvojem.
@@ -166,7 +166,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue.
 
-**Další na řadě je Fáze 4 — P1–P4 jako obecný provozní model** (databáze hotová, čeká UI přehled front).
+**Další na řadě je Fáze 4 — P1–P4 jako obecný provozní model** (databáze hotová, sdílený model oddělení hotový; čeká UI přehled front).
 Konkrétní prioritu vždy volí PM. Čistý běh migrací a reálné měření výkonu (`EXPLAIN`) řeší Fáze 5.
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).

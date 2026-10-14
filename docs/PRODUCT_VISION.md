@@ -13,7 +13,7 @@ Countdown proto není generický CRM produkt pro libovolné podnikání. Je to s
 1. **Leads a zákazníci** — evidence, kontext, historie, segmentace a další kontakt.
 2. **Calls a telephony** — telefonní proces, call session, stav, výsledek a návazné kroky.
 3. **Products a orders** — nabídka doplňků stravy, objednávky, prodejní tok a stav zákazníka.
-4. **Operator Console** — pracovní plocha operátora pro aktuální lead a hovor. Její obsah a rozhraní se přizpůsobují podle oddělení (např. prodejní oddělení vs. Oddělení P4 pro retargeting odmítnutých prodejů a Sent/Returns).
+4. **Operator Console** — pracovní plocha operátora pro aktuální lead a hovor. Její obsah a rozhraní se přizpůsobují podle oddělení (např. prodejní oddělení vs. Department P4 pro retargeting odmítnutých prodejů a Sent/Returns).
 5. **Team Operations** — fronty, výjimky, pomoc, směny, týmový dohled a řízení práce.
 6. **Quality a coaching** — hodnocení hovorů, zpětná vazba, compliance a rozvoj lidí.
 7. **Training** — onboarding a průběžné procvičování schválených scénářů.
@@ -30,7 +30,7 @@ Systém je postaven na jasné, modulární a škálovatelné hierarchii pro velk
    - Zastřešuje celou firmu a její provozní prostředí.
    - Izoluje data, produkty, integrace, uživatelské účty a globální pravidla.
 
-2. **Kampaň = Rozdělení Workspace na jednotlivá oddělení (P1 až P4)**
+2. **Department = Rozdělení Workspace na jednotlivá oddělení (P1 až P4)**
    - Definuje hlavní provozní pilíře a fáze životního cyklu leadu:
      - **P1 — Senior Sales / Hot Leads:** Prioritní linka pro zkušenější prodejce a složitější či prioritní práci. Konkrétní zdroj leadu, produkt nebo akce nejsou pevně dané.
      - **P2 — Standard Sales / Mass Outbound:** Běžná odchozí linka pro standardní práci a operátory. Lead může přijít z různých budoucích zdrojů; do kódu se nehardcoduje konkrétní databáze ani nabídka.
@@ -40,19 +40,19 @@ Systém je postaven na jasné, modulární a škálovatelné hierarchii pro velk
        - *Vratky (Returns):* Nepřevzatý balíček od kurýra (`returned`) jde okamžitě do P4 pro záchranu a Re-ship. Úspěšná záchrana/nová objednávka navazuje retenční péčí v P3.
        - *Rizikové balíčky na výdejně:* Zásilka leží na výdejně/boxu déle než **3 dny a dosud nebyla obvolána**.
 
-3. **Týmy = Rozdělení Kampaně do konkrétních týmů**
-   - V rámci každé kampaně (oddělení) pracují jednotlivé operační týmy (např. ranní směna, odpolední směna, tým A, tým B).
+3. **Tým = Rozdělení Departmentu**
+   - V rámci každého departmentu (oddělení) pracují jednotlivé týmy; výchozí název týmu = department + iniciála příjmení Team Leadera (např. `P1K`).
    - Každý tým sdružuje své operátory a má svého konkrétního Team Leadera.
 
 4. **Role v systému**
    - **Administrátor:** Člověk, který řídí a managuje celý Workspace (nastavení, integrace, globální pravidla, produkty, přístupy).
    - **Team Leader (Supervisor & Trenér):** Člověk, který se stará o svůj Tým. Dohlíží na směnu, trénuje operátory, pomáhá jim při hovorech (Request Help), schvaluje výjimky a kontroluje kvalitu a měsíční provize.
-   - **Operátor:** Člověk na lince obsluhující leady a hovory v rámci své přidělené kampaně a týmu.
+   - **Operátor:** Člověk na lince obsluhující leady a hovory v rámci svého přiděleného departmentu a týmu.
 
 ## Hlavní produktové principy
 
 - **Modulární kostra, ne hardcodované výjimky:** Systém nestojí na pevných pravidlech pro konkrétní sortiment či akce, ale na obecné stavové mašině a časových intervalech.
-- **Automatizovaný tok:** Ve velkém call centru tečou tisíce leadů přes API/webhooky. Žádný operátor ani manažer nerozděluje leady ručně – systém je směruje automaticky podle kampaně, stavu a priorit.
+- **Automatizovaný tok:** Ve velkém call centru tečou tisíce leadů přes API/webhooky. Žádný operátor ani manažer nerozděluje leady ručně – systém je směruje automaticky podle departmentu, stavu a priorit.
 
 - Každá role má jasný pracovní prostor a další krok.
 - Funkce se sdružují podle skutečné práce, ne podle databázových tabulek.
