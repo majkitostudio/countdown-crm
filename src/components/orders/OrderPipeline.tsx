@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
 import { CarrierExportDropdown } from "@/components/orders/CarrierExportDropdown";
 import { OrderKanban } from "@/components/orders/OrderKanban";
+import { OrderStageSummary } from "@/components/orders/OrderStageSummary";
 import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
 import { getOrderRisk } from "@/lib/orderRisk";
 
@@ -239,6 +240,8 @@ export function OrderPipeline({
           </div>
         </Surface>
       )}
+
+      <OrderStageSummary orders={orders} />
 
       <div className="space-y-4">
         {/* view toggle & search toolbar */}

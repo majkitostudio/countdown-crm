@@ -246,36 +246,8 @@ export function OrderKanban({
     COLUMNS.map((col) => [col.id, orders.filter((o) => getOrderStage(o) === col.id)])
   ) as Record<ColumnId, WorkspaceOrderDTO[]>;
 
-  // pickup risk across the whole board
-  const pickupAlarmCount = orders.filter((o) => getOrderRisk(o).level === "alarm").length;
-  const pickupWarningCount = orders.filter((o) => getOrderRisk(o).level === "warning").length;
-
   return (
     <div className="space-y-4">
-      {pickupAlarmCount > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
-          <p className="text-xs font-semibold text-rose-300">
-            {pickupAlarmCount}{" "}
-            {pickupAlarmCount === 1
-              ? "balíček leží na výdejně déle než 3 dny a nebyl obvolán!"
-              : "balíčků leží na výdejně déle než 3 dny a nebyly obvolány!"}
-            {" "}Jsou automaticky zařazeny do fronty P4.
-          </p>
-        </div>
-      )}
-
-      {pickupWarningCount > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
-          <p className="text-xs font-semibold text-amber-300">
-            {pickupWarningCount}{" "}
-            {pickupWarningCount === 1
-              ? "balíček leží na výdejně 2 dny — zítra propadá limitu!"
-              : "balíčků leží na výdejně 2 dny — zítra propadají limitu!"}
-          </p>
-        </div>
-      )}
 
       {/* kanban columns — horizontal scroll on small screens */}
       <div className="flex gap-4 overflow-x-auto pb-4">

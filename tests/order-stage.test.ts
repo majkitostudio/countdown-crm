@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getOrderStage, ORDER_STAGE_LABELS, ORDER_STAGES } from "@/lib/orderStage";
+import { countOrdersByStage, getOrderStage, ORDER_STAGE_LABELS, ORDER_STAGES } from "@/lib/orderStage";
 
 describe("order stage mapping", () => {
   it("folds pre-shipment statuses into processing", () => {
@@ -27,5 +27,26 @@ describe("order stage mapping", () => {
     for (const stage of ORDER_STAGES) {
       expect(ORDER_STAGE_LABELS[stage]).toBeTruthy();
     }
+  });
+
+  it("counts orders per stage", () => {
+    const counts = countOrdersByStage([
+      { status: "completed" },
+      { status: "in_progress" },
+      { status: "sent" },
+      { status: "sent", package_location: "Z-BOX" },
+      { status: "delivered" },
+      { status: "returned" },
+      { status: "cancelled" },
+    ]);
+
+    expect(counts).toEqual({
+      processing: 2,
+      sent: 1,
+      awaiting_pickup: 1,
+      delivered: 1,
+      returned: 1,
+      cancelled: 1,
+    });
   });
 });

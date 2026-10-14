@@ -59,3 +59,18 @@ export function getOrderRisk(order: OrderRiskSource, now: number = Date.now()): 
   }
   return { level: "calm", daysOnPickup: days };
 }
+
+/** Counts packages at risk of missing the pickup window. */
+export function countOrdersByRisk<T extends OrderRiskSource>(
+  orders: readonly T[],
+  now: number = Date.now(),
+): { alarm: number; warning: number } {
+  let alarm = 0;
+  let warning = 0;
+  for (const order of orders) {
+    const level = getOrderRisk(order, now).level;
+    if (level === "alarm") alarm += 1;
+    else if (level === "warning") warning += 1;
+  }
+  return { alarm, warning };
+}

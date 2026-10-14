@@ -61,3 +61,21 @@ export function getOrderStage(order: OrderStageSource): OrderStage {
       return "processing";
   }
 }
+
+/** Counts orders per stage for at-a-glance counters. */
+export function countOrdersByStage<T extends OrderStageSource>(
+  orders: readonly T[],
+): Record<OrderStage, number> {
+  const counts: Record<OrderStage, number> = {
+    processing: 0,
+    sent: 0,
+    awaiting_pickup: 0,
+    delivered: 0,
+    returned: 0,
+    cancelled: 0,
+  };
+  for (const order of orders) {
+    counts[getOrderStage(order)] += 1;
+  }
+  return counts;
+}

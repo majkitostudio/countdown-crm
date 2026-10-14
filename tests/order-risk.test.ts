@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysOnPickup, getOrderRisk } from "@/lib/orderRisk";
+import { countOrdersByRisk, daysOnPickup, getOrderRisk } from "@/lib/orderRisk";
 
 const NOW = Date.UTC(2026, 9, 14, 12, 0, 0); // 2026-10-14T12:00:00Z
 
@@ -51,5 +51,20 @@ describe("pickup risk", () => {
       NOW,
     );
     expect(risk).toEqual({ level: "calm", daysOnPickup: 5 });
+  });
+
+  it("counts alarm and warning packages", () => {
+    const counts = countOrdersByRisk(
+      [
+        { status: "sent", package_location: "Z-BOX", package_arrived_at: at(4) },
+        { status: "sent", package_location: "Z-BOX", package_arrived_at: at(3) },
+        { status: "sent", package_location: "Z-BOX", package_arrived_at: at(2) },
+        { status: "sent", package_location: "Z-BOX", package_arrived_at: at(1) },
+        { status: "delivered" },
+      ],
+      NOW,
+    );
+
+    expect(counts).toEqual({ alarm: 2, warning: 1 });
   });
 });
