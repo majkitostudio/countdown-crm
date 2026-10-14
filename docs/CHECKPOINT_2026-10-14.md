@@ -72,3 +72,38 @@ Vizuální náhled (statické HTML s ukázkovými daty, mimo repozitář):
 
 1. Dokončit rozhodnutí Fáze 4 (umístění, název, koncept).
 2. Pak krok 1 návrhu: sdílený model oddělení P1–P4.
+
+## Dodatek — úklidová session (15. 10. 2026)
+
+Tento dodatek ruší stavové údaje výše (poslední commit, „nic není pushnuté") — platily
+jen k 14. 10. před úklidem.
+
+**Úklid (CHECKPOINT):**
+- Záloha: tag `checkpoint-2026-10-14-pre-uklid` + bundle v `countdown-crm-archives/`.
+- Smazáno ~1,25 GB smetí mimo git (vnořený worktree `docker/.worktrees`, `.next`,
+  `.playwright-*`, `.superpowers`, `output`, tsbuildinfo…). `.env.local` zachován.
+- Smazány překonané větve `codex/design-system-*`, zrušeny stale worktrees, zahozen
+  prázdný Cline stash. Z gitu odstraněny stray artefakty (3× PNG, 2× task-report).
+- Baseline i po úklidu zelený (`verify:all`: lint, typecheck, testy, build).
+
+**Fáze 4 — rozhodnutí (hotovo):**
+- Termín: **Department** (anglicky, P1–P4). Slovo „kampaň" se nepoužívá.
+- Tým = department + iniciála příjmení TL → `P1K` (P1 + Jan Kačmář).
+- Umístění přehledu front: nový view v **Team Workspace**.
+- Koncept: **obojí** — souhrn oddělení + seznam leadů.
+- Budoucnost: admin bude moct přejmenovat departments i týmy.
+
+**Fáze 4 — krok 1 (hotovo):**
+- `src/lib/department.ts` = jediný zdroj pravdy pro P1–P4 (klíč, slug, název, účel,
+  rozpoznání oddělení z týmu, výchozí název týmu). Demo týmy v `src/lib/dal/teams.ts`
+  z něj teď čtou.
+
+**Zjištěná nekonzistence (do Fáze 5):**
+- Oddělení jsou dnes v datech vedená jako `teams` (P3/P4 zakládají migrace se slugy
+  `p3`/`p4`), P1/P2 v reálném workspace chybí. Migrace ještě používají názvy
+  „Oddělení P3/P4" a nejsou oddělené od týmů — sjednotit a oddělit při Fázi 5.
+
+**Drobnosti (hotovo):**
+- OrderStageSummary se neukazuje dvakrát (jen v Kanban view).
+- `/team/exceptions` už není duplicitně v menu (jen záložka v Team Workspace).
+- `scripts/verify-all-migrations.mjs` už nehlásí natvrdo „127" (počítá soubory).
