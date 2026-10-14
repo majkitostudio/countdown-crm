@@ -6,6 +6,7 @@ import { createDataClient } from "./db";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceRole } from "./workspace";
 import { normalizeTeamSlug } from "@/lib/teamModel";
+import { DEPARTMENTS } from "@/lib/department";
 
 const DEMO_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -60,44 +61,15 @@ function mapTeamMembership(
   };
 }
 
-export const DEMO_TEAMS: TeamDTO[] = [
-  {
-    id: "demo-team-p1",
-    workspace_id: DEMO_WORKSPACE_ID,
-    name: "Fronta P1 (Hlavní prodejní linka)",
-    slug: "fronta-p1",
-    status: "active",
-    created_at: "2026-09-01T08:00:00.000Z",
-    updated_at: "2026-09-01T08:00:00.000Z",
-  },
-  {
-    id: "demo-team-p2",
-    workspace_id: DEMO_WORKSPACE_ID,
-    name: "Fronta P2 (Ranní směna)",
-    slug: "fronta-p2",
-    status: "active",
-    created_at: "2026-09-01T08:00:00.000Z",
-    updated_at: "2026-09-01T08:00:00.000Z",
-  },
-  {
-    id: "demo-team-p3",
-    workspace_id: DEMO_WORKSPACE_ID,
-    name: "Oddělení P3 (Retence & Péče o zákazníky)",
-    slug: "oddeleni-p3",
-    status: "active",
-    created_at: "2026-09-01T08:00:00.000Z",
-    updated_at: "2026-09-01T08:00:00.000Z",
-  },
-  {
-    id: "demo-team-p4",
-    workspace_id: DEMO_WORKSPACE_ID,
-    name: "Oddělení P4 (Retargeting & Recyklace)",
-    slug: "oddeleni-p4",
-    status: "active",
-    created_at: "2026-09-01T08:00:00.000Z",
-    updated_at: "2026-09-01T08:00:00.000Z",
-  },
-];
+export const DEMO_TEAMS: TeamDTO[] = DEPARTMENTS.map((department) => ({
+  id: `demo-team-${department.slug}`,
+  workspace_id: DEMO_WORKSPACE_ID,
+  name: department.name,
+  slug: department.slug,
+  status: "active" as const,
+  created_at: "2026-09-01T08:00:00.000Z",
+  updated_at: "2026-09-01T08:00:00.000Z",
+}));
 
 export async function listAccessibleTeams(requestedWorkspaceId?: string): Promise<TeamDTO[]> {
   if (isDemoAuthEnabled()) {
