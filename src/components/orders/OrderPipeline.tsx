@@ -11,6 +11,7 @@ import { Surface } from "@/components/ui/Surface";
 import { CarrierExportDropdown } from "@/components/orders/CarrierExportDropdown";
 import { OrderKanban } from "@/components/orders/OrderKanban";
 import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
+import { getOrderRisk } from "@/lib/orderRisk";
 
 type ViewMode = "table" | "kanban";
 type PipelineStatus = "all" | "sent_and_returned" | OrderStage;
@@ -35,6 +36,14 @@ export function getOrderStatusTone(status: string): SemanticTone {
   if (status === "cancelled" || status === "returned") return "danger";
   if (status === "pending") return "warning";
   return "neutral";
+}
+
+/** Colour for the pickup-location line based on package risk. */
+function pickupRiskTone(order: WorkspaceOrderDTO): { text: string; icon: string } {
+  const level = getOrderRisk(order).level;
+  if (level === "alarm") return { text: "text-rose-300", icon: "text-rose-400" };
+  if (level === "warning") return { text: "text-amber-300", icon: "text-amber-400" };
+  return { text: "text-amber-300/90", icon: "text-amber-400" };
 }
 
 function statusLabel(status: string): string {
@@ -376,8 +385,8 @@ export function OrderPipeline({
                       <dd className="mt-1 space-y-1">
                         <StatusBadge tone={getOrderStatusTone(order.status)}>{statusLabel(order.status)}</StatusBadge>
                         {order.package_location && (
-                          <span className="flex items-center gap-1 text-[10px] font-medium text-amber-300 truncate" title={order.package_location}>
-                            <MapPin className="h-2.5 w-2.5 shrink-0 text-amber-400" />
+                          <span className={`flex items-center gap-1 text-[10px] font-medium truncate ${pickupRiskTone(order).text}`} title={order.package_location}>
+                            <MapPin className={`h-2.5 w-2.5 shrink-0 ${pickupRiskTone(order).icon}`} />
                             <span className="truncate">{order.package_location}</span>
                           </span>
                         )}
@@ -455,8 +464,8 @@ export function OrderPipeline({
                           <StatusBadge tone={getOrderStatusTone(order.status)}>{statusLabel(order.status)}</StatusBadge>
                         </div>
                         {order.package_location && (
-                          <span className="flex items-center gap-1 text-[11px] font-medium text-amber-300/90 max-w-[220px] truncate" title={order.package_location}>
-                            <MapPin className="h-3 w-3 shrink-0 text-amber-400" />
+                          <span className={`flex items-center gap-1 text-[11px] font-medium max-w-[220px] truncate ${pickupRiskTone(order).text}`} title={order.package_location}>
+                            <MapPin className={`h-3 w-3 shrink-0 ${pickupRiskTone(order).icon}`} />
                             <span className="truncate">{order.package_location}</span>
                           </span>
                         )}

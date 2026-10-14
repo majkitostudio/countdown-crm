@@ -17,6 +17,7 @@ import type { WorkspaceRole } from "@/lib/auth/roles";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
+import { getOrderRisk } from "@/lib/orderRisk";
 
 // --- helpers ---
 
@@ -102,16 +103,12 @@ function OrderCard({
 }: {
   order: WorkspaceOrderDTO;
 }) {
-  // Alert logic: package on pickup point for 3+ days and not yet called
-  const daysOnPickup =
-    order.status === "sent" && order.package_location
-      ? daysSince(order.package_arrived_at)
-      : null;
-
-  const isPickupAlert =
-    daysOnPickup !== null &&
-    daysOnPickup >= 3 &&
-    !order.pickup_call_completed_at;
+  // Pickup risk: a sent package at a pickup point for 3+ days is an alarm
+  // (mirrors the P4 routing); the day before is a warning.
+  const risk = getOrderRisk(order);
+  const daysOnPickup = risk.daysOnPickup;
+  const isPickupAlarm = risk.level === "alarm";
+  const isPickupWarning = risk.level === "warning";
 
   // Days since delivered (for P3 retence countdown)
   const daysSinceDelivered =
@@ -122,9 +119,11 @@ function OrderCard({
   return (
     <article
       className={`group relative rounded-xl border bg-zinc-900 p-3.5 transition-shadow hover:shadow-lg ${
-        isPickupAlert
+        isPickupAlarm
           ? "border-rose-500/60 ring-1 ring-rose-500/20"
-          : "border-zinc-800"
+          : isPickupWarning
+            ? "border-amber-500/60 ring-1 ring-amber-500/20"
+            : "border-zinc-800"
       }`}
     >
       {/* top row: ID + open link */}
@@ -165,16 +164,24 @@ function OrderCard({
         {order.product_title}
       </p>
 
-      {/* pickup alert */}
-      {isPickupAlert && (
+      {/* pickup alarm */}
+      {isPickupAlarm && (
         <div className="mb-2.5 flex items-center gap-1.5 rounded-lg bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300">
           <AlertTriangle className="h-3 w-3 shrink-0 text-rose-400" />
           Leží na výdejně {daysOnPickup} {daysOnPickup === 1 ? "den" : "dny/dní"}!
         </div>
       )}
 
+      {/* pickup warning */}
+      {isPickupWarning && (
+        <div className="mb-2.5 flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-300">
+          <AlertTriangle className="h-3 w-3 shrink-0 text-amber-400" />
+          Na výdejně {daysOnPickup} {daysOnPickup === 1 ? "den" : "dny"} — blíží se limit!
+        </div>
+      )}
+
       {/* package location (non-alert) */}
-      {order.package_location && !isPickupAlert && (
+      {order.package_location && !isPickupAlarm && !isPickupWarning && (
         <p className="mb-2 truncate text-[10px] text-amber-300/80">
           📍 {order.package_location}
         </p>
@@ -239,25 +246,33 @@ export function OrderKanban({
     COLUMNS.map((col) => [col.id, orders.filter((o) => getOrderStage(o) === col.id)])
   ) as Record<ColumnId, WorkspaceOrderDTO[]>;
 
-  // count pickup alerts across entire board
-  const pickupAlertCount = orders.filter((o) => {
-    const days = o.status === "sent" && o.package_location
-      ? daysSince(o.package_arrived_at)
-      : null;
-    return days !== null && days >= 3 && !o.pickup_call_completed_at;
-  }).length;
+  // pickup risk across the whole board
+  const pickupAlarmCount = orders.filter((o) => getOrderRisk(o).level === "alarm").length;
+  const pickupWarningCount = orders.filter((o) => getOrderRisk(o).level === "warning").length;
 
   return (
     <div className="space-y-4">
-      {pickupAlertCount > 0 && (
+      {pickupAlarmCount > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-500/8 px-4 py-3">
           <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
           <p className="text-xs font-semibold text-rose-300">
-            {pickupAlertCount}{" "}
-            {pickupAlertCount === 1
+            {pickupAlarmCount}{" "}
+            {pickupAlarmCount === 1
               ? "balíček leží na výdejně déle než 3 dny a nebyl obvolán!"
               : "balíčků leží na výdejně déle než 3 dny a nebyly obvolány!"}
             {" "}Jsou automaticky zařazeny do fronty P4.
+          </p>
+        </div>
+      )}
+
+      {pickupWarningCount > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+          <p className="text-xs font-semibold text-amber-300">
+            {pickupWarningCount}{" "}
+            {pickupWarningCount === 1
+              ? "balíček leží na výdejně 2 dny — zítra propadá limitu!"
+              : "balíčků leží na výdejně 2 dny — zítra propadají limitu!"}
           </p>
         </div>
       )}
