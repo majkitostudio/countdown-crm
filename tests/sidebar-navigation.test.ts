@@ -21,10 +21,10 @@ describe("role-aware sidebar navigation", () => {
     expect(administratorPaths).toContain("/admin");
   });
 
-  it("shows the exception queue only to team leaders and administrators", () => {
-    expect(getAllowedSidebarNavigationItems("operator").map((item) => item.href)).not.toContain("/team/exceptions");
-    expect(getAllowedSidebarNavigationItems("team_leader").map((item) => item.href)).toContain("/team/exceptions");
-    expect(getAllowedSidebarNavigationItems("administrator").map((item) => item.href)).toContain("/team/exceptions");
+  it("keeps the exception queue out of the sidebar (it lives as a Team Workspace tab)", () => {
+    for (const role of ["operator", "team_leader", "administrator"] as const) {
+      expect(getAllowedSidebarNavigationItems(role).map((item) => item.href)).not.toContain("/team/exceptions");
+    }
   });
 
   it("keeps ordinary operator-presence states neutral", () => {

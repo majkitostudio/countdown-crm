@@ -8,7 +8,6 @@ import {
   PhoneCall,
   ScrollText,
   Settings,
-  ShieldAlert,
   ShieldCheck,
   ShoppingBag,
   Users,
@@ -76,7 +75,6 @@ const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
 
   // Team
   { label: "Team Workspace", href: "/team", icon: Users, section: "team", roles: MANAGER_ROLES },
-  { label: "Exception Queue", href: "/team/exceptions", icon: ShieldAlert, section: "team", roles: MANAGER_ROLES },
   { label: "Leads", href: "/leads", icon: Contact, section: "team", roles: MANAGER_ROLES },
 
   // Reporting

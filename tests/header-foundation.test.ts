@@ -22,9 +22,7 @@ describe("unified authenticated header foundations", () => {
 
     expect(leaderPaths).toContain("/leads");
     expect(leaderPaths).toContain("/reports");
-    expect(leaderPaths).toContain("/team/exceptions");
     expect(leaderPaths).toContain("/team");
-    expect(administratorPaths).toContain("/team/exceptions");
     expect(administratorPaths).toContain("/team");
     expect(getAllowedNavigationCommands("team_leader").find((item) => item.path === "/team")?.label).toBe("Team Workspace");
   });
@@ -35,5 +33,14 @@ describe("unified authenticated header foundations", () => {
     expect(getPageHeaderBadgeClassName("unavailable")).toBe(getStatusClassName("neutral"));
     expect(getPageHeaderBadgeClassName("success")).toBe(getStatusClassName("success"));
     expect(getPageHeaderBadgeClassName("warning")).toBe(getStatusClassName("warning"));
+  });
+
+  it("keeps Exception Queue as a Team Workspace tab rather than a standalone nav item", () => {
+    const leaderPaths = getAllowedNavigationCommands("team_leader").map((item) => item.path);
+    const administratorPaths = getAllowedNavigationCommands("administrator").map((item) => item.path);
+
+    expect(leaderPaths).not.toContain("/team/exceptions");
+    expect(administratorPaths).not.toContain("/team/exceptions");
+    expect(leaderPaths).toContain("/team");
   });
 });
