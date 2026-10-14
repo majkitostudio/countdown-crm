@@ -35,6 +35,7 @@ const TYPE_LABELS = {
   outcome_recovery: "Outcome recovery",
   overdue_callback: "Overdue callback",
   expired_lease: "Expired assignment",
+  pickup_risk: "Pickup risk",
   workflow_failure: "Workflow failure",
   missing_script: "Missing product script",
 } as const;

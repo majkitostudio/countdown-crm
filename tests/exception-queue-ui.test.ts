@@ -28,6 +28,7 @@ const data: ExceptionQueueDTO = {
   history: [],
   sources: {
     queue: { state: "available" },
+    orders: { state: "available" },
     workflows: { state: "unavailable", message: "Workflow failure checks could not be loaded." },
     scripts: { state: "available" },
     actions: { state: "available" },
@@ -41,6 +42,7 @@ describe("Exception Queue UI", () => {
 
     expect(html).toContain("Exception Queue");
     expect(html).toContain("Outcome recovery");
+    expect(html).toContain("Pickup risk");
     expect(html).toContain("Jana Nováková");
     expect(html).toContain("Jan Operator");
     expect(html).toContain("Critical");

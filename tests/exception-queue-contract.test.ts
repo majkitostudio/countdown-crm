@@ -72,6 +72,38 @@ const sources: ExceptionQueueSourcesInput = {
       },
     ],
   },
+  pickupRiskOrders: {
+    status: "fulfilled",
+    value: [
+      {
+        id: "order-alarm",
+        lead_id: "lead-pickup",
+        status: "sent",
+        package_location: "Výdejní místo Praha 1",
+        package_arrived_at: "2026-09-03T09:00:00.000Z",
+        pickup_call_completed_at: null,
+        lead: { full_name: "Pickup Customer" },
+      },
+      {
+        id: "order-warning",
+        lead_id: "lead-warning",
+        status: "sent",
+        package_location: "Výdejní místo Brno",
+        package_arrived_at: "2026-09-04T08:00:00.000Z",
+        pickup_call_completed_at: null,
+        lead: { full_name: "Warning Customer" },
+      },
+      {
+        id: "order-called",
+        lead_id: "lead-called",
+        status: "sent",
+        package_location: "Výdejní místo Ostrava",
+        package_arrived_at: "2026-09-02T08:00:00.000Z",
+        pickup_call_completed_at: "2026-09-05T08:00:00.000Z",
+        lead: { full_name: "Called Customer" },
+      },
+    ],
+  },
   workflowExecutions: {
     status: "fulfilled",
     value: [{
@@ -107,12 +139,16 @@ function queryResult(data: unknown, error: unknown = null) {
     select: vi.fn(),
     eq: vi.fn(),
     in: vi.fn(),
+    not: vi.fn(),
+    is: vi.fn(),
     order: vi.fn(),
     then: promise.then.bind(promise),
   };
   query.select.mockReturnValue(query);
   query.eq.mockReturnValue(query);
   query.in.mockReturnValue(query);
+  query.not.mockReturnValue(query);
+  query.is.mockReturnValue(query);
   query.order.mockReturnValue(query);
   return query;
 }
@@ -134,6 +170,7 @@ describe("Team Leader Exception Queue", () => {
       { id: "queue:outcome_recovery:queue-recovery", type: "outcome_recovery", priority: "critical" },
       { id: "queue:overdue_callback:queue-callback", type: "overdue_callback", priority: "high" },
       { id: "queue:expired_lease:queue-lease", type: "expired_lease", priority: "high" },
+      { id: "order:pickup_risk:order-alarm", type: "pickup_risk", priority: "high" },
       { id: "workflow:failure:workflow-failure", type: "workflow_failure", priority: "medium" },
       { id: "script:missing:product-missing", type: "missing_script", priority: "medium" },
     ]);
@@ -142,6 +179,30 @@ describe("Team Leader Exception Queue", () => {
       id: "operator-2",
       name: "Eva Operator",
     });
+  });
+
+  it("raises a pickup risk alarm only after three days without a pickup call", () => {
+    const result = buildTeamLeaderExceptionQueue(sources, now);
+    const pickupItems = result.items.filter((item) => item.type === "pickup_risk");
+
+    expect(pickupItems).toHaveLength(1);
+    expect(pickupItems[0]).toMatchObject({
+      id: "order:pickup_risk:order-alarm",
+      priority: "high",
+      target: { kind: "order", id: "order-alarm", label: "Pickup Customer" },
+      source: { table: "orders", id: "order-alarm" },
+      next_action: { label: "Open order", href: "/orders/order-alarm" },
+      callReview: null,
+    });
+    expect(pickupItems[0].occurred_at).toBe("2026-09-06T09:00:00.000Z");
+  });
+
+  it("keeps the queue quiet for warnings and called customers", () => {
+    const result = buildTeamLeaderExceptionQueue(sources, now);
+    const pickupIds = result.items.filter((item) => item.type === "pickup_risk").map((item) => item.id);
+
+    expect(pickupIds).not.toContain("order:pickup_risk:order-warning");
+    expect(pickupIds).not.toContain("order:pickup_risk:order-called");
   });
 
   it("links outcome recovery only through its queue item session and completed call", () => {
@@ -255,6 +316,7 @@ describe("Team Leader Exception Queue", () => {
   it("keeps workspace-global sources out of Team Leader reads", async () => {
     const tableResults: Record<string, unknown[]> = {
       lead_queue_items: [],
+      orders: [],
       workflow_executions: [],
       products: [],
       product_scripts: [],
@@ -262,9 +324,11 @@ describe("Team Leader Exception Queue", () => {
       telephony_call_sessions: [],
     };
     const queueQuery = queryResult(tableResults.lead_queue_items);
+    const orderQuery = queryResult(tableResults.orders);
     const productQuery = queryResult(tableResults.products);
     const from = vi.fn((table: string) => {
       if (table === "lead_queue_items") return queueQuery;
+      if (table === "orders") return orderQuery;
       if (table === "products") return productQuery;
       return queryResult(tableResults[table]);
     });
@@ -273,8 +337,10 @@ describe("Team Leader Exception Queue", () => {
     await expect(listTeamLeaderExceptions()).resolves.toMatchObject({ items: [] });
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["team_leader", "administrator"]);
-    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenCalledTimes(2);
     expect(queueQuery.in).toHaveBeenCalledWith("state", ["assigned", "awaiting_outcome", "waiting_callback"]);
+    expect(orderQuery.eq).toHaveBeenCalledWith("status", "sent");
+    expect(orderQuery.is).toHaveBeenCalledWith("pickup_call_completed_at", null);
     expect(productQuery.select).not.toHaveBeenCalled();
     expect(from).not.toHaveBeenCalledWith("workflow_executions");
     expect(from).not.toHaveBeenCalledWith("product_scripts");
@@ -285,6 +351,7 @@ describe("Team Leader Exception Queue", () => {
   it("keeps Administrator reads workspace-wide", async () => {
     const tableResultsForAdmin: Record<string, unknown[]> = {
       lead_queue_items: [],
+      orders: [],
       workflow_executions: [],
       products: [],
       product_scripts: [],
@@ -300,7 +367,8 @@ describe("Team Leader Exception Queue", () => {
 
     await expect(listTeamLeaderExceptions()).resolves.toMatchObject({ items: [] });
 
-    expect(from).toHaveBeenCalledTimes(5);
+    expect(from).toHaveBeenCalledTimes(6);
+    expect(from).toHaveBeenCalledWith("orders");
     expect(from).toHaveBeenCalledWith("workflow_executions");
     expect(from).toHaveBeenCalledWith("products");
     expect(from).toHaveBeenCalledWith("product_scripts");

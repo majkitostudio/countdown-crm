@@ -3,12 +3,14 @@ import "server-only";
 import { createDataClient } from "./db";
 import { DataAccessError } from "./errors";
 import { requireWorkspaceRole } from "./workspace";
+import { PICKUP_ALARM_DAYS, getOrderRisk } from "@/lib/orderRisk";
 
 export type ExceptionPriority = "critical" | "high" | "medium";
 export type ExceptionType =
   | "outcome_recovery"
   | "overdue_callback"
   | "expired_lease"
+  | "pickup_risk"
   | "workflow_failure"
   | "missing_script";
 
@@ -18,8 +20,8 @@ export interface ExceptionQueueItemDTO {
   priority: ExceptionPriority;
   reason: string;
   owner: { id: string; name: string } | null;
-  target: { kind: "lead" | "workflow" | "product"; id: string; label: string };
-  source: { table: "lead_queue_items" | "workflow_executions" | "products"; id: string };
+  target: { kind: "lead" | "workflow" | "product" | "order"; id: string; label: string };
+  source: { table: "lead_queue_items" | "workflow_executions" | "products" | "orders"; id: string };
   occurred_at: string;
   due_at: string | null;
   next_action: { label: string; href: string };
@@ -41,6 +43,7 @@ export interface ExceptionQueueDTO {
   }>;
   sources: {
     queue: ExceptionQueueSourceStatus;
+    orders: ExceptionQueueSourceStatus;
     workflows: ExceptionQueueSourceStatus;
     scripts: ExceptionQueueSourceStatus;
     actions: ExceptionQueueSourceStatus;
@@ -88,6 +91,16 @@ interface CallSessionLinkSourceRow {
   completed_call_id: string | null;
 }
 
+interface PickupRiskOrderSourceRow {
+  id: string;
+  lead_id: string | null;
+  status: string;
+  package_location: string | null;
+  package_arrived_at: string | null;
+  pickup_call_completed_at: string | null;
+  lead: { full_name: string } | null;
+}
+
 export interface ExceptionActionSourceRow {
   id?: string;
   workspace_id?: string;
@@ -104,6 +117,7 @@ export interface ExceptionActionSourceRow {
 
 export interface ExceptionQueueSourcesInput {
   queueItems: PromiseSettledResult<QueueSourceRow[]>;
+  pickupRiskOrders: PromiseSettledResult<PickupRiskOrderSourceRow[]>;
   workflowExecutions: PromiseSettledResult<WorkflowSourceRow[]>;
   products: PromiseSettledResult<ProductSourceRow[]>;
   productScripts: PromiseSettledResult<ProductScriptSourceRow[]>;
@@ -122,11 +136,12 @@ const TYPE_ORDER: Record<ExceptionType, number> = {
   outcome_recovery: 0,
   overdue_callback: 1,
   expired_lease: 2,
-  workflow_failure: 3,
-  missing_script: 4,
+  pickup_risk: 3,
+  workflow_failure: 4,
+  missing_script: 5,
 };
 
-const EXCEPTION_ID_PATTERN = /^(queue:(outcome_recovery|overdue_callback|expired_lease)|workflow:failure|script:missing):[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EXCEPTION_ID_PATTERN = /^(queue:(outcome_recovery|overdue_callback|expired_lease)|workflow:failure|script:missing|order:pickup_risk):[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function available(): ExceptionQueueSourceStatus {
   return { state: "available" };
@@ -307,6 +322,39 @@ function buildScriptExceptions(
   });
 }
 
+function pickupRiskOccurredAt(row: PickupRiskOrderSourceRow): string | null {
+  if (!row.package_arrived_at) return null;
+  const arrivedAt = Date.parse(row.package_arrived_at);
+  if (!Number.isFinite(arrivedAt)) return null;
+  return new Date(arrivedAt + PICKUP_ALARM_DAYS * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function buildPickupRiskExceptions(
+  rows: PickupRiskOrderSourceRow[],
+  now: Date,
+): ExceptionQueueItemDTO[] {
+  return rows.flatMap((row) => {
+    const risk = getOrderRisk(row, now.getTime());
+    if (risk.level !== "alarm") return [];
+    const occurredAt = pickupRiskOccurredAt(row);
+    if (!occurredAt) return [];
+
+    return [{
+      id: `order:pickup_risk:${row.id}`,
+      type: "pickup_risk" as const,
+      priority: "high" as const,
+      reason: `The package has been waiting at the pickup point for ${risk.daysOnPickup} day(s) without a completed pickup call.`,
+      owner: null,
+      target: { kind: "order" as const, id: row.id, label: row.lead?.full_name || "Order" },
+      source: { table: "orders" as const, id: row.id },
+      occurred_at: occurredAt,
+      due_at: occurredAt,
+      next_action: { label: "Open order", href: `/orders/${row.id}` },
+      callReview: null,
+    }];
+  });
+}
+
 export function buildTeamLeaderExceptionQueue(
   sources: ExceptionQueueSourcesInput,
   now = new Date(),
@@ -315,6 +363,9 @@ export function buildTeamLeaderExceptionQueue(
 
   if (sources.queueItems.status === "fulfilled") {
     items.push(...buildQueueExceptions(sources.queueItems.value, sources.callSessions, now));
+  }
+  if (sources.pickupRiskOrders.status === "fulfilled") {
+    items.push(...buildPickupRiskExceptions(sources.pickupRiskOrders.value, now));
   }
   if (sources.workflowExecutions.status === "fulfilled") {
     items.push(...buildWorkflowExceptions(sources.workflowExecutions.value));
@@ -352,6 +403,9 @@ export function buildTeamLeaderExceptionQueue(
       queue: sources.queueItems.status === "fulfilled"
         ? available()
         : unavailable("Lead queue checks could not be loaded."),
+      orders: sources.pickupRiskOrders.status === "fulfilled"
+        ? available()
+        : unavailable("Pickup risk checks could not be loaded."),
       workflows: sources.globalSourcesRestricted
         ? unavailable(workspaceGlobalRestrictionMessage)
         : sources.workflowExecutions.status === "fulfilled"
@@ -386,7 +440,7 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
   const supabase = await createDataClient();
   const isAdministrator = context.role === "administrator";
 
-  const [queueItems] = await Promise.allSettled([
+  const [queueItems, pickupRiskOrders] = await Promise.allSettled([
     loadRows<QueueSourceRow>(
       supabase
         .from("lead_queue_items")
@@ -396,6 +450,18 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
         .order("updated_at", { ascending: false }),
       "Lead queue checks could not be loaded.",
     ),
+    loadRows<PickupRiskOrderSourceRow>(
+      supabase
+        .from("orders")
+        .select("id, lead_id, status, package_location, package_arrived_at, pickup_call_completed_at, lead:leads(full_name)")
+        .eq("workspace_id", context.workspaceId)
+        .eq("status", "sent")
+        .not("package_location", "is", null)
+        .not("package_arrived_at", "is", null)
+        .is("pickup_call_completed_at", null)
+        .order("package_arrived_at", { ascending: true }),
+      "Pickup risk checks could not be loaded.",
+    ),
   ]);
 
   const visibleQueueIds = queueItems.status === "fulfilled" ? queueItems.value.map((row) => row.id) : [];
@@ -404,6 +470,9 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
     `queue:overdue_callback:${queueId}`,
     `queue:expired_lease:${queueId}`,
   ]);
+  const visibleOrderExceptionKeys = pickupRiskOrders.status === "fulfilled"
+    ? pickupRiskOrders.value.map((row) => `order:pickup_risk:${row.id}`)
+    : [];
 
   let workflowExecutions: PromiseSettledResult<WorkflowSourceRow[]> = { status: "fulfilled", value: [] };
   let products: PromiseSettledResult<ProductSourceRow[]> = { status: "fulfilled", value: [] };
@@ -440,12 +509,13 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
   }
 
   let actions: PromiseSettledResult<ExceptionActionSourceRow[]> = { status: "fulfilled", value: [] };
-  if (isAdministrator || visibleQueueExceptionKeys.length > 0) {
+  const visibleExceptionKeys = [...visibleQueueExceptionKeys, ...visibleOrderExceptionKeys];
+  if (isAdministrator || visibleExceptionKeys.length > 0) {
     const actionQuery = supabase
       .from("team_leader_exception_actions")
       .select("id, workspace_id, exception_key, status, resolution, snoozed_until, actor_id, previous_state, new_state, created_at, updated_at")
       .eq("workspace_id", context.workspaceId);
-    if (!isAdministrator) actionQuery.in("exception_key", visibleQueueExceptionKeys);
+    if (!isAdministrator) actionQuery.in("exception_key", visibleExceptionKeys);
     actionQuery.order("updated_at", { ascending: false });
 
     const [actionResult] = await Promise.allSettled([
@@ -476,6 +546,7 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
 
   return buildTeamLeaderExceptionQueue({
     queueItems,
+    pickupRiskOrders,
     workflowExecutions,
     products,
     productScripts,

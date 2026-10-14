@@ -25,6 +25,7 @@ describe("Exception Queue page", () => {
       history: [],
       sources: {
         queue: { state: "available" },
+        orders: { state: "available" },
         workflows: { state: "available" },
         scripts: { state: "available" },
         actions: { state: "available" },
