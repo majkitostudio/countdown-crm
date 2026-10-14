@@ -73,6 +73,12 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Hotovo:** `/orders` nabízí Kanban i tabulku; exporty pro dopravce (Zásilkovna, Balíkovna, GLS); tracking čísla.
 
+- Krok 1 — sdílený model stavů (`src/lib/orderStage.ts`); Kanban i filtry pokrývají všechny stavy: Processing · Sent · Awaiting Pickup · Delivered · Returned · Canceled. Opravilo to chybu, kdy objednávky ze hovoru měly stav `completed`, který Kanban neznal, a nebyly vidět.
+- Krok 2 — riziko výdejny (`src/lib/orderRisk.ts`): 3+ dny na výdejně = alarm, 2 dny = riziko, po obvolání zákazníka = v klidu; barevné zvýraznění na kartách i v tabulce.
+- Krok 3 — přehledový pruh s počty (`src/components/orders/OrderStageSummary.tsx`): Total, 6 fází, Warning, Alarm; vidí ho tabulka i Kanban.
+- Krok 4 — rizikové zásilky jako výjimka `order:pickup_risk` v Exception Queue: do fronty jde jen alarm (3+ dny na výdejně bez obvolání, priorita high), TL ji může označit „Mark handled“ / „Snooze“. DB migrace rozšiřuje CHECK klíče, RLS politiky a guard aktivního zdroje.
+- Krok 5 — index `orders (workspace_id, status, package_arrived_at)` pro dotaz na rizikové zásilky + kontraktní test.
+
 **Kroky:**
 - Zkontrolovat tok stavů: vytvořeno → k expedici → odesláno → na výdejně → doručeno → retence.
 - Dořešit výjimky/rizika (např. zásilka na výdejně déle než 3 dny), počítadla a rozlišení „v klidu / riziko / alarm“.
@@ -80,7 +86,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** každý stav má definovaný trigger a způsob řešení; výjimka je vidět hned, ne až v detailu; TL rychle pozná rizikové zásilky.
 
-**Stav:** 🔄 částečně hotovo, ladí se.
+**Stav:** ✅ hotovo (14. 10. 2026). Poznámka: migrace z kroků 4 a 5 se v tomto prostředí nespouští — čistý běh a reálné měření výkonu (`EXPLAIN` na objemu dat) patří do Fáze 5.
 
 ---
 
@@ -109,7 +115,8 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Kroky:**
 - Doplnit kontrolu **duplicitních verzí** do `scripts/verify-all-migrations.mjs` (teď hlásí zastarale „ALL 127 MIGRATIONS“ a duplicity nekontroluje).
-- Ověřit **čistý běh** celého řetězce na čisté PostgreSQL/Supabase databázi.
+- Ověřit **čistý běh** celého řetězce na čisté PostgreSQL/Supabase databázi — včetně migrací Fáze 3 `20261014120000_team_leader_exception_pickup_risk.sql` a `20261014130000_orders_pickup_risk_index.sql`, které se ve vývojovém prostředí nespouští.
+- Změřit výkon `EXPLAIN` na objemu dat u dotazů Fáze 3 (rizikové zásilky na výdejně, Exception Queue) — indexy existují, ale nejsou ověřené na datech.
 - Zavést kontrolu „migration parity“ před dalším větším rozvojem.
 
 **Ověření:** žádné duplicitní verze; migrace lze spustit z čistého stavu; změny modelu jsou mapované na role a workflow.
@@ -155,10 +162,11 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0, 1 a 2 jsou hotové.** Fáze 2 dokončila všechny tři vlny (názvy, sloučení obrazovek i nové URL
-`/console`, `/schedule`, `/call-logs`, `/reports`, `/automations`, `/admin/users` a `/team/*`
-s přesměrováním starých cest).
+**Fáze 0, 1, 2 a 3 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
+výjimka `order:pickup_risk` v Exception Queue.
 
-**Další na řadě je Fáze 3 — Objednávky** (stabilizace Kanbanu a toku stavů). Konkrétní prioritu vždy volí PM.
+**Další na řadě je Fáze 4 — P1–P4 jako obecný provozní model** (databáze hotová, čeká UI přehled front).
+Konkrétní prioritu vždy volí PM. Čistý běh migrací a reálné měření výkonu (`EXPLAIN`) řeší Fáze 5.
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).
