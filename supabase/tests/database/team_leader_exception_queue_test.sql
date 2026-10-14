@@ -1,6 +1,6 @@
 begin;
 
-select plan(13);
+select plan(15);
 
 select ok(
   to_regclass('public.team_leader_exception_actions') is not null,
@@ -108,6 +108,22 @@ select ok(
   has_function_privilege('authenticated', 'private.assert_team_leader_exception_active(uuid,text)', 'execute')
   and not has_function_privilege('anon', 'private.assert_team_leader_exception_active(uuid,text)', 'execute'),
   'active-source guard is unavailable to anonymous requests'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_constraint
+    where conrelid = to_regclass('public.team_leader_exception_actions')
+      and conname = 'team_leader_exception_actions_exception_key_check'
+      and pg_get_constraintdef(oid) like '%order:pickup_risk%'
+  ),
+  'exception key check accepts the pickup risk type'
+);
+
+select ok(
+  pg_get_functiondef('private.assert_team_leader_exception_active(uuid,text)'::regprocedure) like '%order:pickup_risk%',
+  'active-source guard validates the pickup risk branch'
 );
 
 select * from finish();

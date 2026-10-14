@@ -1,6 +1,6 @@
 begin;
 
-select plan(21);
+select plan(24);
 
 insert into auth.users (id, email, aud, role, raw_user_meta_data)
 values
@@ -65,6 +65,38 @@ values
     '49999999-9999-4999-8999-999999999999',
     'awaiting_outcome',
     null
+  );
+
+insert into public.orders (
+  id,
+  workspace_id,
+  lead_id,
+  total_amount,
+  status,
+  package_location,
+  package_arrived_at,
+  pickup_call_completed_at
+)
+values
+  (
+    '49999999-9999-4999-8999-999999999991',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    '47777777-7777-4777-8777-777777777777',
+    120.00,
+    'sent',
+    'Výdejní místo A',
+    now() - interval '4 days',
+    null
+  ),
+  (
+    '49999999-9999-4999-8999-999999999992',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    '48888888-8888-4888-8888-888888888888',
+    120.00,
+    'sent',
+    'Výdejní místo A',
+    now() - interval '4 days',
+    now() - interval '1 day'
   );
 
 set local role authenticated;
@@ -266,6 +298,36 @@ select throws_ok(
   'P0001',
   'Team Leader or Administrator access is required',
   'administrator cannot mutate another workspace decision'
+);
+
+-- Pickup risk (order:pickup_risk) is workspace-scoped, so a Team Leader manages it.
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"41111111-1111-4111-8111-111111111111"}', true);
+
+select lives_ok(
+  $$select * from public.resolve_team_leader_exception(
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    'order:pickup_risk:49999999-9999-4999-8999-999999999991',
+    'Customer called about the waiting package.'
+  )$$,
+  'Team Leader resolves a pickup risk exception in their workspace'
+);
+
+select is(
+  (select count(*)::integer from public.team_leader_exception_actions
+   where exception_key = 'order:pickup_risk:49999999-9999-4999-8999-999999999991'),
+  1,
+  'the pickup risk decision is visible to the Team Leader'
+);
+
+select throws_ok(
+  $$select * from public.resolve_team_leader_exception(
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    'order:pickup_risk:49999999-9999-4999-8999-999999999992',
+    'This package was already called.'
+  )$$,
+  'P0001',
+  'Exception is no longer active',
+  'a package already called cannot be resolved as a pickup risk'
 );
 
 select * from finish();
