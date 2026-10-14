@@ -241,8 +241,6 @@ export function OrderPipeline({
         </Surface>
       )}
 
-      <OrderStageSummary orders={orders} />
-
       <div className="space-y-4">
         {/* view toggle & search toolbar */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -306,7 +304,10 @@ export function OrderPipeline({
 
         {/* Kanban view */}
         {viewMode === "kanban" && (
-          <OrderKanban orders={search ? visibleOrders : orders} role={role} />
+          <>
+            <OrderStageSummary orders={orders} />
+            <OrderKanban orders={search ? visibleOrders : orders} role={role} />
+          </>
         )}
 
         {/* Table view */}
