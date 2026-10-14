@@ -23,4 +23,18 @@ describe("Database Performance Composite Indexes Contract", () => {
     expect(migrationContent).toContain("leads (workspace_id, status)");
     expect(migrationContent).toContain("lead_queue_items (assigned_operator_id, state)");
   });
+
+  it("indexes the pickup risk scan used by the Exception Queue", () => {
+    const pickupRiskMigration = resolve(
+      process.cwd(),
+      "supabase/migrations/20261014130000_orders_pickup_risk_index.sql",
+    );
+
+    expect(existsSync(pickupRiskMigration)).toBe(true);
+
+    const migrationContent = readFileSync(pickupRiskMigration, "utf8");
+
+    expect(migrationContent).toContain("orders_workspace_status_package_arrived_idx");
+    expect(migrationContent).toContain("orders (workspace_id, status, package_arrived_at)");
+  });
 });
