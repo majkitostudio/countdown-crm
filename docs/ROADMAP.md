@@ -111,7 +111,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Cíl:** odstranit technické riziko skryté za „všechno funguje“.
 
-**Hotovo:** duplicitní timestamp migrace vyřešen; 130 souborů migrací, 0 duplicit.
+**Hotovo:** duplicitní timestamp migrace vyřešen; 131 souborů migrací, 0 duplicit.
 
 **Kroky:**
 - Doplnit kontrolu **duplicitních verzí** do `scripts/verify-all-migrations.mjs` (počet migrací už hlásí správně — opraveno 15. 10. 2026). ✅ hotovo.
@@ -121,7 +121,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** žádné duplicitní verze; migrace lze spustit z čistého stavu; změny modelu jsou mapované na role a workflow.
 
-**Stav:** ✅ hotovo (15. 10. 2026). Kontrola duplicit je v `verify:migrations`; `supabase db reset` projde celý řetězec 130 migrací + seed na čisté databázi; dotazy Fáze 3 změřené na 200–300 tis. řádcích (do ~90 ms); kontrola parity zavedena jako `npm run verify:parity` (lokálně 130 = 130). Revize, měření a nálezy: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
+**Stav:** ✅ hotovo (15. 10. 2026). Kontrola duplicit je v `verify:migrations`; `supabase db reset` projde celý řetězec 131 migrací + seed na čisté databázi; dotazy Fáze 3 změřené na 200–300 tis. řádcích (do ~90 ms); kontrola parity zavedena jako `npm run verify:parity` (lokálně 131 = 131). Revize, měření a nálezy: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
 
 **Nález fáze:** databázové pgTAP testy (`supabase test db`) na čisté databázi selhávaly — fixtures byly z doby před týmovým modelem a CI databázový job neměl. ✅ vyřešeno ve Fázi 5.1.
 
@@ -137,9 +137,27 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 - Opravit fixtures pgTAP testů tak, aby respektovaly týmové přiřazení (`can_manage_team_resource`) a hovory s `team_id`. ✅ hotovo.
 - Přidat do CI job, který zvedne lokální Supabase a spustí `supabase test db`. ✅ hotovo.
 
-**Ověření:** `npx supabase test db` na čistě resetované databázi hlásí `Files=11, Tests=193, Result: PASS`; nový CI job `database-tests` spouští `supabase start` → `supabase db reset` → `supabase test db`.
+**Ověření:** `npx supabase test db` na čistě resetované databázi hlásí `Files=12, Tests=216, Result: PASS`; nový CI job `database-tests` spouští `supabase start` → `supabase db reset` → `supabase test db`.
 
 **Stav:** ✅ hotovo (15. 10. 2026). Detaily: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
+
+---
+
+## Fáze 5.1b — Vlastnictví záznamů (dořešené riziko z 5.1)
+
+**Cíl:** dokončit to, co Fáze 5.1 jen pojmenovala — že záznam bez potvrzeného týmu (`team_id IS NULL`) je vidět jen administrátorovi.
+
+**Proč:** `NULL` není vada; je to stav „import přišel, administrátor ještě nerozhodl“. Slabé bylo, že se po potvrzení týmu u leadu nedoplnila jeho položka fronty (pro vedoucího i operátora neviditelná) a nikde nebylo vidět, kolik záznamů na potvrzení čeká.
+
+**Kroky:**
+- Kaskáda vlastnictví v migraci `20261015090000_team_ownership_queue_cascade.sql`: potvrzením týmu u leadu se doplní jeho položky fronty a naopak; **nikdy se nepřepíše** už potvrzený tým a nemění se stav fronty ani operátor. ✅ hotovo.
+- RPC nově vrací `leads_updated`, `queue_items_updated` a `queue_items_remaining`, aby UI nelhalo. ✅ hotovo.
+- Panel se přesunul ze `/admin/users` na vlastní stránku `/admin/ownership` a karta **Team Ownership** v Management hubu nese počítadlo „bez přiřazení“. ✅ hotovo.
+- Doplnit testy: 23 pgTAP situací + `tests/team-ownership-cascade.test.ts` (route i UI kontrakt). ✅ hotovo.
+
+**Ověření:** `supabase db reset` → `npx supabase test db` = `Files=12, Tests=216, Result: PASS`; `npm test` = 872 testů v 180 souborech; `npm run verify:parity` = 131 = 131.
+
+**Stav:** ✅ hotovo (15. 10. 2026). Rozhodnuto **nezavádět `NOT NULL`** — rozbilo by automatizovaný administrátorský import. Detaily: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
 
 ---
 
@@ -180,13 +198,15 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2, 3, 4, 5 a 5.1 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3, 4, 5, 5.1 a 5.1b jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
 provozní model a přidala přehled front (view **Queues** v Team Workspace). Fáze 5 ověřila
 migrace z čistého stavu, změřila dotazy na objemu dat a zavedla kontrolu migration parity
 (viz [PHASE_5_MIGRATIONS_REVIEW.md](PHASE_5_MIGRATIONS_REVIEW.md)). Fáze 5.1 opravila fixtures
-databázových pgTAP testů (týmové přiřazení) a přidala do CI job `database-tests`.
+databázových pgTAP testů (týmové přiřazení) a přidala do CI job `database-tests`. Fáze 5.1b
+dokončila vlastnictví záznamů: potvrzení týmu se doplní tam, kde chybí, panel se přesunul
+na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení“.
 
 **Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ).
 

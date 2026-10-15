@@ -13,10 +13,11 @@ Tento dokument je záznam o tom, co se ověřilo, co se naměřilo a co zůstáv
 | Krok | Co se ověřovalo | Výsledek |
 | --- | --- | --- |
 | 5.2 | Duplicitní verze migrací | ✅ hotovo — kontrola je součástí `verify:migrations` |
-| 5.3 | Čistý běh celého řetězce na čisté DB | ✅ 130 migrací + seed projde bez chyby |
+| 5.3 | Čistý běh celého řetězce na čisté DB | ✅ 131 migrací + seed projde bez chyby |
 | 5.4 | Výkon dotazů z Fáze 3 na objemu dat | ✅ oba dotazy do ~90 ms na 200–300 tis. řádcích |
-| 5.5 | „Migration parity“ (disk vs. databáze) | ✅ lokálně 130 = 130; skript `verify:parity` |
-| 5.1 | Databázové pgTAP testy a CI gate | ✅ opraveno — `Files=11, Tests=193, PASS` + nový CI job |
+| 5.5 | „Migration parity“ (disk vs. databáze) | ✅ lokálně 131 = 131; skript `verify:parity` |
+| 5.1 | Databázové pgTAP testy a CI gate | ✅ opraveno — `Files=12, Tests=216, PASS` + nový CI job |
+| 5.1b | Vlastnictví záznamů (riziko z 5.1) | ✅ vyřešeno — kaskáda + viditelné počítadlo |
 | — | Departments vs. týmy | ⏸️ odloženo do samostatné fáze |
 
 ---
@@ -39,7 +40,7 @@ Tento dokument je záznam o tom, co se ověřilo, co se naměřilo a co zůstáv
 
 **Proč:** Některé migrace se ve vývojovém prostředí nikdy nespouštěly. „Soubor existuje“ ještě neznamená „migrace projde na prázdné databázi“.
 
-**Ověřeno:** `npx supabase db reset` na lokálním Docker Supabase projde celý řetězec **od nuly**: aplikuje **130 migrací** a poté spustí seed. Exit 0. Zahrnuty jsou i obě migrace z Fáze 3, které se dřív neověřovaly:
+**Ověřeno:** `npx supabase db reset` na lokálním Docker Supabase projde celý řetězec **od nuly**: aplikuje **131 migrací** a poté spustí seed. Exit 0. Zahrnuty jsou i obě migrace z Fáze 3, které se dřív neověřovaly:
 
 - `20261014120000_team_leader_exception_pickup_risk.sql`
 - `20261014130000_orders_pickup_risk_index.sql`
@@ -94,7 +95,7 @@ docker exec supabase_db_countdown-crm psql -U postgres -d postgres -f /tmp/perf.
 - `node scripts/verify-migration-parity.mjs` — lokální Docker databáze.
 - `node scripts/verify-migration-parity.mjs --linked` — připojený (vzdálený) projekt.
 
-**Ověřeno lokálně:** 130 souborů na disku = 130 aplikovaných verzí, `MIGRATION PARITY OK`. Při nasimulovaném driftu (dočasný soubor navíc) skript správně hlásí `MISSING IN DATABASE` a končí s exit 1.
+**Ověřeno lokálně:** 131 souborů na disku = 131 aplikovaných verzí, `MIGRATION PARITY OK`. Při nasimulovaném driftu (dočasný soubor navíc) skript správně hlásí `MISSING IN DATABASE` a končí s exit 1.
 
 **Vzdálená parita je zatím nedostupná** a zůstává jako ruční runbook: Management API se nedokáže přihlásit do databáze projektu (chyba na straně platformy, ne tokenu), takže `--linked` se teď nedá spolehlivě použít. Postup pro ověření vzdáleného projektu je v `docs/P0_3_REMOTE_DB_RUNNER.md`.
 
@@ -114,9 +115,33 @@ Při čistém běhu se ukázalo, že **`npx supabase test db` neprojde** — 4 z
 - Jeden zastaralý strukturální test se ptal na politiku podle jména `is_workspace_manager_or_admin`; politika je dnes postavená na `can_access_call_review` (týmový scope), takže test kontroluje ji a identitu aktéra.
 - Do CI přibyl job **`database-tests`**, který zvedne lokální Supabase, spustí `supabase db reset` (čistý běh) a `supabase test db`. Databázové testy se tak už nemohou tiše rozejít.
 
-**Výsledek:** `Files=11, Tests=193, Result: PASS` — zelené i na čistě resetované databázi.
+**Výsledek:** `Files=12, Tests=216, Result: PASS` — zelené i na čistě resetované databázi.
 
-**Zbytkové riziko (vědomě neřešeno):** `lead_queue_items.team_id` i `calls.team_id` mohou být teoreticky `NULL` (během přípravy administrátorem). Taková data vidí jen administrátor, ne vedoucí ani operátor. Aplikace při zakládání dat tým nastavuje, takže jde o okrajový stav; kdyby nastal, řešením je data doplnit týmem, ne měnit schéma.
+**Zbytkové riziko (dříve):** `lead_queue_items.team_id` i `calls.team_id` mohou být `NULL` — a je to **záměrný stav** „vlastnictví ještě není potvrzené“ při administrátorském importu. Záměr dokládá i komentář u sloupce (`NULL` znamená, že odpovědnost ještě nikdo nepotvrdil). Vada nebyla v tom, že `NULL` existuje — to je nutné, jinak by administrátorský import neměl co zakládat. Vada byla v tom, co se s `NULL` dělo:
+
+1. `assign_team_ownership` měnil vždy **jen jeden záznam**. Po potvrzení týmu u leadu zůstala jeho položka fronty bez týmu — a protože operátor vidí jen frontu s přiřazeným týmem, práce tiše čekala na administrátora.
+2. Nikde nebylo vidět, **kolik** záznamů na potvrzení čeká — panel byl schovaný ve správě uživatelů.
+
+---
+
+## Dořešení rizika z Fáze 5.1: vlastnictví záznamů (Fáze 5.1b)
+
+**Rozhodnutí PM:** riziko se neřeší zpřísněním schématu (`NOT NULL` by rozbilo administrátorský import, protože právě import vytváří data bez potvrzeného týmu), ale chováním aplikace.
+
+**Oprava:**
+
+1. **Kaskáda vlastnictví** (migrace `20261015090000_team_ownership_queue_cascade.sql`). Potvrzení týmu u jednoho záznamu doplní i jeho protějšek, ale **nikdy nepřepíše** už potvrzený tým:
+   - u leadu se doplní jeho položky fronty (jen ty bez týmu),
+   - u položky fronty se doplní její lead (jen pokud tým nemá).
+   Zůstává zachovaný původní slib: **stav fronty ani přiřazeného operátora to nemění**.
+   - Pokud položka fronty patří operátorovi z **jiného** týmu, kaskáda ji přeskočí (jinak by ji validační trigger odmítl) a administrátorovi to řekne — výsledek RPC nese `leads_updated`, `queue_items_updated` a `queue_items_remaining`.
+   - `NULL` není vada, ale ani definitivní stav: dokud vlastnictví nikdo nepotvrdí, záznam zůstává jen administrátorovi.
+2. **Viditelné počítadlo a vlastní obrazovka.** Panel „Přiřazení záznamů k týmům“ se přesunul ze `/admin/users` na vlastní stránku **`/admin/ownership`** a karta **Team Ownership** v Management hubu nese počítadlo „N bez přiřazení“. Administrátor tak vidí čekající práci bez hledání v cizí obrazovce.
+3. **Testy.** Nový pgTAP soubor `supabase/tests/database/team_ownership_assignment_test.sql` hlídá 23 situací (kaskáda oběma směry, ne-přepis už potvrzeného týmu, přeskočení operátora z jiného týmu, viditelnost pro vedoucího a operátora, zákaz zápisu pro vedoucího, archivovaný tým z jiného workspace, historický snapshot hovoru). Přibyl i test `tests/team-ownership-cascade.test.ts` a test hranice route `/admin/ownership`.
+
+**Ověření:** `supabase db reset` (131 migrací + seed) → `npx supabase test db` = **`Files=12, Tests=216, Result: PASS`**; `npm test` = 872 testů v 180 souborech; `npm run verify:parity` = 131 = 131; `lint` a `typecheck` bez chyby.
+
+**Proč ne `NOT NULL`:** sloupce `leads.team_id`, `lead_queue_items.team_id` a `calls.team_id` vyjadřují i stav „import přišel, administrátor ještě nerozhodl“. Přísnost by import zablokovala. Přínos má nástroj a viditelnost, ne constraint.
 
 ---
 
