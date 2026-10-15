@@ -80,4 +80,30 @@ describe("Catalog Seed Template Contract", () => {
     expect(sql).toContain("ON CONFLICT (workspace_id, product_id) DO UPDATE");
     expect(sql).toContain("ON CONFLICT (workspace_id, product_id, version_number) DO UPDATE");
   });
+
+  it("keeps the seed runnable on a disposable local database", () => {
+    const raw = fs.readFileSync(templatePath, "utf8");
+    const sql = generateSeedSql(validateAndCompileCatalog(JSON.parse(raw)));
+
+    // The oldest migrations bootstrap a workspace with the same organization and
+    // slug ('main'). Its slug must be freed, never the workspace deleted: the
+    // audit triggers on its children reference the workspace being removed.
+    expect(sql).toContain("INSERT INTO public.workspaces");
+    expect(sql).toContain("WHERE organization_id = v_org_id AND slug = 'main' AND id <> v_ws_id;");
+    expect(sql).not.toContain("DELETE FROM public.workspaces");
+
+    // profiles.id references auth.users(id) and the script metadata references
+    // profiles, so a real auth row must exist before the catalog is inserted.
+    const authUsersIndex = sql.indexOf("INSERT INTO auth.users");
+    const profileIndex = sql.indexOf("INSERT INTO public.profiles");
+    expect(authUsersIndex).toBeGreaterThan(-1);
+    expect(profileIndex).toBeGreaterThan(authUsersIndex);
+
+    // products.category is plain text since the schema was rewritten; the old
+    // ::public.product_category cast made a clean reset fail with 42704.
+    expect(sql).not.toContain("::public.product_category");
+
+    // Seed data must never be reusable outside a disposable database.
+    expect(sql).toContain("LOCAL DEMO CATALOG SEED");
+  });
 });

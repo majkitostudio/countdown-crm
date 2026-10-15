@@ -1,5 +1,5 @@
 -- ============================================================================
--- COUNTDOWN CRM - PRODUCTION & DEMO CATALOG SEED
+-- COUNTDOWN CRM - LOCAL DEMO CATALOG SEED
 -- Generated automatically from data/seeds/catalog-seed-template.json
 -- Target Workspace: 00000000-0000-0000-0000-000000000001
 -- ============================================================================
@@ -20,28 +20,57 @@ BEGIN
     SELECT id INTO v_org_id FROM public.organizations WHERE slug = 'countdown';
   END IF;
 
-  -- 2. Ensure Target Workspace exists
+  -- 2. Ensure Target Workspace exists.
+  -- The oldest migrations bootstrap a placeholder workspace with the same
+  -- organization and slug ('main') but a generated id. It holds legacy demo
+  -- rows whose workspace id is immutable, and deleting the workspace itself
+  -- is blocked by the audit triggers on its children. So instead of removing
+  -- it, free the slug and let this seed own the canonical 'main' workspace.
+  -- The seed only runs on a disposable local database (`supabase db reset`).
+  UPDATE public.workspaces
+     SET slug = 'legacy-main', name = 'Main workspace (legacy)'
+   WHERE organization_id = v_org_id AND slug = 'main' AND id <> v_ws_id;
+
   INSERT INTO public.workspaces (id, organization_id, name, slug)
   VALUES (v_ws_id, v_org_id, 'Hlavní linka CC', 'main')
   ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, organization_id = v_org_id;
 
-  -- 3. Ensure System Admin Profile exists
+  -- 3. Ensure the demo admin account exists.
+  -- profiles.id references auth.users(id), and the seeded catalog's script
+  -- metadata (product_scripts.updated_by, product_script_versions.created_by)
+  -- references profiles. A real auth row therefore has to exist before the
+  -- catalog can be seeded. Real accounts are provisioned with
+  -- scripts/provision-user.mjs; this one only exists on a local database.
+  INSERT INTO auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, email_change, email_change_token_new, recovery_token
+  )
+  VALUES (
+    '00000000-0000-0000-0000-000000000000', v_admin_id, 'authenticated', 'authenticated',
+    'admin@countdown-crm.local', extensions.crypt('countdown-demo', extensions.gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"full_name":"Systémový Administrátor"}'::jsonb,
+    now(), now(), '', '', '', ''
+  )
+  ON CONFLICT (id) DO NOTHING;
+
   INSERT INTO public.profiles (id, email, full_name, role, status)
   VALUES (v_admin_id, 'admin@countdown-crm.local', 'Systémový Administrátor', 'administrator', 'ready')
   ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = 'administrator';
 
-  -- 4. Ensure Workspace Membership exists
   INSERT INTO public.workspace_members (workspace_id, user_id, role)
   VALUES (v_ws_id, v_admin_id, 'administrator')
   ON CONFLICT (workspace_id, user_id) DO UPDATE SET role = 'administrator';
 
-  -- 5. Seed Catalog Products
+  -- 4. Seed Catalog Products
   INSERT INTO public.products (id, workspace_id, title, category, price, currency, description, image_url, in_stock)
   VALUES (
     '11111111-0000-0000-0000-000000000001'::UUID,
     v_ws_id,
     'ArthroFlex Active Forte',
-    'supplements'::public.product_category,
+    'supplements',
     1199,
     'CZK',
     'Prémiový třísložkový kloubní komplex s glukosaminem, MSM a rybím kolagenem typu II. Určeno pro regeneraci chrupavek, ranní hybnost a úlevu při zátěži.',
@@ -63,7 +92,7 @@ BEGIN
     '11111111-0000-0000-0000-000000000002'::UUID,
     v_ws_id,
     'CardioVital Max (Omega-3 & Q10)',
-    'supplements'::public.product_category,
+    'supplements',
     999,
     'CZK',
     'Vysoce koncentrovaný rybí olej s vysokým podílem EPA a DHA mastných kyselin obohacený o koenzym Q10 a vitamín E pro zdravé srdce, cévy a normální krevní tlak.',
@@ -85,7 +114,7 @@ BEGIN
     '11111111-0000-0000-0000-000000000003'::UUID,
     v_ws_id,
     'Magnesium Bisglycinát + B6',
-    'supplements'::public.product_category,
+    'supplements',
     890,
     'CZK',
     'Prémiová chelátová forma hořčíku s maximální vstřebatelností (až 80 %) v kombinaci s aktivním vitamínem B6. Podporuje nervovou soustavu, hluboký spánek a svalové uvolnění bez projímavých účinků.',
@@ -102,7 +131,7 @@ BEGIN
     image_url = EXCLUDED.image_url,
     in_stock = EXCLUDED.in_stock;
 
-  -- 6. Seed Product Scripts and Published Versions
+  -- 5. Seed Product Scripts and Published Versions
   -- Script for: ArthroFlex Active Forte
   INSERT INTO public.product_scripts (workspace_id, product_id, content_html, updated_by, updated_at)
   VALUES (
@@ -199,7 +228,7 @@ BEGIN
     published_by = EXCLUDED.published_by,
     published_at = now();
 
-  -- 7. Seed Objections Catalog
+  -- 6. Seed Objections Catalog
   DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '11111111-0000-0000-0000-000000000001'::UUID;
   DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '11111111-0000-0000-0000-000000000002'::UUID;
   DELETE FROM public.objections WHERE workspace_id = v_ws_id AND product_id = '11111111-0000-0000-0000-000000000003'::UUID;
