@@ -97,6 +97,18 @@ jen k 14. 10. před úklidem.
   rozpoznání oddělení z týmu, výchozí název týmu). Demo týmy v `src/lib/dal/teams.ts`
   z něj teď čtou.
 
+**Fáze 4 — krok 2 (hotovo):**
+- `src/lib/dal/departmentQueues.ts` (načtení) + `src/lib/departmentQueues.ts` (čistá
+  agregace): `lead_queue_items` se agregují po odděleních P1–P4, vždy 4 oddělení i s nulami.
+  Fronta se oddělení přiřazuje přes tým (`departmentKeyFromTeam`); položky bez rozpoznaného
+  týmu jdou do přepadu „Bez oddělení". Bez hardcodovaných produktů ani zdrojů.
+
+**Fáze 4 — krok 3 (hotovo):**
+- Nový view „Queues" v Team Workspace: manažerský souhrn oddělení (4 karty: Čeká / V řešení /
+  Callback / Po termínu) + seznam leadů ve frontě s filtrem oddělení a stavu. Souhrn jde
+  z nového zdroje `departmentQueues` (respektuje filtr týmů); seznam používá už načtenou
+  týmovou frontu, takže neběží druhý dotaz. Funguje i s prázdnými daty (4 karty s nulami).
+
 **Zjištěná nekonzistence (do Fáze 5):**
 - Oddělení jsou dnes v datech vedená jako `teams` (P3/P4 zakládají migrace se slugy
   `p3`/`p4`), P1/P2 v reálném workspace chybí. Migrace ještě používají názvy

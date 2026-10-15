@@ -103,7 +103,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** systém zařadí lead do fronty podle pravidel, ne podle konkrétního zdroje; schéma připravené na API/webhook bez přepisování logiky.
 
-**Stav:** 🔄 databáze hotová, sdílený model oddělení (`src/lib/department.ts`) hotový; UI přehled front čeká.
+**Stav:** ✅ hotovo (15. 10. 2026). Databáze hotová; sdílený model oddělení (`src/lib/department.ts`) hotový; přehled front hotový: agregace `lead_queue_items` po odděleních (`src/lib/dal/departmentQueues.ts` + čistá funkce `src/lib/departmentQueues.ts`) a nový view **Queues** v Team Workspace (manažerský souhrn oddělení + seznam leadů, funguje i bez dat, respektuje filtr týmů). Fronta se oddělení přiřazuje přes tým (`departmentKeyFromTeam`); položky bez rozpoznaného týmu se zobrazují jako „Bez oddělení". Nic se nehardcoduje (produkty ani zdroje).
 
 ---
 
@@ -162,11 +162,12 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2 a 3 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3 a 4 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
-výjimka `order:pickup_risk` v Exception Queue.
+výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
+provozní model a přidala přehled front (view **Queues** v Team Workspace).
 
-**Další na řadě je Fáze 4 — P1–P4 jako obecný provozní model** (databáze hotová, sdílený model oddělení hotový; čeká UI přehled front).
-Konkrétní prioritu vždy volí PM. Čistý běh migrací a reálné měření výkonu (`EXPLAIN`) řeší Fáze 5.
+**Další na řadě je Fáze 5 — data model a migrace** (čistý běh migrací, kontrola duplicit, měření výkonu). Fáze 4 je hotová.
+Konkrétní prioritu vždy volí PM. Následně Fáze 6 — Team Leader dashboard a reporty (přehled front z Fáze 4 je jeho základ).
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).
