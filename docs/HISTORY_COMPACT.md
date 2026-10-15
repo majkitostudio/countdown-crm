@@ -11,6 +11,7 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 - **P1–P4:** byla doplněna obecná kostra oddělení (departments) a časových pravidel pro standardní odchozí práci, retenci a záchranu vybraných případů.
 - **Říjen 2026 — zjednodušení:** odstraněny slepé routy `/objects/[slug]`, `/monitor`, `/audio-preview` a generický Object Builder. Obrazovka objednávek nyní nabízí Kanban i tabulkový pohled.
 - **Říjen 2026 — druhá vlna pročištění (hotovo):** odstraněny generické funkce, které nepatří ke specializovanému call-center produktu — blueprints (multi-industry šablony), custom schema / „Attio“ pole a obecný kanban/filtry u leadů. Zároveň opravena duplicitní verze migrace.
+- **Říjen 2026 — Fáze 3–5 (hotovo):** objednávky mají jednotný tok stavů a riziko výdejny; oddělení P1–P4 jsou obecný provozní model s přehledem front (view **Queues**). Fáze 5 ověřila migrace z čistého stavu (130 migrací + seed), změřila dotazy na objemu dat (do ~90 ms) a zavedla kontrolu **migration parity** (`npm run verify:parity`). Nález: databázové pgTAP testy na čisté databázi selhávají a CI je nespouští.
 - **Říjen 2026 — roadmapa:** další práce se řídí fázemi 0–7 v [ROADMAP.md](ROADMAP.md); dokumentace byla sjednocena a historické audity přesunuty do `docs/archive/`.
 - **Říjen 2026 — navigace a struktura (Fáze 1 a 2, hotovo):** levé menu je rozdělené do sekcí (Work · Team · Reporting · Learn · Administration · Account) s jedním **Management** (`/admin`) pro administrátora. Fáze 2 srovnala názvy (titulky anglicky, popisy česky), sloučila obrazovky (Products & Scripts, Reports, Team Workspace) a převedla URL na `/console`, `/schedule`, `/call-logs`, `/reports`, `/automations`, `/admin/users` a `/team/*`; staré cesty se přesměrovávají.
 
@@ -23,6 +24,7 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 - AI je pomocník pro kontext, trénink a kvalitu, ne autorita nad skutečným stavem hovoru, objednávky nebo oprávnění.
 - Produkční telefonie/VoIP (včetně Telnyx) je odložena na neurčito. Neplánovat související náklady ani práci, dokud se priorita nezmění.
 - Demo data jsou syntetická a nesmějí být zaměňována za produkční data.
+- Oddělení (departments P1–P4) jsou dnes modelovaná přes entity týmů; případné vyčlenění oddělení na samostatnou entitu je vědomě odloženo do samostatné fáze (rozhodnuto ve Fázi 5, žádná migrace schématu kvůli tomu neproběhla).
 
 ## Důležité hranice historických tvrzení
 

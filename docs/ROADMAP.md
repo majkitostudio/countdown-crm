@@ -86,7 +86,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Ověření:** každý stav má definovaný trigger a způsob řešení; výjimka je vidět hned, ne až v detailu; TL rychle pozná rizikové zásilky.
 
-**Stav:** ✅ hotovo (14. 10. 2026). Poznámka: migrace z kroků 4 a 5 se v tomto prostředí nespouští — čistý běh a reálné měření výkonu (`EXPLAIN` na objemu dat) patří do Fáze 5.
+**Stav:** ✅ hotovo (14. 10. 2026). Poznámka: migrace z kroků 4 a 5 se ve vývojovém prostředí nespouštěly. Ověřeno ve Fázi 5: 15. 10. 2026 prošly na čisté databázi a jejich dotazy byly změřené na objemu dat (viz `docs/PHASE_5_MIGRATIONS_REVIEW.md`).
 
 ---
 
@@ -114,14 +114,30 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 **Hotovo:** duplicitní timestamp migrace vyřešen; 130 souborů migrací, 0 duplicit.
 
 **Kroky:**
-- Doplnit kontrolu **duplicitních verzí** do `scripts/verify-all-migrations.mjs` (počet migrací už hlásí správně — opraveno 15. 10. 2026; kontrolu duplicit zatím nemá).
-- Ověřit **čistý běh** celého řetězce na čisté PostgreSQL/Supabase databázi — včetně migrací Fáze 3 `20261014120000_team_leader_exception_pickup_risk.sql` a `20261014130000_orders_pickup_risk_index.sql`, které se ve vývojovém prostředí nespouští.
-- Změřit výkon `EXPLAIN` na objemu dat u dotazů Fáze 3 (rizikové zásilky na výdejně, Exception Queue) — indexy existují, ale nejsou ověřené na datech.
-- Zavést kontrolu „migration parity“ před dalším větším rozvojem.
+- Doplnit kontrolu **duplicitních verzí** do `scripts/verify-all-migrations.mjs` (počet migrací už hlásí správně — opraveno 15. 10. 2026). ✅ hotovo.
+- Ověřit **čistý běh** celého řetězce na čisté PostgreSQL/Supabase databázi — včetně migrací Fáze 3 `20261014120000_team_leader_exception_pickup_risk.sql` a `20261014130000_orders_pickup_risk_index.sql`, které se ve vývojovém prostředí nespouští. ✅ hotovo.
+- Změřit výkon `EXPLAIN` na objemu dat u dotazů Fáze 3 (rizikové zásilky na výdejně, Exception Queue) — indexy existují, ale nejsou ověřené na datech. ✅ hotovo.
+- Zavést kontrolu „migration parity“ před dalším větším rozvojem. ✅ hotovo (`npm run verify:parity`).
 
 **Ověření:** žádné duplicitní verze; migrace lze spustit z čistého stavu; změny modelu jsou mapované na role a workflow.
 
-**Stav:** 🔄 částečně (kolize opravena, čistý běh a kontrola duplicit zbývají).
+**Stav:** ✅ hotovo (15. 10. 2026). Kontrola duplicit je v `verify:migrations`; `supabase db reset` projde celý řetězec 130 migrací + seed na čisté databázi; dotazy Fáze 3 změřené na 200–300 tis. řádcích (do ~90 ms); kontrola parity zavedena jako `npm run verify:parity` (lokálně 130 = 130). Revize, měření a nálezy: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
+
+**Otevřeno mimo rozsah (nález fáze):** databázové pgTAP testy (`supabase test db`) na čisté databázi selhávají — fixtures jsou z doby před týmovým modelem a CI databázový job nemá. Navrženo jako samostatná práce.
+
+---
+
+## Fáze 5.1 — Databázové testy a CI gate (návrh)
+
+**Cíl:** aby databázové testy nemohly znovu tiše ztichnout.
+
+**Proč:** `npx supabase test db` na čisté databázi selhává ve 4 souborech (fixtures z doby před týmovým modelem) a CI databázový job vůbec nemá. Objeveno ve Fázi 5.
+
+**Kroky:**
+- Opravit fixtures pgTAP testů tak, aby respektovaly týmové přiřazení (`can_manage_team_resource`) a hovory s `team_id`.
+- Přidat do CI job, který zvedne lokální Supabase a spustí `supabase test db`.
+
+**Stav:** ⏳ návrh (čeká na rozhodnutí PM).
 
 ---
 
@@ -162,12 +178,16 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2, 3 a 4 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3, 4 a 5 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
-provozní model a přidala přehled front (view **Queues** v Team Workspace).
+provozní model a přidala přehled front (view **Queues** v Team Workspace). Fáze 5 ověřila
+migrace z čistého stavu, změřila dotazy na objemu dat a zavedla kontrolu migration parity
+(viz [PHASE_5_MIGRATIONS_REVIEW.md](PHASE_5_MIGRATIONS_REVIEW.md)).
 
-**Další na řadě je Fáze 5 — data model a migrace** (čistý běh migrací, kontrola duplicit, měření výkonu). Fáze 4 je hotová.
-Konkrétní prioritu vždy volí PM. Následně Fáze 6 — Team Leader dashboard a reporty (přehled front z Fáze 4 je jeho základ).
+**Otevřený nález z Fáze 5:** databázové pgTAP testy na čisté databázi selhávají a CI je nespouští —
+navrženo jako **Fáze 5.1** (viz výše). Konkrétní prioritu vždy volí PM.
+
+**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ), případně nejdřív Fáze 5.1 (databázové testy a CI gate).
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).
