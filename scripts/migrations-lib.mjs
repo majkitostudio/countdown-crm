@@ -33,3 +33,22 @@ export function findDuplicateVersions(fileNames) {
     .map(([version, group]) => ({ version, files: [...group].sort() }))
     .sort((a, b) => a.version.localeCompare(b.version));
 }
+
+/**
+ * Migration parity: compares the versions on disk with the versions a database
+ * reports as applied.
+ *
+ * `missingInDatabase` are versions the repository declares but the database has
+ * never run. `missingOnDisk` are versions the database applied but no file
+ * exists for — either a renamed/deleted migration or a hand-edited history.
+ * Both directions are drift and should block further schema work.
+ */
+export function findParityGaps({ localVersions, appliedVersions }) {
+  const local = new Set(localVersions);
+  const applied = new Set(appliedVersions);
+
+  return {
+    missingInDatabase: [...local].filter((version) => !applied.has(version)).sort(),
+    missingOnDisk: [...applied].filter((version) => !local.has(version)).sort(),
+  };
+}

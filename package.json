@@ -12,6 +12,7 @@
     "verify:linked-functions": "node scripts/verify-linked-function-catalog.mjs",
     "verify:linked-security": "node scripts/p0-3-remote-db-evidence.mjs",
     "verify:migrations": "node scripts/verify-all-migrations.mjs",
+    "verify:parity": "node scripts/verify-migration-parity.mjs",
     "seed:catalog": "node scripts/seed-catalog.mjs",
     "provision:user": "node scripts/provision-user.mjs",
     "provision:test-team-leader": "node scripts/provision-test-team-leader.mjs",
