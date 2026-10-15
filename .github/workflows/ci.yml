@@ -42,3 +42,32 @@ jobs:
         env:
           NEXT_TELEMETRY_DISABLED: 1
           NODE_ENV: production
+
+  database-tests:
+    name: Database tests (pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.116.0
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Apply migrations and seed to a clean database
+        run: supabase db reset
+
+      - name: Run database tests
+        run: supabase test db
+
+      - name: Show local Supabase status on failure
+        if: failure()
+        run: supabase status
+
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop --no-backup

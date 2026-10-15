@@ -25,11 +25,10 @@ Není to obecné „AI CRM pro každého“ ani sbírka náhodných obrazovek. J
 
 Projekt má rozsáhlou modulární kostru, kterou průběžně stabilizujeme a vylepšujeme. Nejde o tlak na rychlé dokončení nebo prodej MVP:
 
-- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění), Fáze 1 (navigace + Admin Hub), Fáze 2 (názvy, sloučení obrazovek a nové URL), Fáze 3 (Objednávky), Fáze 4 (P1–P4 jako provozní model) i Fáze 5 (data model a migrace) jsou hotové**; na řadě je **Fáze 6 — Team Leader dashboard a reporty**, případně **Fáze 5.1** (databázové testy a CI gate).
-- **Testy:** 862 testů v 179 souborech prochází; `lint`, `typecheck` i `build` jsou zelené.
+- **Roadmapa:** Další fáze práce (Fáze 0–7) jsou v [docs/ROADMAP.md](docs/ROADMAP.md). **Fáze 0 (pročištění), Fáze 1 (navigace + Admin Hub), Fáze 2 (názvy, sloučení obrazovek a nové URL), Fáze 3 (Objednávky), Fáze 4 (P1–P4 jako provozní model), Fáze 5 (data model a migrace) i Fáze 5.1 (databázové testy a CI gate) jsou hotové**; na řadě je **Fáze 6 — Team Leader dashboard a reporty**.
+- **Testy:** 862 testů v 179 souborech prochází; `lint`, `typecheck` i `build` jsou zelené. Databázové pgTAP testy (`npx supabase test db`) procházejí na čisté databázi (**11 souborů, 193 testů**) a běží i v CI jako job `database-tests`.
 - **Migrace:** 130 souborů, **0 duplicit**; kontrola duplicit i **migration parity** (`npm run verify:parity`) jsou součástí kontroly. Čistý běh celého řetězce na prázdné databázi ověřen (130 migrací + seed). Detaily: [docs/PHASE_5_MIGRATIONS_REVIEW.md](docs/PHASE_5_MIGRATIONS_REVIEW.md).
 - **P1–P4:** Pravidla 24h cooldownu pro faily, retence P3 po 21 dnech a záchrany zásilek v P4 jsou v databázové logice. Oddělení = **Department P1–P4** (anglicky); přehled front je hotový jako view **Queues** v Team Workspace; sdílený model `src/lib/department.ts` je hotový.
-- **Otevřený nález (Fáze 5):** databázové pgTAP testy (`npx supabase test db`) na čisté databázi selhávají (fixtures z doby před týmovým modelem) a CI databázový job nemá — navrženo jako Fáze 5.1.
 - **Expedice a kurýři:** CSV exporty pro Zásilkovnu, Balíkovnu, GLS, sledovací čísla a linky na kurýry.
 - **Provize a mzdy:** Měsíční uzávěrka pro Team Leadera na `/wallet` a export podkladů pro mzdy v CSV.
 - **Objednávky:** `/orders` už nabízí Kanban i tabulku.

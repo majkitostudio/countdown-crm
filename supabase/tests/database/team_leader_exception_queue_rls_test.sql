@@ -26,6 +26,24 @@ values
   ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '49999999-9999-4999-8999-999999999999', 'operator'),
   ('4bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '43333333-3333-4333-8333-333333333333', 'administrator');
 
+-- Queue and order records are team-scoped since the team-scope migrations.
+-- The Team Leader below manages these rows only through their own active team,
+-- and the assigned operators must belong to the same team.
+insert into public.teams (id, workspace_id, name, slug, status)
+values (
+  '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51',
+  '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+  'Exception Team A',
+  'exception-team-a',
+  'active'
+);
+
+insert into public.team_memberships (team_id, workspace_id, user_id, membership_role, active_from)
+values
+  ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '41111111-1111-4111-8111-111111111111', 'leader', now() - interval '1 day'),
+  ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '42222222-2222-4222-8222-222222222222', 'member', now() - interval '1 day'),
+  ('4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51', '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '49999999-9999-4999-8999-999999999999', 'member', now() - interval '1 day');
+
 insert into public.leads (id, workspace_id, full_name, phone)
 values
   (
@@ -44,6 +62,7 @@ values
 insert into public.lead_queue_items (
   id,
   workspace_id,
+  team_id,
   lead_id,
   assigned_operator_id,
   state,
@@ -53,6 +72,7 @@ values
   (
     '44444444-4444-4444-8444-444444444444',
     '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51',
     '48888888-8888-4888-8888-888888888888',
     '42222222-2222-4222-8222-222222222222',
     'assigned',
@@ -61,6 +81,7 @@ values
   (
     '45555555-5555-4555-8555-555555555555',
     '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51',
     '47777777-7777-4777-8777-777777777777',
     '49999999-9999-4999-8999-999999999999',
     'awaiting_outcome',
@@ -70,6 +91,7 @@ values
 insert into public.orders (
   id,
   workspace_id,
+  team_id,
   lead_id,
   total_amount,
   status,
@@ -81,6 +103,7 @@ values
   (
     '49999999-9999-4999-8999-999999999991',
     '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51',
     '47777777-7777-4777-8777-777777777777',
     120.00,
     'sent',
@@ -91,6 +114,7 @@ values
   (
     '49999999-9999-4999-8999-999999999992',
     '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa51',
     '48888888-8888-4888-8888-888888888888',
     120.00,
     'sent',

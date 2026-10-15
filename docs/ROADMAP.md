@@ -123,21 +123,23 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Stav:** ✅ hotovo (15. 10. 2026). Kontrola duplicit je v `verify:migrations`; `supabase db reset` projde celý řetězec 130 migrací + seed na čisté databázi; dotazy Fáze 3 změřené na 200–300 tis. řádcích (do ~90 ms); kontrola parity zavedena jako `npm run verify:parity` (lokálně 130 = 130). Revize, měření a nálezy: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
 
-**Otevřeno mimo rozsah (nález fáze):** databázové pgTAP testy (`supabase test db`) na čisté databázi selhávají — fixtures jsou z doby před týmovým modelem a CI databázový job nemá. Navrženo jako samostatná práce.
+**Nález fáze:** databázové pgTAP testy (`supabase test db`) na čisté databázi selhávaly — fixtures byly z doby před týmovým modelem a CI databázový job neměl. ✅ vyřešeno ve Fázi 5.1.
 
 ---
 
-## Fáze 5.1 — Databázové testy a CI gate (návrh)
+## Fáze 5.1 — Databázové testy a CI gate
 
 **Cíl:** aby databázové testy nemohly znovu tiše ztichnout.
 
-**Proč:** `npx supabase test db` na čisté databázi selhává ve 4 souborech (fixtures z doby před týmovým modelem) a CI databázový job vůbec nemá. Objeveno ve Fázi 5.
+**Proč:** `npx supabase test db` na čisté databázi selhával ve 4 souborech (fixtures z doby před týmovým modelem) a CI databázový job vůbec neměl. Objeveno ve Fázi 5.
 
 **Kroky:**
-- Opravit fixtures pgTAP testů tak, aby respektovaly týmové přiřazení (`can_manage_team_resource`) a hovory s `team_id`.
-- Přidat do CI job, který zvedne lokální Supabase a spustí `supabase test db`.
+- Opravit fixtures pgTAP testů tak, aby respektovaly týmové přiřazení (`can_manage_team_resource`) a hovory s `team_id`. ✅ hotovo.
+- Přidat do CI job, který zvedne lokální Supabase a spustí `supabase test db`. ✅ hotovo.
 
-**Stav:** ⏳ návrh (čeká na rozhodnutí PM).
+**Ověření:** `npx supabase test db` na čistě resetované databázi hlásí `Files=11, Tests=193, Result: PASS`; nový CI job `database-tests` spouští `supabase start` → `supabase db reset` → `supabase test db`.
+
+**Stav:** ✅ hotovo (15. 10. 2026). Detaily: `docs/PHASE_5_MIGRATIONS_REVIEW.md`.
 
 ---
 
@@ -178,16 +180,14 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2, 3, 4 a 5 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3, 4, 5 a 5.1 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
 provozní model a přidala přehled front (view **Queues** v Team Workspace). Fáze 5 ověřila
 migrace z čistého stavu, změřila dotazy na objemu dat a zavedla kontrolu migration parity
-(viz [PHASE_5_MIGRATIONS_REVIEW.md](PHASE_5_MIGRATIONS_REVIEW.md)).
+(viz [PHASE_5_MIGRATIONS_REVIEW.md](PHASE_5_MIGRATIONS_REVIEW.md)). Fáze 5.1 opravila fixtures
+databázových pgTAP testů (týmové přiřazení) a přidala do CI job `database-tests`.
 
-**Otevřený nález z Fáze 5:** databázové pgTAP testy na čisté databázi selhávají a CI je nespouští —
-navrženo jako **Fáze 5.1** (viz výše). Konkrétní prioritu vždy volí PM.
-
-**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ), případně nejdřív Fáze 5.1 (databázové testy a CI gate).
+**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ).
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).

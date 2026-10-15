@@ -16,7 +16,7 @@ Tento dokument je záznam o tom, co se ověřilo, co se naměřilo a co zůstáv
 | 5.3 | Čistý běh celého řetězce na čisté DB | ✅ 130 migrací + seed projde bez chyby |
 | 5.4 | Výkon dotazů z Fáze 3 na objemu dat | ✅ oba dotazy do ~90 ms na 200–300 tis. řádcích |
 | 5.5 | „Migration parity“ (disk vs. databáze) | ✅ lokálně 130 = 130; skript `verify:parity` |
-| — | Databázové pgTAP testy | ⚠️ **selhávají** (nezávisle na této práci) — viz „Nález“ |
+| 5.1 | Databázové pgTAP testy a CI gate | ✅ opraveno — `Files=11, Tests=193, PASS` + nový CI job |
 | — | Departments vs. týmy | ⏸️ odloženo do samostatné fáze |
 
 ---
@@ -100,15 +100,23 @@ docker exec supabase_db_countdown-crm psql -U postgres -d postgres -f /tmp/perf.
 
 ---
 
-## Nález mimo původní rozsah: databázové pgTAP testy selhávají
+## Nález z Fáze 5 a jeho oprava (Fáze 5.1): databázové pgTAP testy
 
-Při čistém běhu se ukázalo, že **`npx supabase test db` neprojde** — 4 ze 11 testovacích souborů hlásí chyby. Není to důsledek této práce: stejné chyby se objeví i na databázi bez seedu.
+Při čistém běhu se ukázalo, že **`npx supabase test db` neprojde** — 4 z 11 testovacích souborů hlásí chyby. Nebyl to důsledek ověřování migrací: stejné chyby se objevily i na databázi bez seedu.
 
-**Proč to nikdo nezachytil:** CI (`.github/workflows/ci.yml`) spouští jen lint, typecheck, vitest a build. Databázové pgTAP testy v něm nejsou, takže tiše „hnily“.
+**Proč to nikdo nezachytil:** CI (`.github/workflows/ci.yml`) spouštěl jen lint, typecheck, vitest a build. Databázové pgTAP testy v něm nebyly, takže tiše „hnily“.
 
-**Příčina:** testy pocházejí z doby před týmovým modelem (migrace ze série `20260914*`). Dnes RLS pustí vedoucího týmu k hovoru jen přes **týmové přiřazení** (`can_manage_team_resource`), ale testy zakládají jen členství ve workspace a hovor bez týmu. Produkční logika tím pádem může být v pořádku — rozbité jsou testovací fixtures.
+**Příčina:** testy pocházely z doby před týmovým modelem (migrace ze série `20260914*`). RLS dnes pustí vedoucího týmu k hovoru nebo k frontě jen přes **týmové přiřazení**, ale fixtures zakládaly jen členství ve workspace a data bez týmu. Produkční logika byla v pořádku — rozbité byly testovací fixtures.
 
-**Doporučení:** opravit fixtures a **přidat databázový job do CI**, aby testy nemohly znovu tiše ztichnout. Je to samostatný kus práce (4 soubory + CI), proto ho navrhuji jako **Fázi 5.1** nebo samostatnou fázi, ne jako součást už uzavřených kroků.
+**Oprava (Fáze 5.1):**
+
+- Fixtures ve čtyřech souborech teď zakládají **aktivní tým** a členství (vedoucí = `leader`, operátor = `member`) a přiřazují `team_id` hovorům, položkám fronty i objednávkám.
+- Jeden zastaralý strukturální test se ptal na politiku podle jména `is_workspace_manager_or_admin`; politika je dnes postavená na `can_access_call_review` (týmový scope), takže test kontroluje ji a identitu aktéra.
+- Do CI přibyl job **`database-tests`**, který zvedne lokální Supabase, spustí `supabase db reset` (čistý běh) a `supabase test db`. Databázové testy se tak už nemohou tiše rozejít.
+
+**Výsledek:** `Files=11, Tests=193, Result: PASS` — zelené i na čistě resetované databázi.
+
+**Zbytkové riziko (vědomě neřešeno):** `lead_queue_items.team_id` i `calls.team_id` mohou být teoreticky `NULL` (během přípravy administrátorem). Taková data vidí jen administrátor, ne vedoucí ani operátor. Aplikace při zakládání dat tým nastavuje, takže jde o okrajový stav; kdyby nastal, řešením je data doplnit týmem, ne měnit schéma.
 
 ---
 
@@ -120,6 +128,5 @@ Model oddělení P1–P4 je dnes realizovaný přes entity `teams` (oddělení s
 
 ## Co zůstává otevřené
 
-1. **Databázové pgTAP testy** — opravit fixtures a zařadit `supabase test db` do CI (viz nález výše).
-2. **Vzdálená migration parity** — blokováno na straně Supabase platformy; zůstává ruční runbook.
-3. **Index pro Exception Queue** — až pokud by fronta výrazně narostla (dnes není potřeba).
+1. **Vzdálená migration parity** — blokováno na straně Supabase platformy; zůstává ruční runbook.
+2. **Index pro Exception Queue** — až pokud by fronta výrazně narostla (dnes není potřeba).
