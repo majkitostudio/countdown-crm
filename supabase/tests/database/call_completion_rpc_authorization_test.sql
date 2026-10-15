@@ -53,6 +53,8 @@ values
   ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11', '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Queued Completion Lead', '+420700000071'),
   ('71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa12', '71aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Direct Completion Lead', '+420700000072');
 
+-- The lead insert above already queued the lead; this fixture replaces that
+-- automatic item with the exact state the completion flow expects.
 insert into public.lead_queue_items (
   id, workspace_id, team_id, lead_id, assigned_operator_id, state, claimed_at
 )
@@ -64,7 +66,13 @@ values (
   '71111111-1111-4111-8111-111111111111',
   'awaiting_outcome',
   now()
-);
+)
+on conflict (workspace_id, lead_id) do update set
+  id = excluded.id,
+  team_id = excluded.team_id,
+  assigned_operator_id = excluded.assigned_operator_id,
+  state = excluded.state,
+  claimed_at = excluded.claimed_at;
 
 insert into public.telephony_call_sessions (
   id, workspace_id, queue_item_id, lead_id, operator_id, provider,

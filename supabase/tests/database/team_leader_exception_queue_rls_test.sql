@@ -59,6 +59,8 @@ values
     '+420700000002'
   );
 
+-- The lead inserts above already queued both leads; this fixture replaces those
+-- automatic items with the exact states the exception queue is built on.
 insert into public.lead_queue_items (
   id,
   workspace_id,
@@ -86,7 +88,13 @@ values
     '49999999-9999-4999-8999-999999999999',
     'awaiting_outcome',
     null
-  );
+  )
+on conflict (workspace_id, lead_id) do update set
+  id = excluded.id,
+  team_id = excluded.team_id,
+  assigned_operator_id = excluded.assigned_operator_id,
+  state = excluded.state,
+  lease_expires_at = excluded.lease_expires_at;
 
 insert into public.orders (
   id,

@@ -48,13 +48,20 @@ values
   ('8c000000-0000-4000-8000-000000000004', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', null, 'Ownership Lead Four', '+420700000084'),
   ('8c000000-0000-4000-8000-000000000005', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', null, 'Ownership Lead Five', '+420700000085');
 
+-- The lead insert above already queued all five leads; this fixture replaces
+-- those automatic items with the exact states the ownership cases need.
 insert into public.lead_queue_items (id, workspace_id, lead_id, team_id, assigned_operator_id, state)
 values
   ('8d000000-0000-4000-8000-000000000001', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '8c000000-0000-4000-8000-000000000001', null, null, 'available'),
   ('8d000000-0000-4000-8000-000000000002', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '8c000000-0000-4000-8000-000000000002', '8fee2222-2222-4222-8222-222222222222', null, 'available'),
   ('8d000000-0000-4000-8000-000000000003', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '8c000000-0000-4000-8000-000000000003', null, '8e111111-1111-4111-8111-111111111111', 'assigned'),
   ('8d000000-0000-4000-8000-000000000004', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '8c000000-0000-4000-8000-000000000004', null, null, 'available'),
-  ('8d000000-0000-4000-8000-000000000005', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '8c000000-0000-4000-8000-000000000005', null, '8d111111-1111-4111-8111-111111111111', 'assigned');
+  ('8d000000-0000-4000-8000-000000000005', '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '8c000000-0000-4000-8000-000000000005', null, '8d111111-1111-4111-8111-111111111111', 'assigned')
+on conflict (workspace_id, lead_id) do update set
+  id = excluded.id,
+  team_id = excluded.team_id,
+  assigned_operator_id = excluded.assigned_operator_id,
+  state = excluded.state;
 
 insert into public.calls (id, workspace_id, lead_id, agent_id, duration_seconds, outcome, transcript)
 values (
