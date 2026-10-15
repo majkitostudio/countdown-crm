@@ -49,3 +49,12 @@ Napříč celým CRM platí jednotné pravidlo (PM, 13. 10. 2026):
 - **Obecná tlačítka a štítky** = **anglicky** (`Submit`, `Back`, `Call`, `Schedule`, `Save`, `Cancel`).
 - **URL adresa** = **anglicky** (`/console`, `/call-logs`, `/reports`).
 - **Menu a názvy sekcí** = **anglicky** (`Work`, `Team`, `Reporting`, `Administration`).
+
+## 7. Terminologie: Schedules vs. callbacky
+
+PM, 16. 10. 2026:
+
+- Naplánovaný hovor se jmenuje **Schedule / scheduled call** (stránka `Schedule`, cesta `/schedule`), česky **„naplánovaný hovor“**. Slovo **„callback“ se pro něj nepoužívá.**
+- **Schedule a callback nejsou synonyma** — je v tom věcný rozdíl (dříve řešeno s Codexem). Nezaměňovat v dokumentaci, v popiscích ani v UI.
+- Pozor hlavně u metrik a front: místo „Callback / callbacky po termínu“ psát **„Schedules“** (respektive „naplánované hovory“) a **„po termínu“**.
+- Názvosloví v kódu a datech (stav `waiting_callback`, `callbackAttention.ts`, popisky v UI) zůstává zatím beze změny — jeho sjednocení je samostatný úkol, ne tichý refactor.

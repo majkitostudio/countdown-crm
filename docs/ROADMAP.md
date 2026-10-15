@@ -208,11 +208,23 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ---
 
-## Odložené samostatné featury
+## Odložené a budoucí (iterativní)
 
+Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozšiřovat. **Tento seznam není závazek ani konečný**; další nápady se sem připisují průběžně a konkrétní zadání vždy určuje PM.
+
+**PM pojmenoval jako budoucí směr (16. 10. 2026):**
+- **Propojení AI do systému** — rozšiřovat AI napříč systémem (kontext, trénink, kvalita, pomoc operátorovi i vedoucímu). Drží se hranice z vize: AI pomáhá, ale nenahrazuje pravdu o hovoru, objednávce ani oprávněních.
+- **Systém směn** — plánování a řízení směn (operátoři, vedoucí), návaznost na Team Operations a týmový dohled.
+
+**Dříve odložené (z Fází 2 a 5):**
 - **Refactor trenažéru (AI Training)** — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md). Vyňato z Fáze 2, proběhne jako velké samostatné přepracování.
 - **Produktová karta (editor)** — viz sloučení A v [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md); nejdřív zmapovat datový model produktu/skriptu.
 - **Schedule — nový koncept osobní agendy** — viz část 7 tamtéž.
+- **Skutečný kontrakt příjmu leadů (API/webhook)** — ověření, deduplikace a zdroj; trigger z Fáze 5.1c řeší jen zařazení do fronty, ne příjem samotný.
+- **Oddělení (departments) jako samostatná entita** — dnes vedená přes týmy; zvážit vyčlenění (ve Fázi 5 vědomě odloženo).
+- **Sjednocení terminologie Schedules vs. callbacky v kódu a UI** — stav `waiting_callback`, `callbackAttention.ts`, popisky metrik (viz AGENTS.md, pravidlo 7).
+- **Vzdálená migration parity** — blokováno na straně Supabase platformy, zůstává ruční postup ([P0_3_REMOTE_DB_RUNNER.md](P0_3_REMOTE_DB_RUNNER.md)).
+- **Telefonie / VoIP (Telnyx)** — odloženo na neurčito, dokud se nezmění priorita.
 
 ---
 
@@ -231,5 +243,9 @@ uzavřela vstup leadů do fronty: každý nový lead se zařadí automaticky tri
 z leadu a už zavřený lead jde do fronty jako `closed`.
 
 **Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ).
+
+**Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16. 10. 2026: **propojení AI do systému**, **systém směn**, a další) — viz část „Odložené a budoucí“ výše.
+
+**Terminologie:** naplánované hovory se nazývají **Schedule / scheduled call**, ne „callback“ (AGENTS.md, pravidlo 7).
 
 **Vyňato do samostatné práce:** refactor trenažéru — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md).

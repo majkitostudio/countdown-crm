@@ -105,9 +105,10 @@ jen k 14. 10. před úklidem.
 
 **Fáze 4 — krok 3 (hotovo):**
 - Nový view „Queues" v Team Workspace: manažerský souhrn oddělení (4 karty: Čeká / V řešení /
-  Callback / Po termínu) + seznam leadů ve frontě s filtrem oddělení a stavu. Souhrn jde
+  Schedules / Po termínu) + seznam leadů ve frontě s filtrem oddělení a stavu. Souhrn jde
   z nového zdroje `departmentQueues` (respektuje filtr týmů); seznam používá už načtenou
   týmovou frontu, takže neběží druhý dotaz. Funguje i s prázdnými daty (4 karty s nulami).
+  (Popisek metriky v UI zatím zní „Callback"; srovnat s terminologií — viz AGENTS.md, pravidlo 7.)
 
 **Zjištěná nekonzistence (do Fáze 5):**
 - Oddělení jsou dnes v datech vedená jako `teams` (P3/P4 zakládají migrace se slugy
