@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   loadTeamWorkspaceCheckpoint: vi.fn(),
   listCallQualityReviewsForWorkspace: vi.fn(),
   listAssistanceRequestsForWorkspace: vi.fn(),
+  loadDepartmentQueueOverview: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -41,8 +42,12 @@ vi.mock("@/lib/dal/callQualityReviews", () => ({
 vi.mock("@/lib/dal/assistanceRequests", () => ({
   listAssistanceRequestsForWorkspace: mocks.listAssistanceRequestsForWorkspace,
 }));
+vi.mock("@/lib/dal/departmentQueues", () => ({
+  loadDepartmentQueueOverview: mocks.loadDepartmentQueueOverview,
+}));
 
 import * as actions from "@/app/actions/workspace";
+import { buildDepartmentQueueOverview } from "@/lib/departmentQueues";
 
 // This action must execute the real composite loader; only its database/context boundaries are replaced.
 async function refresh() {
@@ -73,6 +78,8 @@ const defaultScope = {
   selectableTeams: [],
 };
 
+const emptyDepartmentQueues = buildDepartmentQueueOverview([], [], new Date("2026-09-16T00:00:00.000Z"));
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.requireWorkspaceContext.mockResolvedValue({ userId: "admin-1", workspaceId: "current-workspace", role: "administrator" });
@@ -87,6 +94,7 @@ beforeEach(() => {
   mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
   mocks.listCallQualityReviewsForWorkspace.mockResolvedValue([]);
   mocks.listAssistanceRequestsForWorkspace.mockResolvedValue([]);
+  mocks.loadDepartmentQueueOverview.mockResolvedValue(emptyDepartmentQueues);
 });
 
 describe("authenticated Team composite refresh", () => {
@@ -102,6 +110,7 @@ describe("authenticated Team composite refresh", () => {
       members: { status: "unavailable", reason: "database" },
       checkpoint: { status: "ready", data: emptyCheckpoint },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: { status: "ready", data: emptyDepartmentQueues },
       assistanceRequests: { status: "ready", data: [] },
       scope: defaultScope,
     });
@@ -125,6 +134,7 @@ describe("authenticated Team composite refresh", () => {
       members: null,
       checkpoint: { status: "ready", data: emptyCheckpoint },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: { status: "ready", data: emptyDepartmentQueues },
       assistanceRequests: { status: "ready", data: [] },
       scope: defaultScope,
     });

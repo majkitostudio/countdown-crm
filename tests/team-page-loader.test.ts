@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   loadTeamWorkspaceCheckpoint: vi.fn(),
   listCallQualityReviewsForWorkspace: vi.fn(),
   listAssistanceRequestsForWorkspace: vi.fn(),
+  loadDepartmentQueueOverview: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -41,8 +42,12 @@ vi.mock("@/lib/dal/callQualityReviews", () => ({
 vi.mock("@/lib/dal/assistanceRequests", () => ({
   listAssistanceRequestsForWorkspace: mocks.listAssistanceRequestsForWorkspace,
 }));
+vi.mock("@/lib/dal/departmentQueues", () => ({
+  loadDepartmentQueueOverview: mocks.loadDepartmentQueueOverview,
+}));
 
 import { loadTeamPageData } from "@/lib/dal/teamPage";
+import { buildDepartmentQueueOverview } from "@/lib/departmentQueues";
 
 const teamLeaderContext = {
   userId: "leader-1",
@@ -78,6 +83,8 @@ const defaultScope = {
   selectableTeams: [],
 };
 
+const emptyDepartmentQueues = buildDepartmentQueueOverview([], [], new Date("2026-09-16T00:00:00.000Z"));
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.listQueueItemsForWorkspace.mockResolvedValue([]);
@@ -91,6 +98,7 @@ beforeEach(() => {
   mocks.loadTeamWorkspaceCheckpoint.mockResolvedValue(emptyCheckpoint);
   mocks.listCallQualityReviewsForWorkspace.mockResolvedValue([]);
   mocks.listAssistanceRequestsForWorkspace.mockResolvedValue([]);
+  mocks.loadDepartmentQueueOverview.mockResolvedValue(emptyDepartmentQueues);
 });
 
 describe("loadTeamPageData", () => {
@@ -144,6 +152,7 @@ describe("loadTeamPageData", () => {
           ...expected,
           checkpoint: { status: "ready", data: emptyCheckpoint },
           qualityReviews: { status: "ready", data: [] },
+          departmentQueues: { status: "ready", data: emptyDepartmentQueues },
           assistanceRequests: { status: "ready", data: [] },
           scope: defaultScope,
         });
@@ -161,6 +170,7 @@ describe("loadTeamPageData", () => {
       members: { status: "ready", data: [] },
       checkpoint: { status: "ready", data: emptyCheckpoint },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: { status: "ready", data: emptyDepartmentQueues },
       assistanceRequests: { status: "ready", data: [] },
       scope: defaultScope,
     });
@@ -175,6 +185,7 @@ describe("loadTeamPageData", () => {
       members: { status: "ready", data: [] },
       checkpoint: { status: "ready", data: emptyCheckpoint },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: { status: "ready", data: emptyDepartmentQueues },
       assistanceRequests: { status: "ready", data: [] },
       scope: defaultScope,
     });
@@ -200,6 +211,7 @@ describe("loadTeamPageData", () => {
     expect(mocks.listOperatorPresenceForWorkspace).toHaveBeenCalledWith("workspace-1", {});
     expect(mocks.listAccessibleTeams).toHaveBeenCalledWith("workspace-1");
     expect(mocks.listWorkspaceMembers).toHaveBeenCalledWith("workspace-1");
+    expect(mocks.loadDepartmentQueueOverview).toHaveBeenCalledWith(administratorContext, {});
   });
 
   it.each([
@@ -270,6 +282,7 @@ describe("loadTeamPageData", () => {
 
     expect(mocks.listTeamOperatorIds).toHaveBeenCalledWith("workspace-1", ["team-a"]);
     expect(mocks.loadTeamWorkspaceCheckpoint).toHaveBeenCalledWith(teamLeaderContext, { periodKey: "today", operatorIds: ["operator-1"] });
+    expect(mocks.loadDepartmentQueueOverview).toHaveBeenCalledWith(teamLeaderContext, { teamIds: ["team-a"] });
     expect(mocks.listQueueItemsForWorkspace).toHaveBeenCalledWith("workspace-1", { teamIds: ["team-a"] });
     expect(mocks.listOperatorPresenceForWorkspace).toHaveBeenCalledWith("workspace-1", { operatorIds: ["operator-1"] });
     expect(mocks.listCallQualityReviewsForWorkspace).toHaveBeenCalledWith("workspace-1", { operatorIds: ["operator-1"] });

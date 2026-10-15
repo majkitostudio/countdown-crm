@@ -2,6 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { TeamPageData } from "@/lib/dal/teamPage";
+import { buildDepartmentQueueOverview } from "@/lib/departmentQueues";
 import * as teamPageContent from "@/components/team/TeamPageContent";
 
 vi.mock("server-only", () => ({}));
@@ -67,6 +68,10 @@ const emptyTeamSources = {
   roster: { status: "ready" as const, data: { teams: [], memberships: {} } },
   checkpoint: { status: "unavailable" as const, reason: "database" as const },
   qualityReviews: { status: "ready" as const, data: [] },
+  departmentQueues: {
+    status: "ready" as const,
+    data: buildDepartmentQueueOverview([], [], new Date("2026-09-16T00:00:00.000Z")),
+  },
   scope: { periodKey: "today" as const, teamIds: [], selectableTeams: [] },
 };
 

@@ -8,6 +8,8 @@ import { listOperatorPresenceForWorkspace, type OperatorPresenceDTO } from "@/li
 import { DataAccessError, isDataAccessError } from "@/lib/dal/errors";
 import type { WorkspaceContext } from "@/lib/dal/workspace";
 import { loadTeamWorkspaceCheckpoint, type TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
+import { loadDepartmentQueueOverview } from "@/lib/dal/departmentQueues";
+import type { DepartmentQueueOverview } from "@/lib/departmentQueues";
 import { listCallQualityReviewsForWorkspace, type CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
 import { listAssistanceRequestsForWorkspace, type AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
 import {
@@ -40,6 +42,7 @@ export interface TeamPageData {
   members: TeamSource<WorkspaceMemberDTO[]> | null;
   checkpoint: TeamSource<TeamWorkspaceCheckpoint>;
   qualityReviews: TeamSource<CallQualityReviewDTO[]>;
+  departmentQueues: TeamSource<DepartmentQueueOverview>;
   assistanceRequests?: TeamSource<AssistanceRequestDTO[]>;
   scope: TeamPageScopeMetadata;
 }
@@ -123,10 +126,11 @@ export async function loadTeamPageData(
   const scope = await resolveTeamWorkspaceScope(context, scopeInput);
   const checkpointOptions = { periodKey: scope.periodKey, operatorIds: scope.operatorIds };
   const queueOptions = scope.teamIds.length > 0 ? { teamIds: scope.teamIds } : {};
+  const departmentQueueOptions = scope.teamIds.length > 0 ? { teamIds: scope.teamIds } : {};
   const operationOptions = scope.operatorIds.length > 0 ? { operatorIds: scope.operatorIds } : {};
 
   if (context.role === "administrator") {
-    const [queue, operators, presence, roster, members, checkpoint, qualityReviews, assistanceRequests] = await Promise.allSettled([
+    const [queue, operators, presence, roster, members, checkpoint, qualityReviews, departmentQueues, assistanceRequests] = await Promise.allSettled([
       listQueueItemsForWorkspace(context.workspaceId, queueOptions),
       loadScopedOperators(context, scope.operatorIds),
       listOperatorPresenceForWorkspace(context.workspaceId, operationOptions),
@@ -134,6 +138,7 @@ export async function loadTeamPageData(
       listWorkspaceMembers(context.workspaceId),
       loadTeamWorkspaceCheckpoint(context, checkpointOptions),
       listCallQualityReviewsForWorkspace(context.workspaceId, operationOptions),
+      loadDepartmentQueueOverview(context, departmentQueueOptions),
       listAssistanceRequestsForWorkspace(),
     ]);
 
@@ -145,6 +150,7 @@ export async function loadTeamPageData(
       members: toTeamSource(members),
       checkpoint: toTeamSource(checkpoint),
       qualityReviews: toTeamSource(qualityReviews),
+      departmentQueues: toTeamSource(departmentQueues),
       assistanceRequests: toTeamSource(assistanceRequests),
       scope: {
         periodKey: scope.periodKey,
@@ -154,13 +160,14 @@ export async function loadTeamPageData(
     };
   }
 
-  const [queue, operators, presence, roster, checkpoint, qualityReviews, assistanceRequests] = await Promise.allSettled([
+  const [queue, operators, presence, roster, checkpoint, qualityReviews, departmentQueues, assistanceRequests] = await Promise.allSettled([
     listQueueItemsForWorkspace(context.workspaceId, queueOptions),
     loadScopedOperators(context, scope.operatorIds),
     listOperatorPresenceForWorkspace(context.workspaceId, operationOptions),
     loadTeamRoster(context.workspaceId, scope.teamIds),
     loadTeamWorkspaceCheckpoint(context, checkpointOptions),
     listCallQualityReviewsForWorkspace(context.workspaceId, operationOptions),
+    loadDepartmentQueueOverview(context, departmentQueueOptions),
     listAssistanceRequestsForWorkspace(),
   ]);
 
@@ -172,6 +179,7 @@ export async function loadTeamPageData(
     members: null,
     checkpoint: toTeamSource(checkpoint),
     qualityReviews: toTeamSource(qualityReviews),
+    departmentQueues: toTeamSource(departmentQueues),
     assistanceRequests: toTeamSource(assistanceRequests),
     scope: {
       periodKey: scope.periodKey,

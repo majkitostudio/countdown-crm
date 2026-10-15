@@ -9,6 +9,7 @@ import { TeamQueuePanel } from "@/components/team/TeamQueuePanel";
 import { TeamRosterPanel } from "@/components/team/TeamRosterPanel";
 import { TeamDailyCheckpointPanel } from "@/components/team/TeamDailyCheckpointPanel";
 import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel";
+import { TeamDepartmentQueuesPanel } from "@/components/team/TeamDepartmentQueuesPanel";
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
 import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
@@ -32,10 +33,11 @@ interface TeamPageContentProps {
 
 export type TeamMutationHandler = (mutation: () => Promise<unknown>) => Promise<void>;
 
-type TeamWorkspaceView = "checkpoint" | "quality" | "orders" | "operators" | "queue";
+type TeamWorkspaceView = "checkpoint" | "queues" | "quality" | "orders" | "operators" | "queue";
 
 const TEAM_WORKSPACE_VIEWS: Array<{ id: TeamWorkspaceView; label: string }> = [
   { id: "checkpoint", label: "Denní checkpoint" },
+  { id: "queues", label: "Queues" },
   { id: "quality", label: "Kontrola kvality hovorů" },
   { id: "orders", label: "Objednávky" },
   { id: "operators", label: "Aktivní operátoři" },
@@ -312,6 +314,18 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
               )
             : <SourceUnavailablePanel title="Denní checkpoint není dostupný" message="Denní checkpoint není dostupný." />}
         </div>
+      )}
+
+      {view === "queues" && (
+        currentData.departmentQueues.status === "ready"
+          ? (
+            <TeamDepartmentQueuesPanel
+              overview={currentData.departmentQueues.data}
+              queueItems={currentData.queue.status === "ready" ? currentData.queue.data : []}
+              queueState={currentData.queue.status}
+            />
+          )
+          : <SourceUnavailablePanel title="Queues unavailable" message="Přehled front oddělení není dostupný." />
       )}
 
       {view === "quality" && (

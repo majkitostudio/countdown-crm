@@ -2,6 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { TeamPageData } from "@/lib/dal/teamPage";
+import { buildDepartmentQueueOverview } from "@/lib/departmentQueues";
 import { TeamPageContent } from "@/components/team/TeamPageContent";
 
 vi.mock("server-only", () => ({}));
@@ -33,7 +34,9 @@ const queueItem = {
   preferred_operator: null,
 };
 
-function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" = "queue"): string {
+const emptyDepartmentQueues = { status: "ready" as const, data: buildDepartmentQueueOverview([], [], new Date("2026-09-16T00:00:00.000Z")) };
+
+function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" | "queues" = "queue"): string {
   return renderToStaticMarkup(React.createElement(TeamPageContent, {
     currentUserId: "leader-1",
     role,
@@ -52,6 +55,7 @@ describe("TeamPageContent partial source states", () => {
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
     });
 
     expect(html).toContain("Ada Lovelace");
@@ -69,6 +73,7 @@ describe("TeamPageContent partial source states", () => {
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
     });
 
     expect(html).toContain("Kontakt není v tomto rozsahu dostupný");
@@ -85,6 +90,7 @@ describe("TeamPageContent partial source states", () => {
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
     });
 
     expect(html).toContain("Lead queue is unavailable.");
@@ -101,6 +107,7 @@ describe("TeamPageContent partial source states", () => {
       members: { status: "unavailable" as const, reason: "database" as const },
       checkpoint: { status: "unavailable" as const, reason: "database" as const },
       qualityReviews: { status: "ready" as const, data: [] },
+      departmentQueues: emptyDepartmentQueues,
     };
 
     expect(render(data, "administrator", "queue")).toContain("Ada Lovelace");
@@ -116,6 +123,7 @@ describe("TeamPageContent partial source states", () => {
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
     });
 
     expect(html).toContain("Queue is empty. No assignment data was fabricated.");
@@ -130,10 +138,55 @@ describe("TeamPageContent partial source states", () => {
       members: null,
       checkpoint: { status: "unavailable", reason: "database" },
       qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
     });
 
     expect(html).not.toContain("Current workspace members");
     expect(html).not.toContain("Správa rolí Operator, Team Leader a Administrator.");
     expect(html).not.toContain("Administrator only");
+  });
+
+  it("shows the department queue overview and the leads waiting in it", () => {
+    const overview = buildDepartmentQueueOverview(
+      [
+        { team_id: "t-p1", state: "available", scheduled_at: null },
+        { team_id: "t-p1", state: "available", scheduled_at: null },
+      ],
+      [{ id: "t-p1", slug: "p1k", name: "P1K" }],
+      new Date("2026-09-08T09:00:00.000Z"),
+    );
+
+    const html = render({
+      queue: { status: "ready", data: [{ ...queueItem, team_id: "t-p1" }] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: { status: "ready", data: overview },
+    }, "team_leader", "queues");
+
+    expect(html).toContain("Queues");
+    expect(html).toContain("Department P1");
+    expect(html).toContain("P1K");
+    expect(html).toContain("Ada Lovelace");
+  });
+
+  it("renders the four empty department cards when there is no data", () => {
+    const html = render({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "queues");
+
+    expect(html).toContain("Department P1");
+    expect(html).toContain("Department P4");
+    expect(html).toContain("Ve frontě nic nečeká.");
   });
 });
