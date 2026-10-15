@@ -5,7 +5,6 @@ import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { loadTeamManagementAction } from "@/app/actions/teams";
 import { UsersHubPanel } from "@/components/team/UsersHubPanel";
 import { TeamManagementPanel } from "@/components/team/TeamManagementPanel";
-import { TeamOwnershipPanel } from "@/components/team/TeamOwnershipPanel";
 
 export default async function UsersAndPermissionsPage() {
   const context = await requireWorkspaceContext();
@@ -31,13 +30,12 @@ export default async function UsersAndPermissionsPage() {
       <PageHeader
         icon={Users}
         title="Users & Teams"
-        description="Kompletní správa pracovníků call centra, rolí, linek a odpovědnosti za leady."
+        description="Kompletní správa pracovníků call centra, workspace rolí a členství v týmech."
         badge={{ label: "Administrator only", tone: "neutral" }}
         backLink={{ href: "/admin", label: "Back to Management" }}
       />
       <UsersHubPanel initialData={data} currentUserId={context.userId} />
       <TeamManagementPanel initialData={data} />
-      <TeamOwnershipPanel initialData={data} />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   assignTeamOwnershipAction,
+  loadTeamOwnershipAction,
   type TeamManagementData,
 } from "@/app/actions/teams";
 import type { TeamOwnershipResourceType } from "@/lib/dal/teamOwnership";
@@ -30,6 +31,7 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   const activeTeams = useMemo(
     () => data.teams.filter((team) => team.status === "active"),
@@ -61,20 +63,29 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
     setBusyKey(key);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setWarningMessage(null);
     try {
-      await assignTeamOwnershipAction(resourceType, resourceId, nextTeamId);
-      setData((current) => ({
+      const result = await assignTeamOwnershipAction(resourceType, resourceId, nextTeamId);
+      // Confirming one record also confirms the records that belong to it, and
+      // the database decides how far it can go. Reload instead of guessing.
+      let reloadFailed = false;
+      try {
+        const latest = await loadTeamOwnershipAction();
+        setData({ teams: latest.teams, ownership: latest.ownership });
+      } catch {
+        reloadFailed = true;
+      }
+      setDraftTeams((current) => ({
         ...current,
-        ownership: {
-          leads: current.ownership.leads.map((lead) =>
-            resourceType === "lead" && lead.id === resourceId ? { ...lead, team_id: nextTeamId } : lead,
-          ),
-          queueItems: current.ownership.queueItems.map((item) =>
-            resourceType === "queue_item" && item.id === resourceId ? { ...item, team_id: nextTeamId } : item,
-          ),
-        },
+        [ownershipKey(resourceType, resourceId)]: nextTeamId ?? "",
       }));
-      setDraftTeams((current) => ({ ...current, [key]: nextTeamId || "" }));
+      if (reloadFailed) {
+        setWarningMessage("Změna je uložená, ale seznam se nepodařilo znovu načíst. Obnovte prosím stránku.");
+      } else if ((result.queue_items_remaining ?? 0) > 0) {
+        setWarningMessage(
+          `Bez přiřazení zůstává ${result.queue_items_remaining} položka fronty (operátor patří do jiného týmu). Přiřaďte ji prosím zvlášť.`,
+        );
+      }
       setSuccessMessage(`Přiřazení „${resourceType === "lead" ? "zákazníka" : "položky fronty"}“ bylo uloženo.`);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Přiřazení týmu se nepodařilo uložit.");
@@ -103,11 +114,12 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
         <div>
           <h2 className="text-sm font-semibold text-text-primary">Přiřazení záznamů k týmům</h2>
           <p className="mt-1 max-w-3xl text-xs leading-relaxed text-text-muted">
-            Tady určujeme, který tým je za zákazníka nebo položku fronty odpovědný. Stav fronty ani přidělený operátor se tím nemění. Dokud není záznam přiřazený, zůstává označený jako „Bez přiřazení“.
+            Tady určujeme, který tým je za zákazníka nebo položku fronty odpovědný. Stav fronty ani přidělený operátor se tím nemění. Potvrzením zákazníka se přiřadí i jeho položky fronty, které tým ještě neměly; a naopak. Dokud není záznam přiřazený, zůstává označený jako „Bez přiřazení“ a nikdo kromě administrátora ho nevidí.
           </p>
         </div>
 
         {successMessage && <StatusAlert tone="success">{successMessage}</StatusAlert>}
+        {warningMessage && <StatusAlert tone="warning">{warningMessage}</StatusAlert>}
         {errorMessage && <StatusAlert tone="danger">{errorMessage}</StatusAlert>}
 
         <div className="grid gap-3 sm:grid-cols-3">

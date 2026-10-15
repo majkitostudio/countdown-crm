@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   FileText,
   LockKeyhole,
+  Route,
   ShieldCheck,
   Users,
   WalletCards,
@@ -10,6 +11,7 @@ import {
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { getWorkspaceReadinessForWorkspace } from "@/lib/dal/workspaceReadiness";
 import type { WorkspaceReadinessCheck } from "@/lib/dal/workspaceReadiness";
+import { countUnassignedTeamOwnership } from "@/lib/dal/teamOwnership";
 import { WorkspaceHealthStrip } from "@/components/admin/WorkspaceHealthStrip";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
@@ -18,7 +20,8 @@ interface AdminHubCard {
   href: string;
   label: string;
   description: string;
-  legacyPath: string;
+  /** Where the surface lived before the Management hub existed. */
+  legacyPath?: string;
   icon: typeof ShieldCheck;
 }
 
@@ -31,9 +34,15 @@ const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
   {
     href: "/admin/users",
     label: "Users & Teams",
-    description: "Členové, role ve workspace a odpovědnosti za týmy.",
+    description: "Členové, role ve workspace a členství v týmech.",
     legacyPath: "/settings/users",
     icon: Users,
+  },
+  {
+    href: "/admin/ownership",
+    label: "Team Ownership",
+    description: "Kteří zákazníci a položky fronty ještě čekají na odpovědný tým.",
+    icon: Route,
   },
   {
     href: "/products?tab=scripts",
@@ -85,12 +94,19 @@ export default async function AdminHubPage() {
     );
   }
 
+  let unassignedOwnership: number | null = null;
+  try {
+    unassignedOwnership = (await countUnassignedTeamOwnership()).total;
+  } catch {
+    unassignedOwnership = null;
+  }
+
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={ShieldCheck}
         title="Management"
-        description="Jedno místo pro správu workspace: členové, produkty a skripty, automatizace a nastavení."
+        description="Jedno místo pro správu workspace: členové a týmy, odpovědnost za zákazníky, produkty a skripty, automatizace a nastavení."
         badge={{ label: "Administrator only", tone: "neutral" }}
       />
 
@@ -108,20 +124,31 @@ export default async function AdminHubPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {ADMIN_HUB_CARDS.map((card) => {
           const Icon = card.icon;
+          const unassignedCount =
+            card.href === "/admin/ownership" ? unassignedOwnership : null;
           return (
             <Link
               key={card.href}
               href={card.href}
               className="group flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-5 transition-colors hover:border-zinc-600 hover:bg-zinc-900/60"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-200">
-                <Icon className="h-4 w-4" />
+              <span className="flex items-start justify-between gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-200">
+                  <Icon className="h-4 w-4" />
+                </span>
+                {unassignedCount !== null && unassignedCount > 0 ? (
+                  <span className="rounded-full border border-amber-900/60 bg-amber-950/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                    {unassignedCount} bez přiřazení
+                  </span>
+                ) : null}
               </span>
               <span className="text-sm font-semibold text-zinc-100">{card.label}</span>
               <span className="text-xs leading-relaxed text-zinc-400">{card.description}</span>
-              <span className="mt-auto font-mono text-[10px] uppercase tracking-wider text-zinc-600">
-                was {card.legacyPath}
-              </span>
+              {card.legacyPath ? (
+                <span className="mt-auto font-mono text-[10px] uppercase tracking-wider text-zinc-600">
+                  was {card.legacyPath}
+                </span>
+              ) : null}
             </Link>
           );
         })}

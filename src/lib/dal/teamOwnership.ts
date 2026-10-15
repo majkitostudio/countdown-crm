@@ -43,6 +43,21 @@ export interface TeamOwnershipAssignmentResult {
   workspace_id: string;
   team_id: string | null;
   changed: boolean;
+  /**
+   * Records the confirmation reached beyond the selected one. The database
+   * never overwrites ownership that was already confirmed, so these counts can
+   * be lower than the number of related records.
+   */
+  leads_updated?: number;
+  queue_items_updated?: number;
+  /** Related queue items that still wait for an administrator. */
+  queue_items_remaining?: number;
+}
+
+export interface TeamOwnershipSummary {
+  leadsWithoutTeam: number;
+  queueItemsWithoutTeam: number;
+  total: number;
 }
 
 function isUuid(value: string): boolean {
@@ -84,6 +99,46 @@ export async function listTeamOwnershipRecords(): Promise<TeamOwnershipData> {
   return {
     leads: (leads || []) as TeamOwnershipLeadDTO[],
     queueItems: (queueItems || []) as unknown as TeamOwnershipQueueItemDTO[],
+  };
+}
+
+/**
+ * A visible counter of the records whose ownership has not been confirmed yet.
+ * Until an administrator confirms a team, those records belong to nobody --
+ * Team Leaders and Operators cannot see them at all.
+ */
+export async function countUnassignedTeamOwnership(): Promise<TeamOwnershipSummary> {
+  if (isDemoAuthEnabled()) {
+    return { leadsWithoutTeam: 0, queueItemsWithoutTeam: 0, total: 0 };
+  }
+
+  const context = await requireWorkspaceRole(["administrator"]);
+  const supabase = await createDataClient();
+
+  const [leads, queueItems] = await Promise.all([
+    supabase
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", context.workspaceId)
+      .is("team_id", null),
+    supabase
+      .from("lead_queue_items")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", context.workspaceId)
+      .is("team_id", null),
+  ]);
+
+  if (leads.error || queueItems.error) {
+    throw new DataAccessError("DATABASE", "Team ownership counts could not be loaded");
+  }
+
+  const leadsWithoutTeam = leads.count ?? 0;
+  const queueItemsWithoutTeam = queueItems.count ?? 0;
+
+  return {
+    leadsWithoutTeam,
+    queueItemsWithoutTeam,
+    total: leadsWithoutTeam + queueItemsWithoutTeam,
   };
 }
 

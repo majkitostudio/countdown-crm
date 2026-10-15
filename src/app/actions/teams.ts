@@ -25,6 +25,24 @@ export interface TeamManagementData {
   ownership: TeamOwnershipData;
 }
 
+export interface TeamOwnershipViewData {
+  teams: TeamDTO[];
+  ownership: TeamOwnershipData;
+}
+
+/**
+ * The lean load the ownership surface needs: teams to offer as targets and the
+ * records whose ownership can still be confirmed.
+ */
+export async function loadTeamOwnershipAction(): Promise<TeamOwnershipViewData> {
+  const [teams, ownership] = await Promise.all([
+    listAccessibleTeams(),
+    listTeamOwnershipRecords(),
+  ]);
+
+  return { teams, ownership };
+}
+
 export async function loadTeamManagementAction(): Promise<TeamManagementData> {
   const [teams, members, ownership] = await Promise.all([
     listAccessibleTeams(),
