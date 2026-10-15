@@ -145,6 +145,27 @@ Při čistém běhu se ukázalo, že **`npx supabase test db` neprojde** — 4 z
 
 ---
 
+## Dořešení mezery z Fáze 5.1b: vstup leadů do fronty (Fáze 5.1c)
+
+**Nález:** jediné místo, které kdy vytvořilo položku fronty, byl jednorázový backfill v `20260819090000_lead_queue_assignment.sql`. V repozitáři nebyl žádný trigger na `leads`, žádná funkce pro zařazení a aplikace položky fronty jen čte. Každý lead vzniklý po backfillu (ruční zadání, import CSV i budoucí API/webhook) tedy do fronty nikdy nevstoupil — operátor ani Team Leader ho neviděli a napojení P3/P4 tiše nic nedělalo, protože přesouvá jen leady, které už položku fronty mají.
+
+**Řešení (migrace `20261015091000_lead_queue_enqueue_on_insert.sql`):**
+1. Trigger `leads_enqueue_queue_item` (AFTER INSERT na `public.leads`) volá `private.enqueue_lead_queue_item()`: každý nový lead dostane právě jednu položku fronty, s `ON CONFLICT (workspace_id, lead_id) DO NOTHING`.
+2. Položka **přebírá tým leadu**. Import bez týmu tak zůstane „bez přiřazení“ a doplní jej kaskáda z Fáze 5.1b ve chvíli, kdy administrátor tým potvrdí.
+3. Už uzavřený lead (`customer`/`unresponsive`) se zařadí jako `closed` s `completed_at` — stejné pravidlo, jaké použil původní backfill. **Stav fronty se jinak nikdy nepřepisuje**; zavírání po hovoru zůstává v post-call toku.
+3. Jednorázově se doplní leady, které vznikly po původním backfillu a položku neměly (idempotentní, `ON CONFLICT … DO NOTHING`).
+4. Fixtures, které vkládají lead i položku fronty ručně (`call_completion_rpc_authorization_test.sql`, `team_leader_exception_queue_rls_test.sql`, `team_ownership_assignment_test.sql`), nově používají upsert (`on conflict (workspace_id, lead_id) do update set …`), aby nahradily automatickou položku zamýšleným stavem.
+
+**Proč trigger, a ne jen aplikace:** kostra má být připravená na API/webhook bez přepisování logiky. Trigger garantuje, že co do databáze dorazí, to se zařadí — bez ohledu na cestu vzniku.
+
+**Testy:** nový pgTAP `supabase/tests/database/lead_queue_enqueue_test.sql` (20 situací: existence a tvar triggeru, dědění týmu, `closed` u už uzavřených leadů, jedna položka na lead, viditelnost pro administrátora/vedoucího/operátora, předání do kaskády 5.1b) a vitest `tests/lead-queue-enqueue.test.ts`.
+
+**Ověření:** `supabase db reset` (132 migrací + seed) → `npx supabase test db` = **`Files=13, Tests=236, Result: PASS`**; `npm test` = 880 testů v 181 souborech; `npm run verify:parity` = 132 = 132; `npm run verify:migrations` = 132 migrací, 0 chyb; `lint`, `typecheck` a `npm run build` bez chyby.
+
+**Co trigger záměrně nedělá:** nezapisuje do historie fronty (`lead_queue_events`) — stejně jako původní backfill; historie patří životnímu cyklu práce, ne příjmu. A neřeší skutečný kontrakt příjmu (ověření, deduplikace, zdroj) — ten zůstává samostatný budoucí modul.
+
+---
+
 ## Odloženo: departments vs. týmy
 
 Model oddělení P1–P4 je dnes realizovaný přes entity `teams` (oddělení se odvozuje z týmu). Diskuze, jestli má být oddělení samostatná entita, patří do samostatné fáze. V této fázi se **žádná migrace schématu kvůli oddělením nedělala** — jen se zaznamenává rozhodnutí.

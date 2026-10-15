@@ -161,6 +161,26 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ---
 
+## Fáze 5.1c — Vstup leadů do fronty (dořešená mezera)
+
+**Cíl:** zajistit, aby každý nový lead skutečně vstoupil do fronty, ať vznikne jakkoli.
+
+**Proč:** jediné místo, které kdy vytvořilo položku fronty, byl jednorázový backfill v `20260819090000_lead_queue_assignment.sql`. Leady vzniklé později (ruční zadání, import CSV i budoucí API/webhook) do fronty nikdy nevstoupily: operátor ani Team Leader je neviděli a napojení P3/P4 tiše nic nedělalo, protože přesouvá jen leady, které už položku fronty mají.
+
+**Kroky:**
+- Trigger `leads_enqueue_queue_item` (AFTER INSERT na `public.leads`) v migraci `20261015091000_lead_queue_enqueue_on_insert.sql`: každý nový lead dostane právě jednu položku fronty. ✅ hotovo.
+- Položka přebírá tým leadu; import bez týmu tak zůstane „bez přiřazení“ a doplní jej kaskáda z Fáze 5.1b. ✅ hotovo.
+- Už uzavřený lead (`customer`/`unresponsive`) se zařadí jako `closed`; stav fronty se jinak nikdy nepřepisuje. ✅ hotovo.
+- Jednorázové doplnění leadů, které vznikly po původním backfillu a položku neměly. ✅ hotovo.
+- Fixtures, které vkládají lead i položku ručně, nově používají upsert (`on conflict … do update`), aby nahradily automatickou položku zamýšleným stavem. ✅ hotovo.
+- Nový pgTAP `lead_queue_enqueue_test.sql` (20 testů) a vitest `lead-queue-enqueue.test.ts`. ✅ hotovo.
+
+**Stav:** ✅ hotovo (15. 10. 2026). Přesný stav: `supabase test db` = 13 souborů / 236 testů, `npm test` = 880 testů / 181 souborů, `npm run verify:parity` = 132 = 132.
+
+**Doporučení na později:** skutečný kontrakt příjmu leadů (ověření, deduplikace, zdroj) zůstává samostatný budoucí modul; trigger jen garantuje, že co do databáze dorazí, to se zařadí.
+
+---
+
 ## Fáze 6 — Team Leader dashboard a reporty
 
 **Cíl:** dát vedoucímu přehled o provozu, bez zbytečných „nice to have“ reportů.
@@ -198,7 +218,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2, 3, 4, 5, 5.1 a 5.1b jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3, 4, 5, 5.1, 5.1b a 5.1c jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
 provozní model a přidala přehled front (view **Queues** v Team Workspace). Fáze 5 ověřila
@@ -206,7 +226,9 @@ migrace z čistého stavu, změřila dotazy na objemu dat a zavedla kontrolu mig
 (viz [PHASE_5_MIGRATIONS_REVIEW.md](PHASE_5_MIGRATIONS_REVIEW.md)). Fáze 5.1 opravila fixtures
 databázových pgTAP testů (týmové přiřazení) a přidala do CI job `database-tests`. Fáze 5.1b
 dokončila vlastnictví záznamů: potvrzení týmu se doplní tam, kde chybí, panel se přesunul
-na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení“.
+na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení“. Fáze 5.1c
+uzavřela vstup leadů do fronty: každý nový lead se zařadí automaticky triggerem, tým převezme
+z leadu a už zavřený lead jde do fronty jako `closed`.
 
 **Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ).
 
