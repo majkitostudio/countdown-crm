@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { findDuplicateVersions } from "./migrations-lib.mjs";
 
 const MIGRATIONS_DIR = resolve(process.cwd(), "supabase/migrations");
 
@@ -15,6 +16,18 @@ const tables = new Map(); // table_name -> Set<column_name>
 const functions = new Set(); // func_signature
 const errors = [];
 const warnings = [];
+
+// 0. Duplicate migration versions.
+// Supabase identifies an applied migration by the version prefix of its file
+// name, so two files sharing a version cannot both be applied reliably.
+const duplicateVersions = findDuplicateVersions(files);
+for (const { version, files: duplicates } of duplicateVersions) {
+  errors.push({
+    file: duplicates.join(", "),
+    message: `Duplicate migration version '${version}'. Each migration version must be unique.`,
+  });
+}
+console.log(`Duplicate migration versions: ${duplicateVersions.length}`);
 
 function normalizeName(name) {
   if (!name) return "";
