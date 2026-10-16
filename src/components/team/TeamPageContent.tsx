@@ -11,6 +11,7 @@ import { TeamDailyCheckpointPanel } from "@/components/team/TeamDailyCheckpointP
 import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel";
 import { TeamDepartmentQueuesPanel } from "@/components/team/TeamDepartmentQueuesPanel";
 import { TeamQueuesSummaryStrip } from "@/components/team/TeamQueuesSummaryStrip";
+import { TeamRiskSummaryStrip } from "@/components/team/TeamRiskSummaryStrip";
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
 import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
@@ -269,6 +270,11 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           <TeamQueuesSummaryStrip
             overview={currentData.departmentQueues.status === "ready" ? currentData.departmentQueues.data : null}
             onOpenQueues={() => setView("queues")}
+          />
+
+          {/* 0b. Rizika a prodlevy — co potřebuje pozornost hned */}
+          <TeamRiskSummaryStrip
+            summary={currentData.riskSummary?.status === "ready" ? currentData.riskSummary.data : null}
           />
 
           {/* 1. Asistence - Co vyžaduje pozornost */}

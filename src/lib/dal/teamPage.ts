@@ -10,6 +10,8 @@ import type { WorkspaceContext } from "@/lib/dal/workspace";
 import { loadTeamWorkspaceCheckpoint, type TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
 import { loadDepartmentQueueOverview } from "@/lib/dal/departmentQueues";
 import type { DepartmentQueueOverview } from "@/lib/departmentQueues";
+import { loadTeamRiskSummary } from "@/lib/dal/teamRiskSummary";
+import type { TeamRiskSummary } from "@/lib/teamRiskSummary";
 import { listCallQualityReviewsForWorkspace, type CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
 import { listAssistanceRequestsForWorkspace, type AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
 import {
@@ -43,6 +45,7 @@ export interface TeamPageData {
   checkpoint: TeamSource<TeamWorkspaceCheckpoint>;
   qualityReviews: TeamSource<CallQualityReviewDTO[]>;
   departmentQueues: TeamSource<DepartmentQueueOverview>;
+  riskSummary?: TeamSource<TeamRiskSummary>;
   assistanceRequests?: TeamSource<AssistanceRequestDTO[]>;
   scope: TeamPageScopeMetadata;
 }
@@ -130,7 +133,7 @@ export async function loadTeamPageData(
   const operationOptions = scope.operatorIds.length > 0 ? { operatorIds: scope.operatorIds } : {};
 
   if (context.role === "administrator") {
-    const [queue, operators, presence, roster, members, checkpoint, qualityReviews, departmentQueues, assistanceRequests] = await Promise.allSettled([
+    const [queue, operators, presence, roster, members, checkpoint, qualityReviews, departmentQueues, riskSummary, assistanceRequests] = await Promise.allSettled([
       listQueueItemsForWorkspace(context.workspaceId, queueOptions),
       loadScopedOperators(context, scope.operatorIds),
       listOperatorPresenceForWorkspace(context.workspaceId, operationOptions),
@@ -139,6 +142,7 @@ export async function loadTeamPageData(
       loadTeamWorkspaceCheckpoint(context, checkpointOptions),
       listCallQualityReviewsForWorkspace(context.workspaceId, operationOptions),
       loadDepartmentQueueOverview(context, departmentQueueOptions),
+      loadTeamRiskSummary(context),
       listAssistanceRequestsForWorkspace(),
     ]);
 
@@ -151,6 +155,7 @@ export async function loadTeamPageData(
       checkpoint: toTeamSource(checkpoint),
       qualityReviews: toTeamSource(qualityReviews),
       departmentQueues: toTeamSource(departmentQueues),
+      riskSummary: toTeamSource(riskSummary),
       assistanceRequests: toTeamSource(assistanceRequests),
       scope: {
         periodKey: scope.periodKey,
@@ -160,7 +165,7 @@ export async function loadTeamPageData(
     };
   }
 
-  const [queue, operators, presence, roster, checkpoint, qualityReviews, departmentQueues, assistanceRequests] = await Promise.allSettled([
+  const [queue, operators, presence, roster, checkpoint, qualityReviews, departmentQueues, riskSummary, assistanceRequests] = await Promise.allSettled([
     listQueueItemsForWorkspace(context.workspaceId, queueOptions),
     loadScopedOperators(context, scope.operatorIds),
     listOperatorPresenceForWorkspace(context.workspaceId, operationOptions),
@@ -168,6 +173,7 @@ export async function loadTeamPageData(
     loadTeamWorkspaceCheckpoint(context, checkpointOptions),
     listCallQualityReviewsForWorkspace(context.workspaceId, operationOptions),
     loadDepartmentQueueOverview(context, departmentQueueOptions),
+    loadTeamRiskSummary(context),
     listAssistanceRequestsForWorkspace(),
   ]);
 
@@ -180,6 +186,7 @@ export async function loadTeamPageData(
     checkpoint: toTeamSource(checkpoint),
     qualityReviews: toTeamSource(qualityReviews),
     departmentQueues: toTeamSource(departmentQueues),
+    riskSummary: toTeamSource(riskSummary),
     assistanceRequests: toTeamSource(assistanceRequests),
     scope: {
       periodKey: scope.periodKey,
