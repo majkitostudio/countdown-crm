@@ -41,7 +41,7 @@ const TEAM_WORKSPACE_VIEWS: Array<{ id: TeamWorkspaceView; label: string }> = [
   { id: "quality", label: "Kontrola kvality hovorů" },
   { id: "orders", label: "Objednávky" },
   { id: "operators", label: "Aktivní operátoři" },
-  { id: "queue", label: "Callbacky a týmová fronta" },
+  { id: "queue", label: "Naplánované hovory a týmová fronta" },
 ];
 
 interface TeamPageClientState {

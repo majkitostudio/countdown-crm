@@ -92,7 +92,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">{section === "orders" ? "Objednávky" : "Denní checkpoint"}</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                {section === "orders" ? "Objednávky vytvořené v zvoleném období v povoleném týmovém rozsahu." : "Týmový přehled objednávek, prošlých callbacků a aktuálních výsledků operátorů v zvoleném období."}
+                {section === "orders" ? "Objednávky vytvořené v zvoleném období v povoleném týmovém rozsahu." : "Týmový přehled objednávek, prošlých naplánovaných hovorů a aktuálních výsledků operátorů v zvoleném období."}
               </p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail={`Vytvořené v období „${periodLabel.toLowerCase()}“ v týmu`} />
-          <MetricCard label="Prošlé callbacky" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
+          <MetricCard label="Po termínu" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
           <MetricCard label="Operátoři s výsledky" value={checkpoint.operatorMetrics.length} detail="V povoleném rozsahu" />
           <MetricCard label="Prodeje" value={checkpoint.sources.calls.state === "ready" ? totalSales : "—"} detail={`Za zvolené období (${periodLabel.toLowerCase()})`} />
         </div>
@@ -187,7 +187,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
         {showCallbacks && <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-labelledby="checkpoint-callbacks-heading">
           <div className="flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-            <h3 id="checkpoint-callbacks-heading" className="text-sm font-semibold text-zinc-100">Prošlé callbacky</h3>
+            <h3 id="checkpoint-callbacks-heading" className="text-sm font-semibold text-zinc-100">Po termínu</h3>
           </div>
           {checkpoint.sources.callbacks.state === "ready" && (
             <p className="text-[11px] text-zinc-500">
@@ -195,9 +195,9 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
             </p>
           )}
           {checkpoint.sources.callbacks.state === "unavailable" ? (
-            <UnavailableRow message="Callbacky nejsou dostupné. Přehled nevytváří náhradní nuly." />
+            <UnavailableRow message="Naplánované hovory nejsou dostupné. Přehled nevytváří náhradní nuly." />
           ) : checkpoint.overdueCallbacks.length === 0 ? (
-            <EmptyRow message="V tomto týmovém rozsahu nejsou žádné prošlé callbacky." />
+            <EmptyRow message="V tomto týmovém rozsahu nejsou žádné hovory po termínu." />
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {checkpoint.overdueCallbacks.map((callback) => (

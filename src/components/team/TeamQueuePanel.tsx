@@ -29,7 +29,7 @@ const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
   assigned: "Assigned",
   in_progress: "In progress",
   awaiting_outcome: "Outcome / recovery",
-  waiting_callback: "Waiting callback",
+  waiting_callback: "Scheduled call",
   closed: "Closed",
   paused: "Paused",
 };
@@ -105,11 +105,11 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
         </span>
       </div>
 
-      <section className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:grid-cols-3" data-testid="team-callback-attention" aria-label="Callback attention">
-        <CallbackMetric label="Čekající callbacky" value={callbackAttention.total} />
+      <section className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:grid-cols-3" data-testid="team-callback-attention" aria-label="Scheduled calls">
+        <CallbackMetric label="Naplánované hovory" value={callbackAttention.total} />
         <CallbackMetric label="Naplánované později" value={callbackAttention.scheduled} />
         <CallbackMetric label="Po termínu" value={callbackAttention.overdue} tone={callbackAttention.overdue > 0 ? "warning" : "neutral"} />
-        <p className="sm:col-span-3 text-[11px] leading-relaxed text-zinc-500">Původní operátor má přednost. Pokud není dostupný, může si callback převzít volný operátor ze stejného týmu.</p>
+        <p className="sm:col-span-3 text-[11px] leading-relaxed text-zinc-500">Původní operátor má přednost. Pokud není dostupný, může si naplánovaný hovor převzít volný operátor ze stejného týmu.</p>
       </section>
 
       {successMessage && <StatusAlert tone="success" role="status">{successMessage}</StatusAlert>}
@@ -151,7 +151,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                 <th className="px-4 py-3">Lead</th>
                 <th className="px-4 py-3">State</th>
                 <th className="px-4 py-3">Assigned Operator</th>
-                <th className="px-4 py-3">Available / callback</th>
+                <th className="px-4 py-3">Available / schedule</th>
                 <th className="px-4 py-3 text-right">Operations</th>
               </tr>
             </thead>
@@ -176,7 +176,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                         {STATE_LABELS[item.state]}
                       </span>
                       <div className="mt-2 font-mono text-[10px] text-zinc-600">Attempts: {item.attempt_count}</div>
-                      {overdueCallback && <div className="mt-2 text-[10px] font-medium text-amber-300">Callback po termínu</div>}
+                      {overdueCallback && <div className="mt-2 text-[10px] font-medium text-amber-300">Po termínu</div>}
                     </td>
                     <td className="px-4 py-4 text-zinc-300">
                       {item.assigned_operator?.full_name || <span className="text-zinc-600">Available pool</span>}
@@ -184,7 +184,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                     </td>
                     <td className="px-4 py-4 font-mono text-[10px] text-zinc-500">
                       <div>{formatDate(item.available_at)}</div>
-                      {item.scheduled_at && <div className="mt-1">Callback: {formatDate(item.scheduled_at)}</div>}
+                      {item.scheduled_at && <div className="mt-1">Schedule: {formatDate(item.scheduled_at)}</div>}
                       {item.lease_expires_at && <div className="mt-1 text-amber-500/80">Lease: {formatDate(item.lease_expires_at)}</div>}
                     </td>
                     <td className="px-4 py-4">

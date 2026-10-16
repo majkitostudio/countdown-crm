@@ -47,7 +47,7 @@ export function TeamCheckpointCallbacksSection({
         ) : (
           <div className="space-y-3">
             {checkpoint.overdueCallbacks.length > 0 && (
-              <section className="space-y-2" aria-label="Prošlé callbacky">
+              <section className="space-y-2" aria-label="Po termínu">
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Prošlé callbacky</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {checkpoint.overdueCallbacks.map((callback) => (
@@ -66,7 +66,7 @@ export function TeamCheckpointCallbacksSection({
               </section>
             )}
             {checkpoint.upcomingCallbacks.length > 0 && (
-              <section className="space-y-2" aria-label="Naplánované callbacky">
+              <section className="space-y-2" aria-label="Naplánované hovory">
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Naplánované v období</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {checkpoint.upcomingCallbacks.map((callback) => (

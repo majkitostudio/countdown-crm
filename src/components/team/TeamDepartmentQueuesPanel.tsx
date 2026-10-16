@@ -22,7 +22,7 @@ const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
   assigned: "Přiřazeno",
   in_progress: "Probíhá hovor",
   awaiting_outcome: "Čeká na výsledek",
-  waiting_callback: "Callback",
+  waiting_callback: "Naplánovaný hovor",
   closed: "Uzavřeno",
   paused: "Pozastaveno",
 };
@@ -150,7 +150,7 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState }: 
                 <div className="mt-4 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
                   <Metric label="Čeká" value={department.waiting} />
                   <Metric label="V řešení" value={department.inProgress} />
-                  <Metric label="Callback" value={department.callbacks} />
+                  <Metric label="Naplánované" value={department.callbacks} />
                   <Metric label="Po termínu" value={department.overdueCallbacks} warning />
                 </div>
               </button>

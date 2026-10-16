@@ -77,8 +77,8 @@ describe("TeamPageContent partial source states", () => {
     });
 
     expect(html).toContain("Kontakt není v tomto rozsahu dostupný");
-    expect(html).toContain("Callback po termínu");
-    expect(html).toContain("Čekající callbacky");
+    expect(html).toContain("Po termínu");
+    expect(html).toContain("Naplánované hovory");
   });
 
   it("does not present an unavailable queue as a verified zero-item queue", () => {

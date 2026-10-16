@@ -44,7 +44,7 @@ function outcomeCopy(outcome: string): string {
   if (outcome === "order_placed") return "Prodej";
   if (outcome === "objection") return "Fail";
   if (outcome === "no_answer") return "Bez spojení";
-  if (outcome === "followup_scheduled") return "Callback";
+  if (outcome === "followup_scheduled") return "Schedule";
   return outcome;
 }
 

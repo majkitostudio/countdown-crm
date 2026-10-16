@@ -26,7 +26,7 @@ function outcomeLabel(outcome: string): string {
   if (outcome === "order_placed") return "Prodej";
   if (outcome === "objection") return "Fail";
   if (outcome === "no_answer") return "Bez spojení";
-  if (outcome === "followup_scheduled") return "Callback";
+  if (outcome === "followup_scheduled") return "Schedule";
   return outcome;
 }
 
@@ -153,7 +153,7 @@ export function TeamOperatorDetailPanel({
             )}
           </section>
 
-          <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Callbacky operátora">
+          <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Naplánované hovory operátora">
             <div className="flex items-center gap-2">
               <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-zinc-100">Callbacky</h3>
