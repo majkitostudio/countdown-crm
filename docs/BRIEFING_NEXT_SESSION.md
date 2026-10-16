@@ -23,7 +23,7 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 - UI musí fungovat i bez dat.
 
 **Otevřené body k potvrzení s PM:**
-1. **Terminologie** — vymezení je hotové v [AGENTS.md](../AGENTS.md), pravidlo 7: *callback* = vázaný na konkrétního operátora, *scheduled call* = bez určení operátora (jen preference zadaného operátora). Zbývá jen rozhodnout, **zda přejmenovat i kód/UI** (stav `waiting_callback`, `callbackAttention.ts`, popisek metriky „Callback“ v panelu Queues).
+1. **Terminologie** — vymezení hotové (AGENTS.md, pravidlo 7): *callback* = vázaný na konkrétního operátora, *scheduled call* = bez určení operátora. **Texty v UI jsou sjednocené (16. 10. 2026).** Zbývá rozhodnout, **zda přejmenovat i kód a data** (stav `waiting_callback`, sloupec `callback_scheduled_at`, `callbackAttention.ts`, action/test id) — dotýká se migrací, proto samostatný úkol.
 2. **Fáze 6** — co přesně má vedoucí vidět (obsah reportů: kolik práce kde, rizika, prodlevy, „co je v P4 a proč“).
 3. **Odložené featury** (propojení AI, systém směn, produktová karta, refactor trenažéru…) — jen držet v roadmapě; nezačínat bez zadání PM.
 

@@ -25,7 +25,7 @@ Tento soubor zachycuje jen vývojové milníky a rozhodnutí, která pomáhají 
 - Produkční telefonie/VoIP (včetně Telnyx) je odložena na neurčito. Neplánovat související náklady ani práci, dokud se priorita nezmění.
 - Demo data jsou syntetická a nesmějí být zaměňována za produkční data.
 - Oddělení (departments P1–P4) jsou dnes modelovaná přes entity týmů; případné vyčlenění oddělení na samostatnou entitu je vědomě odloženo do samostatné fáze (rozhodnuto ve Fázi 5, žádná migrace schématu kvůli tomu neproběhla).
-- **Callback vs. scheduled call:** *callback* je vázaný na konkrétního operátora (klient chce, aby mu zavolal právě ten). *Scheduled call* (`Schedule`, `/schedule`) operátora neurčuje — jen preferuje toho, kdo ho zadal, a když ten není volný, hovor převezme kdokoli jiný. Termín „callback“ se pro naplánované hovory nepoužívá (viz [AGENTS.md](../AGENTS.md), pravidlo 7).
+- **Callback vs. scheduled call:** *callback* je vázaný na konkrétního operátora (klient chce, aby mu zavolal právě ten). *Scheduled call* (`Schedule`, `/schedule`) operátora neurčuje — jen preferuje toho, kdo ho zadal, a když ten není volný, hovor převezme kdokoli jiný. Termín „callback“ se pro naplánované hovory nepoužívá (viz [AGENTS.md](../AGENTS.md), pravidlo 7). **Texty v UI jsou sjednocené (16. 10. 2026)** — popisky, nadpisy, hlášky i chybové texty už říkají „Schedules“ / „naplánované hovory“. **Kód a data zatím ne** (stav `waiting_callback`, sloupec `callback_scheduled_at`, action id) — jejich sjednocení je samostatný úkol, protože se dotýká migrací.
 
 ## Důležité hranice historických tvrzení
 
