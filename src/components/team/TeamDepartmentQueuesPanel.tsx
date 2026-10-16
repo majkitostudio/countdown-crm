@@ -6,6 +6,7 @@ import { ArrowRight, Layers, Eye } from "lucide-react";
 import type { QueueItemDTO } from "@/lib/dal/leadQueue";
 import type { DepartmentQueueOverview } from "@/lib/departmentQueues";
 import type { DepartmentKey } from "@/lib/department";
+import { describeQueueReason, type QueueReasonKind } from "@/lib/queueReason";
 import { Surface } from "@/components/ui/Surface";
 import { StatusAlert } from "@/components/ui/Status";
 
@@ -30,6 +31,11 @@ const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
 };
 
 const UNATTRIBUTED_LABEL = "Bez oddělení";
+
+const REASON_TONES: Record<QueueReasonKind, string> = {
+  rescue: "border-amber-800/60 bg-amber-950/30 text-amber-200",
+  retention: "border-sky-900/60 bg-sky-950/30 text-sky-200",
+};
 
 function formatSince(value: string): string {
   const parsed = Date.parse(value);
@@ -85,6 +91,7 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
     () => queueItems.map((item) => ({
       item,
       departmentKey: item.team_id ? departmentByTeamId.get(item.team_id) ?? null : null,
+      reason: describeQueueReason(item.last_outcome),
     })),
     [queueItems, departmentByTeamId],
   );
@@ -221,6 +228,12 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
             )}
           </div>
 
+          <p className="mt-3 text-[11px] leading-relaxed text-zinc-500">
+            Sloupec <span className="text-zinc-400">Důvod</span> ukazuje, proč lead do oddělení přišel
+            (námitka, vrácený balíček, balíček na výdejně, retence). Pomlčka „—“ znamená, že důvod přesunu
+            nebyl u leadu zaznamenán.
+          </p>
+
           {queueState === "unavailable" ? (
             <div className="mt-3">
               <StatusAlert tone="neutral" role="status">Týmová fronta není dostupná.</StatusAlert>
@@ -231,20 +244,21 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
             </div>
           ) : (
             <div className="mt-3 overflow-x-auto rounded-xl border border-zinc-800/80">
-              <table className="w-full min-w-215 text-left text-xs">
+              <table className="w-full min-w-240 text-left text-xs">
                 <thead className="border-b border-zinc-800 bg-zinc-950/80 text-[10px] uppercase tracking-wider text-zinc-500">
                   <tr>
                     <th className="px-4 py-3">Lead</th>
                     <th className="px-4 py-3">Department</th>
                     <th className="px-4 py-3">Tým</th>
                     <th className="px-4 py-3">Stav</th>
+                    <th className="px-4 py-3">Důvod</th>
                     <th className="px-4 py-3">Přiřazený operátor</th>
                     <th className="px-4 py-3">Ve frontě od</th>
                     <th className="px-4 py-3 text-right">Detail</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/70">
-                  {visibleRows.map(({ item, departmentKey }) => (
+                  {visibleRows.map(({ item, departmentKey, reason }) => (
                     <tr key={item.id} className="align-top hover:bg-zinc-900/70">
                       <td className="px-4 py-3">
                         <div className="font-medium text-zinc-200">{item.lead?.full_name || "Kontakt není v tomto rozsahu dostupný"}</div>
@@ -262,6 +276,15 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
                         <span className="inline-flex rounded-full border border-zinc-700 bg-zinc-950 px-2 py-1 text-[10px] font-medium text-zinc-300">
                           {STATE_LABELS[item.state]}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {reason ? (
+                          <span className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-medium ${REASON_TONES[reason.kind]}`}>
+                            {reason.label}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-600" title="Důvod přesunu nebyl zaznamenán">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-zinc-300">
                         {item.assigned_operator?.full_name || <span className="text-zinc-600">Volný pool</span>}

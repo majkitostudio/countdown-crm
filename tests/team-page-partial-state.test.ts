@@ -173,6 +173,38 @@ describe("TeamPageContent partial source states", () => {
     expect(html).toContain("Ada Lovelace");
   });
 
+  it("shows why a lead sits in Department P4", () => {
+    const overview = buildDepartmentQueueOverview(
+      [{ team_id: "t-p4", state: "available", scheduled_at: null }],
+      [{ id: "t-p4", slug: "p4", name: "Oddělení P4" }],
+      new Date("2026-09-08T09:00:00.000Z"),
+    );
+
+    const html = render({
+      queue: {
+        status: "ready",
+        data: [{
+          ...queueItem,
+          team_id: "t-p4",
+          state: "available",
+          assigned_operator_id: null,
+          assigned_operator: null,
+          last_outcome: "package_returned",
+        }],
+      },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: { status: "ready", data: overview },
+    }, "team_leader", "queues");
+
+    expect(html).toContain("Důvod");
+    expect(html).toContain("Vrácený balíček – Re-ship");
+  });
+
   it("renders the four empty department cards when there is no data", () => {
     const html = render({
       queue: { status: "ready", data: [] },
