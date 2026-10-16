@@ -55,14 +55,14 @@ describe("next best action server boundary", () => {
   });
 
   it("keeps an urgent reorder as partial when callbacks fail operationally", async () => {
-    mockedCallbacks.mockRejectedValue(new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded."));
+    mockedCallbacks.mockRejectedValue(new DataAccessError("DATABASE", "Scheduled calls could not be loaded."));
     mockedReorders.mockResolvedValue([reorder]);
 
     await expect(loadNextBestActionAction()).resolves.toEqual({
       status: "partial",
       action: expect.objectContaining({ kind: "reorder", source_id: "reorder-1" }),
       unavailableSources: ["callbacks"],
-      message: "Scheduled callbacks could not be loaded.",
+      message: "Scheduled calls could not be loaded.",
     });
   });
 

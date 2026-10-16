@@ -75,7 +75,7 @@ describe("calendar runtime partial-failure contract", () => {
     const result = buildCalendarLoadResult(
       {
         status: "rejected",
-        reason: new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded."),
+        reason: new DataAccessError("DATABASE", "Scheduled calls could not be loaded."),
       },
       { status: "fulfilled", value: [reminderEntry] },
     );
@@ -83,7 +83,7 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.entries).toEqual([expect.objectContaining({ type: "reminder" })]);
     expect(result.sources.callbacks).toEqual({
       state: "unavailable",
-      message: "Scheduled callbacks could not be loaded.",
+      message: "Scheduled calls could not be loaded.",
     });
     expect(result.sources.reminders).toEqual({ state: "available" });
   });
@@ -92,7 +92,7 @@ describe("calendar runtime partial-failure contract", () => {
     const result = buildCalendarLoadResult(
       {
         status: "rejected",
-        reason: new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded."),
+        reason: new DataAccessError("DATABASE", "Scheduled calls could not be loaded."),
       },
       {
         status: "rejected",
@@ -104,7 +104,7 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.sources).toEqual({
       callbacks: {
         state: "unavailable",
-        message: "Scheduled callbacks could not be loaded.",
+        message: "Scheduled calls could not be loaded.",
       },
       reminders: {
         state: "unavailable",

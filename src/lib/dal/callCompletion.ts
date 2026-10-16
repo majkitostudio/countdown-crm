@@ -80,10 +80,10 @@ export async function completeCallForWorkspace(
   });
   if (failError) throw new DataAccessError("VALIDATION", failError);
   if (input.outcome === "followup_scheduled" && (!isString(input.callback_scheduled_at) || !input.callback_scheduled_at.trim())) {
-    throw new DataAccessError("VALIDATION", "Callback date and time are required");
+    throw new DataAccessError("VALIDATION", "Scheduled call date and time are required");
   }
   if (input.outcome !== "followup_scheduled" && input.callback_scheduled_at) {
-    throw new DataAccessError("VALIDATION", "Callback time is only valid for Schedule Callback");
+    throw new DataAccessError("VALIDATION", "Scheduled call time is only valid for Schedule Call");
   }
 
   const context = await requireWorkspaceContext(workspaceId);

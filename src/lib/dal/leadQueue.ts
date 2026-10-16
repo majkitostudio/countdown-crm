@@ -131,13 +131,13 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
   }
 
   if (input.callback_scheduled_at != null && typeof input.callback_scheduled_at !== "string") {
-    throw new DataAccessError("VALIDATION", "Callback date and time are invalid");
+    throw new DataAccessError("VALIDATION", "Scheduled call date and time are invalid");
   }
   if (input.outcome === "followup_scheduled" && !input.callback_scheduled_at?.trim()) {
-    throw new DataAccessError("VALIDATION", "Callback date and time are required");
+    throw new DataAccessError("VALIDATION", "Scheduled call date and time are required");
   }
   if (input.outcome !== "followup_scheduled" && input.callback_scheduled_at) {
-    throw new DataAccessError("VALIDATION", "Callback time is only valid for Schedule Callback");
+    throw new DataAccessError("VALIDATION", "Scheduled call time is only valid for Schedule Call");
   }
 
   if (typeof input.call_session_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.call_session_id)) {
@@ -439,7 +439,7 @@ export async function listScheduledCallbacksForWorkspace(
     queueQuery,
     directQuery,
   ]);
-  if (queueError || directError) throw new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded.");
+  if (queueError || directError) throw new DataAccessError("DATABASE", "Scheduled calls could not be loaded.");
 
   const queueCallbacks = (queueData || []) as unknown as ScheduledCallbackDTO[];
   const directCallbacks = (directData || []).map((callback) => {

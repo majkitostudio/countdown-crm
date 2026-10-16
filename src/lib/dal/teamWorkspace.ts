@@ -341,7 +341,7 @@ export async function loadTeamWorkspaceCheckpoint(
     calls: callsResult.status === "fulfilled" ? ready() : unavailable("Team calls could not be loaded."),
     callbacks: overdueCallbacksResult.status === "fulfilled" && upcomingCallbacksResult.status === "fulfilled"
       ? ready()
-      : unavailable("Callbacks could not be fully loaded."),
+      : unavailable("Scheduled calls could not be fully loaded."),
     activities: queueActivitiesResult.status === "fulfilled" && telephonyActivitiesResult.status === "fulfilled"
       ? ready()
       : unavailable("Talk Time activity could not be fully loaded."),

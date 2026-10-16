@@ -36,7 +36,7 @@ const BUSINESS_CHECK_KEYS = new Set<
 ]);
 
 const CHECK_COPY: Record<string, { label: string; actionLabel: string }> = {
-  calendar: { label: "Kalendář a callbacky", actionLabel: "Open Schedule" },
+  calendar: { label: "Kalendář a naplánované hovory", actionLabel: "Open Schedule" },
   wallet: { label: "Wallet", actionLabel: "Open Wallet" },
   lead_queue: { label: "Fronta leadů", actionLabel: "Open Console" },
   published_scripts: { label: "Skripty produktů", actionLabel: "Open Scripts" },

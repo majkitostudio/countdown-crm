@@ -173,7 +173,7 @@ export function buildConversationBrief(
   const callbackFromCall = call ? cleanOptionalText(call.callback_scheduled_at) : null;
   const callbackState = callbackFromAssignment || input.call.status === "fulfilled"
     ? { state: "available" } as const
-    : { state: "unavailable", message: "Callback history is unavailable." } as const;
+    : { state: "unavailable", message: "Schedule history is unavailable." } as const;
   const note = input.note.status === "fulfilled" ? input.note.value : null;
   const order = input.order.status === "fulfilled" ? input.order.value : null;
   const productScripts = input.productScripts.status === "fulfilled" ? input.productScripts.value : null;
@@ -275,7 +275,7 @@ function routingContextFromAssignment(
   call?: ConversationBriefCallSource | null,
   order?: ConversationBriefOrderSource | null,
 ): string {
-  if (assignment.scheduled_at) return "Scheduled callback";
+  if (assignment.scheduled_at) return "Scheduled call";
   if (order?.status === "returned") {
     return "P4 Záchrana — vrácený balíček (Re-ship)";
   }

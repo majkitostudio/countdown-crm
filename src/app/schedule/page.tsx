@@ -34,7 +34,7 @@ export default async function CalendarPage() {
       <PageHeader
         icon={CalendarDays}
         title="Schedule"
-        description="Naplánované callbacky a vlastní připomínky operátora."
+        description="Naplánované hovory a vlastní připomínky operátora."
       />
       <OperatorCalendar initialCalendar={calendar!} />
     </div>

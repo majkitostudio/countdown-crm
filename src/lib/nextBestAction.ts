@@ -19,7 +19,7 @@ export interface NextBestAction {
   title: string;
   description: string;
   href: string;
-  source: "scheduled callback" | "re-order estimate" | "lead queue";
+  source: "scheduled call" | "re-order estimate" | "lead queue";
   source_id: string | null;
 }
 
@@ -55,10 +55,10 @@ function isValidDate(value: string): boolean {
 
 function formatCallbackTiming(scheduledAt: string, now: Date): string {
   const diffMinutes = Math.max(0, Math.round((Date.parse(scheduledAt) - now.getTime()) / 60000));
-  if (diffMinutes <= 0) return "Callback je po termínu.";
-  if (diffMinutes < 60) return `Callback za ${diffMinutes} min.`;
+  if (diffMinutes <= 0) return "Naplánovaný hovor je po termínu.";
+  if (diffMinutes < 60) return `Naplánovaný hovor za ${diffMinutes} min.`;
   const hours = Math.round(diffMinutes / 60);
-  return `Callback za ${hours} h.`;
+  return `Naplánovaný hovor za ${hours} h.`;
 }
 
 /** Selects one explainable next step from persisted callbacks and re-order estimates. */
@@ -72,10 +72,10 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
   if (dueCallback) {
     return {
       kind: "callback",
-      title: `Navázat na callback: ${dueCallback.lead_name}`,
+      title: `Navázat na naplánovaný hovor: ${dueCallback.lead_name}`,
       description: formatCallbackTiming(dueCallback.scheduled_at, now),
       href: `/console?leadId=${encodeURIComponent(dueCallback.lead_id)}`,
-      source: "scheduled callback",
+      source: "scheduled call",
       source_id: dueCallback.id,
     };
   }
@@ -100,7 +100,7 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
   return {
     kind: "queue",
     title: "Claim next lead",
-    description: "Nejsou k dispozici urgentní callbacky ani re-order odhady.",
+    description: "Nejsou k dispozici urgentní naplánované hovory ani re-order odhady.",
     href: "/console",
     source: "lead queue",
     source_id: null,

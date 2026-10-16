@@ -43,7 +43,7 @@ export default async function ExceptionsPage() {
       <PageHeader
         icon={ShieldAlert}
         title="Exception Queue"
-        description="Fronta callbacků, obnovy front, selhání automatizací a chybějících skriptů, které potřebují rozhodnutí manažera."
+        description="Fronta naplánovaných hovorů, obnovy front, selhání automatizací a chybějících skriptů, které potřebují rozhodnutí manažera."
         badge={{ label: "Workspace operations", tone: result.data.items.some((item) => item.priority === "critical") ? "unavailable" : "neutral" }}
       />
       <TeamWorkspaceTabs />

@@ -61,7 +61,7 @@ describe("next best action", () => {
 
   it("shows an urgent reorder as partial when callback priority cannot be verified", () => {
     const result = resolveNextBestActionState(
-      { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+      { state: "unavailable", message: "Scheduled calls could not be loaded." },
       {
         state: "available",
         data: [{
@@ -80,7 +80,7 @@ describe("next best action", () => {
       status: "partial",
       action: expect.objectContaining({ kind: "reorder", source_id: "reorder-1" }),
       unavailableSources: ["callbacks"],
-      message: "Scheduled callbacks could not be loaded.",
+      message: "Scheduled calls could not be loaded.",
     });
   });
 
@@ -123,7 +123,7 @@ describe("next best action", () => {
 
   it("does not fabricate a queue action when the callback source is unavailable", () => {
     const result = resolveNextBestActionState(
-      { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+      { state: "unavailable", message: "Scheduled calls could not be loaded." },
       { state: "available", data: [] },
       now,
     );
@@ -131,7 +131,7 @@ describe("next best action", () => {
     expect(result).toEqual({
       status: "unavailable",
       unavailableSources: ["callbacks"],
-      message: "Scheduled callbacks could not be loaded.",
+      message: "Scheduled calls could not be loaded.",
     });
   });
 
@@ -150,7 +150,7 @@ describe("next best action", () => {
 
   it("returns unavailable when both priority sources are unavailable", () => {
     const result = resolveNextBestActionState(
-      { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+      { state: "unavailable", message: "Scheduled calls could not be loaded." },
       { state: "unavailable", message: "Re-order estimates could not be loaded." },
       now,
     );
@@ -158,7 +158,7 @@ describe("next best action", () => {
     expect(result).toEqual({
       status: "unavailable",
       unavailableSources: ["callbacks", "reorders"],
-      message: "Scheduled callbacks could not be loaded. Re-order estimates could not be loaded.",
+      message: "Scheduled calls could not be loaded. Re-order estimates could not be loaded.",
     });
   });
 

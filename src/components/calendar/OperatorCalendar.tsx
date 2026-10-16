@@ -301,7 +301,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 id="reminder-dialog-title" className="text-base font-semibold text-zinc-100">{editingId ? "Edit reminder" : "New reminder"}</h2>
-                <p className="mt-1 text-xs text-zinc-500">Reminder je osobní pracovní úkol a nemění callback queue.</p>
+                <p className="mt-1 text-xs text-zinc-500">Reminder je osobní pracovní úkol a nemění frontu naplánovaných hovorů.</p>
               </div>
               <Button type="button" variant="quiet" onClick={() => setIsEditorOpen(false)} aria-label="Close"><X className="h-4 w-4" /></Button>
             </div>

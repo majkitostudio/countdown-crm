@@ -44,7 +44,7 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
 
     const warnings: string[] = [];
     const calendar = calendarResult.status === "fulfilled" ? calendarResult.value : null;
-    if (calendarResult.status === "rejected") warnings.push("Callbacky a reminders nejsou dostupné.");
+    if (calendarResult.status === "rejected") warnings.push("Naplánované hovory a reminders nejsou dostupné.");
     if (calendar?.sources.callbacks.state === "unavailable") {
       warnings.push(`Callbacky nejsou dostupné: ${calendar.sources.callbacks.message}`);
     }

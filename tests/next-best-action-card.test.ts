@@ -25,12 +25,12 @@ describe("next best action presentation states", () => {
         source_id: "reorder-1",
       },
       unavailableSources: ["callbacks"],
-      message: "Scheduled callbacks could not be loaded.",
+      message: "Scheduled calls could not be loaded.",
     });
 
     expect(html).toContain("Doplnit objednávku: Petr Svoboda");
     expect(html).toContain('href="/console?leadId=lead-2"');
-    expect(html).toContain("Scheduled callbacks could not be loaded.");
+    expect(html).toContain("Scheduled calls could not be loaded.");
     expect(html).toContain("Partial recommendation");
   });
 
@@ -39,17 +39,17 @@ describe("next best action presentation states", () => {
       status: "partial",
       action: {
         kind: "callback",
-        title: "Navázat na callback: Jana Nováková",
-        description: "Callback za 60 min.",
+        title: "Navázat na naplánovaný hovor: Jana Nováková",
+        description: "Naplánovaný hovor za 60 min.",
         href: "/console?leadId=lead-1",
-        source: "scheduled callback",
+        source: "scheduled call",
         source_id: "callback-1",
       },
       unavailableSources: ["reorders"],
       message: "Re-order estimates could not be loaded.",
     });
 
-    expect(html).toContain("Navázat na callback: Jana Nováková");
+    expect(html).toContain("Navázat na naplánovaný hovor: Jana Nováková");
     expect(html).toContain("Re-order estimates could not be loaded.");
   });
 
@@ -71,7 +71,7 @@ describe("next best action presentation states", () => {
       action: {
         kind: "queue",
         title: "Claim next lead",
-        description: "Nejsou k dispozici urgentní callbacky ani re-order odhady.",
+        description: "Nejsou k dispozici urgentní naplánované hovory ani re-order odhady.",
         href: "/console",
         source: "lead queue",
         source_id: null,

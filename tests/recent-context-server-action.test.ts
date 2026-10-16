@@ -45,7 +45,7 @@ describe("recent context server source boundary", () => {
 
   it("returns serializable source states and preserves the available source", async () => {
     mocks.listScheduledCallbacksForWorkspace.mockRejectedValue(
-      new DataAccessError("DATABASE", "Scheduled callbacks could not be loaded."),
+      new DataAccessError("DATABASE", "Scheduled calls could not be loaded."),
     );
 
     const result = await loadRecentContextSourcesAction("lead-1");
@@ -55,7 +55,7 @@ describe("recent context server source boundary", () => {
       callbacks: {
         status: "unavailable",
         reason: "database",
-        message: "Scheduled callbacks could not be loaded.",
+        message: "Scheduled calls could not be loaded.",
       },
     });
     expect(JSON.parse(JSON.stringify(result))).toEqual(result);

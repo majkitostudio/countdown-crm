@@ -110,7 +110,7 @@ describe("dashboard Daily Brief scope", () => {
       expect(result.brief.todayCallbacks).toBe(0);
       expect(result.brief.workspaceWalletBalance).toBeNull();
       expect(result.warnings).toEqual(expect.arrayContaining([
-        "Callbacky a reminders nejsou dostupné.",
+        "Naplánované hovory a reminders nejsou dostupné.",
         "Wallet souhrn není dostupný.",
         "Review fronta není dostupná.",
       ]));

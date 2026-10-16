@@ -243,7 +243,7 @@ function buildQueueExceptions(
         id: `queue:overdue_callback:${row.id}`,
         type: "overdue_callback",
         priority: "high",
-        reason: "The promised callback time has passed and no newer queue state closed it.",
+        reason: "The promised scheduled call time has passed and no newer queue state closed it.",
         owner,
         target,
         source: { table: "lead_queue_items", id: row.id },

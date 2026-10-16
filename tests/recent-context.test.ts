@@ -91,7 +91,7 @@ describe("recent context", () => {
         sources: {
           callbacks: {
             state: "unavailable",
-            message: "Scheduled callbacks could not be loaded.",
+            message: "Scheduled calls could not be loaded.",
           },
           reminders: { state: "available" },
         },
@@ -101,7 +101,7 @@ describe("recent context", () => {
 
     expect(result.callbackSource).toEqual({
       state: "unavailable",
-      message: "Scheduled callbacks could not be loaded.",
+      message: "Scheduled calls could not be loaded.",
     });
     expect(result.context.activeCallback).toBeNull();
     expect(result.context.lastContact?.activity.id).toBe("call-latest");

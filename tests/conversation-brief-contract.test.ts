@@ -146,7 +146,7 @@ describe("operator Conversation Brief", () => {
 
     const brief = await getConversationBriefForWorkspace("lead-1");
 
-    expect(brief.queue_reason).toBe("Scheduled callback");
+    expect(brief.queue_reason).toBe("Scheduled call");
     expect(from).not.toHaveBeenCalledWith("lead_queue_events");
   });
 
@@ -249,7 +249,7 @@ describe("operator Conversation Brief", () => {
     });
     expect(brief.sources.callback).toEqual({
       state: "unavailable",
-      message: "Callback history is unavailable.",
+      message: "Schedule history is unavailable.",
     });
   });
 

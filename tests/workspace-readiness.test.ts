@@ -188,7 +188,7 @@ describe("workspace readiness read model", () => {
       calendar: fulfilled({
         ...availableCalendar,
         sources: {
-          callbacks: { state: "unavailable", message: "Scheduled callbacks could not be loaded." },
+          callbacks: { state: "unavailable", message: "Scheduled calls could not be loaded." },
           reminders: { state: "available" },
         },
       }),

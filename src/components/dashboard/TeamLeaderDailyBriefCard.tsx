@@ -74,7 +74,7 @@ export function TeamLeaderDailyBriefCard() {
             <BriefMetric label="Calls today" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
             <BriefMetric label="Orders today" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
             <BriefMetric label="Revenue today" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
-            <BriefMetric label="Callback attention" value={String(readyState.brief.callbacksToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueCallbacks} po termínu`} />
+            <BriefMetric label="Scheduled calls" value={String(readyState.brief.callbacksToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueCallbacks} po termínu`} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-4">

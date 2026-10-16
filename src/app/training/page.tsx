@@ -107,7 +107,7 @@ const continuousRecognitionRef = useRef<ContinuousSpeechRecognition | null>(null
     setInputSource("typed");
     speechFinalRef.current = "";
     speechConfidenceRef.current = null;
-    setNotice("Jde o tréninkový hovor. Nevznikne objednávka, callback ani zásah do ostré fronty.");
+    setNotice("Jde o tréninkový hovor. Nevznikne objednávka, naplánovaný hovor ani zásah do ostré fronty.");
     speakText(initial.text);
   }
 
