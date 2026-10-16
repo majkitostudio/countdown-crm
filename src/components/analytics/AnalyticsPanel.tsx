@@ -21,6 +21,7 @@ import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
+import { createEmptyCallActivity } from "@/lib/callActivity";
 
 const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 
@@ -62,6 +63,7 @@ export function AnalyticsPanel() {
       currency: null,
       conversionRate: 0,
     },
+    callActivity: createEmptyCallActivity(),
   };
   const [result, setResult] = useState<AnalyticsActionResult<AnalyticsOverview> | null>(null);
   const [isExporting, setIsExporting] = useState(false);
