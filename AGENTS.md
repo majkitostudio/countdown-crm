@@ -50,11 +50,12 @@ Napříč celým CRM platí jednotné pravidlo (PM, 13. 10. 2026):
 - **URL adresa** = **anglicky** (`/console`, `/call-logs`, `/reports`).
 - **Menu a názvy sekcí** = **anglicky** (`Work`, `Team`, `Reporting`, `Administration`).
 
-## 7. Terminologie: Schedules vs. callbacky
+## 7. Terminologie: Callback vs. scheduled call (Schedule)
 
 PM, 16. 10. 2026:
 
-- Naplánovaný hovor se jmenuje **Schedule / scheduled call** (stránka `Schedule`, cesta `/schedule`), česky **„naplánovaný hovor“**. Slovo **„callback“ se pro něj nepoužívá.**
-- **Schedule a callback nejsou synonyma** — je v tom věcný rozdíl (dříve řešeno s Codexem). Nezaměňovat v dokumentaci, v popiscích ani v UI.
-- Pozor hlavně u metrik a front: místo „Callback / callbacky po termínu“ psát **„Schedules“** (respektive „naplánované hovory“) a **„po termínu“**.
-- Názvosloví v kódu a datech (stav `waiting_callback`, `callbackAttention.ts`, popisky v UI) zůstává zatím beze změny — jeho sjednocení je samostatný úkol, ne tichý refactor.
+- **Callback** = hovor vázaný na **konkrétního operátora**. Klient nemá čas, ale chce, aby mu později zavolal **právě ten** operátor. Ukládá se konkrétnímu operátorovi.
+- **Scheduled call** (stránka `Schedule`, cesta `/schedule`; česky „naplánovaný hovor“) = naplánovaný hovor, který **neurčuje operátora**. Klient má termín (např. 16:00); hovor spadne do fronty v Operator Console operátorovi, který ho zadal. Když tento operátor v danou chvíli není volný, scheduled call **převezme někdo jiný** — a je to správně, nic se nerozbije.
+- Rozdíl je tedy ve **vázanosti na operátora**: callback = pevně daný operátor, scheduled call = jen preference (toho, kdo ho zadal), ale vyřídit ho může kdokoli.
+- V dokumentaci, popiscích a UI pro naplánované hovory používat **„Schedules“** / „naplánované hovory“, **ne** „callback“.
+- Názvosloví v kódu a datech (stav `waiting_callback`, `callbackAttention.ts`, popisek „Callback“ v panelu Queues) zůstává zatím beze změny — jeho sjednocení je samostatný úkol, ne tichý refactor.

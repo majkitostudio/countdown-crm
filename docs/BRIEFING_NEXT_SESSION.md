@@ -7,7 +7,7 @@ Tenhle soubor je **startovní prompt** pro další práci. Zkopíruj text níže
 Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 
 **Nejdřív si přečti (v tomto pořadí):**
-1. `AGENTS.md` — pravidla projektu. Pozor hlavně na **pravidlo 7 (Schedules vs. callbacky)** a pravidlo 2 (nic nehardcodovat).
+1. `AGENTS.md` — pravidla projektu. Pozor hlavně na **pravidlo 7 (callback vs. scheduled call)** a pravidlo 2 (nic nehardcodovat).
 2. `docs/ROADMAP.md` — stav fází a „Okamžitý další krok“.
 3. `docs/HISTORY_COMPACT.md` — kontext a trvalá rozhodnutí.
 
@@ -23,7 +23,7 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 - UI musí fungovat i bez dat.
 
 **Otevřené body k potvrzení s PM:**
-1. **Terminologie Schedules vs. callbacky** — doladit přesné vymezení a rozhodnout, zda přejmenovat i kód/UI (stav `waiting_callback`, `callbackAttention.ts`, popisek metriky „Callback“ v panelu Queues).
+1. **Terminologie** — vymezení je hotové v [AGENTS.md](../AGENTS.md), pravidlo 7: *callback* = vázaný na konkrétního operátora, *scheduled call* = bez určení operátora (jen preference zadaného operátora). Zbývá jen rozhodnout, **zda přejmenovat i kód/UI** (stav `waiting_callback`, `callbackAttention.ts`, popisek metriky „Callback“ v panelu Queues).
 2. **Fáze 6** — co přesně má vedoucí vidět (obsah reportů: kolik práce kde, rizika, prodlevy, „co je v P4 a proč“).
 3. **Odložené featury** (propojení AI, systém směn, produktová karta, refactor trenažéru…) — jen držet v roadmapě; nezačínat bez zadání PM.
 
