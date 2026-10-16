@@ -33,7 +33,7 @@ describe("team checkpoint composition (approved Macaly layout, app design langua
   it("hands over the shift as a read-only summary without a fake completion workflow", () => {
     expect(handover).toContain("Konec směny");
     expect(handover).toContain("přenáší");
-    expect(handover).toContain("Otevřít Callbacky a týmovou frontu");
+    expect(handover).toContain("Otevřít Naplánované hovory a týmovou frontu");
     expect(handover).not.toContain("Dokončit checkpoint");
   });
 

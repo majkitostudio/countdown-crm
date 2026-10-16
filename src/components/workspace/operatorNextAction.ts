@@ -123,8 +123,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "waiting_assignment" && dueCallback) {
     return {
       kind: "claim_callback",
-      title: "Check the due callback",
-      description: `${dueCallback.leadName} has a callback due at ${new Date(dueCallback.scheduledAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}. Refresh the queue to claim it when available.`,
+      title: "Check the due scheduled call",
+      description: `${dueCallback.leadName} has a scheduled call due at ${new Date(dueCallback.scheduledAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}. Refresh the queue to claim it when available.`,
       urgency: "critical",
       callback: dueCallback,
     };

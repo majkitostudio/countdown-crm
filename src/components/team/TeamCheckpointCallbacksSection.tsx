@@ -89,7 +89,7 @@ export function TeamCheckpointCallbacksSection({
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Button variant="secondary" onClick={onOpenQueue}>
-            Otevřít Callbacky a týmovou frontu <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            Otevřít Naplánované hovory a týmovou frontu <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </div>
       </div>

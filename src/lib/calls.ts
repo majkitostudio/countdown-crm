@@ -29,7 +29,7 @@ export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
     case "order_placed":
       return "Order placed";
     case "followup_scheduled":
-      return "Callback set";
+      return "Schedule set";
     case "objection":
       return "Fail";
     case "no_answer":
@@ -69,7 +69,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     duration_seconds: call.durationSeconds,
     outcome: "completed" as PersistedCallOutcome,
     fail_reason: null,
-    operator_note: "Tréninkový hovor – nevznikla objednávka ani callback.",
+    operator_note: "Tréninkový hovor – nevznikla objednávka ani naplánovaný hovor.",
     sentiment: "Neutral" as const,
     order_value: 0,
     transcript: parseCallTranscript(call.transcript),

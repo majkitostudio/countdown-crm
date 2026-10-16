@@ -194,7 +194,7 @@ function WorkspaceContent() {
       })));
     } catch (error) {
       setScheduledCallbacks([]);
-      setCallbackInboxError(error instanceof Error ? error.message : "Callback inbox could not be loaded.");
+      setCallbackInboxError(error instanceof Error ? error.message : "Schedule inbox could not be loaded.");
     } finally {
       setIsCallbacksLoading(false);
     }
@@ -944,7 +944,7 @@ function WorkspaceContent() {
 
     const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CompletionOutcome, string]> = {
       call_later: ["no_answer", "Inaccessible"],
-      schedule: ["followup_scheduled", "Callback"],
+      schedule: ["followup_scheduled", "Schedule"],
       fail: ["objection_handled", "Failed"],
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
@@ -966,7 +966,7 @@ function WorkspaceContent() {
     if (completion) {
       setIsCallbackScheduleOpen(false);
     } else {
-      setCallbackScheduleError("Callback se nepodařilo uložit. Zkontrolujte aktivní assignment a zkuste to znovu.");
+      setCallbackScheduleError("Naplánovaný hovor se nepodařilo uložit. Zkontrolujte aktivní assignment a zkuste to znovu.");
     }
     setIsCallbackSchedulePending(false);
   };
@@ -1054,7 +1054,7 @@ function WorkspaceContent() {
     dialing: { label: "Dialing", tone: "neutral" as const },
     in_call: { label: "In call", tone: "neutral" as const },
     awaiting_outcome: { label: "Awaiting outcome", tone: "warning" as const },
-    callback_modal: { label: "Callback", tone: "warning" as const },
+    callback_modal: { label: "Schedule", tone: "warning" as const },
     completion_pending: { label: "Saving outcome", tone: "warning" as const },
     recovery_required: { label: "Recovery required", tone: "warning" as const },
     post_call_summary: { label: "Call completed", tone: "neutral" as const },

@@ -9,10 +9,10 @@ const outcomeStyles = readFileSync(resolve(root, "src/lib/callOutcomeStyles.ts")
 const drawer = readFileSync(resolve(root, "src/components/calls/CallDetailDrawer.tsx"), "utf8");
 
 describe("workspace and call context copy", () => {
-  it("uses callback terminology and treats an absent last order as neutral history", () => {
-    expect(recentContext).toContain('label="Callback"');
+  it("uses schedule terminology and treats an absent last order as neutral history", () => {
+    expect(recentContext).toContain('label="Schedule"');
     expect(recentContext).toContain('kind === "order" ? "Never"');
-    expect(recentContext).toContain("Callback set");
+    expect(recentContext).toContain("Schedule set");
     expect(brief).toContain('data-testid="conversation-brief-compact"');
     expect(brief).not.toContain("Last order");
   });

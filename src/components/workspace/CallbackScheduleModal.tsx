@@ -47,7 +47,7 @@ export function CallbackScheduleModal({
     event.preventDefault();
     const parsed = new Date(scheduledAt);
     if (!scheduledAt || !Number.isFinite(parsed.getTime())) {
-      setValidationError("Vyberte platné datum a čas callbacku.");
+      setValidationError("Vyberte platné datum a čas naplánovaného hovoru.");
       return;
     }
     setValidationError(null);
