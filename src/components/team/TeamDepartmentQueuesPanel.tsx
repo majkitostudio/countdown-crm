@@ -13,6 +13,8 @@ interface TeamDepartmentQueuesPanelProps {
   overview: DepartmentQueueOverview;
   queueItems: QueueItemDTO[];
   queueState: "ready" | "unavailable";
+  /** Department the panel opens with selected (e.g. when opened from a P4 card). */
+  initialDepartment?: DepartmentFilter;
 }
 
 type DepartmentFilter = "all" | DepartmentKey | "unattributed";
@@ -55,8 +57,8 @@ function Metric({ label, value, warning = false }: { label: string; value: numbe
  * from its team; leads whose team matches no department are shown as
  * "Bez oddělení" so nothing disappears silently.
  */
-export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState }: TeamDepartmentQueuesPanelProps) {
-  const [departmentFilter, setDepartmentFilter] = useState<DepartmentFilter>("all");
+export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, initialDepartment = "all" }: TeamDepartmentQueuesPanelProps) {
+  const [departmentFilter, setDepartmentFilter] = useState<DepartmentFilter>(initialDepartment);
   const [stateFilter, setStateFilter] = useState<"all" | QueueItemDTO["state"]>("all");
 
   const departmentByTeamId = useMemo(() => {

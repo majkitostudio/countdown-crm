@@ -161,6 +161,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
   const [refreshedState, setRefreshedState] = useState({ initialData: data, data });
   const [view, setView] = useState<TeamWorkspaceView>(initialView);
   const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
+  const [departmentPreset, setDepartmentPreset] = useState<"all" | "unattributed" | "P1" | "P2" | "P3" | "P4">("all");
   const [scope, setScope] = useState<TeamWorkspaceScopeInput>({
     periodKey: data.scope.periodKey,
     teamIds: data.scope.teamIds,
@@ -269,7 +270,8 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           {/* 0. Souhrn front P1–P4 — „kolik práce kde čeká“ */}
           <TeamQueuesSummaryStrip
             overview={currentData.departmentQueues.status === "ready" ? currentData.departmentQueues.data : null}
-            onOpenQueues={() => setView("queues")}
+            onOpenQueues={() => { setDepartmentPreset("all"); setView("queues"); }}
+            onOpenDepartment={(department) => { setDepartmentPreset(department); setView("queues"); }}
           />
 
           {/* 0b. Rizika a prodlevy — co potřebuje pozornost hned */}
@@ -336,6 +338,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
               overview={currentData.departmentQueues.data}
               queueItems={currentData.queue.status === "ready" ? currentData.queue.data : []}
               queueState={currentData.queue.status}
+              initialDepartment={departmentPreset}
             />
           )
           : <SourceUnavailablePanel title="Queues unavailable" message="Přehled front oddělení není dostupný." />

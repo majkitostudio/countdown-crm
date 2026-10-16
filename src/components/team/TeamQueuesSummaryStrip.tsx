@@ -2,16 +2,19 @@
 
 import { ArrowRight, Layers } from "lucide-react";
 import type { DepartmentQueueOverview } from "@/lib/departmentQueues";
+import type { DepartmentKey } from "@/lib/department";
 import { StatusAlert } from "@/components/ui/Status";
 
 interface TeamQueuesSummaryStripProps {
   /** Null when the source is unavailable — never faked with zeros. */
   overview: DepartmentQueueOverview | null;
   onOpenQueues: () => void;
+  /** Opens the Queues view pre-filtered to one department. */
+  onOpenDepartment?: (department: DepartmentKey | "unattributed") => void;
 }
 
 interface SummaryCard {
-  key: string;
+  key: DepartmentKey;
   name: string;
   waiting: number;
   inProgress: number;
@@ -43,7 +46,7 @@ function Metric({ label, value, warning = false }: { label: string; value: numbe
  * links to the full Queues view for filtering and the lead list. An
  * unavailable source shows a notice instead of fabricated zero counts.
  */
-export function TeamQueuesSummaryStrip({ overview, onOpenQueues }: TeamQueuesSummaryStripProps) {
+export function TeamQueuesSummaryStrip({ overview, onOpenQueues, onOpenDepartment }: TeamQueuesSummaryStripProps) {
   if (!overview) {
     return (
       <StatusAlert tone="neutral" role="status">
@@ -80,22 +83,39 @@ export function TeamQueuesSummaryStrip({ overview, onOpenQueues }: TeamQueuesSum
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map((card) => (
-          <div key={card.key} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-            <div className="flex items-center justify-between">
-              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 font-mono text-[11px] font-bold text-zinc-950">
-                {card.key}
-              </span>
-              <span className="text-[11px] text-zinc-500">{card.name}</span>
+        {cards.map((card) => {
+          const clickable = Boolean(onOpenDepartment);
+          const content = (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 font-mono text-[11px] font-bold text-zinc-950">
+                  {card.key}
+                </span>
+                <span className="text-[11px] text-zinc-500">{card.name}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <Metric label="Čeká" value={card.waiting} />
+                <Metric label="V řešení" value={card.inProgress} />
+                <Metric label="Naplánované" value={card.scheduled} />
+                <Metric label="Po termínu" value={card.overdue} warning />
+              </div>
+            </>
+          );
+          return clickable ? (
+            <button
+              key={card.key}
+              type="button"
+              onClick={() => onOpenDepartment?.(card.key)}
+              className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-left transition-colors hover:border-zinc-600"
+            >
+              {content}
+            </button>
+          ) : (
+            <div key={card.key} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+              {content}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <Metric label="Čeká" value={card.waiting} />
-              <Metric label="V řešení" value={card.inProgress} />
-              <Metric label="Naplánované" value={card.scheduled} />
-              <Metric label="Po termínu" value={card.overdue} warning />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {showUnattributed && (
@@ -105,7 +125,7 @@ export function TeamQueuesSummaryStrip({ overview, onOpenQueues }: TeamQueuesSum
           </span>
           <button
             type="button"
-            onClick={onOpenQueues}
+            onClick={() => (onOpenDepartment ? onOpenDepartment("unattributed") : onOpenQueues())}
             className="rounded-full border border-amber-800 px-2.5 py-1 text-amber-200 transition-colors hover:border-amber-600"
           >
             Zobrazit v Queues
