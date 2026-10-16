@@ -189,15 +189,18 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 - **Souhrn front P1–P4** na špičce `/team` (Denní checkpoint): karty `čeká / v řešení / naplánované / po termínu` + upozornění na položky bez oddělení. Karty jsou klikací — otevřou Queues s přednastaveným filtrem oddělení (včetně detailu P4). Soubory: `src/components/team/TeamQueuesSummaryStrip.tsx`, `src/components/team/TeamPageContent.tsx`.
 - **Pruh „Rizika a prodlevy“** se souhrnnými kartami (hovor bez výsledku, naplánovaný hovor po termínu, propadlé přiřazení, zásilka na výdejně — riziko / alarm). Počítá se stejnými pravidly jako Exception Queue. Soubory: `src/lib/teamRiskSummary.ts`, `src/lib/dal/teamRiskSummary.ts`, `src/components/team/TeamRiskSummaryStrip.tsx`.
 - **Graf Call Activity** na `/reports`: napojen na reálná data z tabulky `calls` (objem hovorů po dnech za posledních 7 dní + hodinová aktivita). Statický `CallActivityChart` byl napojen na data (nezměněn na komponentní úrovni). Soubory: `src/lib/callActivity.ts`, `src/components/dashboard/CallActivityChart.tsx`, `src/components/analytics/AnalyticsPanel.tsx`.
+- **Důvod „proč je lead v oddělení“** v tabulce Queues (sloupec `Důvod`): námitka (recyklace na další den), vrácený balíček (Re-ship), balíček na výdejně, retence po doručení. Čte se z `lead_queue_items.last_outcome`, který zapisují SQL směrovací funkce, takže **není potřeba nová migrace**. Neznámý/nezaznamenaný důvod se zobrazí jako „—“, nic se nedomýšlí. Soubory: `src/lib/queueReason.ts`, `src/components/team/TeamDepartmentQueuesPanel.tsx`.
 
 **Kroky:**
 - Kolik případů je v kterém oddělení, kolik v riziku a prodlevě. ✅ hotovo.
-- Co je v P4 a proč. 🔄 částečně — zatím jen počty + seznam. Důvod přesunu u leadů ještě neumíme (chybí historie důvodu přesunu). U zásilek na výdejně se důvod zobrazuje, kde ho data znají. Doplnění skutečného důvodu přesunu u leadů je samostatný budoucí úkol s migrací.
+- Co je v P4 a proč. ✅ hotovo — počty + seznam + sloupec `Důvod` s důvodem zařazení (námitka / vratka / balíček na výdejně / retence).
 - Jednoduché provozní metriky pro TL. ⏳ zbývá doplnit (např. další praktické metriky pro denní rozhodování).
+
+**Poznámka k důvodu zařazení:** `last_outcome` je „poslední zaznamenaný výsledek“, ne úplná historie. Pro leady, kde poslední hovor skončil jinak než přesunem do oddělení, se zobrazí „—“. Konkrétní námitka (cena, nedůvěra, …) je k dispozici v `lead_queue_events.metadata.fail_reason`; doplnění tohoto detailu je možné jako samostatný navazující krok bez migrace.
 
 **Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled.
 
-**Stav:** 🔄 probíhá (základní přehled hotový; „proč je v P4“ u leadů a jednoduché provozní metriky pro TL ještě zbývají).
+**Stav:** 🔄 probíhá (základní přehled hotový včetně důvodu „proč je lead v oddělení“; jednoduché provozní metriky pro TL ještě zbývají).
 
 ---
 
@@ -247,7 +250,7 @@ na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení
 uzavřela vstup leadů do fronty: každý nový lead se zařadí automaticky triggerem, tým převezme
 z leadu a už zavřený lead jde do fronty jako `closed`.
 
-**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Základní bloky jsou hotové (souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`); zbývá hlavně doplnit důvod „proč je v P4“ u leadů (s migrací historie) a další jednoduché provozní metriky pro TL.
+**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Základní bloky jsou hotové (souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`, důvod „proč je lead v oddělení“ v Queues); zbývá hlavně doplnit další jednoduché provozní metriky pro TL.
 
 **Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16. 10. 2026: **propojení AI do systému**, **systém směn**, a další) — viz část „Odložené a budoucí“ výše.
 
