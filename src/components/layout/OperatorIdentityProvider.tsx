@@ -52,6 +52,18 @@ export function OperatorIdentityProvider({
         return;
       }
 
+      // Check the session first: after sign-out the auth listener fires while
+      // there is no user, and calling the workspace action in that state would
+      // throw a server-side 500 for a perfectly normal condition.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+
+      if (!user) {
+        setIdentity(null);
+        setIsLoading(false);
+        return;
+      }
+
       let workspaceContext: Awaited<ReturnType<typeof getCurrentWorkspaceContextAction>>;
       try {
         workspaceContext = await getCurrentWorkspaceContextAction();
@@ -61,9 +73,6 @@ export function OperatorIdentityProvider({
         return;
       }
 
-      if (cancelled) return;
-
-      const { data: { user } } = await supabase.auth.getUser();
       if (cancelled) return;
 
       let typedProfile: OperatorProfileRow | null = null;
