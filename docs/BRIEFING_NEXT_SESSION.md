@@ -13,7 +13,7 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 
 **Kde jsme (16. 10. 2026):**
 - Hotové fáze 0–5.1c (migrace ověřené z čistého stavu, pgTAP v CI, vstup leadů do fronty triggerem).
-- `main` je zelený a pushnutý: `npm test` = 880 testů / 181 souborů, `npm run verify:parity` = 132 = 132.
+- `main` je zelený a pushnutý: `npm test` = 902 testů / 185 souborů; `npm run verify:parity` = 132 = 132 a `verify:parity --linked` = 132 = 132 (vzdálená parita obnovena 17. 10. 2026).
 - **Další na řadě je Fáze 6 — Team Leader dashboard a reporty.** Jeho základ je view **Queues** z Fáze 4 (`src/lib/departmentQueues.ts`, `src/lib/dal/departmentQueues.ts`, `src/components/team/TeamDepartmentQueuesPanel.tsx`).
 
 **Jak pracovat:**
@@ -29,4 +29,4 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 
 **Známé body, které nejsou rozbité, jen odložené:**
 - Oddělení (departments P1–P4) jsou dnes modelovaná přes týmy; vyčlenění na samostatnou entitu je vědomě odloženo.
-- Vzdálená migration parity je blokovaná na straně Supabase platformy (zůstává ruční runbook).
+- Vzdálená migration parity byla obnovena (17. 10. 2026) — šlo o vypršený migrační token a přečíslované migrace, ne o vadu platformy. Pro `db push` i `verify:parity --linked` je potřeba token s právem zápisu (`database_write`).

@@ -97,7 +97,11 @@ docker exec supabase_db_countdown-crm psql -U postgres -d postgres -f /tmp/perf.
 
 **Ověřeno lokálně:** 131 souborů na disku = 131 aplikovaných verzí, `MIGRATION PARITY OK`. Při nasimulovaném driftu (dočasný soubor navíc) skript správně hlásí `MISSING IN DATABASE` a končí s exit 1.
 
-**Vzdálená parita je zatím nedostupná** a zůstává jako ruční runbook: Management API se nedokáže přihlásit do databáze projektu (chyba na straně platformy, ne tokenu), takže `--linked` se teď nedá spolehlivě použít. Postup pro ověření vzdáleného projektu je v `docs/P0_3_REMOTE_DB_RUNNER.md`.
+**Vzdálená parita — obnoveno (17. 10. 2026).** Dřívější záznam („nedostupná, chyba na straně platformy“) se nepotvrdil jako vada platformy: šlo o **oprávnění tokenu**. Scoped token s právem jen pro čtení (`database_read`) nedokáže ani inicializovat login roli, kterou CLI pro `db push`/`migration list` potřebuje, takže `--linked` hlásilo `Missing required permission(s): database_write`. Se scoped tokenem, který má `Database: Read-write` a `Migrations: Read-write`, obě operace projdou.
+
+Skutečný drift měl dvě části. (1) Migrační token vypršel 19. 9. 2026 a od té doby se na vzdálený sandbox nenasazovalo — chybělo 15 migrací, proto v UI nefungoval pruh „Rizika a prodlevy“ ani riziko výdejny v Exception Queue. (2) Dvanáct migrací z 14.–16. 9. bylo v databázi zapsaných pod přečíslovanými verzemi (jiné číslo, stejný název) a jeden záznam (`order_creation_team_snapshot_fix_v2`) v repu vůbec není.
+
+Náprava: `supabase migration repair --status applied` pro 12 přečíslovaných, `--status reverted` pro 13 osiřelých záznamů, a `supabase db push` pro 15 chybějících migrací. Výsledek: **132 = 132, `MIGRATION PARITY OK`.** Provozní postup (včetně expirace tokenu) je v [REMOTE_DB_MIGRATIONS.md](REMOTE_DB_MIGRATIONS.md); bezpečnostní evidence vzdáleného projektu v `docs/P0_3_REMOTE_DB_RUNNER.md`.
 
 ---
 
@@ -174,5 +178,5 @@ Model oddělení P1–P4 je dnes realizovaný přes entity `teams` (oddělení s
 
 ## Co zůstává otevřené
 
-1. **Vzdálená migration parity** — blokováno na straně Supabase platformy; zůstává ruční runbook.
+1. **Vzdálená migration parity** — ✅ vyřešeno (17. 10. 2026): 132 = 132; šlo o oprávnění tokenu, ne o vadu platformy (viz část 4).
 2. **Index pro Exception Queue** — až pokud by fronta výrazně narostla (dnes není potřeba).

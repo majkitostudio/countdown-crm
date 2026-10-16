@@ -228,7 +228,7 @@ Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozši
 - **Skutečný kontrakt příjmu leadů (API/webhook)** — ověření, deduplikace a zdroj; trigger z Fáze 5.1c řeší jen zařazení do fronty, ne příjem samotný.
 - **Oddělení (departments) jako samostatná entita** — dnes vedená přes týmy; zvážit vyčlenění (ve Fázi 5 vědomě odloženo).
 - **Sjednocení terminologie (callback vs. scheduled call)** — **texty v UI hotové** (16. 10. 2026): popisky, nadpisy, hlášky i chybové texty, které se propisují do UI, už používají „Schedules“ / „naplánované hovory“. **Zbývá kód a data** — stav `waiting_callback`, sloupec `callback_scheduled_at`, `callbackAttention.ts`, action id `schedule_callback`, test id a interní názvy. Dotýká se migrací, proto samostatný úkol (viz AGENTS.md, pravidlo 7).
-- **Vzdálená migration parity** — blokováno na straně Supabase platformy, zůstává ruční postup ([P0_3_REMOTE_DB_RUNNER.md](P0_3_REMOTE_DB_RUNNER.md)).
+- **Vzdálená migration parity** — ✅ **obnoveno (17. 10. 2026):** vzdálený sandbox má nyní 132 souborů = 132 aplikovaných verzí (`verify:parity --linked` = `MIGRATION PARITY OK`). Příčina driftu: migrační access token vypršel 19. 9. 2026 (od té doby se nenasazovalo) a 12 migrací z 14.–16. 9. bylo v DB zapsaných pod přečíslovanými verzemi. Náprava: `supabase migration repair` (přečíslované → aplikováno, osiřelé záznamy → odstraněny) + `supabase db push` (15 chybějících migrací). **Pozor:** `db push` i `verify:parity --linked` potřebují token s právem zápisu (`database_write`); scoped read-only token na to nestačí. Postup je v [REMOTE_DB_MIGRATIONS.md](REMOTE_DB_MIGRATIONS.md).
 - **Telefonie / VoIP (Telnyx)** — odloženo na neurčito, dokud se nezmění priorita.
 
 ---
