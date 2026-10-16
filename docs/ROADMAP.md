@@ -185,14 +185,19 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Cíl:** dát vedoucímu přehled o provozu, bez zbytečných „nice to have“ reportů.
 
+**Hotovo:**
+- **Souhrn front P1–P4** na špičce `/team` (Denní checkpoint): karty `čeká / v řešení / naplánované / po termínu` + upozornění na položky bez oddělení. Karty jsou klikací — otevřou Queues s přednastaveným filtrem oddělení (včetně detailu P4). Soubory: `src/components/team/TeamQueuesSummaryStrip.tsx`, `src/components/team/TeamPageContent.tsx`.
+- **Pruh „Rizika a prodlevy“** se souhrnnými kartami (hovor bez výsledku, naplánovaný hovor po termínu, propadlé přiřazení, zásilka na výdejně — riziko / alarm). Počítá se stejnými pravidly jako Exception Queue. Soubory: `src/lib/teamRiskSummary.ts`, `src/lib/dal/teamRiskSummary.ts`, `src/components/team/TeamRiskSummaryStrip.tsx`.
+- **Graf Call Activity** na `/reports`: napojen na reálná data z tabulky `calls` (objem hovorů po dnech za posledních 7 dní + hodinová aktivita). Statický `CallActivityChart` byl napojen na data (nezměněn na komponentní úrovni). Soubory: `src/lib/callActivity.ts`, `src/components/dashboard/CallActivityChart.tsx`, `src/components/analytics/AnalyticsPanel.tsx`.
+
 **Kroky:**
-- Kolik případů je v kterém oddělení, kolik v riziku a prodlevě.
-- Co je v P4 a proč.
-- Jednoduché provozní metriky pro TL.
+- Kolik případů je v kterém oddělení, kolik v riziku a prodlevě. ✅ hotovo.
+- Co je v P4 a proč. 🔄 částečně — zatím jen počty + seznam. Důvod přesunu u leadů ještě neumíme (chybí historie důvodu přesunu). U zásilek na výdejně se důvod zobrazuje, kde ho data znají. Doplnění skutečného důvodu přesunu u leadů je samostatný budoucí úkol s migrací.
+- Jednoduché provozní metriky pro TL. ⏳ zbývá doplnit (např. další praktické metriky pro denní rozhodování).
 
 **Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled.
 
-**Stav:** ⏳ čeká (základ `/reports` a `/team` existuje).
+**Stav:** 🔄 probíhá (základní přehled hotový; „proč je v P4“ u leadů a jednoduché provozní metriky pro TL ještě zbývají).
 
 ---
 
@@ -230,7 +235,7 @@ Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozši
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2, 3, 4, 5, 5.1, 5.1b a 5.1c jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3, 4, 5, 5.1, 5.1b a 5.1c jsou hotové. Fáze 6 je v běhu.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
 provozní model a přidala přehled front (view **Queues** v Team Workspace). Fáze 5 ověřila
@@ -242,7 +247,7 @@ na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení
 uzavřela vstup leadů do fronty: každý nový lead se zařadí automaticky triggerem, tým převezme
 z leadu a už zavřený lead jde do fronty jako `closed`.
 
-**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (přehled front z Fáze 4 je jeho základ).
+**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Základní bloky jsou hotové (souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`); zbývá hlavně doplnit důvod „proč je v P4“ u leadů (s migrací historie) a další jednoduché provozní metriky pro TL.
 
 **Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16. 10. 2026: **propojení AI do systému**, **systém směn**, a další) — viz část „Odložené a budoucí“ výše.
 
