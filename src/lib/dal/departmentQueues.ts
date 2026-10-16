@@ -17,7 +17,7 @@ type TeamRow = DepartmentQueueTeamInput;
 export interface DepartmentQueueOverviewOptions {
   /** Strict subset of the workspace teams; empty means every team. */
   teamIds?: string[];
-  /** Injectable clock for deterministic overdue-callback counts. */
+  /** Injectable clock for deterministic overdue scheduled call counts. */
   now?: Date;
 }
 

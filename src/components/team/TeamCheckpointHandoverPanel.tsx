@@ -10,7 +10,7 @@ import { Surface } from "@/components/ui/Surface";
 /**
  * Konec směny — read-only předání do další směny (schválená Team Checkpoint předloha).
  * Záměrně bez uzavírací mutace: předání je přehled otevřených položek,
- * řeší se v Callbacky a týmové frontě. Žádný falešný workflow krok.
+ * řeší se v Naplánované hovory a týmová fronta. Žádný falešný workflow krok.
  */
 export function TeamCheckpointHandoverPanel({
   checkpoint,
@@ -43,7 +43,7 @@ export function TeamCheckpointHandoverPanel({
               <h2 className="text-sm font-semibold text-zinc-100">Konec směny — co se přenáší</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
                 Shrnutí dne a otevřené položky pro další směnu. Předání je přehled, ne workflow krok —
-                řeší se v Callbacky a týmové frontě.
+                řeší se v Naplánované hovory a týmová fronta.
               </p>
             </div>
           </div>
@@ -88,9 +88,9 @@ export function TeamCheckpointHandoverPanel({
             ))}
             {handoverCallbacks.map((callback) => (
               <li key={callback.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
-                <StatusBadge tone="warning">Callback</StatusBadge>
+                <StatusBadge tone="warning">Schedule</StatusBadge>
                 <span className="font-medium text-zinc-200">{callback.operatorName || callback.leadName}</span>
-                <span className="truncate text-zinc-500">{callback.leadName} · prošlý callback</span>
+                <span className="truncate text-zinc-500">{callback.leadName} · po termínu</span>
               </li>
             ))}
           </ul>
@@ -106,7 +106,7 @@ export function TeamCheckpointHandoverPanel({
         </div>
         {checkpoint.sources.callbacks.state === "ready" && (
           <p className="text-[11px] text-zinc-500">
-            Callbacky v období — prošlé: {checkpoint.overdueCallbacks.length} · naplánované: {checkpoint.upcomingCallbacks.length}
+            Naplánované hovory v období — po termínu: {checkpoint.overdueCallbacks.length} · naplánované: {checkpoint.upcomingCallbacks.length}
           </p>
         )}
       </div>

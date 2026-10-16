@@ -79,8 +79,8 @@ export function groupByOperator<T extends { operatorId: string | null }>(
 }
 
 /**
- * Rozdělí callbacky na prošlé a naplánované podle aktuálního času.
- * Hranice je ostrá: callback splatný přesně teď ještě patří mezi naplánované.
+ * Rozdělí naplánované hovory na po termínu a naplánované podle aktuálního času.
+ * Hranice je ostrá: naplánovaný hovor splatný přesně teď ještě patří mezi naplánované.
  */
 export function splitCallbacksByDue<T extends { scheduledAt: string }>(
   items: T[],

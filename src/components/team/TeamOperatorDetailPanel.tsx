@@ -48,7 +48,7 @@ export interface TeamOperatorDetailData {
 /**
  * Detail operátora v rámci Daily Checkpointu (schválená Team Checkpoint předloha).
  * Záměrně ukazuje pouze data, která už má checkpoint read model: agregované
- * metriky, dnešní objednávky, prošlé callbacky, žádosti o asistenci a AI kontrolu.
+ * metriky, dnešní objednávky, prošlé naplánované hovory, žádosti o asistenci a AI kontrolu.
  * Historie jednotlivých hovorů operátora zatím není součástí read modelu —
  * nevymýšlí se, viz follow-up v AKTUALNI_STAV_A_DESATERO.
  */
@@ -156,12 +156,12 @@ export function TeamOperatorDetailPanel({
           <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Naplánované hovory operátora">
             <div className="flex items-center gap-2">
               <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-              <h3 className="text-sm font-semibold text-zinc-100">Callbacky</h3>
+              <h3 className="text-sm font-semibold text-zinc-100">Naplánované hovory</h3>
                 <StatusBadge tone={overdueCallbacks.length > 0 ? "warning" : "neutral"}>{overdueCallbacks.length + upcomingCallbacks.length}</StatusBadge>
             </div>
             {overdueCallbacks.length === 0 && upcomingCallbacks.length === 0 ? (
               <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
-                Operátor nemá žádné callbacky v tomto období.
+                Operátor nemá žádné naplánované hovory v tomto období.
               </p>
             ) : (
               <ul className="space-y-2">

@@ -77,7 +77,7 @@ Pravidla chování:
 - Při standardní obtížnosti nejdřív jednou přirozeně zapochybuj nebo se zeptej na praktický detail, pak při férovém vysvětlení souhlas.
 - Jediná závažná chyba operátora (slib účinku, vydávání se za lékaře, garance) se NIKDY neprojeví ve tvé reakci. Je odděleně vyhodnocena systémem.
 - Teprve opakovaná závažná chyba může snížit důvěru. Aktuální opakovaná závažná chyba: ${repeatedSeriousError ? "ano" : "ne"}.
-- Nikdy nevytvářej objednávku, platbu, callback ani skutečný kontakt. Adresa je výhradně fiktivní.
+- Nikdy nevytvářej objednávku, platbu, naplánovaný hovor ani skutečný kontakt. Adresa je výhradně fiktivní.
 
 Historie:
 ${historyFormatted}

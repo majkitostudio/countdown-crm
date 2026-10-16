@@ -274,7 +274,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
             <SourceUnavailablePanel title="Žádosti o asistenci nejsou dostupné" message="Signály od operátorů nejsou dostupné." />
           )}
 
-          {/* 2-6. Daily Checkpoint + Konec směny + Callbacky + Kvalita */}
+          {/* 2-6. Daily Checkpoint + Konec směny + Naplánované hovory + Kvalita */}
           {currentData.checkpoint.status === "ready"
             ? operatorDetail
               ? (
@@ -299,7 +299,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
                     onOpenQueue={() => setView("queue")}
                     onOpenQuality={() => setView("quality")}
                   />
-                  {/* Callbacky jako sekce v checkpointu */}
+                  {/* Naplánované hovory jako sekce v checkpointu */}
                   <TeamCheckpointCallbacksSection
                     checkpoint={currentData.checkpoint.data}
                     onOpenQueue={() => setView("queue")}

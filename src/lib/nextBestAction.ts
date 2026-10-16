@@ -61,7 +61,7 @@ function formatCallbackTiming(scheduledAt: string, now: Date): string {
   return `Naplánovaný hovor za ${hours} h.`;
 }
 
-/** Selects one explainable next step from persisted callbacks and re-order estimates. */
+/** Selects one explainable next step from persisted scheduled calls and re-order estimates. */
 export function getNextBestAction(input: NextBestActionInput = {}): NextBestAction {
   const now = input.now ?? new Date();
   const callbacks = (input.callbacks ?? [])

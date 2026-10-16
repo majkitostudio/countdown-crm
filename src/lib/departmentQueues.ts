@@ -37,7 +37,7 @@ export const DEPARTMENT_QUEUE_IN_PROGRESS_STATES: readonly DepartmentQueueItemSt
   "in_progress",
   "awaiting_outcome",
 ];
-/** Queue state for a scheduled callback. */
+/** Queue state for a scheduled call. */
 export const DEPARTMENT_QUEUE_CALLBACK_STATE: DepartmentQueueItemState = "waiting_callback";
 
 export interface DepartmentQueueItemInput {
@@ -97,7 +97,7 @@ function emptyCounts(): DepartmentQueueStateCounts {
 
 /**
  * Derives the manager-facing totals from raw per-state counts. Overdue
- * callbacks are counted separately because they need the `scheduled_at`
+ * scheduled calls are counted separately because they need the `scheduled_at`
  * comparison, so they are passed in rather than inferred from the counts.
  */
 function summarize(counts: DepartmentQueueStateCounts, overdueCallbacks: number): DepartmentQueueTotals {
