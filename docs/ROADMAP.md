@@ -203,9 +203,9 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Poznámka k důvodu zařazení:** `last_outcome` je „poslední zaznamenaný výsledek“, ne úplná historie. Pro leady, kde poslední hovor skončil jinak než přesunem do oddělení, se zobrazí „—“. Konkrétní námitka (cena, nedůvěra, …) je k dispozici v `lead_queue_events.metadata.fail_reason`; doplnění tohoto detailu je možné jako samostatný navazující krok bez migrace.
 
-**Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled. Nové metriky jsou ověřené jak testy, tak živě v prohlížeči proti skutečným datům sandboxu (čísla porovnaná s databází ve stejném rozsahu týmu). Prošly i **nezávislou revizí**, která našla tři věci, jež jsou opravené: poctivá věta o stavu signálů (nemlčí o operátorech bez signálu), žebříček důvodů počítá stejnou množinu jako tabulka „Neúspěšné hovory“ a texty nepřekrucují, co data umí.
+**Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled. Nové metriky jsou ověřené jak testy, tak živě v prohlížeči proti skutečným datům sandboxu (čísla porovnaná s databází ve stejném rozsahu týmu). Prošly i **nezávislou revizí**, která našla tři věci, jež jsou opravené: poctivá věta o stavu signálů (nemlčí o operátorech bez signálu), žebříček důvodů počítá stejnou množinu jako tabulka „Neúspěšné hovory“ a texty nepřekrucují, co data umí. Konverze byla po potvrzení PM přepnuta na `prodeje / spojené hovory` (nezvednuté hovory se do jmenovatele nepočítají) a prodej platí od chvíle vytvoření. Přidány komponentní testy vykreslování stripů (včetně prázdných a nedostupných stavů).
 
-**Stav:** 🔄 probíhá (základní přehled, rizika, důvod zařazení i jednoduché provozní metriky hotové; zbývá QA/regresní uzávěrka fáze).
+**Stav:** ✅ hotovo (17. 10. 2026). Souhrn front, rizika a prodlevy, provozní metriky, taxonomie neúspěchů, QA kontrola rolí i regresní testy kompletní.
 
 ---
 
@@ -245,7 +245,7 @@ Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozši
 
 ## Okamžitý další krok
 
-**Fáze 0, 1, 2, 3, 4, 5, 5.1, 5.1b a 5.1c jsou hotové. Fáze 6 je v běhu.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
+**Fáze 0, 1, 2, 3, 4, 5, 5.1, 5.1b, 5.1c i 6 jsou hotové.** Fáze 3 stabilizovala objednávky: jednotný tok stavů,
 riziko výdejny („v klidu / riziko / alarm“), přehledová počítadla a rizikové zásilky jako
 výjimka `order:pickup_risk` v Exception Queue. Fáze 4 sjednotila oddělení P1–P4 jako obecný
 provozní model a přidala přehled front (view **Queues** v Team Workspace). Fáze 5 ověřila
@@ -255,9 +255,14 @@ databázových pgTAP testů (týmové přiřazení) a přidala do CI job `databa
 dokončila vlastnictví záznamů: potvrzení týmu se doplní tam, kde chybí, panel se přesunul
 na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení“. Fáze 5.1c
 uzavřela vstup leadů do fronty: každý nový lead se zařadí automaticky triggerem, tým převezme
-z leadu a už zavřený lead jde do fronty jako `closed`.
+z leadu a už zavřený lead jde do fronty jako `closed`. Fáze 6 dodala Team Leader dashboard,
+reporty a denní checkpoint: přehled front P1–P4, rizika a prodlevy, provoz na lince, stárnutí
+fronty, sjednocenou taxonomii důvodů neúspěchu a konverzi (prodeje / spojené hovory).
 
-**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Hotové bloky: souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`, důvod „proč je lead v oddělení“ v Queues a **čtyři provozní metriky pro denní checkpoint** (konverze, provoz na lince teď, stárnutí fronty, důvody neúspěchu rozdělené na ovlivnitelné/neovlivnitelné operátorem). Vyřešen a na sandbox nasazen byl i nesoulad důvodů neúspěchu (UI vs. DB). Zbývá QA/regresní uzávěrka fáze.
+**Další na řadě je Fáze 7 (QA, regrese a release gate) a iterativní rozvoj:**
+- **Přizpůsobení Operator Console podle oddělení** (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence, P4 záchrana) — řízené datovými profily, ne hardcodovanými větvemi.
+- **Leady bez týmu (`team_id = NULL`)**: zobrazení nepřiřazených leadů v přehledu.
+- **Propojení AI do systému** a **systém směn** dle zadání PM.
 
 **Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16.–17. 10. 2026: **propojení AI do systému**, **systém směn**, **přizpůsobení Operator Console podle oddělení**, a další) — viz část „Odložené a budoucí“ výše.
 
