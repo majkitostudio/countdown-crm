@@ -13,6 +13,7 @@ import { TeamDepartmentQueuesPanel } from "@/components/team/TeamDepartmentQueue
 import { TeamQueuesSummaryStrip } from "@/components/team/TeamQueuesSummaryStrip";
 import { TeamRiskSummaryStrip } from "@/components/team/TeamRiskSummaryStrip";
 import { TeamLiveOpsStrip } from "@/components/team/TeamLiveOpsStrip";
+import { TeamQueueAgingStrip } from "@/components/team/TeamQueueAgingStrip";
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
 import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
@@ -282,7 +283,13 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
             onOpenDepartment={(department) => { setDepartmentPreset(department); setView("queues"); }}
           />
 
-          {/* 0b. Rizika a prodlevy — co potřebuje pozornost hned */}
+          {/* 0b. Stárnutí fronty — „co nám stárne a propadá“ */}
+          <TeamQueueAgingStrip
+            queueItems={currentData.queue.status === "ready" ? currentData.queue.data : null}
+            onOpenQueues={() => { setDepartmentPreset("all"); setView("queues"); }}
+          />
+
+          {/* 0c. Rizika a prodlevy — co potřebuje pozornost hned */}
           <TeamRiskSummaryStrip
             summary={currentData.riskSummary?.status === "ready" ? currentData.riskSummary.data : null}
           />

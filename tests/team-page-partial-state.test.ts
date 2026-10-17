@@ -263,6 +263,39 @@ describe("TeamPageContent partial source states", () => {
     expect(html).not.toContain("Provoz na lince teď");
   });
 
+  it("shows how long the waiting leads have been waiting", () => {
+    const html = render({
+      queue: { status: "ready", data: [{ ...queueItem, state: "available" }] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Stárnutí fronty");
+    expect(html).toContain("3+ dny");
+    expect(html).toContain("Čeká celkem 1 lead");
+  });
+
+  it("does not present queue aging when the queue source is unavailable", () => {
+    const html = render({
+      queue: { status: "unavailable", reason: "database" },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Stárnutí fronty není dostupné.");
+    expect(html).not.toContain("Čeká celkem");
+  });
+
   it("renders the four empty department cards when there is no data", () => {
     const html = render({
       queue: { status: "ready", data: [] },
