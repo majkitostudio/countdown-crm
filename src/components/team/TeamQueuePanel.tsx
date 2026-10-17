@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
-import { getCallbackAttention, isOverdueCallback } from "@/lib/callbackAttention";
+import { getScheduledCallAttention, isOverdueScheduledCall } from "@/lib/scheduleAttention";
 
 interface TeamQueuePanelProps {
   queueItems: QueueItemDTO[];
@@ -40,7 +40,7 @@ function formatDate(value: string | null): string {
 }
 
 export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutation }: TeamQueuePanelProps) {
-  const callbackAttention = getCallbackAttention(queueItems);
+  const callbackAttention = getScheduledCallAttention(queueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [stateFilter, setStateFilter] = useState<"all" | QueueItemDTO["state"]>("all");
   const [operatorFilter, setOperatorFilter] = useState("all");
@@ -161,7 +161,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";
                 const canReopen = item.state === "closed";
-                const overdueCallback = isOverdueCallback(item);
+                const overdueCallback = isOverdueScheduledCall(item);
                 return (
                   <tr key={item.id} className="align-top hover:bg-zinc-900/70">
                     <td className="px-4 py-4">

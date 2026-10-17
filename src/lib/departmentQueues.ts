@@ -15,7 +15,7 @@ import {
   departmentKeyFromTeam,
   type DepartmentKey,
 } from "@/lib/department";
-import { isOverdueCallback } from "@/lib/callbackAttention";
+import { isOverdueScheduledCall } from "@/lib/scheduleAttention";
 
 export const DEPARTMENT_QUEUE_STATES = [
   "available",
@@ -155,7 +155,7 @@ export function buildDepartmentQueueOverview(
 
   for (const item of items) {
     const key = item.team_id ? departmentByTeamId.get(item.team_id) : undefined;
-    const overdue = isOverdueCallback({ state: item.state, scheduled_at: item.scheduled_at }, now);
+    const overdue = isOverdueScheduledCall({ state: item.state, scheduled_at: item.scheduled_at }, now);
 
     if (key) {
       countsByDepartment.get(key)![item.state] += 1;
