@@ -101,7 +101,7 @@ export function TeamOperatorDetailPanel({
             </p>
           </div>
         </section>
-        <p className="text-[11px] text-zinc-500">Konverze a Talk % se zavedou se směnami.</p>
+        <p className="text-[11px] text-zinc-500">Talk % se zavede se směnami.</p>
 
         <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Poslední hovory operátora">
           <div className="flex items-center gap-2">

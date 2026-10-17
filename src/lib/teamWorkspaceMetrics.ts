@@ -132,6 +132,16 @@ function isSaleStatus(status: TeamWorkspaceOrder["status"]): boolean {
   return (SALES_ORDER_STATUSES as readonly string[]).includes(status);
 }
 
+/**
+ * Konverze = prodeje / vytočené hovory. Do jmenovatele patří i nezvednuté
+ * hovory — stejná definice jako v analytice, denním souhrnu a na dashboardu
+ * („orders / calls“), aby stejné slovo neznamenalo na dvou obrazovkách dvě
+ * různá čísla.
+ */
+function conversionPercent(sales: number, dialedCalls: number): number | null {
+  return dialedCalls > 0 ? roundPercent((sales / dialedCalls) * 100) : null;
+}
+
 export function buildTeamWorkspaceOperatorMetrics(input: {
   operators: TeamWorkspaceOperator[];
   calls: TeamWorkspaceCall[];
@@ -195,7 +205,7 @@ export function buildTeamWorkspaceOperatorMetrics(input: {
       operatorName: operator.name,
       sales,
       fails,
-      conversionPercent: fails > 0 ? roundPercent((sales / fails) * 100) : null,
+      conversionPercent: conversionPercent(sales, dialedCalls),
       dialedCalls,
       connectedCalls,
       talkTimeSeconds,

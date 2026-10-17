@@ -259,7 +259,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
               </table>
             </div>
           )}
-          {checkpoint.sources.shifts.state === "unavailable" && <p className="text-xs text-zinc-500">Konverze a podíl času na hovoru se zobrazí po zavedení ověřeného plánování směn.</p>}
+          {checkpoint.sources.shifts.state === "unavailable" && <p className="text-xs text-zinc-500">Podíl času na hovoru se zobrazí po zavedení ověřeného plánování směn.</p>}
         </section>}
       </div>
     </Surface>

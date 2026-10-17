@@ -9,7 +9,7 @@ const period = {
 const operators = [{ id: "operator-1", name: "P1 Operator" }];
 
 describe("Team Workspace operator metrics", () => {
-  it("counts all sales statuses including manual orders and calculates the approved conversion", () => {
+  it("counts all sales statuses including manual orders and calculates conversion against dialed calls", () => {
     const [metrics] = buildTeamWorkspaceOperatorMetrics({
       operators,
       calls: [
@@ -29,7 +29,28 @@ describe("Team Workspace operator metrics", () => {
       period,
     });
 
-    expect(metrics).toMatchObject({ sales: 4, fails: 1, conversionPercent: 400 });
+    expect(metrics).toMatchObject({ sales: 4, fails: 1, dialedCalls: 2, conversionPercent: 200 });
+  });
+
+  it("counts unanswered calls in the conversion denominator (orders / all calls)", () => {
+    const [metrics] = buildTeamWorkspaceOperatorMetrics({
+      operators,
+      calls: [
+        { id: "sale", operatorId: "operator-1", occurredAt: "2026-09-16T08:00:00.000Z", outcome: "order_placed" },
+        { id: "miss-1", operatorId: "operator-1", occurredAt: "2026-09-16T08:05:00.000Z", outcome: "no_answer" },
+        { id: "miss-2", operatorId: "operator-1", occurredAt: "2026-09-16T08:10:00.000Z", outcome: "no_answer" },
+        { id: "miss-3", operatorId: "operator-1", occurredAt: "2026-09-16T08:15:00.000Z", outcome: "no_answer" },
+      ],
+      orders: [
+        { id: "order-1", operatorId: "operator-1", createdAt: "2026-09-16T08:20:00.000Z", status: "completed" },
+      ],
+      activities: [],
+      shifts: [],
+      period,
+    });
+
+    // 1 prodej ze 4 vytočených. Kdyby se počítalo jen ze spojených, vyšlo by 100 %.
+    expect(metrics).toMatchObject({ sales: 1, dialedCalls: 4, connectedCalls: 1, conversionPercent: 25 });
   });
 
   it("counts dialed and connected calls separately", () => {
