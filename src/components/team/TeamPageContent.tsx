@@ -12,6 +12,7 @@ import { TeamQualityReviewPanel } from "@/components/team/TeamQualityReviewPanel
 import { TeamDepartmentQueuesPanel } from "@/components/team/TeamDepartmentQueuesPanel";
 import { TeamQueuesSummaryStrip } from "@/components/team/TeamQueuesSummaryStrip";
 import { TeamRiskSummaryStrip } from "@/components/team/TeamRiskSummaryStrip";
+import { TeamLiveOpsStrip } from "@/components/team/TeamLiveOpsStrip";
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
 import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
@@ -267,6 +268,13 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
 
       {view === "checkpoint" && (
         <div className="space-y-6">
+          {/* Provoz na lince teď — kdo právě teď může vzít hovor */}
+          <TeamLiveOpsStrip
+            operators={currentData.operators.status === "ready" ? currentData.operators.data : null}
+            presence={currentData.presence.status === "ready" ? currentData.presence.data : null}
+            onOpenOperators={() => setView("operators")}
+          />
+
           {/* 0. Souhrn front P1–P4 — „kolik práce kde čeká“ */}
           <TeamQueuesSummaryStrip
             overview={currentData.departmentQueues.status === "ready" ? currentData.departmentQueues.data : null}

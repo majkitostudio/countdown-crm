@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Activity, Clock3, RotateCcw } from "lucide-react";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import type { OperatorPresenceDTO } from "@/lib/dal/operatorPresence";
+import { isPresenceSignalFresh } from "@/lib/liveOpsSummary";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -19,11 +20,6 @@ const STATE_LABELS: Record<OperatorPresenceDTO["state"], string> = {
   in_call: "In call",
   after_call: "After call",
 };
-
-function isFresh(value: string): boolean {
-  const timestamp = Date.parse(value);
-  return Number.isFinite(timestamp) && timestamp > Date.now() - 5 * 60 * 1000;
-}
 
 function formatDate(value: string | null): string {
   if (!value) return "No signal recorded";
@@ -53,6 +49,8 @@ export function TeamPresencePanel({ operators, presence }: TeamPresencePanelProp
     [normalizedSearch, operators, presenceByOperator, stateFilter],
   );
   const hasFilters = search.trim().length > 0 || stateFilter !== "all";
+  // Jedno „teď" pro celý seznam, ať jsou všichni posuzovaní stejnou hranicí.
+  const now = new Date();
 
   return (
     <Surface variant="page">
@@ -93,7 +91,7 @@ export function TeamPresencePanel({ operators, presence }: TeamPresencePanelProp
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {visibleOperators.map((operator) => {
               const entry = presenceByOperator.get(operator.user_id);
-              const fresh = Boolean(entry && isFresh(entry.last_heartbeat_at));
+              const fresh = Boolean(entry && isPresenceSignalFresh(entry.last_heartbeat_at, now));
               const state = entry?.state || "offline";
               return (
                 <div key={operator.user_id} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">

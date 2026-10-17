@@ -36,7 +36,20 @@ const queueItem = {
 
 const emptyDepartmentQueues = { status: "ready" as const, data: buildDepartmentQueueOverview([], [], new Date("2026-09-16T00:00:00.000Z")) };
 
-function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" | "queues" = "queue"): string {
+function operatorMember(userId: string, fullName: string) {
+  return {
+    workspace_id: "workspace-1",
+    user_id: userId,
+    role: "operator" as const,
+    full_name: fullName,
+    email: `${userId}@example.test`,
+    avatar_url: null,
+    created_at: "2026-09-01T00:00:00.000Z",
+    updated_at: "2026-09-01T00:00:00.000Z",
+  };
+}
+
+function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" | "queues" | "checkpoint" = "queue"): string {
   return renderToStaticMarkup(React.createElement(TeamPageContent, {
     currentUserId: "leader-1",
     role,
@@ -203,6 +216,51 @@ describe("TeamPageContent partial source states", () => {
 
     expect(html).toContain("Důvod");
     expect(html).toContain("Vrácený balíček – Re-ship");
+  });
+
+  it("shows who is on the line right now on the daily checkpoint", () => {
+    const heartbeat = new Date().toISOString();
+
+    const html = render({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [operatorMember("operator-1", "Grace Hopper"), operatorMember("operator-2", "Alan Turing")] },
+      presence: {
+        status: "ready",
+        data: [{
+          workspace_id: "workspace-1",
+          operator_id: "operator-1",
+          state: "available",
+          last_heartbeat_at: heartbeat,
+          updated_at: heartbeat,
+        }],
+      },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Provoz na lince teď");
+    expect(html).toContain("Volní");
+    expect(html).toContain("Offline");
+    expect(html).toContain("Signály všech 2 operátorů v rozsahu jsou aktuální.");
+  });
+
+  it("does not present live operator counts when the presence source is unavailable", () => {
+    const html = render({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [operatorMember("operator-1", "Grace Hopper")] },
+      presence: { status: "unavailable", reason: "database" },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Provoz na lince není dostupný.");
+    expect(html).not.toContain("Provoz na lince teď");
   });
 
   it("renders the four empty department cards when there is no data", () => {
