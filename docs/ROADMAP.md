@@ -203,7 +203,7 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 **Poznámka k důvodu zařazení:** `last_outcome` je „poslední zaznamenaný výsledek“, ne úplná historie. Pro leady, kde poslední hovor skončil jinak než přesunem do oddělení, se zobrazí „—“. Konkrétní námitka (cena, nedůvěra, …) je k dispozici v `lead_queue_events.metadata.fail_reason`; doplnění tohoto detailu je možné jako samostatný navazující krok bez migrace.
 
-**Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled. Nové metriky jsou ověřené jak testy, tak živě v prohlížeči proti skutečným datům sandboxu (čísla porovnaná s databází ve stejném rozsahu týmu).
+**Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled. Nové metriky jsou ověřené jak testy, tak živě v prohlížeči proti skutečným datům sandboxu (čísla porovnaná s databází ve stejném rozsahu týmu). Prošly i **nezávislou revizí**, která našla tři věci, jež jsou opravené: poctivá věta o stavu signálů (nemlčí o operátorech bez signálu), žebříček důvodů počítá stejnou množinu jako tabulka „Neúspěšné hovory“ a texty nepřekrucují, co data umí.
 
 **Stav:** 🔄 probíhá (základní přehled, rizika, důvod zařazení i jednoduché provozní metriky hotové; zbývá QA/regresní uzávěrka fáze).
 
