@@ -96,7 +96,7 @@ export function TeamQueueAgingStrip({ queueItems, onOpenQueues }: TeamQueueAging
 
       <p className="mt-3 text-[11px] text-zinc-500">
         Čeká celkem {formatLeadCount(summary.waiting)}
-        {summary.deferred > 0 ? ` · ${summary.deferred} ještě není na čase (naplánované zařazení)` : ""}.
+        {summary.deferred > 0 ? ` · ${summary.deferred} ještě není na čase (naplánované nebo s nečitelným časem)` : ""}.
       </p>
     </section>
   );

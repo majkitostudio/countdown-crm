@@ -40,6 +40,13 @@ export interface LiveOpsSummary {
    * ne o potvrzené odhlášení.
    */
   staleSignals: number;
+  /**
+   * Kolik operátorů nemá žádný záznam o signálu. Také se počítají do „offline“,
+   * ale je to jiná situace než vyprchavší signál — proto se počítají zvlášť, aby
+   * se o nich dalo říct, že o nich nic nevíme, místo abychom tvrdili, že mají
+   * signál aktuální.
+   */
+  missingSignals: number;
 }
 
 /** Hranice je ostrá: signál přesně pět minut starý už jako aktuální nebereme. */
@@ -56,11 +63,13 @@ export function buildLiveOpsSummary(
   const presenceByOperator = new Map(presence.map((entry) => [entry.operatorId, entry]));
   const counts: LiveOpsCounts = { available: 0, inCall: 0, afterCall: 0, break: 0, offline: 0 };
   let staleSignals = 0;
+  let missingSignals = 0;
 
   for (const operator of operators) {
     const entry = presenceByOperator.get(operator.operatorId);
     const fresh = entry ? isPresenceSignalFresh(entry.lastHeartbeatAt, now) : false;
-    if (entry && !fresh) staleSignals += 1;
+    if (!entry) missingSignals += 1;
+    else if (!fresh) staleSignals += 1;
 
     const state: LiveOpsPresenceState = entry && fresh ? entry.state : "offline";
     switch (state) {
@@ -81,5 +90,5 @@ export function buildLiveOpsSummary(
     }
   }
 
-  return { total: operators.length, counts, staleSignals };
+  return { total: operators.length, counts, staleSignals, missingSignals };
 }

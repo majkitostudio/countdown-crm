@@ -3,6 +3,7 @@ import "server-only";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
 import {
   buildTeamWorkspaceOperatorMetrics,
+  filterAttributedCalls,
   groupByOperator,
   RECENT_ITEMS_PER_OPERATOR_LIMIT,
   splitCallbacksByDue,
@@ -354,6 +355,18 @@ export async function loadTeamWorkspaceCheckpoint(
 
   const { overdue, upcoming } = splitCallbackSummaries([...overdueCallbacks, ...upcomingCallbacks], now);
 
+  // Žebříček důvodů neúspěchu stavíme ze stejné množiny, jakou počítá sloupec
+  // „Neúspěšné hovory“ (jen hovory přiřaditelné operátorovi v rozsahu), aby se
+  // součet v žebříčku rovnal tabulce výše a nepřibyly hovory bez operátora.
+  const failureReasonCalls = filterAttributedCalls(
+    calls.map((call) => ({
+      operatorId: call.agent_id,
+      outcome: call.outcome,
+      failReason: call.fail_reason,
+    })),
+    metricInput.operators,
+  );
+
   return {
     periodKey,
     period,
@@ -362,10 +375,7 @@ export async function loadTeamWorkspaceCheckpoint(
     upcomingCallbacks: upcoming,
     operatorMetrics: buildTeamWorkspaceOperatorMetrics(metricInput),
     recentCallsByOperator: mapRecentCallsByOperator(calls),
-    failureReasons: buildFailureReasonRanking(calls.map((call) => ({
-      outcome: call.outcome,
-      failReason: call.fail_reason,
-    }))),
+    failureReasons: buildFailureReasonRanking(failureReasonCalls),
     sources,
   };
 }

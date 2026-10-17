@@ -244,7 +244,45 @@ describe("TeamPageContent partial source states", () => {
     expect(html).toContain("Provoz na lince teď");
     expect(html).toContain("Volní");
     expect(html).toContain("Offline");
-    expect(html).toContain("Signály všech 2 operátorů v rozsahu jsou aktuální.");
+    // Jeden operátor nemá žádný signál — netvrdíme, že jsou signály aktuální.
+    expect(html).toContain("U 1 z 2 operátorů nemáme žádný signál — počítáme je jako offline.");
+    expect(html).not.toContain("Signály všech 2 operátorů v rozsahu jsou aktuální.");
+  });
+
+  it("does not claim operators are current when their signals are stale", () => {
+    const stale = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+    const html = render({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [operatorMember("operator-1", "Grace Hopper"), operatorMember("operator-2", "Alan Turing")] },
+      presence: {
+        status: "ready",
+        data: [
+          {
+            workspace_id: "workspace-1",
+            operator_id: "operator-1",
+            state: "available",
+            last_heartbeat_at: stale,
+            updated_at: stale,
+          },
+          {
+            workspace_id: "workspace-1",
+            operator_id: "operator-2",
+            state: "available",
+            last_heartbeat_at: stale,
+            updated_at: stale,
+          },
+        ],
+      },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("U 2 z 2 operátorů je signál starší než 5 minut — počítáme je jako offline.");
+    expect(html).not.toContain("jsou aktuální");
   });
 
   it("does not present live operator counts when the presence source is unavailable", () => {
@@ -278,6 +316,25 @@ describe("TeamPageContent partial source states", () => {
     expect(html).toContain("Stárnutí fronty");
     expect(html).toContain("3+ dny");
     expect(html).toContain("Čeká celkem 1 lead");
+  });
+
+  it("separates leads that are not on time yet from the ones really waiting", () => {
+    const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const html = render({
+      queue: { status: "ready", data: [{ ...queueItem, state: "available", available_at: future }] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Čeká celkem 1 lead");
+    expect(html).toContain("1 ještě není na čase (naplánované nebo s nečitelným časem)");
+    expect(html).toContain("Nic není na čase.");
   });
 
   it("does not present queue aging when the queue source is unavailable", () => {

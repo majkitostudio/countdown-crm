@@ -134,12 +134,31 @@ function isSaleStatus(status: TeamWorkspaceOrder["status"]): boolean {
 
 /**
  * Konverze = prodeje / vytočené hovory. Do jmenovatele patří i nezvednuté
- * hovory — stejná definice jako v analytice, denním souhrnu a na dashboardu
- * („orders / calls“), aby stejné slovo neznamenalo na dvou obrazovkách dvě
- * různá čísla.
+ * hovory, aby stejné slovo neznamenalo na dvou obrazovkách něco jiného.
+ *
+ * Pozor: čitatel je „prodeje“ v tomto checkpointu (`SALES_ORDER_STATUSES`,
+ * tedy i objednávka zadaná/odeslaná/doručená) a je širší než v reportu, kde se
+ * jako prodej bere jen `status = 'completed'`. Checkpoint je proto v čitateli
+ * mírně víc „vstřícný“ — je to vědomý otevřený bod (sjednotit definici prodeje
+ * napříč obrazovkami), ne náhoda. Než se sjednotí, je to takto schválně, aby si
+ * vedoucí mohl číslo ověřit proti sloupci „Prodeje“ přímo na této obrazovce.
  */
 function conversionPercent(sales: number, dialedCalls: number): number | null {
   return dialedCalls > 0 ? roundPercent((sales / dialedCalls) * 100) : null;
+}
+
+/**
+ * Ponechá jen hovory, které jdou přiřadit operátorovi v rozsahu. Stejnou množinu
+ * počítá sloupec „Neúspěšné hovory“ v tabulce operátorů — díky tomu se součet
+ * v žebříčku důvodů neúspěchu rovná tomu, co má vedoucí v tabulce výše, místo
+ * aby tam přibyly hovory bez operátora (které se nedají nikomu připsat).
+ */
+export function filterAttributedCalls<T extends { operatorId: string | null }>(
+  calls: T[],
+  operators: TeamWorkspaceOperator[],
+): T[] {
+  const allowed = new Set(operators.map((operator) => operator.id));
+  return calls.filter((call) => call.operatorId !== null && allowed.has(call.operatorId));
 }
 
 export function buildTeamWorkspaceOperatorMetrics(input: {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildTeamWorkspaceOperatorMetrics } from "@/lib/teamWorkspaceMetrics";
+import { buildTeamWorkspaceOperatorMetrics, filterAttributedCalls } from "@/lib/teamWorkspaceMetrics";
+import { buildFailureReasonRanking } from "@/lib/failureReasonRanking";
 
 const period = {
   from: "2026-09-16T00:00:00.000Z",
@@ -113,5 +114,43 @@ describe("Team Workspace operator metrics", () => {
     expect(metrics.talkTimeSeconds).toBe(1800);
     expect(metrics.shiftSeconds).toBe(86400);
     expect(metrics.talkTimePercent).toBe(2.1);
+  });
+});
+
+describe("filterAttributedCalls", () => {
+  it("keeps only calls that belong to an operator in scope", () => {
+    const calls = [
+      { operatorId: "operator-1", outcome: "objection" },
+      { operatorId: null, outcome: "objection" },
+      { operatorId: "operator-outside", outcome: "objection" },
+    ];
+
+    const filtered = filterAttributedCalls(calls, operators);
+
+    expect(filtered.map((call) => call.operatorId)).toEqual(["operator-1"]);
+  });
+
+  it("makes the failure-reason ranking add up to the per-operator failed calls", () => {
+    const calls = [
+      { id: "attributed", operatorId: "operator-1", occurredAt: "2026-09-16T08:00:00.000Z", outcome: "objection" as const },
+      { id: "unattributed", operatorId: null, occurredAt: "2026-09-16T08:30:00.000Z", outcome: "objection" as const },
+    ];
+
+    const [metrics] = buildTeamWorkspaceOperatorMetrics({
+      operators,
+      calls,
+      orders: [],
+      activities: [],
+      shifts: [],
+      period,
+    });
+    const ranking = buildFailureReasonRanking(
+      filterAttributedCalls(calls, operators).map((call) => ({ outcome: call.outcome, failReason: null })),
+    );
+
+    // Součet v žebříčku se rovná sloupci „Neúspěšné hovory" — hovor bez
+    // operátora se do žebříčku nedostane, protože se nedá nikomu připsat.
+    expect(metrics.fails).toBe(1);
+    expect(ranking.total).toBe(metrics.fails);
   });
 });

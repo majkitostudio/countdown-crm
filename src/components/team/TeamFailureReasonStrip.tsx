@@ -44,7 +44,7 @@ export function TeamFailureReasonStrip({ ranking, periodLabel }: TeamFailureReas
       ) : (
         <div className="space-y-3">
           {ranking.reasons.map((reason) => (
-            <div key={reason.label} className="space-y-1.5">
+            <div key={reason.reason ?? "__unrecorded__"} className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs font-medium text-zinc-300">{reason.label}</span>
                 <span className="text-[11px] text-zinc-500">

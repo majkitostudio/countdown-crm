@@ -3,7 +3,7 @@
 import { Activity, ArrowRight } from "lucide-react";
 import type { WorkspaceMemberDTO } from "@/lib/dal/memberships";
 import type { OperatorPresenceDTO } from "@/lib/dal/operatorPresence";
-import { buildLiveOpsSummary, type LiveOpsCounts } from "@/lib/liveOpsSummary";
+import { buildLiveOpsSummary, type LiveOpsCounts, type LiveOpsSummary } from "@/lib/liveOpsSummary";
 import { getMetricValueClassName } from "@/components/ui/MetricCard";
 import { StatusAlert, type SemanticTone } from "@/components/ui/Status";
 
@@ -21,6 +21,27 @@ const STATE_CARDS: Array<{ key: keyof LiveOpsCounts; label: string; hint: string
   { key: "break", label: "Pauza", hint: "Přestávka", tone: "warning" },
   { key: "offline", label: "Offline", hint: "Bez signálu / odhlášen", tone: "neutral" },
 ];
+
+/**
+ * Jedna poctivá věta o stavu signálů. Rozlišuje tři situace: vyprchavší signál
+ * (záznam existuje, ale je starší než pět minut) a chybějící signál (operátor
+ * žádný záznam nemá) — o obou se mlčí jen tehdy, když opravdu žádný problém
+ * není. Nikdy netvrdíme, že jsou signály aktuální, když o některých nic nevíme.
+ */
+function presenceNote(summary: LiveOpsSummary): string {
+  if (summary.total === 0) return "V tomto rozsahu nejsou žádní operátoři.";
+  const { staleSignals, missingSignals, total } = summary;
+  if (staleSignals > 0 && missingSignals > 0) {
+    return `U ${staleSignals} z ${total} operátorů je signál starší než 5 minut a u ${missingSignals} z ${total} nemáme žádný signál — počítáme je jako offline.`;
+  }
+  if (staleSignals > 0) {
+    return `U ${staleSignals} z ${total} operátorů je signál starší než 5 minut — počítáme je jako offline.`;
+  }
+  if (missingSignals > 0) {
+    return `U ${missingSignals} z ${total} operátorů nemáme žádný signál — počítáme je jako offline.`;
+  }
+  return `Signály všech ${total} operátorů v rozsahu jsou aktuální.`;
+}
 
 /**
  * Provoz na lince — odpovídá na otázku „kdo právě teď může vzít hovor".
@@ -88,11 +109,7 @@ export function TeamLiveOpsStrip({ operators, presence, onOpenOperators }: TeamL
       </div>
 
       <p className="mt-3 text-[11px] text-zinc-500">
-        {summary.total === 0
-          ? "V tomto rozsahu nejsou žádní operátoři."
-          : summary.staleSignals > 0
-            ? `U ${summary.staleSignals} z ${summary.total} operátorů je signál starší než 5 minut — počítáme je jako offline.`
-            : `Signály všech ${summary.total} operátorů v rozsahu jsou aktuální.`}
+        {presenceNote(summary)}
       </p>
     </section>
   );

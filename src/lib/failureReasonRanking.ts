@@ -2,8 +2,11 @@
  * Žebříček důvodů neúspěchu — na co má Team Leader školit tým.
  *
  * Čistá funkce nad hovory v už zúženém období a týmovém rozsahu. Bere jen
- * hovory s výsledkem `objection` (stejná množina jako sloupec „Neúspěšné
- * hovory“), aby součet v žebříčku odpovídal číslu, které má TL v tabulce výše.
+ * hovory s výsledkem `objection`. Volající sem posílá stejnou množinu, ze které
+ * se počítá sloupec „Neúspěšné hovory“ — tedy jen hovory přiřaditelné
+ * operátorovi v rozsahu (viz `filterAttributedCalls`) — takže součet v žebříčku
+ * odpovídá číslu, které má TL v tabulce výše. Sama funkce rozsah nezná a jen
+ * věrně spočítá, co dostane.
  *
  * Neznámý nebo nezapsaný důvod se nedomýšlí: neznámý text se zobrazí tak, jak
  * přišel, a chybějící důvod má vlastní řádek „Neuvedeno“ (ukazuje na chybějící

@@ -27,9 +27,10 @@ describe("buildLiveOpsSummary", () => {
     expect(summary.total).toBe(5);
     expect(summary.counts).toEqual({ available: 1, inCall: 1, afterCall: 1, break: 1, offline: 1 });
     expect(summary.staleSignals).toBe(0);
+    expect(summary.missingSignals).toBe(0);
   });
 
-  it("counts an operator without any signal row as offline", () => {
+  it("counts an operator without any signal row as offline and reports it as missing", () => {
     const summary = buildLiveOpsSummary(
       ["op-1", "op-2"].map(operator),
       [{ operatorId: "op-1", state: "available", lastHeartbeatAt: fresh }],
@@ -39,8 +40,10 @@ describe("buildLiveOpsSummary", () => {
     expect(summary.total).toBe(2);
     expect(summary.counts.available).toBe(1);
     expect(summary.counts.offline).toBe(1);
-    // Chybějící záznam není „vyprchavší signál" — o offline mlčíme.
+    // Chybějící záznam není „vyprchavší signál" — počítá se zvlášť, aby o něm
+    // šlo říct, že o něm nic nevíme (a netvrdili jsme, že má aktuální signál).
     expect(summary.staleSignals).toBe(0);
+    expect(summary.missingSignals).toBe(1);
   });
 
   it("treats a stale signal as offline and reports it separately", () => {
@@ -56,6 +59,7 @@ describe("buildLiveOpsSummary", () => {
     expect(summary.counts.available).toBe(1);
     expect(summary.counts.offline).toBe(1);
     expect(summary.staleSignals).toBe(1);
+    expect(summary.missingSignals).toBe(0);
   });
 
   it("ignores presence rows for operators outside the scope", () => {
@@ -79,6 +83,7 @@ describe("buildLiveOpsSummary", () => {
       total: 0,
       counts: { available: 0, inCall: 0, afterCall: 0, break: 0, offline: 0 },
       staleSignals: 0,
+      missingSignals: 0,
     });
   });
 });
