@@ -32,5 +32,5 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 
 **Známé body, které nejsou rozbité, jen odložené:**
 - Oddělení (departments P1–P4) jsou dnes modelovaná přes týmy; vyčlenění na samostatnou entitu je vědomě odloženo.
-- **Migrační token vyprší 24. 10. 2026** — do té doby obnovit, jinak přestane fungovat `db push` i `verify:parity --linked` (a nasazování migrací).
+- **Migrační token má omezenou platnost** (podle evidence vyprší kolem **24. 10. 2026**) — obnovit včas, jinak se přestane nasazovat, aniž by to kdokoli poznal (a přestane fungovat `db push` i `verify:parity --linked`). Expirace tokenu v UI není vidět, proto paritu občas ověřit (postup: [REMOTE_DB_MIGRATIONS.md](REMOTE_DB_MIGRATIONS.md)).
 - Vzdálená migration parity byla obnovena (17. 10. 2026) — šlo o vypršený migrační token a přečíslované migrace, ne o vadu platformy. Pro `db push` i `verify:parity --linked` je potřeba token s právem zápisu (`database_write`).
