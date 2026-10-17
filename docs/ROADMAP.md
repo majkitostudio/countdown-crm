@@ -190,17 +190,22 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 - **Pruh „Rizika a prodlevy“** se souhrnnými kartami (hovor bez výsledku, naplánovaný hovor po termínu, propadlé přiřazení, zásilka na výdejně — riziko / alarm). Počítá se stejnými pravidly jako Exception Queue. Soubory: `src/lib/teamRiskSummary.ts`, `src/lib/dal/teamRiskSummary.ts`, `src/components/team/TeamRiskSummaryStrip.tsx`.
 - **Graf Call Activity** na `/reports`: napojen na reálná data z tabulky `calls` (objem hovorů po dnech za posledních 7 dní + hodinová aktivita). Statický `CallActivityChart` byl napojen na data (nezměněn na komponentní úrovni). Soubory: `src/lib/callActivity.ts`, `src/components/dashboard/CallActivityChart.tsx`, `src/components/analytics/AnalyticsPanel.tsx`.
 - **Důvod „proč je lead v oddělení“** v tabulce Queues (sloupec `Důvod`): námitka (recyklace na další den), vrácený balíček (Re-ship), balíček na výdejně, retence po doručení. Čte se z `lead_queue_items.last_outcome`, který zapisují SQL směrovací funkce, takže **není potřeba nová migrace**. Neznámý/nezaznamenaný důvod se zobrazí jako „—“, nic se nedomýšlí. Soubory: `src/lib/queueReason.ts`, `src/components/team/TeamDepartmentQueuesPanel.tsx`.
+- **Čtyři provozní metriky pro denní checkpoint** (kroky 1–4, vše bez migrace). Všechny se vykreslují nad daty, která už na `/team` jsou, a bez dat nic nepředstírají (prázdno = hláška / „—“, ne falešná nula):
+  - **Konverze** — objednávky / vytáčené hovory (počítáno jednotně s ostatním CRM). `src/lib/teamWorkspaceMetrics.ts`.
+  - **Provoz na lince teď** — kolik operátorů je volných / v hovoru / po hovoru / na pauze / offline. Signál starší 5 minut nebo chybějící se počítá jako offline a panel přizná, u kolika operátorů je signál zastaralý. `src/lib/liveOpsSummary.ts`, `src/components/team/TeamLiveOpsStrip.tsx`.
+  - **Stárnutí fronty** — kolik leadů čeká do 24 h / 1–3 dny / 3+ dny, jak dlouho čeká nejstarší a kolik jich je odloženo na později (`available_at` v budoucnosti). „Čeká“ je stejná množina jako u souhrnu front oddělení, takže na obrazovce nejsou dvě čísla pro totéž. `src/lib/queueAging.ts`, `src/components/team/TeamQueueAgingStrip.tsx`.
+  - **Důvody neúspěchu** — žebříček důvodů z hovorů s výsledkem „námitka“ za zvolené období, včetně vlastního řádku „Neuvedeno“ pro hovory bez zaznamenaného důvodu. `src/lib/failureReasonRanking.ts`, `src/components/team/TeamFailureReasonStrip.tsx`.
 
 **Kroky:**
 - Kolik případů je v kterém oddělení, kolik v riziku a prodlevě. ✅ hotovo.
 - Co je v P4 a proč. ✅ hotovo — počty + seznam + sloupec `Důvod` s důvodem zařazení (námitka / vratka / balíček na výdejně / retence).
-- Jednoduché provozní metriky pro TL. ⏳ zbývá doplnit (např. další praktické metriky pro denní rozhodování).
+- Jednoduché provozní metriky pro TL. ✅ hotovo — konverze, provoz na lince teď, stárnutí fronty a důvody neúspěchu (kroky 1–4 výše).
 
 **Poznámka k důvodu zařazení:** `last_outcome` je „poslední zaznamenaný výsledek“, ne úplná historie. Pro leady, kde poslední hovor skončil jinak než přesunem do oddělení, se zobrazí „—“. Konkrétní námitka (cena, nedůvěra, …) je k dispozici v `lead_queue_events.metadata.fail_reason`; doplnění tohoto detailu je možné jako samostatný navazující krok bez migrace.
 
-**Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled.
+**Ověření:** vedoucí podle přehledu rozhodne, kam přesunout práci; fronty a rizika jsou vidět na první pohled. Nové metriky jsou ověřené jak testy, tak živě v prohlížeči proti skutečným datům sandboxu (čísla porovnaná s databází ve stejném rozsahu týmu).
 
-**Stav:** 🔄 probíhá (základní přehled hotový včetně důvodu „proč je lead v oddělení“; jednoduché provozní metriky pro TL ještě zbývají).
+**Stav:** 🔄 probíhá (základní přehled, rizika, důvod zařazení i jednoduché provozní metriky hotové; zbývá QA/regresní uzávěrka fáze).
 
 ---
 
@@ -229,6 +234,7 @@ Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozši
 - **Produktová karta (editor)** — viz sloučení A v [PHASE_2_STRUCTURE_REVIEW.md](PHASE_2_STRUCTURE_REVIEW.md); nejdřív zmapovat datový model produktu/skriptu.
 - **Schedule — nový koncept osobní agendy** — viz část 7 tamtéž.
 - **Skutečný kontrakt příjmu leadů (API/webhook)** — ověření, deduplikace a zdroj; trigger z Fáze 5.1c řeší jen zařazení do fronty, ne příjem samotný.
+- **Nesoulad povolených důvodů neúspěchu mezi UI a databází** (nalezeno 17. 10. 2026 při ověřování metrik) — UI nabízí i `unsuccessful_sale` a `invalid_lead` (`FAIL_REASON_OPTIONS` v `src/lib/postCall.ts`, typ v `src/lib/supabase/types.ts`), ale DB constraint `calls_fail_reason_check` povoluje jen `price, distrust, alternative_solution, health_concern, no_interest, needs_time, other`. Reálný operátor by u těchto dvou voleb dostal chybu a hovor by se neuložil. Constraint pochází z migrace `20260904104023_post_call_fail_details.sql` a novější `20261007150000_recycling_rules_30m_24h.sql` už hodnotu `unsuccessful_sale` používá ve funkci. Oprava = nová migrace, která constraint rozšíří (čeká na zadání PM).
 - **Oddělení (departments) jako samostatná entita** — dnes vedená přes týmy; zvážit vyčlenění (ve Fázi 5 vědomě odloženo).
 - **Sjednocení terminologie (callback vs. scheduled call)** — **texty v UI hotové** (16. 10. 2026): popisky, nadpisy, hlášky i chybové texty, které se propisují do UI, už používají „Schedules“ / „naplánované hovory“. **Zbývá kód a data** — stav `waiting_callback`, sloupec `callback_scheduled_at`, `callbackAttention.ts`, action id `schedule_callback`, test id a interní názvy. Dotýká se migrací, proto samostatný úkol (viz AGENTS.md, pravidlo 7).
 - **Vzdálená migration parity** — ✅ **obnoveno (17. 10. 2026):** vzdálený sandbox má nyní 132 souborů = 132 aplikovaných verzí (`verify:parity --linked` = `MIGRATION PARITY OK`). Příčina driftu: migrační access token vypršel 19. 9. 2026 (od té doby se nenasazovalo) a 12 migrací z 14.–16. 9. bylo v DB zapsaných pod přečíslovanými verzemi. Náprava: `supabase migration repair` (přečíslované → aplikováno, osiřelé záznamy → odstraněny) + `supabase db push` (15 chybějících migrací). **Pozor:** `db push` i `verify:parity --linked` potřebují token s právem zápisu (`database_write`); scoped read-only token na to nestačí. Postup je v [REMOTE_DB_MIGRATIONS.md](REMOTE_DB_MIGRATIONS.md).
@@ -250,7 +256,7 @@ na `/admin/ownership` a karta v Managementu nese počítadlo „bez přiřazení
 uzavřela vstup leadů do fronty: každý nový lead se zařadí automaticky triggerem, tým převezme
 z leadu a už zavřený lead jde do fronty jako `closed`.
 
-**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Základní bloky jsou hotové (souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`, důvod „proč je lead v oddělení“ v Queues); zbývá hlavně doplnit další jednoduché provozní metriky pro TL.
+**Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Hotové bloky: souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`, důvod „proč je lead v oddělení“ v Queues a **čtyři provozní metriky pro denní checkpoint** (konverze, provoz na lince teď, stárnutí fronty, důvody neúspěchu). Zbývá QA/regresní uzávěrka fáze. Otevřený nález mimo dosah metrik: nesoulad povolených důvodů neúspěchu mezi UI a DB constraintem (viz „Odložené a budoucí“).
 
 **Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16. 10. 2026: **propojení AI do systému**, **systém směn**, a další) — viz část „Odložené a budoucí“ výše.
 
