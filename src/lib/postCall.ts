@@ -1,8 +1,27 @@
+/**
+ * Typy (důvody) neúspěchu a jejich rozdělení na ovlivnitelné a neovlivnitelné
+ * operátorem.
+ *
+ * Rozdělení není kosmetické: ovlivnitelné typy se zkoušejí znovu (recyklace do
+ * P4) a operátor u nich musí napsat, co se stalo. Neovlivnitelné typy lead
+ * uzavírají a poznámku nevyžadují. Stejné rozdělení používají přehledy pro
+ * vedoucího.
+ *
+ * Kódy zůstávají stabilní (`unsuccessful_sale`, `no_interest`, …) — mění se jen
+ * popisky v UI. Staré hodnoty (`price`, `distrust`, `needs_time`,
+ * `alternative_solution`) se v konzoli už nenabízejí, ale zůstávají platné kvůli
+ * historii.
+ */
+
+export type FailReasonGroup = "influenceable" | "not_influenceable";
+
 export const FAIL_REASON_OPTIONS = [
-  { value: "no_interest", label: "Bez zájmu (ukončeno)" },
-  { value: "unsuccessful_sale", label: "Neúspěch (ukončeno bez finalizace)" },
-  { value: "invalid_lead", label: "Invalidní přihláška (nesprávné údaje)" },
-  { value: "health_concern", label: "Zdravotní důvody (alergie, intolerance)" },
+  { value: "unsuccessful_sale", label: "Neuzavřený obchod", group: "influenceable" },
+  { value: "other", label: "Jiný důvod (vlastní popis)", group: "influenceable" },
+  { value: "no_interest", label: "Bez zájmu (ukončeno)", group: "not_influenceable" },
+  { value: "invalid_lead", label: "Invalidní přihláška (nesprávné údaje)", group: "not_influenceable" },
+  { value: "health_concern", label: "Zdravotní důvody (alergie, intolerance)", group: "not_influenceable" },
+  { value: "duplicate", label: "Duplikát", group: "not_influenceable" },
 ] as const;
 
 const LEGACY_FAIL_REASONS = new Set([
@@ -12,6 +31,29 @@ const LEGACY_FAIL_REASONS = new Set([
   "needs_time",
   "other",
 ]);
+
+/** Ovlivnitelné operátorem: zkoušejí se znovu a vyžadují poznámku. */
+const INFLUENCEABLE_FAIL_REASONS: ReadonlySet<string> = new Set([
+  "unsuccessful_sale",
+  "other",
+  "needs_time",
+  "price",
+  "distrust",
+  "alternative_solution",
+]);
+
+/** Neovlivnitelné operátorem: lead se uzavírá, další pokus nemá smysl. */
+const NOT_INFLUENCEABLE_FAIL_REASONS: ReadonlySet<string> = new Set([
+  "no_interest",
+  "invalid_lead",
+  "health_concern",
+  "duplicate",
+]);
+
+export const FAIL_REASON_GROUP_LABELS: Record<FailReasonGroup, string> = {
+  influenceable: "Ovlivnitelné operátorem",
+  not_influenceable: "Neovlivnitelné operátorem",
+};
 
 export type FailReason =
   | (typeof FAIL_REASON_OPTIONS)[number]["value"]
@@ -33,21 +75,22 @@ export function isFailReason(value: unknown): value is FailReason {
   );
 }
 
+/** Skupina podle ovlivnitelnosti; `null` pro neznámý nebo nezaznamenaný typ. */
+export function getFailReasonGroup(reason: string | null | undefined): FailReasonGroup | null {
+  if (typeof reason !== "string") return null;
+  if (INFLUENCEABLE_FAIL_REASONS.has(reason)) return "influenceable";
+  if (NOT_INFLUENCEABLE_FAIL_REASONS.has(reason)) return "not_influenceable";
+  return null;
+}
+
 export function getFailReasonLabel(reason: FailReason): string {
   const match = FAIL_REASON_OPTIONS.find((option) => option.value === reason);
   if (match) return match.label;
   return getFailReasonCzechLabel(reason);
 }
 
-const NOTE_REQUIRED_FAIL_REASONS: ReadonlySet<FailReason> = new Set([
-  "unsuccessful_sale",
-  "price",
-  "distrust",
-  "other",
-]);
-
 export function isNoteRequiredForFailReason(reason: unknown): boolean {
-  return typeof reason === "string" && NOTE_REQUIRED_FAIL_REASONS.has(reason as FailReason);
+  return typeof reason === "string" && INFLUENCEABLE_FAIL_REASONS.has(reason);
 }
 
 export function validateFailDetails(details: { failReason: unknown; note: string }): string | null {
@@ -68,17 +111,8 @@ export function validateCallFailFields(details: { outcome: string; failReason: u
   return null;
 }
 
-const RECYCLABLE_FAIL_REASONS: ReadonlySet<FailReason> = new Set([
-  "unsuccessful_sale",
-  "needs_time",
-  "price",
-  "distrust",
-  "alternative_solution",
-  "other",
-]);
-
 export function isFailReasonRecyclable(reason: unknown): boolean {
-  return typeof reason === "string" && RECYCLABLE_FAIL_REASONS.has(reason as FailReason);
+  return typeof reason === "string" && INFLUENCEABLE_FAIL_REASONS.has(reason);
 }
 
 export function getFailReasonCooldownDays(reason: FailReason): number {
@@ -91,13 +125,15 @@ export function getFailReasonCooldownDays(reason: FailReason): number {
 export function getFailReasonCzechLabel(reason: FailReason): string {
   switch (reason) {
     case "unsuccessful_sale":
-      return "Neúspěšný prodej";
+      return "Neuzavřený obchod";
     case "no_interest":
       return "Bez zájmu";
     case "invalid_lead":
       return "Invalidní přihláška";
     case "health_concern":
       return "Zdravotní důvody";
+    case "duplicate":
+      return "Duplikát";
     case "needs_time":
       return "Rozmyšlená";
     case "price":

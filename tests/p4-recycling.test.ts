@@ -19,6 +19,7 @@ describe("P4 fail recycling taxonomy and cooldown", () => {
     expect(isFailReasonRecyclable("health_concern")).toBe(false);
     expect(isFailReasonRecyclable("no_interest")).toBe(false);
     expect(isFailReasonRecyclable("invalid_lead")).toBe(false);
+    expect(isFailReasonRecyclable("duplicate")).toBe(false);
     expect(isFailReasonRecyclable("unknown")).toBe(false);
     expect(isFailReasonRecyclable(null)).toBe(false);
   });
@@ -33,10 +34,12 @@ describe("P4 fail recycling taxonomy and cooldown", () => {
   });
 
   it("provides operator-friendly Czech labels for call context", () => {
-    expect(getFailReasonCzechLabel("unsuccessful_sale")).toBe("Neúspěšný prodej");
+    expect(getFailReasonCzechLabel("unsuccessful_sale")).toBe("Neuzavřený obchod");
     expect(getFailReasonCzechLabel("no_interest")).toBe("Bez zájmu");
     expect(getFailReasonCzechLabel("invalid_lead")).toBe("Invalidní přihláška");
     expect(getFailReasonCzechLabel("health_concern")).toBe("Zdravotní důvody");
+    expect(getFailReasonCzechLabel("duplicate")).toBe("Duplikát");
+    expect(getFailReasonCzechLabel("other")).toBe("Jiný důvod");
     expect(getFailReasonCzechLabel("needs_time")).toBe("Rozmyšlená");
     expect(getFailReasonCzechLabel("price")).toBe("Cena");
     expect(getFailReasonCzechLabel("distrust")).toBe("Nedůvěra");

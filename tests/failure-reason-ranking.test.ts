@@ -12,10 +12,13 @@ describe("buildFailureReasonRanking", () => {
     ]);
 
     expect(ranking.total).toBe(4);
-    expect(ranking.reasons[0]).toMatchObject({ reason: "no_interest", count: 2 });
-    // Stejný počet rozhoduje české abecední pořadí popisků: Cena < Neúspěch.
-    expect(ranking.reasons[1]).toMatchObject({ reason: "price", count: 1 });
-    expect(ranking.reasons[2]).toMatchObject({ reason: "unsuccessful_sale", count: 1 });
+    expect(ranking.reasons[0]).toMatchObject({ reason: "no_interest", count: 2, group: "not_influenceable" });
+    // Stejný počet rozhoduje české abecední pořadí popisků: Cena < Neuzavřený obchod.
+    expect(ranking.reasons[1]).toMatchObject({ reason: "price", count: 1, group: "influenceable" });
+    expect(ranking.reasons[2]).toMatchObject({ reason: "unsuccessful_sale", count: 1, group: "influenceable" });
+    expect(ranking.influenceableTotal).toBe(2);
+    expect(ranking.notInfluenceableTotal).toBe(2);
+    expect(ranking.influenceablePercent).toBe(50);
   });
 
   it("resolves Czech labels for known reasons and preserves unknown text", () => {
@@ -53,6 +56,12 @@ describe("buildFailureReasonRanking", () => {
     expect(withData.reasons[1].percent).toBe(50);
 
     const empty = buildFailureReasonRanking([{ outcome: "order_placed", failReason: "no_interest" }]);
-    expect(empty).toEqual({ total: 0, reasons: [] });
+    expect(empty).toEqual({
+      total: 0,
+      reasons: [],
+      influenceableTotal: 0,
+      notInfluenceableTotal: 0,
+      influenceablePercent: 0,
+    });
   });
 });

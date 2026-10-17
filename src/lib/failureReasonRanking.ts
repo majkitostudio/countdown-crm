@@ -8,12 +8,13 @@
  * odpovídá číslu, které má TL v tabulce výše. Sama funkce rozsah nezná a jen
  * věrně spočítá, co dostane.
  *
- * Neznámý nebo nezapsaný důvod se nedomýšlí: neznámý text se zobrazí tak, jak
- * přišel, a chybějící důvod má vlastní řádek „Neuvedeno“ (ukazuje na chybějící
- * data, ne na vymyšlený důvod).
+ * Každý řádek nese ovlivnitelnost typu (`getFailReasonGroup`), aby vedoucí viděl,
+ * kolik neúspěchů operátor mohl ovlivnit a kolik ne. Neznámý nebo nezapsaný
+ * důvod se nedomýšlí: neznámý text se zobrazí tak, jak přišel, chybějící důvod má
+ * vlastní řádek „Neuvedeno“ a oba mají ovlivnitelnost `null` („neurčeno“).
  */
 
-import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
+import { getFailReasonGroup, getFailReasonLabel, isFailReason, type FailReasonGroup } from "@/lib/postCall";
 
 /** Popisek pro hovor bez zapsaného důvodu neúspěchu. */
 export const FAILURE_REASON_UNRECORDED_LABEL = "Neuvedeno";
@@ -31,6 +32,8 @@ export interface FailureReasonCount {
   count: number;
   /** Podíl z všech neúspěšných hovorů v období, zaokrouhleno na jedno desetinné místo. */
   percent: number;
+  /** Ovlivnitelnost typu operátorem; `null` pro neznámý nebo nezaznamenaný důvod. */
+  group: FailReasonGroup | null;
 }
 
 export interface FailureReasonRanking {
@@ -38,6 +41,12 @@ export interface FailureReasonRanking {
   total: number;
   /** Jen důvody, které se skutečně vyskytly; seřazené od nejčastějšího. */
   reasons: FailureReasonCount[];
+  /** Kolik neúspěchů měl operátor možnost ovlivnit. */
+  influenceableTotal: number;
+  /** Kolik neúspěchů operátor ovlivnit nemohl. */
+  notInfluenceableTotal: number;
+  /** Podíl ovlivnitelných z celku, zaokrouhleno na jedno desetinné místo. */
+  influenceablePercent: number;
 }
 
 function roundPercent(value: number): number {
@@ -67,14 +76,29 @@ export function buildFailureReasonRanking(
     counts.set(reason, (counts.get(reason) ?? 0) + 1);
   }
 
+  let influenceableTotal = 0;
+  let notInfluenceableTotal = 0;
+
   const reasons = [...counts.entries()]
-    .map(([reason, count]) => ({
-      reason,
-      label: labelFor(reason),
-      count,
-      percent: total > 0 ? roundPercent((count / total) * 100) : 0,
-    }))
+    .map(([reason, count]) => {
+      const group = getFailReasonGroup(reason);
+      if (group === "influenceable") influenceableTotal += count;
+      if (group === "not_influenceable") notInfluenceableTotal += count;
+      return {
+        reason,
+        label: labelFor(reason),
+        count,
+        percent: total > 0 ? roundPercent((count / total) * 100) : 0,
+        group,
+      };
+    })
     .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, "cs"));
 
-  return { total, reasons };
+  return {
+    total,
+    reasons,
+    influenceableTotal,
+    notInfluenceableTotal,
+    influenceablePercent: total > 0 ? roundPercent((influenceableTotal / total) * 100) : 0,
+  };
 }

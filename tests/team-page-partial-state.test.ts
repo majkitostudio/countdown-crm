@@ -373,9 +373,12 @@ describe("TeamPageContent partial source states", () => {
           failureReasons: {
             total: 3,
             reasons: [
-              { reason: "no_interest", label: "Bez zájmu (ukončeno)", count: 2, percent: 66.7 },
-              { reason: "price", label: "Cena", count: 1, percent: 33.3 },
+              { reason: "no_interest", label: "Bez zájmu (ukončeno)", count: 2, percent: 66.7, group: "not_influenceable" },
+              { reason: "price", label: "Cena", count: 1, percent: 33.3, group: "influenceable" },
             ],
+            influenceableTotal: 1,
+            notInfluenceableTotal: 2,
+            influenceablePercent: 33.3,
           },
           sources: {
             orders: { state: "ready" },
@@ -412,7 +415,7 @@ describe("TeamPageContent partial source states", () => {
           upcomingCallbacks: [],
           operatorMetrics: [],
           recentCallsByOperator: {},
-          failureReasons: { total: 0, reasons: [] },
+          failureReasons: { total: 0, reasons: [], influenceableTotal: 0, notInfluenceableTotal: 0, influenceablePercent: 0 },
           sources: {
             orders: { state: "ready" },
             calls: { state: "unavailable", message: "Team calls could not be loaded." },

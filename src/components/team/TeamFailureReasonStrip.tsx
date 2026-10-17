@@ -31,11 +31,24 @@ export function TeamFailureReasonStrip({ ranking, periodLabel }: TeamFailureReas
         <h3 id="failure-reasons-heading" className="text-sm font-semibold text-zinc-100">Důvody neúspěchu</h3>
       </div>
 
-      <p className="text-[11px] text-zinc-500">
-        {ranking.total === 0
-          ? `V ${periodLabel ? `období „${periodLabel.toLowerCase()}“` : "zvoleném období"} tým nemá žádné neúspěšné hovory.`
-          : `Žebříček neúspěchů z ${ranking.total} hovorů v ${periodLabel ? `období „${periodLabel.toLowerCase()}“` : "zvoleném období"}.`}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-500">
+        <p>
+          {ranking.total === 0
+            ? `V ${periodLabel ? `období „${periodLabel.toLowerCase()}“` : "zvoleném období"} tým nemá žádné neúspěšné hovory.`
+            : `Žebříček neúspěchů z ${ranking.total} hovorů v ${periodLabel ? `období „${periodLabel.toLowerCase()}“` : "zvoleném období"}.`}
+        </p>
+        {ranking.total > 0 && (
+          <div className="flex items-center gap-2 text-zinc-400">
+            <span>
+              Ovlivnitelné: <strong className="font-medium text-zinc-200">{ranking.influenceableTotal}</strong> ({ranking.influenceablePercent} %)
+            </span>
+            <span className="text-zinc-700" aria-hidden="true">·</span>
+            <span>
+              Neovlivnitelné: <strong className="font-medium text-zinc-200">{ranking.notInfluenceableTotal}</strong>
+            </span>
+          </div>
+        )}
+      </div>
 
       {ranking.total === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
@@ -46,7 +59,19 @@ export function TeamFailureReasonStrip({ ranking, periodLabel }: TeamFailureReas
           {ranking.reasons.map((reason) => (
             <div key={reason.reason ?? "__unrecorded__"} className="space-y-1.5">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-medium text-zinc-300">{reason.label}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-zinc-300">{reason.label}</span>
+                  {reason.group === "influenceable" && (
+                    <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-normal text-amber-300/90">
+                      ovlivnitelné
+                    </span>
+                  )}
+                  {reason.group === "not_influenceable" && (
+                    <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-[10px] font-normal text-zinc-500">
+                      neovlivnitelné
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] text-zinc-500">
                   {reason.count} · {reason.percent}%
                 </span>
