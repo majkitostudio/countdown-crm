@@ -14,9 +14,7 @@ interface TeamLiveOpsStripProps {
   onOpenOperators?: () => void;
 }
 
-type LiveOpsTone = SemanticTone;
-
-const STATE_CARDS: Array<{ key: keyof LiveOpsCounts; label: string; hint: string; tone: LiveOpsTone }> = [
+const STATE_CARDS: Array<{ key: keyof LiveOpsCounts; label: string; hint: string; tone: SemanticTone }> = [
   { key: "available", label: "Volní", hint: "Může vzít hovor", tone: "success" },
   { key: "inCall", label: "V hovoru", hint: "Právě telefonuje", tone: "info" },
   { key: "afterCall", label: "Po hovoru", hint: "Dopisuje výsledek", tone: "warning" },
@@ -52,7 +50,7 @@ export function TeamLiveOpsStrip({ operators, presence, onOpenOperators }: TeamL
     <section aria-label="Provoz na lince">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <Activity className="h-4 w-4 text-emerald-400" aria-hidden="true" />
+          <Activity className="h-4 w-4 text-zinc-400" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-zinc-100">Provoz na lince teď</h2>
           {summary.total > 0 && summary.counts.available === 0 && (
             <span className="text-[11px] text-zinc-500">Nikdo volný.</span>
