@@ -225,9 +225,10 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 
 Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozšiřovat. **Tento seznam není závazek ani konečný**; další nápady se sem připisují průběžně a konkrétní zadání vždy určuje PM.
 
-**PM pojmenoval jako budoucí směr (16. 10. 2026):**
+**PM pojmenoval jako budoucí směr (16.–17. 10. 2026):**
 - **Propojení AI do systému** — rozšiřovat AI napříč systémem (kontext, trénink, kvalita, pomoc operátorovi i vedoucímu). Drží se hranice z vize: AI pomáhá, ale nenahrazuje pravdu o hovoru, objednávce ani oprávněních.
 - **Systém směn** — plánování a řízení směn (operátoři, vedoucí), návaznost na Team Operations a týmový dohled.
+- **Přizpůsobení Operator Console podle oddělení** (PM, 17. 10. 2026) — každé oddělení dělá jinou práci (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence 21 dní po doručení, P4 poslední záchrana — včerejší faily, vratky, balíčky na výdejně), ale operátor vidí na všech odděleních **stejnou** obrazovku (`src/app/console/page.tsx`). Cílem je, aby konzole vedla operátora k tomu, co je pro jeho oddělení klíčové (hlavní akce a výsledek hovoru, pořadí a důraz panelů, skript a otázky). Oddělení je v datech už rozpoznatelné (`src/lib/department.ts`, `departmentKeyFromTeam`; u aktivního leadu přes `lead_queue_items.team_id`), takže to má být **řízené daty, ne hardcodovanými větvemi po odděleních** (pravidlo 2). Doporučení: jeden konzole + datové profily oddělení, ne čtyři samostatné obrazovky. Než se začne, potvrdit s PM: (a) podle čeho se UI přizpůsobuje — oddělení **operátora**, nebo oddělení **leadu** (u P4 se liší: faily přicházejí z P1/P2), (b) co přesně se mění — hlavní akce a výsledek vs. celé rozložení a podklady, (c) profily vs. samostatné obrazovky.
 
 **Dříve odložené (z Fází 2 a 5):**
 - **Refactor trenažéru (AI Training)** — [TRAINING_REFACTOR.md](TRAINING_REFACTOR.md). Vyňato z Fáze 2, proběhne jako velké samostatné přepracování.
@@ -258,7 +259,7 @@ z leadu a už zavřený lead jde do fronty jako `closed`.
 
 **Další na řadě je Fáze 6 — Team Leader dashboard a reporty** (v běhu). Hotové bloky: souhrn front P1–P4, pruh rizik a prodlev, Call Activity na `/reports`, důvod „proč je lead v oddělení“ v Queues a **čtyři provozní metriky pro denní checkpoint** (konverze, provoz na lince teď, stárnutí fronty, důvody neúspěchu). Zbývá QA/regresní uzávěrka fáze. Otevřený nález mimo dosah metrik: nesoulad povolených důvodů neúspěchu mezi UI a DB constraintem (viz „Odložené a budoucí“).
 
-**Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16. 10. 2026: **propojení AI do systému**, **systém směn**, a další) — viz část „Odložené a budoucí“ výše.
+**Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16.–17. 10. 2026: **propojení AI do systému**, **systém směn**, **přizpůsobení Operator Console podle oddělení**, a další) — viz část „Odložené a budoucí“ výše.
 
 **Terminologie:** **callback** je vázaný na konkrétního operátora; **scheduled call** (`Schedule`, `/schedule`) operátora neurčuje, jen preferuje toho, kdo ho zadal — když není volný, hovor převezme kdokoli. Termín „callback“ se pro naplánované hovory nepoužívá (AGENTS.md, pravidlo 7). **Texty v UI jsou sjednocené (16. 10. 2026)**; kód a data (stav, sloupce, action id) se sjednotí v samostatném úkolu.
 
