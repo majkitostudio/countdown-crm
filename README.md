@@ -40,7 +40,7 @@ npm run build
 | Operator Console | `/console` |
 | Leady a zákazníci | `/leads`, `/leads/[leadId]` |
 | Hovory (log a kontrola kvality) | `/call-logs`, `/call-logs/[callId]/review` |
-| Schedule a callbacky | `/schedule` |
+| Schedule (naplánované hovory a připomínky) | `/schedule` |
 | Produkty a objednávky | `/products`, `/orders` |
 | Tým a výjimky | `/team`, `/team/exceptions`, `/team/reviews` |
 | Reporting a audit | `/reports`, `/audit` |

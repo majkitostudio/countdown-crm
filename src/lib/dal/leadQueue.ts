@@ -74,7 +74,7 @@ export interface QueueItemDTO {
   preferred_operator: { id: string; full_name: string; email: string } | null;
 }
 
-export interface ScheduledCallbackDTO {
+export interface ScheduledCallDTO {
   id: string;
   workspace_id: string;
   lead_id: string;
@@ -83,6 +83,8 @@ export interface ScheduledCallbackDTO {
   lead: { id: string; full_name: string; phone: string; email: string | null };
   preferred_operator: { id: string; full_name: string; email: string } | null;
 }
+
+export type ScheduledCallbackDTO = ScheduledCallDTO;
 
 export interface CompleteLeadCallInput {
   queue_item_id: string;
@@ -97,6 +99,8 @@ export interface CompleteLeadCallInput {
   order_total_amount?: number | null;
   delivery_address_snapshot?: DeliveryAddressSnapshot | null;
   callback_scheduled_at?: string | null;
+  /** Sjednocené pojmenování pro naplánovaný čas hovoru. */
+  scheduled_at?: string | null;
   operator_note?: string | null;
   fail_reason?: FailReason | null;
 }
@@ -130,13 +134,14 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
     throw new DataAccessError("VALIDATION", "Unsupported queue call outcome");
   }
 
-  if (input.callback_scheduled_at != null && typeof input.callback_scheduled_at !== "string") {
+  const scheduledTime = input.scheduled_at !== undefined ? input.scheduled_at : input.callback_scheduled_at;
+  if (scheduledTime != null && typeof scheduledTime !== "string") {
     throw new DataAccessError("VALIDATION", "Scheduled call date and time are invalid");
   }
-  if (input.outcome === "followup_scheduled" && !input.callback_scheduled_at?.trim()) {
+  if (input.outcome === "followup_scheduled" && !scheduledTime?.trim()) {
     throw new DataAccessError("VALIDATION", "Scheduled call date and time are required");
   }
-  if (input.outcome !== "followup_scheduled" && input.callback_scheduled_at) {
+  if (input.outcome !== "followup_scheduled" && scheduledTime) {
     throw new DataAccessError("VALIDATION", "Scheduled call time is only valid for Schedule Call");
   }
 
@@ -325,7 +330,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     call_ai_sentiment: typeof input.ai_sentiment === "string" ? input.ai_sentiment.trim() || "Neutral" : "Neutral",
     order_items: hasOrder ? orderItems : null,
     delivery_address_snapshot: deliveryAddress,
-    callback_scheduled_at: input.callback_scheduled_at || null,
+    callback_scheduled_at: (input.scheduled_at !== undefined ? input.scheduled_at : input.callback_scheduled_at) || null,
     call_note: operatorNote || null,
     call_fail_reason: input.fail_reason && isFailReason(input.fail_reason) ? input.fail_reason : null,
   });
@@ -351,7 +356,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       sentiment: input.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
-      callbackScheduledAt: input.callback_scheduled_at || null,
+      callbackScheduledAt: (input.scheduled_at !== undefined ? input.scheduled_at : input.callback_scheduled_at) || null,
       failReason: input.fail_reason || null,
       operatorNote: operatorNote.trim(),
     },
