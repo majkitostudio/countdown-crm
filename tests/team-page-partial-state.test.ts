@@ -296,6 +296,83 @@ describe("TeamPageContent partial source states", () => {
     expect(html).not.toContain("Čeká celkem");
   });
 
+  it("ranks the failure reasons behind the operator results", () => {
+    const html = render({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: {
+        status: "ready",
+        data: {
+          periodKey: "today",
+          period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
+          orders: [],
+          overdueCallbacks: [],
+          upcomingCallbacks: [],
+          operatorMetrics: [],
+          recentCallsByOperator: {},
+          failureReasons: {
+            total: 3,
+            reasons: [
+              { reason: "no_interest", label: "Bez zájmu (ukončeno)", count: 2, percent: 66.7 },
+              { reason: "price", label: "Cena", count: 1, percent: 33.3 },
+            ],
+          },
+          sources: {
+            orders: { state: "ready" },
+            calls: { state: "ready" },
+            callbacks: { state: "ready" },
+            activities: { state: "ready" },
+            shifts: { state: "unavailable", message: "Shift planning is not implemented yet." },
+          },
+        },
+      },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Důvody neúspěchu");
+    expect(html).toContain("Bez zájmu (ukončeno)");
+    expect(html).toContain("66.7%");
+  });
+
+  it("does not fabricate failure reasons when calls are unavailable", () => {
+    const html = render({
+      queue: { status: "ready", data: [] },
+      operators: { status: "ready", data: [] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: { teams: [], memberships: {} } },
+      members: null,
+      checkpoint: {
+        status: "ready",
+        data: {
+          periodKey: "today",
+          period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
+          orders: [],
+          overdueCallbacks: [],
+          upcomingCallbacks: [],
+          operatorMetrics: [],
+          recentCallsByOperator: {},
+          failureReasons: { total: 0, reasons: [] },
+          sources: {
+            orders: { state: "ready" },
+            calls: { state: "unavailable", message: "Team calls could not be loaded." },
+            callbacks: { state: "ready" },
+            activities: { state: "ready" },
+            shifts: { state: "unavailable", message: "Shift planning is not implemented yet." },
+          },
+        },
+      },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    }, "team_leader", "checkpoint");
+
+    expect(html).toContain("Důvody neúspěchu nejsou dostupné.");
+    expect(html).not.toContain("Neexistují žádné záznamy důvodů neúspěchu.");
+  });
+
   it("renders the four empty department cards when there is no data", () => {
     const html = render({
       queue: { status: "ready", data: [] },

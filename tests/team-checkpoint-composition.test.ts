@@ -7,6 +7,9 @@ const detail = readFileSync("src/components/team/TeamOperatorDetailPanel.tsx", "
 const handover = readFileSync("src/components/team/TeamCheckpointHandoverPanel.tsx", "utf8");
 const content = readFileSync("src/components/team/TeamPageContent.tsx", "utf8");
 const workspaceDal = readFileSync("src/lib/dal/teamWorkspace.ts", "utf8");
+const liveOpsStrip = readFileSync("src/components/team/TeamLiveOpsStrip.tsx", "utf8");
+const queueAgingStrip = readFileSync("src/components/team/TeamQueueAgingStrip.tsx", "utf8");
+const failureReasons = readFileSync("src/components/team/TeamFailureReasonStrip.tsx", "utf8");
 
 describe("team checkpoint composition (approved Macaly layout, app design language)", () => {
   it("keeps the existing assistance contract and adds the 5-minute attention threshold", () => {
@@ -44,13 +47,35 @@ describe("team checkpoint composition (approved Macaly layout, app design langua
   });
 
   it("uses no decorative colors outside the shared semantic tones", () => {
-    for (const source of [assistance, checkpoint, detail, handover]) {
+    for (const source of [assistance, checkpoint, detail, handover, liveOpsStrip, queueAgingStrip, failureReasons]) {
       expect(source).not.toContain("emerald");
       expect(source).not.toContain("text-sky");
       expect(source).not.toContain("bg-sky");
       expect(source).not.toContain("text-rose");
       expect(source).not.toContain("bg-rose");
     }
+  });
+});
+
+describe("team checkpoint operational metrics (live ops, queue aging, failure reasons)", () => {
+  it("shows live operator counts on the checkpoint", () => {
+    expect(content).toContain("TeamLiveOpsStrip");
+    expect(liveOpsStrip).toContain("Provoz na lince teď");
+    expect(liveOpsStrip).toContain("Provoz na lince není dostupný.");
+  });
+
+  it("shows queue aging on the checkpoint", () => {
+    expect(content).toContain("TeamQueueAgingStrip");
+    expect(queueAgingStrip).toContain("Stárnutí fronty");
+    expect(queueAgingStrip).toContain("Stárnutí fronty není dostupné.");
+  });
+
+  it("derives failure reasons from the team-scoped checkpoint read model", () => {
+    expect(workspaceDal).toContain("fail_reason");
+    expect(workspaceDal).toContain("buildFailureReasonRanking");
+    expect(checkpoint).toContain("TeamFailureReasonStrip");
+    expect(failureReasons).toContain("Důvody neúspěchu");
+    expect(failureReasons).toContain("Důvody neúspěchu nejsou dostupné.");
   });
 });
 

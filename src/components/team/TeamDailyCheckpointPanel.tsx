@@ -7,6 +7,7 @@ import type { TeamWorkspaceCheckpoint, TeamWorkspaceSourceState } from "@/lib/da
 import { MetricCard } from "@/components/ui/MetricCard";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { TeamFailureReasonStrip } from "@/components/team/TeamFailureReasonStrip";
 import { TEAM_WORKSPACE_PERIOD_LABELS, type TeamWorkspacePeriodKey } from "@/lib/teamWorkspaceScope";
 
 function formatDuration(seconds: number): string {
@@ -261,6 +262,13 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
           )}
           {checkpoint.sources.shifts.state === "unavailable" && <p className="text-xs text-zinc-500">Podíl času na hovoru se zobrazí po zavedení ověřeného plánování směn.</p>}
         </section>}
+
+        {showResults && (
+          <TeamFailureReasonStrip
+            ranking={checkpoint.sources.calls.state === "ready" ? checkpoint.failureReasons : null}
+            periodLabel={periodLabel}
+          />
+        )}
       </div>
     </Surface>
   );

@@ -13,6 +13,7 @@ import {
   type TeamWorkspaceOperatorMetrics,
   type TeamWorkspacePeriod,
 } from "@/lib/teamWorkspaceMetrics";
+import { buildFailureReasonRanking, type FailureReasonRanking } from "@/lib/failureReasonRanking";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { listScheduledCallbacksForWorkspace, type ScheduledCallbackDTO } from "./leadQueue";
@@ -66,6 +67,8 @@ export interface TeamWorkspaceCheckpoint {
   upcomingCallbacks: TeamWorkspaceCallbackSummary[];
   operatorMetrics: TeamWorkspaceOperatorMetrics[];
   recentCallsByOperator: Record<string, TeamWorkspaceRecentCall[]>;
+  /** Žebříček důvodů neúspěchu za období a týmový rozsah (jen `objection` hovory). */
+  failureReasons: FailureReasonRanking;
   sources: {
     orders: TeamWorkspaceSourceState;
     calls: TeamWorkspaceSourceState;
@@ -90,6 +93,7 @@ type CallRow = {
   agent_id: string | null;
   outcome: TeamWorkspaceCall["outcome"];
   duration_seconds: number | null;
+  fail_reason: string | null;
   created_at: string;
 };
 
@@ -148,7 +152,7 @@ async function loadCalls(
   const supabase = await createDataClient();
   const { data, error } = await supabase
     .from("calls")
-    .select("id, agent_id, outcome, duration_seconds, created_at")
+    .select("id, agent_id, outcome, duration_seconds, fail_reason, created_at")
     .eq("workspace_id", workspaceId)
     .gte("created_at", period.from)
     .lt("created_at", period.to)
@@ -358,6 +362,10 @@ export async function loadTeamWorkspaceCheckpoint(
     upcomingCallbacks: upcoming,
     operatorMetrics: buildTeamWorkspaceOperatorMetrics(metricInput),
     recentCallsByOperator: mapRecentCallsByOperator(calls),
+    failureReasons: buildFailureReasonRanking(calls.map((call) => ({
+      outcome: call.outcome,
+      failReason: call.fail_reason,
+    }))),
     sources,
   };
 }

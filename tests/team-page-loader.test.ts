@@ -73,6 +73,7 @@ const emptyCheckpoint = {
   upcomingCallbacks: [],
   operatorMetrics: [],
   recentCallsByOperator: {},
+  failureReasons: { total: 0, reasons: [] },
   sources: {
     orders: { state: "ready" },
     calls: { state: "ready" },
