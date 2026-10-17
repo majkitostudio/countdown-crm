@@ -47,7 +47,7 @@ export function TeamLiveOpsStrip({ operators, presence, onOpenOperators }: TeamL
   );
 
   return (
-    <section aria-label="Provoz na lince">
+    <section aria-label="Provoz na lince teď">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <Activity className="h-4 w-4 text-zinc-400" aria-hidden="true" />
