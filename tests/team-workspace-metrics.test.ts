@@ -33,7 +33,7 @@ describe("Team Workspace operator metrics", () => {
     expect(metrics).toMatchObject({ sales: 4, fails: 1, dialedCalls: 2, conversionPercent: 200 });
   });
 
-  it("counts unanswered calls in the conversion denominator (orders / all calls)", () => {
+  it("counts only connected calls in the conversion denominator (sales / connected calls)", () => {
     const [metrics] = buildTeamWorkspaceOperatorMetrics({
       operators,
       calls: [
@@ -50,8 +50,8 @@ describe("Team Workspace operator metrics", () => {
       period,
     });
 
-    // 1 prodej ze 4 vytočených. Kdyby se počítalo jen ze spojených, vyšlo by 100 %.
-    expect(metrics).toMatchObject({ sales: 1, dialedCalls: 4, connectedCalls: 1, conversionPercent: 25 });
+    // 1 prodej z 1 spojeného hovoru (ze 4 vytočených) = 100 %.
+    expect(metrics).toMatchObject({ sales: 1, dialedCalls: 4, connectedCalls: 1, conversionPercent: 100 });
   });
 
   it("counts dialed and connected calls separately", () => {

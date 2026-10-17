@@ -133,18 +133,15 @@ function isSaleStatus(status: TeamWorkspaceOrder["status"]): boolean {
 }
 
 /**
- * Konverze = prodeje / vytočené hovory. Do jmenovatele patří i nezvednuté
- * hovory, aby stejné slovo neznamenalo na dvou obrazovkách něco jiného.
+ * Konverze = prodeje / spojené hovory (rozhodnutí PM, 17. 10. 2026).
+ * Nezvednuté hovory (no_answer) se do jmenovatele nepočítají.
  *
- * Pozor: čitatel je „prodeje“ v tomto checkpointu (`SALES_ORDER_STATUSES`,
- * tedy i objednávka zadaná/odeslaná/doručená) a je širší než v reportu, kde se
- * jako prodej bere jen `status = 'completed'`. Checkpoint je proto v čitateli
- * mírně víc „vstřícný“ — je to vědomý otevřený bod (sjednotit definici prodeje
- * napříč obrazovkami), ne náhoda. Než se sjednotí, je to takto schválně, aby si
- * vedoucí mohl číslo ověřit proti sloupci „Prodeje“ přímo na této obrazovce.
+ * Čitatel jsou „prodeje“ v tomto checkpointu (`SALES_ORDER_STATUSES`,
+ * tedy i objednávka zadaná/odeslaná/doručená), protože prodej je platný
+ * už od chvíle vytvoření.
  */
-function conversionPercent(sales: number, dialedCalls: number): number | null {
-  return dialedCalls > 0 ? roundPercent((sales / dialedCalls) * 100) : null;
+function conversionPercent(sales: number, connectedCalls: number): number | null {
+  return connectedCalls > 0 ? roundPercent((sales / connectedCalls) * 100) : null;
 }
 
 /**
@@ -224,7 +221,7 @@ export function buildTeamWorkspaceOperatorMetrics(input: {
       operatorName: operator.name,
       sales,
       fails,
-      conversionPercent: conversionPercent(sales, dialedCalls),
+      conversionPercent: conversionPercent(sales, connectedCalls),
       dialedCalls,
       connectedCalls,
       talkTimeSeconds,
