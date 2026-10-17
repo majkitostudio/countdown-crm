@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, createElement } from "react";
+import { act, createElement, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -45,11 +45,15 @@ let captured: Captured | null = null;
 
 function Probe() {
   const value = useOperatorIdentity();
-  captured = {
-    identity: value.identity,
-    isLoading: value.isLoading,
-    error: value.error,
-  };
+  // Capture in an effect, not during render: writing to a module-level variable
+  // while rendering is a side effect and the react-hooks rules reject it.
+  useEffect(() => {
+    captured = {
+      identity: value.identity,
+      isLoading: value.isLoading,
+      error: value.error,
+    };
+  });
   return null;
 }
 
