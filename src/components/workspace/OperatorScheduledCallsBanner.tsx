@@ -14,22 +14,22 @@ import {
   getScheduledCallsBannerState,
   formatScheduledCallClockTime,
   type ScheduledCallItem,
-} from "@/lib/scheduledCallbacksBanner";
+} from "@/lib/scheduledCallsBanner";
 import { Button } from "@/components/ui/Button";
 
-interface OperatorScheduledCallbacksBannerProps {
+interface OperatorScheduledCallsBannerProps {
   scheduledCalls: ScheduledCallItem[];
   isLoading?: boolean;
   onRefresh?: () => void;
   onClaimScheduledCall?: () => void;
 }
 
-export function OperatorScheduledCallbacksBanner({
+export function OperatorScheduledCallsBanner({
   scheduledCalls,
   isLoading = false,
   onRefresh,
   onClaimScheduledCall,
-}: OperatorScheduledCallbacksBannerProps) {
+}: OperatorScheduledCallsBannerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const state = getScheduledCallsBannerState(scheduledCalls);
 

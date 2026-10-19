@@ -11,7 +11,7 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-export function TeamCheckpointCallbacksSection({
+export function TeamCheckpointScheduledCallsSection({
   checkpoint,
   onOpenQueue,
 }: { checkpoint: TeamWorkspaceCheckpoint; onOpenQueue: () => void }) {

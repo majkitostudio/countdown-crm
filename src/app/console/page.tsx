@@ -13,7 +13,7 @@ import { OperatorLeadHeader } from "@/components/workspace/OperatorLeadHeader";
 import { ProductScriptPanel } from "@/components/workspace/ProductScriptPanel";
 import { IncomingCallModal } from "@/components/workspace/IncomingCallModal";
 import { PostCallSummaryCard } from "@/components/workspace/PostCallSummaryCard";
-import { CallbackScheduleModal } from "@/components/workspace/CallbackScheduleModal";
+import { ScheduleCallModal } from "@/components/workspace/ScheduleCallModal";
 import { ObjectionDrawer } from "@/components/products/ObjectionDrawer";
 import type { CompletionOutcome } from "@/lib/dal/callCompletion";
 import type { LeadQueueSnapshot } from "@/lib/dal/leadQueue";
@@ -1299,7 +1299,7 @@ function WorkspaceContent() {
         onDecline={handleDeclineIncomingCall}
       />
 
-      <CallbackScheduleModal
+      <ScheduleCallModal
         isOpen={isScheduleModalOpen}
         leadName={activeLead?.full_name}
         isSubmitting={isScheduleModalPending}

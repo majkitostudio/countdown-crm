@@ -28,7 +28,7 @@ describe("entry and workspace state contract", () => {
     }
 
     for (const path of [
-      "src/components/workspace/CallbackScheduleModal.tsx",
+      "src/components/workspace/ScheduleCallModal.tsx",
       "src/components/workspace/IncomingCallModal.tsx",
       "src/components/workspace/CustomerTimelineCard.tsx",
     ]) {

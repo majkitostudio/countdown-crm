@@ -18,7 +18,7 @@ describe("CRM color hierarchy", () => {
     const globalStyles = source("src/app/globals.css");
     const brief = source("src/components/workspace/ConversationBriefCard.tsx");
     const profile = source("src/components/workspace/ClientProfileCard.tsx");
-    const scheduledCall = source("src/components/workspace/CallbackScheduleModal.tsx");
+    const modal = source("src/components/workspace/ScheduleCallModal.tsx");
     const drawer = source("src/components/calls/CallDetailDrawer.tsx");
     const review = source("src/components/calls/CallReviewWorkspace.tsx");
 
@@ -28,7 +28,7 @@ describe("CRM color hierarchy", () => {
     expect(brief).toContain('variant="inset"');
     expect(profile).toContain('border border-zinc-800 bg-zinc-900 text-zinc-200');
     expect(profile).toContain('className="h-full rounded-full bg-zinc-500"');
-    expect(scheduledCall).toContain('className="rounded-lg bg-zinc-900 p-2 text-zinc-300"');
+    expect(modal).toContain('className="rounded-lg bg-zinc-900 p-2 text-zinc-300"');
     expect(drawer).toContain('border border-zinc-700 bg-zinc-900');
     expect(drawer).toContain('text-zinc-200 hover:bg-zinc-800');
     expect(review).toContain('import { Surface } from "@/components/ui/Surface"');

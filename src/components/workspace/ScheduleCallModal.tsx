@@ -7,7 +7,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { FieldLabel, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 
-interface CallbackScheduleModalProps {
+interface ScheduleCallModalProps {
   isOpen: boolean;
   leadName?: string;
   isSubmitting: boolean;
@@ -21,14 +21,14 @@ function toLocalInputValue(value: Date): string {
   return new Date(value.getTime() - offset * 60_000).toISOString().slice(0, 16);
 }
 
-export function CallbackScheduleModal({
+export function ScheduleCallModal({
   isOpen,
   leadName,
   isSubmitting,
   errorMessage,
   onClose,
   onSchedule,
-}: CallbackScheduleModalProps) {
+}: ScheduleCallModalProps) {
   const [scheduledAt, setScheduledAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60 * 1000)));
   const [validationError, setValidationError] = useState<string | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);

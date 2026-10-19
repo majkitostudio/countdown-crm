@@ -14,7 +14,7 @@ const DIALOG_OVERLAYS = [
   "src/components/products/ObjectionDrawer.tsx",
   "src/components/products/ObjectionEditorModal.tsx",
   "src/components/products/CallTranscriptUploaderModal.tsx",
-  "src/components/workspace/CallbackScheduleModal.tsx",
+  "src/components/workspace/ScheduleCallModal.tsx",
   "src/components/calls/CallDetailDrawer.tsx",
   "src/components/calendar/OperatorCalendar.tsx",
   "src/components/layout/CommandPalette.tsx",

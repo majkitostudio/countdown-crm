@@ -17,7 +17,7 @@ import { TeamQueueAgingStrip } from "@/components/team/TeamQueueAgingStrip";
 import { TeamAssistancePanel } from "@/components/team/TeamAssistancePanel";
 import { TeamCheckpointHandoverPanel } from "@/components/team/TeamCheckpointHandoverPanel";
 import { TeamOperatorDetailPanel, type TeamOperatorDetailData } from "@/components/team/TeamOperatorDetailPanel";
-import { TeamCheckpointCallbacksSection } from "@/components/team/TeamCheckpointCallbacksSection";
+import { TeamCheckpointScheduledCallsSection } from "@/components/team/TeamCheckpointScheduledCallsSection";
 import { TeamCheckpointQualitySection } from "@/components/team/TeamCheckpointQualitySection";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import type { TeamPageData } from "@/lib/dal/teamPage";
@@ -330,7 +330,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
                     onOpenQuality={() => setView("quality")}
                   />
                   {/* Naplánované hovory jako sekce v checkpointu */}
-                  <TeamCheckpointCallbacksSection
+                  <TeamCheckpointScheduledCallsSection
                     checkpoint={currentData.checkpoint.data}
                     onOpenQueue={() => setView("queue")}
                   />

@@ -3,7 +3,7 @@ import {
   formatCzechScheduledCallCount,
   getScheduledCallsBannerState,
   type ScheduledCallItem,
-} from "@/lib/scheduledCallbacksBanner";
+} from "@/lib/scheduledCallsBanner";
 
 describe("Scheduled calls banner logic and Czech copy", () => {
   it("inflects Czech count properly", () => {
