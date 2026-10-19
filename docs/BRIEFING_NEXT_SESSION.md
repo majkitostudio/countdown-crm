@@ -32,8 +32,6 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 4. **Přizpůsobení Operator Console podle oddělení** (PM pojmenoval 17. 10. 2026 jako budoucí směr): konzole má vést operátora podle specifik jeho oddělení (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence, P4 poslední záchrana). Doporučení: řízené datovými profily, ne 4 duplicitní obrazovky. Před začátkem upřesnit s PM otázky zapsané v ROADMAP.md.
 5. **Odložené featury** (propojení AI, systém směn, produktová karta, refactor trenažéru…) — jen držet v roadmapě; nezačínat bez zadání PM.
 
-**Nový nález k potvrzení s PM (19. 10. 2026): banner naplánovaných hovorů je mrtvý kód.** `src/lib/scheduledCallsBanner.ts` i komponenta `src/components/workspace/OperatorScheduledCallsBanner.tsx` jsou napsané a otestované, ale **nikde se nevykreslují** — konzole banner nepoužívá. Otázka: banner zapojit (kde?), nebo smazat včetně testu?
-
 **Schválený samostatný úkol (PM, 19. 10. 2026): `supabase/schema.sql`.** Soubor je zastaralý snapshot — nepočítá poslední migrace (nově ani B1–B3), takže neodpovídá skutečnému schématu DB. Buď ho přepsat podle skutečného stavu, nebo smazat, pokud se nikde nepoužívá. Mimo refactoring terminologie.
 
 **Známé body, které nejsou rozbité, jen odložené:**
