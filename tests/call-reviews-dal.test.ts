@@ -31,7 +31,7 @@ const call = {
   outcome: "objection",
   fail_reason: "price",
   operator_note: "Customer found the offer expensive.",
-  callback_scheduled_at: null,
+  scheduled_at: null,
   transcript: "Legacy transcript text",
   created_at: "2026-09-07T10:00:00.000Z",
 };

@@ -73,12 +73,12 @@ export interface RecordCallReviewInput {
 
 export type CallReviewStatus = "not_reviewed" | "reviewed" | "corrected";
 
-const CALL_SELECT = "id, workspace_id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, callback_scheduled_at, transcript, created_at";
+const CALL_SELECT = "id, workspace_id, lead_id, agent_id, duration_seconds, outcome, fail_reason, operator_note, scheduled_at, transcript, created_at";
 const SESSION_SELECT = "provider, script_source, script_product_id, script_product_title, script_version_id, script_version_number, script_snapshot_html, script_captured_at";
 const REVISION_SELECT = "id, call_id, revision_number, verdict, coaching_note, correction_reason, reviewer_id, supersedes_revision_id, created_at";
 
 type DirectReviewPayload = {
-  call: Pick<CallRow, "id" | "workspace_id" | "lead_id" | "agent_id" | "duration_seconds" | "outcome" | "fail_reason" | "operator_note" | "callback_scheduled_at" | "transcript" | "created_at">;
+  call: Pick<CallRow, "id" | "workspace_id" | "lead_id" | "agent_id" | "duration_seconds" | "outcome" | "fail_reason" | "operator_note" | "scheduled_at" | "transcript" | "created_at">;
   customer: { id: string; name: string | null } | null;
   operator: { id: string; name: string | null } | null;
   session: Pick<SessionRow, "provider" | "script_source" | "script_product_id" | "script_product_title" | "script_version_id" | "script_version_number" | "script_snapshot_html" | "script_captured_at"> | null;
@@ -218,7 +218,7 @@ async function getDirectCallReview(
       outcome: payload.call.outcome,
       failReason: payload.call.fail_reason,
       operatorNote: payload.call.operator_note,
-      callbackScheduledAt: payload.call.callback_scheduled_at,
+      callbackScheduledAt: payload.call.scheduled_at,
     },
     customer: payload.customer,
     operator: payload.operator,
@@ -264,7 +264,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
     | "outcome"
     | "fail_reason"
     | "operator_note"
-    | "callback_scheduled_at"
+    | "scheduled_at"
     | "transcript"
     | "created_at"
   >;
@@ -341,7 +341,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
       outcome: call.outcome,
       failReason: call.fail_reason,
       operatorNote: call.operator_note,
-      callbackScheduledAt: call.callback_scheduled_at,
+      callbackScheduledAt: call.scheduled_at,
     },
     customer: call.lead_id
       ? { id: call.lead_id, name: lead?.full_name || null }

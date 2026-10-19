@@ -26,7 +26,7 @@ export interface CompleteCallInput {
   order_items?: CallOrderItemInput[] | null;
   order_product_id?: string | null;
   order_total_amount?: number | null;
-  callback_scheduled_at?: string | null;
+  scheduled_at?: string | null;
   operator_note?: string | null;
   fail_reason?: FailReason | null;
 }
@@ -79,10 +79,10 @@ export async function completeCallForWorkspace(
     note: operatorNote || "",
   });
   if (failError) throw new DataAccessError("VALIDATION", failError);
-  if (input.outcome === "followup_scheduled" && (!isString(input.callback_scheduled_at) || !input.callback_scheduled_at.trim())) {
+  if (input.outcome === "followup_scheduled" && (!isString(input.scheduled_at) || !input.scheduled_at.trim())) {
     throw new DataAccessError("VALIDATION", "Scheduled call date and time are required");
   }
-  if (input.outcome !== "followup_scheduled" && input.callback_scheduled_at) {
+  if (input.outcome !== "followup_scheduled" && input.scheduled_at) {
     throw new DataAccessError("VALIDATION", "Scheduled call time is only valid for Schedule Call");
   }
 
@@ -168,7 +168,7 @@ async function completeCallForAuthorizedWorkspace(
     transcript: normalizeOptionalText(input.transcript),
     ai_sentiment: normalizeOptionalText(input.ai_sentiment) || "Neutral",
     order_items: hasOrder ? orderItems : null,
-    callback_scheduled_at: input.callback_scheduled_at || null,
+    scheduled_at: input.scheduled_at || null,
     call_note: operatorNote,
     call_fail_reason: input.fail_reason || null,
   });
@@ -194,7 +194,7 @@ async function completeCallForAuthorizedWorkspace(
       sentiment: normalizeOptionalText(input.ai_sentiment) || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: normalizeOptionalText(input.transcript) || "",
-      callbackScheduledAt: input.callback_scheduled_at || null,
+      callbackScheduledAt: input.scheduled_at || null,
       failReason: input.fail_reason || null,
       operatorNote: operatorNote || "",
     },

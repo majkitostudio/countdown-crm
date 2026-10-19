@@ -79,7 +79,7 @@ const sources: ConversationBriefSourcesInput = {
       outcome: "followup_scheduled",
       fail_reason: null,
       operator_note: "Chce zavolat po konzultaci s manželem.",
-      callback_scheduled_at: "2026-09-06T09:30:00.000Z",
+      scheduled_at: "2026-09-06T09:30:00.000Z",
     },
   },
   note: {

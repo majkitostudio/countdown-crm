@@ -98,8 +98,7 @@ export interface CompleteLeadCallInput {
   order_product_id?: string | null;
   order_total_amount?: number | null;
   delivery_address_snapshot?: DeliveryAddressSnapshot | null;
-  callback_scheduled_at?: string | null;
-  /** Sjednocené pojmenování pro naplánovaný čas hovoru. */
+  /** Naplánovaný čas hovoru (Schedule). */
   scheduled_at?: string | null;
   operator_note?: string | null;
   fail_reason?: FailReason | null;
@@ -134,7 +133,7 @@ function assertQueueInput(input: CompleteLeadCallInput): void {
     throw new DataAccessError("VALIDATION", "Unsupported queue call outcome");
   }
 
-  const scheduledTime = input.scheduled_at !== undefined ? input.scheduled_at : input.callback_scheduled_at;
+  const scheduledTime = input.scheduled_at;
   if (scheduledTime != null && typeof scheduledTime !== "string") {
     throw new DataAccessError("VALIDATION", "Scheduled call date and time are invalid");
   }
@@ -330,7 +329,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     call_ai_sentiment: typeof input.ai_sentiment === "string" ? input.ai_sentiment.trim() || "Neutral" : "Neutral",
     order_items: hasOrder ? orderItems : null,
     delivery_address_snapshot: deliveryAddress,
-    callback_scheduled_at: (input.scheduled_at !== undefined ? input.scheduled_at : input.callback_scheduled_at) || null,
+    scheduled_at: input.scheduled_at || null,
     call_note: operatorNote || null,
     call_fail_reason: input.fail_reason && isFailReason(input.fail_reason) ? input.fail_reason : null,
   });
@@ -356,7 +355,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       sentiment: input.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
-      callbackScheduledAt: (input.scheduled_at !== undefined ? input.scheduled_at : input.callback_scheduled_at) || null,
+      callbackScheduledAt: input.scheduled_at || null,
       failReason: input.fail_reason || null,
       operatorNote: operatorNote.trim(),
     },
@@ -426,14 +425,14 @@ export async function listScheduledCallbacksForWorkspace(
   let directQuery = supabase
     .from("calls")
     .select(`
-      id, workspace_id, lead_id, agent_id, callback_scheduled_at,
+      id, workspace_id, lead_id, agent_id, scheduled_at,
       lead:leads(id, full_name, phone, email)
     `)
     .eq("workspace_id", context.workspaceId)
     .eq("outcome", "followup_scheduled")
-    .not("callback_scheduled_at", "is", null)
-    .gte("callback_scheduled_at", from)
-    .lte("callback_scheduled_at", to);
+    .not("scheduled_at", "is", null)
+    .gte("scheduled_at", from)
+    .lte("scheduled_at", to);
 
   if (context.role === "operator") {
     queueQuery = queueQuery.eq("preferred_operator_id", context.userId);
@@ -453,14 +452,14 @@ export async function listScheduledCallbacksForWorkspace(
       workspace_id: string;
       lead_id: string;
       agent_id: string | null;
-      callback_scheduled_at: string;
+      scheduled_at: string;
       lead: ScheduledCallbackDTO["lead"];
     };
     return {
       id: row.id,
       workspace_id: row.workspace_id,
       lead_id: row.lead_id,
-      scheduled_at: row.callback_scheduled_at,
+      scheduled_at: row.scheduled_at,
       preferred_operator_id: row.agent_id,
       lead: row.lead,
       preferred_operator: null,

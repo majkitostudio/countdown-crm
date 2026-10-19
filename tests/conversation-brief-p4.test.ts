@@ -50,7 +50,7 @@ describe("ConversationBrief P4 Retargeting context", () => {
           outcome: "objection",
           fail_reason: "price",
           operator_note: "Klientovi přišlo 1500 Kč moc",
-          callback_scheduled_at: null,
+          scheduled_at: null,
         },
       },
       note: { status: "fulfilled", value: null },

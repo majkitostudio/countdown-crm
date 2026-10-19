@@ -49,7 +49,7 @@ describe("post-call completion runtime contract", () => {
       call_session_id: callSessionId,
       duration_seconds: 60,
       outcome: "followup_scheduled",
-      callback_scheduled_at: "2026-09-06T10:00:00.000Z",
+      scheduled_at: "2026-09-06T10:00:00.000Z",
       operator_note: "Call back tomorrow.",
       fail_reason: null,
     });
@@ -64,7 +64,7 @@ describe("post-call completion runtime contract", () => {
       call_ai_sentiment: "Neutral",
       order_items: null,
       delivery_address_snapshot: null,
-      callback_scheduled_at: "2026-09-06T10:00:00.000Z",
+      scheduled_at: "2026-09-06T10:00:00.000Z",
       call_note: "Call back tomorrow.",
       call_fail_reason: null,
     });
@@ -87,7 +87,7 @@ describe("post-call completion runtime contract", () => {
       call_session_id: callSessionId,
       duration_seconds: 90,
       outcome: "followup_scheduled",
-      callback_scheduled_at: "2026-09-06T10:00:00.000Z",
+      scheduled_at: "2026-09-06T10:00:00.000Z",
       transcript: structuredTranscript,
       operator_note: "Zákazník si vyžádal další hovor.",
       fail_reason: null,

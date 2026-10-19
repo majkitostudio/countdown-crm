@@ -46,21 +46,21 @@ select is(
         (
           'complete_call_with_order_items_idempotent',
           'uuid, uuid, uuid, integer, text, text, text, jsonb, timestamp with time zone, text, text',
-          array['completion_key', 'call_session_id', 'lead_id', 'duration_seconds', 'outcome', 'transcript', 'ai_sentiment', 'order_items', 'callback_scheduled_at', 'call_note', 'call_fail_reason']::text[],
+          array['completion_key', 'call_session_id', 'lead_id', 'duration_seconds', 'outcome', 'transcript', 'ai_sentiment', 'order_items', 'scheduled_at', 'call_note', 'call_fail_reason']::text[],
           4,
           'TABLE(call_id uuid, order_id uuid, lead_status text)'
         ),
         (
           'complete_lead_call_with_order_items_idempotent',
           'uuid, uuid, uuid, integer, text, text, text, jsonb, timestamp with time zone, text, text',
-          array['completion_key', 'target_queue_item_id', 'call_session_id', 'call_duration_seconds', 'call_outcome', 'call_transcript', 'call_ai_sentiment', 'order_items', 'callback_scheduled_at', 'call_note', 'call_fail_reason']::text[],
+          array['completion_key', 'target_queue_item_id', 'call_session_id', 'call_duration_seconds', 'call_outcome', 'call_transcript', 'call_ai_sentiment', 'order_items', 'scheduled_at', 'call_note', 'call_fail_reason']::text[],
           4,
           'jsonb'
         ),
         (
           'complete_lead_call_with_order_items_idempotent',
           'uuid, uuid, uuid, integer, text, text, text, jsonb, timestamp with time zone, text, text, jsonb',
-          array['completion_key', 'target_queue_item_id', 'call_session_id', 'call_duration_seconds', 'call_outcome', 'call_transcript', 'call_ai_sentiment', 'order_items', 'callback_scheduled_at', 'call_note', 'call_fail_reason', 'delivery_address_snapshot']::text[],
+          array['completion_key', 'target_queue_item_id', 'call_session_id', 'call_duration_seconds', 'call_outcome', 'call_transcript', 'call_ai_sentiment', 'order_items', 'scheduled_at', 'call_note', 'call_fail_reason', 'delivery_address_snapshot']::text[],
           0,
           'jsonb'
         ),

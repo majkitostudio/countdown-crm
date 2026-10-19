@@ -143,7 +143,7 @@ describe("lead queue server contract", () => {
         outcome: "followup_scheduled",
         transcript: "Follow up next week",
         ai_sentiment: "Positive",
-        callback_scheduled_at: "2026-09-01T09:00:00.000Z",
+        scheduled_at: "2026-09-01T09:00:00.000Z",
       }),
     ).resolves.toMatchObject(completion);
 
@@ -159,7 +159,7 @@ describe("lead queue server contract", () => {
       call_ai_sentiment: "Positive",
       order_items: null,
       delivery_address_snapshot: null,
-      callback_scheduled_at: "2026-09-01T09:00:00.000Z",
+      scheduled_at: "2026-09-01T09:00:00.000Z",
       call_note: null,
       call_fail_reason: null,
     });
@@ -195,7 +195,7 @@ describe("lead queue server contract", () => {
       call_ai_sentiment: "Neutral",
       order_items: orderItems,
       delivery_address_snapshot: deliveryAddress,
-      callback_scheduled_at: null,
+      scheduled_at: null,
       call_note: null,
       call_fail_reason: null,
     });
@@ -252,7 +252,7 @@ describe("lead queue server contract", () => {
         workspace_id: "workspace-1",
         lead_id: "lead-2",
         agent_id: "user-1",
-        callback_scheduled_at: "2026-09-05T10:00:00.000Z",
+        scheduled_at: "2026-09-05T10:00:00.000Z",
         lead: { id: "lead-2", full_name: "Direct Lead", phone: "+4202", email: null },
       }],
       error: null,

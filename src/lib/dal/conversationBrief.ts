@@ -24,7 +24,7 @@ export interface ConversationBriefCallSource {
   outcome: CallRow["outcome"];
   fail_reason: CallRow["fail_reason"];
   operator_note: string | null;
-  callback_scheduled_at: string | null;
+  scheduled_at: string | null;
 }
 
 export interface ConversationBriefNoteSource {
@@ -101,7 +101,7 @@ export interface ConversationBriefDTO {
   };
 }
 
-const CALL_FIELDS = "id, created_at, duration_seconds, outcome, fail_reason, operator_note, callback_scheduled_at";
+const CALL_FIELDS = "id, created_at, duration_seconds, outcome, fail_reason, operator_note, scheduled_at";
 const ORDER_FIELDS = "id, total_amount, currency, status, delivery_address_snapshot, delivered_at, created_at";
 
 function cleanOptionalText(value: unknown): string | null {
@@ -170,7 +170,7 @@ export function buildConversationBrief(
   const productScriptState = sourceState(input.productScripts, "Approved product guidance is unavailable.");
   const call = input.call.status === "fulfilled" ? input.call.value : null;
   const callbackFromAssignment = cleanOptionalText(assignment.scheduled_at);
-  const callbackFromCall = call ? cleanOptionalText(call.callback_scheduled_at) : null;
+  const callbackFromCall = call ? cleanOptionalText(call.scheduled_at) : null;
   const callbackState = callbackFromAssignment || input.call.status === "fulfilled"
     ? { state: "available" } as const
     : { state: "unavailable", message: "Schedule history is unavailable." } as const;

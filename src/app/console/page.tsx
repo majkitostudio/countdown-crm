@@ -541,7 +541,7 @@ function WorkspaceContent() {
           order_product_id: orderProductId || null,
           order_total_amount: orderProductId ? orderValue : null,
           transcript: recordedTranscript,
-          callback_scheduled_at: queueOutcome === "followup_scheduled" ? callbackScheduledAt || null : null,
+          scheduled_at: queueOutcome === "followup_scheduled" ? callbackScheduledAt || null : null,
           operator_note: operatorNote?.trim() || null,
           fail_reason: failReason || null,
         });
@@ -590,7 +590,7 @@ function WorkspaceContent() {
         transcript: recordedTranscript,
         operator_note: operatorNote?.trim() || null,
         fail_reason: failReason || null,
-        callback_scheduled_at: outcome === "followup_scheduled" ? callbackScheduledAt || null : null,
+        scheduled_at: outcome === "followup_scheduled" ? callbackScheduledAt || null : null,
       });
 
       softphoneController.hangup();
