@@ -32,8 +32,6 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 4. **Přizpůsobení Operator Console podle oddělení** (PM pojmenoval 17. 10. 2026 jako budoucí směr): konzole má vést operátora podle specifik jeho oddělení (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence, P4 poslední záchrana). Doporučení: řízené datovými profily, ne 4 duplicitní obrazovky. Před začátkem upřesnit s PM otázky zapsané v ROADMAP.md.
 5. **Odložené featury** (propojení AI, systém směn, produktová karta, refactor trenažéru…) — jen držet v roadmapě; nezačínat bez zadání PM.
 
-**Schválený samostatný úkol (PM, 19. 10. 2026): `supabase/schema.sql`.** Soubor je zastaralý snapshot — nepočítá poslední migrace (nově ani B1–B3), takže neodpovídá skutečnému schématu DB. Buď ho přepsat podle skutečného stavu, nebo smazat, pokud se nikde nepoužívá. Mimo refactoring terminologie.
-
 **Známé body, které nejsou rozbité, jen odložené:**
 - Oddělení (departments P1–P4) jsou dnes modelovaná přes týmy; vyčlenění na samostatnou entitu je vědomě odloženo.
 - „Teď“ se v stripech (provoz na lince, stárnutí fronty) počítá při renderu (`new Date()`). Přes hranici 5 minut / 24 h mezi serverem a prohlížečem se číslo může o kousek rozejít — přijaté riziko, ne vada. Kdyby to vadilo, předá se `now` ze serveru.
