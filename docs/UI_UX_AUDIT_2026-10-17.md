@@ -49,7 +49,7 @@ Každá obrazovka je posouzena dle 4 kroků: (1) Kdo a jak často, (2) Ponechat 
 - **Rozhodnutí:** **Ponechat a přeuspořádat**.
 - **Důležitost:** **Priorita 2 (Vysoká)**.
 - **Doporučení a UX koncept:**
-  - Dokončit terminologii: striktně používat **Schedule** / **Naplánované hovory**, ne „callback“ (callback je vázaný na konkrétního operátora).
+  - ✅ **hotovo (19. 10. 2026):** terminologie dokončena — striktně používat **Schedule** / **Naplánované hovory**, ne „callback“ (callback je vázaný na konkrétního operátora).
   - Doplnit denní časovou osu (Timeline s hodinovými sloty), aby operátor na první pohled viděl vytížení dne.
   - Z každé karty naplánovaného hovoru nabídnout okamžitou akci *„Zavolat v konzoli“*.
 
