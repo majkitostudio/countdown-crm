@@ -10,11 +10,11 @@ with rpc_contracts(name, identity_arguments) as (
     ),
     (
       'complete_call_with_order_items_idempotent'::text,
-      'completion_key uuid, call_session_id uuid, lead_id uuid, duration_seconds integer, outcome text, transcript text, ai_sentiment text, order_items jsonb, callback_scheduled_at timestamp with time zone, call_note text, call_fail_reason text'::text
+      'completion_key uuid, call_session_id uuid, lead_id uuid, duration_seconds integer, outcome text, transcript text, ai_sentiment text, order_items jsonb, scheduled_at timestamp with time zone, call_note text, call_fail_reason text'::text
     ),
     (
       'complete_lead_call_with_order_items_idempotent'::text,
-      'completion_key uuid, target_queue_item_id uuid, call_session_id uuid, call_duration_seconds integer, call_outcome text, call_transcript text, call_ai_sentiment text, order_items jsonb, callback_scheduled_at timestamp with time zone, call_note text, call_fail_reason text'::text
+      'completion_key uuid, target_queue_item_id uuid, call_session_id uuid, call_duration_seconds integer, call_outcome text, call_transcript text, call_ai_sentiment text, order_items jsonb, scheduled_at timestamp with time zone, call_note text, call_fail_reason text'::text
     ),
     (
       'update_wallet_settings'::text,
