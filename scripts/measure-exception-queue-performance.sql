@@ -90,7 +90,7 @@ select
 from generate_series(1, 300000) as i;
 
 -- 200 000 polozek fronty. Kazdy z 500 operatoru ma nejvyse jednu aktivni
--- polozku (assigned/awaiting_outcome); zbytek je waiting_callback/closed.
+-- polozku (assigned/awaiting_outcome); zbytek je scheduled/closed.
 -- assigned/awaiting_outcome vyzaduji operatora, ostatni stavy naopak NULL.
 insert into public.lead_queue_items (workspace_id, lead_id, assigned_operator_id, state, updated_at)
 select
@@ -99,7 +99,7 @@ select
   case when i <= 500 then ('feedface-0000-4000-8000-2' || lpad(i::text, 11, '0'))::uuid else null end,
   case
     when i <= 500 then 'assigned'
-    when i % 2 = 0 then 'waiting_callback'
+    when i % 2 = 0 then 'scheduled'
     else 'closed'
   end,
   now() - ((i % 100000) || ' seconds')::interval
@@ -154,7 +154,7 @@ select q.id, q.lead_id, q.state, q.updated_at, l.full_name
 from public.lead_queue_items q
 left join public.leads l on l.id = q.lead_id
 where q.workspace_id = 'feedface-0000-4000-8000-000000000001'
-  and q.state in ('assigned', 'awaiting_outcome', 'waiting_callback')
+  and q.state in ('assigned', 'awaiting_outcome', 'scheduled')
 order by q.updated_at desc;
 
 \echo ''
@@ -167,6 +167,6 @@ select q.id, q.lead_id, q.state, q.updated_at, l.full_name
 from public.lead_queue_items q
 left join public.leads l on l.id = q.lead_id
 where q.workspace_id = 'feedface-0000-4000-8000-000000000001'
-  and q.state in ('assigned', 'awaiting_outcome', 'waiting_callback')
+  and q.state in ('assigned', 'awaiting_outcome', 'scheduled')
 order by q.updated_at desc;
 rollback;

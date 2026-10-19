@@ -14,7 +14,7 @@
 import { getOrderRisk } from "@/lib/orderRisk";
 
 /** Queue state for a scheduled call (internal name kept per AGENTS.md rule 7). */
-const SCHEDULED_CALL_STATE = "waiting_callback";
+const SCHEDULED_CALL_STATE = "scheduled";
 /** Queue state where an operator holds the lead. */
 const ASSIGNED_STATE = "assigned";
 /** Queue state waiting for a call outcome to be recorded. */

@@ -3,7 +3,7 @@ import { buildQueueAging, DAY_MS, THREE_DAYS_MS } from "@/lib/queueAging";
 
 const now = new Date("2026-09-16T12:00:00.000Z");
 
-function at(iso: string, state: "available" | "assigned" | "closed" | "waiting_callback" = "available") {
+function at(iso: string, state: "available" | "assigned" | "closed" | "scheduled" = "available") {
   return { state, available_at: iso };
 }
 
@@ -27,7 +27,7 @@ describe("buildQueueAging", () => {
       at("2026-09-10T08:00:00.000Z"),
       at("2026-09-10T08:00:00.000Z", "assigned"),
       at("2026-09-10T08:00:00.000Z", "closed"),
-      at("2026-09-10T08:00:00.000Z", "waiting_callback"),
+      at("2026-09-10T08:00:00.000Z", "scheduled"),
     ], now);
 
     expect(summary.waiting).toBe(1);

@@ -17,8 +17,8 @@ function overviewFixture(now = new Date("2026-10-16T12:00:00.000Z")) {
       { team_id: "team-1", state: "available", scheduled_at: null },
       { team_id: "team-1", state: "in_progress", scheduled_at: null },
       // P4X → department P4: one scheduled call overdue, one on time
-      { team_id: "team-2", state: "waiting_callback", scheduled_at: "2026-10-16T09:00:00.000Z" },
-      { team_id: "team-2", state: "waiting_callback", scheduled_at: "2026-10-16T18:00:00.000Z" },
+      { team_id: "team-2", state: "scheduled", scheduled_at: "2026-10-16T09:00:00.000Z" },
+      { team_id: "team-2", state: "scheduled", scheduled_at: "2026-10-16T18:00:00.000Z" },
       // no team → unattributed
       { team_id: null, state: "available", scheduled_at: null },
     ],

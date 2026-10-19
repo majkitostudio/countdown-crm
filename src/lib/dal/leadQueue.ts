@@ -416,7 +416,7 @@ export async function listScheduledCallbacksForWorkspace(
       preferred_operator:profiles!lead_queue_items_preferred_operator_id_fkey(id, full_name, email)
     `)
     .eq("workspace_id", context.workspaceId)
-    .eq("state", "waiting_callback")
+    .eq("state", "scheduled")
     .not("scheduled_at", "is", null)
     .gte("scheduled_at", from)
     .lte("scheduled_at", to)

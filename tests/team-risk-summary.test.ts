@@ -55,8 +55,8 @@ describe("buildTeamRiskSummary", () => {
   it("counts an overdue scheduled call but not one still in the future", () => {
     const summary = buildTeamRiskSummary(
       [
-        queueItem({ state: "waiting_callback", scheduled_at: "2026-10-16T09:00:00.000Z" }),
-        queueItem({ state: "waiting_callback", scheduled_at: "2026-10-16T18:00:00.000Z" }),
+        queueItem({ state: "scheduled", scheduled_at: "2026-10-16T09:00:00.000Z" }),
+        queueItem({ state: "scheduled", scheduled_at: "2026-10-16T18:00:00.000Z" }),
       ],
       [],
       NOW,
@@ -83,7 +83,7 @@ describe("buildTeamRiskSummary", () => {
     const summary = buildTeamRiskSummary(
       [
         queueItem({
-          state: "waiting_callback",
+          state: "scheduled",
           scheduled_at: "2026-10-16T09:00:00.000Z",
           recovery_required: true,
         }),

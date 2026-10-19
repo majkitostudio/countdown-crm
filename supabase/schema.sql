@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS public.lead_queue_items (
   assigned_operator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   preferred_operator_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   state TEXT NOT NULL DEFAULT 'available'
-    CHECK (state IN ('available', 'assigned', 'in_progress', 'waiting_callback', 'closed', 'paused')),
+    CHECK (state IN ('available', 'assigned', 'in_progress', 'scheduled', 'closed', 'paused')),
   priority INTEGER NOT NULL DEFAULT 0,
   available_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   scheduled_at TIMESTAMPTZ,
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS public.lead_queue_items (
   UNIQUE (workspace_id, lead_id),
   CHECK (
     (state IN ('assigned', 'in_progress') AND assigned_operator_id IS NOT NULL)
-    OR (state IN ('available', 'waiting_callback', 'closed', 'paused') AND assigned_operator_id IS NULL)
+    OR (state IN ('available', 'scheduled', 'closed', 'paused') AND assigned_operator_id IS NULL)
   )
 );
 
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS public.lead_queue_events (
   lead_id UUID NOT NULL REFERENCES public.leads(id) ON DELETE CASCADE,
   event_type TEXT NOT NULL CHECK (event_type IN (
     'created', 'claimed', 'started', 'heartbeat', 'completed', 'released',
-    'reassigned', 'callback_scheduled', 'requeued', 'lease_expired',
+    'reassigned', 'scheduled_call_created', 'requeued', 'lease_expired',
     'reopened', 'paused'
   )),
   from_state TEXT,

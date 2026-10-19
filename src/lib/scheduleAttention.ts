@@ -1,6 +1,6 @@
 /**
  * Pomocné funkce pro sledování naplánovaných hovorů (Schedule / scheduled calls).
- * Vychází ze stavu fronty `waiting_callback` (databázový klíč) a času `scheduled_at`.
+ * Vychází ze stavu fronty `scheduled` (databázový klíč) a času `scheduled_at`.
  */
 
 export interface ScheduledCallQueueItem {
@@ -19,7 +19,7 @@ export interface ScheduledCallAttentionSummary {
 export type CallbackAttentionSummary = ScheduledCallAttentionSummary;
 
 function hasValidSchedule(item: ScheduledCallQueueItem): item is ScheduledCallQueueItem & { scheduled_at: string } {
-  return item.state === "waiting_callback"
+  return item.state === "scheduled"
     && typeof item.scheduled_at === "string"
     && Number.isFinite(Date.parse(item.scheduled_at));
 }

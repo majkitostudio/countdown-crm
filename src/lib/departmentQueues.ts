@@ -22,7 +22,7 @@ export const DEPARTMENT_QUEUE_STATES = [
   "assigned",
   "in_progress",
   "awaiting_outcome",
-  "waiting_callback",
+  "scheduled",
   "closed",
   "paused",
 ] as const;
@@ -38,7 +38,7 @@ export const DEPARTMENT_QUEUE_IN_PROGRESS_STATES: readonly DepartmentQueueItemSt
   "awaiting_outcome",
 ];
 /** Queue state for a scheduled call. */
-export const DEPARTMENT_QUEUE_CALLBACK_STATE: DepartmentQueueItemState = "waiting_callback";
+export const DEPARTMENT_QUEUE_CALLBACK_STATE: DepartmentQueueItemState = "scheduled";
 
 export interface DepartmentQueueItemInput {
   team_id: string | null;

@@ -45,7 +45,7 @@ const sources: ExceptionQueueSourcesInput = {
       {
         id: "queue-callback",
         lead_id: "lead-callback",
-        state: "waiting_callback",
+        state: "scheduled",
         assigned_operator_id: null,
         preferred_operator_id: "operator-2",
         scheduled_at: "2026-09-06T08:00:00.000Z",
@@ -338,7 +338,7 @@ describe("Team Leader Exception Queue", () => {
 
     expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["team_leader", "administrator"]);
     expect(from).toHaveBeenCalledTimes(2);
-    expect(queueQuery.in).toHaveBeenCalledWith("state", ["assigned", "awaiting_outcome", "waiting_callback"]);
+    expect(queueQuery.in).toHaveBeenCalledWith("state", ["assigned", "awaiting_outcome", "scheduled"]);
     expect(orderQuery.eq).toHaveBeenCalledWith("status", "sent");
     expect(orderQuery.is).toHaveBeenCalledWith("pickup_call_completed_at", null);
     expect(productQuery.select).not.toHaveBeenCalled();

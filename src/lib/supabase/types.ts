@@ -341,7 +341,7 @@ export interface Database {
           team_id: string | null;
           assigned_operator_id: string | null;
           preferred_operator_id: string | null;
-          state: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "waiting_callback" | "closed" | "paused";
+          state: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "scheduled" | "closed" | "paused";
           priority: number;
           available_at: string;
           scheduled_at: string | null;
@@ -365,7 +365,7 @@ export interface Database {
           team_id?: string | null;
           assigned_operator_id?: string | null;
           preferred_operator_id?: string | null;
-          state?: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "waiting_callback" | "closed" | "paused";
+          state?: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "scheduled" | "closed" | "paused";
           priority?: number;
           available_at?: string;
           scheduled_at?: string | null;
@@ -386,7 +386,7 @@ export interface Database {
           team_id?: string | null;
           assigned_operator_id?: string | null;
           preferred_operator_id?: string | null;
-          state?: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "waiting_callback" | "closed" | "paused";
+          state?: "available" | "assigned" | "in_progress" | "awaiting_outcome" | "scheduled" | "closed" | "paused";
           priority?: number;
           available_at?: string;
           scheduled_at?: string | null;
@@ -411,7 +411,7 @@ export interface Database {
           team_id: string | null;
           queue_item_id: string;
           lead_id: string;
-          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused" | "team_assigned";
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "scheduled_call_created" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused" | "team_assigned";
           from_state: string | null;
           to_state: string;
           from_operator_id: string | null;
@@ -427,7 +427,7 @@ export interface Database {
           team_id?: string | null;
           queue_item_id: string;
           lead_id: string;
-          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "callback_scheduled" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused" | "team_assigned";
+          event_type: "created" | "claimed" | "started" | "heartbeat" | "completed" | "released" | "reassigned" | "scheduled_call_created" | "requeued" | "lease_expired" | "interrupted" | "outcome_pending" | "reopened" | "paused" | "team_assigned";
           from_state?: string | null;
           to_state: string;
           from_operator_id?: string | null;

@@ -238,7 +238,7 @@ function buildQueueExceptions(
       continue;
     }
 
-    if (row.state === "waiting_callback" && isBefore(row.scheduled_at, now)) {
+    if (row.state === "scheduled" && isBefore(row.scheduled_at, now)) {
       items.push({
         id: `queue:overdue_callback:${row.id}`,
         type: "overdue_callback",
@@ -446,7 +446,7 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
         .from("lead_queue_items")
         .select("id, lead_id, state, assigned_operator_id, preferred_operator_id, scheduled_at, lease_expires_at, recovery_required, updated_at, lead:leads(full_name), assigned_operator:profiles!lead_queue_items_assigned_operator_id_fkey(full_name), preferred_operator:profiles!lead_queue_items_preferred_operator_id_fkey(full_name)")
         .eq("workspace_id", context.workspaceId)
-        .in("state", ["assigned", "awaiting_outcome", "waiting_callback"])
+        .in("state", ["assigned", "awaiting_outcome", "scheduled"])
         .order("updated_at", { ascending: false }),
       "Lead queue checks could not be loaded.",
     ),

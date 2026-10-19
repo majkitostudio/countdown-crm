@@ -79,7 +79,7 @@ describe("TeamPageContent partial source states", () => {
 
   it("keeps a callback queue row visible when its contact details are outside the readable scope", () => {
     const html = render({
-      queue: { status: "ready", data: [{ ...queueItem, state: "waiting_callback", scheduled_at: "2026-09-08T09:00:00.000Z", lead: null }] },
+      queue: { status: "ready", data: [{ ...queueItem, state: "scheduled", scheduled_at: "2026-09-08T09:00:00.000Z", lead: null }] },
       operators: { status: "ready", data: [] },
       presence: { status: "ready", data: [] },
       roster: { status: "ready", data: { teams: [], memberships: {} } },

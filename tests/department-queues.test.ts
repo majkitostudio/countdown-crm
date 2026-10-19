@@ -119,8 +119,8 @@ describe("buildDepartmentQueueOverview", () => {
   it("counts callbacks and overdue callbacks against the supplied clock", () => {
     const overview = buildDepartmentQueueOverview(
       [
-        item({ team_id: "t-p2", state: "waiting_callback", scheduled_at: "2026-10-15T09:00:00.000Z" }),
-        item({ team_id: "t-p2", state: "waiting_callback", scheduled_at: "2026-10-15T11:00:00.000Z" }),
+        item({ team_id: "t-p2", state: "scheduled", scheduled_at: "2026-10-15T09:00:00.000Z" }),
+        item({ team_id: "t-p2", state: "scheduled", scheduled_at: "2026-10-15T11:00:00.000Z" }),
       ],
       [team("t-p2", "p2", "Department P2")],
       now,
@@ -133,7 +133,7 @@ describe("buildDepartmentQueueOverview", () => {
 
   it("ignores a callback with an invalid schedule rather than counting it overdue", () => {
     const overview = buildDepartmentQueueOverview(
-      [item({ team_id: "t-p2", state: "waiting_callback", scheduled_at: "not-a-date" })],
+      [item({ team_id: "t-p2", state: "scheduled", scheduled_at: "not-a-date" })],
       [team("t-p2", "p2", "Department P2")],
       now,
     );

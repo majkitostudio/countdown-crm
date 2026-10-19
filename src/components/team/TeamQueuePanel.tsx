@@ -29,7 +29,7 @@ const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
   assigned: "Assigned",
   in_progress: "In progress",
   awaiting_outcome: "Outcome / recovery",
-  waiting_callback: "Scheduled call",
+  scheduled: "Scheduled call",
   closed: "Closed",
   paused: "Paused",
 };
@@ -159,7 +159,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
               {visibleQueueItems.map((item) => {
                 const isBusy = busyItemId === item.id;
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
-                const canReassign = item.state === "available" || item.state === "assigned" || item.state === "waiting_callback";
+                const canReassign = item.state === "available" || item.state === "assigned" || item.state === "scheduled";
                 const canReopen = item.state === "closed";
                 const overdueCallback = isOverdueScheduledCall(item);
                 return (

@@ -36,7 +36,7 @@ export async function loadTeamRiskSummary(
       .from("lead_queue_items")
       .select("state, scheduled_at, lease_expires_at, recovery_required")
       .eq("workspace_id", context.workspaceId)
-      .in("state", ["assigned", "awaiting_outcome", "waiting_callback"]),
+      .in("state", ["assigned", "awaiting_outcome", "scheduled"]),
     supabase
       .from("orders")
       .select("status, package_location, package_arrived_at, pickup_call_completed_at")

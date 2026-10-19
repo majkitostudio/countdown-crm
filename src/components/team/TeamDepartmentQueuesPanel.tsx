@@ -25,7 +25,7 @@ const STATE_LABELS: Record<QueueItemDTO["state"], string> = {
   assigned: "Přiřazeno",
   in_progress: "Probíhá hovor",
   awaiting_outcome: "Čeká na výsledek",
-  waiting_callback: "Naplánovaný hovor",
+  scheduled: "Naplánovaný hovor",
   closed: "Uzavřeno",
   paused: "Pozastaveno",
 };
