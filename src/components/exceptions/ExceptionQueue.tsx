@@ -33,7 +33,7 @@ function isHistoryItem(item: ExceptionQueueItemDTO | ExceptionHistoryItem): item
 
 const TYPE_LABELS = {
   outcome_recovery: "Outcome recovery",
-  overdue_callback: "Overdue scheduled call",
+  overdue_scheduled_call: "Overdue scheduled call",
   expired_lease: "Expired assignment",
   pickup_risk: "Pickup risk",
   workflow_failure: "Workflow failure",

@@ -8,7 +8,7 @@ import { PICKUP_ALARM_DAYS, getOrderRisk } from "@/lib/orderRisk";
 export type ExceptionPriority = "critical" | "high" | "medium";
 export type ExceptionType =
   | "outcome_recovery"
-  | "overdue_callback"
+  | "overdue_scheduled_call"
   | "expired_lease"
   | "pickup_risk"
   | "workflow_failure"
@@ -134,14 +134,14 @@ const PRIORITY_ORDER: Record<ExceptionPriority, number> = {
 
 const TYPE_ORDER: Record<ExceptionType, number> = {
   outcome_recovery: 0,
-  overdue_callback: 1,
+  overdue_scheduled_call: 1,
   expired_lease: 2,
   pickup_risk: 3,
   workflow_failure: 4,
   missing_script: 5,
 };
 
-const EXCEPTION_ID_PATTERN = /^(queue:(outcome_recovery|overdue_callback|expired_lease)|workflow:failure|script:missing|order:pickup_risk):[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EXCEPTION_ID_PATTERN = /^(queue:(outcome_recovery|overdue_scheduled_call|expired_lease)|workflow:failure|script:missing|order:pickup_risk):[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function available(): ExceptionQueueSourceStatus {
   return { state: "available" };
@@ -240,8 +240,8 @@ function buildQueueExceptions(
 
     if (row.state === "scheduled" && isBefore(row.scheduled_at, now)) {
       items.push({
-        id: `queue:overdue_callback:${row.id}`,
-        type: "overdue_callback",
+        id: `queue:overdue_scheduled_call:${row.id}`,
+        type: "overdue_scheduled_call",
         priority: "high",
         reason: "The promised scheduled call time has passed and no newer queue state closed it.",
         owner,
@@ -467,7 +467,7 @@ export async function listTeamLeaderExceptions(): Promise<ExceptionQueueDTO> {
   const visibleQueueIds = queueItems.status === "fulfilled" ? queueItems.value.map((row) => row.id) : [];
   const visibleQueueExceptionKeys = visibleQueueIds.flatMap((queueId) => [
     `queue:outcome_recovery:${queueId}`,
-    `queue:overdue_callback:${queueId}`,
+    `queue:overdue_scheduled_call:${queueId}`,
     `queue:expired_lease:${queueId}`,
   ]);
   const visibleOrderExceptionKeys = pickupRiskOrders.status === "fulfilled"

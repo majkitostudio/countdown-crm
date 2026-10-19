@@ -8,15 +8,11 @@ export interface ScheduledCallQueueItem {
   scheduled_at: string | null;
 }
 
-export type CallbackQueueItem = ScheduledCallQueueItem;
-
 export interface ScheduledCallAttentionSummary {
   total: number;
   scheduled: number;
   overdue: number;
 }
-
-export type CallbackAttentionSummary = ScheduledCallAttentionSummary;
 
 function hasValidSchedule(item: ScheduledCallQueueItem): item is ScheduledCallQueueItem & { scheduled_at: string } {
   return item.state === "scheduled"
@@ -27,8 +23,6 @@ function hasValidSchedule(item: ScheduledCallQueueItem): item is ScheduledCallQu
 export function isOverdueScheduledCall(item: ScheduledCallQueueItem, now = new Date()): boolean {
   return hasValidSchedule(item) && Date.parse(item.scheduled_at) < now.getTime();
 }
-
-export const isOverdueCallback = isOverdueScheduledCall;
 
 export function getScheduledCallAttention(
   queueItems: ScheduledCallQueueItem[],
@@ -44,4 +38,3 @@ export function getScheduledCallAttention(
   };
 }
 
-export const getCallbackAttention = getScheduledCallAttention;

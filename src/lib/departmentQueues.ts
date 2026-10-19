@@ -38,7 +38,7 @@ export const DEPARTMENT_QUEUE_IN_PROGRESS_STATES: readonly DepartmentQueueItemSt
   "awaiting_outcome",
 ];
 /** Queue state for a scheduled call. */
-export const DEPARTMENT_QUEUE_CALLBACK_STATE: DepartmentQueueItemState = "scheduled";
+export const DEPARTMENT_QUEUE_SCHEDULED_STATE: DepartmentQueueItemState = "scheduled";
 
 export interface DepartmentQueueItemInput {
   team_id: string | null;
@@ -110,7 +110,7 @@ function summarize(counts: DepartmentQueueStateCounts, overdueCallbacks: number)
     open: total - counts.closed,
     waiting: sumStates(DEPARTMENT_QUEUE_WAITING_STATES),
     inProgress: sumStates(DEPARTMENT_QUEUE_IN_PROGRESS_STATES),
-    callbacks: counts[DEPARTMENT_QUEUE_CALLBACK_STATE],
+    callbacks: counts[DEPARTMENT_QUEUE_SCHEDULED_STATE],
     overdueCallbacks,
     closed: counts.closed,
     paused: counts.paused,

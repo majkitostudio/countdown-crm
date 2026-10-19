@@ -43,7 +43,7 @@ const sources: ExceptionQueueSourcesInput = {
         preferred_operator: null,
       },
       {
-        id: "queue-callback",
+        id: "queue-scheduled-call",
         lead_id: "lead-callback",
         state: "scheduled",
         assigned_operator_id: null,
@@ -168,14 +168,14 @@ describe("Team Leader Exception Queue", () => {
 
     expect(result.items.map((item) => ({ id: item.id, type: item.type, priority: item.priority }))).toEqual([
       { id: "queue:outcome_recovery:queue-recovery", type: "outcome_recovery", priority: "critical" },
-      { id: "queue:overdue_callback:queue-callback", type: "overdue_callback", priority: "high" },
+      { id: "queue:overdue_scheduled_call:queue-scheduled-call", type: "overdue_scheduled_call", priority: "high" },
       { id: "queue:expired_lease:queue-lease", type: "expired_lease", priority: "high" },
       { id: "order:pickup_risk:order-alarm", type: "pickup_risk", priority: "high" },
       { id: "workflow:failure:workflow-failure", type: "workflow_failure", priority: "medium" },
       { id: "script:missing:product-missing", type: "missing_script", priority: "medium" },
     ]);
     expect(result.items.every((item) => item.reason && item.target.label && item.next_action.href)).toBe(true);
-    expect(result.items.find((item) => item.type === "overdue_callback")?.owner).toEqual({
+    expect(result.items.find((item) => item.type === "overdue_scheduled_call")?.owner).toEqual({
       id: "operator-2",
       name: "Eva Operator",
     });
@@ -254,7 +254,7 @@ describe("Team Leader Exception Queue", () => {
             updated_at: "2026-09-06T09:50:00.000Z",
           },
           {
-            exception_key: "queue:overdue_callback:queue-callback",
+            exception_key: "queue:overdue_scheduled_call:queue-scheduled-call",
             status: "snoozed",
             resolution: "Customer asked for later.",
             snoozed_until: "2026-09-06T11:00:00.000Z",
@@ -272,11 +272,11 @@ describe("Team Leader Exception Queue", () => {
     }, now);
 
     expect(result.items.map((item) => item.id)).not.toContain("queue:outcome_recovery:queue-recovery");
-    expect(result.items.map((item) => item.id)).not.toContain("queue:overdue_callback:queue-callback");
+    expect(result.items.map((item) => item.id)).not.toContain("queue:overdue_scheduled_call:queue-scheduled-call");
     expect(result.items.map((item) => item.id)).toContain("queue:expired_lease:queue-lease");
     expect((result as typeof result & { history?: unknown[] }).history).toEqual([
       expect.objectContaining({ id: "queue:outcome_recovery:queue-recovery", status: "resolved" }),
-      expect.objectContaining({ id: "queue:overdue_callback:queue-callback", status: "snoozed" }),
+      expect.objectContaining({ id: "queue:overdue_scheduled_call:queue-scheduled-call", status: "snoozed" }),
     ]);
   });
 

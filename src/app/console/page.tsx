@@ -1001,7 +1001,6 @@ function WorkspaceContent() {
           handleCallOutcome("call_later");
           return;
         case "schedule_call":
-        case "schedule_callback":
           handleCallOutcome("schedule");
           return;
         case "fail":

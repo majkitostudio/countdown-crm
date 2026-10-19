@@ -3,7 +3,6 @@ export type OperatorKeyboardAction =
   | "toggle_mute"
   | "call_later"
   | "schedule_call"
-  | "schedule_callback" // Backward-compatible alias
   | "fail"
   | "create_order"
   | "focus_note";
