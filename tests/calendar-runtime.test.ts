@@ -3,7 +3,7 @@ import { DataAccessError } from "@/lib/dal/errors";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/dal/leadQueue", () => ({
-  listScheduledCallbacksForWorkspace: vi.fn(),
+  listScheduledCallsForWorkspace: vi.fn(),
 }));
 vi.mock("@/lib/dal/operatorReminders", () => ({
   listOperatorRemindersForWorkspace: vi.fn(),
@@ -14,17 +14,17 @@ vi.mock("@/lib/dal/workspace", () => ({
 
 import { buildCalendarLoadResult, type CalendarEntryDTO } from "@/lib/dal/calendar";
 
-const callbackEntry = {
-  id: "callback-1",
+const scheduledCallEntry = {
+  id: "scheduled-call-1",
   workspace_id: "workspace-1",
   lead_id: "lead-1",
   scheduled_at: "2026-09-04T09:00:00.000Z",
   preferred_operator_id: "operator-1",
   lead: {
     id: "lead-1",
-    full_name: "Callback Lead",
+    full_name: "Scheduled Call Lead",
     phone: "+420111111111",
-    email: "callback@example.com",
+    email: "scheduled.call@example.com",
   },
   preferred_operator: null,
 };
@@ -54,24 +54,24 @@ function getEntryTypes(entries: CalendarEntryDTO[]): Array<CalendarEntryDTO["typ
 }
 
 describe("calendar runtime partial-failure contract", () => {
-  it("keeps callback entries when reminders fail", () => {
+  it("keeps scheduled call entries when reminders fail", () => {
     const result = buildCalendarLoadResult(
-      { status: "fulfilled", value: [callbackEntry] },
+      { status: "fulfilled", value: [scheduledCallEntry] },
       {
         status: "rejected",
         reason: new DataAccessError("DATABASE", "Operator reminders could not be loaded."),
       },
     );
 
-    expect(result.entries).toEqual([expect.objectContaining({ type: "callback" })]);
-    expect(result.sources.callbacks).toEqual({ state: "available" });
+    expect(result.entries).toEqual([expect.objectContaining({ type: "scheduled_call" })]);
+    expect(result.sources.scheduledCalls).toEqual({ state: "available" });
     expect(result.sources.reminders).toEqual({
       state: "unavailable",
       message: "Operator reminders could not be loaded.",
     });
   });
 
-  it("keeps reminder entries when callbacks fail", () => {
+  it("keeps reminder entries when scheduled calls fail", () => {
     const result = buildCalendarLoadResult(
       {
         status: "rejected",
@@ -81,7 +81,7 @@ describe("calendar runtime partial-failure contract", () => {
     );
 
     expect(result.entries).toEqual([expect.objectContaining({ type: "reminder" })]);
-    expect(result.sources.callbacks).toEqual({
+    expect(result.sources.scheduledCalls).toEqual({
       state: "unavailable",
       message: "Scheduled calls could not be loaded.",
     });
@@ -102,7 +102,7 @@ describe("calendar runtime partial-failure contract", () => {
 
     expect(result.entries).toEqual([]);
     expect(result.sources).toEqual({
-      callbacks: {
+      scheduledCalls: {
         state: "unavailable",
         message: "Scheduled calls could not be loaded.",
       },
@@ -115,11 +115,11 @@ describe("calendar runtime partial-failure contract", () => {
 
   it("sorts successful entries across both sources by starts_at", () => {
     const result = buildCalendarLoadResult(
-      { status: "fulfilled", value: [callbackEntry] },
+      { status: "fulfilled", value: [scheduledCallEntry] },
       { status: "fulfilled", value: [reminderEntry] },
     );
 
-    expect(getEntryTypes(result.entries)).toEqual(["reminder", "callback"]);
+    expect(getEntryTypes(result.entries)).toEqual(["reminder", "scheduled_call"]);
     expect(result.entries.map((entry) => entry.starts_at)).toEqual([
       "2026-09-04T08:30:00.000Z",
       "2026-09-04T09:00:00.000Z",
@@ -128,11 +128,11 @@ describe("calendar runtime partial-failure contract", () => {
 
   it("uses a safe fallback message for unknown source rejections", () => {
     const result = buildCalendarLoadResult(
-      { status: "fulfilled", value: [callbackEntry] },
+      { status: "fulfilled", value: [scheduledCallEntry] },
       { status: "rejected", reason: new Error("socket hang up") },
     );
 
-    expect(result.entries).toEqual([expect.objectContaining({ type: "callback" })]);
+    expect(result.entries).toEqual([expect.objectContaining({ type: "scheduled_call" })]);
     expect(result.sources.reminders).toEqual({
       state: "unavailable",
       message: "Calendar source could not be loaded.",

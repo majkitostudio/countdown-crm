@@ -105,7 +105,7 @@ const sources: ConversationBriefSourcesInput = {
   },
   queueReason: {
     status: "fulfilled",
-    value: "Customer requested a morning callback",
+    value: "Customer requested a morning scheduledCall",
   },
   productScripts: {
     status: "fulfilled",
@@ -150,7 +150,7 @@ describe("operator Conversation Brief", () => {
     expect(from).not.toHaveBeenCalledWith("lead_queue_events");
   });
 
-  it("maps only recorded customer, contact, callback, note, order and script data", () => {
+  it("maps only recorded customer, contact, scheduledCall, note, order and script data", () => {
     const brief = buildConversationBrief(assignment, sources);
 
     expect(brief).toMatchObject({
@@ -159,7 +159,7 @@ describe("operator Conversation Brief", () => {
         full_name: "Jana Nováková",
         problem: "Hledá šetrné řešení pro bolest kloubů.",
       },
-      queue_reason: "Customer requested a morning callback",
+      queue_reason: "Customer requested a morning scheduledCall",
       last_contact: {
         id: "call-2",
         occurred_at: "2026-09-04T14:00:00.000Z",
@@ -173,7 +173,7 @@ describe("operator Conversation Brief", () => {
         body: "Preferuje dopolední telefonát.",
         author_name: "Petr Operátor",
       },
-      callback: {
+      scheduledCall: {
         scheduled_at: "2026-09-06T09:30:00.000Z",
         source: "assignment",
       },
@@ -191,7 +191,7 @@ describe("operator Conversation Brief", () => {
     });
     expect(brief.sources).toEqual({
       call: { state: "available" },
-      callback: { state: "available" },
+      scheduledCall: { state: "available" },
       note: { state: "available" },
       order: { state: "available" },
       queue_reason: { state: "available" },
@@ -215,7 +215,7 @@ describe("operator Conversation Brief", () => {
     expect(brief.last_contact).toBeNull();
     expect(brief.last_outcome).toBeNull();
     expect(brief.last_note).toBeNull();
-    expect(brief.callback).toBeNull();
+    expect(brief.scheduledCall).toBeNull();
     expect(brief.last_order).toBeNull();
     expect(brief.queue_reason).toBeNull();
     expect(brief.product_context).toEqual({
@@ -233,7 +233,7 @@ describe("operator Conversation Brief", () => {
     expect(brief.next_safe_step.kind).toBe("verify_script_before_call");
   });
 
-  it("does not report no callback when call and callback history are unavailable", () => {
+  it("does not report no scheduled call when call and scheduled call history are unavailable", () => {
     const brief = buildConversationBrief(
       { ...assignment, scheduled_at: null },
       {
@@ -242,12 +242,12 @@ describe("operator Conversation Brief", () => {
       },
     );
 
-    expect(brief.callback).toBeNull();
+    expect(brief.scheduledCall).toBeNull();
     expect(brief.sources.call).toEqual({
       state: "unavailable",
       message: "Call history is unavailable.",
     });
-    expect(brief.sources.callback).toEqual({
+    expect(brief.sources.scheduledCall).toEqual({
       state: "unavailable",
       message: "Schedule history is unavailable.",
     });

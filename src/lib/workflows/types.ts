@@ -226,7 +226,7 @@ export interface CallEndedPayload {
   sentiment: string;
   orderValue: number;
   transcript: string;
-  callbackScheduledAt?: string | null;
+  scheduledAt?: string | null;
   failReason?: string | null;
   operatorNote?: string;
 }

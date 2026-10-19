@@ -60,8 +60,8 @@ export function TeamQueuesSummaryStrip({ overview, onOpenQueues, onOpenDepartmen
     name: department.name,
     waiting: department.waiting,
     inProgress: department.inProgress,
-    scheduled: department.callbacks,
-    overdue: department.overdueCallbacks,
+    scheduled: department.scheduledCalls,
+    overdue: department.overdueScheduledCalls,
   }));
 
   const showUnattributed = overview.unattributed.total > 0;

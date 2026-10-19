@@ -51,7 +51,7 @@ export interface CallReviewDTO {
     outcome: string | null;
     failReason: string | null;
     operatorNote: string | null;
-    callbackScheduledAt: string | null;
+    scheduledAt: string | null;
   };
   customer: { id: string; name: string | null } | null;
   operator: { id: string; name: string | null } | null;
@@ -218,7 +218,7 @@ async function getDirectCallReview(
       outcome: payload.call.outcome,
       failReason: payload.call.fail_reason,
       operatorNote: payload.call.operator_note,
-      callbackScheduledAt: payload.call.scheduled_at,
+      scheduledAt: payload.call.scheduled_at,
     },
     customer: payload.customer,
     operator: payload.operator,
@@ -341,7 +341,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
       outcome: call.outcome,
       failReason: call.fail_reason,
       operatorNote: call.operator_note,
-      callbackScheduledAt: call.scheduled_at,
+      scheduledAt: call.scheduled_at,
     },
     customer: call.lead_id
       ? { id: call.lead_id, name: lead?.full_name || null }

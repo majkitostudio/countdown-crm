@@ -33,7 +33,7 @@ import {
 import type { TranscriptEntry } from "@/lib/callTranscript";
 import { completeCallAction } from "@/app/actions/crm";
 import { requestAssistanceAction } from "@/app/actions/assistance";
-import { listScheduledCallbacksAction } from "@/app/actions/calendar";
+import { listScheduledCallsAction } from "@/app/actions/calendar";
 import { listLeadNotesAction } from "@/app/actions/leadNotes";
 import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getConversationBriefAction } from "@/app/actions/conversationBrief";
@@ -60,7 +60,7 @@ import {
   OperatorNextActionPanel,
 } from "@/components/workspace/OperatorNextActionPanel";
 import type {
-  OperatorCallbackSignal,
+  OperatorScheduledCallSignal,
   OperatorNextActionState,
 } from "@/components/workspace/operatorNextAction";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -87,7 +87,7 @@ interface WorkspaceCompletionRetryPayload {
   orderStatus: PostCallSummary["orderStatus"];
   orderValue: number;
   orderProductId?: string;
-  callbackScheduledAt?: string;
+  scheduledAt?: string;
   orderItems?: import("@/lib/callOrder").CallOrderItemInput[];
   operatorNote?: string;
   failReason?: FailReason;
@@ -106,7 +106,7 @@ type OperatorConsoleState =
   | "dialing"
   | "in_call"
   | "awaiting_outcome"
-  | "callback_modal"
+  | "schedule_modal"
   | "completion_pending"
   | "recovery_required"
   | "post_call_summary";
@@ -137,12 +137,12 @@ function WorkspaceContent() {
   const [activityRefreshToken, setActivityRefreshToken] = useState(0);
   const [notificationToast, setNotificationToast] = useState<string | null>(null);
   const [assistancePending, setAssistancePending] = useState(false);
-  const [isCallbackScheduleOpen, setIsCallbackScheduleOpen] = useState(false);
-  const [isCallbackSchedulePending, setIsCallbackSchedulePending] = useState(false);
-  const [callbackScheduleError, setCallbackScheduleError] = useState<string | null>(null);
-  const [scheduledCallbacks, setScheduledCallbacks] = useState<OperatorCallbackSignal[]>([]);
-  const [isCallbacksLoading, setIsCallbacksLoading] = useState(false);
-  const [callbackInboxError, setCallbackInboxError] = useState<string | null>(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isScheduleModalPending, setIsScheduleModalPending] = useState(false);
+  const [scheduleModalError, setScheduleModalError] = useState<string | null>(null);
+  const [scheduledCalls, setScheduledCalls] = useState<OperatorScheduledCallSignal[]>([]);
+  const [isScheduledCallsLoading, setIsScheduledCallsLoading] = useState(false);
+  const [scheduledCallInboxError, setScheduledCallInboxError] = useState<string | null>(null);
   const [isAssignmentRefreshing, setIsAssignmentRefreshing] = useState(false);
   const [isCallStartPending, setIsCallStartPending] = useState(false);
   const [isEndCallPending, setIsEndCallPending] = useState(false);
@@ -176,27 +176,27 @@ function WorkspaceContent() {
     ? softphoneSession.startTime.toISOString()
     : null;
 
-  const refreshCallbackInbox = useCallback(async () => {
+  const refreshScheduledCallInbox = useCallback(async () => {
     if (identity?.role !== "operator") return;
 
-    setIsCallbacksLoading(true);
-    setCallbackInboxError(null);
+    setIsScheduledCallsLoading(true);
+    setScheduledCallInboxError(null);
     try {
       const from = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const to = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
-      const callbacks = await listScheduledCallbacksAction(from, to);
-      setScheduledCallbacks(callbacks.map((callback) => ({
-        id: callback.id,
-        leadId: callback.lead_id,
-        leadName: callback.lead.full_name,
-        phone: callback.lead.phone,
-        scheduledAt: callback.scheduled_at,
+      const scheduledCalls = await listScheduledCallsAction(from, to);
+      setScheduledCalls(scheduledCalls.map((scheduledCall) => ({
+        id: scheduledCall.id,
+        leadId: scheduledCall.lead_id,
+        leadName: scheduledCall.lead.full_name,
+        phone: scheduledCall.lead.phone,
+        scheduledAt: scheduledCall.scheduled_at,
       })));
     } catch (error) {
-      setScheduledCallbacks([]);
-      setCallbackInboxError(error instanceof Error ? error.message : "Schedule inbox could not be loaded.");
+      setScheduledCalls([]);
+      setScheduledCallInboxError(error instanceof Error ? error.message : "Schedule inbox could not be loaded.");
     } finally {
-      setIsCallbacksLoading(false);
+      setIsScheduledCallsLoading(false);
     }
   }, [identity?.role]);
 
@@ -234,13 +234,13 @@ function WorkspaceContent() {
       );
       setNotificationToast(null);
       setAssistancePending(false);
-      await refreshCallbackInbox();
+      await refreshScheduledCallInbox();
     } catch (error) {
       setNotificationToast(error instanceof Error ? error.message : "The operator assignment could not be refreshed.");
     } finally {
       setIsAssignmentRefreshing(false);
     }
-  }, [identity?.role, refreshCallbackInbox]);
+  }, [identity?.role, refreshScheduledCallInbox]);
 
   useEffect(() => {
     activeQueueItemIdRef.current = activeQueueItemId;
@@ -338,10 +338,10 @@ function WorkspaceContent() {
   useEffect(() => {
     if (isIdentityLoading || identity?.role !== "operator") return;
     const refreshTimer = window.setTimeout(() => {
-      void refreshCallbackInbox();
+      void refreshScheduledCallInbox();
     }, 0);
     return () => window.clearTimeout(refreshTimer);
-  }, [activityRefreshToken, identity?.role, isIdentityLoading, refreshCallbackInbox]);
+  }, [activityRefreshToken, identity?.role, isIdentityLoading, refreshScheduledCallInbox]);
 
   useEffect(() => {
     return () => {
@@ -503,7 +503,7 @@ function WorkspaceContent() {
     orderStatus: PostCallSummary["orderStatus"],
     orderValue = 0,
     orderProductId?: string,
-    callbackScheduledAt?: string,
+    scheduledAt?: string,
     orderItems?: import("@/lib/callOrder").CallOrderItemInput[],
     operatorNote?: string,
     failReason?: FailReason,
@@ -541,7 +541,7 @@ function WorkspaceContent() {
           order_product_id: orderProductId || null,
           order_total_amount: orderProductId ? orderValue : null,
           transcript: recordedTranscript,
-          scheduled_at: queueOutcome === "followup_scheduled" ? callbackScheduledAt || null : null,
+          scheduled_at: queueOutcome === "followup_scheduled" ? scheduledAt || null : null,
           operator_note: operatorNote?.trim() || null,
           fail_reason: failReason || null,
         });
@@ -590,7 +590,7 @@ function WorkspaceContent() {
         transcript: recordedTranscript,
         operator_note: operatorNote?.trim() || null,
         fail_reason: failReason || null,
-        scheduled_at: outcome === "followup_scheduled" ? callbackScheduledAt || null : null,
+        scheduled_at: outcome === "followup_scheduled" ? scheduledAt || null : null,
       });
 
       softphoneController.hangup();
@@ -635,7 +635,7 @@ function WorkspaceContent() {
           orderStatus,
           orderValue,
           orderProductId,
-          callbackScheduledAt,
+          scheduledAt,
           orderItems,
           operatorNote,
           failReason,
@@ -672,7 +672,7 @@ function WorkspaceContent() {
       payload.orderStatus,
       payload.orderValue,
       payload.orderProductId,
-      payload.callbackScheduledAt,
+      payload.scheduledAt,
       payload.orderItems,
       payload.operatorNote,
       payload.failReason,
@@ -733,8 +733,8 @@ function WorkspaceContent() {
         return;
       }
 
-      setCallbackScheduleError(null);
-      setIsCallbackScheduleOpen(true);
+      setScheduleModalError(null);
+      setIsScheduleModalOpen(true);
     } else {
       // Start Outbound Call
       if (!activeLead) {
@@ -937,8 +937,8 @@ function WorkspaceContent() {
     }
 
     if (outcome === "schedule") {
-      setCallbackScheduleError(null);
-      setIsCallbackScheduleOpen(true);
+      setScheduleModalError(null);
+      setIsScheduleModalOpen(true);
       return;
     }
 
@@ -951,10 +951,10 @@ function WorkspaceContent() {
     void completeCall(callOutcome, outcomeLabel, "not_created", 0, undefined, undefined, undefined, failDetails?.note, failDetails?.failReason);
   }, [activeLead, activeQueueItemId, completeCall, isAwaitingOutcome, router, softphoneSession.id]);
 
-  const handleScheduleCallback = async (scheduledAt: string) => {
+  const handleScheduleCall = async (scheduledAt: string) => {
     if (!isAwaitingOutcome) return;
-    setIsCallbackSchedulePending(true);
-    setCallbackScheduleError(null);
+    setIsScheduleModalPending(true);
+    setScheduleModalError(null);
     const completion = await completeCall(
       "followup_scheduled",
       "Follow-up scheduled",
@@ -964,11 +964,11 @@ function WorkspaceContent() {
       scheduledAt,
     );
     if (completion) {
-      setIsCallbackScheduleOpen(false);
+      setIsScheduleModalOpen(false);
     } else {
-      setCallbackScheduleError("Naplánovaný hovor se nepodařilo uložit. Zkontrolujte aktivní assignment a zkuste to znovu.");
+      setScheduleModalError("Naplánovaný hovor se nepodařilo uložit. Zkontrolujte aktivní assignment a zkuste to znovu.");
     }
-    setIsCallbackSchedulePending(false);
+    setIsScheduleModalPending(false);
   };
 
   const handleNextLead = useCallback(() => {
@@ -983,7 +983,7 @@ function WorkspaceContent() {
     if (identity?.role !== "operator") return;
 
     const handleKeyboardShortcut = (event: KeyboardEvent) => {
-      if (isIncomingCallOpen || isCallbackScheduleOpen) return;
+      if (isIncomingCallOpen || isScheduleModalOpen) return;
 
       const action = getOperatorKeyboardAction(event);
       if (!action) return;
@@ -1022,7 +1022,7 @@ function WorkspaceContent() {
 
     window.addEventListener("keydown", handleKeyboardShortcut);
     return () => window.removeEventListener("keydown", handleKeyboardShortcut);
-  }, [identity?.role, isIncomingCallOpen, isCallbackScheduleOpen, isCallActive, handleToggleCall, handleCallOutcome]);
+  }, [identity?.role, isIncomingCallOpen, isScheduleModalOpen, isCallActive, handleToggleCall, handleCallOutcome]);
 
   const operatorConsoleState: OperatorConsoleState = isLoading
     ? "loading"
@@ -1032,8 +1032,8 @@ function WorkspaceContent() {
         ? "post_call_summary"
         : identity?.role === "operator" && !activeLead
           ? "waiting_assignment"
-          : isCallbackScheduleOpen
-            ? "callback_modal"
+          : isScheduleModalOpen
+            ? "schedule_modal"
             : isCompletionPending
               ? "completion_pending"
               : recoveryRequired
@@ -1054,7 +1054,7 @@ function WorkspaceContent() {
     dialing: { label: "Dialing", tone: "neutral" as const },
     in_call: { label: "In call", tone: "neutral" as const },
     awaiting_outcome: { label: "Awaiting outcome", tone: "warning" as const },
-    callback_modal: { label: "Schedule", tone: "warning" as const },
+    schedule_modal: { label: "Schedule", tone: "warning" as const },
     completion_pending: { label: "Saving outcome", tone: "warning" as const },
     recovery_required: { label: "Recovery required", tone: "warning" as const },
     post_call_summary: { label: "Call completed", tone: "neutral" as const },
@@ -1070,7 +1070,7 @@ function WorkspaceContent() {
       return;
     }
 
-    if (operatorConsoleState === "awaiting_outcome" || operatorConsoleState === "callback_modal") {
+    if (operatorConsoleState === "awaiting_outcome" || operatorConsoleState === "schedule_modal") {
       document.getElementById("call-outcome-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
@@ -1087,12 +1087,12 @@ function WorkspaceContent() {
     <OperatorNextActionPanel
       state={operatorActionState}
       leadName={activeLead?.full_name || null}
-      callbacks={scheduledCallbacks}
-      isCallbacksLoading={isCallbacksLoading}
-      callbackError={callbackInboxError}
+      scheduledCalls={scheduledCalls}
+      isScheduledCallsLoading={isScheduledCallsLoading}
+      scheduledCallError={scheduledCallInboxError}
       isAssignmentRefreshing={isAssignmentRefreshing}
       onPrimaryAction={handleNextAction}
-      onRefreshCallbacks={() => void refreshCallbackInbox()}
+      onRefreshScheduledCalls={() => void refreshScheduledCallInbox()}
     />
   ) : null;
 
@@ -1115,9 +1115,9 @@ function WorkspaceContent() {
       onRequestHelp={identity?.role === "operator" ? requestAssistance : undefined}
       assistancePending={assistancePending}
       onCallOutcome={identity?.role === "operator" ? handleCallOutcome : undefined}
-      onScheduleCallback={identity?.role === "operator" ? () => {
-        setCallbackScheduleError(null);
-        setIsCallbackScheduleOpen(true);
+      onScheduleCall={identity?.role === "operator" ? () => {
+        setScheduleModalError(null);
+        setIsScheduleModalOpen(true);
       } : undefined}
       onCreateOrder={identity?.role === "operator" ? undefined : () => {
         if (isCallActive || isDialing) {
@@ -1300,14 +1300,14 @@ function WorkspaceContent() {
       />
 
       <CallbackScheduleModal
-        isOpen={isCallbackScheduleOpen}
+        isOpen={isScheduleModalOpen}
         leadName={activeLead?.full_name}
-        isSubmitting={isCallbackSchedulePending}
-        errorMessage={callbackScheduleError}
+        isSubmitting={isScheduleModalPending}
+        errorMessage={scheduleModalError}
         onClose={() => {
-          if (!isCallbackSchedulePending) setIsCallbackScheduleOpen(false);
+          if (!isScheduleModalPending) setIsScheduleModalOpen(false);
         }}
-        onSchedule={handleScheduleCallback}
+        onSchedule={handleScheduleCall}
       />
 
       {products[0] && (

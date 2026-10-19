@@ -5,7 +5,7 @@ import type { CalendarEntryDTO } from "@/lib/dal/calendar";
 describe("buildScheduleBuckets", () => {
   const fixedNow = new Date("2026-10-17T12:00:00.000Z");
 
-  const makeEntry = (id: string, startsAt: string, type: "callback" | "reminder" = "callback", status: "scheduled" | "open" | "completed" = "scheduled"): CalendarEntryDTO => ({
+  const makeEntry = (id: string, startsAt: string, type: "scheduled_call" | "reminder" = "scheduled_call", status: "scheduled" | "open" | "completed" = "scheduled"): CalendarEntryDTO => ({
     id,
     type,
     title: `Entry ${id}`,

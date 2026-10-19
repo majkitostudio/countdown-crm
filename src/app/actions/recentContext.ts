@@ -2,19 +2,19 @@
 
 import { getLeadActivities } from "@/lib/domainActivity";
 import {
-  listScheduledCallbacksForWorkspace,
-  type ScheduledCallbackDTO,
+  listScheduledCallsForWorkspace,
+  type ScheduledCallDTO,
 } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
 import type {
-  RecentContextCallback,
+  RecentContextScheduledCall,
   RecentContextSourceState,
 } from "@/components/workspace/recentContext";
 import type { WorkspaceActivity } from "@/lib/domain";
 
 export interface RecentContextSourcesActionResult {
   activities: RecentContextSourceState<WorkspaceActivity[]>;
-  callbacks: RecentContextSourceState<RecentContextCallback[]>;
+  scheduledCalls: RecentContextSourceState<RecentContextScheduledCall[]>;
 }
 
 function sourceRange(): { from: string; to: string } {
@@ -41,17 +41,17 @@ function resolveSource<T>(result: PromiseSettledResult<T>): RecentContextSourceS
   throw result.reason;
 }
 
-function mapCallbacks(
-  callbacks: RecentContextSourceState<ScheduledCallbackDTO[]>,
-): RecentContextSourceState<RecentContextCallback[]> {
-  if (callbacks.status === "unavailable") return callbacks;
+function mapScheduledCalls(
+  scheduledCalls: RecentContextSourceState<ScheduledCallDTO[]>,
+): RecentContextSourceState<RecentContextScheduledCall[]> {
+  if (scheduledCalls.status === "unavailable") return scheduledCalls;
 
   return {
     status: "ready",
-    data: callbacks.data.map((callback) => ({
-      id: callback.id,
-      lead_id: callback.lead_id,
-      scheduled_at: callback.scheduled_at,
+    data: scheduledCalls.data.map((scheduledCall) => ({
+      id: scheduledCall.id,
+      lead_id: scheduledCall.lead_id,
+      scheduled_at: scheduledCall.scheduled_at,
     })),
   };
 }
@@ -60,13 +60,13 @@ export async function loadRecentContextSourcesAction(
   _leadId: string,
 ): Promise<RecentContextSourcesActionResult> {
   const { from, to } = sourceRange();
-  const [activitiesResult, callbacksResult] = await Promise.allSettled([
+  const [activitiesResult, scheduledCallsResult] = await Promise.allSettled([
     getLeadActivities(_leadId),
-    listScheduledCallbacksForWorkspace(from, to),
+    listScheduledCallsForWorkspace(from, to),
   ]);
 
   const activities = resolveSource(activitiesResult);
-  const callbacks = mapCallbacks(resolveSource(callbacksResult));
+  const scheduledCalls = mapScheduledCalls(resolveSource(scheduledCallsResult));
 
-  return { activities, callbacks };
+  return { activities, scheduledCalls };
 }

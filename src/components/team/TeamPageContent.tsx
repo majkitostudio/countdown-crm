@@ -226,8 +226,8 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
     return {
       metric,
       orders: checkpoint.orders.filter((order) => order.operatorId === selectedOperatorId),
-      overdueCallbacks: checkpoint.overdueCallbacks.filter((callback) => callback.operatorName === metric.operatorName),
-      upcomingCallbacks: checkpoint.upcomingCallbacks.filter((callback) => callback.operatorName === metric.operatorName),
+      overdueScheduledCalls: checkpoint.overdueScheduledCalls.filter((scheduledCall) => scheduledCall.operatorName === metric.operatorName),
+      upcomingScheduledCalls: checkpoint.upcomingScheduledCalls.filter((scheduledCall) => scheduledCall.operatorName === metric.operatorName),
       recentCalls: checkpoint.recentCallsByOperator[selectedOperatorId] || [],
       assistanceRequests: openAssistance.filter((request) => request.operatorId === selectedOperatorId),
       qualityReviews: qualityList.filter((review) => review.operator?.id === selectedOperatorId),

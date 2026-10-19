@@ -84,8 +84,6 @@ export interface ScheduledCallDTO {
   preferred_operator: { id: string; full_name: string; email: string } | null;
 }
 
-export type ScheduledCallbackDTO = ScheduledCallDTO;
-
 export interface CompleteLeadCallInput {
   queue_item_id: string;
   /** Server-created identity for this individual call attempt. */
@@ -355,7 +353,7 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       sentiment: input.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: input.transcript || "",
-      callbackScheduledAt: input.scheduled_at || null,
+      scheduledAt: input.scheduled_at || null,
       failReason: input.fail_reason || null,
       operatorNote: operatorNote.trim(),
     },
@@ -401,11 +399,11 @@ export async function listQueueItemsForWorkspace(
   return (data || []) as unknown as QueueItemDTO[];
 }
 
-export async function listScheduledCallbacksForWorkspace(
+export async function listScheduledCallsForWorkspace(
   from: string,
   to: string,
   workspaceId?: string,
-): Promise<ScheduledCallbackDTO[]> {
+): Promise<ScheduledCallDTO[]> {
   const context = await requireWorkspaceContext(workspaceId);
   const supabase = await createDataClient();
   let queueQuery = supabase
@@ -445,15 +443,15 @@ export async function listScheduledCallbacksForWorkspace(
   ]);
   if (queueError || directError) throw new DataAccessError("DATABASE", "Scheduled calls could not be loaded.");
 
-  const queueCallbacks = (queueData || []) as unknown as ScheduledCallbackDTO[];
-  const directCallbacks = (directData || []).map((callback) => {
-    const row = callback as unknown as {
+  const queueScheduledCalls = (queueData || []) as unknown as ScheduledCallDTO[];
+  const directScheduledCalls = (directData || []).map((scheduledCall) => {
+    const row = scheduledCall as unknown as {
       id: string;
       workspace_id: string;
       lead_id: string;
       agent_id: string | null;
       scheduled_at: string;
-      lead: ScheduledCallbackDTO["lead"];
+      lead: ScheduledCallDTO["lead"];
     };
     return {
       id: row.id,
@@ -463,10 +461,10 @@ export async function listScheduledCallbacksForWorkspace(
       preferred_operator_id: row.agent_id,
       lead: row.lead,
       preferred_operator: null,
-    } satisfies ScheduledCallbackDTO;
+    } satisfies ScheduledCallDTO;
   });
 
-  return [...queueCallbacks, ...directCallbacks].sort(
+  return [...queueScheduledCalls, ...directScheduledCalls].sort(
     (left, right) => Date.parse(left.scheduled_at) - Date.parse(right.scheduled_at),
   );
 }

@@ -141,7 +141,7 @@ function buildCalendarCheck(
     "Calendar",
     "ready",
     "Calendar sources are available.",
-    `${probe.value.entries.length} calendar entries were returned by callbacks and reminders.`,
+    `${probe.value.entries.length} calendar entries were returned by scheduled calls and reminders.`,
     checkedAt,
     "/schedule",
   );

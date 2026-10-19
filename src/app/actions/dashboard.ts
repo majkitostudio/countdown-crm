@@ -45,8 +45,8 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
     const warnings: string[] = [];
     const calendar = calendarResult.status === "fulfilled" ? calendarResult.value : null;
     if (calendarResult.status === "rejected") warnings.push("Naplánované hovory a reminders nejsou dostupné.");
-    if (calendar?.sources.callbacks.state === "unavailable") {
-      warnings.push(`Naplánované hovory nejsou dostupné: ${calendar.sources.callbacks.message}`);
+    if (calendar?.sources.scheduledCalls.state === "unavailable") {
+      warnings.push(`Naplánované hovory nejsou dostupné: ${calendar.sources.scheduledCalls.message}`);
     }
     if (calendar?.sources.reminders.state === "unavailable") {
       warnings.push(`Reminders nejsou dostupné: ${calendar.sources.reminders.message}`);
@@ -55,8 +55,8 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
     if (reviewsResult.status === "rejected") warnings.push("Review fronta není dostupná.");
 
     const calendarEntries = calendar?.entries ?? [];
-    const callbacks = calendarEntries
-      .filter((entry) => entry.type === "callback" && entry.lead)
+    const scheduledCalls = calendarEntries
+      .filter((entry) => entry.type === "scheduled_call" && entry.lead)
       .map((entry) => ({
         id: entry.id,
         lead_id: entry.lead!.id,
@@ -78,7 +78,7 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
       brief: buildTeamLeaderDailyBrief({
         daily: analyticsResult.value.daily,
         scope,
-        callbacks,
+        scheduledCalls,
         reminders,
         pendingReviews: reviewsResult.status === "fulfilled" ? reviewsResult.value : null,
         wallet,

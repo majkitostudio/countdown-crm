@@ -42,8 +42,8 @@ describe("buildDepartmentQueueOverview", () => {
       expect(department.open).toBe(0);
       expect(department.waiting).toBe(0);
       expect(department.inProgress).toBe(0);
-      expect(department.callbacks).toBe(0);
-      expect(department.overdueCallbacks).toBe(0);
+      expect(department.scheduledCalls).toBe(0);
+      expect(department.overdueScheduledCalls).toBe(0);
       expect(department.teams).toEqual([]);
       expect(department.purpose.length).toBeGreaterThan(0);
     }
@@ -116,7 +116,7 @@ describe("buildDepartmentQueueOverview", () => {
     expect(overview.departments.every((department) => department.total === 0)).toBe(true);
   });
 
-  it("counts callbacks and overdue callbacks against the supplied clock", () => {
+  it("counts scheduled calls and overdue scheduled calls against the supplied clock", () => {
     const overview = buildDepartmentQueueOverview(
       [
         item({ team_id: "t-p2", state: "scheduled", scheduled_at: "2026-10-15T09:00:00.000Z" }),
@@ -127,11 +127,11 @@ describe("buildDepartmentQueueOverview", () => {
     );
 
     const p2 = departmentByKey(overview, "P2");
-    expect(p2.callbacks).toBe(2);
-    expect(p2.overdueCallbacks).toBe(1);
+    expect(p2.scheduledCalls).toBe(2);
+    expect(p2.overdueScheduledCalls).toBe(1);
   });
 
-  it("ignores a callback with an invalid schedule rather than counting it overdue", () => {
+  it("ignores a scheduled call with an invalid schedule rather than counting it overdue", () => {
     const overview = buildDepartmentQueueOverview(
       [item({ team_id: "t-p2", state: "scheduled", scheduled_at: "not-a-date" })],
       [team("t-p2", "p2", "Department P2")],
@@ -139,8 +139,8 @@ describe("buildDepartmentQueueOverview", () => {
     );
 
     const p2 = departmentByKey(overview, "P2");
-    expect(p2.callbacks).toBe(1);
-    expect(p2.overdueCallbacks).toBe(0);
+    expect(p2.scheduledCalls).toBe(1);
+    expect(p2.overdueScheduledCalls).toBe(0);
   });
 });
 

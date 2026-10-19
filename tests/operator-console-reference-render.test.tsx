@@ -94,7 +94,7 @@ it("supports stacked actions for dense workspace header controls", () => {
       title="Operator Console"
       description="Handle the assigned customer."
       actionsLayout="stacked"
-      actions={<div data-testid="dense-actions">Next action and callbacks</div>}
+      actions={<div data-testid="dense-actions">Next action and scheduledCalls</div>}
     />,
   );
 

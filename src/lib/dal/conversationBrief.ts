@@ -73,7 +73,7 @@ export interface ConversationBriefDTO {
     operator_note: string | null;
   } | null;
   last_note: ConversationBriefNoteSource | null;
-  callback: {
+  scheduledCall: {
     scheduled_at: string;
     source: "assignment" | "last_call";
   } | null;
@@ -93,7 +93,7 @@ export interface ConversationBriefDTO {
   };
   sources: {
     call: ConversationBriefSourceState;
-    callback: ConversationBriefSourceState;
+    scheduledCall: ConversationBriefSourceState;
     note: ConversationBriefSourceState;
     order: ConversationBriefSourceState;
     queue_reason: ConversationBriefSourceState;
@@ -169,9 +169,9 @@ export function buildConversationBrief(
   const queueReasonState = sourceState(input.queueReason, "Routing reason is unavailable.");
   const productScriptState = sourceState(input.productScripts, "Approved product guidance is unavailable.");
   const call = input.call.status === "fulfilled" ? input.call.value : null;
-  const callbackFromAssignment = cleanOptionalText(assignment.scheduled_at);
-  const callbackFromCall = call ? cleanOptionalText(call.scheduled_at) : null;
-  const callbackState = callbackFromAssignment || input.call.status === "fulfilled"
+  const scheduledCallFromAssignment = cleanOptionalText(assignment.scheduled_at);
+  const scheduledCallFromCall = call ? cleanOptionalText(call.scheduled_at) : null;
+  const scheduledCallState = scheduledCallFromAssignment || input.call.status === "fulfilled"
     ? { state: "available" } as const
     : { state: "unavailable", message: "Schedule history is unavailable." } as const;
   const note = input.note.status === "fulfilled" ? input.note.value : null;
@@ -207,10 +207,10 @@ export function buildConversationBrief(
     last_note: note
       ? { ...note, body: note.body.trim(), author_name: note.author_name.trim() || "Unknown operator" }
       : null,
-    callback: callbackFromAssignment
-      ? { scheduled_at: callbackFromAssignment, source: "assignment" }
-      : callbackFromCall
-        ? { scheduled_at: callbackFromCall, source: "last_call" }
+    scheduledCall: scheduledCallFromAssignment
+      ? { scheduled_at: scheduledCallFromAssignment, source: "assignment" }
+      : scheduledCallFromCall
+        ? { scheduled_at: scheduledCallFromCall, source: "last_call" }
         : null,
     last_order: order,
     product_context: productScripts
@@ -225,7 +225,7 @@ export function buildConversationBrief(
     next_safe_step: nextSafeStep(assignment, input.productScripts),
     sources: {
       call: callState,
-      callback: callbackState,
+      scheduledCall: scheduledCallState,
       note: noteState,
       order: orderState,
       queue_reason: queueReasonState,

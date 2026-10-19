@@ -159,8 +159,8 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
                 <div className="mt-4 grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
                   <Metric label="Čeká" value={department.waiting} />
                   <Metric label="V řešení" value={department.inProgress} />
-                  <Metric label="Naplánované" value={department.callbacks} />
-                  <Metric label="Po termínu" value={department.overdueCallbacks} warning />
+                  <Metric label="Naplánované" value={department.scheduledCalls} />
+                  <Metric label="Po termínu" value={department.overdueScheduledCalls} warning />
                 </div>
               </button>
             );

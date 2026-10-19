@@ -44,7 +44,7 @@ const sources: ExceptionQueueSourcesInput = {
       },
       {
         id: "queue-scheduled-call",
-        lead_id: "lead-callback",
+        lead_id: "lead-scheduled-call",
         state: "scheduled",
         assigned_operator_id: null,
         preferred_operator_id: "operator-2",
@@ -52,7 +52,7 @@ const sources: ExceptionQueueSourcesInput = {
         lease_expires_at: null,
         recovery_required: false,
         updated_at: "2026-09-06T08:00:00.000Z",
-        lead: { full_name: "Callback Customer" },
+        lead: { full_name: "Scheduled Call Customer" },
         assigned_operator: null,
         preferred_operator: { full_name: "Eva Operator" },
       },

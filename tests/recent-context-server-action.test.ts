@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getLeadActivities: vi.fn(),
-  listScheduledCallbacksForWorkspace: vi.fn(),
+  listScheduledCallsForWorkspace: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -10,7 +10,7 @@ vi.mock("@/lib/domainActivity", () => ({
   getLeadActivities: mocks.getLeadActivities,
 }));
 vi.mock("@/lib/dal/leadQueue", () => ({
-  listScheduledCallbacksForWorkspace: mocks.listScheduledCallbacksForWorkspace,
+  listScheduledCallsForWorkspace: mocks.listScheduledCallsForWorkspace,
 }));
 
 import { DataAccessError } from "@/lib/dal/errors";
@@ -26,8 +26,8 @@ const activities = [{
   source: "supabase" as const,
 }];
 
-const callbacks = [{
-  id: "callback-1",
+const scheduledCalls = [{
+  id: "scheduled-call-1",
   workspace_id: "workspace-1",
   lead_id: "lead-1",
   scheduled_at: "2026-09-01T10:00:00.000Z",
@@ -40,11 +40,11 @@ describe("recent context server source boundary", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getLeadActivities.mockResolvedValue(activities);
-    mocks.listScheduledCallbacksForWorkspace.mockResolvedValue(callbacks);
+    mocks.listScheduledCallsForWorkspace.mockResolvedValue(scheduledCalls);
   });
 
   it("returns serializable source states and preserves the available source", async () => {
-    mocks.listScheduledCallbacksForWorkspace.mockRejectedValue(
+    mocks.listScheduledCallsForWorkspace.mockRejectedValue(
       new DataAccessError("DATABASE", "Scheduled calls could not be loaded."),
     );
 
@@ -52,7 +52,7 @@ describe("recent context server source boundary", () => {
 
     expect(result).toEqual({
       activities: { status: "ready", data: activities },
-      callbacks: {
+      scheduledCalls: {
         status: "unavailable",
         reason: "database",
         message: "Scheduled calls could not be loaded.",
@@ -63,11 +63,11 @@ describe("recent context server source boundary", () => {
 
   it("keeps verified empty data as ready with an empty array", async () => {
     mocks.getLeadActivities.mockResolvedValue([]);
-    mocks.listScheduledCallbacksForWorkspace.mockResolvedValue([]);
+    mocks.listScheduledCallsForWorkspace.mockResolvedValue([]);
 
     await expect(loadRecentContextSourcesAction("lead-empty")).resolves.toEqual({
       activities: { status: "ready", data: [] },
-      callbacks: { status: "ready", data: [] },
+      scheduledCalls: { status: "ready", data: [] },
     });
   });
 
@@ -83,7 +83,7 @@ describe("recent context server source boundary", () => {
 
   it("rethrows unknown errors instead of weakening them", async () => {
     const failure = new Error("socket hang up");
-    mocks.listScheduledCallbacksForWorkspace.mockRejectedValue(failure);
+    mocks.listScheduledCallsForWorkspace.mockRejectedValue(failure);
 
     await expect(loadRecentContextSourcesAction("lead-1")).rejects.toBe(failure);
   });

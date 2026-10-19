@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   groupByOperator,
   RECENT_ITEMS_PER_OPERATOR_LIMIT,
-  splitCallbacksByDue,
+  splitScheduledCallsByDue,
 } from "@/lib/teamWorkspaceMetrics";
 
 describe("team checkpoint helpers", () => {
@@ -40,9 +40,9 @@ describe("team checkpoint helpers", () => {
     expect("null" in grouped).toBe(false);
   });
 
-  it("splits callbacks into overdue and upcoming with a sharp boundary", () => {
+  it("splits scheduled calls into overdue and upcoming with a sharp boundary", () => {
     const now = new Date("2026-09-19T12:00:00.000Z");
-    const { overdue, upcoming } = splitCallbacksByDue(
+    const { overdue, upcoming } = splitScheduledCallsByDue(
       [
         { id: "past", scheduledAt: "2026-09-19T11:59:59.000Z" },
         { id: "exact", scheduledAt: "2026-09-19T12:00:00.000Z" },

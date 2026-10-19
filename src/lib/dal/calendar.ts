@@ -1,11 +1,11 @@
 import "server-only";
 
 import { DataAccessError } from "./errors";
-import { listScheduledCallbacksForWorkspace } from "./leadQueue";
+import { listScheduledCallsForWorkspace } from "./leadQueue";
 import { listOperatorRemindersForWorkspace, type OperatorReminderDTO } from "./operatorReminders";
 import { requireWorkspaceContext } from "./workspace";
 
-export type CalendarEntryType = "callback" | "reminder";
+export type CalendarEntryType = "scheduled_call" | "reminder";
 
 export interface CalendarEntryDTO {
   id: string;
@@ -25,7 +25,7 @@ export type CalendarSourceState =
 export interface CalendarLoadResult {
   entries: CalendarEntryDTO[];
   sources: {
-    callbacks: CalendarSourceState;
+    scheduledCalls: CalendarSourceState;
     reminders: CalendarSourceState;
   };
 }
@@ -45,15 +45,15 @@ function normalizeRange(from?: string, to?: string): { from: string; to: string 
   return { from: new Date(start).toISOString(), to: new Date(end).toISOString() };
 }
 
-function mapCallbackEntries(callbacks: Awaited<ReturnType<typeof listScheduledCallbacksForWorkspace>>): CalendarEntryDTO[] {
-  return callbacks.map((callback) => ({
-    id: callback.id,
-    type: "callback",
-    title: `Schedule: ${callback.lead.full_name}`,
-    starts_at: callback.scheduled_at,
+function mapScheduledCallEntries(scheduledCalls: Awaited<ReturnType<typeof listScheduledCallsForWorkspace>>): CalendarEntryDTO[] {
+  return scheduledCalls.map((scheduledCall) => ({
+    id: scheduledCall.id,
+    type: "scheduled_call",
+    title: `Schedule: ${scheduledCall.lead.full_name}`,
+    starts_at: scheduledCall.scheduled_at,
     remind_at: null,
     status: "scheduled",
-    lead: callback.lead,
+    lead: scheduledCall.lead,
     reminder: null,
   }));
 }
@@ -100,17 +100,17 @@ function resolveSourceState(result: PromiseSettledResult<unknown>): CalendarSour
 }
 
 export function buildCalendarLoadResult(
-  callbacksResult: PromiseSettledResult<Awaited<ReturnType<typeof listScheduledCallbacksForWorkspace>>>,
+  scheduledCallsResult: PromiseSettledResult<Awaited<ReturnType<typeof listScheduledCallsForWorkspace>>>,
   remindersResult: PromiseSettledResult<OperatorReminderDTO[]>,
 ): CalendarLoadResult {
   const sources = {
-    callbacks: resolveSourceState(callbacksResult),
+    scheduledCalls: resolveSourceState(scheduledCallsResult),
     reminders: resolveSourceState(remindersResult),
   };
 
-  const callbackEntries =
-    callbacksResult.status === "fulfilled"
-      ? mapCallbackEntries(callbacksResult.value)
+  const scheduledCallEntries =
+    scheduledCallsResult.status === "fulfilled"
+      ? mapScheduledCallEntries(scheduledCallsResult.value)
       : [];
   const reminderEntries =
     remindersResult.status === "fulfilled"
@@ -118,7 +118,7 @@ export function buildCalendarLoadResult(
       : [];
 
   return {
-    entries: sortCalendarEntries([...callbackEntries, ...reminderEntries]),
+    entries: sortCalendarEntries([...scheduledCallEntries, ...reminderEntries]),
     sources,
   };
 }
@@ -131,10 +131,10 @@ export async function listOperatorCalendarEntriesForWorkspace(
   const context = await requireWorkspaceContext(requestedWorkspaceId);
   const range = normalizeRange(from, to);
 
-  const [callbacks, reminders] = await Promise.allSettled([
-    listScheduledCallbacksForWorkspace(range.from, range.to, context.workspaceId),
+  const [scheduledCalls, reminders] = await Promise.allSettled([
+    listScheduledCallsForWorkspace(range.from, range.to, context.workspaceId),
     listOperatorRemindersForWorkspace(range.from, range.to, context.workspaceId),
   ]);
 
-  return buildCalendarLoadResult(callbacks, reminders);
+  return buildCalendarLoadResult(scheduledCalls, reminders);
 }

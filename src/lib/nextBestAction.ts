@@ -1,4 +1,4 @@
-export interface NextBestActionCallback {
+export interface NextBestActionScheduledCall {
   id: string;
   lead_id: string;
   lead_name: string;
@@ -15,7 +15,7 @@ export interface NextBestActionReorderOpportunity {
 }
 
 export interface NextBestAction {
-  kind: "callback" | "reorder" | "queue";
+  kind: "scheduled_call" | "reorder" | "queue";
   title: string;
   description: string;
   href: string;
@@ -24,7 +24,7 @@ export interface NextBestAction {
 }
 
 export interface NextBestActionInput {
-  callbacks?: NextBestActionCallback[];
+  scheduledCalls?: NextBestActionScheduledCall[];
   reorderOpportunities?: NextBestActionReorderOpportunity[];
   now?: Date;
 }
@@ -33,7 +33,7 @@ export type NextBestActionSource<T> =
   | { state: "available"; data: T }
   | { state: "unavailable"; message: string };
 
-export type NextBestActionSourceName = "callbacks" | "reorders";
+export type NextBestActionSourceName = "scheduledCalls" | "reorders";
 
 export type NextBestActionState =
   | { status: "ready"; action: NextBestAction }
@@ -53,7 +53,7 @@ function isValidDate(value: string): boolean {
   return Number.isFinite(Date.parse(value));
 }
 
-function formatCallbackTiming(scheduledAt: string, now: Date): string {
+function formatScheduledCallTiming(scheduledAt: string, now: Date): string {
   const diffMinutes = Math.max(0, Math.round((Date.parse(scheduledAt) - now.getTime()) / 60000));
   if (diffMinutes <= 0) return "Naplánovaný hovor je po termínu.";
   if (diffMinutes < 60) return `Naplánovaný hovor za ${diffMinutes} min.`;
@@ -64,19 +64,19 @@ function formatCallbackTiming(scheduledAt: string, now: Date): string {
 /** Selects one explainable next step from persisted scheduled calls and re-order estimates. */
 export function getNextBestAction(input: NextBestActionInput = {}): NextBestAction {
   const now = input.now ?? new Date();
-  const callbacks = (input.callbacks ?? [])
-    .filter((callback) => callback.lead_id && callback.lead_name && isValidDate(callback.scheduled_at))
+  const scheduledCalls = (input.scheduledCalls ?? [])
+    .filter((scheduledCall) => scheduledCall.lead_id && scheduledCall.lead_name && isValidDate(scheduledCall.scheduled_at))
     .sort((left, right) => Date.parse(left.scheduled_at) - Date.parse(right.scheduled_at));
-  const dueCallback = callbacks.find((callback) => Date.parse(callback.scheduled_at) <= now.getTime() + 24 * 60 * 60 * 1000);
+  const dueScheduledCall = scheduledCalls.find((scheduledCall) => Date.parse(scheduledCall.scheduled_at) <= now.getTime() + 24 * 60 * 60 * 1000);
 
-  if (dueCallback) {
+  if (dueScheduledCall) {
     return {
-      kind: "callback",
-      title: `Navázat na naplánovaný hovor: ${dueCallback.lead_name}`,
-      description: formatCallbackTiming(dueCallback.scheduled_at, now),
-      href: `/console?leadId=${encodeURIComponent(dueCallback.lead_id)}`,
+      kind: "scheduled_call",
+      title: `Navázat na naplánovaný hovor: ${dueScheduledCall.lead_name}`,
+      description: formatScheduledCallTiming(dueScheduledCall.scheduled_at, now),
+      href: `/console?leadId=${encodeURIComponent(dueScheduledCall.lead_id)}`,
       source: "scheduled call",
-      source_id: dueCallback.id,
+      source_id: dueScheduledCall.id,
     };
   }
 
@@ -108,16 +108,16 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
 }
 
 export function resolveNextBestActionState(
-  callbacksSource: NextBestActionSource<NextBestActionCallback[]>,
+  scheduledCallsSource: NextBestActionSource<NextBestActionScheduledCall[]>,
   reordersSource: NextBestActionSource<NextBestActionReorderOpportunity[]>,
   now?: Date,
 ): NextBestActionState {
   const unavailableSources: NextBestActionSourceName[] = [];
   const unavailableMessages: string[] = [];
 
-  if (callbacksSource.state === "unavailable") {
-    unavailableSources.push("callbacks");
-    unavailableMessages.push(callbacksSource.message);
+  if (scheduledCallsSource.state === "unavailable") {
+    unavailableSources.push("scheduledCalls");
+    unavailableMessages.push(scheduledCallsSource.message);
   }
   if (reordersSource.state === "unavailable") {
     unavailableSources.push("reorders");
@@ -125,7 +125,7 @@ export function resolveNextBestActionState(
   }
 
   const action = getNextBestAction({
-    callbacks: callbacksSource.state === "available" ? callbacksSource.data : [],
+    scheduledCalls: scheduledCallsSource.state === "available" ? scheduledCallsSource.data : [],
     reorderOpportunities: reordersSource.state === "available" ? reordersSource.data : [],
     now,
   });
@@ -136,7 +136,7 @@ export function resolveNextBestActionState(
 
   const message = unavailableMessages.join(" ");
   const actionIsSupportedByAvailableSource =
-    (action.kind === "callback" && callbacksSource.state === "available")
+    (action.kind === "scheduled_call" && scheduledCallsSource.state === "available")
     || (action.kind === "reorder" && reordersSource.state === "available");
 
   if (actionIsSupportedByAvailableSource) {

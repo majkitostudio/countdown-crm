@@ -2,7 +2,7 @@
 
 import { ArrowRight, MoonStar } from "lucide-react";
 import type { AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
-import type { TeamWorkspaceCallbackSummary, TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
+import type { TeamWorkspaceScheduledCallSummary, TeamWorkspaceCheckpoint } from "@/lib/dal/teamWorkspace";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
@@ -30,8 +30,8 @@ export function TeamCheckpointHandoverPanel({
   const totalSales = checkpoint.operatorMetrics.reduce((total, metric) => total + metric.sales, 0);
   const totalDialed = checkpoint.operatorMetrics.reduce((total, metric) => total + metric.dialedCalls, 0);
   const totalConnected = checkpoint.operatorMetrics.reduce((total, metric) => total + metric.connectedCalls, 0);
-  const handoverCallbacks: TeamWorkspaceCallbackSummary[] = checkpoint.overdueCallbacks.slice(0, 4 - Math.min(4, openAssistance.length));
-  const handoverCount = openAssistance.length + handoverCallbacks.length;
+  const handoverScheduledCalls: TeamWorkspaceScheduledCallSummary[] = checkpoint.overdueScheduledCalls.slice(0, 4 - Math.min(4, openAssistance.length));
+  const handoverCount = openAssistance.length + handoverScheduledCalls.length;
 
   return (
     <Surface variant="page">
@@ -86,11 +86,11 @@ export function TeamCheckpointHandoverPanel({
                 <span className="truncate text-zinc-500">{request.note || "bez poznámky"}</span>
               </li>
             ))}
-            {handoverCallbacks.map((callback) => (
-              <li key={callback.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
+            {handoverScheduledCalls.map((scheduledCall) => (
+              <li key={scheduledCall.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
                 <StatusBadge tone="warning">Schedule</StatusBadge>
-                <span className="font-medium text-zinc-200">{callback.operatorName || callback.leadName}</span>
-                <span className="truncate text-zinc-500">{callback.leadName} · po termínu</span>
+                <span className="font-medium text-zinc-200">{scheduledCall.operatorName || scheduledCall.leadName}</span>
+                <span className="truncate text-zinc-500">{scheduledCall.leadName} · po termínu</span>
               </li>
             ))}
           </ul>
@@ -104,9 +104,9 @@ export function TeamCheckpointHandoverPanel({
             Kvalita hovorů: {qualityAvailable ? `${qualityPendingCount} ke kontrole` : "nedostupná"} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </div>
-        {checkpoint.sources.callbacks.state === "ready" && (
+        {checkpoint.sources.scheduledCalls.state === "ready" && (
           <p className="text-[11px] text-zinc-500">
-            Naplánované hovory v období — po termínu: {checkpoint.overdueCallbacks.length} · naplánované: {checkpoint.upcomingCallbacks.length}
+            Naplánované hovory v období — po termínu: {checkpoint.overdueScheduledCalls.length} · naplánované: {checkpoint.upcomingScheduledCalls.length}
           </p>
         )}
       </div>

@@ -36,7 +36,7 @@ const baseReview: CallReviewDTO = {
     outcome: "objection",
     failReason: "price",
     operatorNote: "Customer found the offer expensive.",
-    callbackScheduledAt: null,
+    scheduledAt: null,
   },
   customer: { id: "lead-1", name: "Customer One" },
   operator: { id: "operator-1", name: "Olivia Operator" },

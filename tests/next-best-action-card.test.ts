@@ -13,7 +13,7 @@ function render(state: NextBestActionState): string {
 }
 
 describe("next best action presentation states", () => {
-  it("shows a partial reorder with the callback warning", () => {
+  it("shows a partial reorder with the scheduled call warning", () => {
     const html = render({
       status: "partial",
       action: {
@@ -24,7 +24,7 @@ describe("next best action presentation states", () => {
         source: "re-order estimate",
         source_id: "reorder-1",
       },
-      unavailableSources: ["callbacks"],
+      unavailableSources: ["scheduledCalls"],
       message: "Scheduled calls could not be loaded.",
     });
 
@@ -34,16 +34,16 @@ describe("next best action presentation states", () => {
     expect(html).toContain("Partial recommendation");
   });
 
-  it("shows a partial callback with the reorder warning", () => {
+  it("shows a partial scheduled call with the reorder warning", () => {
     const html = render({
       status: "partial",
       action: {
-        kind: "callback",
+        kind: "scheduled_call",
         title: "Navázat na naplánovaný hovor: Jana Nováková",
         description: "Naplánovaný hovor za 60 min.",
         href: "/console?leadId=lead-1",
         source: "scheduled call",
-        source_id: "callback-1",
+        source_id: "scheduled-call-1",
       },
       unavailableSources: ["reorders"],
       message: "Re-order estimates could not be loaded.",
@@ -56,7 +56,7 @@ describe("next best action presentation states", () => {
   it("does not render an action link when priority is unavailable", () => {
     const html = render({
       status: "unavailable",
-      unavailableSources: ["callbacks", "reorders"],
+      unavailableSources: ["scheduledCalls", "reorders"],
       message: "Priority sources could not be loaded.",
     });
 

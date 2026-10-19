@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarClock, HandHelping, ShoppingBag } from "lucide-react";
 import type { AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
 import type { CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
-import type { TeamWorkspaceCallbackSummary, TeamWorkspaceOrderSummary, TeamWorkspaceRecentCall } from "@/lib/dal/teamWorkspace";
+import type { TeamWorkspaceScheduledCallSummary, TeamWorkspaceOrderSummary, TeamWorkspaceRecentCall } from "@/lib/dal/teamWorkspace";
 import type { TeamWorkspaceOperatorMetrics } from "@/lib/teamWorkspaceMetrics";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
@@ -37,8 +37,8 @@ function formatDate(value: string): string {
 export interface TeamOperatorDetailData {
   metric: TeamWorkspaceOperatorMetrics;
   orders: TeamWorkspaceOrderSummary[];
-  overdueCallbacks: TeamWorkspaceCallbackSummary[];
-  upcomingCallbacks: TeamWorkspaceCallbackSummary[];
+  overdueScheduledCalls: TeamWorkspaceScheduledCallSummary[];
+  upcomingScheduledCalls: TeamWorkspaceScheduledCallSummary[];
   recentCalls: TeamWorkspaceRecentCall[];
   assistanceRequests: AssistanceRequestDTO[];
   qualityReviews: CallQualityReviewDTO[];
@@ -61,7 +61,7 @@ export function TeamOperatorDetailPanel({
   onBack: () => void;
   onOpenQuality: () => void;
 }) {
-  const { metric, orders, overdueCallbacks, upcomingCallbacks, recentCalls, assistanceRequests, qualityReviews, qualityAvailable } = detail;
+  const { metric, orders, overdueScheduledCalls, upcomingScheduledCalls, recentCalls, assistanceRequests, qualityReviews, qualityAvailable } = detail;
   const needsReview = qualityReviews.filter((review) => review.status === "review" || review.status === "pending").length;
 
   return (
@@ -157,18 +157,18 @@ export function TeamOperatorDetailPanel({
             <div className="flex items-center gap-2">
               <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
               <h3 className="text-sm font-semibold text-zinc-100">Naplánované hovory</h3>
-                <StatusBadge tone={overdueCallbacks.length > 0 ? "warning" : "neutral"}>{overdueCallbacks.length + upcomingCallbacks.length}</StatusBadge>
+                <StatusBadge tone={overdueScheduledCalls.length > 0 ? "warning" : "neutral"}>{overdueScheduledCalls.length + upcomingScheduledCalls.length}</StatusBadge>
             </div>
-            {overdueCallbacks.length === 0 && upcomingCallbacks.length === 0 ? (
+            {overdueScheduledCalls.length === 0 && upcomingScheduledCalls.length === 0 ? (
               <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
                 Operátor nemá žádné naplánované hovory v tomto období.
               </p>
             ) : (
               <ul className="space-y-2">
-                {[...overdueCallbacks.map((callback) => ({ callback, label: "Po termínu", tone: "warning" as const })), ...upcomingCallbacks.map((callback) => ({ callback, label: "Naplánováno", tone: "info" as const }))].slice(0, 5).map(({ callback, label, tone }) => (
-                  <li key={callback.id} className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
-                    <Link href={`/leads/${callback.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-zinc-100">{callback.leadName}</Link>
-                    <span className="flex items-center gap-2 text-zinc-500"><StatusBadge tone={tone}>{label}</StatusBadge>{formatDate(callback.scheduledAt)}</span>
+                {[...overdueScheduledCalls.map((scheduledCall) => ({ scheduledCall, label: "Po termínu", tone: "warning" as const })), ...upcomingScheduledCalls.map((scheduledCall) => ({ scheduledCall, label: "Naplánováno", tone: "info" as const }))].slice(0, 5).map(({ scheduledCall, label, tone }) => (
+                  <li key={scheduledCall.id} className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
+                    <Link href={`/leads/${scheduledCall.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-zinc-100">{scheduledCall.leadName}</Link>
+                    <span className="flex items-center gap-2 text-zinc-500"><StatusBadge tone={tone}>{label}</StatusBadge>{formatDate(scheduledCall.scheduledAt)}</span>
                   </li>
                 ))}
               </ul>

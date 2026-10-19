@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { CalendarClock, CheckCircle2, PhoneCall, RefreshCw, RotateCcw } from "lucide-react";
 import {
   getOperatorNextAction,
-  type OperatorCallbackSignal,
+  type OperatorScheduledCallSignal,
   type OperatorNextActionState,
 } from "./operatorNextAction";
 import { Button } from "@/components/ui/Button";
@@ -14,15 +14,15 @@ import { Surface } from "@/components/ui/Surface";
 interface OperatorNextActionPanelProps {
   state: OperatorNextActionState;
   leadName: string | null;
-  callbacks: OperatorCallbackSignal[];
-  isCallbacksLoading: boolean;
-  callbackError: string | null;
+  scheduledCalls: OperatorScheduledCallSignal[];
+  isScheduledCallsLoading: boolean;
+  scheduledCallError: string | null;
   isAssignmentRefreshing: boolean;
   onPrimaryAction: () => void;
-  onRefreshCallbacks: () => void;
+  onRefreshScheduledCalls: () => void;
 }
 
-function formatCallbackTime(value: string): string {
+function formatScheduledCallTime(value: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "Time unavailable";
   return date.toLocaleString("cs-CZ", {
@@ -36,18 +36,18 @@ function formatCallbackTime(value: string): string {
 export function OperatorNextActionPanel({
   state,
   leadName,
-  callbacks,
-  isCallbacksLoading,
-  callbackError,
+  scheduledCalls,
+  isScheduledCallsLoading,
+  scheduledCallError,
   isAssignmentRefreshing,
   onPrimaryAction,
-  onRefreshCallbacks,
+  onRefreshScheduledCalls,
 }: OperatorNextActionPanelProps) {
   const action = useMemo(
-    () => getOperatorNextAction({ state, leadName, callbacks }),
-    [callbacks, leadName, state],
+    () => getOperatorNextAction({ state, leadName, scheduledCalls }),
+    [scheduledCalls, leadName, state],
   );
-  const showPrimaryAction = action.kind === "recover_call" || action.kind === "claim_callback" || action.kind === "wait_for_assignment";
+  const showPrimaryAction = action.kind === "recover_call" || action.kind === "claim_scheduled_call" || action.kind === "wait_for_assignment";
   const primaryLabel = action.kind === "recover_call" ? "Recover" : "Refresh queue";
   const actionIcon = action.kind === "recover_call"
     ? RotateCcw
@@ -56,7 +56,7 @@ export function OperatorNextActionPanel({
       : PhoneCall;
   const ActionIcon = actionIcon;
   const actionTone: SemanticTone = action.urgency === "critical" ? "warning" : "neutral";
-  const callbackSummary = callbacks.length === 0 ? "No scheduled calls" : `${callbacks.length} scheduled call${callbacks.length === 1 ? "" : "s"}`;
+  const scheduledCallSummary = scheduledCalls.length === 0 ? "No scheduled calls" : `${scheduledCalls.length} scheduled call${scheduledCalls.length === 1 ? "" : "s"}`;
 
   return (
     <div
@@ -91,24 +91,24 @@ export function OperatorNextActionPanel({
 
       <Surface
         variant="inset"
-        data-testid="callback-recovery-inbox"
+        data-testid="scheduled-call-recovery-inbox"
         aria-label="Schedules"
       >
         <div className="flex items-center gap-2 px-3 py-2">
           <CalendarClock className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
-          <span className="hidden max-w-[10rem] truncate text-[11px] text-zinc-400 sm:inline" title={callbackError || callbackSummary}>
-            {isCallbacksLoading ? "Loading schedules…" : callbackError ? "Schedules unavailable" : callbackSummary}
+          <span className="hidden max-w-[10rem] truncate text-[11px] text-zinc-400 sm:inline" title={scheduledCallError || scheduledCallSummary}>
+            {isScheduledCallsLoading ? "Loading schedules…" : scheduledCallError ? "Schedules unavailable" : scheduledCallSummary}
           </span>
           <Button
             variant="quiet"
-            onClick={onRefreshCallbacks}
-            disabled={isAssignmentRefreshing || isCallbacksLoading}
+            onClick={onRefreshScheduledCalls}
+            disabled={isAssignmentRefreshing || isScheduledCallsLoading}
             aria-label="Refresh schedules"
             title="Refresh schedules"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isCallbacksLoading ? "animate-spin" : ""}`} aria-hidden="true" />
+            <RefreshCw className={`h-3.5 w-3.5 ${isScheduledCallsLoading ? "animate-spin" : ""}`} aria-hidden="true" />
           </Button>
-          {callbacks[0] && <span className="hidden text-[10px] tabular-nums text-zinc-500 lg:inline">{formatCallbackTime(callbacks[0].scheduledAt)}</span>}
+          {scheduledCalls[0] && <span className="hidden text-[10px] tabular-nums text-zinc-500 lg:inline">{formatScheduledCallTime(scheduledCalls[0].scheduledAt)}</span>}
         </div>
       </Surface>
     </div>

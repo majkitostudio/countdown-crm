@@ -6,7 +6,7 @@ import {
   filterAttributedCalls,
   groupByOperator,
   RECENT_ITEMS_PER_OPERATOR_LIMIT,
-  splitCallbacksByDue,
+  splitScheduledCallsByDue,
   type TeamWorkspaceCall,
   type TeamWorkspaceCallActivity,
   type TeamWorkspaceOperator,
@@ -17,7 +17,7 @@ import {
 import { buildFailureReasonRanking, type FailureReasonRanking } from "@/lib/failureReasonRanking";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
-import { listScheduledCallbacksForWorkspace, type ScheduledCallbackDTO } from "./leadQueue";
+import { listScheduledCallsForWorkspace, type ScheduledCallDTO } from "./leadQueue";
 import { listWorkspaceOperators, type WorkspaceMemberDTO } from "./memberships";
 import type { WorkspaceContext } from "./workspace";
 import {
@@ -41,7 +41,7 @@ export interface TeamWorkspaceOrderSummary {
   createdAt: string;
 }
 
-export interface TeamWorkspaceCallbackSummary {
+export interface TeamWorkspaceScheduledCallSummary {
   id: string;
   leadId: string;
   leadName: string;
@@ -64,8 +64,8 @@ export interface TeamWorkspaceCheckpoint {
   periodKey: TeamWorkspacePeriodKey;
   period: TeamWorkspacePeriod;
   orders: TeamWorkspaceOrderSummary[];
-  overdueCallbacks: TeamWorkspaceCallbackSummary[];
-  upcomingCallbacks: TeamWorkspaceCallbackSummary[];
+  overdueScheduledCalls: TeamWorkspaceScheduledCallSummary[];
+  upcomingScheduledCalls: TeamWorkspaceScheduledCallSummary[];
   operatorMetrics: TeamWorkspaceOperatorMetrics[];
   recentCallsByOperator: Record<string, TeamWorkspaceRecentCall[]>;
   /** Žebříček důvodů neúspěchu za období a týmový rozsah (jen `objection` hovory). */
@@ -73,7 +73,7 @@ export interface TeamWorkspaceCheckpoint {
   sources: {
     orders: TeamWorkspaceSourceState;
     calls: TeamWorkspaceSourceState;
-    callbacks: TeamWorkspaceSourceState;
+    scheduledCalls: TeamWorkspaceSourceState;
     activities: TeamWorkspaceSourceState;
     shifts: TeamWorkspaceSourceState;
   };
@@ -227,21 +227,21 @@ function mapActivities(
   return activities;
 }
 
-function splitCallbackSummaries(
-  callbacks: ScheduledCallbackDTO[],
+function splitScheduledCallSummaries(
+  scheduledCalls: ScheduledCallDTO[],
   now: Date,
-): { overdue: TeamWorkspaceCallbackSummary[]; upcoming: TeamWorkspaceCallbackSummary[] } {
-  const summaries = callbacks.map(mapCallbackSummary);
-  return splitCallbacksByDue(summaries, now);
+): { overdue: TeamWorkspaceScheduledCallSummary[]; upcoming: TeamWorkspaceScheduledCallSummary[] } {
+  const summaries = scheduledCalls.map(mapScheduledCallSummary);
+  return splitScheduledCallsByDue(summaries, now);
 }
 
-function mapCallbackSummary(callback: ScheduledCallbackDTO): TeamWorkspaceCallbackSummary {
+function mapScheduledCallSummary(scheduledCall: ScheduledCallDTO): TeamWorkspaceScheduledCallSummary {
   return {
-    id: callback.id,
-    leadId: callback.lead_id,
-    leadName: callback.lead.full_name,
-    scheduledAt: callback.scheduled_at,
-    operatorName: callback.preferred_operator?.full_name || null,
+    id: scheduledCall.id,
+    leadId: scheduledCall.lead_id,
+    leadName: scheduledCall.lead.full_name,
+    scheduledAt: scheduledCall.scheduled_at,
+    operatorName: scheduledCall.preferred_operator?.full_name || null,
   };
 }
 
@@ -300,13 +300,13 @@ export async function loadTeamWorkspaceCheckpoint(
   const operators = (await listWorkspaceOperators(context.workspaceId))
     .filter((operator) => allowedOperators === null || isInOperatorScope(operator.user_id, allowedOperators));
   const overdueWindowStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [ordersResult, callsResult, queueActivitiesResult, telephonyActivitiesResult, overdueCallbacksResult, upcomingCallbacksResult] = await Promise.allSettled([
+  const [ordersResult, callsResult, queueActivitiesResult, telephonyActivitiesResult, overdueScheduledCallsResult, upcomingScheduledCallsResult] = await Promise.allSettled([
     loadOrders(context.workspaceId, period),
     loadCalls(context.workspaceId, period),
     loadQueueActivities(context.workspaceId, period),
     loadTelephonyActivities(context.workspaceId, period),
-    listScheduledCallbacksForWorkspace(overdueWindowStart, now.toISOString(), context.workspaceId),
-    listScheduledCallbacksForWorkspace(now.toISOString(), period.to, context.workspaceId),
+    listScheduledCallsForWorkspace(overdueWindowStart, now.toISOString(), context.workspaceId),
+    listScheduledCallsForWorkspace(now.toISOString(), period.to, context.workspaceId),
   ]);
 
   const orders = (ordersResult.status === "fulfilled" ? ordersResult.value : [])
@@ -317,10 +317,10 @@ export async function loadTeamWorkspaceCheckpoint(
     .filter((activity) => allowedOperators === null || isInOperatorScope(activity.assigned_operator_id, allowedOperators));
   const telephonyActivities = (telephonyActivitiesResult.status === "fulfilled" ? telephonyActivitiesResult.value : [])
     .filter((activity) => allowedOperators === null || isInOperatorScope(activity.operator_id, allowedOperators));
-  const overdueCallbacks = (overdueCallbacksResult.status === "fulfilled" ? overdueCallbacksResult.value : [])
-    .filter((callback) => allowedOperators === null || isInOperatorScope(callback.preferred_operator_id, allowedOperators));
-  const upcomingCallbacks = (upcomingCallbacksResult.status === "fulfilled" ? upcomingCallbacksResult.value : [])
-    .filter((callback) => allowedOperators === null || isInOperatorScope(callback.preferred_operator_id, allowedOperators));
+  const overdueScheduledCalls = (overdueScheduledCallsResult.status === "fulfilled" ? overdueScheduledCallsResult.value : [])
+    .filter((scheduledCall) => allowedOperators === null || isInOperatorScope(scheduledCall.preferred_operator_id, allowedOperators));
+  const upcomingScheduledCalls = (upcomingScheduledCallsResult.status === "fulfilled" ? upcomingScheduledCallsResult.value : [])
+    .filter((scheduledCall) => allowedOperators === null || isInOperatorScope(scheduledCall.preferred_operator_id, allowedOperators));
 
   const metricInput = {
     operators: toOperatorMetricInput(operators),
@@ -344,7 +344,7 @@ export async function loadTeamWorkspaceCheckpoint(
   const sources = {
     orders: ordersResult.status === "fulfilled" ? ready() : unavailable("New team orders could not be loaded."),
     calls: callsResult.status === "fulfilled" ? ready() : unavailable("Team calls could not be loaded."),
-    callbacks: overdueCallbacksResult.status === "fulfilled" && upcomingCallbacksResult.status === "fulfilled"
+    scheduledCalls: overdueScheduledCallsResult.status === "fulfilled" && upcomingScheduledCallsResult.status === "fulfilled"
       ? ready()
       : unavailable("Scheduled calls could not be fully loaded."),
     activities: queueActivitiesResult.status === "fulfilled" && telephonyActivitiesResult.status === "fulfilled"
@@ -353,7 +353,7 @@ export async function loadTeamWorkspaceCheckpoint(
     shifts: unavailable("Shift planning is not implemented yet."),
   } satisfies TeamWorkspaceCheckpoint["sources"];
 
-  const { overdue, upcoming } = splitCallbackSummaries([...overdueCallbacks, ...upcomingCallbacks], now);
+  const { overdue, upcoming } = splitScheduledCallSummaries([...overdueScheduledCalls, ...upcomingScheduledCalls], now);
 
   // Žebříček důvodů neúspěchu stavíme ze stejné množiny, jakou počítá sloupec
   // „Neúspěšné hovory“ (jen hovory přiřaditelné operátorovi v rozsahu), aby se
@@ -371,8 +371,8 @@ export async function loadTeamWorkspaceCheckpoint(
     periodKey,
     period,
     orders: mapOrders(orders, operators),
-    overdueCallbacks: overdue,
-    upcomingCallbacks: upcoming,
+    overdueScheduledCalls: overdue,
+    upcomingScheduledCalls: upcoming,
     operatorMetrics: buildTeamWorkspaceOperatorMetrics(metricInput),
     recentCallsByOperator: mapRecentCallsByOperator(calls),
     failureReasons: buildFailureReasonRanking(failureReasonCalls),

@@ -15,8 +15,8 @@ export function TeamCheckpointCallbacksSection({
   checkpoint,
   onOpenQueue,
 }: { checkpoint: TeamWorkspaceCheckpoint; onOpenQueue: () => void }) {
-  const overdueCount = checkpoint.overdueCallbacks.length;
-  const upcomingCount = checkpoint.upcomingCallbacks.length;
+  const overdueCount = checkpoint.overdueScheduledCalls.length;
+  const upcomingCount = checkpoint.upcomingScheduledCalls.length;
 
   return (
     <Surface variant="page">
@@ -36,7 +36,7 @@ export function TeamCheckpointCallbacksSection({
           </StatusBadge>
         </div>
 
-        {checkpoint.sources.callbacks.state === "unavailable" ? (
+        {checkpoint.sources.scheduledCalls.state === "unavailable" ? (
           <p className="rounded-xl border border-amber-900/50 bg-amber-950/10 p-4 text-center text-xs text-amber-200/80">
             Naplánované hovory nejsou dostupné. Přehled nevytváří náhradní nuly.
           </p>
@@ -46,39 +46,39 @@ export function TeamCheckpointCallbacksSection({
           </p>
         ) : (
           <div className="space-y-3">
-            {checkpoint.overdueCallbacks.length > 0 && (
+            {checkpoint.overdueScheduledCalls.length > 0 && (
               <section className="space-y-2" aria-label="Po termínu">
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Po termínu</h3>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {checkpoint.overdueCallbacks.map((callback) => (
-                    <div key={callback.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
+                  {checkpoint.overdueScheduledCalls.map((scheduledCall) => (
+                    <div key={scheduledCall.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <Link href={`/leads/${callback.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{callback.leadName}</Link>
-                          <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</p>
+                          <Link href={`/leads/${scheduledCall.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{scheduledCall.leadName}</Link>
+                          <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(scheduledCall.scheduledAt)}</p>
                         </div>
                         <StatusBadge tone="warning">Po termínu</StatusBadge>
                       </div>
-                      <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {callback.operatorName || "Neuveden"}</p>
+                      <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
                     </div>
                   ))}
                 </div>
               </section>
             )}
-            {checkpoint.upcomingCallbacks.length > 0 && (
+            {checkpoint.upcomingScheduledCalls.length > 0 && (
               <section className="space-y-2" aria-label="Naplánované hovory">
                 <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Naplánované v období</h3>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {checkpoint.upcomingCallbacks.map((callback) => (
-                    <div key={callback.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
+                  {checkpoint.upcomingScheduledCalls.map((scheduledCall) => (
+                    <div key={scheduledCall.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <Link href={`/leads/${callback.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{callback.leadName}</Link>
-                          <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</p>
+                          <Link href={`/leads/${scheduledCall.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{scheduledCall.leadName}</Link>
+                          <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(scheduledCall.scheduledAt)}</p>
                         </div>
                         <StatusBadge tone="info">Naplánovaný</StatusBadge>
                       </div>
-                      <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {callback.operatorName || "Neuveden"}</p>
+                      <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
                     </div>
                   ))}
                 </div>

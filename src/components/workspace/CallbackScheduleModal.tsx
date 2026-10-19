@@ -55,22 +55,22 @@ export function CallbackScheduleModal({
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} closeOnEscape={!isSubmitting} aria-labelledby="callback-dialog-title" initialFocusRef={dateInputRef}>
+    <Dialog isOpen={isOpen} onClose={onClose} closeOnEscape={!isSubmitting} aria-labelledby="schedule-dialog-title" initialFocusRef={dateInputRef}>
       <form onSubmit={submit} className="mx-auto max-h-[calc(100vh-2rem)] w-full max-w-md space-y-5 overflow-y-auto p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="rounded-lg bg-zinc-900 p-2 text-zinc-300"><CalendarClock className="h-4 w-4" /></div>
             <div>
-              <h2 id="callback-dialog-title" className="text-base font-semibold text-zinc-100">Schedule Call</h2>
+              <h2 id="schedule-dialog-title" className="text-base font-semibold text-zinc-100">Schedule Call</h2>
               <p className="mt-1 text-xs text-zinc-500">{leadName || "Current lead"}</p>
             </div>
           </div>
           <Button type="button" variant="quiet" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></Button>
         </div>
 
-        <FieldLabel htmlFor="callback-scheduled-at">
+        <FieldLabel htmlFor="scheduled-call-at">
           <span className="text-xs font-medium text-zinc-300">Scheduled date and time</span>
-          <TextField id="callback-scheduled-at" ref={dateInputRef} type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required />
+          <TextField id="scheduled-call-at" ref={dateInputRef} type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required />
           <span className="block text-[11px] text-zinc-600">Časová zóna browseru: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
         </FieldLabel>
 

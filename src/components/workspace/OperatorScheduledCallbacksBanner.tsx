@@ -11,29 +11,29 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import {
-  getScheduledCallbacksBannerState,
-  formatCallbackClockTime,
-  type ScheduledCallbackItem,
+  getScheduledCallsBannerState,
+  formatScheduledCallClockTime,
+  type ScheduledCallItem,
 } from "@/lib/scheduledCallbacksBanner";
 import { Button } from "@/components/ui/Button";
 
 interface OperatorScheduledCallbacksBannerProps {
-  callbacks: ScheduledCallbackItem[];
+  scheduledCalls: ScheduledCallItem[];
   isLoading?: boolean;
   onRefresh?: () => void;
-  onClaimCallback?: () => void;
+  onClaimScheduledCall?: () => void;
 }
 
 export function OperatorScheduledCallbacksBanner({
-  callbacks,
+  scheduledCalls,
   isLoading = false,
   onRefresh,
-  onClaimCallback,
+  onClaimScheduledCall,
 }: OperatorScheduledCallbacksBannerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const state = getScheduledCallbacksBannerState(callbacks);
+  const state = getScheduledCallsBannerState(scheduledCalls);
 
-  if (!state.hasCallbacks) {
+  if (!state.hasScheduledCalls) {
     return null;
   }
 
@@ -46,7 +46,7 @@ export function OperatorScheduledCallbacksBanner({
           ? "border-amber-500/50 bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-zinc-950 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
           : "border-sky-500/40 bg-gradient-to-r from-sky-950/40 via-zinc-900 to-zinc-950 shadow-[0_0_15px_rgba(14,165,233,0.1)]"
       }`}
-      data-testid="operator-scheduled-callbacks-banner"
+      data-testid="operator-scheduled-calls-banner"
       data-urgency={state.urgency}
     >
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 sm:px-4 sm:py-3.5">
@@ -85,10 +85,10 @@ export function OperatorScheduledCallbacksBanner({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {onClaimCallback && isUrgent && (
+          {onClaimScheduledCall && isUrgent && (
             <Button
               variant="primary"
-              onClick={onClaimCallback}
+              onClick={onClaimScheduledCall}
               className="px-2.5 py-1.5 text-xs font-medium"
             >
               <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
@@ -146,7 +146,7 @@ export function OperatorScheduledCallbacksBanner({
                       aria-hidden="true"
                     />
                     <span className="font-semibold text-zinc-200 tabular-nums">
-                      {formatCallbackClockTime(item.scheduledAt)}
+                      {formatScheduledCallClockTime(item.scheduledAt)}
                     </span>
                     <span className="text-zinc-300">{item.leadName}</span>
                     {item.phone && (
@@ -166,10 +166,10 @@ export function OperatorScheduledCallbacksBanner({
                     >
                       {isOverdue ? "Po termínu" : "Naplánováno"}
                     </span>
-                    {onClaimCallback && isOverdue && (
+                    {onClaimScheduledCall && isOverdue && (
                       <button
                         type="button"
-                        onClick={onClaimCallback}
+                        onClick={onClaimScheduledCall}
                         className="rounded bg-sky-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-sky-500"
                       >
                         Vytočit

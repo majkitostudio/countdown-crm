@@ -290,7 +290,7 @@ export function CallReviewWorkspace({
             <div><dt className="text-zinc-500">Outcome</dt><dd className="mt-1 text-zinc-200">{humanize(initialReview.call.outcome)}</dd></div>
             <div><dt className="text-zinc-500">Fail reason</dt><dd className="mt-1 text-zinc-200">{humanize(initialReview.call.failReason)}</dd></div>
             <div><dt className="text-zinc-500">Operator note</dt><dd className="mt-1 whitespace-pre-wrap leading-5 text-zinc-200">{initialReview.call.operatorNote || "No operator note was recorded."}</dd></div>
-            {initialReview.call.callbackScheduledAt && <div><dt className="text-zinc-500">Schedule</dt><dd className="mt-1 text-zinc-200">{formatDate(initialReview.call.callbackScheduledAt)}</dd></div>}
+            {initialReview.call.scheduledAt && <div><dt className="text-zinc-500">Schedule</dt><dd className="mt-1 text-zinc-200">{formatDate(initialReview.call.scheduledAt)}</dd></div>}
           </dl>
         </Section>
       </div>

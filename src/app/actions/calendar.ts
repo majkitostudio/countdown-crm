@@ -5,8 +5,8 @@ import {
   type CalendarLoadResult,
 } from "@/lib/dal/calendar";
 import {
-  listScheduledCallbacksForWorkspace,
-  type ScheduledCallbackDTO,
+  listScheduledCallsForWorkspace,
+  type ScheduledCallDTO,
 } from "@/lib/dal/leadQueue";
 import {
   cancelOperatorReminderForWorkspace,
@@ -26,12 +26,12 @@ export async function listCalendarEntriesAction(
   return listOperatorCalendarEntriesForWorkspace(from, to, workspaceId);
 }
 
-export async function listScheduledCallbacksAction(
+export async function listScheduledCallsAction(
   from: string,
   to: string,
   workspaceId?: string,
-): Promise<ScheduledCallbackDTO[]> {
-  return listScheduledCallbacksForWorkspace(from, to, workspaceId);
+): Promise<ScheduledCallDTO[]> {
+  return listScheduledCallsForWorkspace(from, to, workspaceId);
 }
 
 export async function createReminderAction(

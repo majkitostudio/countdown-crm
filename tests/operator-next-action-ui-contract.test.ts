@@ -8,21 +8,21 @@ import { OperatorNextActionPanel } from "@/components/workspace/OperatorNextActi
 const projectRoot = path.resolve(__dirname, "..");
 
 describe("operator next action UI contract", () => {
-  it("uses a callback-only data path instead of depending on personal reminders", () => {
+  it("uses a scheduledCall-only data path instead of depending on personal reminders", () => {
     const calendarActions = readFileSync(path.join(projectRoot, "src", "app", "actions", "calendar.ts"), "utf8");
 
-    expect(calendarActions).toContain("listScheduledCallbacksForWorkspace");
-    expect(calendarActions).toContain("listScheduledCallbacksAction");
+    expect(calendarActions).toContain("listScheduledCallsForWorkspace");
+    expect(calendarActions).toContain("listScheduledCallsAction");
   });
 
-  it("keeps the next action and callback inbox in the operator workspace", () => {
+  it("keeps the next action and scheduled call inbox in the operator workspace", () => {
     const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     const nextActionPanel = readFileSync(path.join(projectRoot, "src", "components", "workspace", "OperatorNextActionPanel.tsx"), "utf8");
 
     expect(workspacePage).toContain("OperatorNextActionPanel");
-    expect(workspacePage).toContain("listScheduledCallbacksAction");
+    expect(workspacePage).toContain("listScheduledCallsAction");
     expect(nextActionPanel).toContain('data-testid="operator-next-action"');
-    expect(nextActionPanel).toContain('data-testid="callback-recovery-inbox"');
+    expect(nextActionPanel).toContain('data-testid="scheduled-call-recovery-inbox"');
     expect(nextActionPanel).toContain("Ready to call");
     expect(nextActionPanel).toContain("flex w-full min-w-0 flex-col items-stretch");
     expect(nextActionPanel).not.toContain("grid gap-4 xl:grid-cols");
@@ -33,12 +33,12 @@ describe("operator next action UI contract", () => {
       createElement(OperatorNextActionPanel, {
         state: "waiting_assignment",
         leadName: null,
-        callbacks: [],
-        isCallbacksLoading: false,
-        callbackError: null,
+        scheduledCalls: [],
+        isScheduledCallsLoading: false,
+        scheduledCallError: null,
         isAssignmentRefreshing: false,
         onPrimaryAction: () => undefined,
-        onRefreshCallbacks: () => undefined,
+        onRefreshScheduledCalls: () => undefined,
       }),
     );
 

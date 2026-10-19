@@ -32,7 +32,7 @@ import { FieldLabel, TextAreaField, TextField } from "@/components/ui/Field";
 import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
-type CalendarFilter = "all" | "callback" | "reminder";
+type CalendarFilter = "all" | "scheduled_call" | "reminder";
 
 interface OperatorCalendarProps {
   initialCalendar: CalendarLoadResult;
@@ -112,9 +112,9 @@ function entryStatus(entry: CalendarEntryDTO): { label: string; tone: SemanticTo
     return { label: "Completed", tone: "success" };
   }
   if (isDue(entry)) {
-    return { label: entry.type === "callback" ? "Due" : "Overdue", tone: "danger" };
+    return { label: entry.type === "scheduled_call" ? "Due" : "Overdue", tone: "danger" };
   }
-  return { label: entry.type === "callback" ? "Scheduled" : "Open", tone: "neutral" };
+  return { label: entry.type === "scheduled_call" ? "Scheduled" : "Open", tone: "neutral" };
 }
 
 function toIso(localValue: string, label: string): string {
@@ -126,7 +126,7 @@ function toIso(localValue: string, label: string): string {
 }
 
 const SOURCE_LABELS = {
-  callbacks: "Schedules",
+  scheduledCalls: "Schedules",
   reminders: "Reminders",
 } satisfies Record<keyof CalendarLoadResult["sources"], string>;
 
@@ -311,7 +311,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
       {/* Ovládací lišta: Filtry a akce */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex flex-wrap items-center gap-2">
-          {(["all", "callback", "reminder"] as CalendarFilter[]).map((val) => (
+          {(["all", "scheduled_call", "reminder"] as CalendarFilter[]).map((val) => (
             <button
               key={val}
               type="button"
@@ -322,7 +322,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                   : "border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:text-zinc-200"
               }`}
             >
-              {val === "all" ? `Vše (${bucketsSummary.totalCount})` : val === "callback" ? "Jen hovory" : "Jen připomínky"}
+              {val === "all" ? `Vše (${bucketsSummary.totalCount})` : val === "scheduled_call" ? "Jen hovory" : "Jen připomínky"}
             </button>
           ))}
         </div>
@@ -390,12 +390,12 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                           <div className="flex min-w-0 items-start gap-3.5">
                             <div
                               className={`mt-0.5 rounded-lg p-2.5 ${
-                                entry.type === "callback"
+                                entry.type === "scheduled_call"
                                   ? "bg-blue-500/10 text-blue-400"
                                   : "bg-zinc-800 text-zinc-300"
                               }`}
                             >
-                              {entry.type === "callback" ? (
+                              {entry.type === "scheduled_call" ? (
                                 <PhoneCall className="h-4 w-4" />
                               ) : (
                                 <Bell className="h-4 w-4" />

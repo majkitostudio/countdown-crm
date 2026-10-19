@@ -17,7 +17,7 @@ describe("workspace and call context copy", () => {
     expect(brief).not.toContain("Last order");
   });
 
-  it("keeps callback outcomes and unavailable transcript evidence visually neutral", () => {
+  it("keeps scheduled call outcomes and unavailable transcript evidence visually neutral", () => {
     expect(outcomeStyles).toContain('case "followup_scheduled":\n      return "border-zinc');
     expect(drawer).toContain('>Call review</span>');
     expect(drawer).not.toContain("AI Sentiment");

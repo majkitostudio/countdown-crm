@@ -21,8 +21,8 @@ const activities: WorkspaceActivity[] = [
   },
 ];
 
-const callbackEntries = [{
-  id: "callback-active",
+const scheduledCallEntries = [{
+  id: "scheduled-call-active",
   lead_id: "lead-1",
   scheduled_at: "2026-09-01T10:00:00.000Z",
 }];
@@ -44,12 +44,12 @@ describe("recent context loader", () => {
   it("retains only same-lead unavailable data and keeps fresh partial data non-stale", () => {
     const previous = {
       leadId: "lead-1",
-      data: buildRecentContext("lead-1", activities, callbackEntries),
+      data: buildRecentContext("lead-1", activities, scheduledCallEntries),
     };
     const partial: RecentContextLoadResult = {
       state: "partial",
       isEmpty: false,
-      context: buildRecentContext("lead-1", [], callbackEntries),
+      context: buildRecentContext("lead-1", [], scheduledCallEntries),
       unavailableSources: ["activities"],
       messages: { activities: "Activities temporarily unavailable." },
     };
@@ -57,7 +57,7 @@ describe("recent context loader", () => {
       state: "unavailable",
       isEmpty: false,
       context: null,
-      unavailableSources: ["activities", "callbacks"],
+      unavailableSources: ["activities", "scheduledCalls"],
       messages: { activities: "Activities failed.", calendar: "Calendar failed." },
     };
 
@@ -79,7 +79,7 @@ describe("recent context loader", () => {
     const result = await loadRecentContext("lead-1", {
       loadSources: async () => ({
         activities: { status: "ready", data: activities },
-        callbacks: {
+        scheduledCalls: {
           status: "unavailable",
           reason: "database",
           message: "Calendar temporarily unavailable.",
@@ -92,7 +92,7 @@ describe("recent context loader", () => {
     expect(result.messages.calendar).toContain("Calendar");
   });
 
-  it("keeps calendar callbacks when activities database source is unavailable", async () => {
+  it("keeps calendar scheduled calls when activities database source is unavailable", async () => {
     const result = await loadRecentContext("lead-1", {
       loadSources: async () => ({
         activities: {
@@ -100,12 +100,12 @@ describe("recent context loader", () => {
           reason: "database",
           message: "Activities temporarily unavailable.",
         },
-        callbacks: { status: "ready", data: callbackEntries },
+        scheduledCalls: { status: "ready", data: scheduledCallEntries },
       }),
     });
 
     expect(result.state).toBe("partial");
-    expect(result.context?.activeCallback?.id).toBe("callback-active");
+    expect(result.context?.activeScheduledCall?.id).toBe("scheduled-call-active");
     expect(result.messages.activities).toContain("Activities");
   });
 
@@ -117,7 +117,7 @@ describe("recent context loader", () => {
           reason: "database",
           message: "Activities failed.",
         },
-        callbacks: {
+        scheduledCalls: {
           status: "unavailable",
           reason: "database",
           message: "Calendar failed.",
@@ -127,14 +127,14 @@ describe("recent context loader", () => {
 
     expect(result.state).toBe("unavailable");
     expect(result.context).toBeNull();
-    expect(result.unavailableSources).toEqual(["activities", "callbacks"]);
+    expect(result.unavailableSources).toEqual(["activities", "scheduledCalls"]);
   });
 
   it("keeps verified empty data distinct from unavailable data", async () => {
     const result = await loadRecentContext("lead-empty", {
       loadSources: async () => ({
         activities: { status: "ready", data: [] },
-        callbacks: { status: "ready", data: [] },
+        scheduledCalls: { status: "ready", data: [] },
       }),
     });
 

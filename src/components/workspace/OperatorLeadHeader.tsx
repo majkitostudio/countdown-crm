@@ -31,7 +31,7 @@ interface OperatorLeadHeaderProps {
   isCompletionPending?: boolean;
   callEndedInSession?: boolean;
   onCallOutcome?: (outcome: CallOutcome, details?: FailDetails) => void;
-  onScheduleCallback?: () => void;
+  onScheduleCall?: () => void;
   onRequestHelp?: (requestType: "help" | "sos") => void;
   assistancePending?: boolean;
 }
@@ -55,7 +55,7 @@ export function OperatorLeadHeader({
   isCompletionPending = false,
   callEndedInSession = false,
   onCallOutcome,
-  onScheduleCallback,
+  onScheduleCall,
   onRequestHelp,
   assistancePending = false,
 }: OperatorLeadHeaderProps) {
@@ -224,7 +224,7 @@ export function OperatorLeadHeader({
           )}
         </div>
       </div>
-      {!isCallActive && !isDialing && onCallOutcome && onScheduleCallback && (
+      {!isCallActive && !isDialing && onCallOutcome && onScheduleCall && (
         <CallOutcomePanel
           key={isAwaitingOutcome ? "awaiting-outcome" : "idle"}
           isAwaitingOutcome={isAwaitingOutcome}
@@ -232,7 +232,7 @@ export function OperatorLeadHeader({
           isCompletionPending={isCompletionPending}
           callEndedInSession={callEndedInSession}
           onCallOutcome={onCallOutcome}
-          onScheduleCallback={onScheduleCallback}
+          onScheduleCall={onScheduleCall}
         />
       )}
     </section>

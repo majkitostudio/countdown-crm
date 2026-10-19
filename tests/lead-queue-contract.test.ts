@@ -30,7 +30,7 @@ vi.mock("@/lib/dal/callQualityReviews", () => ({
 import {
   abortLeadCallStartForWorkspace,
   completeLeadCallForWorkspace,
-  listScheduledCallbacksForWorkspace,
+  listScheduledCallsForWorkspace,
 } from "@/lib/dal/leadQueue";
 
 const workspaceContext = {
@@ -224,7 +224,7 @@ describe("lead queue server contract", () => {
     );
   });
 
-  it("merges queue and direct-call callbacks into one canonical read model", async () => {
+  it("merges queue and direct-call scheduled calls into one canonical read model", async () => {
     const createQuery = (result: unknown) => {
       const query: Record<string, unknown> = {
         then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) => Promise.resolve(result).then(resolve, reject),
@@ -236,7 +236,7 @@ describe("lead queue server contract", () => {
     };
     const queueQuery = createQuery({
       data: [{
-        id: "queue-callback",
+        id: "queue-scheduledCall",
         workspace_id: "workspace-1",
         lead_id: "lead-1",
         scheduled_at: "2026-09-06T10:00:00.000Z",
@@ -263,12 +263,12 @@ describe("lead queue server contract", () => {
         .mockReturnValueOnce(directQuery),
     });
 
-    await expect(listScheduledCallbacksForWorkspace(
+    await expect(listScheduledCallsForWorkspace(
       "2026-09-05T00:00:00.000Z",
       "2026-09-07T00:00:00.000Z",
     )).resolves.toMatchObject([
       { id: "direct-call", preferred_operator_id: "user-1", scheduled_at: "2026-09-05T10:00:00.000Z" },
-      { id: "queue-callback", preferred_operator_id: "user-1", scheduled_at: "2026-09-06T10:00:00.000Z" },
+      { id: "queue-scheduledCall", preferred_operator_id: "user-1", scheduled_at: "2026-09-06T10:00:00.000Z" },
     ]);
   });
 });

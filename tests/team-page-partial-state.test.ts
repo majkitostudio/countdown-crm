@@ -77,7 +77,7 @@ describe("TeamPageContent partial source states", () => {
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Assign<\/button>/);
   });
 
-  it("keeps a callback queue row visible when its contact details are outside the readable scope", () => {
+  it("keeps a scheduled call queue row visible when its contact details are outside the readable scope", () => {
     const html = render({
       queue: { status: "ready", data: [{ ...queueItem, state: "scheduled", scheduled_at: "2026-09-08T09:00:00.000Z", lead: null }] },
       operators: { status: "ready", data: [] },
@@ -366,8 +366,8 @@ describe("TeamPageContent partial source states", () => {
           periodKey: "today",
           period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
           orders: [],
-          overdueCallbacks: [],
-          upcomingCallbacks: [],
+          overdueScheduledCalls: [],
+          upcomingScheduledCalls: [],
           operatorMetrics: [],
           recentCallsByOperator: {},
           failureReasons: {
@@ -383,7 +383,7 @@ describe("TeamPageContent partial source states", () => {
           sources: {
             orders: { state: "ready" },
             calls: { state: "ready" },
-            callbacks: { state: "ready" },
+            scheduledCalls: { state: "ready" },
             activities: { state: "ready" },
             shifts: { state: "unavailable", message: "Shift planning is not implemented yet." },
           },
@@ -411,15 +411,15 @@ describe("TeamPageContent partial source states", () => {
           periodKey: "today",
           period: { from: "2026-09-16T00:00:00.000Z", to: "2026-09-17T00:00:00.000Z" },
           orders: [],
-          overdueCallbacks: [],
-          upcomingCallbacks: [],
+          overdueScheduledCalls: [],
+          upcomingScheduledCalls: [],
           operatorMetrics: [],
           recentCallsByOperator: {},
           failureReasons: { total: 0, reasons: [], influenceableTotal: 0, notInfluenceableTotal: 0, influenceablePercent: 0 },
           sources: {
             orders: { state: "ready" },
             calls: { state: "unavailable", message: "Team calls could not be loaded." },
-            callbacks: { state: "ready" },
+            scheduledCalls: { state: "ready" },
             activities: { state: "ready" },
             shifts: { state: "unavailable", message: "Shift planning is not implemented yet." },
           },

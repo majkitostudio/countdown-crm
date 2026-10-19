@@ -60,7 +60,7 @@ export function NextBestActionCard({ scope = "workspace" }: { scope?: "team" | "
         if (!cancelled) {
           setState({
             status: "unavailable",
-            unavailableSources: ["callbacks", "reorders"],
+            unavailableSources: ["scheduledCalls", "reorders"],
             message: "Data nebyla nahrazena syntetickou prioritou.",
           });
         }
@@ -76,7 +76,7 @@ export function NextBestActionCard({ scope = "workspace" }: { scope?: "team" | "
   }, []);
 
   const action = state && state.status !== "unavailable" ? state.action : null;
-  const Icon = action?.kind === "callback"
+  const Icon = action?.kind === "scheduled_call"
     ? CalendarClock
     : action?.kind === "reorder"
       ? RefreshCw

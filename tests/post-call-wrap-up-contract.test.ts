@@ -70,9 +70,9 @@ describe("post-call fail persistence contract", () => {
     expect(boundaryMigration).toContain("completion_key <> call_session_id");
   });
 
-  it("keeps callback data in the canonical calls read model and workflow event", () => {
+  it("keeps scheduled call data in the canonical calls read model and workflow event", () => {
     expect(boundaryMigration).toContain("callback_scheduled_at TIMESTAMPTZ");
-    expect(completionDal).toContain("callbackScheduledAt");
+    expect(completionDal).toContain("scheduledAt");
     expect(workspacePage).toContain("failReasonLabel: failReason ? getFailReasonLabel(failReason) : undefined");
     expect(workspacePage).toContain("operatorNote: operatorNote?.trim() || undefined");
   });

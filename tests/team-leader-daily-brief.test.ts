@@ -29,12 +29,12 @@ describe("Team Leader Daily Brief", () => {
     });
   });
 
-  it("summarizes callback attention and team wallet without inventing missing wallet data", () => {
+  it("summarizes scheduled call attention and team wallet without inventing missing wallet data", () => {
     const brief = buildTeamLeaderDailyBrief({
       now,
       daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
-      callbacks: [{
-        id: "callback-1",
+      scheduledCalls: [{
+        id: "scheduled-call-1",
         lead_id: "lead-1",
         lead_name: "Jana Nováková",
         scheduled_at: "2026-08-31T09:00:00.000Z",
@@ -45,8 +45,8 @@ describe("Team Leader Daily Brief", () => {
 
     expect(brief.scope).toBe("team");
     expect(brief.scopeLabel).toBe("Týmová data");
-    expect(brief.todayCallbacks).toBe(1);
-    expect(brief.overdueCallbacks).toBe(1);
+    expect(brief.todayScheduledCalls).toBe(1);
+    expect(brief.overdueScheduledCalls).toBe(1);
     expect(brief.openReminders).toBe(1);
     expect(brief.workspaceWalletBalance).toBeNull();
   });

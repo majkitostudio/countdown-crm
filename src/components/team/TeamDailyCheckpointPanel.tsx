@@ -59,7 +59,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
   const periodLabel = TEAM_WORKSPACE_PERIOD_LABELS[periodKey] || TEAM_WORKSPACE_PERIOD_LABELS.today;
   const warnings = sourceWarnings(checkpoint.sources);
   const showOrders = section === "all" || section === "orders";
-  const showCallbacks = section === "all";
+  const showScheduledCalls = section === "all";
   const showResults = section === "all";
   const [sourceFilter, setSourceFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -80,7 +80,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
   const visibleOrders = isOrdersView ? filteredOrders : checkpoint.orders;
   const hasOrderFilters = sourceFilter !== "all" || statusFilter !== "all" || operatorFilter !== "all";
   const totalOrders = visibleOrders.length;
-  const overdueCallbacks = checkpoint.overdueCallbacks.length;
+  const overdueScheduledCalls = checkpoint.overdueScheduledCalls.length;
   const totalSales = checkpoint.operatorMetrics.reduce((total, metric) => total + metric.sales, 0);
   const hasUnavailableMetrics = sourceIsUnavailable(checkpoint.sources.orders) || sourceIsUnavailable(checkpoint.sources.calls);
 
@@ -142,7 +142,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard label="Nové objednávky" value={checkpoint.sources.orders.state === "ready" ? totalOrders : "—"} detail={`Vytvořené v období „${periodLabel.toLowerCase()}“ v týmu`} />
-          <MetricCard label="Po termínu" value={checkpoint.sources.callbacks.state === "ready" ? overdueCallbacks : "—"} valueTone={overdueCallbacks > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
+          <MetricCard label="Po termínu" value={checkpoint.sources.scheduledCalls.state === "ready" ? overdueScheduledCalls : "—"} valueTone={overdueScheduledCalls > 0 ? "warning" : "neutral"} detail="Vyžadují kontrolu" />
           <MetricCard label="Operátoři s výsledky" value={checkpoint.operatorMetrics.length} detail="V povoleném rozsahu" />
           <MetricCard label="Prodeje" value={checkpoint.sources.calls.state === "ready" ? totalSales : "—"} detail={`Za zvolené období (${periodLabel.toLowerCase()})`} />
         </div>
@@ -185,29 +185,29 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
           )}
         </section>}
 
-        {showCallbacks && <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-labelledby="checkpoint-callbacks-heading">
+        {showScheduledCalls && <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-labelledby="checkpoint-scheduled-calls-heading">
           <div className="flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-            <h3 id="checkpoint-callbacks-heading" className="text-sm font-semibold text-zinc-100">Po termínu</h3>
+            <h3 id="checkpoint-scheduled-calls-heading" className="text-sm font-semibold text-zinc-100">Po termínu</h3>
           </div>
-          {checkpoint.sources.callbacks.state === "ready" && (
+          {checkpoint.sources.scheduledCalls.state === "ready" && (
             <p className="text-[11px] text-zinc-500">
-              Prošlé: {checkpoint.overdueCallbacks.length} · Naplánované v období: {checkpoint.upcomingCallbacks.length}
+              Prošlé: {checkpoint.overdueScheduledCalls.length} · Naplánované v období: {checkpoint.upcomingScheduledCalls.length}
             </p>
           )}
-          {checkpoint.sources.callbacks.state === "unavailable" ? (
+          {checkpoint.sources.scheduledCalls.state === "unavailable" ? (
             <UnavailableRow message="Naplánované hovory nejsou dostupné. Přehled nevytváří náhradní nuly." />
-          ) : checkpoint.overdueCallbacks.length === 0 ? (
+          ) : checkpoint.overdueScheduledCalls.length === 0 ? (
             <EmptyRow message="V tomto týmovém rozsahu nejsou žádné hovory po termínu." />
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
-              {checkpoint.overdueCallbacks.map((callback) => (
-                <div key={callback.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
+              {checkpoint.overdueScheduledCalls.map((scheduledCall) => (
+                <div key={scheduledCall.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0"><Link href={`/leads/${callback.leadId}`} className="font-medium text-zinc-200 hover:text-zinc-100">{callback.leadName}</Link><p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(callback.scheduledAt)}</p></div>
+                    <div className="min-w-0"><Link href={`/leads/${scheduledCall.leadId}`} className="font-medium text-zinc-200 hover:text-zinc-100">{scheduledCall.leadName}</Link><p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(scheduledCall.scheduledAt)}</p></div>
                     <StatusBadge tone="warning">Po termínu</StatusBadge>
                   </div>
-                  <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {callback.operatorName || "Neuveden"}</p>
+                  <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
                 </div>
               ))}
             </div>

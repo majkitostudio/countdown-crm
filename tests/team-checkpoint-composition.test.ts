@@ -79,7 +79,7 @@ describe("team checkpoint operational metrics (live ops, queue aging, failure re
   });
 });
 
-describe("team checkpoint follow-ups (recent calls and upcoming callbacks)", () => {
+describe("team checkpoint follow-ups (recent calls and upcoming scheduledCalls)", () => {
   it("derives operator recent calls from the team-scoped checkpoint read model", () => {
     expect(workspaceDal).toContain("recentCallsByOperator");
     expect(workspaceDal).toContain("TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR");
@@ -91,10 +91,10 @@ describe("team checkpoint follow-ups (recent calls and upcoming callbacks)", () 
     expect(content).toContain("recentCallsByOperator[selectedOperatorId]");
   });
 
-  it("reports upcoming callbacks in the period without fabricating them", () => {
-    expect(workspaceDal).toContain("upcomingCallbacks");
-    expect(workspaceDal).toContain("splitCallbackSummaries");
-    expect(workspaceDal).toContain("splitCallbacksByDue");
+  it("reports upcoming scheduled calls in the period without fabricating them", () => {
+    expect(workspaceDal).toContain("upcomingScheduledCalls");
+    expect(workspaceDal).toContain("splitScheduledCallSummaries");
+    expect(workspaceDal).toContain("splitScheduledCallsByDue");
     expect(checkpoint).toContain("Naplánované v období");
     expect(handover).toContain("naplánované");
   });

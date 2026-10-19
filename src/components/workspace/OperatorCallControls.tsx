@@ -42,7 +42,7 @@ interface OperatorCallControlsProps {
   onToggleCall: () => void;
   onToggleMute: () => void;
   onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
-  onScheduleCallback: () => void;
+  onScheduleCall: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
   telephonyAdapter?: TelephonyAdapter;
@@ -57,7 +57,7 @@ export interface CallOutcomePanelProps {
   recoveryRequired?: boolean;
   callEndedInSession?: boolean;
   onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
-  onScheduleCallback: () => void;
+  onScheduleCall: () => void;
 }
 
 export function getCallOutcomeButtonClassName(isSelected: boolean): string {
@@ -79,7 +79,7 @@ export function CallOutcomePanel({
   recoveryRequired = false,
   callEndedInSession = false,
   onCallOutcome,
-  onScheduleCallback,
+  onScheduleCall,
 }: CallOutcomePanelProps) {
   const [selectedOutcome, setSelectedOutcome] = useState<CallOutcome | null>(null);
   const [failReason, setFailReason] = useState<FailReason | "">("");
@@ -93,7 +93,7 @@ export function CallOutcomePanel({
 
     setSelectedOutcome((current) => selectCallOutcome(current, outcome, isCompletionPending));
     if (outcome === "schedule") {
-      onScheduleCallback();
+      onScheduleCall();
       return;
     }
     if (outcome === "fail") {
@@ -217,7 +217,7 @@ export function OperatorCallControls({
   onToggleCall,
   onToggleMute,
   onCallOutcome,
-  onScheduleCallback,
+  onScheduleCall,
   onSimulateIncoming,
   isStarting = false,
   telephonyAdapter = "simulation",
@@ -293,7 +293,7 @@ export function OperatorCallControls({
         recoveryRequired={recoveryRequired}
         isCompletionPending={isCompletionPending}
         onCallOutcome={onCallOutcome}
-        onScheduleCallback={onScheduleCallback}
+        onScheduleCall={onScheduleCall}
       />
     </div>
   );

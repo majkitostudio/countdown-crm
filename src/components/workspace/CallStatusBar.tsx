@@ -27,7 +27,7 @@ interface CallStatusBarProps {
   onSimulateIncoming: () => void;
   onStatusChange: (newStatus: OperatorStatus) => void;
   onCallOutcome: (outcome: CallOutcome, details?: FailDetails) => void;
-  onScheduleCallback?: () => void;
+  onScheduleCall?: () => void;
   showIncomingSimulator?: boolean;
   isStarting?: boolean;
   isAwaitingOutcome?: boolean;

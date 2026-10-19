@@ -194,7 +194,7 @@ async function completeCallForAuthorizedWorkspace(
       sentiment: normalizeOptionalText(input.ai_sentiment) || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
       transcript: normalizeOptionalText(input.transcript) || "",
-      callbackScheduledAt: input.scheduled_at || null,
+      scheduledAt: input.scheduled_at || null,
       failReason: input.fail_reason || null,
       operatorNote: operatorNote || "",
     },

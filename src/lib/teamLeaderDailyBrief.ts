@@ -1,4 +1,4 @@
-import type { NextBestActionCallback, NextBestActionReorderOpportunity } from "./nextBestAction";
+import type { NextBestActionScheduledCall, NextBestActionReorderOpportunity } from "./nextBestAction";
 import type { DailyTeamSummary } from "./dailyTeamSummary";
 
 export interface DailyBriefReminder {
@@ -20,9 +20,9 @@ export interface TeamLeaderDailyBrief {
   scope: DailyBriefScope;
   scopeLabel: string;
   daily: DailyTeamSummary;
-  callbacksToAttend: number;
-  todayCallbacks: number;
-  overdueCallbacks: number;
+  scheduledCallsToAttend: number;
+  todayScheduledCalls: number;
+  overdueScheduledCalls: number;
   openReminders: number;
   urgentReorders: number;
   pendingReviews: number | null;
@@ -33,7 +33,7 @@ export interface TeamLeaderDailyBrief {
 
 export interface TeamLeaderDailyBriefInput {
   daily: DailyTeamSummary;
-  callbacks?: NextBestActionCallback[];
+  scheduledCalls?: NextBestActionScheduledCall[];
   reminders?: DailyBriefReminder[];
   reorderOpportunities?: NextBestActionReorderOpportunity[];
   pendingReviews?: number | null;
@@ -55,21 +55,21 @@ function isSameDay(value: string, now: Date): boolean {
 export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): TeamLeaderDailyBrief {
   const now = input.now ?? new Date();
   const scope = input.scope ?? "team";
-  const callbacks = (input.callbacks ?? []).filter((callback) => isValidDate(callback.scheduled_at));
+  const scheduledCalls = (input.scheduledCalls ?? []).filter((scheduledCall) => isValidDate(scheduledCall.scheduled_at));
   const reminders = input.reminders ?? [];
   const endOfDay = new Date(now);
   endOfDay.setHours(23, 59, 59, 999);
-  const callbacksToAttend = callbacks.filter((callback) => Date.parse(callback.scheduled_at) <= endOfDay.getTime()).length;
-  const overdueCallbacks = callbacks.filter((callback) => Date.parse(callback.scheduled_at) < now.getTime()).length;
+  const scheduledCallsToAttend = scheduledCalls.filter((scheduledCall) => Date.parse(scheduledCall.scheduled_at) <= endOfDay.getTime()).length;
+  const overdueScheduledCalls = scheduledCalls.filter((scheduledCall) => Date.parse(scheduledCall.scheduled_at) < now.getTime()).length;
   const wallet = input.wallet ?? null;
 
   return {
     scope,
     scopeLabel: scope === "team" ? "Týmová data" : "Celý workspace",
     daily: input.daily,
-    callbacksToAttend,
-    todayCallbacks: callbacks.filter((callback) => isSameDay(callback.scheduled_at, now)).length,
-    overdueCallbacks,
+    scheduledCallsToAttend,
+    todayScheduledCalls: scheduledCalls.filter((scheduledCall) => isSameDay(scheduledCall.scheduled_at, now)).length,
+    overdueScheduledCalls,
     openReminders: reminders.filter((reminder) => reminder.status === "open" && isSameDay(reminder.starts_at, now)).length,
     urgentReorders: (input.reorderOpportunities ?? []).filter(
       (opportunity) => opportunity.urgency === "urgent" || opportunity.urgency === "due_soon",

@@ -105,7 +105,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
   const [context, setContext] = useState<RecentContextData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [callbackUnavailableMessage, setCallbackUnavailableMessage] = useState<string | null>(null);
+  const [scheduledCallUnavailableMessage, setScheduledCallUnavailableMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,15 +122,15 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
 
         const recentContext = buildRecentContextFromCalendar(leadId, activities, calendarResult);
         setContext(recentContext.context);
-        setCallbackUnavailableMessage(
-          recentContext.callbackSource.state === "unavailable"
-            ? recentContext.callbackSource.message
+        setScheduledCallUnavailableMessage(
+          recentContext.scheduledCallSource.state === "unavailable"
+            ? recentContext.scheduledCallSource.message
             : null,
         );
       } catch (error) {
         if (!cancelled) {
           setContext(null);
-          setCallbackUnavailableMessage(null);
+          setScheduledCallUnavailableMessage(null);
           setLoadError(error instanceof Error ? error.message : "Recent context could not be loaded.");
         }
       } finally {
@@ -148,10 +148,10 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
   const contact = renderSignal(context?.lastContact || null, "contact");
   const result = renderSignal(context?.lastCallResult || null, "result");
   const order = renderSignal(context?.lastOrder || null, "order");
-  const callback = callbackUnavailableMessage
-    ? { value: "Unavailable", detail: callbackUnavailableMessage }
-    : context?.activeCallback
-      ? { value: formatDate(context.activeCallback.scheduled_at), detail: "Scheduled call" }
+  const scheduledCall = scheduledCallUnavailableMessage
+    ? { value: "Unavailable", detail: scheduledCallUnavailableMessage }
+    : context?.activeScheduledCall
+      ? { value: formatDate(context.activeScheduledCall.scheduled_at), detail: "Scheduled call" }
       : emptySignal;
 
   return (
@@ -174,7 +174,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
           <Signal icon={PhoneCall} label="Last contact" value={isLoading ? "Loading…" : contact.value} detail={isLoading ? "" : contact.detail} />
           <Signal icon={CheckCircle2} label="Last result" value={isLoading ? "Loading…" : result.value} detail={isLoading ? "" : result.detail} />
           <Signal icon={ShoppingBag} label="Last order" value={isLoading ? "Loading…" : order.value} detail={isLoading ? "" : order.detail} />
-          <Signal icon={CalendarClock} label="Schedule" value={isLoading ? "Loading…" : callback.value} detail={isLoading ? "" : callback.detail} />
+          <Signal icon={CalendarClock} label="Schedule" value={isLoading ? "Loading…" : scheduledCall.value} detail={isLoading ? "" : scheduledCall.detail} />
         </div>
       )}
       </section>

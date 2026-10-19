@@ -40,7 +40,7 @@ function formatDate(value: string | null): string {
 }
 
 export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutation }: TeamQueuePanelProps) {
-  const callbackAttention = getScheduledCallAttention(queueItems);
+  const scheduledCallAttention = getScheduledCallAttention(queueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [stateFilter, setStateFilter] = useState<"all" | QueueItemDTO["state"]>("all");
   const [operatorFilter, setOperatorFilter] = useState("all");
@@ -105,10 +105,10 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
         </span>
       </div>
 
-      <section className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:grid-cols-3" data-testid="team-callback-attention" aria-label="Scheduled calls">
-        <CallbackMetric label="Naplánované hovory" value={callbackAttention.total} />
-        <CallbackMetric label="Naplánované později" value={callbackAttention.scheduled} />
-        <CallbackMetric label="Po termínu" value={callbackAttention.overdue} tone={callbackAttention.overdue > 0 ? "warning" : "neutral"} />
+      <section className="grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 sm:grid-cols-3" data-testid="team-scheduled-call-attention" aria-label="Scheduled calls">
+        <ScheduledCallMetric label="Naplánované hovory" value={scheduledCallAttention.total} />
+        <ScheduledCallMetric label="Naplánované později" value={scheduledCallAttention.scheduled} />
+        <ScheduledCallMetric label="Po termínu" value={scheduledCallAttention.overdue} tone={scheduledCallAttention.overdue > 0 ? "warning" : "neutral"} />
         <p className="sm:col-span-3 text-[11px] leading-relaxed text-zinc-500">Původní operátor má přednost. Pokud není dostupný, může si naplánovaný hovor převzít volný operátor ze stejného týmu.</p>
       </section>
 
@@ -161,7 +161,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "scheduled";
                 const canReopen = item.state === "closed";
-                const overdueCallback = isOverdueScheduledCall(item);
+                const overdueScheduledCall = isOverdueScheduledCall(item);
                 return (
                   <tr key={item.id} className="align-top hover:bg-zinc-900/70">
                     <td className="px-4 py-4">
@@ -176,7 +176,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                         {STATE_LABELS[item.state]}
                       </span>
                       <div className="mt-2 font-mono text-[10px] text-zinc-600">Attempts: {item.attempt_count}</div>
-                      {overdueCallback && <div className="mt-2 text-[10px] font-medium text-amber-300">Po termínu</div>}
+                      {overdueScheduledCall && <div className="mt-2 text-[10px] font-medium text-amber-300">Po termínu</div>}
                     </td>
                     <td className="px-4 py-4 text-zinc-300">
                       {item.assigned_operator?.full_name || <span className="text-zinc-600">Available pool</span>}
@@ -224,7 +224,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
   );
 }
 
-function CallbackMetric({ label, value, tone = "neutral" }: { label: string; value: number; tone?: "neutral" | "warning" }) {
+function ScheduledCallMetric({ label, value, tone = "neutral" }: { label: string; value: number; tone?: "neutral" | "warning" }) {
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</p>

@@ -1,7 +1,7 @@
 import type { WorkspaceActivity } from "@/lib/domain";
 import type { CalendarLoadResult, CalendarSourceState } from "@/lib/dal/calendar";
 
-export interface RecentContextCallback {
+export interface RecentContextScheduledCall {
   id: string;
   lead_id: string;
   scheduled_at: string;
@@ -15,12 +15,12 @@ export interface RecentContextData {
   lastContact: RecentContextSignal | null;
   lastCallResult: RecentContextSignal | null;
   lastOrder: RecentContextSignal | null;
-  activeCallback: RecentContextCallback | null;
+  activeScheduledCall: RecentContextScheduledCall | null;
 }
 
 export interface RecentContextFromCalendarResult {
   context: RecentContextData;
-  callbackSource: CalendarSourceState;
+  scheduledCallSource: CalendarSourceState;
 }
 
 export type RecentContextSourceState<T> =
@@ -32,7 +32,7 @@ export type RecentContextLoadState = "ready" | "partial" | "unavailable";
 export interface RecentContextSourcesInput {
   leadId: string;
   activities: RecentContextSourceState<WorkspaceActivity[]>;
-  callbacks: RecentContextSourceState<RecentContextCallback[]>;
+  scheduledCalls: RecentContextSourceState<RecentContextScheduledCall[]>;
   now?: number;
 }
 
@@ -40,7 +40,7 @@ export interface RecentContextLoadResult {
   state: RecentContextLoadState;
   isEmpty: boolean;
   context: RecentContextData | null;
-  unavailableSources: Array<"activities" | "callbacks">;
+  unavailableSources: Array<"activities" | "scheduledCalls">;
   messages: Partial<Record<"activities" | "calendar", string>>;
 }
 
@@ -50,28 +50,28 @@ function latestActivity(entries: WorkspaceActivity[], type: WorkspaceActivity["t
     .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))[0] || null;
 }
 
-function selectActiveCallback(callbacks: RecentContextCallback[], now: number): RecentContextCallback | null {
-  const matchingCallbacks = callbacks
-    .filter((callback) => Number.isFinite(Date.parse(callback.scheduled_at)))
+function selectActiveScheduledCall(scheduledCalls: RecentContextScheduledCall[], now: number): RecentContextScheduledCall | null {
+  const matchingScheduledCalls = scheduledCalls
+    .filter((scheduledCall) => Number.isFinite(Date.parse(scheduledCall.scheduled_at)))
     .sort((left, right) => Date.parse(left.scheduled_at) - Date.parse(right.scheduled_at));
 
-  const upcoming = matchingCallbacks.find((callback) => Date.parse(callback.scheduled_at) >= now);
-  return upcoming || matchingCallbacks[matchingCallbacks.length - 1] || null;
+  const upcoming = matchingScheduledCalls.find((scheduledCall) => Date.parse(scheduledCall.scheduled_at) >= now);
+  return upcoming || matchingScheduledCalls[matchingScheduledCalls.length - 1] || null;
 }
 
 function hasAnySignal(context: RecentContextData): boolean {
-  return Boolean(context.lastContact || context.lastCallResult || context.lastOrder || context.activeCallback);
+  return Boolean(context.lastContact || context.lastCallResult || context.lastOrder || context.activeScheduledCall);
 }
 
 function collectMessages(input: RecentContextSourcesInput): Partial<Record<"activities" | "calendar", string>> {
   return {
     ...(input.activities.status === "unavailable" ? { activities: input.activities.message } : {}),
-    ...(input.callbacks.status === "unavailable" ? { calendar: input.callbacks.message } : {}),
+    ...(input.scheduledCalls.status === "unavailable" ? { calendar: input.scheduledCalls.message } : {}),
   };
 }
 
 export function buildRecentContextFromSources(input: RecentContextSourcesInput): RecentContextLoadResult {
-  const unavailableSources = (["activities", "callbacks"] as const)
+  const unavailableSources = (["activities", "scheduledCalls"] as const)
     .filter((source) => input[source].status === "unavailable");
   const messages = collectMessages(input);
 
@@ -88,7 +88,7 @@ export function buildRecentContextFromSources(input: RecentContextSourcesInput):
   const context = buildRecentContext(
     input.leadId,
     input.activities.status === "ready" ? input.activities.data : [],
-    input.callbacks.status === "ready" ? input.callbacks.data : [],
+    input.scheduledCalls.status === "ready" ? input.scheduledCalls.data : [],
     input.now,
   );
 
@@ -104,7 +104,7 @@ export function buildRecentContextFromSources(input: RecentContextSourcesInput):
 export function buildRecentContext(
   leadId: string,
   activities: WorkspaceActivity[],
-  callbacks: RecentContextCallback[],
+  scheduledCalls: RecentContextScheduledCall[],
   now = Date.now(),
 ): RecentContextData {
   const leadActivities = activities.filter((activity) => activity.record.id === leadId);
@@ -115,7 +115,7 @@ export function buildRecentContext(
     lastContact: lastCall ? { activity: lastCall } : null,
     lastCallResult: lastCall ? { activity: lastCall } : null,
     lastOrder: lastOrder ? { activity: lastOrder } : null,
-    activeCallback: selectActiveCallback(callbacks.filter((callback) => callback.lead_id === leadId), now),
+    activeScheduledCall: selectActiveScheduledCall(scheduledCalls.filter((scheduledCall) => scheduledCall.lead_id === leadId), now),
   };
 }
 
@@ -125,10 +125,10 @@ export function buildRecentContextFromCalendar(
   calendarResult: Pick<CalendarLoadResult, "entries" | "sources">,
   now = Date.now(),
 ): RecentContextFromCalendarResult {
-  if (calendarResult.sources.callbacks.state === "unavailable") {
+  if (calendarResult.sources.scheduledCalls.state === "unavailable") {
     return {
       context: buildRecentContext(leadId, activities, [], now),
-      callbackSource: calendarResult.sources.callbacks,
+      scheduledCallSource: calendarResult.sources.scheduledCalls,
     };
   }
 
@@ -137,7 +137,7 @@ export function buildRecentContextFromCalendar(
       leadId,
       activities,
       calendarResult.entries
-        .filter((entry) => entry.type === "callback" && entry.lead)
+        .filter((entry) => entry.type === "scheduled_call" && entry.lead)
         .map((entry) => ({
           id: entry.id,
           lead_id: entry.lead!.id,
@@ -145,6 +145,6 @@ export function buildRecentContextFromCalendar(
         })),
       now,
     ),
-    callbackSource: calendarResult.sources.callbacks,
+    scheduledCallSource: calendarResult.sources.scheduledCalls,
   };
 }

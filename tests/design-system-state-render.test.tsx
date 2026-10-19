@@ -15,7 +15,7 @@ describe("entry and workspace state contract", () => {
   });
 
   it("keeps semantic state opacity fixed", () => {
-    const warning = renderToStaticMarkup(<StatusAlert tone="warning">Callback is due</StatusAlert>);
+    const warning = renderToStaticMarkup(<StatusAlert tone="warning">Scheduled call is due</StatusAlert>);
     expect(warning).toContain("bg-status-warning");
     expect(warning).not.toContain("bg-status-danger");
   });

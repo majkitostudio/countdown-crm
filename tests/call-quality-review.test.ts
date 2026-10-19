@@ -27,7 +27,7 @@ describe("call quality review", () => {
 
   it("keeps a short-call signal separate from a quality verdict", () => {
     const result = evaluateDeterministicCallQuality({
-      operatorNote: "Klient chtěl zavolat později, domluvili jsme přesný termín callbacku a poznámka zachycuje výsledek i další krok podle domluvy s klientem.",
+      operatorNote: "Klient chtěl zavolat později, domluvili jsme přesný termín naplánovaného hovoru a poznámka zachycuje výsledek i další krok podle domluvy s klientem.",
       transcript: null,
       durationSeconds: 12,
       outcome: "followup_scheduled",

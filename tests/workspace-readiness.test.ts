@@ -54,7 +54,7 @@ const checkedAt = "2026-09-06T20:00:00.000Z";
 const availableCalendar = {
   entries: [],
   sources: {
-    callbacks: { state: "available" as const },
+    scheduledCalls: { state: "available" as const },
     reminders: { state: "available" as const },
   },
 };
@@ -188,7 +188,7 @@ describe("workspace readiness read model", () => {
       calendar: fulfilled({
         ...availableCalendar,
         sources: {
-          callbacks: { state: "unavailable", message: "Scheduled calls could not be loaded." },
+          scheduledCalls: { state: "unavailable", message: "Scheduled calls could not be loaded." },
           reminders: { state: "available" },
         },
       }),

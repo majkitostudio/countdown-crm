@@ -36,7 +36,7 @@ describe("post-call completion runtime contract", () => {
     mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({ entries: [], status: "success" });
   });
 
-  it("forwards one durable idempotent queue boundary with callback and fail fields", async () => {
+  it("forwards one durable idempotent queue boundary with scheduled call and fail fields", async () => {
     const rpc = vi.fn()
       .mockResolvedValueOnce({
         data: { call_id: "call-1", order_id: null, queue_state: "scheduled", duration_seconds: 60, next_lead: null, lead_id: "lead-1", lead_name: "Test Lead" },

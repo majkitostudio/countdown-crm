@@ -12,7 +12,7 @@ describe("OperatorCalendar component rendering", () => {
     entries: [
       {
         id: "call-1",
-        type: "callback",
+        type: "scheduled_call",
         title: "Schedule: Jan Novák",
         starts_at: new Date(Date.now() - 3600 * 1000).toISOString(), // 1 hour ago -> overdue
         remind_at: null,
@@ -46,7 +46,7 @@ describe("OperatorCalendar component rendering", () => {
       },
     ],
     sources: {
-      callbacks: { state: "available" },
+      scheduledCalls: { state: "available" },
       reminders: { state: "available" },
     },
   };
@@ -78,7 +78,7 @@ describe("OperatorCalendar component rendering", () => {
     const emptyCalendar: CalendarLoadResult = {
       entries: [],
       sources: {
-        callbacks: { state: "available" },
+        scheduledCalls: { state: "available" },
         reminders: { state: "available" },
       },
     };

@@ -65,8 +65,8 @@ export interface DepartmentQueueTotals {
   open: number;
   waiting: number;
   inProgress: number;
-  callbacks: number;
-  overdueCallbacks: number;
+  scheduledCalls: number;
+  overdueScheduledCalls: number;
   closed: number;
   paused: number;
 }
@@ -100,7 +100,7 @@ function emptyCounts(): DepartmentQueueStateCounts {
  * scheduled calls are counted separately because they need the `scheduled_at`
  * comparison, so they are passed in rather than inferred from the counts.
  */
-function summarize(counts: DepartmentQueueStateCounts, overdueCallbacks: number): DepartmentQueueTotals {
+function summarize(counts: DepartmentQueueStateCounts, overdueScheduledCalls: number): DepartmentQueueTotals {
   const total = DEPARTMENT_QUEUE_STATES.reduce((sum, state) => sum + counts[state], 0);
   const sumStates = (states: readonly DepartmentQueueItemState[]) =>
     states.reduce((sum, state) => sum + counts[state], 0);
@@ -110,8 +110,8 @@ function summarize(counts: DepartmentQueueStateCounts, overdueCallbacks: number)
     open: total - counts.closed,
     waiting: sumStates(DEPARTMENT_QUEUE_WAITING_STATES),
     inProgress: sumStates(DEPARTMENT_QUEUE_IN_PROGRESS_STATES),
-    callbacks: counts[DEPARTMENT_QUEUE_SCHEDULED_STATE],
-    overdueCallbacks,
+    scheduledCalls: counts[DEPARTMENT_QUEUE_SCHEDULED_STATE],
+    overdueScheduledCalls,
     closed: counts.closed,
     paused: counts.paused,
   };

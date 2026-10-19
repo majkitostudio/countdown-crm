@@ -82,7 +82,7 @@ export function groupByOperator<T extends { operatorId: string | null }>(
  * Rozdělí naplánované hovory na po termínu a naplánované podle aktuálního času.
  * Hranice je ostrá: naplánovaný hovor splatný přesně teď ještě patří mezi naplánované.
  */
-export function splitCallbacksByDue<T extends { scheduledAt: string }>(
+export function splitScheduledCallsByDue<T extends { scheduledAt: string }>(
   items: T[],
   now: Date,
 ): { overdue: T[]; upcoming: T[] } {

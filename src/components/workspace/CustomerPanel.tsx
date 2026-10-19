@@ -35,7 +35,7 @@ interface CustomerPanelProps {
   onToggleCall: () => void;
   onToggleMute: () => void;
   onCallOutcome: (outcome: CallOutcome) => void;
-  onScheduleCallback: () => void;
+  onScheduleCall: () => void;
   onSimulateIncoming?: () => void;
   isStarting?: boolean;
   telephonyAdapter?: TelephonyAdapter;
@@ -62,7 +62,7 @@ export function CustomerPanel({
   onToggleCall,
   onToggleMute,
   onCallOutcome,
-  onScheduleCallback,
+  onScheduleCall,
   onSimulateIncoming,
   isStarting = false,
   telephonyAdapter = "simulation",
@@ -161,7 +161,7 @@ export function CustomerPanel({
         onToggleCall={onToggleCall}
         onToggleMute={onToggleMute}
         onCallOutcome={onCallOutcome}
-        onScheduleCallback={onScheduleCallback}
+        onScheduleCall={onScheduleCall}
         onSimulateIncoming={onSimulateIncoming}
         isStarting={isStarting}
         telephonyAdapter={telephonyAdapter}

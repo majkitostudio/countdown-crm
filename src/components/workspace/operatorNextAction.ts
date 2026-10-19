@@ -4,12 +4,12 @@ export type OperatorNextActionState =
   | "dialing"
   | "in_call"
   | "awaiting_outcome"
-  | "callback_modal"
+  | "schedule_modal"
   | "completion_pending"
   | "recovery_required"
   | "post_call_summary";
 
-export interface OperatorCallbackSignal {
+export interface OperatorScheduledCallSignal {
   id: string;
   leadName: string;
   scheduledAt: string;
@@ -24,36 +24,36 @@ export interface OperatorNextAction {
     | "end_call"
     | "complete_outcome"
     | "wait_for_connection"
-    | "claim_callback"
+    | "claim_scheduled_call"
     | "continue"
     | "wait_for_assignment";
   title: string;
   description: string;
   urgency: "neutral" | "attention" | "critical";
-  callback?: OperatorCallbackSignal;
+  scheduledCall?: OperatorScheduledCallSignal;
 }
 
 export interface OperatorNextActionInput {
   state: OperatorNextActionState;
   leadName?: string | null;
-  callbacks?: OperatorCallbackSignal[];
+  scheduledCalls?: OperatorScheduledCallSignal[];
   now?: Date;
 }
 
-function validCallback(callback: OperatorCallbackSignal): boolean {
-  return Boolean(callback.id && callback.leadName && Number.isFinite(Date.parse(callback.scheduledAt)));
+function validScheduledCall(scheduledCall: OperatorScheduledCallSignal): boolean {
+  return Boolean(scheduledCall.id && scheduledCall.leadName && Number.isFinite(Date.parse(scheduledCall.scheduledAt)));
 }
 
-function selectDueCallback(callbacks: OperatorCallbackSignal[], now: Date): OperatorCallbackSignal | undefined {
-  return callbacks
-    .filter(validCallback)
+function selectDueScheduledCall(scheduledCalls: OperatorScheduledCallSignal[], now: Date): OperatorScheduledCallSignal | undefined {
+  return scheduledCalls
+    .filter(validScheduledCall)
     .sort((left, right) => Date.parse(left.scheduledAt) - Date.parse(right.scheduledAt))
-    .find((callback) => Date.parse(callback.scheduledAt) <= now.getTime());
+    .find((scheduledCall) => Date.parse(scheduledCall.scheduledAt) <= now.getTime());
 }
 
 export function getOperatorNextAction(input: OperatorNextActionInput): OperatorNextAction {
   const now = input.now ?? new Date();
-  const dueCallback = selectDueCallback(input.callbacks ?? [], now);
+  const dueScheduledCall = selectDueScheduledCall(input.scheduledCalls ?? [], now);
 
   if (input.state === "recovery_required") {
     return {
@@ -66,7 +66,7 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
     };
   }
 
-  if (input.state === "awaiting_outcome" || input.state === "callback_modal") {
+  if (input.state === "awaiting_outcome" || input.state === "schedule_modal") {
     return {
       kind: "complete_outcome",
       title: "Complete call outcome",
@@ -120,13 +120,13 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
     };
   }
 
-  if (input.state === "waiting_assignment" && dueCallback) {
+  if (input.state === "waiting_assignment" && dueScheduledCall) {
     return {
-      kind: "claim_callback",
+      kind: "claim_scheduled_call",
       title: "Check the due scheduled call",
-      description: `${dueCallback.leadName} has a scheduled call due at ${new Date(dueCallback.scheduledAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}. Refresh the queue to claim it when available.`,
+      description: `${dueScheduledCall.leadName} has a scheduled call due at ${new Date(dueScheduledCall.scheduledAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}. Refresh the queue to claim it when available.`,
       urgency: "critical",
-      callback: dueCallback,
+      scheduledCall: dueScheduledCall,
     };
   }
 

@@ -4,11 +4,11 @@ import { getNextBestAction, resolveNextBestActionState } from "@/lib/nextBestAct
 const now = new Date("2026-08-31T10:00:00.000Z");
 
 describe("next best action", () => {
-  it("prioritizes a callback due within 24 hours", () => {
+  it("prioritizes a scheduled call due within 24 hours", () => {
     const result = getNextBestAction({
       now,
-      callbacks: [{
-        id: "callback-1",
+      scheduledCalls: [{
+        id: "scheduled-call-1",
         lead_id: "lead-1",
         lead_name: "Jana Nováková",
         scheduled_at: "2026-08-31T11:30:00.000Z",
@@ -23,16 +23,16 @@ describe("next best action", () => {
       }],
     });
 
-    expect(result.kind).toBe("callback");
-    expect(result.source_id).toBe("callback-1");
+    expect(result.kind).toBe("scheduled_call");
+    expect(result.source_id).toBe("scheduled-call-1");
     expect(result.href).toBe("/console?leadId=lead-1");
   });
 
   it("falls back to the urgent re-order estimate", () => {
     const result = getNextBestAction({
       now,
-      callbacks: [{
-        id: "callback-later",
+      scheduledCalls: [{
+        id: "scheduled-call-later",
         lead_id: "lead-later",
         lead_name: "Later customer",
         scheduled_at: "2026-09-03T11:30:00.000Z",
@@ -59,7 +59,7 @@ describe("next best action", () => {
     expect(result.source_id).toBeNull();
   });
 
-  it("shows an urgent reorder as partial when callback priority cannot be verified", () => {
+  it("shows an urgent reorder as partial when scheduled call priority cannot be verified", () => {
     const result = resolveNextBestActionState(
       { state: "unavailable", message: "Scheduled calls could not be loaded." },
       {
@@ -79,17 +79,17 @@ describe("next best action", () => {
     expect(result).toEqual({
       status: "partial",
       action: expect.objectContaining({ kind: "reorder", source_id: "reorder-1" }),
-      unavailableSources: ["callbacks"],
+      unavailableSources: ["scheduledCalls"],
       message: "Scheduled calls could not be loaded.",
     });
   });
 
-  it("shows a due callback as partial when reorder estimates are unavailable", () => {
+  it("shows a due scheduled call as partial when reorder estimates are unavailable", () => {
     const result = resolveNextBestActionState(
       {
         state: "available",
         data: [{
-          id: "callback-1",
+          id: "scheduled-call-1",
           lead_id: "lead-1",
           lead_name: "Jana Nováková",
           scheduled_at: "2026-08-31T11:30:00.000Z",
@@ -101,7 +101,7 @@ describe("next best action", () => {
 
     expect(result).toEqual({
       status: "partial",
-      action: expect.objectContaining({ kind: "callback", source_id: "callback-1" }),
+      action: expect.objectContaining({ kind: "scheduled_call", source_id: "scheduled-call-1" }),
       unavailableSources: ["reorders"],
       message: "Re-order estimates could not be loaded.",
     });
@@ -121,7 +121,7 @@ describe("next best action", () => {
     });
   });
 
-  it("does not fabricate a queue action when the callback source is unavailable", () => {
+  it("does not fabricate a queue action when the scheduled call source is unavailable", () => {
     const result = resolveNextBestActionState(
       { state: "unavailable", message: "Scheduled calls could not be loaded." },
       { state: "available", data: [] },
@@ -130,7 +130,7 @@ describe("next best action", () => {
 
     expect(result).toEqual({
       status: "unavailable",
-      unavailableSources: ["callbacks"],
+      unavailableSources: ["scheduledCalls"],
       message: "Scheduled calls could not be loaded.",
     });
   });
@@ -157,17 +157,17 @@ describe("next best action", () => {
 
     expect(result).toEqual({
       status: "unavailable",
-      unavailableSources: ["callbacks", "reorders"],
+      unavailableSources: ["scheduledCalls", "reorders"],
       message: "Scheduled calls could not be loaded. Re-order estimates could not be loaded.",
     });
   });
 
-  it("uses an urgent reorder definitively when callbacks are available but only scheduled later", () => {
+  it("uses an urgent reorder definitively when scheduled calls are available but only scheduled later", () => {
     const result = resolveNextBestActionState(
       {
         state: "available",
         data: [{
-          id: "callback-later",
+          id: "scheduled-call-later",
           lead_id: "lead-later",
           lead_name: "Later customer",
           scheduled_at: "2026-09-03T11:30:00.000Z",

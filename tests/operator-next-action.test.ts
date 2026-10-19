@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getOperatorNextAction, type OperatorCallbackSignal } from "@/components/workspace/operatorNextAction";
+import { getOperatorNextAction, type OperatorScheduledCallSignal } from "@/components/workspace/operatorNextAction";
 
 const now = new Date("2026-09-04T10:00:00.000Z");
 
-const callback: OperatorCallbackSignal = {
-  id: "callback-1",
+const scheduledCall: OperatorScheduledCallSignal = {
+  id: "scheduled-call-1",
   leadName: "Jana Nováková",
   scheduledAt: "2026-09-04T09:30:00.000Z",
 };
@@ -14,7 +14,7 @@ describe("operator next action", () => {
     const result = getOperatorNextAction({
       state: "recovery_required",
       leadName: "Jana Nováková",
-      callbacks: [callback],
+      scheduledCalls: [scheduledCall],
       now,
     });
 
@@ -33,18 +33,18 @@ describe("operator next action", () => {
     expect(result.description).toContain("Jana Nováková");
   });
 
-  it("surfaces the oldest due callback when waiting for assignment", () => {
+  it("surfaces the oldest due scheduled call when waiting for assignment", () => {
     const result = getOperatorNextAction({
       state: "waiting_assignment",
-      callbacks: [
-        { ...callback, id: "callback-later", scheduledAt: "2026-09-04T11:00:00.000Z" },
-        callback,
+      scheduledCalls: [
+        { ...scheduledCall, id: "scheduled-call-later", scheduledAt: "2026-09-04T11:00:00.000Z" },
+        scheduledCall,
       ],
       now,
     });
 
-    expect(result.kind).toBe("claim_callback");
-    expect(result.callback?.id).toBe("callback-1");
+    expect(result.kind).toBe("claim_scheduled_call");
+    expect(result.scheduledCall?.id).toBe("scheduled-call-1");
     expect(result.urgency).toBe("critical");
   });
 

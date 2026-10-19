@@ -57,7 +57,7 @@ const analytics = {
 const emptyCalendar = {
   entries: [],
   sources: {
-    callbacks: { state: "available" as const },
+    scheduledCalls: { state: "available" as const },
     reminders: { state: "available" as const },
   },
 };
@@ -107,7 +107,7 @@ describe("dashboard Daily Brief scope", () => {
     expect(result.status).toBe("ready");
     if (result.status === "ready") {
       expect(result.brief.daily.calls).toBe(2);
-      expect(result.brief.todayCallbacks).toBe(0);
+      expect(result.brief.todayScheduledCalls).toBe(0);
       expect(result.brief.workspaceWalletBalance).toBeNull();
       expect(result.warnings).toEqual(expect.arrayContaining([
         "Naplánované hovory a reminders nejsou dostupné.",
