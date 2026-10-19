@@ -34,6 +34,8 @@ Jsi pokračování práce na projektu **Countdown CRM** v tomto repozitáři.
 
 **Nový nález k potvrzení s PM (19. 10. 2026): banner naplánovaných hovorů je mrtvý kód.** `src/lib/scheduledCallsBanner.ts` i komponenta `src/components/workspace/OperatorScheduledCallsBanner.tsx` jsou napsané a otestované, ale **nikde se nevykreslují** — konzole banner nepoužívá. Otázka: banner zapojit (kde?), nebo smazat včetně testu?
 
+**Schválený samostatný úkol (PM, 19. 10. 2026): `supabase/schema.sql`.** Soubor je zastaralý snapshot — nepočítá poslední migrace (nově ani B1–B3), takže neodpovídá skutečnému schématu DB. Buď ho přepsat podle skutečného stavu, nebo smazat, pokud se nikde nepoužívá. Mimo refactoring terminologie.
+
 **Známé body, které nejsou rozbité, jen odložené:**
 - Oddělení (departments P1–P4) jsou dnes modelovaná přes týmy; vyčlenění na samostatnou entitu je vědomě odloženo.
 - „Teď“ se v stripech (provoz na lince, stárnutí fronty) počítá při renderu (`new Date()`). Přes hranici 5 minut / 24 h mezi serverem a prohlížečem se číslo může o kousek rozejít — přijaté riziko, ne vada. Kdyby to vadilo, předá se `now` ze serveru.
