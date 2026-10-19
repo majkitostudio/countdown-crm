@@ -226,9 +226,11 @@ tlačítka a URL anglicky), sloučení obrazovek a tři vlny prací.
 Projekt se vyvíjí iterativně — PM bude hodně zkoušet, vymýšlet a rozšiřovat. **Tento seznam není závazek ani konečný**; další nápady se sem připisují průběžně a konkrétní zadání vždy určuje PM.
 
 **PM pojmenoval jako budoucí směr (16.–17. 10. 2026):**
-- **Velký refactor designu UI/UX a vizuální stránky webu** (PM, 17. 10. 2026) — komplexní přepracování vizuálního stylu, typografie, hierarchie komponent a modernizace designu napříč celým CRM (v souladu s design systemem a vysokou kvalitou uživatelského rozhraní).
+- **Velký refactor designu UI/UX a vizuální stránky webu** (PM, 17. 10. 2026) — komplexní přepracování vizuálního stylu, typografie, hierarchie komponent a modernizace designu napříč celým CRM (v souladu s design systemem a vysokou kvalitou uživatelského rozhraní). Podklad a inventura obrazovek: [docs/UI_UX_AUDIT_2026-10-17.md](UI_UX_AUDIT_2026-10-17.md).
 - **Propojení AI do systému** — rozšiřovat AI napříč systémem (kontext, trénink, kvalita, pomoc operátorovi i vedoucímu). Drží se hranice z vize: AI pomáhá, ale nenahrazuje pravdu o hovoru, objednávce ani oprávněních.
 - **Systém směn** — plánování a řízení směn (operátoři, vedoucí), návaznost na Team Operations a týmový dohled.
+- **Ochranný štít proti vratkám: Blacklist, historie převzetí a detekce duplicit (Risk & Blacklist Check)** (PM, 17. 10. 2026) — automatická kontrola při načtení leadu i zadávání objednávky: (a) upozornění, pokud telefon/e-mail v minulosti nepřevzal zásilku (`returned`) nebo je na blacklistu chronických nevyzvedávačů, (b) detekce duplicitní objednávky (stejný klient si nedávno objednal u jiného operátora), aby se nevyexpedoval zbytečný druhý balík.
+- **Živá ruka nahoře (Live SOS & Whisper asistence TL)** (PM, 17. 10. 2026 — nižší priorita / spíše pro home-office režim) — okamžitý alert pro Team Leadera při žádosti operátora o pomoc během hovoru a možnost poslat operátorovi tichou nápovědu (Whisper zprávu) přímo do konzole.
 - **Přizpůsobení Operator Console podle oddělení** (PM, 17. 10. 2026) — každé oddělení dělá jinou práci (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence 21 dní po doručení, P4 poslední záchrana — včerejší faily, vratky, balíčky na výdejně), ale operátor vidí na všech odděleních **stejnou** obrazovku (`src/app/console/page.tsx`). Cílem je, aby konzole vedla operátora k tomu, co je pro jeho oddělení klíčové (hlavní akce a výsledek hovoru, pořadí a důraz panelů, skript a otázky). Oddělení je v datech už rozpoznatelné (`src/lib/department.ts`, `departmentKeyFromTeam`; u aktivního leadu přes `lead_queue_items.team_id`), takže to má být **řízené daty, ne hardcodovanými větvemi po odděleních** (pravidlo 2). Doporučení: jeden konzole + datové profily oddělení, ne čtyři samostatné obrazovky. Než se začne, potvrdit s PM: (a) podle čeho se UI přizpůsobuje — oddělení **operátora**, nebo oddělení **leadu** (u P4 se liší: faily přicházejí z P1/P2), (b) co přesně se mění — hlavní akce a výsledek vs. celé rozložení a podklady, (c) profily vs. samostatné obrazovky.
 
 **Dříve odložené (z Fází 2 a 5):**
@@ -261,9 +263,11 @@ reporty a denní checkpoint: přehled front P1–P4, rizika a prodlevy, provoz n
 fronty, sjednocenou taxonomii důvodů neúspěchu a konverzi (prodeje / spojené hovory).
 
 **Další na řadě je Fáze 7 (QA, regrese a release gate) a iterativní rozvoj:**
-- **Přizpůsobení Operator Console podle oddělení** (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence, P4 záchrana) — řízené datovými profily, ne hardcodovanými větvemi.
-- **Leady bez týmu (`team_id = NULL`)**: zobrazení nepřiřazených leadů v přehledu.
-- **Propojení AI do systému** a **systém směn** dle zadání PM.
+1. **Dokončení terminologie Schedule vs. Callback v kódu a databázi** (stav `waiting_callback`, sloupec `callback_scheduled_at`, `callbackAttention.ts`, action id `schedule_callback`, interní proměnné a testy).
+2. **Ochranný štít proti vratkám (Blacklist, historie převzetí a detekce duplicit)** — varování u dřívějších vratek/nevyzvedávačů a kontrola duplicitních objednávek.
+3. **Přizpůsobení Operator Console podle oddělení** (P1 prioritní prodej a doobjednávky, P2 masové volání, P3 retence, P4 záchrana) — řízené datovými profily, ne hardcodovanými větvemi.
+4. **Leady bez týmu (`team_id = NULL`)**: zobrazení nepřiřazených leadů v přehledu.
+5. **Propojení AI do systému** a **systém směn** dle zadání PM.
 
 **Iterativní rozvoj:** vedle fází přibývají další směry (PM, 16.–17. 10. 2026: **propojení AI do systému**, **systém směn**, **přizpůsobení Operator Console podle oddělení**, a další) — viz část „Odložené a budoucí“ výše.
 

@@ -91,6 +91,7 @@ Před každou změnou si odpověz:
 Živé zdroje (aktuální):
 
 - **[docs/ROADMAP.md](docs/ROADMAP.md)** — plán dalších fází a jejich stav.
+- **[docs/UI_UX_AUDIT_2026-10-17.md](docs/UI_UX_AUDIT_2026-10-17.md)** — komplexní audit UI/UX designu, ergonomie a toku práce napříč celým systémem (17. 10. 2026).
 - [docs/PHASE_2_STRUCTURE_REVIEW.md](docs/PHASE_2_STRUCTURE_REVIEW.md) — revize struktury, názvů a sloučení obrazovek (Fáze 2).
 - [docs/TRAINING_REFACTOR.md](docs/TRAINING_REFACTOR.md) — plánovaný refactor trenažéru (AI Training).
 - [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md) — produktová identita a oblasti.
