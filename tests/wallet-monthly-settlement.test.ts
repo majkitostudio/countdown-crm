@@ -5,6 +5,10 @@ const migration = readFileSync(
   new URL("../supabase/migrations/20261007213000_wallet_monthly_settlement_manager_access.sql", import.meta.url),
   "utf8",
 );
+const latestSettlementMigration = readFileSync(
+  new URL("../supabase/migrations/20261019160000_tracking_and_monthly_settlement_hardening.sql", import.meta.url),
+  "utf8",
+);
 const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.url), "utf8");
 const walletPage = readFileSync(new URL("../src/app/wallet/page.tsx", import.meta.url), "utf8");
 const walletActions = readFileSync(new URL("../src/app/actions/wallet.ts", import.meta.url), "utf8");
@@ -34,6 +38,12 @@ describe("Milník 4.1: Měsíční uzávěrka pro Team Leadera", () => {
       expect(migration).toContain("CREATE OR REPLACE FUNCTION public.finalize_workspace_monthly_settlement");
       expect(migration).toContain("GRANT EXECUTE ON FUNCTION public.finalize_workspace_monthly_settlement(UUID, DATE)");
     });
+  });
+
+  it("v aktuálním SQL řídí přehled měsíc doručení a samostatně měsíc vrácení", () => {
+    expect(latestSettlementMigration).toContain("order_row.status IN ('delivered', 'returned')");
+    expect(latestSettlementMigration).toContain("order_row.delivered_at >= p_period_start::TIMESTAMPTZ");
+    expect(latestSettlementMigration).toContain("order_row.returned_at >= p_period_start::TIMESTAMPTZ");
   });
 
   describe("DAL vrstva a typový systém (src/lib/dal/wallet.ts)", () => {

@@ -34,3 +34,20 @@ describe("authenticated login route", () => {
     expect(response.headers.get("location")).toBe("http://localhost/");
   });
 });
+
+describe("password recovery routes", () => {
+  beforeEach(() => {
+    mocks.getUser.mockResolvedValue({ data: { user: null } });
+  });
+
+  it.each([
+    "/auth/forgot-password",
+    "/auth/confirm",
+    "/auth/update-password",
+  ])("allows an unauthenticated request to %s", async (pathname) => {
+    const response = await proxy(new NextRequest(`http://localhost${pathname}`));
+
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.status).toBe(200);
+  });
+});

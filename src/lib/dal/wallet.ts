@@ -413,6 +413,36 @@ export interface MonthlySettlementSummaryDTO {
   canFinalize: boolean;
 }
 
+const MONTHLY_SETTLEMENT_PAGE_SIZE = 1_000;
+
+async function loadMonthlySettlementPages<T extends { id: string }>(
+  loadPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; count: number | null; error: unknown | null }>,
+  errorMessage: string,
+): Promise<T[]> {
+  const rows: T[] = [];
+  const seenIds = new Set<string>();
+  let expectedCount: number | undefined;
+
+  for (let offset = 0; ; ) {
+    const { data, count, error } = await loadPage(offset, offset + MONTHLY_SETTLEMENT_PAGE_SIZE - 1);
+    if (error) throw new DataAccessError("DATABASE", errorMessage);
+    if (count === null || !Number.isInteger(count) || count < 0 || (expectedCount !== undefined && count !== expectedCount)) {
+      throw new DataAccessError("DATABASE", errorMessage);
+    }
+    expectedCount = count;
+
+    const page = data || [];
+    if (page.length === 0 && offset < count) throw new DataAccessError("DATABASE", errorMessage);
+    for (const row of page) {
+      if (seenIds.has(row.id)) throw new DataAccessError("DATABASE", errorMessage);
+      seenIds.add(row.id);
+    }
+    rows.push(...page);
+    offset += page.length;
+    if (offset >= count) return rows;
+  }
+}
+
 export async function finalizeWalletMonthlyCommission(input: {
   userId: string;
   periodStart: string;
@@ -558,42 +588,65 @@ export async function getMonthlySettlementSummary(input?: {
   const pStartIso = new Date(`${periodStart}T00:00:00.000Z`).toISOString();
   const pEndIso = new Date(`${periodEnd}T00:00:00.000Z`).toISOString();
 
-  const [settings, operators, ordersRes, transactionsRes, periodBonusTxnsRes] = await Promise.all([
+  const [settings, operators, deliveredOrders, returnedOrders, finalizedTransactions, periodBonusTransactions] = await Promise.all([
     loadWalletSettings(context.workspaceId, supabase),
     listWorkspaceOperators(),
-    supabase
-      .from("orders")
-      .select("id, agent_id, total_amount, currency, status, delivered_at, returned_at")
-      .eq("workspace_id", context.workspaceId)
-      .in("status", ["delivered", "returned"])
-      .gte("created_at", new Date(Date.UTC(year - 1, month, 1)).toISOString()), // broad enough to catch deliveries
-    supabase
-      .from("wallet_transactions")
-      .select("id, user_id, amount, currency, source_period_start, source_type")
-      .eq("workspace_id", context.workspaceId)
-      .eq("source_type", "commission_period")
-      .eq("source_period_start", periodStart),
-    supabase
-      .from("wallet_transactions")
-      .select("id, user_id, amount, currency, transaction_type, created_at")
-      .eq("workspace_id", context.workspaceId)
-      .in("transaction_type", ["order_bonus", "reversal", "manual_adjustment"])
-      .gte("created_at", pStartIso)
-      .lt("created_at", pEndIso),
+    loadMonthlySettlementPages(
+      (from, to) => supabase
+        .from("orders")
+        .select("id, agent_id, total_amount, currency, status, delivered_at, returned_at", { count: "exact" })
+        .eq("workspace_id", context.workspaceId)
+        .in("status", ["delivered", "returned"])
+        .gte("delivered_at", pStartIso)
+        .lt("delivered_at", pEndIso)
+        .order("id", { ascending: true })
+        .range(from, to),
+      "Monthly settlement orders could not be loaded.",
+    ),
+    loadMonthlySettlementPages(
+      (from, to) => supabase
+        .from("orders")
+        .select("id, agent_id, total_amount, currency, status, delivered_at, returned_at", { count: "exact" })
+        .eq("workspace_id", context.workspaceId)
+        .eq("status", "returned")
+        .gte("returned_at", pStartIso)
+        .lt("returned_at", pEndIso)
+        .order("id", { ascending: true })
+        .range(from, to),
+      "Monthly settlement orders could not be loaded.",
+    ),
+    loadMonthlySettlementPages(
+      (from, to) => supabase
+        .from("wallet_transactions")
+        .select("id, user_id, amount, currency, source_period_start, source_type", { count: "exact" })
+        .eq("workspace_id", context.workspaceId)
+        .eq("source_type", "commission_period")
+        .eq("source_period_start", periodStart)
+        .order("id", { ascending: true })
+        .range(from, to),
+      "Finalized commission transactions could not be loaded.",
+    ),
+    loadMonthlySettlementPages(
+      (from, to) => supabase
+        .from("wallet_transactions")
+        .select("id, user_id, amount, currency, transaction_type, created_at", { count: "exact" })
+        .eq("workspace_id", context.workspaceId)
+        .in("transaction_type", ["order_bonus", "reversal", "manual_adjustment"])
+        .gte("created_at", pStartIso)
+        .lt("created_at", pEndIso)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to),
+      "Monthly bonus transactions could not be loaded.",
+    ),
   ]);
 
-  if (ordersRes.error) {
-    throw new DataAccessError("DATABASE", "Monthly settlement orders could not be loaded.");
-  }
-  if (transactionsRes.error) {
-    throw new DataAccessError("DATABASE", "Finalized commission transactions could not be loaded.");
-  }
-  if (periodBonusTxnsRes.error) {
-    throw new DataAccessError("DATABASE", "Monthly bonus transactions could not be loaded.");
-  }
+  const ordersById = new Map<string, (typeof deliveredOrders)[number]>();
+  for (const order of [...deliveredOrders, ...returnedOrders]) ordersById.set(order.id, order);
+  const orders = Array.from(ordersById.values());
   const configuredCurrency = settings.currency.toUpperCase();
   const operatorIds = new Set(operators.map((operator) => operator.user_id));
-  const hasMismatchedOrderCurrency = (ordersRes.data || []).some((order) => {
+  const hasMismatchedOrderCurrency = orders.some((order) => {
     if (!order.agent_id || !operatorIds.has(order.agent_id)) return false;
 
     const deliveredInPeriod = Boolean(
@@ -616,8 +669,8 @@ export async function getMonthlySettlementSummary(input?: {
   }
 
   const hasMismatchedLedgerCurrency = [
-    ...(transactionsRes.data || []),
-    ...(periodBonusTxnsRes.data || []),
+    ...finalizedTransactions,
+    ...periodBonusTransactions,
   ].some((transaction) => transaction.currency.toUpperCase() !== configuredCurrency);
   if (hasMismatchedLedgerCurrency) {
     throw new DataAccessError(
@@ -627,7 +680,7 @@ export async function getMonthlySettlementSummary(input?: {
   }
 
   const existingTransactionsByUser = new Map<string, { id: string; amount: number }>();
-  for (const txn of transactionsRes.data || []) {
+  for (const txn of finalizedTransactions) {
     existingTransactionsByUser.set(txn.user_id, { id: txn.id, amount: Number(txn.amount) });
   }
 
@@ -637,7 +690,7 @@ export async function getMonthlySettlementSummary(input?: {
     let returnedCount = 0;
     let returnedTotal = 0;
 
-    for (const order of ordersRes.data || []) {
+    for (const order of orders) {
       if (order.agent_id !== operator.user_id) continue;
       if ((order.status === "delivered" || order.status === "returned") && order.delivered_at && order.delivered_at >= pStartIso && order.delivered_at < pEndIso) {
         deliveredCount++;
@@ -655,7 +708,7 @@ export async function getMonthlySettlementSummary(input?: {
     let fixedBonuses = 0;
     let manualAdjustments = 0;
 
-    for (const txn of periodBonusTxnsRes.data || []) {
+    for (const txn of periodBonusTransactions) {
       if (txn.user_id !== operator.user_id) continue;
       const amt = Number(txn.amount) || 0;
       if (txn.transaction_type === "order_bonus" || txn.transaction_type === "reversal") {

@@ -43,6 +43,9 @@ export async function proxy(request: NextRequest) {
 
   const isPublicRoute =
     request.nextUrl.pathname === "/login" ||
+    request.nextUrl.pathname === "/auth/forgot-password" ||
+    request.nextUrl.pathname === "/auth/confirm" ||
+    request.nextUrl.pathname === "/auth/update-password" ||
     request.nextUrl.pathname.startsWith("/_next") ||
     request.nextUrl.pathname.startsWith("/api") ||
     request.nextUrl.pathname === "/favicon.ico";

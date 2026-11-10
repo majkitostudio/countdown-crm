@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -11,7 +12,7 @@ import { Surface } from "@/components/ui/Surface";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("john.doe@countdowncrm.com");
+  const [email, setEmail] = useState("");
   // Keep the field genuinely empty; masked-looking text would be submitted as
   // the literal password value by the browser.
   const [password, setPassword] = useState("");
@@ -68,7 +69,7 @@ export default function LoginPage() {
               Sign In to Your Workspace
             </h2>
             <p className="text-xs text-zinc-400">
-              Enter your operator credentials to access the call center workspace.
+              Pro přístup do pracovního prostředí zadejte svůj e-mail a heslo.
             </p>
           </div>
 
@@ -77,18 +78,21 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Email Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-zinc-300 block">
+              <label htmlFor="login-email" className="text-xs font-medium text-zinc-300 block">
                 Work Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <input
+                  id="login-email"
+                  name="email"
                   type="email"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 placeholder="operator@countdowncrm.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 focus:outline-none rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
                 />
               </div>
             </div>
@@ -96,18 +100,21 @@ export default function LoginPage() {
             {/* Password Input */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-zinc-300 block">
+                <label htmlFor="login-password" className="text-xs font-medium text-zinc-300 block">
                   Password
                 </label>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <input
+                  id="login-password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 focus:outline-none rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 transition-colors"
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 transition-colors"
                 />
               </div>
             </div>
@@ -122,6 +129,15 @@ export default function LoginPage() {
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
+
+          <div className="text-right">
+            <Link
+              href="/auth/forgot-password"
+              className="text-xs text-zinc-400 hover:text-zinc-200 underline underline-offset-4"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400">
             <span className="flex items-center gap-1">

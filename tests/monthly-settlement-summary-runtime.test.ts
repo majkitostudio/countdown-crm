@@ -17,14 +17,64 @@ import { getMonthlySettlementSummary } from "@/lib/dal/wallet";
 
 type QueryResult = { data: unknown; error: { message: string } | null };
 
-function query(result: QueryResult) {
+type Filter = { operator: "eq" | "in" | "gte" | "lt"; value: unknown };
+
+function query(result: QueryResult | ((filters: Map<string, Filter>) => QueryResult)) {
   const builder: Record<string, unknown> = {};
-  for (const method of ["select", "eq", "in", "gte", "lt"]) {
-    builder[method] = vi.fn(() => builder);
-  }
-  builder.maybeSingle = vi.fn().mockResolvedValue(result);
-  builder.then = (resolve: (value: QueryResult) => unknown, reject?: (reason: unknown) => unknown) =>
-    Promise.resolve(result).then(resolve, reject);
+  const filters = new Map<string, Filter>();
+  let from = 0;
+  let to = 999;
+  builder.select = vi.fn(() => builder);
+  builder.order = vi.fn(() => builder);
+  builder.eq = vi.fn((column: string, value: unknown) => {
+    filters.set(column, { operator: "eq", value });
+    return builder;
+  });
+  builder.in = vi.fn((column: string, value: unknown) => {
+    filters.set(column, { operator: "in", value });
+    return builder;
+  });
+  builder.gte = vi.fn((column: string, value: unknown) => {
+    filters.set(column, { operator: "gte", value });
+    return builder;
+  });
+  builder.lt = vi.fn((column: string, value: unknown) => {
+    filters.set(column, { operator: "lt", value });
+    return builder;
+  });
+  builder.range = vi.fn((start: number, end: number) => {
+    from = start;
+    to = end;
+    return builder;
+  });
+  builder.maybeSingle = vi.fn().mockImplementation(() =>
+    Promise.resolve(typeof result === "function" ? result(filters) : result),
+  );
+  builder.then = (resolve: (value: QueryResult & { count: number | null }) => unknown, reject?: (reason: unknown) => unknown) => {
+    const selectedResult = typeof result === "function" ? result(filters) : result;
+    if (selectedResult.error || !Array.isArray(selectedResult.data)) {
+      return Promise.resolve({ ...selectedResult, count: null }).then(resolve, reject);
+    }
+
+    const selectedRows = selectedResult.data.filter((row) => {
+      if (!row || typeof row !== "object") return true;
+      return Array.from(filters.entries()).every(([column, filter]) => {
+        const value = (row as Record<string, unknown>)[column];
+        if (column === "workspace_id" && value === undefined) return true;
+        switch (filter.operator) {
+          case "eq": return value === filter.value;
+          case "in": return Array.isArray(filter.value) && filter.value.includes(value);
+          case "gte": return typeof value === "string" && value >= String(filter.value);
+          case "lt": return typeof value === "string" && value < String(filter.value);
+        }
+      });
+    });
+    return Promise.resolve({
+      data: selectedRows.slice(from, Math.min(to + 1, from + 1_000)),
+      count: selectedRows.length,
+      error: null,
+    }).then(resolve, reject);
+  };
   return builder;
 }
 
@@ -40,15 +90,16 @@ function settlementClient(overrides: {
     commissionTransactions: overrides.commissionTransactions ?? { data: [], error: null },
     bonusTransactions: overrides.bonusTransactions ?? { data: [], error: null },
   };
-  let walletTransactionQuery = 0;
-
   return {
     from: vi.fn((table: string) => {
       if (table === "wallet_settings") return query(results.settings);
       if (table === "orders") return query(results.orders);
       if (table === "wallet_transactions") {
-        walletTransactionQuery++;
-        return query(walletTransactionQuery === 1 ? results.commissionTransactions : results.bonusTransactions);
+        return query((filters) => {
+          return filters.get("source_type")?.value === "commission_period"
+            ? results.commissionTransactions
+            : results.bonusTransactions;
+        });
       }
       throw new Error(`Unexpected table: ${table}`);
     }),

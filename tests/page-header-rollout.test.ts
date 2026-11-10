@@ -16,8 +16,14 @@ describe("PageHeader route rollout", () => {
   it("keeps the shared PageHeader on every authenticated route", () => {
     const pageFiles = findPageFiles(path.join(projectRoot, "src", "app"));
     const roleEntryPage = path.join(projectRoot, "src", "app", "page.tsx");
+    const publicAuthPages = new Set([
+      path.join(projectRoot, "src", "app", "auth", "forgot-password", "page.tsx"),
+      path.join(projectRoot, "src", "app", "auth", "update-password", "page.tsx"),
+    ]);
     const authenticatedPages = pageFiles.filter((filePath) => (
-      filePath !== roleEntryPage && !filePath.includes(`${path.sep}login${path.sep}`)
+      filePath !== roleEntryPage &&
+      !filePath.includes(`${path.sep}login${path.sep}`) &&
+      !publicAuthPages.has(filePath)
     ));
 
     expect(authenticatedPages.length).toBeGreaterThan(0);

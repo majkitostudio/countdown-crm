@@ -4,7 +4,7 @@ Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu mig
 
 ## Lokální spuštění a kontroly
 
-Požadavky jsou Node.js a podle režimu lokální Supabase prostředí.
+Požadavky jsou Node.js 22.22.2 až 22.x, 24.15.0 až 24.x nebo 26 a novější a podle režimu lokální Supabase prostředí. CI používá Node.js 22.22.2.
 
 ```powershell
 npm install
@@ -25,6 +25,10 @@ npm run test:smoke
 ```
 
 `verify:all` spouští lint, typecheck, testy a build. Smoke test je samostatný browserový běh. Výsledek kontroly vždy vztahuj ke konkrétnímu běhu a jeho prostředí.
+
+### Obnova hesla
+
+Obnovovací e-mail se vrací na `/auth/confirm` na stejné doméně, ze které uživatel o obnovu požádal. Přesnou návratovou adresu je nutné povolit v Supabase Auth Redirect URLs pro dané prostředí; pro lokální provoz se `localhost` a `127.0.0.1` posuzují samostatně. Odkaz PKCE je nutné otevřít ve stejném prohlížeči, ve kterém vznikla žádost. Funkčnost doručení e-mailu a návratu ověřuj samostatně na testovacím účtu.
 
 ## Katalog pro lokální demo
 
