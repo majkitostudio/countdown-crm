@@ -160,7 +160,7 @@ function projectDirFromArgs(args) {
 function main() {
   const projectDir = projectDirFromArgs(process.argv.slice(2));
   const localRows = runCatalogQuery("--local", projectDir);
-  const linkedRows = runCatalogQuery("--linked", projectDir);
+  const linkedRows = runCatalogQuery("--remote", projectDir);
   const comparison = compareFunctionCatalogs(localRows, linkedRows);
 
   if (!comparison.matches) {

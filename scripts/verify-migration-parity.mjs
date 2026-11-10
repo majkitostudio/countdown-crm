@@ -20,17 +20,18 @@ import { findParityGaps, migrationVersionOf } from "./migrations-lib.mjs";
  */
 
 const MIGRATIONS_DIR = resolve(process.cwd(), "supabase/migrations");
-const target = process.argv.includes("--linked") ? "--linked" : "--local";
+const linked = process.argv.includes("--linked");
+const targetArgs = linked ? ["--remote"] : [];
 
 const localFiles = readdirSync(MIGRATIONS_DIR)
   .filter((file) => file.endsWith(".sql"))
   .sort();
 const localVersions = localFiles.map(migrationVersionOf);
 
-console.log(`Migration parity gate (${target === "--linked" ? "linked project" : "local database"})`);
+console.log(`Migration parity gate (${linked ? "linked project" : "local database"})`);
 console.log(`Migration files on disk: ${localFiles.length}`);
 
-const cli = spawnSync("npx", ["supabase", "migration", "list", target], {
+const cli = spawnSync("npx", ["supabase", "migration", "list", ...targetArgs], {
   encoding: "utf8",
   shell: true,
 });

@@ -88,7 +88,7 @@ Parita vůči linked projektu:
 
 ```powershell
 node scripts/verify-migration-parity.mjs --linked
-npx supabase migration list --linked
+npx supabase migration list --remote
 ```
 
 Linked kontrola vyžaduje přihlášení do správného projektu. Pro tento běh CLI potřebuje scoped token s oprávněním `Database: Read-write` a `Migrations: Read-write`; token musí být předán jen přes zabezpečené prostředí, nikdy jako text do repozitáře nebo výstupu.
@@ -98,13 +98,13 @@ Linked kontrola vyžaduje přihlášení do správného projektu. Pro tento běh
 Nejdříve zkontroluj cílový projekt a plán:
 
 ```powershell
-npx supabase db push --linked --dry-run
+npx supabase db push --remote --dry-run
 ```
 
 Teprve po kontrole dry-run a potvrzení, že jde o správný sandbox, může oprávněný operátor spustit:
 
 ```powershell
-npx supabase db push --linked --yes
+npx supabase db push --yes --remote
 node scripts/verify-migration-parity.mjs --linked
 ```
 

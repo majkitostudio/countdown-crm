@@ -22,4 +22,11 @@ describe("CI Workflow Contract", () => {
     expect(workflowContent).toContain("npx vitest run");
     expect(workflowContent).toContain("npm run build");
   });
+
+  it("uses the same pinned Supabase CLI as the project", () => {
+    const workflowContent = readFileSync(workflowPath, "utf8");
+
+    expect(workflowContent).toContain("uses: supabase/setup-cli@v3");
+    expect(workflowContent).toContain("version: 3.1.0");
+  });
 });
