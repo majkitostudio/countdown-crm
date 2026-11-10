@@ -2,6 +2,11 @@
 
 Tento soubor obsahuje pouze pravidla specifická pro Countdown CRM a doplňuje globální pracovní instrukce. Produktový kontext je v [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md); aktuální stav a možnosti další práce v [docs/ROADMAP.md](docs/ROADMAP.md).
 
+## Způsob práce
+
+- Pro každou část práce samostatně vybírej a používej vhodné dostupné skills; nevyžaduj zvláštní souhlas s jejich použitím.
+- Při každém uceleném kroku aktualizuj v témže commitu příslušnou existující autoritativní dokumentaci. Udržuj ji stručnou a nevytvářej duplicitní dokumenty.
+
 ## Rozhodnutí projektu
 
 - Countdown je provozní CRM pro call centrum, které prodává doplňky stravy. Není to obecné CRM pro libovolný obor ani pouze Operator Console.
