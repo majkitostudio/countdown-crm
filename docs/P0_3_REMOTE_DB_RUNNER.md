@@ -116,5 +116,8 @@ Raw API odpověď se do chyby ani reportu nekopíruje.
 | Linked sandbox | `npm run verify:linked-security` | Skutečný read-only katalogový důkaz konkrétního sandboxu. |
 | Produkce | runner se nepoužívá | Produkční readiness a autorizace vyžadují vlastní schválený proces. |
 
-P0.3 je dokončené až po skutečném linked běhu, jehož sanitizovaný report je
-uložený v `docs/superpowers/reports/`.
+P0.3 ověřuje pouze běh, který skutečně proběhl. Runner vypisuje bezpečný JSON
+na standardní výstup; samotná existence skriptu ani lokální test nedokazuje,
+že linked kontrola byla provedena. Zacházení s reportem závisí na způsobu běhu.
+
+\n

@@ -1,61 +1,39 @@
-# Countdown CRM — pracovní a technický průvodce
+# Countdown CRM — průvodce projektem
 
-Tento soubor obsahuje pouze aktuální pravidla pro práci. Historické plány a výsledky jsou shrnuté v `HISTORY_COMPACT.md`.
+## Co projekt řeší
 
-## Zdroj pravdy
+Countdown je provozní CRM na míru pro call centrum, které prodává doplňky stravy. Propojuje práci operátorů, Team Leaderů a administrátorů kolem leadů, hovorů, objednávek, produktů, týmů, kvality, tréninku a reportingu. Projekt se průběžně stabilizuje a rozvíjí; není cílem tlačit ho k prodeji nebo dokončení MVP.
 
-- Zdrojový kód a testy ukazují aktuální technický stav.
-- `START_HERE.md` ukazuje aktuální směr práce.
-- `PRODUCT_VISION.md` definuje produktovou identitu a oblasti.
-- Tento soubor definuje bezpečný pracovní postup.
-- Demo data nejsou produkční data.
-- Historické audity, exporty a starší stavové záznamy nejsou automaticky platné zadání.
-- Aktuální priority průběžně určuje PM; roadmapa není závazek dokončit MVP.
+**Operator Console je klíčová pracovní plocha operátora, ne celý produkt.** Nové funkce mají mít jasnou roli a pracovní účel. Data a chování mají zůstat pravdivé: rozhraní nesmí předstírat výsledek, dostupnost integrace ani uložení, které systém nepotvrdil.
 
-## Jak postupovat při každém úkolu
+## Organizační model
 
-1. Popsat problém lidským jazykem.
-2. Určit roli, produktovou oblast a konkrétní workflow.
-3. Zkontrolovat, zda už podobné řešení existuje.
-4. Navrhnout nejmenší smysluplnou změnu.
-5. U změny chování nejdříve definovat ověřitelný scénář nebo test.
-6. Implementovat pouze schválený rozsah.
-7. Ověřit testy, typy, lint a relevantní browser průchod.
-8. Popsat, co bylo ověřeno a co zůstává nejisté.
+- **Workspace** je oddělené prostředí firmy včetně jejích dat, produktů, integrací a uživatelů.
+- **Department P1–P4** označuje typ práce. V současném datovém modelu se oddělení odvozuje z týmu; nejde o samostatnou databázovou entitu.
+- **Team** sdružuje operátory pod Team Leaderem a patří k oddělení. Výchozí název týmu je department a iniciála příjmení Team Leadera, například `P1K`.
+- **Administrátor** spravuje celý Workspace. **Team Leader** vede svůj tým, pomáhá operátorům a sleduje provoz. **Operátor** pracuje s přidělenou frontou svého týmu.
 
-## Produktový audit
+## Zamýšlený tok práce P1–P4
 
-Při hodnocení obrazovky se ptáme:
+- **P1 — Senior Sales / Hot Leads:** prioritní nebo náročnější odchozí práce zkušených operátorů.
+- **P2 — Standard Sales:** běžná odchozí práce. Konkrétní zdroj ani nabídka se neurčují v kódu.
+- **P3 — Retence a péče:** návrat zákazníka do fronty 21 dní po doručení objednávky (`orders.delivered_at`).
+- **P4 — Záchrana:** vybrané recyklovatelné neúspěchy z P1/P2 po 24 hodinách, vratky určené k Re-shipu a zásilky na výdejně déle než 3 dny bez hovoru. Ne každý neúspěšný hovor se recykluje; důvody určené k uzavření zůstávají uzavřené.
+- Po úspěšné objednávce nebo záchraně pokračuje zákaznický tok až po doručení; do P3 vstupuje po uplynutí 21 dní.
 
-- Kdo ji používá?
-- Jaký pracovní úkol na ní dokončuje?
-- Co má uživatel pochopit během několika sekund?
-- Jaká je hlavní akce?
-- Co je zbytečné, duplicitní nebo předčasné?
-- Co se stane při načítání, prázdném stavu, chybě a nedostupné integraci?
-- Funguje tok opakovaně během pracovního dne?
+Tento model popisuje zamýšlené směrování, ne požadavek mít nyní reálný zdroj leadů. Databázový trigger zajistí, že nový lead vložený do databáze dostane položku fronty. Samotný kontrakt externího příjmu (API/webhook, validace, deduplikace a zdroj) zůstává samostatnou budoucí možností.
 
-Audit má oddělit tři věci: problém v navigaci, problém v návrhu obrazovky a problém ve skutečné funkci nebo datech.
+Záznam bez potvrzeného týmu (`team_id IS NULL`) je záměrný stav čekající na administrátora, nikoli chybný záznam. Potvrzení týmu u leadu a položky fronty se doplňuje oběma směry, aniž by přepsalo již potvrzený tým.
 
-## Bezpečnostní hranice
+## Produktové principy
 
-- Demo režim nesmí být automaticky povýšen na produkční přístup.
-- Tajné hodnoty patří pouze do lokálního ignorovaného prostředí.
-- Bez výslovného zadání se nepřipojuje živá databáze ani nemění RLS, autentizace nebo migrace.
-- AI nástroj nesmí být považován za zdroj pravdy o pracovním stromu.
-- Před GitHubem se kontroluje rozdíl souborů, tajné hodnoty, testy, lint, typy a build.
-- Velká refaktorizace se nedělá současně s redesignem a změnou business logiky.
+- Zobrazuj práci podle skutečných rolí a workflow, ne podle struktury databázových tabulek.
+- Nezaváděj obecné moduly, vlastní entity ani další obrazovky bez konkrétního pracovního přínosu.
+- Skutečný zdroj leadů ani produkční telefonie nejsou podmínkou pro iteraci nad ostatními částmi systému.
+- Nezaměňuj návrh nebo historický audit za schválené zadání. Stav implementace ověřuj v kódu a testech; stav nasazení ověř zvlášť.
 
-## Iterační způsob práce
+## Hlavní obrazovky
 
-Projekt se průběžně stabilizuje, rozšiřuje a ladí. Před každou změnou stanovte její rozsah společně s PM; nedoplňujte automaticky další úkoly z historických roadmap.
+`/console` · `/leads` · `/orders` · `/products` · `/schedule` · `/team` · `/call-logs` · `/reports` · `/training` · `/wallet` · `/admin` · `/admin/ownership` · `/automations`.
 
-- Vzhled a použitelnost se mohou iterovat i tehdy, když jiné oblasti zůstávají rozpracované.
-- Skutečný zdroj leadů ani produkční telefonie nejsou předpokladem pro vývoj obecné kostry či ostatních workflow.
-- Nezobrazujte ani neimplementujte vstupní data, která PM nemá; rozhraní a datový model mají být připravené na budoucí integraci.
-- Při úpravě obrazovky zvažte roli, četnost, rozhodnutí ponechat/sjednotit/smazat, důležitost a alternativní UI/UX.
-- Historickou poznámku nebo výsledek auditu nejprve porovnejte s aktuálním kódem.
-
-## Kdy je práce hotová
-
-Práce není hotová tím, že stránka vypadá dobře nebo že projde buildem. Hotová je tehdy, když je jasné, komu slouží, jaký problém řeší, jak se používá, co se stane při chybě a jak byl výsledek ověřen.
+Technický postup a bezpečné příkazy jsou v [provozním návodu](OPERATIONS.md). Read-only důkaz linked databáze popisuje [runner P0.3](P0_3_REMOTE_DB_RUNNER.md). Směr další práce je nezávazně shrnutý v [roadmapě](ROADMAP.md).

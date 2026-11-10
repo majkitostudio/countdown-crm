@@ -1,63 +1,36 @@
-# Countdown CRM — projektová pravidla pro agenta
+# Countdown CRM — projektová pravidla
 
-Pravidla se doplňují po každém použití `/learn`. Nové pravidlo se vždy připisuje ke stávajícím, nepřepisuje je.
+Tento soubor obsahuje pouze pravidla specifická pro Countdown CRM a doplňuje globální pracovní instrukce. Produktový kontext je v [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md); aktuální stav a možnosti další práce v [docs/ROADMAP.md](docs/ROADMAP.md).
 
-## 1. Organizační hierarchie call centra
+## Rozhodnutí projektu
 
-- **Workspace = Systém firmy.** Globální prostředí konkrétního call centra (data, produkty, integrace, uživatelé).
-- **Department = Oddělení Workspace (P1–P4).** Anglicky „Department P1“–„Department P4“, v datech slug `p1`–`p4`:
-  - **P1** — Senior Sales / Hot Leads (zkušení prodejci, prioritní leady, maximalizace košíku).
-  - **P2** — Standard Sales / Leady z různých zdrojů (masové databáze, standardní operátoři).
-  - **P3** — Retence, Upsell, udržení zákazníka. Lead vstupuje automaticky přesně 21 dní (3 týdny) od převzetí balíčku zákazníkem (`orders.delivered_at`).
-  - **P4** — Poslední záchrana. Faily z P1/P2 jdou do P4 na druhý den (24 h); vratky (`returned`) na Re-ship; balíčky na výdejně déle než 3 dny, které dosud nebyly obvolány.
-- **Tým = Rozdělení Departmentu.** Výchozí název týmu = department + iniciála příjmení Team Leadera (např. department P1 s TL Janem Kačmářem = `P1K`).
-- **Team Leader = Supervisor a trenér** svého Týmu (dohled, koučink, pomoc při hovorech, kvalita).
-- **Administrátor = Řídí a spravuje celý Workspace.**
-- **Operátor = Pracuje na lince ve svém Týmu a Departmentu.**
+- Countdown je provozní CRM pro call centrum, které prodává doplňky stravy. Není to obecné CRM pro libovolný obor ani pouze Operator Console.
+- Zachovávej obecný a konfigurovatelný model. Nehardcoduj konkrétní produkty, akce ani zdroje leadů do aplikace, migrací nebo SQL.
+- Přísun leadů má být automatizovaný přes budoucí integraci. Aktuální databázový trigger zařadí každý vložený lead do fronty, ale sám o sobě neimplementuje příjem přes API/webhook.
+- Produkční telefonie/VoIP a Telnyx jsou odloženy na neurčito. Nepřidávej náklady ani nové závislosti, dokud PM tuto prioritu znovu neotevře.
+- AI může pomáhat s kontextem, tréninkem a kvalitou; není autoritou nad skutečným stavem hovoru, objednávky ani oprávnění.
+- Demo data jsou syntetická a nesmějí být zaměňována za produkční data.
 
-## 2. Modulární kostra, ne hardcodované případy
+## Uživatelské rozhraní
 
-- Call centrum zpracovává velké množství leadů denně, import je plně automatizovaný (API/webhooky), nikdo nic nenahrává ručně.
-- Nikdy nehardcodovat konkrétní sortiment, akci nebo zdroj do kódu či SQL. Příklady od PM (vzorečky, web objednávky apod.) jsou jen ilustrace.
-- Stavět obecnou kostru: stavy leadu/objednávky, oddělení (departments), týmy, zdroje leadů a časové intervaly.
+- Titulky stránek, názvy menu, názvy sekcí, obecná tlačítka a štítky jsou anglicky.
+- Popisy pod titulkem a běžný obsah stránky, včetně tabulek a hlášek, jsou česky.
+- Při revizi obrazovky urči roli a četnost použití, rozhodni ponechat/sjednotit/odstranit, seřaď důležitost a zvaž vhodný alternativní koncept UI.
 
-## 3. Telefonie
+## Terminologie plánovaných hovorů
 
-- Telefonie (VoIP, Telnyx) je odložena na neurčito. Žádné výdaje ani závislost na placeném poskytovateli.
+- **Callback** je pevně vázaný na konkrétního operátora.
+- **Scheduled call** je naplánovaný hovor bez pevné vazby na operátora; přednostně ho dostane zadávající operátor, ale může ho převzít kdokoli dostupný. V UI používej „Schedule“ / „naplánovaný hovor“, nikdy „callback“ pro tento typ hovoru.
+- Toto pravidlo se netýká programátorských callbacků ani historických migrací a testů. Staré databázové identifikátory v historických migracích nepřejmenovávej; měnilo by to historii, kterou testy ověřují.
 
-## 4. Metoda revize obrazovek a funkcí
+## Technologie Next.js
 
-U každé obrazovky, funkce nebo prvku, který revidujeme, vždy projít tyto kroky:
+<!-- BEGIN:nextjs-agent-rules -->
 
-1. Která role to používá a jak často?
-2. Rozhodnutí: **ponechat / sjednotit s jinou / smazat**.
-3. Seřadit ponechané podle důležitosti (od klíčových po doplňkové).
-4. **Zvážit alternativní UI/UX koncept** (např. seznam s filtry → kanban board, tabulka → karty, samostatná stránka → panel v jiné obrazovce) a uvést vlastní doporučení s důvodem, ne jen popsat stav.
+# This is NOT the Next.js you know
 
-## 5. Komunikace
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-- Česky, jednoduše, „po lopatě“ — uživatel je projektový manažer, ne programátor.
-- Při nejasnosti se ptát, nedomýšlet. Pokud je návrh PM podle mého názoru horší, říct to přímo a navrhnout lepší.
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
-## 6. Pojmenování a jazyk UI
-
-Napříč celým CRM platí jednotné pravidlo (PM, 13. 10. 2026):
-
-- **Název stránky** (titulek) = **anglicky** (např. `Schedule`, `Call Logs`, `Product Catalog`).
-- **Popis** pod názvem = **česky**.
-- **Obsah** stránky = **česky** (texty, tabulky, sloupce, hlášky).
-- **Obecná tlačítka a štítky** = **anglicky** (`Submit`, `Back`, `Call`, `Schedule`, `Save`, `Cancel`).
-- **URL adresa** = **anglicky** (`/console`, `/call-logs`, `/reports`).
-- **Menu a názvy sekcí** = **anglicky** (`Work`, `Team`, `Reporting`, `Administration`).
-
-## 7. Terminologie: Callback vs. scheduled call (Schedule)
-
-PM, 16. 10. 2026:
-
-- **Callback** = hovor vázaný na **konkrétního operátora**. Klient nemá čas, ale chce, aby mu později zavolal **právě ten** operátor. Ukládá se konkrétnímu operátorovi.
-- **Scheduled call** (stránka `Schedule`, cesta `/schedule`; česky „naplánovaný hovor“) = naplánovaný hovor, který **neurčuje operátora**. Klient má termín (např. 16:00); hovor spadne do fronty v Operator Console operátorovi, který ho zadal. Když tento operátor v danou chvíli není volný, scheduled call **převezme někdo jiný** — a je to správně, nic se nerozbije.
-- Rozdíl je tedy ve **vázanosti na operátora**: callback = pevně daný operátor, scheduled call = jen preference (toho, kdo ho zadal), ale vyřídit ho může kdokoli.
-- V dokumentaci, popiscích a UI pro naplánované hovory používat **„Schedules“** / „naplánované hovory“, **ne** „callback“.
-- **Texty v UI jsou sjednocené (PM, 16. 10. 2026).** Popisky, nadpisy, hlášky i chybové texty, které se propisují do UI, už „callback“ pro naplánovaný hovor nepoužívají (např. metrika v panelu Queues už neříká „Callback“). Nové texty psát rovnou takto.
-- **Názvosloví v kódu a datech je sjednocené (PM, 19. 10. 2026).** Hotový dedikovaný refactoring ve třech krocích: **B1** sloupec `calls.callback_scheduled_at` → `scheduled_at` (+ parametry RPC), **B2** stav `waiting_callback` → `scheduled` a event `callback_scheduled` → `scheduled_call_created`, **B3** typ výjimky `overdue_callback` → `overdue_scheduled_call`, chybové texty v DB funkcích, action id `schedule_callback` → `claim_scheduled_call`, smazání shim `callbackAttention.ts` a přejmenování polí, typů, modulů a komponent (`scheduledCallsBanner.ts`, `ScheduleCallModal.tsx`, …). Nové identifikátory pojmenovávat stejně.
-- **To se netýká programátorských callbacků.** React `useCallback`, audio pipeline (`AudioChunkCallback`) a komentáře o webhook „provider callbacks“ zůstávají beze změny. Stejně tak **historické migrace a testy, které je čtou** (`…_callback_…`, `waiting_callback`, `callback_scheduled_at`, `next_callback_at`) — přejmenování by změnilo to, co ty testy ověřují.
+<!-- END:nextjs-agent-rules -->
