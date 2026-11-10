@@ -5,7 +5,7 @@ Roadmapa zachycuje dohodnutý pracovní postup a další možné směry. Impleme
 ## To-Do — obnovení práce na projektu
 
 - [ ] Ověřit dostupné vývojové a testovací prostředí, připojení databáze, testovací účty a syntetická data pro bezpečné testování čtení i zápisu.
-  - Stav 10. 11. 2026: zatím nehotovo. Lokální Next.js i testovací sandbox jsou identifikované, přihlášení operátora a čtení jeho profilu/členství prošlo. Účet nastavený jako Team Leader ale vrací roli administrator; skutečný zápis ani bezpečný browserový průchod rolí ověřen nebyl. Podrobnosti jsou v [provozním návodu](OPERATIONS.md).
+  - Stav 10. 11. 2026: zatím nehotovo. Přihlášení a čtení ověřeno pro operátora i jediného administrátora; operátor pod UI úspěšně uložil nezměněnou syntetickou předvolbu. Čtyři členství Team Leaderů existují, ale nemáme ověřené přihlašovací údaje pro tuto roli. Roli jediného admin účtu jsme neměnili. Podrobnosti jsou v [provozním návodu](OPERATIONS.md).
 - [ ] Spustit aplikaci, projít hlavní obrazovky za jednotlivé role a prověřit načítání Operator Console.
 - [ ] Ověřit hlavní pracovní scénáře: lead a frontu, práci operátora, výsledek hovoru, objednávku a navazující práci vedoucího; zaznamenat ověřené nedostatky a otevřená produktová rozhodnutí.
 - [ ] Postupně opravit potvrzené chyby a technický dluh podle dopadu, zejména překážky práce a rizika nesprávných dat.
