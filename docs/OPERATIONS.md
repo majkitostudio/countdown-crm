@@ -26,6 +26,13 @@ npm run test:smoke
 
 `verify:all` spouští lint, typecheck, testy a build. Smoke test je samostatný browserový běh. Výsledek kontroly vždy vztahuj ke konkrétnímu běhu a jeho prostředí.
 
+### Ověření prostředí — 10. 11. 2026
+
+- Místní aplikace používá `npm run dev`; `.env.local` ji připojuje k projektu Supabase `countdown-crm-sandbox-20260824` (sandbox), nikoli k lokální DB. `supabase/config.toml` definuje lokální API/DB na portech 54321/54322. `npx supabase status` lokální stack nepotvrdil, protože neběží Docker daemon.
+- Node.js 26.12.0 a npm 11.20.0 splňují požadavky projektu. `npm run test:smoke` skutečně spustil Next.js a Chromium; všech 20 tras vrátilo HTTP 200 a test skončil 20/20. Nejde však o ověření přihlášení ani dat: skript zapíná `NEXT_PUBLIC_ALLOW_DEMO_AUTH`, nekontroluje chyby konzole jako důvod selhání a během běhu byly opakovaně zaznamenány chyby databázových čtení a HTTP 500 (nastavení telefonie a uživatelských předvoleb, leady, produkty, audit a workflows).
+- Přihlašovací údaje pro testovacího operátora a účet pojmenovaný Team Leaderem jsou v místním prostředí. Oba se skutečně přihlásili do sandboxu; operátor pod rolí `operator` přečetl svůj profil a členství. Druhý účet má v načteném členství roli `administrator`, nikoli `team_leader`. Samostatné testovací přihlašovací údaje administrátora nejsou nakonfigurované. Žádné přihlašovací údaje ani tokeny se do výstupu ani dokumentace nekopírují.
+- Zápis do sandboxu nebyl zkoušen, aby se neměnila existující testovací data bez ověřeného izolovaného a vratného scénáře. Současný smoke test zápis neprovádí. Před rolovým průchodem je nutné vyřešit účet Team Leadera, doplnit ověřený přístup pro administrátora a připravit explicitně izolovaný syntetický write test; zároveň odlišit demo režim od reálných sandboxových čtení.
+
 ### Obnova hesla
 
 Obnovovací e-mail se vrací na `/auth/confirm` na stejné doméně, ze které uživatel o obnovu požádal. Přesnou návratovou adresu je nutné povolit v Supabase Auth Redirect URLs pro dané prostředí; pro lokální provoz se `localhost` a `127.0.0.1` posuzují samostatně. Odkaz PKCE je nutné otevřít ve stejném prohlížeči, ve kterém vznikla žádost. Funkčnost doručení e-mailu a návratu ověřuj samostatně na testovacím účtu.
