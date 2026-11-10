@@ -26,14 +26,15 @@ npm run test:smoke
 
 `verify:all` spouští lint, typecheck, testy a build. Smoke test je samostatný browserový běh. Výsledek kontroly vždy vztahuj ke konkrétnímu běhu a jeho prostředí.
 
-### Ověření prostředí — 10. 11. 2026
+### Ověření prostředí — 11. 11. 2026
 
 - Místní aplikace používá `npm run dev`; `.env.local` ji připojuje k projektu Supabase `countdown-crm-sandbox-20260824` (sandbox), nikoli k lokální DB. `supabase/config.toml` definuje lokální API/DB na portech 54321/54322. `npx supabase status` lokální stack nepotvrdil, protože neběží Docker daemon.
 - Node.js 26.12.0 a npm 11.20.0 splňují požadavky projektu. `npm run test:smoke` skutečně spustil Next.js a Chromium; všech 20 tras vrátilo HTTP 200 a test skončil 20/20. Nejde však o ověření přihlášení ani dat: skript zapíná `NEXT_PUBLIC_ALLOW_DEMO_AUTH`, nekontroluje chyby konzole jako důvod selhání a během běhu byly opakovaně zaznamenány chyby databázových čtení a HTTP 500 (nastavení telefonie a uživatelských předvoleb, leady, produkty, audit a workflows).
-- Dashboard potvrdil zdravý stav projektu a 13 Auth účtů; v `workspace_members` jsou 1 `administrator`, 4 `team_leader` a 7 `operator`. Přihlašovací údaje pro operátora a účet pojmenovaný Team Leaderem jsou v místním prostředí a oba fungují, ale druhý účet je jediným `administrator` v členství, nikoli Team Leaderem. Jinému účtu ani heslu Team Leadera se nepodařilo přiřadit ověřené přihlašovací údaje. Roli jediného administrátora jsme neměnili, aby se neztratil ověřený admin přístup. Přihlašovací údaje ani tokeny se do výstupu ani dokumentace nekopírují.
+- Dashboard potvrdil zdravý stav projektu a po přípravě účtu 14 Auth účtů; ve workspace je 1 `administrator`, 5 `team_leader` a 7 `operator`. Nový syntetický účet `qa.team-leader@example.test` je potvrzený a má roli `team_leader`; jeho e-mail a heslo jsou pouze v místním `.env.local`. Přihlašovací údaje dříve pojmenované jako Team Leader patří jedinému `administrator`; jeho roli jsme zachovali. Tajné hodnoty se do výstupu ani dokumentace nekopírují.
+- Nový Team Leader se skutečně přihlásil do lokální Next.js aplikace připojené k sandboxu. `/team`, `/team/reviews`, `/team/exceptions` a `/schedule` vrátily HTTP 200; nebyly zaznamenány odpovědi HTTP 500 ani chyby JavaScriptu. Přihlášení a obrazovky administrátora i operátora byly ověřeny v předchozím průchodu.
 - S reálným admin přihlášením v místním Next.js vrátily `/workspace`, `/orders`, `/settings/users` a `/admin` HTTP 200 bez chyb JS ani odpovědí 4xx/5xx. Operátor se přes UI přihlásil, načetl `/settings` a úspěšně uložil nezměněnou hodnotu osobní hlasitosti; po obnovení zůstala stejná. Tím se ověřilo čtení a zápis předvoleb pod rolí operátora; aktualizovalo se pouze technické `updated_at`.
 - Předchozí `npm run test:smoke` dal 20/20 jen s demo autentizací; jeho databázové chyby a HTTP 500 patřily neplatné demo identitě v připojeném sandboxu. Smoke příkaz tedy neprokazuje běh rolí a má být opraven. Lokální databáze stále není spuštěná bez Dockeru; ověřený běh aplikace používá sandbox.
-- Pro úplné ověření rolí zbývá získat přihlášení skutečného testovacího Team Leadera. Čtyři membership záznamy samy nedokazují, že se jejich účty mohou přihlásit. Admin účet zachovat; před opravou smoke testu i širšími zápisovými scénáři nejdřív doplnit bezpečně spravované přihlašovací údaje pro Team Leadera.
+- Lokální Supabase databáze nebyla spuštěna, protože není dostupný Docker daemon; lokální Next.js aplikace proto používá ověřený sandbox. Smoke test dál potřebuje opravu: demo autentizace způsobuje chyby databázových čtení, které současný skript nepočítá jako selhání. Tato omezení nebránila ověření skutečných přihlášení a izolovaného zápisu předvoleb v sandboxu.
 
 ### Obnova hesla
 

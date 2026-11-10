@@ -4,8 +4,8 @@ Roadmapa zachycuje dohodnutý pracovní postup a další možné směry. Impleme
 
 ## To-Do — obnovení práce na projektu
 
-- [ ] Ověřit dostupné vývojové a testovací prostředí, připojení databáze, testovací účty a syntetická data pro bezpečné testování čtení i zápisu.
-  - Stav 10. 11. 2026: zatím nehotovo. Přihlášení a čtení ověřeno pro operátora i jediného administrátora; operátor pod UI úspěšně uložil nezměněnou syntetickou předvolbu. Čtyři členství Team Leaderů existují, ale nemáme ověřené přihlašovací údaje pro tuto roli. Roli jediného admin účtu jsme neměnili. Podrobnosti jsou v [provozním návodu](OPERATIONS.md).
+- [x] Ověřit dostupné vývojové a testovací prostředí, připojení databáze, testovací účty a syntetická data pro bezpečné testování čtení i zápisu.
+  - Stav 11. 11. 2026: hotovo pro lokální aplikaci připojenou k ověřenému Supabase sandboxu. Přihlášení a čtení ověřeno pro role operator, team_leader a administrator; operátor úspěšně uložil nezměněnou syntetickou předvolbu. Lokální databáze samotná zůstává nespouštěná bez Dockeru; podrobnosti a omezení jsou v [provozním návodu](OPERATIONS.md).
 - [ ] Spustit aplikaci, projít hlavní obrazovky za jednotlivé role a prověřit načítání Operator Console.
 - [ ] Ověřit hlavní pracovní scénáře: lead a frontu, práci operátora, výsledek hovoru, objednávku a navazující práci vedoucího; zaznamenat ověřené nedostatky a otevřená produktová rozhodnutí.
 - [ ] Postupně opravit potvrzené chyby a technický dluh podle dopadu, zejména překážky práce a rizika nesprávných dat.
