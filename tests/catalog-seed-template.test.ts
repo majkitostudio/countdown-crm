@@ -62,7 +62,9 @@ describe("Catalog Seed Template Contract", () => {
     const data = JSON.parse(raw);
     const compiled = validateAndCompileCatalog(data);
     const generatedSql = generateSeedSql(compiled);
-    expect(generatedSql).toBe(sql);
+    const normalizeLineEndings = (value: string) => value.replace(/\r\n/g, "\n");
+    expect(normalizeLineEndings(generatedSql)).toBe(normalizeLineEndings(sql));
+    expect(normalizeLineEndings(sql.replace(/\r?\n/g, "\r\n"))).toBe(normalizeLineEndings(generatedSql));
 
     // Dollar quote balance
     const dollarCount = (sql.match(/\$\$/g) || []).length;

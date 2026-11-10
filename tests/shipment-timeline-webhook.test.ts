@@ -33,7 +33,7 @@ const migration = source("supabase/migrations/20261007141000_shipment_timeline_a
 describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.CARRIER_WEBHOOK_SECRET;
+    process.env.CARRIER_WEBHOOK_SECRET = "test-secret-key";
   });
 
   describe("SQL Migration & Database Schema", () => {
@@ -152,6 +152,76 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
   });
 
   describe("Carrier Webhook Route Handler (/api/carriers/webhook)", () => {
+    it("fails closed before creating an admin client when the secret is missing", async () => {
+      delete process.env.CARRIER_WEBHOOK_SECRET;
+
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tracking_number: "Z123" }),
+      });
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(503);
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed event fields before creating an admin client", async () => {
+      process.env.CARRIER_WEBHOOK_SECRET = "test-secret-key";
+
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-secret": "test-secret-key",
+        },
+        body: JSON.stringify({ tracking_number: 123 }),
+      });
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(400);
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
+    it("rejects events without an order id or tracking number before creating an admin client", async () => {
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-secret": "test-secret-key",
+        },
+        body: JSON.stringify({ status: "delivered" }),
+      });
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(400);
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
+    it("rejects an invalid event in a batch before creating an admin client", async () => {
+      process.env.CARRIER_WEBHOOK_SECRET = "test-secret-key";
+
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer test-secret-key",
+        },
+        body: JSON.stringify([
+          { tracking_number: "Z123" },
+          { tracking_number: 123 },
+        ]),
+      });
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(400);
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
     it("rejects unauthorized request when CARRIER_WEBHOOK_SECRET is set and token is missing or invalid", async () => {
       const originalSecret = process.env.CARRIER_WEBHOOK_SECRET;
       process.env.CARRIER_WEBHOOK_SECRET = "super-secret-key";
@@ -199,7 +269,10 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
 
       const req = new Request("http://localhost:3000/api/carriers/webhook", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-secret": "test-secret-key",
+        },
         body: JSON.stringify({
           tracking_number: "Z123456789",
           carrier_status: "doruceno",
@@ -251,7 +324,10 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
 
       const req = new Request("http://localhost:3000/api/carriers/webhook", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer test-secret-key",
+        },
         body: JSON.stringify([
           {
             tracking_number: "Z_EXISTS",

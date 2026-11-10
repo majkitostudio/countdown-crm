@@ -4,14 +4,38 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 
 interface WebhookTrackingPayload {
-  tracking_number?: string;
-  order_id?: string;
-  status?: string;
-  carrier_status?: string;
-  title?: string;
-  location?: string;
-  description?: string;
-  occurred_at?: string;
+  tracking_number?: string | null;
+  order_id?: string | null;
+  status?: string | null;
+  carrier_status?: string | null;
+  title?: string | null;
+  location?: string | null;
+  description?: string | null;
+  occurred_at?: string | null;
+}
+
+const PAYLOAD_STRING_FIELDS = [
+  "tracking_number",
+  "order_id",
+  "status",
+  "carrier_status",
+  "title",
+  "location",
+  "description",
+  "occurred_at",
+] as const;
+
+function isWebhookTrackingPayload(value: unknown): value is WebhookTrackingPayload {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+
+  const fieldsHaveValidTypes = PAYLOAD_STRING_FIELDS.every((field) => {
+    const fieldValue = (value as Record<string, unknown>)[field];
+    return fieldValue === undefined || fieldValue === null || typeof fieldValue === "string";
+  });
+  if (!fieldsHaveValidTypes) return false;
+
+  const payload = value as WebhookTrackingPayload;
+  return Boolean(payload.order_id?.trim() || payload.tracking_number?.trim());
 }
 
 /**
@@ -64,15 +88,17 @@ export function normalizeCarrierStatus(raw?: string | null): "delivered" | "retu
 }
 
 export async function POST(request: Request) {
-  const secret = process.env.CARRIER_WEBHOOK_SECRET;
-  if (secret) {
-    const authHeader = request.headers.get("authorization");
-    const secretHeader = request.headers.get("x-webhook-secret");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+  const secret = process.env.CARRIER_WEBHOOK_SECRET?.trim();
+  if (!secret) {
+    return NextResponse.json({ error: "Carrier webhook is not configured." }, { status: 503 });
+  }
 
-    if (token !== secret && secretHeader !== secret) {
-      return NextResponse.json({ error: "Unauthorized webhook request." }, { status: 401 });
-    }
+  const authHeader = request.headers.get("authorization");
+  const secretHeader = request.headers.get("x-webhook-secret");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+
+  if (token !== secret && secretHeader !== secret) {
+    return NextResponse.json({ error: "Unauthorized webhook request." }, { status: 401 });
   }
 
   let body: unknown;
@@ -82,12 +108,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
   }
 
-  const items: WebhookTrackingPayload[] = Array.isArray(body)
-    ? (body as WebhookTrackingPayload[])
-    : [body as WebhookTrackingPayload];
-
-  if (items.length === 0) {
-    return NextResponse.json({ error: "Empty events payload." }, { status: 400 });
+  let items: WebhookTrackingPayload[];
+  if (Array.isArray(body)) {
+    if (body.length === 0) {
+      return NextResponse.json({ error: "Empty events payload." }, { status: 400 });
+    }
+    if (!body.every(isWebhookTrackingPayload)) {
+      return NextResponse.json({ error: "Webhook payload contains an invalid event." }, { status: 400 });
+    }
+    items = body;
+  } else if (isWebhookTrackingPayload(body)) {
+    items = [body];
+  } else {
+    return NextResponse.json({ error: "Webhook event must be an object." }, { status: 400 });
   }
 
   const admin = createAdminClient();
