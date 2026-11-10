@@ -1,6 +1,16 @@
 # Countdown CRM — stav a možné další kroky
 
-Roadmapa je pracovní orientace, nikoli závazek ani pořadí schválených funkcí. Prioritu volí PM podle aktuální potřeby. Implementaci, testování a nasazení vždy eviduj jako odlišné stavy.
+Roadmapa zachycuje dohodnutý pracovní postup a další možné směry. Implementaci, testování a nasazení vždy eviduj jako odlišné stavy; položku odškrtni až po dokončení a odpovídajícím ověření.
+
+## To-Do — obnovení práce na projektu
+
+- [ ] Ověřit dostupné vývojové a testovací prostředí, připojení databáze, testovací účty a syntetická data pro bezpečné testování čtení i zápisu.
+- [ ] Spustit aplikaci, projít hlavní obrazovky za jednotlivé role a prověřit načítání Operator Console.
+- [ ] Ověřit hlavní pracovní scénáře: lead a frontu, práci operátora, výsledek hovoru, objednávku a navazující práci vedoucího; zaznamenat ověřené nedostatky a otevřená produktová rozhodnutí.
+- [ ] Postupně opravit potvrzené chyby a technický dluh podle dopadu, zejména překážky práce a rizika nesprávných dat.
+- [ ] Průběžně prověřovat účel zastaralých či duplicitních souborů a udržovat stávající dokumentaci stručnou a aktuální.
+- [ ] Provést úplnou revizi UI/UX podle rolí a četnosti použití: navigaci, typografii, barvy, rozložení, přístupnost, responzivitu a vhodné animace.
+- [ ] Zopakovat celkové funkční, technické a vizuální review s důkazy o provedených kontrolách a jasně uvedenými omezeními.
 
 ## Poslední známý stav hlavní větve
 

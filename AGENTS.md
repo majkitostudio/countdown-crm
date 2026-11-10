@@ -14,7 +14,7 @@ Tento soubor obsahuje pouze pravidla specifická pro Countdown CRM a doplňuje g
 - Přísun leadů má být automatizovaný přes budoucí integraci. Aktuální databázový trigger zařadí každý vložený lead do fronty, ale sám o sobě neimplementuje příjem přes API/webhook.
 - Produkční telefonie/VoIP a Telnyx jsou odloženy na neurčito. Nepřidávej náklady ani nové závislosti, dokud PM tuto prioritu znovu neotevře.
 - AI může pomáhat s kontextem, tréninkem a kvalitou; není autoritou nad skutečným stavem hovoru, objednávky ani oprávnění.
-- Demo data jsou syntetická a nesmějí být zaměňována za produkční data.
+- Countdown je nyní prototyp bez produkčního prostředí. Současná prostředí jsou vývojová či testovací; účty, objednávky, leady, kontakty a ostatní projektová data jsou podle zadání syntetická a slouží vývoji.
 
 ## Uživatelské rozhraní
 
