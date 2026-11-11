@@ -5,10 +5,11 @@ Roadmapa zachycuje dohodnutý pracovní postup a další možné směry. Impleme
 ## To-Do — obnovení práce na projektu
 
 - [x] Ověřit dostupné vývojové a testovací prostředí, připojení databáze, testovací účty a syntetická data pro bezpečné testování čtení i zápisu.
-  - Stav 11. 11. 2026: hotovo pro lokální aplikaci připojenou k ověřenému Supabase sandboxu. Přihlášení a čtení ověřeno pro role operator, team_leader a administrator; operátor úspěšně uložil nezměněnou syntetickou předvolbu. Lokální Supabase nyní běží a migrace mají paritu 137/137; podrobnosti jsou v [provozním návodu](OPERATIONS.md).
-- [ ] Spustit aplikaci, projít hlavní obrazovky za jednotlivé role a prověřit načítání Operator Console.
-  - Stav 11. 11. 2026: rozpracováno. Lokální administrátor prošel 11/13 hlavních tras; `/products` a `/team` padají na neplatné demo workspace ID. `/console` vrátilo HTTP 200 jako administrátor, ale jeho operátorský tok nebyl spuštěn, protože při otevření může převzít lead. Je potřeba opravit příčinu a bezpečně ověřit operátorský průchod; viz [provozní návod](OPERATIONS.md).
-- [ ] Ověřit hlavní pracovní scénáře: lead a frontu, práci operátora, výsledek hovoru, objednávku a navazující práci vedoucího; zaznamenat ověřené nedostatky a otevřená produktová rozhodnutí.
+  - Stav 11. 11. 2026: hotovo pro lokální aplikaci připojenou k ověřenému Supabase sandboxu. Přihlášení a čtení ověřeno pro role operator, team_leader a administrator; operátor úspěšně uložil nezměněnou syntetickou předvolbu. Lokální DB běží a její migrace mají paritu 137/137; podrobnosti jsou v [provozním návodu](OPERATIONS.md).
+- [x] Spustit aplikaci, projít hlavní obrazovky za jednotlivé role a prověřit načítání Operator Console.
+  - Stav 11. 11. 2026: hotovo. V sandboxu operátor prošel 12 tras včetně Operator Console a Team Leader 14 tras; lokální administrátor prošel 13/13 tras včetně `/products` a `/team`; stránky vrátily HTTP 200 bez chyb JavaScriptu. Zůstaly tři 404 na lokální produktové obrázky, zaznamenané v [provozním návodu](OPERATIONS.md).
+- [x] Ověřit hlavní pracovní scénáře: lead a frontu, práci operátora, výsledek hovoru, objednávku a navazující práci vedoucího; zaznamenat ověřené nedostatky a otevřená produktová rozhodnutí.
+  - Stav 11. 11. 2026: hlavní scénář prošel na lokálních syntetických datech až po lidskou kontrolu Team Leaderem. Omezení: hovor se uložil s délkou 0 sekund a dva oddělené přerušené QA pokusy zanechaly nové testovací leady v recovery stavu; podrobnosti jsou v [provozním návodu](OPERATIONS.md). Sandbox zůstal beze změny.
 - [ ] Postupně opravit potvrzené chyby a technický dluh podle dopadu, zejména překážky práce a rizika nesprávných dat.
 - [ ] Průběžně prověřovat účel zastaralých či duplicitních souborů a udržovat stávající dokumentaci stručnou a aktuální.
 - [ ] Provést úplnou revizi UI/UX podle rolí a četnosti použití: navigaci, typografii, barvy, rozložení, přístupnost, responzivitu a vhodné animace.

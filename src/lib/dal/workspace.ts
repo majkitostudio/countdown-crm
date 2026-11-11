@@ -17,7 +17,9 @@ export interface WorkspaceContext {
 export const DEMO_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
 
 function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  // PostgreSQL accepts the canonical UUID shape without enforcing RFC version
+  // or variant bits. Local seeded workspace IDs use that wider valid shape.
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 /**
