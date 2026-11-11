@@ -5,8 +5,9 @@ Roadmapa zachycuje dohodnutý pracovní postup a další možné směry. Impleme
 ## To-Do — obnovení práce na projektu
 
 - [x] Ověřit dostupné vývojové a testovací prostředí, připojení databáze, testovací účty a syntetická data pro bezpečné testování čtení i zápisu.
-  - Stav 11. 11. 2026: hotovo pro lokální aplikaci připojenou k ověřenému Supabase sandboxu. Přihlášení a čtení ověřeno pro role operator, team_leader a administrator; operátor úspěšně uložil nezměněnou syntetickou předvolbu. Lokální databáze samotná zůstává nespouštěná bez Dockeru; podrobnosti a omezení jsou v [provozním návodu](OPERATIONS.md).
+  - Stav 11. 11. 2026: hotovo pro lokální aplikaci připojenou k ověřenému Supabase sandboxu. Přihlášení a čtení ověřeno pro role operator, team_leader a administrator; operátor úspěšně uložil nezměněnou syntetickou předvolbu. Lokální Supabase nyní běží a migrace mají paritu 137/137; podrobnosti jsou v [provozním návodu](OPERATIONS.md).
 - [ ] Spustit aplikaci, projít hlavní obrazovky za jednotlivé role a prověřit načítání Operator Console.
+  - Stav 11. 11. 2026: rozpracováno. Lokální administrátor prošel 11/13 hlavních tras; `/products` a `/team` padají na neplatné demo workspace ID. `/console` vrátilo HTTP 200 jako administrátor, ale jeho operátorský tok nebyl spuštěn, protože při otevření může převzít lead. Je potřeba opravit příčinu a bezpečně ověřit operátorský průchod; viz [provozní návod](OPERATIONS.md).
 - [ ] Ověřit hlavní pracovní scénáře: lead a frontu, práci operátora, výsledek hovoru, objednávku a navazující práci vedoucího; zaznamenat ověřené nedostatky a otevřená produktová rozhodnutí.
 - [ ] Postupně opravit potvrzené chyby a technický dluh podle dopadu, zejména překážky práce a rizika nesprávných dat.
 - [ ] Průběžně prověřovat účel zastaralých či duplicitních souborů a udržovat stávající dokumentaci stručnou a aktuální.
