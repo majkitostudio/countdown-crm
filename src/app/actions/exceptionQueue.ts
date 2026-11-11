@@ -13,15 +13,15 @@ export async function listTeamLeaderExceptionsAction(): Promise<ExceptionQueueDT
 
 export async function resolveExceptionAction(
   exceptionId: string,
-  resolution: string,
+  resolution?: string,
 ): Promise<ExceptionActionSourceRow> {
   return resolveException(exceptionId, resolution);
 }
 
 export async function snoozeExceptionAction(
   exceptionId: string,
-  until: string,
-  reason: string,
+  until?: string,
+  reason?: string,
 ): Promise<ExceptionActionSourceRow> {
   return snoozeException(exceptionId, until, reason);
 }

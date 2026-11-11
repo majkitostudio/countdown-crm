@@ -61,7 +61,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
   const [type, setType] = useState("all");
   const [editor, setEditor] = useState<{ id: string; mode: EditorMode } | null>(null);
   const [reason, setReason] = useState("");
-  const [snoozeHours, setSnoozeHours] = useState("1");
+  const [snoozeHours, setSnoozeHours] = useState("2");
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
@@ -94,16 +94,12 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
   const openEditor = (id: string, mode: EditorMode) => {
     setEditor({ id, mode });
     setReason("");
-    setSnoozeHours("1");
+    setSnoozeHours("2");
     setMessage(null);
   };
 
   const submitEditor = async () => {
     if (!editor) return;
-    if (reason.trim().length < 3) {
-      setMessage({ tone: "error", text: "Add a short reason with at least 3 characters." });
-      return;
-    }
 
     setBusy(editor.id);
     setMessage(null);
@@ -112,7 +108,8 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
         await resolveExceptionAction(editor.id, reason);
         setMessage({ tone: "success", text: "Exception marked as handled." });
       } else {
-        const until = new Date(Date.now() + Number(snoozeHours) * 60 * 60 * 1000).toISOString();
+        const hours = Number(snoozeHours) || 2;
+        const until = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
         await snoozeExceptionAction(editor.id, until, reason);
         setMessage({ tone: "success", text: "Exception snoozed." });
       }
@@ -284,7 +281,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                       <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                         {editor.mode === "snooze" && (
                           <SelectField value={snoozeHours} onChange={(event) => setSnoozeHours(event.target.value)} aria-label="Snooze duration">
-                            <option value="1">1 hour</option>
+                            <option value="2">2 hours</option>
                             <option value="4">4 hours</option>
                             <option value="24">1 day</option>
                             <option value="168">1 week</option>

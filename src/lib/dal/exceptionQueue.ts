@@ -564,8 +564,11 @@ function validateExceptionId(exceptionId: string): string {
   return normalized;
 }
 
-function validateReason(reason: string, label: string): string {
-  const normalized = typeof reason === "string" ? reason.trim() : "";
+const DEFAULT_EXCEPTION_REASON = "neuvedeno";
+
+function normalizeReason(reason: string, label: string): string {
+  const trimmed = typeof reason === "string" ? reason.trim() : "";
+  const normalized = trimmed.length === 0 ? DEFAULT_EXCEPTION_REASON : trimmed;
   if (normalized.length < 3 || normalized.length > 2000) {
     throw new DataAccessError("VALIDATION", `${label} must be between 3 and 2,000 characters.`);
   }
@@ -578,10 +581,10 @@ function mapExceptionAction(data: unknown): ExceptionActionSourceRow {
 
 export async function resolveException(
   exceptionId: string,
-  resolution: string,
+  resolution: string = DEFAULT_EXCEPTION_REASON,
 ): Promise<ExceptionActionSourceRow> {
   const normalizedId = validateExceptionId(exceptionId);
-  const normalizedResolution = validateReason(resolution, "Resolution");
+  const normalizedResolution = normalizeReason(resolution, "Resolution");
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   const supabase = await createDataClient();
   const { data, error } = await supabase
@@ -600,13 +603,16 @@ export async function resolveException(
 
 export async function snoozeException(
   exceptionId: string,
-  until: string,
-  reason: string,
+  until: string | undefined = undefined,
+  reason: string = DEFAULT_EXCEPTION_REASON,
   now = new Date(),
 ): Promise<ExceptionActionSourceRow> {
   const normalizedId = validateExceptionId(exceptionId);
-  const normalizedReason = validateReason(reason, "Snooze reason");
-  const untilTimestamp = Date.parse(until);
+  const normalizedReason = normalizeReason(reason, "Snooze reason");
+  const untilValue = (!until || until.trim().length === 0)
+    ? new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString()
+    : until;
+  const untilTimestamp = Date.parse(untilValue);
   const maximumTimestamp = now.getTime() + 90 * 24 * 60 * 60 * 1000;
   if (!Number.isFinite(untilTimestamp) || untilTimestamp <= now.getTime() || untilTimestamp > maximumTimestamp) {
     throw new DataAccessError("VALIDATION", "Snooze time must be in the next 90 days.");
