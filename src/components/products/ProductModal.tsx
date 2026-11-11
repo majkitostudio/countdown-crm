@@ -46,7 +46,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
         setPrice(49.99);
         setCurrency("USD");
         setDescription("");
-        setImageUrl("https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=600&q=80");
+        setImageUrl("");
         setStockCount(50);
         setInStock(true);
       }
@@ -65,7 +65,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
       price: Number(price),
       currency,
       description,
-      image_url: imageUrl || "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&w=600&q=80",
+      image_url: imageUrl.trim(),
       stock_count: Number(stockCount),
       in_stock: inStock,
     };

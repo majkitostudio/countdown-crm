@@ -9,7 +9,7 @@
       "price": 1199,
       "currency": "CZK",
       "description": "Prémiový třísložkový kloubní komplex s glukosaminem, MSM a rybím kolagenem typu II. Určeno pro regeneraci chrupavek, ranní hybnost a úlevu při zátěži.",
-      "image_url": "/images/products/arthroflex.png",
+      "image_url": null,
       "in_stock": true,
       "script": {
         "opening": "Dobrý den, pane/paní, volám ze zákaznického centra Countdown ohledně Vašeho zájmu o podporu kloubů a hybnosti. Než se podíváme na samotný doplněk, smím se zeptat, jaké potíže Vás v poslední době nejvíce omezují?",
@@ -64,7 +64,7 @@
       "price": 999,
       "currency": "CZK",
       "description": "Vysoce koncentrovaný rybí olej s vysokým podílem EPA a DHA mastných kyselin obohacený o koenzym Q10 a vitamín E pro zdravé srdce, cévy a normální krevní tlak.",
-      "image_url": "/images/products/cardiovital.png",
+      "image_url": null,
       "in_stock": true,
       "script": {
         "opening": "Dobrý den, pane/paní, volám ze zákaznického servisu ohledně Vašeho zájmu o podporu kardiovaskulárního systému a zdraví cév. Mohu se zeptat, co Vás vedlo k zájmu o tento doplněk?",
@@ -109,7 +109,7 @@
       "price": 890,
       "currency": "CZK",
       "description": "Prémiová chelátová forma hořčíku s maximální vstřebatelností (až 80 %) v kombinaci s aktivním vitamínem B6. Podporuje nervovou soustavu, hluboký spánek a svalové uvolnění bez projímavých účinků.",
-      "image_url": "/images/products/magnesium.png",
+      "image_url": null,
       "in_stock": true,
       "script": {
         "opening": "Dobrý den, volám ohledně Vaší poptávky na vysoce vstřebatelný hořčík pro lepší spánek a regeneraci. Smím se zeptat, jaké příznaky nedostatku hořčíku na sobě nejvíce pozorujete?",

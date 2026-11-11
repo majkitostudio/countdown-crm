@@ -41,6 +41,22 @@ describe("workflow server-boundary UI contract", () => {
     expect(workspacePage).toContain("Call start recovery is still in progress");
   });
 
+  it("guides interrupted calls to the required outcome instead of retrying the call", () => {
+    const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
+    const recoveryAction = workspacePage.split('if (operatorConsoleState === "recovery_required")')[1]?.split("return;", 1)[0] || "";
+
+    expect(recoveryAction).toContain('const outcomePanel = document.getElementById("call-outcome-panel")');
+    expect(recoveryAction).toContain('window.matchMedia("(prefers-reduced-motion: reduce)")');
+    expect(recoveryAction).toContain('outcomePanel?.scrollIntoView');
+    expect(recoveryAction).toContain('document.getElementById("call-outcome-panel-title")?.focus');
+    expect(recoveryAction).not.toContain("handleToggleCall()");
+    expect(workspacePage).toContain('h-auto min-h-[calc(100vh-12rem)] grid-cols-1');
+    expect(workspacePage).toContain('overflow-visible xl:overflow-hidden');
+    const callControls = readFileSync(path.join(projectRoot, "src", "components", "workspace", "OperatorCallControls.tsx"), "utf8");
+    expect(callControls).toContain('id="call-outcome-panel"');
+    expect(callControls).toContain('id="call-outcome-panel-title"');
+  });
+
   it("keeps the Operator Console primary hierarchy explicit", () => {
     const workspacePage = readFileSync(path.join(projectRoot, "src", "app", "console", "page.tsx"), "utf8");
     const leadHeader = readFileSync(path.join(projectRoot, "src", "components", "workspace", "OperatorLeadHeader.tsx"), "utf8");

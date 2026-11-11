@@ -74,7 +74,7 @@ BEGIN
     1199,
     'CZK',
     'Prémiový třísložkový kloubní komplex s glukosaminem, MSM a rybím kolagenem typu II. Určeno pro regeneraci chrupavek, ranní hybnost a úlevu při zátěži.',
-    '/images/products/arthroflex.png',
+    NULL,
     true
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -96,7 +96,7 @@ BEGIN
     999,
     'CZK',
     'Vysoce koncentrovaný rybí olej s vysokým podílem EPA a DHA mastných kyselin obohacený o koenzym Q10 a vitamín E pro zdravé srdce, cévy a normální krevní tlak.',
-    '/images/products/cardiovital.png',
+    NULL,
     true
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -118,7 +118,7 @@ BEGIN
     890,
     'CZK',
     'Prémiová chelátová forma hořčíku s maximální vstřebatelností (až 80 %) v kombinaci s aktivním vitamínem B6. Podporuje nervovou soustavu, hluboký spánek a svalové uvolnění bez projímavých účinků.',
-    '/images/products/magnesium.png',
+    NULL,
     true
   )
   ON CONFLICT (id) DO UPDATE SET

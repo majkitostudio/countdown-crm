@@ -534,11 +534,22 @@ export async function getScopedLeadForWorkspace(leadId: string, workspaceId?: st
   const context = await requireWorkspaceContext(workspaceId);
 
   if (context.role === "operator") {
-    const current = await getCurrentLeadForWorkspace(context.workspaceId);
-    if (!current || current.lead_id !== leadId) {
+    // Autorizace nesmí přerušit běžící hovor: get_current_lead převádí
+    // in_progress na awaiting_outcome. Ověříme pouze vlastnictví přiřazení
+    // bez mutace stavu a načteme lead přes přímé čtení.
+    const supabase = await createDataClient();
+    const { data: assignment, error: assignmentError } = await supabase
+      .from("lead_queue_items")
+      .select("id")
+      .eq("workspace_id", context.workspaceId)
+      .eq("assigned_operator_id", context.userId)
+      .eq("lead_id", leadId)
+      .in("state", ["assigned", "in_progress", "awaiting_outcome"])
+      .maybeSingle();
+    if (assignmentError || !assignment) {
       throw new DataAccessError("NOT_FOUND", "Contact unavailable");
     }
-    return current.lead;
+    return getDirectLeadForWorkspace(leadId, context.workspaceId);
   }
 
   const supabase = await createDataClient();

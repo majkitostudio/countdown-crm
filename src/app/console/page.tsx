@@ -1070,6 +1070,14 @@ function WorkspaceContent() {
       return;
     }
 
+    if (operatorConsoleState === "recovery_required") {
+      const outcomePanel = document.getElementById("call-outcome-panel");
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+      outcomePanel?.scrollIntoView({ behavior, block: "center" });
+      document.getElementById("call-outcome-panel-title")?.focus({ preventScroll: true });
+      return;
+    }
+
     if (operatorConsoleState === "awaiting_outcome" || operatorConsoleState === "schedule_modal") {
       document.getElementById("call-outcome-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -1279,13 +1287,13 @@ function WorkspaceContent() {
           </div>
         </div>
 ) : (
-        <div className="grid h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <section className="flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
+        <div className="grid h-auto min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:h-[calc(100vh-12rem)] xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <section className="flex min-h-0 min-w-0 flex-col gap-4 overflow-visible xl:overflow-hidden" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
             {operatorLeadHeader}
             {conversationBriefCard}
             {productScriptPanel}
           </section>
-          <div className="min-w-0 h-full overflow-y-auto" data-testid="focus-client-details">
+          <div className="min-w-0 xl:h-full xl:overflow-y-auto" data-testid="focus-client-details">
             {supportingContextRail}
           </div>
         </div>

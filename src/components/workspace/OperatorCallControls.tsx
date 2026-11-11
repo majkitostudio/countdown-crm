@@ -118,11 +118,18 @@ export function CallOutcomePanel({
   return (
     <div
       className="mt-4 rounded-xl border border-amber-900/60 bg-amber-950/20 p-3"
+      id="call-outcome-panel"
       data-testid="call-outcome-panel"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">Post-call outcome required</p>
+          <h2
+            id="call-outcome-panel-title"
+            tabIndex={-1}
+            className="rounded-sm text-[10px] font-semibold uppercase tracking-wider text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          >
+            Post-call outcome required
+          </h2>
           <p className="mt-1 text-[11px] text-amber-300/80">
             {recoveryRequired ? "The call was interrupted. This lead remains assigned to you for recovery." : "Choose one explicit outcome to finish this call."}
           </p>

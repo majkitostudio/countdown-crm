@@ -19,6 +19,7 @@ import type { LeadNoteDTO } from "@/lib/dal/leadNotes";
 import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendations";
 import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { formatCurrencyAmount } from "@/lib/currency";
+import { ProductImage } from "@/components/products/ProductImage";
 import {
   DeliveryAddressFields,
   EMPTY_DELIVERY_ADDRESS_DRAFT,
@@ -535,11 +536,12 @@ export function ProductOrderPanel({
 
           <div className="flex items-center justify-between gap-3 bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800/80">
             <div className="flex items-center gap-2.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ProductImage
                 src={topRec.recommendedProduct.image_url}
                 alt={topRec.recommendedProduct.title}
-                className="w-9 h-9 rounded-lg object-cover border border-zinc-800 shrink-0"
+                className="h-9 w-9 shrink-0 rounded-lg border border-zinc-800 object-cover"
+                fallbackClassName="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-500"
+                iconClassName="h-4 w-4"
               />
               <div>
                 <p className="font-semibold text-xs text-zinc-100 line-clamp-1">{topRec.recommendedProduct.title}</p>
