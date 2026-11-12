@@ -59,6 +59,7 @@ export function Dialog({
   "aria-labelledby": ariaLabelledby,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   const closeOnEscapeRef = useRef(closeOnEscape);
@@ -76,6 +77,20 @@ export function Dialog({
       previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const firstFocusable = initialFocusRef?.current ?? getFocusableElements(dialogRef.current ?? document.body)[0];
       (firstFocusable ?? dialogRef.current)?.focus();
+
+      const overlay = overlayRef.current;
+      const inertedElements: Array<{ element: HTMLElement; inert: boolean }> = [];
+      let node: HTMLElement | null = overlay;
+      while (node?.parentElement) {
+        const parent: HTMLElement = node.parentElement;
+        for (const sibling of Array.from(parent.children)) {
+          if (sibling === node || !(sibling instanceof HTMLElement)) continue;
+          inertedElements.push({ element: sibling, inert: sibling.inert });
+          sibling.inert = true;
+        }
+        if (parent === document.body) break;
+        node = parent;
+      }
 
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === "Escape" && closeOnEscapeRef.current) {
@@ -107,19 +122,19 @@ export function Dialog({
       window.addEventListener("keydown", handleKeyDown);
       return () => {
         window.removeEventListener("keydown", handleKeyDown);
+        for (const { element, inert } of inertedElements) element.inert = inert;
+
+        const previousFocus = previousFocusRef.current;
+        previousFocusRef.current = null;
+        if (previousFocus && document.contains(previousFocus)) previousFocus.focus();
       };
     }
-
-    const previousFocus = previousFocusRef.current;
-    previousFocusRef.current = null;
-    if (!previousFocus) return;
-    if (document.contains(previousFocus)) previousFocus.focus();
   }, [initialFocusRef, isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-50 bg-black/70 p-0 backdrop-blur-xs ${DIALOG_PLACEMENT_CLASS_NAMES[placement]}`}>
+    <div ref={overlayRef} className={`fixed inset-0 z-50 bg-black/70 p-0 backdrop-blur-xs ${DIALOG_PLACEMENT_CLASS_NAMES[placement]}`}>
       <button type="button" aria-label="Close dialog" className="absolute inset-0 cursor-default" onClick={onClose} />
       <div className={getDialogPanelClassName(size, placement)}>
         <Surface

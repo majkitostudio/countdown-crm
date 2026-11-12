@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Phone, PhoneOff, MapPin, X } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { Button } from "@/components/ui/Button";
@@ -14,10 +14,33 @@ interface IncomingCallModalProps {
 }
 
 export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: IncomingCallModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+
+    return () => {
+      const previousFocus = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (previousFocus && document.contains(previousFocus)) previousFocus.focus();
+    };
+  }, [isOpen]);
+
   if (!isOpen || !lead) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-50 animate-in slide-in-from-bottom-5 duration-300 sm:inset-x-auto sm:bottom-6 sm:right-6">
+    <div
+      ref={dialogRef}
+      role="alertdialog"
+      aria-labelledby="incoming-call-title"
+      aria-describedby="incoming-call-customer"
+      tabIndex={-1}
+      className="fixed inset-x-3 bottom-3 z-50 animate-in slide-in-from-bottom-5 duration-300 sm:inset-x-auto sm:bottom-6 sm:right-6"
+    >
       <Surface variant="overlay" className="w-full sm:w-80">
       <div className="relative max-h-[calc(100vh-1.5rem)] space-y-4 overflow-y-auto p-5 text-zinc-100">
         
@@ -28,7 +51,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
-            <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+            <span id="incoming-call-title" className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
               Incoming Call...
             </span>
           </div>
@@ -36,8 +59,9 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
           <Button
             variant="quiet"
             onClick={onDecline}
+            aria-label="Decline incoming call"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
 
@@ -47,7 +71,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
             {lead.full_name.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm text-zinc-100 truncate">{lead.full_name}</h3>
+            <h3 id="incoming-call-customer" className="font-semibold text-sm text-zinc-100 truncate">{lead.full_name}</h3>
             <p className="text-xs font-mono text-zinc-400">{lead.phone}</p>
             <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mt-0.5">
               <MapPin className="w-3 h-3" />

@@ -19,6 +19,7 @@ import { Surface } from "@/components/ui/Surface";
 
 export default function SettingsPage() {
   const [isSavedAlert, setIsSavedAlert] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState(false);
   const {
@@ -33,12 +34,14 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingPreferences(true);
+    setSaveError(null);
     try {
       await savePreferences(settings);
       setIsSavedAlert(true);
       window.setTimeout(() => setIsSavedAlert(false), 4000);
-    } catch {
+    } catch (error) {
       setIsSavedAlert(false);
+      setSaveError(error instanceof Error ? error.message : "Neznámá chyba");
     } finally {
       setIsSavingPreferences(false);
     }
@@ -78,6 +81,14 @@ export default function SettingsPage() {
       {preferencesError && (
         <StatusAlert tone="danger">
           Preferences unavailable: {preferencesError}
+        </StatusAlert>
+      )}
+
+      {saveError && (
+        <StatusAlert tone="danger">
+          <p className="font-semibold">Změny se nepodařilo uložit.</p>
+          <p className="mt-1 text-xs">Zkuste to prosím znovu. Pokud problém přetrvává, kontaktujte správce.</p>
+          <p className="mt-1 font-mono text-[11px] opacity-80">{saveError}</p>
         </StatusAlert>
       )}
 

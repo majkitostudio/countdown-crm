@@ -128,6 +128,7 @@ function WorkspaceContent() {
   
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [postCallSummary, setPostCallSummary] = useState<PostCallSummary | null>(null);
   const [completionSaveState, setCompletionSaveState] = useState<"saving" | "saved" | "failed">("saved");
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
@@ -504,7 +505,7 @@ function WorkspaceContent() {
       setIsLoading(false);
     }
     loadData();
-  }, [identity, isIdentityLoading, leadIdParam]);
+  }, [identity, isIdentityLoading, leadIdParam, loadAttempt]);
 
   const completeCall = useCallback(async (
     outcome: CompletionOutcome,
@@ -1242,6 +1243,12 @@ function WorkspaceContent() {
           <div className="mx-auto max-w-xl text-sm text-rose-200">
             <h2 className="font-semibold">Workspace data could not be loaded</h2>
             <p className="mt-2 text-xs text-rose-300">{loadError}</p>
+            <div className="mt-4">
+              <Button type="button" variant="secondary" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Retry
+              </Button>
+            </div>
           </div>
         </StatusAlert>
       </div>
