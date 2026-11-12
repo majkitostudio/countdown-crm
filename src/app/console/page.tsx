@@ -428,15 +428,24 @@ function WorkspaceContent() {
   useEffect(() => {
     if (identity?.role !== "operator" || !activeQueueItemId) return;
 
+    let stopped = false;
     const sendHeartbeat = () => {
-      void heartbeatLeadAssignmentAction(activeQueueItemId).catch((error) => {
-        setNotificationToast(error instanceof Error ? error.message : "Lead assignment heartbeat failed.");
-      });
+      if (stopped) return;
+      void heartbeatLeadAssignmentAction(activeQueueItemId)
+        .then((result) => {
+          if (result === null) stopped = true;
+        })
+        .catch((error) => {
+          setNotificationToast(error instanceof Error ? error.message : "Lead assignment heartbeat failed.");
+        });
     };
 
     sendHeartbeat();
     const interval = window.setInterval(sendHeartbeat, 30_000);
-    return () => window.clearInterval(interval);
+    return () => {
+      stopped = true;
+      window.clearInterval(interval);
+    };
   }, [activeQueueItemId, identity?.role]);
 
   useEffect(() => {

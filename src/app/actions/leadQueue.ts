@@ -23,6 +23,7 @@ import type {
   QueueItemDTO,
 } from "@/lib/dal/leadQueue";
 import type { LeadDTO } from "@/lib/dal/leads";
+import { isUnauthorizedError } from "@/lib/training/http";
 
 export async function setOperatorPresenceAction(
   state: OperatorPresenceState,
@@ -45,8 +46,15 @@ export async function startLeadCallAction(queueItemId: string): Promise<LeadQueu
 
 export async function heartbeatLeadAssignmentAction(
   queueItemId: string,
-): Promise<{ queue_item_id: string; lease_expires_at: string | null }> {
-  return heartbeatLeadAssignmentForWorkspace(queueItemId);
+): Promise<{ queue_item_id: string; lease_expires_at: string | null } | null> {
+  try {
+    return await heartbeatLeadAssignmentForWorkspace(queueItemId);
+  } catch (error) {
+    // A background heartbeat can outlive the browser session. Treat the
+    // unauthenticated case as a no-op instead of a failed Server Action.
+    if (isUnauthorizedError(error)) return null;
+    throw error;
+  }
 }
 
 export async function abortLeadCallStartAction(

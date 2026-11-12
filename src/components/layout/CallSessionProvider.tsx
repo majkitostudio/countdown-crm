@@ -86,14 +86,23 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     const { queueItemId, assignmentState } = serverContext;
     if (!queueItemId || (assignmentState !== "in_progress" && assignmentState !== "awaiting_outcome")) return;
+    let stopped = false;
     const heartbeat = () => {
-      void heartbeatLeadAssignmentAction(queueItemId).catch((cause) => {
-        setError(cause instanceof Error ? cause.message : "Lead assignment heartbeat failed.");
-      });
+      if (stopped) return;
+      void heartbeatLeadAssignmentAction(queueItemId)
+        .then((result) => {
+          if (result === null) stopped = true;
+        })
+        .catch((cause) => {
+          setError(cause instanceof Error ? cause.message : "Lead assignment heartbeat failed.");
+        });
     };
     heartbeat();
     const interval = window.setInterval(heartbeat, 30_000);
-    return () => window.clearInterval(interval);
+    return () => {
+      stopped = true;
+      window.clearInterval(interval);
+    };
   }, [serverContext]);
 
   const value = useMemo(() => ({
