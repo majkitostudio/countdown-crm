@@ -100,7 +100,7 @@ export default async function TrainingReviewsPage() {
                   {sessions.map((session) => {
                     const feedback = Array.isArray(session.feedback) ? session.feedback : [];
                     return (
-                      <tr key={session.id} className="transition-colors hover:bg-zinc-900/80">
+                      <tr key={session.id} className="transition-colors duration-150 ease-interface hover:bg-zinc-900/80">
                         <td className="whitespace-nowrap px-5 py-4 font-mono text-[11px] text-zinc-400">{formatDate(session.created_at)}</td>
                         <td className="px-5 py-4">
                           <div className="font-medium text-zinc-200">{session.operator_name}</div>

@@ -285,7 +285,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
               return (
                 <div
                   key={member.user_id}
-                  className="flex flex-col gap-4 p-4 transition-colors hover:bg-zinc-900/30 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 p-4 transition-colors duration-150 ease-interface hover:bg-zinc-900/30 sm:flex-row sm:items-center sm:justify-between"
                 >
                   {/* User info */}
                   <div className="flex min-w-0 items-center gap-3">
@@ -368,7 +368,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
                       disabled={isBusy || isCurrentUser}
                       onClick={() => handleRemoveMember(member)}
                       title={isCurrentUser ? "Nemůžete odebrat vlastní účet" : "Odebrat z call centra"}
-                      className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-rose-950/40 hover:text-rose-400 disabled:cursor-not-allowed disabled:opacity-30"
+                      className="rounded-lg p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-rose-950/40 hover:text-rose-400 disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

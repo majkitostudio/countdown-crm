@@ -236,7 +236,7 @@ export function ProductScriptPanel({
               <button
                 type="button"
                 onClick={() => setSelectedQuickObjectionId(null)}
-                className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors duration-150 ease-interface"
               >
                 Zavřít
               </button>
@@ -250,7 +250,7 @@ export function ProductScriptPanel({
                 onClick={() => setSelectedQuickObjectionId((prev) => (prev === item.id ? null : item.id))}
                 aria-pressed={selectedQuickObjectionId === item.id}
                 className={cn(
-                  "flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
+                  "flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ease-interface",
                   selectedQuickObjectionId === item.id
                     ? "border-zinc-500 bg-zinc-800 text-zinc-100 shadow-sm ring-1 ring-zinc-500/30"
                     : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"

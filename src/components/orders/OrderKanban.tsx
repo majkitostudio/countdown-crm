@@ -152,7 +152,7 @@ function OrderCard({
           <Link
             href={`/leads/${order.lead_id}`}
             title="Přejít na profil zákazníka"
-            className="shrink-0 rounded p-0.5 text-sky-400 hover:bg-sky-500/10 hover:text-sky-300 transition-colors"
+            className="shrink-0 rounded p-0.5 text-sky-400 hover:bg-sky-500/10 hover:text-sky-300 transition-colors duration-150 ease-interface"
           >
             <PhoneCall className="h-3 w-3" />
           </Link>

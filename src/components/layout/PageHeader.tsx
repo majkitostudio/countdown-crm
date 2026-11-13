@@ -58,7 +58,7 @@ export function PageHeader({
         {backLink && (
           <Link
             href={backLink.href}
-            className="mb-2 inline-flex items-center gap-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+            className="mb-2 inline-flex items-center gap-1.5 text-xs text-zinc-500 transition-colors duration-150 ease-interface hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             {backLink.label}

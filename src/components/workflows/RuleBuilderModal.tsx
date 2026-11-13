@@ -196,7 +196,7 @@ export function RuleBuilderModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors duration-150 ease-interface cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -268,7 +268,7 @@ export function RuleBuilderModal({
                         }}
                         disabled={isLocked}
                         className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all duration-150 ease-interface",
                           isSelected
                             ? "bg-zinc-900 border-zinc-700 shadow-xs cursor-pointer"
                             : isLocked
@@ -386,7 +386,7 @@ export function RuleBuilderModal({
                       {/* Remove */}
                       <button
                         onClick={() => removeCondition(i)}
-                        className="p-1 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                        className="p-1 text-zinc-500 hover:text-rose-400 transition-colors duration-150 ease-interface cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -416,7 +416,7 @@ export function RuleBuilderModal({
                         onClick={() => addAction(a.type)}
                         disabled={isAdded || isLocked}
                         className={cn(
-                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                          "flex items-start gap-3 p-3 rounded-lg border text-left transition-all duration-150 ease-interface",
                           isAdded
                             ? "bg-zinc-900 border-zinc-700 opacity-70 cursor-not-allowed"
                             : isLocked
@@ -495,7 +495,7 @@ export function RuleBuilderModal({
                             </div>
                             <button
                               onClick={() => removeAction(i)}
-                              className="p-1 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                              className="p-1 text-zinc-500 hover:text-rose-400 transition-colors duration-150 ease-interface cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>

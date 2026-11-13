@@ -156,7 +156,7 @@ export function WorkspaceHealthStrip({
                 {check.actionHref && (
                   <Link
                     href={check.actionHref}
-                    className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-zinc-300 transition-colors hover:text-white"
+                    className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-zinc-300 transition-colors duration-150 ease-interface hover:text-white"
                   >
                     {copy?.actionLabel ?? "Open"}
                     <ArrowRight className="h-3 w-3" aria-hidden="true" />

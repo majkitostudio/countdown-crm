@@ -136,8 +136,8 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
                 aria-pressed={selected}
                 onClick={() => toggleDepartment(department.key)}
                 className={selected
-                  ? "rounded-xl border border-zinc-600 bg-zinc-900 p-4 text-left transition-colors"
-                  : "rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-left transition-colors hover:border-zinc-700"}
+                  ? "rounded-xl border border-zinc-600 bg-zinc-900 p-4 text-left transition-colors duration-150 ease-interface"
+                  : "rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-left transition-colors duration-150 ease-interface hover:border-zinc-700"}
               >
                 <div className="flex items-center justify-between">
                   <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 font-mono text-[11px] font-bold text-zinc-950">

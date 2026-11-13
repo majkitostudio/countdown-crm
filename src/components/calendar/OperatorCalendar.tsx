@@ -263,7 +263,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
       {/* Přehledový pruh metrik (Agendy) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div
-          className={`rounded-xl border p-4 transition-colors ${
+          className={`rounded-xl border p-4 transition-colors duration-150 ease-interface ${
             bucketsSummary.overdueCount > 0
               ? "border-red-900/50 bg-red-950/20 text-red-200"
               : "border-zinc-800 bg-zinc-950/40 text-zinc-400"
@@ -318,7 +318,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
               type="button"
               onClick={() => setFilter(val)}
               aria-pressed={filter === val}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors duration-150 ease-interface ${
                 filter === val
                   ? "border-zinc-600 bg-zinc-800 text-zinc-100"
                   : "border-zinc-800 bg-zinc-950/60 text-zinc-400 hover:text-zinc-200"
@@ -382,7 +382,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                     return (
                       <article
                         key={`${entry.type}-${entry.id}`}
-                        className={`group relative rounded-xl border p-4 transition-all ${
+                        className={`group relative rounded-xl border p-4 transition-all duration-150 ease-interface ${
                           bucket.key === "overdue"
                             ? "border-red-900/40 bg-zinc-950/80 hover:border-red-800/60"
                             : "border-zinc-800/80 bg-zinc-950/60 hover:border-zinc-700/80"
@@ -442,13 +442,13 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                               <>
                                 <Link
                                   href={`/console?leadId=${entry.lead.id}`}
-                                  className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors hover:bg-white"
+                                  className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors duration-150 ease-interface hover:bg-white"
                                 >
                                   <PhoneCall className="h-3.5 w-3.5" /> Call now
                                 </Link>
                                 <Link
                                   href={`/leads/${entry.lead.id}`}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200"
                                 >
                                   <User className="h-3.5 w-3.5" /> Detail
                                 </Link>
@@ -461,7 +461,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                                   type="button"
                                   onClick={() => openEdit(entry)}
                                   disabled={isBusy}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200 disabled:opacity-50"
                                 >
                                   <Pencil className="h-3.5 w-3.5" /> Upravit
                                 </button>
@@ -483,7 +483,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                                   type="button"
                                   onClick={() => setPendingCancelEntry(entry)}
                                   disabled={isBusy}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-300 disabled:opacity-50"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-500 transition-colors duration-150 ease-interface hover:text-zinc-300 disabled:opacity-50"
                                 >
                                   <X className="h-3.5 w-3.5" /> Zrušit
                                 </button>

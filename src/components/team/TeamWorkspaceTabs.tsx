@@ -36,7 +36,7 @@ export function TeamWorkspaceTabs() {
             href={tab.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors",
+              "rounded-lg border px-3.5 py-2 text-xs font-medium transition-colors duration-150 ease-interface",
               isActive
                 ? "border-zinc-700 bg-zinc-800 text-zinc-100"
                 : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200",

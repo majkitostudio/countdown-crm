@@ -214,7 +214,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-zinc-700 bg-zinc-950/50 hover:bg-zinc-900/60 rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
+              className="border-2 border-dashed border-zinc-700 bg-zinc-950/50 hover:bg-zinc-900/60 rounded-xl p-8 text-center cursor-pointer transition-all duration-150 ease-interface flex flex-col items-center justify-center gap-3 group"
             >
               <TextField
                 type="file"
@@ -222,7 +222,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                 accept=".csv"
                 onChange={handleFileSelect}
               />
-              <div className="w-12 h-12 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center transition-colors">
+              <div className="w-12 h-12 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center transition-colors duration-150 ease-interface">
                 <UploadCloud className="w-6 h-6" />
               </div>
               <div>

@@ -57,7 +57,7 @@ export function TeamRiskSummaryStrip({ summary }: TeamRiskSummaryStripProps) {
         </div>
         <Link
           href="/team/exceptions"
-          className="inline-flex items-center gap-1 rounded-full border border-zinc-700 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+          className="inline-flex items-center gap-1 rounded-full border border-zinc-700 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-500 hover:text-zinc-100"
         >
           Otevřít Exception Queue <ArrowRight className="h-3 w-3" aria-hidden="true" />
         </Link>

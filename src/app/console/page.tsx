@@ -1270,12 +1270,12 @@ function WorkspaceContent() {
   }
 
   return (
-      <div className="mx-auto min-w-0 max-w-none space-y-4 px-3 sm:px-4" data-testid="operator-console" data-state={operatorConsoleState}>
+      <div className="mx-auto min-w-0 max-w-none space-y-4 px-3 sm:px-4 animate-in fade-in duration-120 ease-interface motion-reduce:animate-none" data-testid="operator-console" data-state={operatorConsoleState}>
       {pageHeader}
       
       {/* Toast Notification Banner */}
       {notificationToast && (
-        <StatusAlert tone="neutral" className="w-full" role="status" aria-live="polite">
+        <StatusAlert tone="neutral" className="w-full animate-in fade-in slide-in-from-top-2 duration-150 ease-interface motion-reduce:animate-none" role="status" aria-live="polite">
           <div className="flex items-center justify-between text-xs font-semibold text-zinc-100">
           <span>{notificationToast}</span>
           <Button variant="quiet" onClick={() => setNotificationToast(null)} aria-label="Dismiss notification">
@@ -1299,7 +1299,7 @@ function WorkspaceContent() {
       {/* Operator Console hierarchy: P0/P1 lead action first, P2 script second, P3 support in the right rail. */}
       {isScriptExpanded ? (
         <div className="space-y-4" data-testid="operator-focus-workspace">
-          <section className="flex min-h-0 min-w-0 flex-col gap-4" aria-label="Focused operator work area">
+          <section key={activeLead?.id} className="flex min-h-0 min-w-0 flex-col gap-4 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" aria-label="Focused operator work area">
             {operatorLeadHeader}
             {conversationBriefCard}
             {productScriptPanel}
@@ -1310,7 +1310,7 @@ function WorkspaceContent() {
         </div>
 ) : (
         <div className="grid h-auto min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:h-[calc(100vh-12rem)] xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <section className="flex min-h-0 min-w-0 flex-col gap-4 overflow-visible xl:overflow-hidden" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
+          <section key={activeLead?.id} className="flex min-h-0 min-w-0 flex-col gap-4 overflow-visible xl:overflow-hidden animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
             {operatorLeadHeader}
             {conversationBriefCard}
             {productScriptPanel}

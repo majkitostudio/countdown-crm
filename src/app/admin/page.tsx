@@ -130,7 +130,7 @@ export default async function AdminHubPage() {
             <Link
               key={card.href}
               href={card.href}
-              className="group flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-5 transition-colors hover:border-zinc-600 hover:bg-zinc-900/60"
+              className="group flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-5 transition-colors duration-150 ease-interface hover:border-zinc-600 hover:bg-zinc-900/60"
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-zinc-200">

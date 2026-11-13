@@ -252,7 +252,7 @@ export default function AuditPage() {
               </thead>
               <tbody className="divide-y divide-zinc-800/50 font-mono">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-zinc-900/80 transition-colors">
+                  <tr key={log.id} className="hover:bg-zinc-900/80 transition-colors duration-150 ease-interface">
                     <td className="py-3 px-3 text-[11px] text-zinc-400 whitespace-nowrap">{log.timestamp}</td>
                     <td className="py-3 px-3 text-zinc-200 font-medium whitespace-nowrap">{log.operatorName}</td>
                     <td className="py-3 px-3 whitespace-nowrap">

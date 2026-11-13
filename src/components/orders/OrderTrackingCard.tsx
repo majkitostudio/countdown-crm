@@ -161,7 +161,7 @@ export function OrderTrackingCard({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 transition-colors hover:text-zinc-200"
+                  className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 transition-colors duration-150 ease-interface hover:text-zinc-200"
                   title="Kopírovat kód balíku"
                 >
                   {copied ? (
@@ -188,7 +188,7 @@ export function OrderTrackingCard({
                     href={trackingUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400 transition-colors duration-150 ease-interface hover:text-indigo-300"
                     data-testid="external-tracking-link"
                   >
                     <span>Sledovat balíček online</span>

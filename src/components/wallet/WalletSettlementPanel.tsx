@@ -322,7 +322,7 @@ export function WalletSettlementPanel({
                   </tr>
                 ) : (
                   summary.operators.map((op) => (
-                    <tr key={op.userId} className="hover:bg-zinc-800/30 transition-colors">
+                    <tr key={op.userId} className="hover:bg-zinc-800/30 transition-colors duration-150 ease-interface">
                       <td className="px-4 py-3.5">
                         <div className="font-medium text-zinc-100">{op.userName}</div>
                         {op.userEmail && (

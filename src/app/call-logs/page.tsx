@@ -112,7 +112,7 @@ export default function CallLogsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-screen-2xl mx-auto">
+    <div className="space-y-8 max-w-screen-2xl mx-auto animate-in fade-in duration-120 ease-interface motion-reduce:animate-none">
       
       <PageHeader
         icon={PhoneCall}
@@ -141,7 +141,7 @@ actions={
       />
 
       {/* KPI Cards Header */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-120 ease-interface motion-reduce:animate-none">
         <MetricCard label="Logged calls" value={totalCallsCount} />
         <MetricCard label="Average handling" value={formatDuration(avgDuration)} />
         <MetricCard label="Revenue" value={formatCurrencyAmount(totalSalesVolume, "CZK")} />
@@ -171,7 +171,7 @@ actions={
               type="button"
               onClick={() => selectOutcomeFilter("all")}
               aria-pressed={selectedOutcomeFilter === "all"}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150 ease-interface cursor-pointer ${
                 selectedOutcomeFilter === "all"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
                   : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
@@ -183,7 +183,7 @@ actions={
               type="button"
               onClick={() => selectOutcomeFilter("order_placed")}
               aria-pressed={selectedOutcomeFilter === "order_placed"}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150 ease-interface cursor-pointer ${
                 selectedOutcomeFilter === "order_placed"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
                   : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
@@ -195,7 +195,7 @@ actions={
               type="button"
               onClick={() => selectOutcomeFilter("followup_scheduled")}
               aria-pressed={selectedOutcomeFilter === "followup_scheduled"}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150 ease-interface cursor-pointer ${
                 selectedOutcomeFilter === "followup_scheduled"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
                   : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
@@ -208,7 +208,7 @@ actions={
                 type="button"
                 onClick={() => selectOutcomeFilter("unreviewed")}
                 aria-pressed={selectedOutcomeFilter === "unreviewed"}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150 ease-interface cursor-pointer ${
                   selectedOutcomeFilter === "unreviewed"
                     ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
                     : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
@@ -281,7 +281,7 @@ actions={
                   </td>
                 </tr>
               ) : filteredCalls.map((c) => (
-                <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors">
+                <tr key={c.id} className="hover:bg-zinc-800/40 transition-colors duration-150 ease-interface">
                   <td className="px-5 py-3">
                     <div>
                       <p className="font-semibold text-zinc-100">{c.lead_name}</p>
@@ -307,7 +307,7 @@ actions={
                         {canReview && c.review_href && (
                           <Link
                             href={reviewHrefForCall(c) || "#"}
-                            className="inline-flex rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+                            className="inline-flex rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-200"
                             aria-label={`Open review for ${c.lead_name}`}
                             title="Open review"
                           >
@@ -317,7 +317,7 @@ actions={
                       </div>
                       <button
                         onClick={() => setSelectedCall(c)}
-                        className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:bg-zinc-800"
+                        className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-200 transition-colors duration-150 ease-interface hover:bg-zinc-800"
                         aria-label={`View record for ${c.lead_name}`}
                         title="View record"
                       >

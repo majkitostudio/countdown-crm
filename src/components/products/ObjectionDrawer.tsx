@@ -193,7 +193,8 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               {/* Add Objection Inline Form */}
               {canManage && showAddForm && (
                 <Surface variant="inset">
-                  <div className="animate-in space-y-3 p-4 fade-in duration-200">
+                  <div className="animate-in space-y-3 p-4 fade-in duration-150 ease-interface motion-reduce:animate-none">
+
                   <h4 className="text-xs font-semibold text-zinc-200">New Objection Template</h4>
                   <div>
                     <FieldLabel htmlFor="new-objection-title">Customer Objection Title</FieldLabel>

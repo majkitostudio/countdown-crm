@@ -244,7 +244,7 @@ export function ProductOrderPanel({
           onClick={onClose}
           aria-label="Close order flow"
           title="Close order flow"
-          className="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors duration-150 ease-interface"
         >
           <X className="w-4 h-4" />
         </button>
@@ -252,7 +252,8 @@ export function ProductOrderPanel({
 
       {/* Success Notification Alert */}
       {isSuccessAlert && (
-        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
+        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none">
+
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
             <p className="font-bold">Order #{lastOrderId} successfully placed!</p>
@@ -296,7 +297,7 @@ export function ProductOrderPanel({
                   setSelectedProductId(prod.id);
                   setBundleProduct(null);
                 }}
-                className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between gap-3 text-xs ${
+                className={`p-2.5 rounded-xl border cursor-pointer transition-all duration-150 ease-interface flex items-center justify-between gap-3 text-xs ${
                   isSelected
                     ? "bg-zinc-900 border-zinc-700 text-zinc-100"
                     : "bg-zinc-950/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700"
@@ -359,7 +360,7 @@ export function ProductOrderPanel({
                   key={opt.quantity}
                   type="button"
                   onClick={() => setQuantity(opt.quantity)}
-                  className={`p-2 rounded-lg border text-center transition-all cursor-pointer ${
+                  className={`p-2 rounded-lg border text-center transition-all duration-150 ease-interface cursor-pointer ${
                     isSelected
                       ? "border-zinc-500 bg-zinc-800 text-zinc-100 font-semibold ring-1 ring-zinc-500/30 shadow-sm"
                       : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
@@ -388,7 +389,7 @@ export function ProductOrderPanel({
             <button
               type="button"
               onClick={() => handleSelectTier("standard")}
-              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+              className={`p-2.5 rounded-lg border text-left transition-all duration-150 ease-interface cursor-pointer ${
                 selectedTier === "standard"
                   ? "border-zinc-500 bg-zinc-800 ring-1 ring-zinc-500/30 shadow-sm"
                   : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
@@ -405,7 +406,7 @@ export function ProductOrderPanel({
             <button
               type="button"
               onClick={() => handleSelectTier("bonus")}
-              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+              className={`p-2.5 rounded-lg border text-left transition-all duration-150 ease-interface cursor-pointer ${
                 selectedTier === "bonus"
                   ? "border-zinc-500 bg-zinc-800 ring-1 ring-zinc-500/30 shadow-sm"
                   : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
@@ -422,7 +423,7 @@ export function ProductOrderPanel({
             <button
               type="button"
               onClick={() => handleSelectTier("floor")}
-              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+              className={`p-2.5 rounded-lg border text-left transition-all duration-150 ease-interface cursor-pointer ${
                 selectedTier === "floor"
                   ? "border-zinc-500 bg-zinc-800 ring-1 ring-zinc-500/30 shadow-sm"
                   : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-700"
@@ -560,7 +561,7 @@ export function ProductOrderPanel({
               <button
                 type="button"
                 onClick={() => handleAddBundleItem(topRec)}
-                className="px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium rounded-lg text-xs flex items-center gap-1 transition-colors duration-150 ease-interface cursor-pointer shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Přidat</span>
@@ -636,7 +637,7 @@ export function ProductOrderPanel({
             onClick={handlePlaceOrder}
             disabled={!selectedProduct || !activeLead || isSubmitting || !deliveryAddressSnapshot}
             aria-busy={isSubmitting}
-            className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+            className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors duration-150 ease-interface shadow-sm cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             <span>{isSubmitting ? "Ukládám objednávku…" : `Zaznamenat objednávku (${formatCurrencyAmount(grandTotal, selectedProduct?.currency || "CZK")})`}</span>

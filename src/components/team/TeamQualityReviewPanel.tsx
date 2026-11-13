@@ -188,7 +188,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
               <button
                 type="button"
                 onClick={() => applySavedView(view)}
-                className={`inline-flex items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100 ${isActive ? "bg-zinc-800 text-zinc-100" : ""}`}
+                className={`inline-flex items-center gap-1.5 rounded-l-lg px-2.5 py-1.5 text-zinc-300 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100 ${isActive ? "bg-zinc-800 text-zinc-100" : ""}`}
               >
                 {isActive ? <BookmarkCheck className="h-3.5 w-3.5 text-sky-300" aria-hidden="true" /> : <Bookmark className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />}
                 {view.name}
@@ -197,7 +197,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
                 type="button"
                 onClick={() => handleDeleteSavedView(view.id)}
                 aria-label={`Smazat pohled ${view.name}`}
-                className="rounded-r-lg px-1.5 py-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+                className="rounded-r-lg px-1.5 py-1.5 text-zinc-500 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-200"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
@@ -209,7 +209,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
           <button
             type="button"
             onClick={() => setShowSaveInput(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-1.5 text-xs text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             Uložit tento pohled
@@ -232,7 +232,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
               type="button"
               onClick={handleSaveCurrentView}
               disabled={savingView || draftName.trim().length === 0}
-              className="rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-900 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-900 transition-colors duration-150 ease-interface hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               {savingView ? "Ukládám…" : "Uložit"}
             </button>
@@ -240,7 +240,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
               type="button"
               onClick={() => { setShowSaveInput(false); setDraftName(""); }}
               aria-label="Zrušit ukládání pohledu"
-              className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+              className="rounded-lg p-1.5 text-zinc-500 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-200"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>

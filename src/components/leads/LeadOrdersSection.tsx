@@ -71,7 +71,7 @@ export function LeadOrdersSection({ orders, leadId }: LeadOrdersSectionProps) {
                 <Surface
                   key={order.id}
                   variant="inset"
-                  className="p-4 transition-colors hover:border-zinc-700/80"
+                  className="p-4 transition-colors duration-150 ease-interface hover:border-zinc-700/80"
                   data-testid={`lead-order-card-${order.id}`}
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -79,7 +79,7 @@ export function LeadOrdersSection({ orders, leadId }: LeadOrdersSectionProps) {
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={`/orders/${order.id}?origin=lead`}
-                          className="font-mono text-xs font-semibold text-zinc-200 transition-colors hover:text-white"
+                          className="font-mono text-xs font-semibold text-zinc-200 transition-colors duration-150 ease-interface hover:text-white"
                         >
                           #{order.id.slice(0, 8)}
                         </Link>
@@ -108,7 +108,7 @@ export function LeadOrdersSection({ orders, leadId }: LeadOrdersSectionProps) {
                       <Link
                         href={`/orders/${order.id}?origin=lead`}
                         aria-label={`Otevřít objednávku ${order.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-white"
                       >
                         <span>Detail objednávky</span>
                         <ArrowRight className="h-3 w-3" />
@@ -141,7 +141,7 @@ export function LeadOrdersSection({ orders, leadId }: LeadOrdersSectionProps) {
                         href={trackingUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-400 transition-colors hover:text-indigo-300"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-400 transition-colors duration-150 ease-interface hover:text-indigo-300"
                         data-testid={`lead-order-tracking-link-${order.id}`}
                       >
                         <span>Sledovat balíček</span>

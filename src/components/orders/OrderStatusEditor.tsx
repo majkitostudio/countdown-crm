@@ -120,7 +120,7 @@ export function OrderStatusEditor({ orderId, currentStatus, canEdit, isManager }
               value={selectedStatus}
               onChange={(event) => setSelectedStatus(event.target.value as OrderStatus)}
               disabled={isPending}
-              className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-xs text-zinc-200 outline-none transition-colors focus:border-zinc-600"
+              className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-xs text-zinc-200 outline-none transition-colors duration-150 ease-interface focus:border-zinc-600"
             >
               <option value={currentStatus}>{statusLabel(currentStatus)} (current)</option>
               {options.filter((status) => status !== currentStatus).map((status) => (

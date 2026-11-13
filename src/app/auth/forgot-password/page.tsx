@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="operator@countdowncrm.com"
-                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors"
+                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors duration-150 ease-interface"
                     />
                   </div>
                 </div>

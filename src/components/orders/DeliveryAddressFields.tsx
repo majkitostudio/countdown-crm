@@ -216,7 +216,7 @@ export function DeliveryAddressFields({
             <button
               type="button"
               onClick={handlePrefillFromLead}
-              className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium cursor-pointer transition-colors"
+              className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium cursor-pointer transition-colors duration-150 ease-interface"
             >
               <UserCheck className="h-3 w-3" />
               <span>Doplnit z kontaktu ({leadContext.recipient_name})</span>
@@ -263,7 +263,7 @@ export function DeliveryAddressFields({
             type="button"
             onClick={handleApplyFreeformSearch}
             disabled={!searchQuery.trim()}
-            className="rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors cursor-pointer"
+            className="rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 px-3 py-2 text-xs font-semibold text-zinc-200 transition-colors duration-150 ease-interface cursor-pointer"
           >
             Rozdělit do polí
           </button>

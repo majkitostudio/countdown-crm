@@ -209,7 +209,7 @@ export function LeadDetailDrawer({
               
               <a
                 href={`mailto:${currentLead.email || ""}`}
-                className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium rounded-lg text-sm flex items-center gap-2 transition-colors border border-zinc-700"
+                className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium rounded-lg text-sm flex items-center gap-2 transition-colors duration-150 ease-interface border border-zinc-700"
               >
                 <Mail className="w-4 h-4" />
                 Email

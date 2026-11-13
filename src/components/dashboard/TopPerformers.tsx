@@ -85,7 +85,7 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
           {leaderboard.slice(0, 5).map((agent, index) => (
             <div
               key={`${agent.agentName}-${index}`}
-              className="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex items-center justify-between hover:border-zinc-700/80 transition-colors"
+              className="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex items-center justify-between hover:border-zinc-700/80 transition-colors duration-150 ease-interface"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-5 text-center text-xs font-mono font-bold text-zinc-400 shrink-0">

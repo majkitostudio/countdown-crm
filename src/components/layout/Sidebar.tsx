@@ -121,7 +121,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
         {!isCollapsed && (
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
+            className="hidden rounded-md p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? (
@@ -156,7 +156,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                   onClick={() => onMobileOpenChange(false)}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 ease-interface group relative",
                     isActive
                       ? "bg-zinc-800/80 text-zinc-100 border border-zinc-700/50 shadow-sm"
                       : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
@@ -164,7 +164,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                 >
                   <Icon
                     className={cn(
-                      "w-4 h-4 shrink-0 transition-colors",
+                      "w-4 h-4 shrink-0 transition-colors duration-150 ease-interface",
                       isActive
                         ? "text-zinc-100"
                         : "text-zinc-400 group-hover:text-zinc-200"
@@ -174,7 +174,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                     <span className="truncate">{item.label}</span>
                   )}
                   {isCompact && (
-                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity duration-150 ease-interface">
                       {item.label}
                     </div>
                   )}

@@ -326,7 +326,7 @@ export function AnalyticsPanel() {
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
               {data.teamLeaderboard.map((ag, idx) => (
-                <tr key={idx} className="hover:bg-zinc-800/40 transition-colors">
+                <tr key={idx} className="hover:bg-zinc-800/40 transition-colors duration-150 ease-interface">
                   <td className="px-4 py-3.5 flex items-center gap-2.5">
                     <div className="w-7 h-7 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center font-bold text-zinc-200 text-xs font-mono">
                       {idx + 1}

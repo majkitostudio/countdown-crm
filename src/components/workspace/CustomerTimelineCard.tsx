@@ -164,7 +164,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
           <button
             type="button"
             onClick={() => setIsAddingNote((current) => !current)}
-            className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer"
+            className="text-[10px] font-medium text-zinc-300 hover:text-zinc-100 flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800 transition-colors duration-150 ease-interface cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             <span>Note</span>
@@ -179,7 +179,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
       )}
 
       {includeNotes && isAddingNote && (
-        <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-200">
+        <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none">
           <textarea
             rows={2}
             aria-label="Customer activity note"
@@ -223,7 +223,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
           <button
             key={f.key}
             onClick={() => setFilterType(f.key)}
-            className={`px-2 py-0.5 rounded-md border transition-colors cursor-pointer whitespace-nowrap ${
+            className={`px-2 py-0.5 rounded-md border transition-colors duration-150 ease-interface cursor-pointer whitespace-nowrap ${
               filterType === f.key
                 ? "bg-zinc-800 border-zinc-700 text-zinc-100"
                 : "bg-zinc-950/60 border-zinc-800/80 text-zinc-400 hover:text-zinc-200"

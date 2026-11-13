@@ -276,7 +276,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
         </p>
         <a
           href="/settings"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to Settings
@@ -312,7 +312,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                   key={product.id}
                   type="button"
                   onClick={() => selectProduct(product)}
-                  className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
+                  className={`w-full rounded-xl border px-3 py-3 text-left transition-colors duration-150 ease-interface ${
                     isSelected
                       ? "border-zinc-600 bg-zinc-950 text-zinc-100"
                       : "border-transparent text-zinc-400 hover:border-zinc-800 hover:bg-zinc-950/70 hover:text-zinc-200"
@@ -392,7 +392,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                     key={version.id}
                     type="button"
                     onClick={() => selectVersion(version)}
-                    className={`rounded-lg border px-2.5 py-1.5 text-[10px] transition-colors ${
+                    className={`rounded-lg border px-2.5 py-1.5 text-[10px] transition-colors duration-150 ease-interface ${
                       version.id === activeVersionId
                         ? "border-zinc-500 bg-zinc-800 text-zinc-100"
                         : "border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-200"
@@ -413,7 +413,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("bold")}
-                className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
                 aria-label="Bold"
                 title="Bold"
               >
@@ -423,7 +423,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("italic")}
-                className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
                 aria-label="Italic"
                 title="Italic"
               >
@@ -433,7 +433,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("hiliteColor", "#facc15")}
-                className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
                 aria-label="Highlight"
                 title="Highlight"
               >
@@ -443,7 +443,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("insertHorizontalRule")}
-                className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+                className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
                 aria-label="Insert horizontal rule"
                 title="Insert horizontal rule"
               >
@@ -472,7 +472,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
               contentEditable
               suppressContentEditableWarning
               onInput={() => setHasChanges(true)}
-              className="mt-5 min-h-[470px] rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-6 text-sm leading-7 text-zinc-200 outline-none transition-colors focus:border-zinc-600 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_li]:ml-5 [&_li]:pl-1 [&_mark]:rounded [&_mark]:bg-amber-300/80 [&_mark]:px-0.5 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal"
+              className="mt-5 min-h-[470px] rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-6 text-sm leading-7 text-zinc-200 outline-none transition-colors duration-150 ease-interface focus:border-zinc-600 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_li]:ml-5 [&_li]:pl-1 [&_mark]:rounded [&_mark]:bg-amber-300/80 [&_mark]:px-0.5 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal"
               dangerouslySetInnerHTML={{ __html: editorHtml }}
             />
           )}

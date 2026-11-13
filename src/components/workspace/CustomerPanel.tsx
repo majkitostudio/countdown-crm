@@ -120,7 +120,7 @@ export function CustomerPanel({
           <button
             type="button"
             onClick={onCreateOrder}
-            className="shrink-0 px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-colors"
+            className="shrink-0 px-2.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-colors duration-150 ease-interface"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             <span>Create Order</span>
@@ -213,7 +213,7 @@ function OrderHistoryItem({ order }: { order: Order }) {
         <div className="flex shrink-0 items-center gap-2">
           <span className="font-mono font-semibold text-zinc-100">{formatCurrencyAmount(order.total_amount, order.currency)}</span>
           <button type="button" onClick={() => setIsOpen((value) => !value)} aria-expanded={isOpen} aria-label={`${isOpen ? "Hide" : "Show"} order details`} className="rounded-md p-1 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-200">
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ease-interface ${isOpen ? "rotate-180" : ""}`} />
           </button>
         </div>
       </div>

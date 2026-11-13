@@ -117,7 +117,7 @@ export default function UpdatePasswordPage() {
                       required
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 transition-colors"
+                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 transition-colors duration-150 ease-interface"
                     />
                   </div>
                 </div>
@@ -137,7 +137,7 @@ export default function UpdatePasswordPage() {
                       required
                       value={confirmPassword}
                       onChange={(event) => setConfirmPassword(event.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 transition-colors"
+                      className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 transition-colors duration-150 ease-interface"
                     />
                   </div>
                 </div>

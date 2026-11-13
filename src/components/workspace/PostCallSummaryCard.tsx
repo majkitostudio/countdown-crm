@@ -81,7 +81,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
     : "No automation triggered";
 
   return (
-    <Surface variant="page"><section className="space-y-3 p-4" data-testid="post-call-summary" role="region" aria-labelledby="post-call-summary-title">
+    <Surface variant="page"><section className="space-y-3 p-4 animate-in fade-in slide-in-from-bottom-2 duration-180 ease-interface motion-reduce:animate-none" data-testid="post-call-summary" role="region" aria-labelledby="post-call-summary-title">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -106,7 +106,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss post-call summary"
-          className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          className="rounded-md p-1.5 text-zinc-500 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         >
           <X className="w-4 h-4" />
         </button>
@@ -135,10 +135,10 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
       <div
         className={
           saveState === "failed"
-            ? "rounded-lg border border-rose-900/60 bg-rose-950/20 px-3 py-2 text-xs text-rose-200"
+            ? "rounded-lg border border-rose-900/60 bg-rose-950/20 px-3 py-2 text-xs text-rose-200 transition-colors duration-150 ease-interface"
             : saveState === "saving"
-              ? "rounded-lg border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-xs text-amber-200"
-              : "rounded-lg border border-emerald-900/60 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200"
+              ? "rounded-lg border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-xs text-amber-200 transition-colors duration-150 ease-interface"
+              : "rounded-lg border border-emerald-900/60 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-200 transition-colors duration-150 ease-interface"
         }
         role="status"
         aria-live="polite"
@@ -183,7 +183,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
               {dispatch.status === "failure" ? "Automation dispatch failed" : dispatch.status === "simulation" ? "Automation simulation" : "Automation unavailable"}: {dispatch.reason}
             </div>
           ))}
-        {entries.map((entry) => {
+        {entries.map((entry, entryIndex) => {
           const StatusIcon =
             entry.status === "success"
               ? CheckCircle2
@@ -198,7 +198,8 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           return (
             <div
               key={entry.id}
-              className="flex items-start gap-3 p-3 rounded-lg border bg-zinc-950/60 border-zinc-800/80 transition-all"
+              className="flex items-start gap-3 p-3 rounded-lg border bg-zinc-950/60 border-zinc-800/80 transition-all animate-in fade-in slide-in-from-bottom-1 duration-150 ease-interface motion-reduce:animate-none"
+              style={{ animationDelay: `${Math.min(entryIndex, 4) * 30}ms`, animationFillMode: "both" }}
             >
               <StatusIcon className="w-4 h-4 shrink-0 mt-0.5 text-zinc-400" />
 
@@ -281,7 +282,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           {new Date().toLocaleString("cs-CZ")}
         </span>
         <div className="flex items-center gap-3">
-          <a href="/automations" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors">
+          <a href="/automations" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors duration-150 ease-interface">
             View automations →
           </a>
           <Button onClick={onNextLead}>

@@ -39,7 +39,7 @@ export function ProductCard({
 
   return (
     <Surface variant="page">
-      <div className="group flex h-full flex-col overflow-hidden transition-colors hover:bg-zinc-900/40">
+      <div className="group flex h-full flex-col overflow-hidden transition-colors duration-150 ease-interface hover:bg-zinc-900/40">
       
       {/* Product Image Box */}
       <div className="relative h-48 w-full bg-zinc-950 overflow-hidden">
@@ -84,7 +84,7 @@ export function ProductCard({
       {/* Card Content Body */}
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
-          <h3 className="font-semibold text-zinc-100 text-base group-hover:text-zinc-300 transition-colors line-clamp-1">
+          <h3 className="font-semibold text-zinc-100 text-base group-hover:text-zinc-300 transition-colors duration-150 ease-interface line-clamp-1">
             {product.title}
           </h3>
           <p className="text-xs text-zinc-400 line-clamp-2 mt-1.5 leading-relaxed">

@@ -77,7 +77,7 @@ export function Customer360RetentionCard({
               <p className="mt-1 text-sm font-medium text-zinc-100">{snapshot.nextAction.title}</p>
               <p className="mt-1 text-xs text-zinc-400">{snapshot.nextAction.description}</p>
             </div>
-            <Link href={snapshot.nextAction.href} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-white">
+            <Link href={snapshot.nextAction.href} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors duration-150 ease-interface hover:bg-white">
               Open action <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div></Surface>

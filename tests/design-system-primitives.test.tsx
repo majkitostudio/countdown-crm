@@ -15,10 +15,10 @@ const STATUS_RECIPES = [
 ] as const;
 
 const SURFACE_RECIPES = [
-  ["page", "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm"],
+  ["page", "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm animate-in fade-in duration-150 ease-interface motion-reduce:animate-none"],
   ["inset", "rounded-control border border-border-default bg-surface-inset"],
   ["table", "overflow-hidden rounded-surface border border-border-default bg-surface-page shadow-sm"],
-  ["empty", "rounded-surface border border-border-default bg-surface-page p-12 text-center shadow-sm"],
+  ["empty", "rounded-surface border border-border-default bg-surface-page p-12 text-center shadow-sm animate-in fade-in duration-150 ease-interface motion-reduce:animate-none"],
   ["overlay", "rounded-overlay border border-border-default bg-surface-overlay shadow-overlay"],
 ] as const;
 
@@ -49,7 +49,7 @@ const hostileStyleProps = {
 describe("shared operator console design primitives", () => {
   it("uses one fixed page-surface recipe", () => {
     expect(getSurfaceClassName("page")).toBe(
-      "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm"
+      "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm animate-in fade-in duration-150 ease-interface motion-reduce:animate-none"
     );
     expect(renderToStaticMarkup(<Surface variant="page">Orders</Surface>)).toContain("bg-surface-page");
   });
@@ -59,7 +59,7 @@ describe("shared operator console design primitives", () => {
     expect(renderToStaticMarkup(<StatusBadge tone="neutral">In progress</StatusBadge>)).not.toMatch(/emerald|amber|rose/);
     const metricMarkup = renderToStaticMarkup(<MetricCard label="Orders" value="24" />);
     expect(metricMarkup).toContain("text-text-primary");
-    expect(metricMarkup).toMatch(/bg-surface-inset"><div class="p-4">/);
+    expect(metricMarkup).toMatch(/bg-surface-inset[^<]*><div class="p-4">/);
   });
 
   it("gives every semantic state one shared recipe", () => {
@@ -158,7 +158,7 @@ describe("shared operator console design primitives", () => {
       expect(renderedPrimitive).not.toMatch(/fuchsia|background-image|border-top-color|style=/);
     }
 
-    expect(markup[0]).toContain("rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm");
+    expect(markup[0]).toContain("rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm animate-in fade-in duration-150 ease-interface motion-reduce:animate-none");
     expect(markup[1]).toContain("border border-status-danger-border bg-action-danger text-status-danger-text");
     expect(markup[2]).toContain("border-status-warning-border bg-status-warning text-status-warning-text");
     expect(markup[3]).toContain("border-status-danger-border bg-status-danger text-status-danger-text");

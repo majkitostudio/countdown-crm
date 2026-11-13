@@ -277,7 +277,7 @@ export default function WorkflowsPage() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors cursor-pointer",
+                "flex items-center gap-2 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors duration-150 ease-interface cursor-pointer",
                 activeTab === tab.key
                   ? "border-zinc-100 text-zinc-100 font-semibold"
                   : "border-transparent text-zinc-400 hover:text-zinc-200"
@@ -445,7 +445,7 @@ export default function WorkflowsPage() {
                     onClick={() =>
                       setExpandedLog(isExpanded ? null : entry.id)
                     }
-                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zinc-900/80 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zinc-900/80 transition-colors duration-150 ease-interface"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <StatusBadge status={entry.status} />

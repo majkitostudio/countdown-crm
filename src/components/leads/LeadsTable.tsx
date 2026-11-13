@@ -83,7 +83,7 @@ export function LeadsTable({
               placeholder="Search leads, phone, city..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors duration-150 ease-interface"
             />
           </div>
 
@@ -153,7 +153,7 @@ export function LeadsTable({
               filteredLeads.map((lead) => (
                 <tr
                   key={lead.id}
-                  className="hover:bg-zinc-800/40 transition-colors group cursor-pointer"
+                  className="hover:bg-zinc-800/40 transition-colors duration-150 ease-interface group cursor-pointer"
                   onClick={() => onSelectLead(lead)}
                 >
                   {/* Lead Name & Avatar */}
@@ -163,7 +163,7 @@ export function LeadsTable({
                         {lead.full_name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-semibold text-zinc-100 text-xs group-hover:text-zinc-200 transition-colors">
+                        <div className="font-semibold text-zinc-100 text-xs group-hover:text-zinc-200 transition-colors duration-150 ease-interface">
                           {lead.full_name}
                         </div>
                         {lead.company && (
@@ -200,7 +200,7 @@ export function LeadsTable({
                       <button
                         onClick={() => onStartCall(lead)}
                         title="Start Virtual Call"
-                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg transition-colors duration-150 ease-interface cursor-pointer"
                       >
                         <Phone className="w-3.5 h-3.5" />
                       </button>
@@ -208,7 +208,7 @@ export function LeadsTable({
                       <button
                         onClick={() => onSelectLead(lead)}
                         title="View Details"
-                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors border border-zinc-800 cursor-pointer"
+                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors duration-150 ease-interface border border-zinc-800 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>

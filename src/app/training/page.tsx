@@ -270,7 +270,7 @@ function stopListening() {
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {P2_TRAINING_SCRIPTS.map((script) => (
-              <button key={script.id} type="button" onClick={() => setScriptId(script.id)} className={`rounded-xl border p-5 text-left transition-colors ${scriptId === script.id ? "border-sky-700 bg-sky-950/20" : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"}`}>
+              <button key={script.id} type="button" onClick={() => setScriptId(script.id)} className={`rounded-xl border p-5 text-left transition-colors duration-150 ease-interface ${scriptId === script.id ? "border-sky-700 bg-sky-950/20" : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"}`}>
                 <span className="text-xs font-semibold text-zinc-100">{script.title}</span>
                 <span className="mt-1 block text-xs text-zinc-400">{script.productLabel}</span>
                 <span className="mt-3 block text-xs leading-relaxed text-zinc-500">{script.purpose}</span>

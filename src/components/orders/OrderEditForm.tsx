@@ -209,7 +209,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
                 type="button"
                 onClick={addItem}
                 disabled={isPending || !productToAdd}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-3 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-3 text-xs font-semibold text-zinc-200 transition-colors duration-150 ease-interface hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Plus className="h-4 w-4" />
                 Add product
@@ -229,7 +229,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
                       type="button"
                       onClick={() => removeItem(item.product.id)}
                       disabled={isPending || draftItems.length <= 1}
-                      className="rounded-lg p-1.5 text-zinc-600 transition-colors hover:bg-zinc-800 hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-30"
+                      className="rounded-lg p-1.5 text-zinc-600 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-30"
                       aria-label={`Remove ${item.product.title}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -357,7 +357,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
             <button
               type="submit"
               disabled={isPending || resolvedItems.length === 0 || (requiresReason && !reason.trim())}
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-3 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-3 text-xs font-semibold text-zinc-950 transition-colors duration-150 ease-interface hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               {isPending ? "Saving changes…" : "Save changes"}
@@ -366,7 +366,7 @@ export function OrderEditForm({ order, products, initialOrigin, requiresReason }
               type="button"
               onClick={() => router.push(backHref)}
               disabled={isPending}
-              className="mt-2 w-full rounded-xl px-4 py-2.5 text-xs text-zinc-500 transition-colors hover:bg-zinc-800/60 hover:text-zinc-200 disabled:opacity-50"
+              className="mt-2 w-full rounded-xl px-4 py-2.5 text-xs text-zinc-500 transition-colors duration-150 ease-interface hover:bg-zinc-800/60 hover:text-zinc-200 disabled:opacity-50"
             >
               Cancel
             </button>

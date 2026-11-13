@@ -125,5 +125,5 @@ function BriefMetric({
 
 function BriefDetail({ label, value, href }: { label: string; value: string; href?: string }) {
   const content = <><p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</p><p className="mt-1 text-xs text-zinc-300">{value}</p></>;
-  return href ? <Link href={href} className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 transition-colors hover:border-zinc-700">{content}<span className="mt-2 inline-flex items-center gap-1 text-[10px] text-zinc-500">Open <ArrowRight className="h-3 w-3" aria-hidden="true" /></span></Link> : <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">{content}</div>;
+  return href ? <Link href={href} className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 transition-colors duration-150 ease-interface hover:border-zinc-700">{content}<span className="mt-2 inline-flex items-center gap-1 text-[10px] text-zinc-500">Open <ArrowRight className="h-3 w-3" aria-hidden="true" /></span></Link> : <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">{content}</div>;
 }

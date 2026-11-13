@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 import { requireAuthenticatedUser } from "@/lib/auth/server";
@@ -7,9 +8,16 @@ import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import type { OperatorIdentity } from "@/lib/operatorIdentity";
 
 const poppins = Poppins({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-poppins",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -44,7 +52,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="cs" className={`${poppins.variable} h-full antialiased dark`}>
+    <html lang="cs" className={`${poppins.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
       <body className="h-full bg-zinc-950 text-zinc-100 font-sans overflow-hidden">
         <AppShell initialIdentity={initialIdentity}>{children}</AppShell>
       </body>

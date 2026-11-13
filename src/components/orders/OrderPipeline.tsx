@@ -181,7 +181,7 @@ export function OrderPipeline({
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
-                className="text-[11px] text-zinc-400 underline transition-colors hover:text-zinc-200"
+                className="text-[11px] text-zinc-400 underline transition-colors duration-150 ease-interface hover:text-zinc-200"
               >
                 Clear selection
               </button>
@@ -249,7 +249,7 @@ export function OrderPipeline({
             <button
               type="button"
               onClick={() => setViewMode("kanban")}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 ease-interface ${
                 viewMode === "kanban"
                   ? "bg-zinc-800 text-zinc-100"
                   : "text-zinc-500 hover:text-zinc-300"
@@ -262,7 +262,7 @@ export function OrderPipeline({
             <button
               type="button"
               onClick={() => setViewMode("table")}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 ease-interface ${
                 viewMode === "table"
                   ? "bg-zinc-800 text-zinc-100"
                   : "text-zinc-500 hover:text-zinc-300"
@@ -363,7 +363,7 @@ export function OrderPipeline({
                         <span className="mt-1 block text-[11px] text-zinc-500">{formatDate(order.created_at)}</span>
                       </div>
                     </div>
-                    <Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex shrink-0 rounded-lg border border-zinc-800 p-2 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200">
+                    <Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex shrink-0 rounded-lg border border-zinc-800 p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200">
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
@@ -376,7 +376,7 @@ export function OrderPipeline({
                           <Link
                             href={`/leads/${order.lead_id}`}
                             title="Zavolat zákazníkovi"
-                            className="inline-flex shrink-0 p-1 text-sky-400 hover:text-sky-300 rounded hover:bg-sky-500/10 transition-colors"
+                            className="inline-flex shrink-0 p-1 text-sky-400 hover:text-sky-300 rounded hover:bg-sky-500/10 transition-colors duration-150 ease-interface"
                           >
                             <PhoneCall className="h-3 w-3" />
                           </Link>
@@ -428,7 +428,7 @@ export function OrderPipeline({
               </thead>
               <tbody className="divide-y divide-zinc-800/60">
                 {visibleOrders.map((order) => (
-                  <tr key={order.id} className="transition-colors hover:bg-zinc-800/30">
+                  <tr key={order.id} className="transition-colors duration-150 ease-interface hover:bg-zinc-800/30">
                     {isManager && (
                       <td className="w-10 px-4 py-4">
                         <input
@@ -451,7 +451,7 @@ export function OrderPipeline({
                           <Link
                             href={`/leads/${order.lead_id}`}
                             title="Zavolat zákazníkovi (otevřít profil)"
-                            className="inline-flex items-center justify-center rounded p-1 text-sky-400 hover:text-sky-300 hover:bg-sky-500/10 transition-colors"
+                            className="inline-flex items-center justify-center rounded p-1 text-sky-400 hover:text-sky-300 hover:bg-sky-500/10 transition-colors duration-150 ease-interface"
                           >
                             <PhoneCall className="h-3 w-3" />
                           </Link>
@@ -477,7 +477,7 @@ export function OrderPipeline({
                     </td>
                     <td className="px-5 py-4 text-zinc-400">{order.agent_name}</td>
                     <td className="px-5 py-4 text-right font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</td>
-                    <td className="px-5 py-4 text-right"><Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-200"><ArrowRight className="h-3.5 w-3.5" /></Link></td>
+                    <td className="px-5 py-4 text-right"><Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200"><ArrowRight className="h-3.5 w-3.5" /></Link></td>
                   </tr>
                 ))}
               </tbody>

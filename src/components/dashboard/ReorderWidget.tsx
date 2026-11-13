@@ -55,7 +55,7 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
 
         <Link
           href="/leads"
-          className="text-xs font-medium text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors"
+          className="text-xs font-medium text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors duration-150 ease-interface"
         >
           View all leads <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -78,7 +78,7 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
           {opportunities.slice(0, 4).map((op) => (
             <div
               key={op.id}
-              className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-800/90 hover:border-zinc-700/80 transition-all flex items-center justify-between gap-3"
+              className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-800/90 hover:border-zinc-700/80 transition-all duration-150 ease-interface flex items-center justify-between gap-3"
             >
               <div className="space-y-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
 
               <Link
                 href={`/console?leadId=${op.lead_id}`}
-                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium transition-colors flex items-center gap-1.5 shrink-0"
+                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium transition-colors duration-150 ease-interface flex items-center gap-1.5 shrink-0"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-zinc-300" />
                 Call

@@ -100,7 +100,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
 
         <a
           href="/call-logs"
-          className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors"
+          className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors duration-150 ease-interface"
         >
           <span>View All Calls</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -135,7 +135,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
           {activity.entries.map((entry) => (
             <div
               key={entry.id}
-              className="p-3.5 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-zinc-700/80 transition-all"
+              className="p-3.5 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-zinc-700/80 transition-all duration-150 ease-interface"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 shrink-0">

@@ -179,7 +179,7 @@ export function UserOnboardingModal({
               <button
                 type="button"
                 onClick={() => setDeliveryMethod("invite")}
-                className={`flex items-start gap-2.5 rounded-lg border p-3 text-left transition-colors ${
+                className={`flex items-start gap-2.5 rounded-lg border p-3 text-left transition-colors duration-150 ease-interface ${
                   deliveryMethod === "invite"
                     ? "border-emerald-500/60 bg-emerald-950/20 text-zinc-100"
                     : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
@@ -195,7 +195,7 @@ export function UserOnboardingModal({
               <button
                 type="button"
                 onClick={() => setDeliveryMethod("password")}
-                className={`flex items-start gap-2.5 rounded-lg border p-3 text-left transition-colors ${
+                className={`flex items-start gap-2.5 rounded-lg border p-3 text-left transition-colors duration-150 ease-interface ${
                   deliveryMethod === "password"
                     ? "border-emerald-500/60 bg-emerald-950/20 text-zinc-100"
                     : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"

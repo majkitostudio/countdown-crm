@@ -69,7 +69,7 @@ export default async function OrderDetailPage({
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-rose-400" />
         <h1 className="text-base font-semibold text-zinc-100">Order unavailable</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">The order could not be loaded from the active workspace.</p>
-        <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+        <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Link>
@@ -85,7 +85,7 @@ export default async function OrderDetailPage({
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Order not found</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">This order does not exist in the active workspace or is no longer available.</p>
-        <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-zinc-100">
+        <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Link>

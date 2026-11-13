@@ -103,7 +103,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
             aria-haspopup="menu"
             aria-expanded={isUserMenuOpen}
             aria-label={`${rawOperatorName}, ${roleLabel}. Open user menu`}
-            className="flex items-center gap-2 rounded-xl border border-transparent py-1 pl-1 pr-1.5 text-left transition-colors hover:border-zinc-800 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:gap-3 sm:pl-3 sm:pr-2"
+            className="flex items-center gap-2 rounded-xl border border-transparent py-1 pl-1 pr-1.5 text-left transition-colors duration-150 ease-interface hover:border-zinc-800 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:gap-3 sm:pl-3 sm:pr-2"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-xs font-semibold text-zinc-200" aria-hidden="true">
               {initials}

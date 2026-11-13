@@ -152,7 +152,7 @@ export function ShipmentTimelineCard({
               </div>
 
               {/* Event Content */}
-              <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-3.5 transition-colors group-hover:border-zinc-700/80">
+              <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 p-3.5 transition-colors duration-150 ease-interface group-hover:border-zinc-700/80">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-semibold text-zinc-100">

@@ -63,7 +63,7 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-100"
+            className="rounded-lg p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-900 hover:text-zinc-100"
             aria-label="Zavřít"
           >
             <X className="h-4 w-4" />

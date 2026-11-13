@@ -76,7 +76,7 @@ export function TeamQueuesSummaryStrip({ overview, onOpenQueues, onOpenDepartmen
         <button
           type="button"
           onClick={onOpenQueues}
-          className="inline-flex items-center gap-1 rounded-full border border-zinc-700 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
+          className="inline-flex items-center gap-1 rounded-full border border-zinc-700 px-3 py-1 text-[11px] font-medium text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-500 hover:text-zinc-100"
         >
           Otevřít Queues <ArrowRight className="h-3 w-3" aria-hidden="true" />
         </button>
@@ -106,7 +106,7 @@ export function TeamQueuesSummaryStrip({ overview, onOpenQueues, onOpenDepartmen
               key={card.key}
               type="button"
               onClick={() => onOpenDepartment?.(card.key)}
-              className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-left transition-colors hover:border-zinc-600"
+              className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 text-left transition-colors duration-150 ease-interface hover:border-zinc-600"
             >
               {content}
             </button>
@@ -126,7 +126,7 @@ export function TeamQueuesSummaryStrip({ overview, onOpenQueues, onOpenDepartmen
           <button
             type="button"
             onClick={() => (onOpenDepartment ? onOpenDepartment("unattributed") : onOpenQueues())}
-            className="rounded-full border border-amber-800 px-2.5 py-1 text-amber-200 transition-colors hover:border-amber-600"
+            className="rounded-full border border-amber-800 px-2.5 py-1 text-amber-200 transition-colors duration-150 ease-interface hover:border-amber-600"
           >
             Zobrazit v Queues
           </button>

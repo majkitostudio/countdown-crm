@@ -3,10 +3,10 @@ import { forwardRef, type ComponentPropsWithoutRef } from "react";
 export type SurfaceVariant = "page" | "inset" | "table" | "empty" | "overlay";
 
 const SURFACE_CLASS_NAMES: Record<SurfaceVariant, string> = {
-  page: "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm",
+  page: "rounded-surface border border-border-default border-t-border-highlight bg-surface-page shadow-sm animate-in fade-in duration-150 ease-interface motion-reduce:animate-none",
   inset: "rounded-control border border-border-default bg-surface-inset",
   table: "overflow-hidden rounded-surface border border-border-default bg-surface-page shadow-sm",
-  empty: "rounded-surface border border-border-default bg-surface-page p-12 text-center shadow-sm",
+  empty: "rounded-surface border border-border-default bg-surface-page p-12 text-center shadow-sm animate-in fade-in duration-150 ease-interface motion-reduce:animate-none",
   overlay: "rounded-overlay border border-border-default bg-surface-overlay shadow-overlay",
 };
 
@@ -15,7 +15,7 @@ const SAFE_LAYOUT_CLASS_NAMES = new Set(["w-full", "h-full", "flex-1", "w-28", "
 export function getSafeLayoutClassName(className?: string): string {
   return (className ?? "")
     .split(/\s+/)
-    .filter((token) => SAFE_LAYOUT_CLASS_NAMES.has(token))
+    .filter((token) => SAFE_LAYOUT_CLASS_NAMES.has(token) || /^p[xyltrb]?-\d/.test(token))
     .join(" ");
 }
 
