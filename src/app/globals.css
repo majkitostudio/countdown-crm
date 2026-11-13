@@ -50,6 +50,13 @@
   --ease-interface: cubic-bezier(0.2, 0, 0, 1);
 }
 
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
 @layer utilities {
   .glass-card {
     background: rgba(24, 24, 27, 0.6);

@@ -23,11 +23,11 @@ describe("manager review affordances in Call Logs", () => {
     expect(source).toContain('if (status === "corrected") return "Corrected";');
     expect(source).toContain("canReview &&");
     expect(source).toContain("unreviewedCount");
-    expect(source).toContain("All available calls are reviewed.");
+    expect(source).toContain("Všechny dostupné hovory jsou zkontrolované.");
   });
 
   it("keeps an unreviewed call neutral until a manager opens it", () => {
-    expect(source).toContain('className="text-[11px] text-zinc-500"');
+    expect(source).toContain('className="text-xs text-zinc-400"');
     expect(source).not.toContain('tone={c.review_status === "not_reviewed" ? "warning"');
   });
 });

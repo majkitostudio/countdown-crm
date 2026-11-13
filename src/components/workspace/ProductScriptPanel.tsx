@@ -131,8 +131,8 @@ export function ProductScriptPanel({
   return (
     <Surface variant="page" className="w-full" data-testid="operator-script-context" aria-labelledby="product-script-title">
       <section className="flex flex-col min-h-0 space-y-4 overflow-hidden p-5">
-      <div className="flex items-start justify-between gap-3 border-b border-zinc-800/80 pb-3">
-        <div className="flex items-start gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-zinc-800/80 pb-3">
+        <div className="flex min-w-0 items-start gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 bg-zinc-950 text-zinc-300">
             <Type className="h-3.5 w-3.5" />
           </div>
@@ -146,7 +146,7 @@ export function ProductScriptPanel({
             <p className="text-xs text-zinc-300">{scriptTitle} · read top to bottom</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge tone="neutral">
             {isCallActive ? "Active" : "Ready"}
           </StatusBadge>
@@ -248,6 +248,7 @@ export function ProductScriptPanel({
                 key={item.id}
                 type="button"
                 onClick={() => setSelectedQuickObjectionId((prev) => (prev === item.id ? null : item.id))}
+                aria-pressed={selectedQuickObjectionId === item.id}
                 className={cn(
                   "flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
                   selectedQuickObjectionId === item.id

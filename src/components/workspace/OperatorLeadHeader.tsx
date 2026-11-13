@@ -130,7 +130,7 @@ export function OperatorLeadHeader({
               </span>
             )}
           </div>
-          <p className="mt-1.5 font-mono text-[10px] text-zinc-600">Lead ID: {activeLead.id}</p>
+          <p className="mt-1.5 font-mono text-[11px] text-zinc-400">Lead ID: {activeLead.id}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">

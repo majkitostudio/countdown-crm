@@ -143,6 +143,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [pendingCancelEntry, setPendingCancelEntry] = useState<CalendarEntryDTO | null>(null);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -316,6 +317,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
               key={val}
               type="button"
               onClick={() => setFilter(val)}
+              aria-pressed={filter === val}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === val
                   ? "border-zinc-600 bg-zinc-800 text-zinc-100"
@@ -479,13 +481,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                                 </Button>
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    void runReminderAction(
-                                      entry,
-                                      () => cancelReminderAction(entry.id),
-                                      "Připomínka byla zrušena.",
-                                    )
-                                  }
+                                  onClick={() => setPendingCancelEntry(entry)}
                                   disabled={isBusy}
                                   className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-xs text-zinc-500 transition-colors hover:text-zinc-300 disabled:opacity-50"
                                 >
@@ -585,6 +581,47 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
             </Button>
           </div>
         </form>
+      </Dialog>
+
+      <Dialog
+        isOpen={pendingCancelEntry !== null}
+        onClose={() => setPendingCancelEntry(null)}
+        aria-labelledby="cancel-reminder-title"
+        size="sm"
+      >
+        <div className="w-full space-y-4 p-6">
+          <div>
+            <h2 id="cancel-reminder-title" className="text-base font-semibold text-zinc-100">
+              Zrušit připomínku?
+            </h2>
+            <p className="mt-1 text-xs text-zinc-400">
+              Připomínka „{pendingCancelEntry?.title}“ bude zrušena. Tuto akci nelze vrátit zpět.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 border-t border-zinc-800 pt-4">
+            <Button type="button" variant="secondary" onClick={() => setPendingCancelEntry(null)}>
+              Ponechat
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={isLoading}
+              onClick={() => {
+                const entry = pendingCancelEntry;
+                setPendingCancelEntry(null);
+                if (!entry) return;
+                void runReminderAction(
+                  entry,
+                  () => cancelReminderAction(entry.id),
+                  "Připomínka byla zrušena.",
+                );
+              }}
+            >
+              <X className="h-3.5 w-3.5" aria-hidden="true" />
+              Zrušit připomínku
+            </Button>
+          </div>
+        </div>
       </Dialog>
     </div>
   );

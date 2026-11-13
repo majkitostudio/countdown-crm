@@ -44,7 +44,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={`${poppins.variable} h-full antialiased dark`}>
+    <html lang="cs" className={`${poppins.variable} h-full antialiased dark`}>
       <body className="h-full bg-zinc-950 text-zinc-100 font-sans overflow-hidden">
         <AppShell initialIdentity={initialIdentity}>{children}</AppShell>
       </body>

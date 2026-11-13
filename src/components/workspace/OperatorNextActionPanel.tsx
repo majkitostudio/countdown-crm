@@ -70,7 +70,7 @@ export function OperatorNextActionPanel({
       >
         <div className="flex min-w-0 flex-wrap items-center gap-2 px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Next</span>
-          <span id="operator-next-action-title" className="max-w-[12rem] truncate text-xs font-medium text-zinc-200" title={action.description}>
+          <span id="operator-next-action-title" className="line-clamp-2 max-w-[16rem] break-words text-xs font-medium text-zinc-200" title={action.description}>
             {action.kind === "start_call" ? "Ready to call" : action.title}
           </span>
           <StatusBadge tone={actionTone}>{action.urgency === "critical" ? "Attention" : "Ready"}</StatusBadge>

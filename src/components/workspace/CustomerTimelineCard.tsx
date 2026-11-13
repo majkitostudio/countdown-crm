@@ -182,11 +182,12 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
         <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-200">
           <textarea
             rows={2}
+            aria-label="Customer activity note"
             value={newNoteText}
             onChange={(event) => setNewNoteText(event.target.value)}
             placeholder="Type customer activity note..."
             maxLength={2000}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400"
           />
           <div className="flex justify-end gap-2 text-xs">
             <button
@@ -260,7 +261,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
                     <span className="font-semibold text-zinc-200 text-xs line-clamp-1">
                       {item.title}
                     </span>
-                    <span className="text-[9px] font-mono text-zinc-500 shrink-0 ml-2">
+                    <span className="text-[10px] font-mono text-zinc-400 shrink-0 ml-2">
                       {formatTimestamp(item.timestamp)}
                     </span>
                   </div>
@@ -273,7 +274,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
 
                   {/* Metadata Chips */}
                   {item.metadata && (
-                    <div className="pt-1.5 flex flex-wrap items-center gap-1.5 text-[9px] font-mono text-zinc-400">
+                    <div className="pt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-zinc-400">
                       {item.metadata.order_value !== undefined && (
                         <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-zinc-200 font-semibold">
                           {formatCurrencyAmount(item.metadata.order_value, item.metadata.order_currency ?? "USD")}
@@ -301,7 +302,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
                   )}
 
                   {/* Footer Operator Tag */}
-                  <div className="pt-1 text-[9px] text-zinc-500 font-mono flex items-center justify-between">
+                  <div className="pt-1 text-[10px] text-zinc-400 font-mono flex items-center justify-between">
                     <span>by {item.actor}</span>
                   </div>
                 </div>

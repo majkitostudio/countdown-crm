@@ -108,35 +108,38 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="text-zinc-400 font-medium block">Full Name</label>
+              <label htmlFor="operator-full-name" className="text-zinc-400 font-medium block">Full Name</label>
               <input
+                id="operator-full-name"
                 type="text"
                 value={identity?.name || (isOperatorLoading ? "Loading operator..." : "Unknown operator")}
                 readOnly
                 disabled
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-zinc-100 focus:outline-none focus:border-zinc-700"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-base sm:text-xs text-zinc-100"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-zinc-400 font-medium block">Email Address</label>
+              <label htmlFor="operator-email" className="text-zinc-400 font-medium block">Email Address</label>
               <input
+                id="operator-email"
                 type="email"
                 value={identity?.email || (isOperatorLoading ? "Loading operator..." : "Unavailable")}
                 readOnly
                 disabled
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-zinc-100 focus:outline-none focus:border-zinc-700"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-base sm:text-xs text-zinc-100"
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-zinc-400 font-medium block">Assigned Role</label>
+              <label htmlFor="operator-role" className="text-zinc-400 font-medium block">Assigned Role</label>
               <div className="flex items-center gap-2">
                 <input
+                  id="operator-role"
                   type="text"
                   disabled
                   value={getOperatorRoleLabel(identity?.role || null)}
-                  className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-500 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono"
+                  className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-400 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono text-base sm:text-xs"
                 />
                 <StatusBadge tone="success">
                   Active Member
@@ -162,10 +165,11 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label className="text-zinc-400 font-medium block flex items-center justify-between">
+              <label htmlFor="ringtone-volume" className="text-zinc-400 font-medium block flex items-center justify-between">
                 <span>Ringtone Volume ({settings.ringtone_volume}%)</span>
               </label>
               <input
+                id="ringtone-volume"
                 type="range"
                 min={0}
                 max={100}

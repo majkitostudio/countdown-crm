@@ -171,7 +171,7 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
       <div className="mt-4 space-y-2 border-t border-zinc-800 pt-3">
         <div className="flex items-center justify-between">
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Note history</h3>
-          <span className="font-mono text-[10px] text-zinc-600">{notes.length}</span>
+          <span className="font-mono text-[11px] text-zinc-400">{notes.length}</span>
         </div>
         {notes.length === 0 ? (
           <p className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 p-3 text-xs text-zinc-500">

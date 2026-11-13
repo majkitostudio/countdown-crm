@@ -1023,7 +1023,10 @@ function WorkspaceContent() {
           const noteInput = document.getElementById("lead-note-input");
           if (noteInput instanceof HTMLTextAreaElement) {
             noteInput.focus();
-            noteInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            noteInput.scrollIntoView({
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+              block: "center",
+            });
           }
           return;
         }
@@ -1089,7 +1092,10 @@ function WorkspaceContent() {
     }
 
     if (operatorConsoleState === "awaiting_outcome" || operatorConsoleState === "schedule_modal") {
-      document.getElementById("call-outcome-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("call-outcome-panel")?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+        block: "center",
+      });
       return;
     }
 

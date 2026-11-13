@@ -51,6 +51,12 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
     <CallSessionProvider>
     <OperatorIdentityProvider initialIdentity={initialIdentity}>
       <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 text-zinc-100 font-sans">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:border focus:border-zinc-600 focus:bg-zinc-950 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-zinc-100"
+      >
+        Skip to content
+      </a>
       {/* Global command palette */}
       <CommandPalette />
 
@@ -62,7 +68,7 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         <AppHeader onOpenNavigation={() => setIsMobileNavigationOpen(true)} />
         
-        <main className={`flex-1 overflow-y-auto bg-zinc-950 px-4 py-5 sm:px-6 ${isOperatorConsole ? "sm:py-5" : "sm:py-6"}`}>
+        <main id="main-content" tabIndex={-1} className={`flex-1 overflow-y-auto bg-zinc-950 px-4 py-5 sm:px-6 ${isOperatorConsole ? "sm:py-5" : "sm:py-6"}`}>
           <div className={isOperatorConsole ? "max-w-none h-full" : "max-w-7xl mx-auto space-y-6"}>
             {children}
           </div>

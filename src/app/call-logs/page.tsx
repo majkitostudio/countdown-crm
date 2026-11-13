@@ -9,6 +9,7 @@ import {
   Eye,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
+import { formatCurrencyAmount } from "@/lib/currency";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -29,6 +30,9 @@ function useReviewQueryFilter() {
 
 export default function CallLogsPage() {
   const [calls, setCalls] = useState<CallRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOutcomeFilterState, setSelectedOutcomeFilter] = useState<string>("all");
   const [selectedCall, setSelectedCall] = useState<CallRecord | null>(null);
@@ -37,11 +41,19 @@ export default function CallLogsPage() {
 
   useEffect(() => {
     async function loadCalls() {
-      const data = await getCalls();
-      setCalls(data);
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const data = await getCalls();
+        setCalls(data);
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : "Záznamy hovorů se nepodařilo načíst.");
+      } finally {
+        setIsLoading(false);
+      }
     }
     loadCalls();
-  }, []);
+  }, [loadAttempt]);
 
   const selectOutcomeFilter = (filter: string) => {
     setSelectedOutcomeFilter(filter);
@@ -132,7 +144,7 @@ actions={
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Logged calls" value={totalCallsCount} />
         <MetricCard label="Average handling" value={formatDuration(avgDuration)} />
-        <MetricCard label="Revenue" value={`$${totalSalesVolume.toFixed(2)}`} />
+        <MetricCard label="Revenue" value={formatCurrencyAmount(totalSalesVolume, "CZK")} />
         <MetricCard label="Conversion" value={`${conversionRate}%`} />
       </div>
 
@@ -145,17 +157,20 @@ actions={
             <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Search calls"
               placeholder="Search customer, operator or call ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-base sm:text-sm text-zinc-200 placeholder:text-zinc-400"
             />
           </div>
 
           {/* Outcome Filter Buttons */}
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <button
+              type="button"
               onClick={() => selectOutcomeFilter("all")}
+              aria-pressed={selectedOutcomeFilter === "all"}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "all"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -165,7 +180,9 @@ actions={
               All Logs ({calls.length})
             </button>
             <button
+              type="button"
               onClick={() => selectOutcomeFilter("order_placed")}
+              aria-pressed={selectedOutcomeFilter === "order_placed"}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "order_placed"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -175,7 +192,9 @@ actions={
               Order Placed
             </button>
             <button
+              type="button"
               onClick={() => selectOutcomeFilter("followup_scheduled")}
+              aria-pressed={selectedOutcomeFilter === "followup_scheduled"}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                 selectedOutcomeFilter === "followup_scheduled"
                   ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -186,7 +205,9 @@ actions={
             </button>
             {canReview && (
               <button
+                type="button"
                 onClick={() => selectOutcomeFilter("unreviewed")}
+                aria-pressed={selectedOutcomeFilter === "unreviewed"}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
                   selectedOutcomeFilter === "unreviewed"
                     ? "bg-zinc-800 text-zinc-100 border-zinc-700/80 shadow-xs"
@@ -203,9 +224,15 @@ actions={
 
       {/* Call Logs Table */}
       <Surface variant="table">
-        <div className="overflow-x-auto">
+        <div
+          role="region"
+          aria-label="Call logs table"
+          aria-busy={isLoading}
+          tabIndex={0}
+          className="overflow-x-auto"
+        >
           <table className="w-full text-left text-xs text-zinc-300">
-            <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
+            <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[11px] border-b border-zinc-800/80">
               <tr>
                 <th className="px-5 py-3">Call ID & Customer</th>
                 <th className="px-5 py-3">Operator</th>
@@ -216,18 +243,40 @@ actions={
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
-              {filteredCalls.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center">
+                    <p className="text-sm font-semibold text-zinc-200">Načítám záznamy hovorů…</p>
+                  </td>
+                </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center">
+                    <p className="text-sm font-semibold text-rose-200">Záznamy hovorů se nepodařilo načíst.</p>
+                    <p className="mt-1 text-xs text-zinc-300">{loadError}</p>
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        type="button"
+                        className={getButtonClassName("secondary")}
+                        onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredCalls.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center">
                     <p className="text-sm font-semibold text-zinc-200">
                       {selectedOutcomeFilter === "unreviewed"
-                        ? "All available calls are reviewed."
-                        : "No calls match the selected filters."}
+                        ? "Všechny dostupné hovory jsou zkontrolované."
+                        : "Filtrům neodpovídá žádný hovor."}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-500">
+                    <p className="mt-1 text-xs text-zinc-400">
                       {selectedOutcomeFilter === "unreviewed"
-                        ? "There is no remaining Team Leader coaching action in this list."
-                        : "Try a different outcome or search term."}
+                        ? "V tomto seznamu nezbývá žádná práce pro Team Leadera."
+                        : "Zkuste jiný výsledek nebo jiný hledaný výraz."}
                     </p>
                   </td>
                 </tr>
@@ -236,7 +285,7 @@ actions={
                   <td className="px-5 py-3">
                     <div>
                       <p className="font-semibold text-zinc-100">{c.lead_name}</p>
-                      <p className="text-[11px] text-zinc-500 font-mono">#{c.id}</p>
+                      <p className="text-xs text-zinc-400 font-mono">#{c.id}</p>
                     </div>
                   </td>
                   <td className="px-5 py-3 text-zinc-300">{c.agent_name}</td>
@@ -247,11 +296,11 @@ actions={
                     </span>
                   </td>
                   <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
-                    ${c.order_value.toFixed(2)}
+                    {formatCurrencyAmount(c.order_value, "CZK")}
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-zinc-500">
+                      <span className="text-xs text-zinc-400">
                         {canReview ? reviewStatusLabel(c.review_status) || "Not available" : "Not available"}
                       </span>
                       <div className="flex shrink-0 items-center gap-1.5">
@@ -281,6 +330,9 @@ actions={
             </tbody>
           </table>
         </div>
+        <p className="border-t border-zinc-800/60 px-5 py-2 text-[11px] text-zinc-400 sm:hidden">
+          Tabulku lze posouvat do strany.
+        </p>
       </Surface>
 
       {/* Call Detail Drawer */}

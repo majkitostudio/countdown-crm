@@ -112,7 +112,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
               <span className="font-semibold text-sm tracking-tight text-zinc-100 leading-none">
                 COUNTDOWN
               </span>
-              <span className="text-[10px] text-zinc-400 font-mono tracking-wider">
+              <span className="text-[11px] text-zinc-400 font-mono tracking-wider">
                 AI CRM v0.1
               </span>
             </div>
@@ -138,7 +138,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
         {getAllowedSidebarNavigationSections(isIdentityLoading ? null : identity?.role).map((group) => (
           <div key={group.section} className="space-y-1">
             {!isCompact && (
-              <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+              <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                 {group.label}
               </div>
             )}
@@ -154,6 +154,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={() => onMobileOpenChange(false)}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group relative",
                     isActive
@@ -201,7 +202,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                 <span className={cn("flex w-full items-center gap-3", isCompact && "justify-center")}>
                 {!isCompact && (
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold">
+                    <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
                       Status
                     </span>
                     <StatusBadge tone="neutral">
@@ -244,7 +245,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
         </div>
       ) : !isIdentityLoading && identity ? (
         <div className="border-t border-zinc-800/80 bg-zinc-950/50 p-3" aria-label={`Current role: ${getWorkspaceRoleLabel(identity.role)}`}>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Role</span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Role</span>
           <StatusBadge tone="neutral">{getWorkspaceRoleLabel(identity.role)}</StatusBadge>
         </div>
       ) : null}
