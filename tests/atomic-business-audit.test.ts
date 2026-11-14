@@ -68,7 +68,7 @@ describe("atomic business mutation DAL wiring", () => {
     mocks.createDataClient.mockResolvedValue({ rpc });
 
     await expect(updateLeadStatusForWorkspace("lead-1", "contacted", "workspace-1"))
-      .rejects.toMatchObject({ code: "DATABASE", message: "Lead update failed" });
+      .rejects.toMatchObject({ code: "DATABASE", message: "Lead se nepodařilo aktualizovat. Zkuste to znovu." });
     expect(rpc).toHaveBeenCalledOnce();
   });
 
@@ -131,7 +131,7 @@ describe("atomic business mutation DAL wiring", () => {
     await expect(reassignOrdersProductForWorkspace("source-1", "target-1", "workspace-1"))
       .rejects.toMatchObject({
         code: "DATABASE",
-        message: "Unable to reassign the selected orders.",
+        message: "Vybrané objednávky se nepodařilo přeřadit. Zkuste to znovu.",
       });
     expect(rpc).toHaveBeenCalledOnce();
   });

@@ -12,13 +12,13 @@ export const OPERATOR_KEYBOARD_SHORTCUTS: ReadonlyArray<{
   key: string;
   label: string;
 }> = [
-  { action: "toggle_call", key: "C", label: "Call / end call" },
-  { action: "toggle_mute", key: "M", label: "Mute / unmute" },
-  { action: "call_later", key: "1", label: "No answer" },
-  { action: "schedule_call", key: "2", label: "Schedule call" },
-  { action: "fail", key: "3", label: "Fail" },
-  { action: "create_order", key: "4", label: "Create order" },
-  { action: "focus_note", key: "N", label: "Focus lead note" },
+  { action: "toggle_call", key: "C", label: "Zavolat / ukončit hovor" },
+  { action: "toggle_mute", key: "M", label: "Ztlumit / zapnout mikrofon" },
+  { action: "call_later", key: "1", label: "Nedostupný" },
+  { action: "schedule_call", key: "2", label: "Naplánovat hovor" },
+  { action: "fail", key: "3", label: "Neúspěšný" },
+  { action: "create_order", key: "4", label: "Vytvořit objednávku" },
+  { action: "focus_note", key: "N", label: "Přejít na poznámku k leadu" },
 ];
 
 type KeyboardShortcutEvent = Pick<

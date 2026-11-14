@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 export function TeamCheckpointScheduledCallsSection({

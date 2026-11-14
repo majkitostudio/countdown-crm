@@ -13,10 +13,10 @@ export default async function AdminWorkspaceSettingsPage() {
         <Surface variant="empty">
           <LockKeyhole className="mx-auto h-8 w-8 text-zinc-500" />
           <h1 className="mt-4 text-base font-semibold text-zinc-100">
-            Workspace Settings are available to administrators only
+            Nastavení pracovního prostoru je dostupné pouze pro administrátory
           </h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            Osobní nastavení zůstává v Settings; nastavení celého workspace patří do Managementu.
+            Osobní nastavení zůstává v Nastavení; nastavení celého pracovního prostoru patří do Správy.
           </p>
         </Surface>
       </div>
@@ -27,10 +27,10 @@ export default async function AdminWorkspaceSettingsPage() {
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={WalletCards}
-        title="Workspace Settings"
-        badge={{ label: "Administrator only", tone: "neutral" }}
-        backLink={{ href: "/admin", label: "Back to Management" }}
-        description="Pravidla a provize walletu pro celý workspace."
+        title="Nastavení pracovního prostoru"
+        badge={{ label: "Pouze pro administrátory", tone: "neutral" }}
+        backLink={{ href: "/admin", label: "Zpět do správy" }}
+        description="Pravidla a provize peněženky pro celý pracovní prostor."
       />
       <WorkspaceSettingsPanel />
     </div>

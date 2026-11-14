@@ -200,9 +200,9 @@ describe("Milestone 1.1: Order Fulfillment Lifecycle Contract", () => {
       expect(ordersPageFile).toContain("bulkUpdateOrderStatusAction");
       expect(pipelineFile).toContain('data-testid="bulk-action-bar"');
       expect(pipelineFile).toContain("toggleSelectAll");
-      expect(pipelineFile).toContain("Mark Delivered");
-      expect(pipelineFile).toContain("Mark Sent");
-      expect(pipelineFile).toContain("Mark Returned");
+      expect(pipelineFile).toContain("Označit jako doručené");
+      expect(pipelineFile).toContain("Označit jako odeslané");
+      expect(pipelineFile).toContain("Označit jako vrácené");
     });
   });
 });

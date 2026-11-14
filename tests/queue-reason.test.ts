@@ -8,7 +8,7 @@ describe("describeQueueReason", () => {
       kind: "rescue",
     });
     expect(describeQueueReason("package_returned")).toEqual({
-      label: "Vrácený balíček – Re-ship",
+      label: "Vrácený balíček – opětovné odeslání",
       kind: "rescue",
     });
     expect(describeQueueReason("at_risk_pickup")).toEqual({

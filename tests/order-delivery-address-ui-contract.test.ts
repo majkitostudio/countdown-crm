@@ -19,7 +19,7 @@ describe("delivery address inputs", () => {
     const detailPage = source("src/app/orders/[orderId]/page.tsx");
 
     expect(detailPage).toContain("parseDeliveryAddressSnapshot");
-    expect(detailPage).toContain('>Delivery address<');
+    expect(detailPage).toContain('>Doručovací adresa<');
     expect(detailPage).toContain("deliveryAddress.recipient_name");
     expect(detailPage).toContain("deliveryAddress.postal_code");
   });

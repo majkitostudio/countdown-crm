@@ -8,7 +8,7 @@ import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat("cs-CZ", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
@@ -32,21 +32,21 @@ export default async function TrainingReviewsPage() {
 
   if (loadError) {
     const message = isDataAccessError(loadError) && loadError.code === "FORBIDDEN"
-      ? "This review area is available to Team Leaders and Administrators only."
+      ? "Tato sekce kontrol je dostupná pouze vedoucím týmů a administrátorům."
       : "Kontroly tréninků se nepodařilo načíst. Náhradní data nezobrazujeme.";
 
     return (
       <div className="mx-auto max-w-2xl">
       <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Training Reviews nejsou dostupné</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Kontroly tréninků nejsou dostupné</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
         <Link
           href="/training"
           className={getButtonClassName("secondary")}
         >
           <RefreshCw className="h-3.5 w-3.5" />
-          Return to AI Training
+          Zpět na AI trénink
         </Link>
       </Surface>
       </div>
@@ -57,8 +57,8 @@ export default async function TrainingReviewsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-8">
         <PageHeader
           icon={ClipboardList}
-          title="Training Reviews"
-          badge={{ label: "Training only", tone: "neutral" }}
+          title="Kontroly tréninků"
+          badge={{ label: "Pouze trénink", tone: "neutral" }}
           description="Kontrola dokončených tréninků oddělená od ostrých hovorů."
           actions={<span className="text-xs font-mono text-zinc-500">{sessions.length} {sessions.length === 1 ? "relace" : "relací"}</span>}
         />
@@ -69,7 +69,7 @@ export default async function TrainingReviewsPage() {
           <Surface variant="empty">
             <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
             <h2 className="text-sm font-semibold text-zinc-200">Zatím žádné tréninky</h2>
-            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Dokončené tréninky se zde zobrazí pro kontrolu Team Leaderem nebo administrátorem.</p>
+            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Dokončené tréninky se zde zobrazí pro kontrolu vedoucím týmu nebo administrátorem.</p>
             <Link
               href="/training"
               className={getButtonClassName("primary")}

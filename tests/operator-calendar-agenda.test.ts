@@ -65,7 +65,7 @@ describe("OperatorCalendar component rendering", () => {
     // Zákazník a akce
     expect(html).toContain("Jan Novák");
     expect(html).toContain("+420777123456");
-    expect(html).toContain("Call now");
+    expect(html).toContain("Zavolat nyní");
     expect(html).toContain("/console?leadId=lead-1");
 
     // Připomínka a poznámka

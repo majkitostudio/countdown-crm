@@ -35,8 +35,8 @@ describe("Exception Queue page", () => {
 
     const html = renderToStaticMarkup(await ExceptionsPage());
 
-    expect(html).toContain("Exception Queue");
-    expect(html).toContain("Nothing needs attention");
+    expect(html).toContain("Fronta výjimek");
+    expect(html).toContain("nic nevyžaduje pozornost");
   });
 
   it("shows a truthful forbidden state when an operator opens the URL directly", async () => {
@@ -46,8 +46,8 @@ describe("Exception Queue page", () => {
 
     const html = renderToStaticMarkup(await ExceptionsPage());
 
-    expect(html).toContain("Exception Queue unavailable");
-    expect(html).toContain("Team Leaders and Administrators only");
-    expect(html).not.toContain("Nothing needs attention");
+    expect(html).toContain("Fronta výjimek není dostupná");
+    expect(html).toContain("pouze vedoucím týmů a administrátorům");
+    expect(html).not.toContain("nic nevyžaduje pozornost");
   });
 });

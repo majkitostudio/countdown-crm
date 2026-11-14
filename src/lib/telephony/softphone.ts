@@ -134,9 +134,9 @@ export class WebRtcSoftphoneController {
     const bootstrapResponse = await fetch("/api/telephony/local/bootstrap", { cache: "no-store" });
     const bootstrap = await bootstrapResponse.json() as { server?: string; aor?: string; username?: string; password?: string; expiresAt?: string; error?: string };
     if (!bootstrapResponse.ok || !bootstrap.server || !bootstrap.aor || !bootstrap.username || !bootstrap.password || !bootstrap.expiresAt) {
-      throw new Error(bootstrap.error || "Local SIP bootstrap could not be created.");
+      throw new Error(bootstrap.error || "Připojení k místnímu SIP se nepodařilo připravit. Zkuste to znovu.");
     }
-    if (Date.parse(bootstrap.expiresAt) <= Date.now()) throw new Error("Local SIP bootstrap expired before the call started.");
+    if (Date.parse(bootstrap.expiresAt) <= Date.now()) throw new Error("Platnost připojení k místnímu SIP vypršela před zahájením hovoru. Zkuste to znovu.");
 
     const sessionResponse = await fetch("/api/telephony/local/session", {
       method: "POST",
@@ -144,7 +144,7 @@ export class WebRtcSoftphoneController {
        body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: "1002", productId: context.productId || null }),
     });
     const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; scriptSnapshot?: ScriptSnapshotDTO; error?: string };
-    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Local SIP call session could not be created.");
+    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Hovor přes místní SIP se nepodařilo vytvořit. Zkuste to znovu.");
     this.localSipSessionId = sessionBody.sessionId;
     this.remoteAudio ||= this.createRemoteAudioElement();
     this.localSipAdapter = new LocalSipAdapter({
@@ -217,12 +217,12 @@ export class WebRtcSoftphoneController {
       body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone, productId: context.productId || null }),
     });
     const sessionBody = await sessionResponse.json() as { sessionId?: string; toNumber?: string; scriptSnapshot?: ScriptSnapshotDTO; error?: string };
-    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Telnyx call session could not be created.");
+    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.toNumber || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Hovor přes Telnyx se nepodařilo vytvořit. Zkuste to znovu.");
     this.telnyxSessionId = sessionBody.sessionId;
 
     const tokenResponse = await fetch("/api/telephony/telnyx/token", { method: "POST" });
     const tokenBody = await tokenResponse.json() as { token?: string; callerNumber?: string; error?: string };
-    if (!tokenResponse.ok || !tokenBody.token || !tokenBody.callerNumber) throw new Error(tokenBody.error || "Telnyx WebRTC token could not be issued.");
+    if (!tokenResponse.ok || !tokenBody.token || !tokenBody.callerNumber) throw new Error(tokenBody.error || "Přístupový token Telnyx WebRTC se nepodařilo vydat. Zkuste to znovu.");
 
     const client = this.telnyxClient || await createTelnyxClient(tokenBody.token);
     this.telnyxClient = client;
@@ -245,7 +245,7 @@ export class WebRtcSoftphoneController {
       body: JSON.stringify({ leadId, queueItemId: context.queueItemId || null, toNumber: phone, productId: context.productId || null }),
     });
     const sessionBody = await sessionResponse.json() as { sessionId?: string; scriptSnapshot?: ScriptSnapshotDTO; error?: string };
-    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Simulation call session could not be created.");
+    if (!sessionResponse.ok || !sessionBody.sessionId || !sessionBody.scriptSnapshot) throw new Error(sessionBody.error || "Simulovaný hovor se nepodařilo vytvořit. Zkuste to znovu.");
     this.simulationSessionId = sessionBody.sessionId;
     this.currentSession.id = sessionBody.sessionId;
     this.currentSession.scriptSnapshot = sessionBody.scriptSnapshot;
@@ -312,7 +312,7 @@ export class WebRtcSoftphoneController {
 
     try {
       await client.connect();
-      await withTimeout(readyPromise, SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, "Telnyx client readiness timed out");
+      await withTimeout(readyPromise, SOFTPHONE_AUDIO_INIT_TIMEOUT_MS, "Připojení klienta Telnyx trvalo příliš dlouho. Zkuste to znovu.");
     } finally {
       if (this.telnyxReadyResolve === resolveReady) this.telnyxReadyResolve = null;
       if (this.telnyxReadyReject === rejectReady) this.telnyxReadyReject = null;
@@ -326,7 +326,7 @@ export class WebRtcSoftphoneController {
       if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
     }
     if (event && typeof event === "object" && "reason" in event && typeof event.reason === "string") return event.reason;
-    return "Connection failed.";
+    return "Připojení se nezdařilo. Zkontrolujte připojení k síti a zkuste to znovu.";
   }
 
   private handleTelnyxError(notification: unknown) {

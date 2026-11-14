@@ -51,7 +51,7 @@ describe("analytics Server Action contract", () => {
       ok: false,
       code: "FORBIDDEN",
       status: 403,
-      message: "Analytics are available to Team Leaders and Administrators only.",
+      message: "Analytika je dostupná pouze vedoucím týmu a správcům.",
     });
     expect(result).not.toHaveProperty("data");
   });

@@ -12,9 +12,9 @@ describe("Customer 360 UI contract", () => {
     }));
 
     expect(markup).toContain('data-testid="customer-360-retention"');
-    expect(markup).toContain("Persisted workspace data");
-    expect(markup).toContain("Customer activity is unavailable");
-    expect(markup).not.toContain("Next retention action");
+    expect(markup).toContain("Uložená data pracovního prostoru");
+    expect(markup).toContain("Aktivity zákazníka nejsou dostupné");
+    expect(markup).not.toContain("Další krok pro udržení zákazníka");
   });
 
   it("renders persisted activity through the shared neutral surfaces", () => {
@@ -33,9 +33,9 @@ describe("Customer 360 UI contract", () => {
       },
     }));
 
-    expect(markup).toContain("Calls");
+    expect(markup).toContain("Hovory");
     expect(markup).toContain("1/1");
-    expect(markup).toContain("Next retention action");
+    expect(markup).toContain("Další krok pro udržení zákazníka");
     expect(markup).toContain("bg-surface-inset");
     expect(markup).toContain('<div class="p-4">');
   });

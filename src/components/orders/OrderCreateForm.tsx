@@ -57,11 +57,11 @@ interface OrderCreateFormProps {
 type DraftItem = { productId: string; quantity: number; unitPrice: number };
 
 const sourceLabels: Record<OrderSource, string> = {
-  manual: "Manual entry",
-  previous_call: "Previous call",
-  email: "Email",
-  web_form: "Web form",
-  other: "Other",
+  manual: "Ruční zadání",
+  previous_call: "Předchozí hovor",
+  email: "E-mail",
+  web_form: "Webový formulář",
+  other: "Jiné",
 };
 
 function roundMoney(value: number): number {
@@ -138,7 +138,7 @@ export function OrderCreateForm({
         if (!cancelled) setLeadNotes(notes);
       })
       .catch(() => {
-        if (!cancelled) setLeadNotesError("Lead note history is unavailable right now.");
+        if (!cancelled) setLeadNotesError("Historie poznámek leadu momentálně není dostupná.");
       });
 
     return () => {
@@ -150,7 +150,7 @@ export function OrderCreateForm({
     const product = products.find((candidate) => candidate.id === productToAdd);
     if (!product || selectedProductIds.has(product.id)) return;
     if (resolvedItems.length > 0 && product.currency !== orderCurrency) {
-      setErrorMessage("All order items must use the same currency.");
+      setErrorMessage("Vyberte produkty se stejnou měnou pro všechny položky objednávky.");
       return;
     }
     setDraftItems((items) => [...items, { productId: product.id, quantity: 1, unitPrice: product.price }]);
@@ -174,12 +174,12 @@ export function OrderCreateForm({
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedLead || resolvedItems.length === 0) {
-      setErrorMessage("Select a customer and at least one product before creating the order.");
+      setErrorMessage("Před vytvořením objednávky vyberte zákazníka a alespoň jeden produkt.");
       return;
     }
     const deliveryAddressSnapshot = toDeliveryAddressSnapshot(deliveryAddress);
     if (!deliveryAddressSnapshot) {
-      setErrorMessage("Enter a complete delivery address before creating the order.");
+      setErrorMessage("Před vytvořením objednávky vyplňte úplnou doručovací adresu.");
       return;
     }
 
@@ -194,10 +194,10 @@ export function OrderCreateForm({
 
         if (isCallFlow) {
           if (!callQueueItemId) {
-            throw new Error("The active call assignment is unavailable. Return to the Operator Console and try again.");
+            throw new Error("Aktivní přiřazení hovoru není dostupné. Vraťte se do konzole operátora a zkuste to znovu.");
           }
           if (!callSessionId) {
-            throw new Error("The server call session is unavailable. Return to the Operator Console and try again.");
+            throw new Error("Serverová relace hovoru není dostupná. Vraťte se do konzole operátora a zkuste to znovu.");
           }
 
           const completion = await completeLeadCallAction({
@@ -211,7 +211,7 @@ export function OrderCreateForm({
             transcript: null,
           });
           if (!completion.order_id) {
-            throw new Error("Call completion succeeded without creating an order.");
+            throw new Error("Hovor byl dokončen, ale objednávka nebyla vytvořena. Zkontrolujte historii objednávek.");
           }
           if (typeof window !== "undefined") {
             window.dispatchEvent(
@@ -242,7 +242,7 @@ export function OrderCreateForm({
         router.push(`/orders/${order.id}?origin=${initialOrigin}`);
       } catch (error) {
         setErrorMessage(
-          error instanceof Error ? error.message : "Order creation failed. Nothing was recorded.",
+          error instanceof Error ? error.message : "Objednávku se nepodařilo vytvořit. Nic nebylo uloženo. Zkuste to znovu.",
         );
       }
     });
@@ -259,13 +259,13 @@ export function OrderCreateForm({
           <Surface variant="page"><section className="p-6">
             <div className="mb-5 flex items-start justify-between gap-4 border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Customer</h2>
+                <h2 className="text-sm font-semibold text-zinc-100">Zákazník</h2>
                 <p className="mt-1 text-xs text-zinc-500">
-                  The order must be attached to a lead in this workspace.
+                  Objednávka musí být přiřazena k leadu v tomto pracovním prostoru.
                 </p>
               </div>
               <span className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                Required
+                Povinné
               </span>
             </div>
             <label className="block space-y-2 text-xs text-zinc-400">
@@ -283,7 +283,7 @@ export function OrderCreateForm({
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-3 text-sm text-zinc-100 outline-none transition-colors duration-150 ease-interface focus:border-zinc-600"
                 required
               >
-                <option value="">Select a customer</option>
+                <option value="">Vyberte zákazníka</option>
                 {leads.map((lead) => (
                   <option key={lead.id} value={lead.id}>
                     {lead.full_name} · {lead.phone}
@@ -294,16 +294,16 @@ export function OrderCreateForm({
             {selectedLead && (
               <div className="mt-4 grid gap-3 rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4 sm:grid-cols-3">
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Name</span>
+                  <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Jméno</span>
                   <span className="mt-1 block text-xs font-medium text-zinc-200">{selectedLead.full_name}</span>
                 </div>
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Phone</span>
+                  <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Telefon</span>
                   <span className="mt-1 block text-xs font-mono text-zinc-300">{selectedLead.phone}</span>
                 </div>
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Email</span>
-                  <span className="mt-1 block truncate text-xs text-zinc-300">{selectedLead.email || "Not provided"}</span>
+                  <span className="block text-[10px] uppercase tracking-wider text-zinc-500">E-mail</span>
+                  <span className="mt-1 block truncate text-xs text-zinc-300">{selectedLead.email || "Neuvedeno"}</span>
                 </div>
               </div>
             )}
@@ -325,9 +325,9 @@ export function OrderCreateForm({
 
           <Surface variant="page"><section className="p-6">
             <div className="mb-5 border-b border-zinc-800/80 pb-4">
-              <h2 className="text-sm font-semibold text-zinc-100">Order items</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">Položky objednávky</h2>
               <p className="mt-1 text-xs text-zinc-500">
-                Add products and set the price per piece. The catalog price is the minimum reference price.
+                Přidejte produkty a nastavte cenu za kus. Katalogová cena je minimální referenční cena.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -335,9 +335,9 @@ export function OrderCreateForm({
                 value={productToAdd}
                 onChange={(event) => setProductToAdd(event.target.value)}
                 className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-3 text-sm text-zinc-100 outline-none focus:border-zinc-600"
-                aria-label="Product to add"
+                aria-label="Produkt k přidání"
               >
-                <option value="">Select a product to add</option>
+                <option value="">Vyberte produkt k přidání</option>
                 {addableProducts.map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.title} · {product.currency} {product.price.toFixed(2)}
@@ -351,12 +351,12 @@ export function OrderCreateForm({
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-3 text-xs font-semibold text-zinc-200 transition-colors duration-150 ease-interface hover:border-zinc-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Plus className="h-4 w-4" />
-                Add product
+                Přidat produkt
               </button>
             </div>
             {resolvedItems.length === 0 ? (
               <div className="mt-4 rounded-xl border border-dashed border-zinc-800 p-8 text-center text-xs text-zinc-500">
-                No products added yet.
+                Zatím nejsou přidané žádné produkty.
               </div>
             ) : (
               <div className="mt-4 space-y-3">
@@ -366,21 +366,21 @@ export function OrderCreateForm({
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-100">{item.product.title}</p>
                         <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                          {item.product.category} · minimum {item.product.currency} {item.product.price.toFixed(2)} each
+                          {({ supplements: "Doplňky stravy", cosmetics: "Kosmetika", electronics: "Elektronika" } as Record<string, string>)[item.product.category] || item.product.category} · minimum {item.product.currency} {item.product.price.toFixed(2)} za kus
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeItem(item.product.id)}
                         className="rounded-lg p-1.5 text-zinc-600 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-rose-300"
-                        aria-label={`Remove ${item.product.title}`}
+                        aria-label={`Odebrat ${item.product.title}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
                       <label className="space-y-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                        <span>Quantity</span>
+                        <span>Množství</span>
                         <input
                           type="number"
                           min={1}
@@ -396,7 +396,7 @@ export function OrderCreateForm({
                         />
                       </label>
                       <label className="space-y-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                        <span>Price per piece</span>
+                        <span>Cena za kus</span>
                         <input
                           type="number"
                           min={0}
@@ -411,13 +411,13 @@ export function OrderCreateForm({
                         />
                       </label>
                       <div className="space-y-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                        <span>Line total</span>
+                        <span>Celkem za položku</span>
                         <p className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-mono normal-case tracking-normal text-zinc-100">
                           {item.product.currency} {item.lineTotal.toFixed(2)}
                         </p>
                         {item.unitPrice < item.product.price && (
                           <p className="mt-1 text-[10px] normal-case tracking-normal text-amber-300">
-                            Below minimum {item.product.currency} {item.product.price.toFixed(2)} / piece
+                            Pod minimem {item.product.currency} {item.product.price.toFixed(2)} / kus
                           </p>
                         )}
                       </div>
@@ -430,14 +430,14 @@ export function OrderCreateForm({
 
           {!isCallFlow && <Surface variant="page"><section className="p-6">
             <div className="mb-5 border-b border-zinc-800/80 pb-4">
-              <h2 className="text-sm font-semibold text-zinc-100">Order note and source</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">Poznámka a zdroj objednávky</h2>
               <p className="mt-1 text-xs text-zinc-500">
-                The lead note is prefilled here as context. Edit it to save the order-specific handoff note.
+                Poznámka leadu je předvyplněna pro kontext. Upravte ji pro předání této objednávky.
               </p>
             </div>
             <div className="grid gap-5 md:grid-cols-2">
               <label className="block space-y-2 text-xs text-zinc-400">
-                <span className="font-medium text-zinc-300">Order source</span>
+                <span className="font-medium text-zinc-300">Zdroj objednávky</span>
                 <select
                   value={orderSource}
                   onChange={(event) => setOrderSource(event.target.value as OrderSource)}
@@ -450,7 +450,7 @@ export function OrderCreateForm({
               </label>
               <label className="block space-y-2 text-xs text-zinc-400 md:col-span-2">
                 <span className="font-medium text-zinc-300">
-                  Order note <span className="text-zinc-600">(optional)</span>
+                  Poznámka k objednávce <span className="text-zinc-600">(nepovinné)</span>
                 </span>
                 <textarea
                   value={sourceNote}
@@ -459,7 +459,7 @@ export function OrderCreateForm({
                   }}
                   maxLength={1000}
                   rows={4}
-                  placeholder="Add context from the call or explain the order handoff."
+                  placeholder="Např. zákazník si přeje doručení až příští týden."
                   className="w-full resize-y rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600"
                 />
               </label>
@@ -469,22 +469,22 @@ export function OrderCreateForm({
           <Surface variant="page"><section className="p-6">
             <div className="mb-5 flex items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Lead note history</h2>
-                <p className="mt-1 text-xs text-zinc-500">Notes from this lead, including other operators.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Historie poznámek leadu</h2>
+                <p className="mt-1 text-xs text-zinc-500">Poznámky k tomuto leadu včetně poznámek ostatních operátorů.</p>
               </div>
               <Clock3 className="h-4 w-4 text-zinc-500" />
             </div>
             {leadNotesError ? (
               <p className="text-xs text-amber-200/80">{leadNotesError}</p>
             ) : leadNotes.length === 0 ? (
-              <p className="text-xs text-zinc-500">No saved lead notes yet.</p>
+              <p className="text-xs text-zinc-500">Lead zatím nemá uložené poznámky.</p>
             ) : (
               <div className="space-y-3">
                 {leadNotes.map((note) => (
                   <article key={note.id} className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4">
                     <div className="flex items-center justify-between gap-3 text-[10px] text-zinc-500">
                       <span className="font-medium text-zinc-300">{note.author_name}</span>
-                      <time dateTime={note.created_at}>{new Date(note.created_at).toLocaleString("en-GB")}</time>
+                      <time dateTime={note.created_at}>{new Date(note.created_at).toLocaleString("cs-CZ")}</time>
                     </div>
                     <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">{note.body}</p>
                   </article>
@@ -498,46 +498,46 @@ export function OrderCreateForm({
           <Surface variant="page"><div className="p-6">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Order summary</h2>
-                <p className="mt-1 text-xs text-zinc-500">Review before saving.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Shrnutí objednávky</h2>
+                <p className="mt-1 text-xs text-zinc-500">Před uložením zkontrolujte údaje.</p>
               </div>
               <ShoppingCart className="h-4 w-4 text-zinc-500" />
             </div>
             <div className="space-y-3 text-xs">
               <div className="flex justify-between gap-4 text-zinc-400">
-                <span>Customer</span>
-                <span className="max-w-[170px] truncate text-right text-zinc-200">{selectedLead?.full_name || "Not selected"}</span>
+                <span>Zákazník</span>
+                <span className="max-w-[170px] truncate text-right text-zinc-200">{selectedLead?.full_name || "Nevybrán"}</span>
               </div>
               <div className="flex justify-between gap-4 text-zinc-400">
-                <span>Items</span>
+                <span>Položky</span>
                 <span className="text-right text-zinc-200">{resolvedItems.length}</span>
               </div>
               <div className="flex justify-between gap-4 text-zinc-400">
-                <span>Currency</span>
+                <span>Měna</span>
                 <span className="font-mono text-zinc-200">{orderCurrency}</span>
               </div>
               <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3 text-zinc-400">
-                <span>Total</span>
+                <span>Celkem</span>
                 <span className="font-mono text-base font-semibold text-zinc-100">
                   {resolvedItems.length ? `${orderCurrency} ${orderTotal.toFixed(2)}` : "—"}
                 </span>
               </div>
               <div className="flex justify-between gap-4 text-zinc-500">
-                <span>Minimum reference total</span>
+                <span>Minimální referenční součet</span>
                 <span className="font-mono">{resolvedItems.length ? `${orderCurrency} ${minimumOrderTotal.toFixed(2)}` : "—"}</span>
               </div>
             </div>
             {isBelowMinimum && (
               <StatusAlert tone="warning" role="status" className="w-full">
-                <p className="font-semibold">Order is below the minimum reference price.</p>
-                <p className="mt-1 text-amber-200/80">Minimum reference total: {orderCurrency} {minimumOrderTotal.toFixed(2)}. You can still create this order.</p>
+                <p className="font-semibold">Objednávka je pod minimální referenční cenou.</p>
+                <p className="mt-1 text-amber-200/80">Minimální referenční součet: {orderCurrency} {minimumOrderTotal.toFixed(2)}. Objednávku přesto můžete vytvořit.</p>
               </StatusAlert>
             )}
               <Surface variant="inset"><div className="mt-5 p-3 text-[11px] leading-relaxed text-zinc-400">
                 <CheckCircle2 className="mb-1.5 h-4 w-4 text-zinc-300" />
               {isCallFlow
-                ? "The order and completed call are written atomically on the server."
-                : "The order is created as In-Progress. Items, total and the audit event are written atomically on the server."}
+                ? "Objednávka a dokončený hovor se na serveru uloží společně v jednom kroku."
+                : "Objednávka se vytvoří ve stavu Zpracovává se. Položky, celková částka a auditní záznam se na serveru uloží společně v jednom kroku."}
               </div></Surface>
             <button
               type="submit"
@@ -545,14 +545,14 @@ export function OrderCreateForm({
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 py-3 text-xs font-semibold text-zinc-950 transition-colors duration-150 ease-interface hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {isPending ? (isCallFlow ? "Completing call…" : "Creating order…") : (isCallFlow ? "Complete Call & Create Order" : "Create Order")}
+              {isPending ? (isCallFlow ? "Dokončuji hovor…" : "Vytvářím objednávku…") : (isCallFlow ? "Dokončit hovor a vytvořit objednávku" : "Vytvořit objednávku")}
             </button>
             <button
               type="button"
               onClick={() => router.push(backHref)}
               className="mt-2 w-full rounded-xl px-4 py-2.5 text-xs text-zinc-500 transition-colors duration-150 ease-interface hover:bg-zinc-800/60 hover:text-zinc-200"
             >
-              Cancel
+              Zrušit
             </button>
           </div></Surface>
         </aside>

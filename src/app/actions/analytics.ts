@@ -15,7 +15,7 @@ function toAnalyticsFailure(error: unknown): Exclude<AnalyticsActionResult<never
       ok: false,
       code: "UNAUTHORIZED",
       status: 401,
-      message: "Authentication is required to view analytics.",
+      message: "Pro zobrazení analytiky se přihlaste.",
     };
   }
 
@@ -25,7 +25,7 @@ function toAnalyticsFailure(error: unknown): Exclude<AnalyticsActionResult<never
         ok: false,
         code: "FORBIDDEN",
         status: 403,
-        message: "Analytics are available to Team Leaders and Administrators only.",
+        message: "Analytika je dostupná pouze vedoucím týmu a správcům.",
       };
     }
 
@@ -34,7 +34,7 @@ function toAnalyticsFailure(error: unknown): Exclude<AnalyticsActionResult<never
         ok: false,
         code: "VALIDATION",
         status: 400,
-        message: "The analytics request is invalid.",
+        message: "Požadavek na analytická data je neplatný.",
       };
     }
   }
@@ -44,7 +44,7 @@ function toAnalyticsFailure(error: unknown): Exclude<AnalyticsActionResult<never
     ok: false,
     code: "UNAVAILABLE",
     status: 503,
-    message: "Analytics are unavailable right now.",
+    message: "Analytika nyní není dostupná. Zkuste to později.",
   };
 }
 

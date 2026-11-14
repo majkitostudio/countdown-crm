@@ -11,7 +11,7 @@ interface TeamRosterPanelProps {
 }
 
 function roleLabel(role: TeamMembershipDTO["membership_role"]): string {
-  return role === "leader" ? "Team Leader" : "Operator";
+  return role === "leader" ? "Vedoucí týmu" : "Operátor";
 }
 
 export function TeamRosterPanel({ teams, memberships }: TeamRosterPanelProps) {
@@ -31,12 +31,12 @@ export function TeamRosterPanel({ teams, memberships }: TeamRosterPanelProps) {
               <h2 className="text-sm font-semibold text-zinc-100">Moje týmy</h2>
             </div>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-500">
-              Přehled týmů, které tato role smí řídit. Zobrazená jména a členové pocházejí z aktuálního workspace.
+              Přehled týmů, které tato role smí řídit. Zobrazená jména a členové pocházejí z aktuálního pracovního prostoru.
             </p>
           </div>
           <div className="flex gap-2 text-[10px] text-zinc-500">
-            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1">{activeTeams.length} active teams</span>
-            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1">{operatorCount} operators</span>
+            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1">Aktivní týmy: {activeTeams.length}</span>
+            <span className="rounded-full border border-zinc-700 bg-zinc-950 px-2.5 py-1">Operátoři: {operatorCount}</span>
           </div>
         </div>
 
@@ -55,7 +55,7 @@ export function TeamRosterPanel({ teams, memberships }: TeamRosterPanelProps) {
                       <h3 className="text-sm font-medium text-zinc-100">{team.name}</h3>
                       <p className="mt-1 text-[11px] text-zinc-500">{team.slug}</p>
                     </div>
-                    <StatusBadge tone="success">Active</StatusBadge>
+                    <StatusBadge tone="success">Aktivní</StatusBadge>
                   </div>
                   {teamMembers.length === 0 ? (
                     <p className="mt-4 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-3 text-xs text-zinc-500">Tým zatím nemá aktivní členy.</p>
@@ -79,7 +79,7 @@ export function TeamRosterPanel({ teams, memberships }: TeamRosterPanelProps) {
         )}
 
         {leaderCount > 0 && (
-          <p className="text-xs text-zinc-600">Team Leadeři v rozsahu: {leaderCount}</p>
+          <p className="text-xs text-zinc-600">Vedoucí týmů v rozsahu: {leaderCount}</p>
         )}
       </div>
     </Surface>

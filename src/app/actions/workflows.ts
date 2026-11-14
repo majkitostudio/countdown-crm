@@ -42,7 +42,7 @@ export async function listWorkflowExecutionsAction(): Promise<ExecutionLogEntry[
 export async function createWorkflowExecutionAction(entry: ExecutionLogEntry): Promise<void> {
   await requireWorkflowManagementAccess();
   if (entry.status === "success") {
-    throw new Error("Successful workflow execution logs must be created by the server dispatcher.");
+    throw new Error("Záznamy o úspěšném spuštění automatizace musí vytvořit serverové zpracování.");
   }
   return createWorkflowExecutionForWorkspace(entry);
 }

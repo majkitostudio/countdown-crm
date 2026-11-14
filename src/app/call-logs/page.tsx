@@ -90,9 +90,9 @@ export default function CallLogsPage() {
   };
 
   const reviewStatusLabel = (status: CallRecord["review_status"]) => {
-    if (status === "not_reviewed") return "Not reviewed";
-    if (status === "corrected") return "Corrected";
-    if (status === "reviewed") return "Reviewed";
+    if (status === "not_reviewed") return "Nezkontrolováno";
+    if (status === "corrected") return "Opraveno";
+    if (status === "reviewed") return "Zkontrolováno";
     return null;
   };
 
@@ -116,8 +116,8 @@ export default function CallLogsPage() {
       
       <PageHeader
         icon={PhoneCall}
-        title="Call Logs"
-        badge={{ label: `${totalCallsCount} logged`, tone: "neutral" }}
+        title="Záznamy hovorů"
+        badge={{ label: `${totalCallsCount} zaznamenaných`, tone: "neutral" }}
         description="Zaznamenané výsledky hovorů a ověřené zachycené přepisy. Záznam nemusí obsahovat audio ani přepis."
 actions={
           <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ actions={
                 href="/call-logs?review=unreviewed"
                 className={getButtonClassName("secondary")}
               >
-                Unreviewed: {unreviewedCount}
+                Nezkontrolované: {unreviewedCount}
               </Link>
             )}
             <Link
@@ -134,7 +134,7 @@ actions={
               className={getButtonClassName("primary")}
             >
               <PhoneCall className="h-4 w-4" aria-hidden="true" />
-              <span>Launch Operator Console</span>
+              <span>Spustit operátorskou konzoli</span>
             </Link>
           </div>
         }
@@ -142,10 +142,10 @@ actions={
 
       {/* KPI Cards Header */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-120 ease-interface motion-reduce:animate-none">
-        <MetricCard label="Logged calls" value={totalCallsCount} />
-        <MetricCard label="Average handling" value={formatDuration(avgDuration)} />
-        <MetricCard label="Revenue" value={formatCurrencyAmount(totalSalesVolume, "CZK")} />
-        <MetricCard label="Conversion" value={`${conversionRate}%`} />
+        <MetricCard label="Zaznamenané hovory" value={totalCallsCount} />
+        <MetricCard label="Průměrné zpracování" value={formatDuration(avgDuration)} />
+        <MetricCard label="Tržby" value={formatCurrencyAmount(totalSalesVolume, "CZK")} />
+        <MetricCard label="Konverze" value={`${conversionRate}%`} />
       </div>
 
       {/* Filter and Search Bar */}
@@ -157,8 +157,8 @@ actions={
             <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              aria-label="Search calls"
-              placeholder="Search customer, operator or call ID..."
+              aria-label="Hledat hovory"
+              placeholder="Hledat zákazníka, operátora nebo ID hovoru..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-9 pr-4 py-2 text-base sm:text-sm text-zinc-200 placeholder:text-zinc-400"
@@ -177,7 +177,7 @@ actions={
                   : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
               }`}
             >
-              All Logs ({calls.length})
+              Všechny záznamy ({calls.length})
             </button>
             <button
               type="button"
@@ -189,7 +189,7 @@ actions={
                   : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
               }`}
             >
-              Order Placed
+              Objednávka vytvořena
             </button>
             <button
               type="button"
@@ -201,7 +201,7 @@ actions={
                   : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
               }`}
             >
-              Follow-ups
+              Naplánované hovory
             </button>
             {canReview && (
               <button
@@ -214,7 +214,7 @@ actions={
                     : "bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200"
                 }`}
               >
-                Unreviewed
+                Nezkontrolované
               </button>
             )}
           </div>
@@ -226,7 +226,7 @@ actions={
       <Surface variant="table">
         <div
           role="region"
-          aria-label="Call logs table"
+          aria-label="Tabulka záznamů hovorů"
           aria-busy={isLoading}
           tabIndex={0}
           className="overflow-x-auto"
@@ -234,12 +234,12 @@ actions={
           <table className="w-full text-left text-xs text-zinc-300">
             <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[11px] border-b border-zinc-800/80">
               <tr>
-                <th className="px-5 py-3">Call ID & Customer</th>
-                <th className="px-5 py-3">Operator</th>
-                <th className="px-5 py-3">Duration</th>
-                <th className="px-5 py-3">Outcome</th>
-                <th className="px-5 py-3">Revenue</th>
-                <th className="px-5 py-3">Call review</th>
+                <th className="px-5 py-3">ID hovoru a zákazník</th>
+                <th className="px-5 py-3">Operátor</th>
+                <th className="px-5 py-3">Délka</th>
+                <th className="px-5 py-3">Výsledek</th>
+                <th className="px-5 py-3">Tržby</th>
+                <th className="px-5 py-3">Kontrola hovoru</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
@@ -260,7 +260,7 @@ actions={
                         className={getButtonClassName("secondary")}
                         onClick={() => setLoadAttempt((attempt) => attempt + 1)}
                       >
-                        Retry
+                        Zkusit znovu
                       </button>
                     </div>
                   </td>
@@ -275,7 +275,7 @@ actions={
                     </p>
                     <p className="mt-1 text-xs text-zinc-400">
                       {selectedOutcomeFilter === "unreviewed"
-                        ? "V tomto seznamu nezbývá žádná práce pro Team Leadera."
+                        ? "V tomto seznamu nezbývá žádná práce pro vedoucího týmu."
                         : "Zkuste jiný výsledek nebo jiný hledaný výraz."}
                     </p>
                   </td>
@@ -301,15 +301,15 @@ actions={
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs text-zinc-400">
-                        {canReview ? reviewStatusLabel(c.review_status) || "Not available" : "Not available"}
+                        {canReview ? reviewStatusLabel(c.review_status) || "Nedostupné" : "Nedostupné"}
                       </span>
                       <div className="flex shrink-0 items-center gap-1.5">
                         {canReview && c.review_href && (
                           <Link
                             href={reviewHrefForCall(c) || "#"}
                             className="inline-flex rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-200"
-                            aria-label={`Open review for ${c.lead_name}`}
-                            title="Open review"
+                            aria-label={`Otevřít kontrolu pro ${c.lead_name}`}
+                            title="Otevřít kontrolu"
                           >
                             <ClipboardCheck className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
                           </Link>
@@ -318,8 +318,8 @@ actions={
                       <button
                         onClick={() => setSelectedCall(c)}
                         className="rounded-lg border border-zinc-800 bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-zinc-200 transition-colors duration-150 ease-interface hover:bg-zinc-800"
-                        aria-label={`View record for ${c.lead_name}`}
-                        title="View record"
+                        aria-label={`Zobrazit záznam pro ${c.lead_name}`}
+                        title="Zobrazit záznam"
                       >
                         <Eye className="h-3.5 w-3.5 text-zinc-400" />
                       </button>

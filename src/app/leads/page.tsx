@@ -65,7 +65,7 @@ function LeadsPageContent() {
     return (
       <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-400">
         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-        Načítám oprávnění workspace…
+        Načítám oprávnění pracovního prostoru…
       </div>
     );
   }
@@ -74,10 +74,10 @@ function LeadsPageContent() {
     return (
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Lead management unavailable</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Správa leadů není dostupná</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-          Operators do not receive a lead directory or manual lead creation and editing access.
-          Assignment will become available after a real inbound or call-queue integration is connected.
+          Operátoři nemají přístup k seznamu leadů ani k jejich ručnímu vytváření a úpravám.
+          Přidělování bude dostupné po připojení integrace příchozích hovorů nebo fronty hovorů.
         </p>
       </Surface>
     );
@@ -109,25 +109,25 @@ function LeadsPageContent() {
       
       <PageHeader
         icon={Users}
-        title="Leads"
-        badge={{ label: `${totalLeads} contacts`, tone: "neutral" }}
+        title="Leady"
+        badge={{ label: `Počet kontaktů: ${totalLeads}`, tone: "neutral" }}
         description="Kontakty, přiřazení a další kroky."
         actions={
           <>
           <Button
             onClick={loadLeads}
             variant="secondary"
-            title="Refresh Leads Data"
+            title="Obnovit data leadů"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
+            <span>Obnovit</span>
           </Button>
 
           <Button
             onClick={() => setIsCreateModalManuallyOpen(true)}
           >
             <UserPlus className="w-4 h-4" />
-            <span>Create Lead</span>
+            <span>Vytvořit lead</span>
           </Button>
 
           <Button
@@ -135,7 +135,7 @@ function LeadsPageContent() {
             variant="secondary"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Import CSV</span>
+            <span>Importovat CSV</span>
           </Button>
           </>
         }
@@ -145,9 +145,9 @@ function LeadsPageContent() {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <MetricCard label="Contacts" value={totalLeads} />
-        <MetricCard label="Qualified" value={`${qualifiedRatio}%`} />
-        <MetricCard label="Average score" value={`${avgScore}/100`} />
+        <MetricCard label="Kontakty" value={totalLeads} />
+        <MetricCard label="Kvalifikované leady" value={`${qualifiedRatio}%`} />
+        <MetricCard label="Průměrné skóre" value={`${avgScore}/100`} />
       </div>
 
       {/* Main Content View (table only; kanban removed for high-volume lead queues) */}
@@ -187,7 +187,7 @@ function LeadsPageContent() {
 function LeadsPageFallback() {
   return (
     <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-400">
-      Načítám lead management…
+      Načítám správu leadů…
     </div>
   );
 }

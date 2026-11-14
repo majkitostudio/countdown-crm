@@ -31,7 +31,7 @@ export function OrderStageSummary({ orders }: { orders: WorkspaceOrderDTO[] }) {
       aria-label="Souhrn objednávek podle fáze a rizika"
     >
       <span className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700/50 bg-zinc-800/40 px-2.5 py-1 text-[11px] font-medium text-zinc-300">
-        Total
+        Celkem
         <span className="font-mono font-semibold text-zinc-100">{orders.length}</span>
       </span>
 
@@ -58,7 +58,7 @@ export function OrderStageSummary({ orders }: { orders: WorkspaceOrderDTO[] }) {
         title="2 dny na výdejně — blíží se limitu"
       >
         <span className={`h-1.5 w-1.5 rounded-full ${risk.warning > 0 ? "bg-amber-400" : "bg-zinc-600"}`} />
-        Warning
+        Upozornění
         <span className="font-mono font-semibold">{risk.warning}</span>
       </span>
 
@@ -71,7 +71,7 @@ export function OrderStageSummary({ orders }: { orders: WorkspaceOrderDTO[] }) {
         title="3+ dny na výdejně — automaticky do fronty P4"
       >
         <span className={`h-1.5 w-1.5 rounded-full ${risk.alarm > 0 ? "bg-rose-400" : "bg-zinc-600"}`} />
-        Alarm
+        Výstraha
         <span className="font-mono font-semibold">{risk.alarm}</span>
       </span>
     </div>

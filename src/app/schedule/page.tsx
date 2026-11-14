@@ -18,12 +18,12 @@ export default async function CalendarPage() {
   if (loadError) {
     const message = isDataAccessError(loadError)
       ? loadError.message
-      : "Operator calendar could not be loaded. No calendar data was fabricated.";
+      : "Kalendář operátora se nepodařilo načíst. Nebyla vytvořena žádná kalendářová data.";
 
     return (
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Operator calendar unavailable</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Kalendář operátora nedostupný</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
       </Surface>
     );
@@ -33,7 +33,7 @@ export default async function CalendarPage() {
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={CalendarDays}
-        title="Schedule"
+        title="Plán hovorů"
         description="Naplánované hovory a vlastní připomínky operátora."
       />
       <OperatorCalendar initialCalendar={calendar!} />

@@ -24,7 +24,7 @@ interface OperatorNextActionPanelProps {
 
 function formatScheduledCallTime(value: string): string {
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Time unavailable";
+  if (!Number.isFinite(date.getTime())) return "Čas není dostupný";
   return date.toLocaleString("cs-CZ", {
     day: "numeric",
     month: "short",
@@ -48,7 +48,7 @@ export function OperatorNextActionPanel({
     [scheduledCalls, leadName, state],
   );
   const showPrimaryAction = action.kind === "recover_call" || action.kind === "claim_scheduled_call" || action.kind === "wait_for_assignment";
-  const primaryLabel = action.kind === "recover_call" ? "Recover" : "Refresh queue";
+  const primaryLabel = action.kind === "recover_call" ? "Obnovit" : "Obnovit frontu";
   const actionIcon = action.kind === "recover_call"
     ? RotateCcw
     : action.kind === "complete_outcome"
@@ -56,7 +56,7 @@ export function OperatorNextActionPanel({
       : PhoneCall;
   const ActionIcon = actionIcon;
   const actionTone: SemanticTone = action.urgency === "critical" ? "warning" : "neutral";
-  const scheduledCallSummary = scheduledCalls.length === 0 ? "No scheduled calls" : `${scheduledCalls.length} scheduled call${scheduledCalls.length === 1 ? "" : "s"}`;
+  const scheduledCallSummary = scheduledCalls.length === 0 ? "Žádné naplánované hovory" : `Naplánované hovory: ${scheduledCalls.length}`;
 
   return (
     <div
@@ -69,11 +69,11 @@ export function OperatorNextActionPanel({
         aria-labelledby="operator-next-action-title"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-2 px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Next</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Další krok</span>
           <span id="operator-next-action-title" className="line-clamp-2 max-w-[16rem] break-words text-xs font-medium text-zinc-200" title={action.description}>
-            {action.kind === "start_call" ? "Ready to call" : action.title}
+            {action.kind === "start_call" ? "Připraveno k volání" : action.title}
           </span>
-          <StatusBadge tone={actionTone}>{action.urgency === "critical" ? "Attention" : "Ready"}</StatusBadge>
+          <StatusBadge tone={actionTone}>{action.urgency === "critical" ? "Vyžaduje pozornost" : "Připraveno"}</StatusBadge>
           {showPrimaryAction && (
             <Button
               variant="secondary"
@@ -83,7 +83,7 @@ export function OperatorNextActionPanel({
               title={action.description}
             >
               {isAssignmentRefreshing ? <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <ActionIcon className="h-3.5 w-3.5" aria-hidden="true" />}
-              <span className="hidden sm:inline">{isAssignmentRefreshing ? "Refreshing…" : primaryLabel}</span>
+              <span className="hidden sm:inline">{isAssignmentRefreshing ? "Obnovování…" : primaryLabel}</span>
             </Button>
           )}
         </div>
@@ -92,19 +92,19 @@ export function OperatorNextActionPanel({
       <Surface
         variant="inset"
         data-testid="scheduled-call-recovery-inbox"
-        aria-label="Schedules"
+        aria-label="Naplánované hovory"
       >
         <div className="flex items-center gap-2 px-3 py-2">
           <CalendarClock className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
           <span className="hidden max-w-[10rem] truncate text-[11px] text-zinc-400 sm:inline" title={scheduledCallError || scheduledCallSummary}>
-            {isScheduledCallsLoading ? "Loading schedules…" : scheduledCallError ? "Schedules unavailable" : scheduledCallSummary}
+            {isScheduledCallsLoading ? "Načítání naplánovaných hovorů…" : scheduledCallError ? "Naplánované hovory nejsou dostupné" : scheduledCallSummary}
           </span>
           <Button
             variant="quiet"
             onClick={onRefreshScheduledCalls}
             disabled={isAssignmentRefreshing || isScheduledCallsLoading}
-            aria-label="Refresh schedules"
-            title="Refresh schedules"
+            aria-label="Obnovit naplánované hovory"
+            title="Obnovit naplánované hovory"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isScheduledCallsLoading ? "animate-spin" : ""}`} aria-hidden="true" />
           </Button>

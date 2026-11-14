@@ -54,7 +54,7 @@ async function resolveLeadCreationTeam(
     .eq("membership_role", "leader");
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Lead team could not be resolved");
+    throw new DataAccessError("DATABASE", "Tým leadu se nepodařilo určit.");
   }
 
   const now = Date.now();
@@ -63,7 +63,7 @@ async function resolveLeadCreationTeam(
     .map((membership) => membership.team_id);
 
   if (teamIds.length !== 1) {
-    throw new DataAccessError("FORBIDDEN", "Team Leader must lead exactly one active team to create a lead");
+    throw new DataAccessError("FORBIDDEN", "Pro vytvoření leadu musí vedoucí týmu vést právě jeden aktivní tým.");
   }
 
   return teamIds[0];
@@ -77,7 +77,7 @@ function assertLeadInput(input: CreateLeadInput): void {
     !input.full_name.trim() ||
     !input.phone.trim()
   ) {
-    throw new DataAccessError("VALIDATION", "Lead name and phone are required");
+    throw new DataAccessError("VALIDATION", "Vyplňte jméno a telefon leadu.");
   }
 
   if (
@@ -87,7 +87,7 @@ function assertLeadInput(input: CreateLeadInput): void {
     (input.country !== undefined && typeof input.country !== "string") ||
     (input.notes !== undefined && input.notes !== null && typeof input.notes !== "string")
   ) {
-    throw new DataAccessError("VALIDATION", "Lead text fields must be strings");
+    throw new DataAccessError("VALIDATION", "Textová pole leadu musí obsahovat text.");
   }
 
   if (
@@ -97,18 +97,18 @@ function assertLeadInput(input: CreateLeadInput): void {
     (input.company?.length || 0) > 200 ||
     (input.notes?.length || 0) > 5000
   ) {
-    throw new DataAccessError("VALIDATION", "Lead input is too long");
+    throw new DataAccessError("VALIDATION", "Údaje leadu jsou příliš dlouhé. Zkraťte je.");
   }
 
   if (input.status !== undefined && !LEAD_STATUSES.includes(input.status)) {
-    throw new DataAccessError("VALIDATION", "Invalid lead status");
+    throw new DataAccessError("VALIDATION", "Vyberte platný stav leadu.");
   }
 
   if (
     input.ai_score !== undefined &&
     (!Number.isFinite(input.ai_score) || input.ai_score < 0 || input.ai_score > 100)
   ) {
-    throw new DataAccessError("VALIDATION", "Lead score must be between 0 and 100");
+    throw new DataAccessError("VALIDATION", "Skóre leadu musí být od 0 do 100.");
   }
 }
 
@@ -145,7 +145,7 @@ export async function listLeadsForWorkspace(options?: {
   const { data, error } = await query;
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Lead lookup failed");
+    throw new DataAccessError("DATABASE", "Leady se nepodařilo načíst. Zkuste to znovu.");
   }
 
   return (data || []) as LeadDTO[];
@@ -179,7 +179,7 @@ export async function createLeadForWorkspace(
     .single();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Lead creation failed");
+    throw new DataAccessError("DATABASE", "Lead se nepodařilo vytvořit. Zkuste to znovu.");
   }
 
   return data as LeadDTO;
@@ -190,11 +190,11 @@ export async function createLeadsForWorkspace(
   workspaceId?: string,
 ): Promise<LeadDTO[]> {
   if (!Array.isArray(inputs) || inputs.length === 0) {
-    throw new DataAccessError("VALIDATION", "Lead import requires at least one row");
+    throw new DataAccessError("VALIDATION", "Import leadů musí obsahovat alespoň jeden řádek.");
   }
 
   if (inputs.length > 1000) {
-    throw new DataAccessError("VALIDATION", "Lead import is limited to 1000 rows per request");
+    throw new DataAccessError("VALIDATION", "Najednou lze importovat nejvýše 1 000 řádků leadů.");
   }
 
   inputs.forEach(assertLeadInput);
@@ -222,7 +222,7 @@ export async function createLeadsForWorkspace(
     .select(LEAD_FIELDS);
 
   if (error || !data || data.length !== inputs.length) {
-    throw new DataAccessError("DATABASE", "Lead import failed");
+    throw new DataAccessError("DATABASE", "Leady se nepodařilo importovat. Zkuste to znovu.");
   }
 
   return data as LeadDTO[];
@@ -244,13 +244,13 @@ export async function updateLeadStatusForWorkspace(
   const row = (Array.isArray(data) ? data[0] : data) as LeadDTO | null;
   if (error) {
     if (error.message?.includes("not found in the active workspace")) {
-      throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
+      throw new DataAccessError("NOT_FOUND", "Lead nebyl v pracovním prostoru nalezen.");
     }
-    throw new DataAccessError("DATABASE", "Lead update failed");
+    throw new DataAccessError("DATABASE", "Lead se nepodařilo aktualizovat. Zkuste to znovu.");
   }
 
   if (!row) {
-    throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
+    throw new DataAccessError("NOT_FOUND", "Lead nebyl v pracovním prostoru nalezen.");
   }
 
   return row as LeadDTO;

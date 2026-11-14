@@ -57,12 +57,12 @@ describe("ConversationBrief P4 Retargeting context", () => {
       order: { status: "fulfilled", value: null },
       queueReason: {
         status: "fulfilled",
-        value: "P4 Retargeting — předchozí námitka: Cena",
+        value: "P4 Opětovné oslovení — předchozí námitka: Cena",
       },
       productScripts: { status: "fulfilled", value: [] },
     });
 
-    expect(brief.queue_reason).toBe("P4 Retargeting — předchozí námitka: Cena");
+    expect(brief.queue_reason).toBe("P4 Opětovné oslovení — předchozí námitka: Cena");
     expect(brief.last_outcome?.fail_reason).toBe("price");
     expect(brief.last_outcome?.operator_note).toBe("Klientovi přišlo 1500 Kč moc");
   });
@@ -112,12 +112,12 @@ describe("ConversationBrief P4 Retargeting context", () => {
       },
       queueReason: {
         status: "fulfilled",
-        value: "P4 Záchrana — vrácený balíček (Re-ship)",
+        value: "P4 Záchrana — vrácený balíček (opětovné odeslání)",
       },
       productScripts: { status: "fulfilled", value: [] },
     });
 
-    expect(brief.queue_reason).toBe("P4 Záchrana — vrácený balíček (Re-ship)");
+    expect(brief.queue_reason).toBe("P4 Záchrana — vrácený balíček (opětovné odeslání)");
     expect(brief.last_order?.status).toBe("returned");
   });
 });

@@ -59,7 +59,7 @@ export interface AnalyticsTeamScope {
 
 export interface AnalyticsOverview {
   scope: "team" | "workspace";
-  scopeLabel: "Moje týmy" | "Celý workspace";
+  scopeLabel: "Moje týmy" | "Celý pracovní prostor";
   accessibleTeams: AnalyticsTeamScope[];
   sources: {
     calls: "ready" | "unavailable";
@@ -172,8 +172,8 @@ function getTeamLeaderboard(
   return Array.from(statsByAgent.entries())
     .map(([agentId, stats]) => {
       const profile = profileById.get(agentId);
-      const agentName = profile?.full_name?.trim() || "Unknown operator";
-      const role = profile?.role ? getWorkspaceRoleLabel(profile.role) : "Role unavailable";
+      const agentName = profile?.full_name?.trim() || "Neznámý operátor";
+      const role = profile?.role ? getWorkspaceRoleLabel(profile.role) : "Role není dostupná";
       const revenueByCurrency = Array.from(stats.revenueByCurrency.entries())
         .map(([currency, amount]) => ({ currency, amount: Math.round(amount * 100) / 100 }))
         .sort((left, right) => left.currency.localeCompare(right.currency));
@@ -247,7 +247,7 @@ export async function getAnalyticsData(requestedWorkspaceId?: string): Promise<A
   const context = await requireWorkspaceRole(ANALYTICS_ALLOWED_ROLES, requestedWorkspaceId);
   const supabase = await createDataClient();
   const scope = context.role === "administrator" ? "workspace" : "team";
-  const scopeLabel = scope === "workspace" ? "Celý workspace" : "Moje týmy";
+  const scopeLabel = scope === "workspace" ? "Celý pracovní prostor" : "Moje týmy";
 
   // This query is filtered by RLS as well as the workspace condition. For a
   // Team Leader it gives us the names and IDs that may be shown in the UI.

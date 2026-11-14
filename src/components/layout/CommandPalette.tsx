@@ -96,7 +96,7 @@ export function CommandPalette() {
   return (
     <Dialog isOpen={isOpen} onClose={closePalette} aria-labelledby="command-palette-title" size="lg" initialFocusRef={searchInputRef}>
       <div className="w-full pt-20">
-        <h2 id="command-palette-title" className="sr-only">Command palette</h2>
+        <h2 id="command-palette-title" className="sr-only">Příkazová paleta</h2>
         
         {/* Search Input Bar */}
         <div className="p-4 border-b border-zinc-800/80 flex items-center gap-3">
@@ -107,7 +107,7 @@ export function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={getCommandPalettePlaceholder(identity?.role)}
-            aria-label="Search commands and available records"
+            aria-label="Hledat příkazy a dostupné záznamy"
             className="flex-1"
           />
           <kbd className="px-2 py-1 bg-zinc-900 border border-zinc-800 rounded text-[10px] font-mono text-zinc-400">
@@ -122,7 +122,7 @@ export function CommandPalette() {
           {navItems.length > 0 && (
             <div className="space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 px-3 block">
-                Pages & Navigation
+                Stránky a navigace
               </span>
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -150,7 +150,7 @@ export function CommandPalette() {
           {filteredLeads.length > 0 && (
             <div className="space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 px-3 block">
-                Leads & Contacts ({filteredLeads.length})
+                Leady a kontakty ({filteredLeads.length})
               </span>
               {filteredLeads.map((lead) => (
                 <Button
@@ -164,11 +164,11 @@ export function CommandPalette() {
                     <Users className="w-4 h-4 text-zinc-400" />
                     <span className="text-left">
                       <span className="block font-semibold text-zinc-200">{lead.full_name}</span>
-                      <span className="block text-[10px] text-zinc-500">{lead.company || "Independent"} • {lead.phone}</span>
+                      <span className="block text-[10px] text-zinc-500">{lead.company || "Nezávislý"} • {lead.phone}</span>
                     </span>
                   </span>
                   <span className="flex items-center gap-2">
-                    <StatusBadge tone="neutral">Score: {lead.ai_score}</StatusBadge>
+                    <StatusBadge tone="neutral">Skóre: {lead.ai_score}</StatusBadge>
                     <span className="flex items-center gap-1 text-[10px] text-zinc-500 uppercase">
                       Zavolat <ArrowRight className="w-3 h-3" />
                     </span>
@@ -183,7 +183,7 @@ export function CommandPalette() {
           {filteredProducts.length > 0 && (
             <div className="space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 px-3 block">
-                Products ({filteredProducts.length})
+                Produkty ({filteredProducts.length})
               </span>
               {filteredProducts.map((prod) => (
                 <Button
@@ -206,7 +206,7 @@ export function CommandPalette() {
 
           {navItems.length === 0 && filteredLeads.length === 0 && filteredProducts.length === 0 && (
             <div className="text-center py-8 text-xs text-zinc-500">
-              No matching commands or records found for &quot;{query}&quot;
+              Žádné odpovídající příkazy ani záznamy pro &quot;{query}&quot;
             </div>
           )}
 
@@ -216,11 +216,11 @@ export function CommandPalette() {
         <div className="p-3 border-t border-zinc-800/80 bg-zinc-950/60 flex items-center justify-between text-[11px] text-zinc-500">
           <div className="flex items-center gap-2">
             <kbd className="rounded border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd>
-            <span>Close</span>
+            <span>Zavřít</span>
           </div>
           <span className="flex items-center gap-1 text-zinc-400">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            Attio-Speed Palette
+            Rychlé příkazy
           </span>
         </div>
 

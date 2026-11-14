@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
         <Surface variant="page">
           <div className="space-y-5 p-6">
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-zinc-200">Forgot password</h2>
+              <h2 className="text-sm font-semibold text-zinc-200">Zapomenuté heslo</h2>
               <p className="text-xs text-zinc-400">
                 Zadejte pracovní e-mail a pošleme vám odkaz pro nastavení nového hesla.
               </p>
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="recovery-email" className="text-xs font-medium text-zinc-300 block">
-                    Work Email
+                    Pracovní e-mail
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <Button type="submit" disabled={loading} className="w-full">
-                  <span>{loading ? "Sending..." : "Send recovery link"}</span>
+                  <span>{loading ? "Odesílání..." : "Odeslat odkaz pro obnovu"}</span>
                 </Button>
               </form>
             )}
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
               className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 underline underline-offset-4"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              Back to sign in
+              Zpět na přihlášení
             </Link>
           </div>
         </Surface>

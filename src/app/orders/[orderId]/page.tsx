@@ -14,12 +14,11 @@ import { ShipmentTimelineCard } from "@/components/orders/ShipmentTimelineCard";
 import { updateOrderTrackingAction } from "@/app/actions/crm";
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 function statusLabel(status: string): string {
-  if (status === "in_progress") return "In-Progress";
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  return ({ pending: "Čeká na zpracování", in_progress: "Zpracovává se", sent: "Odesláno", delivered: "Doručeno", returned: "Vráceno", cancelled: "Zrušeno", completed: "Dokončeno" } as Record<string, string>)[status] || status;
 }
 
 type OrderLoadResult =
@@ -67,11 +66,11 @@ export default async function OrderDetailPage({
     return (
       <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-rose-400" />
-        <h1 className="text-base font-semibold text-zinc-100">Order unavailable</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">The order could not be loaded from the active workspace.</p>
+        <h1 className="text-base font-semibold text-zinc-100">Objednávka není dostupná</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">Objednávku se nepodařilo načíst z aktivního pracovního prostoru. Zkuste to znovu.</p>
         <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back
+          Zpět
         </Link>
       </Surface>
     );
@@ -83,11 +82,11 @@ export default async function OrderDetailPage({
     return (
       <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Order not found</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">This order does not exist in the active workspace or is no longer available.</p>
+        <h1 className="text-base font-semibold text-zinc-100">Objednávka nenalezena</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Tato objednávka v aktivním pracovním prostoru neexistuje nebo už není dostupná.</p>
         <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back
+          Zpět
         </Link>
       </Surface>
     );
@@ -103,9 +102,9 @@ export default async function OrderDetailPage({
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={ShoppingCart}
-        title="Order Detail"
+        title="Detail objednávky"
         badge={{ label: statusLabel(order.status), tone: order.status === "completed" || order.status === "delivered" ? "success" : order.status === "pending" ? "warning" : "neutral" }}
-        backLink={{ href: backHref, label: requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
+        backLink={{ href: backHref, label: requestedOrigin === "workspace" ? "Zpět do konzole operátora" : "Zpět na objednávky" }}
         description={`Objednávka #${order.id} · Vytvořeno ${formatDate(order.created_at)}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -116,7 +115,7 @@ export default async function OrderDetailPage({
                 className={getButtonClassName("secondary")}
               >
                 <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                Edit details
+                Upravit údaje
               </Link>
             )}
           </div>
@@ -128,25 +127,25 @@ export default async function OrderDetailPage({
           <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Customer</h2>
-                <p className="mt-1 text-xs text-zinc-500">Workspace-linked lead record.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Zákazník</h2>
+                <p className="mt-1 text-xs text-zinc-500">Záznam leadu propojený s pracovním prostorem.</p>
               </div>
               <UserRound className="h-4 w-4 text-zinc-500" />
             </div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-base font-semibold text-zinc-100">{order.lead_name}</p>
-                <p className="mt-1 text-xs text-zinc-500">Lead ID <span className="font-mono text-zinc-400">{order.lead_id || "unavailable"}</span></p>
+                <p className="mt-1 text-xs text-zinc-500">ID leadu <span className="font-mono text-zinc-400">{order.lead_id || "nedostupné"}</span></p>
               </div>
-              {order.lead_id && <Link href={`/leads/${order.lead_id}`} className={getButtonClassName("secondary")}>Open customer profile <ExternalLink className="h-3.5 w-3.5" /></Link>}
+              {order.lead_id && <Link href={`/leads/${order.lead_id}`} className={getButtonClassName("secondary")}>Otevřít profil zákazníka <ExternalLink className="h-3.5 w-3.5" /></Link>}
             </div>
           </section>
 
           <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Delivery address</h2>
-                <p className="mt-1 text-xs text-zinc-500">The address saved with this order.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Doručovací adresa</h2>
+                <p className="mt-1 text-xs text-zinc-500">Adresa uložená u této objednávky.</p>
               </div>
               <MapPin className="h-4 w-4 text-zinc-500" />
             </div>
@@ -159,7 +158,7 @@ export default async function OrderDetailPage({
                 <p>{deliveryAddress.country}</p>
               </address>
             ) : (
-              <p className="text-xs text-zinc-500">No delivery address snapshot is available for this order.</p>
+              <p className="text-xs text-zinc-500">U této objednávky není uložená doručovací adresa.</p>
             )}
           </section>
 
@@ -183,8 +182,8 @@ export default async function OrderDetailPage({
           <section className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Order item</h2>
-                <p className="mt-1 text-xs text-zinc-500">Persisted product snapshots, unit prices and quantities.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Položky objednávky</h2>
+                <p className="mt-1 text-xs text-zinc-500">Uložené údaje o produktech, jednotkových cenách a množství.</p>
               </div>
               <Package className="h-4 w-4 text-zinc-500" />
             </div>
@@ -195,11 +194,11 @@ export default async function OrderDetailPage({
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-100">{item.product_title}</p>
-                        <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">{item.currency} {item.unit_price.toFixed(2)} each · quantity {item.quantity}</p>
+                        <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">{item.currency} {item.unit_price.toFixed(2)} za kus · množství {item.quantity}</p>
                       </div>
                       <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{item.currency} {item.line_total.toFixed(2)}</span>
                     </div>
-                    {item.unit_price < item.minimum_unit_price && <p className="mt-2 text-[10px] text-amber-300">Below minimum reference price of {item.currency} {item.minimum_unit_price.toFixed(2)} per piece</p>}
+                    {item.unit_price < item.minimum_unit_price && <p className="mt-2 text-[10px] text-amber-300">Pod minimální referenční cenou {item.currency} {item.minimum_unit_price.toFixed(2)} za kus</p>}
                   </Surface>
                 ))}
               </div>
@@ -208,7 +207,7 @@ export default async function OrderDetailPage({
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-zinc-100">{order.product_title}</p>
-                    <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">Product ID {order.product_id || "unavailable"}</p>
+                    <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">ID produktu {order.product_id || "nedostupné"}</p>
                   </div>
                   <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</span>
                 </div>
@@ -218,7 +217,7 @@ export default async function OrderDetailPage({
 
           {order.source_note && (
             <Surface variant="page" className="p-6">
-              <h2 className="text-sm font-semibold text-zinc-100">Source note</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">Poznámka ke zdroji</h2>
               <p className="mt-3 whitespace-pre-wrap rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4 text-xs leading-relaxed text-zinc-300">{order.source_note}</p>
             </Surface>
           )}
@@ -226,8 +225,8 @@ export default async function OrderDetailPage({
           <Surface variant="page" className="p-6">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Status history</h2>
-                <p className="mt-1 text-xs text-zinc-500">Recorded changes for this order.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Historie stavů</h2>
+                <p className="mt-1 text-xs text-zinc-500">Zaznamenané změny této objednávky.</p>
               </div>
               <CalendarClock className="h-4 w-4 text-zinc-500" />
             </div>
@@ -237,7 +236,7 @@ export default async function OrderDetailPage({
                   <Surface key={entry.id} variant="inset" className="p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs font-medium text-zinc-200">
-                        {entry.from_status ? `${statusLabel(entry.from_status)} → ` : "Created as "}{statusLabel(entry.to_status)}
+                        {entry.from_status ? `${statusLabel(entry.from_status)} → ` : "Vytvořeno ve stavu "}{statusLabel(entry.to_status)}
                       </p>
                       <time className="text-[10px] text-zinc-600" dateTime={entry.created_at}>{formatDate(entry.created_at)}</time>
                     </div>
@@ -247,7 +246,7 @@ export default async function OrderDetailPage({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-zinc-500">No status history is available for this order.</p>
+              <p className="text-xs text-zinc-500">Pro tuto objednávku není dostupná historie stavů.</p>
             )}
           </Surface>
         </div>
@@ -256,40 +255,40 @@ export default async function OrderDetailPage({
           <OrderStatusEditor orderId={order.id} currentStatus={order.status} canEdit={canEdit} isManager={isManager} />
           {!canEditDetails && order.items.length === 0 && (
             <StatusAlert tone="warning">
-              <p className="text-xs font-medium text-amber-100">Legacy order details are read-only</p>
+              <p className="text-xs font-medium text-amber-100">Údaje historické objednávky jsou pouze pro čtení</p>
               <p className="mt-2 text-xs leading-relaxed text-amber-100/70">
-                This historical order has no editable item snapshot. Its product and total above are preserved as read-only order history.
+                Tato historická objednávka nemá upravitelné údaje položek. Produkt a celková částka výše zůstávají zachovány v historii pouze pro čtení.
               </p>
             </StatusAlert>
           )}
           {!canEditDetails && order.items.length > 0 && order.status !== "pending" && order.status !== "in_progress" && (
             <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5">
-              <p className="text-xs font-medium text-zinc-300">Order details are read-only</p>
-              <p className="mt-2 text-xs leading-relaxed text-zinc-500">After the order is sent, only an administrator can edit its details. Status changes remain a separate workflow.</p>
+              <p className="text-xs font-medium text-zinc-300">Údaje objednávky jsou pouze pro čtení</p>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-500">Po odeslání objednávky může její údaje upravit pouze administrátor. Změny stavu se spravují odděleně.</p>
             </section>
           )}
           <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-sm">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-800/80 pb-4">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100">Order summary</h2>
-                <p className="mt-1 text-xs text-zinc-500">Persisted workspace values.</p>
+                <h2 className="text-sm font-semibold text-zinc-100">Shrnutí objednávky</h2>
+                <p className="mt-1 text-xs text-zinc-500">Uložené hodnoty pracovního prostoru.</p>
               </div>
               <CalendarClock className="h-4 w-4 text-zinc-500" />
             </div>
             <dl className="space-y-3 text-xs">
-              <div className="flex justify-between gap-4"><dt className="text-zinc-500">Source</dt><dd className="text-right capitalize text-zinc-200">{order.order_source.replaceAll("_", " ")}</dd></div>
-              <div className="flex justify-between gap-4"><dt className="text-zinc-500">Operator</dt><dd className="text-right text-zinc-200">{order.agent_name}</dd></div>
-              {minimumOrderTotal !== null && <div className="flex justify-between gap-4"><dt className="text-zinc-500">Minimum reference total</dt><dd className="font-mono text-right text-zinc-300">{order.currency} {minimumOrderTotal.toFixed(2)}</dd></div>}
-              <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3"><dt className="text-zinc-400">Total</dt><dd className="font-mono text-base font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-zinc-500">Zdroj</dt><dd className="text-right text-zinc-200">{({ manual: "Ruční zadání", previous_call: "Předchozí hovor", email: "E-mail", web_form: "Webový formulář", other: "Jiné" } as Record<string, string>)[order.order_source] || order.order_source}</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-zinc-500">Operátor</dt><dd className="text-right text-zinc-200">{order.agent_name}</dd></div>
+              {minimumOrderTotal !== null && <div className="flex justify-between gap-4"><dt className="text-zinc-500">Minimální referenční součet</dt><dd className="font-mono text-right text-zinc-300">{order.currency} {minimumOrderTotal.toFixed(2)}</dd></div>}
+              <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3"><dt className="text-zinc-400">Celkem</dt><dd className="font-mono text-base font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
             </dl>
-            {isBelowMinimum && <StatusAlert tone="warning">This order is below the minimum reference price. It was still allowed to be created.</StatusAlert>}
+            {isBelowMinimum && <StatusAlert tone="warning">Tato objednávka je pod minimální referenční cenou. Přesto bylo povoleno ji vytvořit.</StatusAlert>}
           </section>
           <Link
             href={backHref}
             className={getButtonClassName("secondary")}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            {requestedOrigin === "workspace" ? "Back to Operator Console" : "Back to Orders"}
+            {requestedOrigin === "workspace" ? "Zpět do konzole operátora" : "Zpět na objednávky"}
           </Link>
         </aside>
       </div>

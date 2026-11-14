@@ -18,12 +18,13 @@ Tento soubor obsahuje pouze pravidla specifická pro Countdown CRM a doplňuje g
 
 ## Uživatelské rozhraní
 
+- Rozhraní je česky, včetně navigace, tlačítek, stavů, hlášek a přístupných názvů. Názvy značek, technické zkratky a interní identifikátory nepřekládej; obsah uložený uživateli nepřepisuj.
 - Při revizi obrazovky urči roli a četnost použití, rozhodni ponechat/sjednotit/odstranit, seřaď důležitost a zvaž vhodný alternativní koncept UI.
 
 ## Terminologie plánovaných hovorů
 
 - **Callback** je pevně vázaný na konkrétního operátora.
-- **Scheduled call** je naplánovaný hovor bez pevné vazby na operátora; přednostně ho dostane zadávající operátor, ale může ho převzít kdokoli dostupný. V UI používej „Schedule“ / „naplánovaný hovor“, nikdy „callback“ pro tento typ hovoru.
+- **Scheduled call** je naplánovaný hovor bez pevné vazby na operátora; přednostně ho dostane zadávající operátor, ale může ho převzít kdokoli dostupný. V UI používej „naplánovaný hovor“ (v navigaci „Plán hovorů“), nikdy „callback“ pro tento typ hovoru.
 - Toto pravidlo se netýká programátorských callbacků ani historických migrací a testů. Staré databázové identifikátory v historických migracích nepřejmenovávej; měnilo by to historii, kterou testy ověřují.
 
 ## Technologie Next.js

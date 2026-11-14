@@ -34,7 +34,7 @@ const OBJECTION_COLORS = ["#e4e4e7", "#a1a1aa", "#71717a", "#52525b"];
 export function AnalyticsPanel() {
   const emptyData: AnalyticsOverview = {
     scope: "workspace",
-    scopeLabel: "Celý workspace",
+    scopeLabel: "Celý pracovní prostor",
     accessibleTeams: [],
     sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable", teams: "unavailable" },
     totalRevenue: 0,
@@ -91,7 +91,7 @@ export function AnalyticsPanel() {
           ok: false,
           code: "UNAVAILABLE",
           status: 503,
-          message: error instanceof Error ? error.message : "Analytics query failed",
+          message: error instanceof Error ? error.message : "Analytická data se nepodařilo načíst.",
         });
       }
     }
@@ -112,7 +112,7 @@ export function AnalyticsPanel() {
       }
       exportAnalyticsToCSV(exportResult.data);
     } catch (error: unknown) {
-      setExportError(error instanceof Error ? error.message : "Analytics export failed");
+      setExportError(error instanceof Error ? error.message : "Export analytických dat se nezdařil.");
     } finally {
       setIsExporting(false);
     }
@@ -122,7 +122,7 @@ export function AnalyticsPanel() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-400" data-testid="analytics-scope">
-          <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2.5 py-1 font-medium text-zinc-200">{status === "loading" ? "Loading" : status === "forbidden" ? "Restricted" : status === "unavailable" ? "Unavailable" : status === "empty" ? "No activity" : result?.ok ? scopeLabel : "Unavailable"}</span>
+          <span className="rounded-md border border-zinc-800 bg-zinc-950 px-2.5 py-1 font-medium text-zinc-200">{status === "loading" ? "Načítání" : status === "forbidden" ? "Omezený přístup" : status === "unavailable" ? "Nedostupné" : status === "empty" ? "Bez aktivity" : result?.ok ? scopeLabel : "Nedostupné"}</span>
           {result?.ok && data.scope === "team" && (
             <span>{data.sources.teams === "ready"
               ? data.accessibleTeams.length > 0
@@ -138,29 +138,29 @@ export function AnalyticsPanel() {
             variant="secondary"
           >
             <Download className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-            <span>{isExporting ? "Exporting CSV..." : `Export ${scopeLabel} CSV`}</span>
+            <span>{isExporting ? "Exportuji CSV…" : `Exportovat CSV: ${scopeLabel}`}</span>
           </Button>
         )}
       </div>
 
       {result === null && (
-        <StatusAlert tone="neutral" role="status">Loading analytics scope...</StatusAlert>
+        <StatusAlert tone="neutral" role="status">Načítám rozsah analytických dat…</StatusAlert>
       )}
 
       {result && !result.ok && (
         <StatusAlert tone={resultTone}>
-          {result.code === "FORBIDDEN" ? "Analytics access is restricted: " : "Analytics unavailable: "}{result.message}
+          {result.code === "FORBIDDEN" ? "Přístup k analytice je omezen: " : "Analytika není dostupná: "}{result.message}
         </StatusAlert>
       )}
 
       {exportError && (
         <StatusAlert tone="danger">
-          Analytics export unavailable: {exportError}
+          Export analytických dat není dostupný: {exportError}
         </StatusAlert>
       )}
 
       {result?.ok && isEmptySuccess && (
-        <StatusAlert tone="neutral" role="status">No persisted calls or completed-order activity is available in this analytics scope yet.</StatusAlert>
+        <StatusAlert tone="neutral" role="status">V tomto rozsahu analytiky zatím nejsou uložené hovory ani dokončené objednávky.</StatusAlert>
       )}
 
       {result?.ok && <>
@@ -169,28 +169,28 @@ export function AnalyticsPanel() {
 
         {/* Total Revenue & AI Forecast */}
         <MetricCard
-          label="Total Sales Volume"
+          label="Celkový objem prodeje"
           value={formatCurrencyAmounts(data.revenueByCurrency)}
           detail={data.forecastAvailable
-            ? `+${data.forecastGrowthPercent}% AI Forecast (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
-            : "AI Forecast unavailable"}
+            ? `+${data.forecastGrowthPercent}% AI prognóza (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
+            : "AI prognóza není dostupná"}
         />
 
         {/* Average Order Value AOV */}
-        <MetricCard label="Average Order Value (AOV)" value={formatCurrencyAmounts(data.avgOrderValueByCurrency)} detail={`Calculated from completed orders in ${scopeLabel.toLowerCase()}`} />
+        <MetricCard label="Průměrná hodnota objednávky (AOV)" value={formatCurrencyAmounts(data.avgOrderValueByCurrency)} detail={`Výpočet z dokončených objednávek. Rozsah: ${scopeLabel.toLowerCase()}`} />
 
         {/* Conversion Rate */}
-        <MetricCard label="Call Conversion Rate" value={`${data.conversionRate}%`} detail={`Based on ${data.totalCalls} calls in ${scopeLabel.toLowerCase()}`} />
+        <MetricCard label="Konverze hovorů" value={`${data.conversionRate}%`} detail={`Počet hovorů: ${data.totalCalls}. Rozsah: ${scopeLabel.toLowerCase()}`} />
 
         {/* Objection Resolution Rate */}
-        <MetricCard label="Objection Overcome %" value={data.objectionMetricsAvailable && data.objectionResolutionRate !== null ? `${data.objectionResolutionRate}%` : "—"} detail="No persisted objection outcome metric" />
+        <MetricCard label="Podíl překonaných námitek" value={data.objectionMetricsAvailable && data.objectionResolutionRate !== null ? `${data.objectionResolutionRate}%` : "—"} detail="Metrika výsledků námitek není uložená" />
 
       </div>
 
       <Surface variant="page"><div className="p-6">
-        <h2 className="text-base font-semibold text-zinc-100">AI Predictive Revenue Forecasting</h2>
+        <h2 className="text-base font-semibold text-zinc-100">AI prognóza příjmů</h2>
         <p className="text-xs text-zinc-500 mt-2">
-          Forecast unavailable: no persisted forecasting model or pipeline probability source is connected to this pilot.
+          Prognóza není dostupná: tento pilot nemá připojený uložený predikční model ani zdroj pravděpodobností obchodních příležitostí.
         </p>
       </div></Surface>
 
@@ -203,23 +203,23 @@ export function AnalyticsPanel() {
             <div>
               <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-zinc-400" />
-                Weekly Sales Revenue (actual)
+                Týdenní příjmy z prodeje (skutečnost)
               </h2>
-              <p className="text-[11px] text-zinc-400">Completed-order revenue from the last seven days</p>
+              <p className="text-[11px] text-zinc-400">Příjmy z dokončených objednávek za posledních sedm dní</p>
             </div>
             <div className="flex items-center gap-3 text-xs font-mono">
               <span className="flex items-center gap-1.5 text-zinc-200">
-                <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" /> Actual
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-300" /> Skutečnost
               </span>
               {data.forecastAvailable && <span className="flex items-center gap-1.5 text-zinc-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" /> Forecast
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600" /> Prognóza
               </span>}
             </div>
           </div>
 
           {data.currencies.length > 1 ? (
             <StatusAlert tone="warning" role="status" className="w-full">
-              Weekly revenue chart is unavailable for mixed currencies. Amounts remain separated in the revenue breakdown.
+              Graf týdenních příjmů není dostupný pro více měn současně. Částky zůstávají v přehledu příjmů oddělené.
             </StatusAlert>
           ) : <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -239,8 +239,8 @@ export function AnalyticsPanel() {
                 <Tooltip
                   contentStyle={{ backgroundColor: "#09090b", borderColor: "#27272a", borderRadius: "12px", fontSize: "12px" }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#e4e4e7" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
-                {data.forecastAvailable && <Area type="monotone" dataKey="forecast" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />}
+                <Area type="monotone" dataKey="revenue" name="Příjmy" stroke="#e4e4e7" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
+                {data.forecastAvailable && <Area type="monotone" dataKey="forecast" name="Prognóza" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />}
               </AreaChart>
             </ResponsiveContainer>
           </div>}
@@ -251,14 +251,14 @@ export function AnalyticsPanel() {
           <div className="border-b border-zinc-800/80 pb-3">
             <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-zinc-400" />
-              Customer Objection Breakdown
+              Přehled námitek zákazníků
             </h2>
-            <p className="text-[11px] text-zinc-400">Distribution of objections detected during calls</p>
+            <p className="text-[11px] text-zinc-400">Rozdělení námitek zjištěných během hovorů</p>
           </div>
 
           <div className="h-44 w-full flex items-center justify-center">
             {!data.objectionMetricsAvailable ? (
-              <p className="text-xs text-zinc-500 text-center px-6">Objection breakdown unavailable: no persisted objection outcome data.</p>
+              <p className="text-xs text-zinc-500 text-center px-6">Přehled námitek není dostupný: výsledky námitek nejsou uložené.</p>
             ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -307,9 +307,9 @@ export function AnalyticsPanel() {
           <div>
             <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
               <Users className="w-4 h-4 text-zinc-400" />
-              Team Performance Leaderboard
+              Žebříček výkonu týmu
             </h2>
-            <p className="text-[11px] text-zinc-400">Sales velocity and conversion ranking across representatives</p>
+            <p className="text-[11px] text-zinc-400">Pořadí operátorů podle tempa prodejů a konverze</p>
           </div>
         </div>
 
@@ -317,11 +317,11 @@ export function AnalyticsPanel() {
           <table className="w-full text-left text-xs text-zinc-300">
             <thead className="bg-zinc-950/80 text-zinc-400 font-semibold uppercase tracking-wider text-[10px] border-b border-zinc-800/80">
               <tr>
-                <th className="px-4 py-3">Representative</th>
-                <th className="px-4 py-3">Completed Calls</th>
-                <th className="px-4 py-3">Orders Placed</th>
-                <th className="px-4 py-3">Revenue Generated</th>
-                <th className="px-4 py-3 text-right">Conversion Rate</th>
+                <th className="px-4 py-3">Operátor</th>
+                <th className="px-4 py-3">Dokončené hovory</th>
+                <th className="px-4 py-3">Vytvořené objednávky</th>
+                <th className="px-4 py-3">Dosažené příjmy</th>
+                <th className="px-4 py-3 text-right">Konverze</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 font-medium">
@@ -348,12 +348,12 @@ export function AnalyticsPanel() {
               ))}
             </tbody>
           </table>
-        </div> : <p className="text-xs text-zinc-500 py-6">Team leaderboard unavailable: no persisted operator attribution data.</p>}
+        </div> : <p className="text-xs text-zinc-500 py-6">Žebříček týmu není dostupný: přiřazení aktivity operátorům není uložené.</p>}
       </div></Surface>
 
       <Surface variant="page"><div className="p-6">
-        <h2 className="text-base font-semibold text-zinc-100">AI Operator Coaching</h2>
-        <p className="text-xs text-zinc-500 mt-2">Coaching benchmarks unavailable until operator-attributed call outcomes are persisted.</p>
+        <h2 className="text-base font-semibold text-zinc-100">AI doporučení pro operátory</h2>
+        <p className="text-xs text-zinc-500 mt-2">Srovnání pro rozvoj operátorů bude dostupné po uložení výsledků hovorů s přiřazeným operátorem.</p>
       </div></Surface>
 
       </>}

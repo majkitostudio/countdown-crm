@@ -16,9 +16,9 @@ describe("department model (P1–P4)", () => {
     expect(DEPARTMENTS.map((department) => department.slug)).toEqual(["p1", "p2", "p3", "p4"]);
   });
 
-  it("labels departments in English with a Czech purpose", () => {
+  it("labels departments and their purpose in Czech", () => {
     for (const department of DEPARTMENTS) {
-      expect(department.name).toBe(`Department ${department.key}`);
+      expect(department.name).toBe(`Oddělení ${department.key}`);
       expect(department.purpose.length).toBeGreaterThan(0);
     }
   });

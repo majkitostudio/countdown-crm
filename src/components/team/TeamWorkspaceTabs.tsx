@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const TEAM_WORKSPACE_TABS = [
-  { href: "/team", label: "Team Overview" },
-  { href: "/team/exceptions", label: "Exceptions" },
-  { href: "/team/reviews", label: "Training Reviews" },
+  { href: "/team", label: "Přehled týmu" },
+  { href: "/team/exceptions", label: "Výjimky" },
+  { href: "/team/reviews", label: "Kontroly tréninků" },
 ] as const;
 
 /**
@@ -27,7 +27,7 @@ export function TeamWorkspaceTabs() {
     : undefined;
 
   return (
-    <nav aria-label="Team Workspace sections" className="flex flex-wrap items-center gap-2">
+    <nav aria-label="Sekce týmového pracovního prostoru" className="flex flex-wrap items-center gap-2">
       {TEAM_WORKSPACE_TABS.map((tab) => {
         const isActive = tab.href === activeHref;
         return (

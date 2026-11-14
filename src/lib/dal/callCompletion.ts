@@ -158,7 +158,7 @@ async function completeCallForAuthorizedWorkspace(
     throw new DataAccessError("DATABASE", "Operator profile lookup failed");
   }
 
-  const operatorName = operatorProfile?.full_name?.trim() || "Unknown operator";
+  const operatorName = operatorProfile?.full_name?.trim() || "Neznámý operátor";
   const { data, error } = await supabase.rpc("complete_call_with_order_items_idempotent", {
     completion_key: input.call_session_id,
     call_session_id: input.call_session_id,

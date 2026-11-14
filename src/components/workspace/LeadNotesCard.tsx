@@ -96,7 +96,7 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
       setBody("");
       setDraftStatus("server_saved");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Lead note could not be saved.");
+      setErrorMessage(error instanceof Error ? error.message : "Poznámku k leadu se nepodařilo uložit.");
     } finally {
       setIsSaving(false);
     }
@@ -110,30 +110,30 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
   };
 
   const draftStatusLabel = isSaving
-    ? "Saving note..."
+    ? "Ukládání poznámky…"
     : draftStatus === "unsaved"
-      ? "Unsaved changes"
+      ? "Neuložené změny"
       : draftStatus === "draft_saved"
-        ? "Draft saved locally"
+        ? "Koncept uložen v tomto zařízení"
         : draftStatus === "restored"
-          ? "Draft restored"
+          ? "Koncept obnoven"
           : draftStatus === "server_saved"
-            ? "Note saved"
-            : "No draft";
+            ? "Poznámka uložena"
+            : "Žádný koncept";
 
   return (
     <Surface variant="page"><section className="space-y-0 p-4">
       <div className="flex items-center gap-2">
         <FileText className="h-4 w-4 text-zinc-400" aria-hidden="true" />
         <div>
-          <h2 className="text-[15px] font-semibold tracking-tight text-white">Notes for this customer</h2>
-          <p className="mt-0.5 text-[11px] text-zinc-400">Shared with whoever gets this lead next</p>
+          <h2 className="text-[15px] font-semibold tracking-tight text-white">Poznámky k zákazníkovi</h2>
+          <p className="mt-0.5 text-[11px] text-zinc-400">Sdílené s operátorem, který tento lead dostane příště</p>
         </div>
-        <kbd className="ml-auto rounded border border-zinc-800 bg-zinc-950/70 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500" title="Focus note field">N</kbd>
+        <kbd className="ml-auto rounded border border-zinc-800 bg-zinc-950/70 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500" title="Přejít na pole poznámky">N</kbd>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-3 space-y-2">
-        <label htmlFor="lead-note-input" className="sr-only">Add lead note</label>
+        <label htmlFor="lead-note-input" className="sr-only">Přidat poznámku k leadu</label>
         <textarea
           id="lead-note-input"
           rows={3}
@@ -143,21 +143,21 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
             setDraftStatus(event.target.value.trim() ? "unsaved" : "empty");
           }}
           onKeyDown={handleNoteKeyDown}
-          placeholder="What should the next operator know? (N)"
+          placeholder="Co má vědět příští operátor? (N)"
           maxLength={2000}
           aria-keyshortcuts="Control+Enter Meta+Enter"
           className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-700"
         />
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 text-[10px] text-zinc-500">
-            <span role="status" aria-live="polite">{draftStatusLabel} · Ctrl/Cmd + Enter to save</span>
+            <span role="status" aria-live="polite">{draftStatusLabel} · Ctrl/Cmd + Enter uloží</span>
           </div>
           <Button
             type="submit"
             disabled={isSaving || !body.trim()}
           >
             <Send className="h-3 w-3" aria-hidden="true" />
-            {isSaving ? "Saving..." : "Save Note"}
+            {isSaving ? "Ukládání…" : "Uložit poznámku"}
           </Button>
         </div>
       </form>
@@ -170,12 +170,12 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
 
       <div className="mt-4 space-y-2 border-t border-zinc-800 pt-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Note history</h3>
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Historie poznámek</h3>
           <span className="font-mono text-[11px] text-zinc-400">{notes.length}</span>
         </div>
         {notes.length === 0 ? (
           <p className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 p-3 text-xs text-zinc-500">
-            No notes for this lead yet.
+            K tomuto leadu zatím nejsou žádné poznámky.
           </p>
         ) : (
           notes.map((note) => (

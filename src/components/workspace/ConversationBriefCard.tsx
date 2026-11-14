@@ -21,8 +21,8 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
     return (
       <Surface variant="page" aria-busy="true" data-testid="conversation-brief-compact">
         <div className="p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Call context</p>
-          <p className="mt-1 text-xs text-zinc-500">Loading recorded context…</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Kontext hovoru</p>
+          <p className="mt-1 text-xs text-zinc-500">Načítání zaznamenaného kontextu…</p>
         </div>
       </Surface>
     );
@@ -34,8 +34,8 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
         <div className="flex items-start gap-2">
           <TriangleAlert className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-300">Call context unavailable</p>
-            <p className="mt-1 text-xs text-zinc-400">{error || "Recorded customer context could not be loaded."}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-300">Kontext hovoru není dostupný</p>
+            <p className="mt-1 text-xs text-zinc-400">{error || "Zaznamenaný kontext zákazníka se nepodařilo načíst."}</p>
           </div>
         </div>
       </StatusAlert>
@@ -48,24 +48,24 @@ export function ConversationBriefCard({ brief, isLoading, error }: ConversationB
     <section className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-3" aria-labelledby="conversation-brief-title" data-testid="conversation-brief-compact">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Call context</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">Kontext hovoru</p>
             <h2 id="conversation-brief-title" className="mt-1 truncate text-[13px] font-semibold tracking-tight text-white">
-              {brief.lead.problem || "No recorded customer need"}
+              {brief.lead.problem || "Potřeba zákazníka není zaznamenána"}
             </h2>
           </div>
-          <StatusBadge tone="neutral">Recorded facts</StatusBadge>
+          <StatusBadge tone="neutral">Zaznamenaná fakta</StatusBadge>
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <Surface variant="inset" className="p-2.5">
-            <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Why this lead</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-zinc-300">{brief.queue_reason || "Routing reason not recorded"}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Proč tento lead</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-zinc-300">{brief.queue_reason || "Důvod přidělení není zaznamenán"}</p>
           </Surface>
           <Surface variant="inset" className="p-2.5">
             <div className="flex items-start gap-2">
               <BookOpenCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
               <div>
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Safe next step</p>
+                <p className="text-[9px] font-semibold uppercase tracking-wider text-zinc-500">Bezpečný další krok</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-zinc-200">{brief.next_safe_step.label}</p>
               </div>
             </div>

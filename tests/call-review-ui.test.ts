@@ -54,10 +54,10 @@ describe("real call review evidence", () => {
   it("labels a legacy call without inventing a source, script version, or transcript", () => {
     const html = render(baseReview);
 
-    expect(html).toContain("Call source was not recorded");
-    expect(html).toContain("Script version was not recorded for this call");
-    expect(html).toContain("No verified transcript was captured");
-    expect(html).not.toContain("AI verdict");
+    expect(html).toContain("Zdroj hovoru nebyl zaznamenán");
+    expect(html).toContain("Verze skriptu nebyla u tohoto hovoru zaznamenána");
+    expect(html).toContain("Nebyl zachycen ověřený přepis");
+    expect(html).not.toContain("Verdikt AI");
   });
 
   it("renders the exact published snapshot instead of a current script", () => {
@@ -76,7 +76,7 @@ describe("real call review evidence", () => {
     });
 
     expect(html).toContain("Telnyx");
-    expect(html).toContain("Published version 7 captured for this call");
+    expect(html).toContain("Pro tento hovor byla zachycena publikovaná verze 7");
     expect(html).toContain("Approved v7 used for this call");
   });
 
@@ -93,15 +93,15 @@ describe("real call review evidence", () => {
       },
     });
 
-    expect(html).toContain("Built-in fallback captured for this call");
+    expect(html).toContain("Pro tento hovor byla zachycena vestavěná náhradní verze");
     expect(html).toContain("Captured fallback copy");
-    expect(html).not.toContain("Script version was not recorded for this call");
+    expect(html).not.toContain("Verze skriptu nebyla u tohoto hovoru zaznamenána");
   });
 
   it.each([
-    [{ kind: "structured", entries: [{ speaker: "operator", text: "Hello", timestamp: "00:01" }] } as CallTranscript, "Hello", "Structured transcript"],
-    [{ kind: "plain_text", text: "Legacy transcript words" } as CallTranscript, "Legacy transcript words", "Legacy unstructured transcript"],
-    [{ kind: "unavailable" } as CallTranscript, "No verified transcript was captured", "Transcript unavailable"],
+    [{ kind: "structured", entries: [{ speaker: "operator", text: "Hello", timestamp: "00:01" }] } as CallTranscript, "Hello", "Strukturovaný přepis"],
+    [{ kind: "plain_text", text: "Legacy transcript words" } as CallTranscript, "Legacy transcript words", "Starší nestrukturovaný přepis"],
+    [{ kind: "unavailable" } as CallTranscript, "Nebyl zachycen ověřený přepis", "Přepis není dostupný"],
   ])("renders transcript state %# truthfully", (transcript, evidence, label) => {
     const html = render({ ...baseReview, transcript });
 
@@ -122,7 +122,7 @@ describe("human review and correction history", () => {
     expect(html).toContain('name="verdict"');
     expect(html).toContain('name="coachingNote"');
     expect(html).not.toContain('name="correctionReason"');
-    expect(html).toContain("Human decision only");
+    expect(html).toContain("Jde výhradně o rozhodnutí člověka");
   });
 
   it("pre-fills a correction and requires a reason", () => {
@@ -136,7 +136,7 @@ describe("human review and correction history", () => {
     expect(html).toContain("Needs coaching");
     expect(html).toContain("Confirm understanding before closing.");
     expect(html).toMatch(/name="correctionReason"[^>]*required/);
-    expect(html).toContain("Save correction as revision 2");
+    expect(html).toContain("Uložit opravu jako revizi 2");
   });
 
   it("keeps both the original and corrected wording in the timeline", () => {
@@ -153,9 +153,9 @@ describe("human review and correction history", () => {
     };
     const html = render({ ...baseReview, revisions: [revisionOne, revisionTwo] });
 
-    expect(html).toContain("Revision 1");
+    expect(html).toContain("Revize 1");
     expect(html).toContain("Needs coaching");
-    expect(html).toContain("Revision 2");
+    expect(html).toContain("Revize 2");
     expect(html).toContain("Acceptable after review");
     expect(html).toContain("Rechecked the complete transcript.");
   });

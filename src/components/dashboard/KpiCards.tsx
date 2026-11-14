@@ -25,7 +25,7 @@ export function KpiCards({ compact = false, scope = "workspace" }: { compact?: b
             ok: false,
             code: "UNAVAILABLE",
             status: 503,
-            message: error instanceof Error ? error.message : "Analytics data could not be loaded.",
+            message: error instanceof Error ? error.message : "Analytická data se nepodařilo načíst.",
           });
         }
       }
@@ -43,20 +43,20 @@ export function KpiCards({ compact = false, scope = "workspace" }: { compact?: b
     <div className="space-y-3 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none">
       {result && !result.ok && (
         <StatusAlert tone={feedbackTone}>
-          {result.code === "FORBIDDEN" ? "Analytics access is restricted: " : "Analytics unavailable: "}{result.message}
+          {result.code === "FORBIDDEN" ? "Přístup k analytice je omezen: " : "Analytika není dostupná: "}{result.message}
         </StatusAlert>
       )}
       {result === null ? (
         <StatusAlert tone="neutral" role="status">
-          Loading workspace analytics...
+          Načítám analytiku pracovního prostoru…
         </StatusAlert>
       ) : result.ok ? (
       <div className={`grid grid-cols-2 gap-3 ${compact ? "" : "sm:grid-cols-2 lg:grid-cols-4 sm:gap-6"}`}>
         {[
-          { id: "calls", label: scope === "team" ? "Team Calls" : "Workspace Calls", value: String(result.data.totalCalls), detail: scope === "team" ? "all calls in your team" : "all calls in the workspace" },
-          { id: "conversion", label: scope === "team" ? "Team Conversion Rate" : "Workspace Conversion Rate", value: `${result.data.conversionRate.toFixed(1)}%`, detail: scope === "team" ? "team orders / calls" : "workspace orders / calls" },
-          { id: "revenue", label: scope === "team" ? "Team Revenue" : "Workspace Revenue", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: scope === "team" ? "team completed orders; currencies separate" : "workspace completed orders; currencies separate" },
-          { id: "operators", label: scope === "team" ? "Operators in Team" : "Operators in Workspace", value: "—", detail: scope === "team" ? "team presence unavailable" : "workspace presence unavailable" },
+          { id: "calls", label: scope === "team" ? "Hovory týmu" : "Hovory pracovního prostoru", value: String(result.data.totalCalls), detail: scope === "team" ? "všechny hovory týmu" : "všechny hovory pracovního prostoru" },
+          { id: "conversion", label: scope === "team" ? "Konverze týmu" : "Konverze pracovního prostoru", value: `${result.data.conversionRate.toFixed(1)}%`, detail: scope === "team" ? "objednávky / hovory týmu" : "objednávky / hovory pracovního prostoru" },
+          { id: "revenue", label: scope === "team" ? "Příjmy týmu" : "Příjmy pracovního prostoru", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: scope === "team" ? "dokončené objednávky týmu; měny odděleně" : "dokončené objednávky pracovního prostoru; měny odděleně" },
+          { id: "operators", label: scope === "team" ? "Operátoři v týmu" : "Operátoři v pracovním prostoru", value: "-", detail: scope === "team" ? "dostupnost týmu není k dispozici" : "dostupnost pracovního prostoru není k dispozici" },
         ].map((kpi) => <MetricCard key={kpi.id} label={kpi.label} value={kpi.value} detail={kpi.detail} />)}
       </div>
       ) : null}

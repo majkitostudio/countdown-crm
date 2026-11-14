@@ -56,34 +56,34 @@ describe("ProductCatalogClient role surface", () => {
   it("shows operators the read-only catalog without management affordances", () => {
     const html = renderCatalog("operator");
 
-    expect(html).toContain("View Objections");
-    expect(html).not.toContain("Add New Product");
-    expect(html).not.toContain("Edit Product");
-    expect(html).not.toContain("Delete product");
-    expect(html).not.toContain("Reassign");
-    expect(html).not.toContain("New Objection");
+    expect(html).toContain("Zobrazit námitky");
+    expect(html).not.toContain("Přidat produkt");
+    expect(html).not.toContain("Upravit produkt");
+    expect(html).not.toContain("Smazat produkt");
+    expect(html).not.toContain("Přeřadit");
+    expect(html).not.toContain("Přidat námitkovou kartu");
     expect(html).not.toContain("Synchronizovat hovory");
   });
 
   it("prioritizes filters and products over summary dashboard metrics", () => {
     const html = renderCatalog("operator");
 
-    expect(html).toContain("All Categories");
+    expect(html).toContain("Všechny kategorie");
     expect(html).toContain("Joint support");
-    expect(html).not.toContain("Catalog Items");
-    expect(html).not.toContain("In Stock Ratio");
-    expect(html).not.toContain("Sales Battle-cards");
-    expect(html).not.toContain("Total Asset Value");
+    expect(html).not.toContain("Položky katalogu");
+    expect(html).not.toContain("Podíl skladem");
+    expect(html).not.toContain("Prodejní námitkové karty");
+    expect(html).not.toContain("Celková hodnota zásob");
   });
 
   it("keeps management affordances for Team Leaders", () => {
     const html = renderCatalog("team_leader");
 
-    expect(html).toContain("Add New Product");
-    expect(html).toContain("Edit Product");
-    expect(html).toContain("Delete product");
-    expect(html).toContain("Reassign 3 order(s)");
-    expect(html).toContain("New Objection");
+    expect(html).toContain("Přidat produkt");
+    expect(html).toContain("Upravit produkt");
+    expect(html).toContain("Smazat produkt");
+    expect(html).toContain("Přeřadit 3 objednávku/ek");
+    expect(html).toContain("Přidat námitkovou kartu");
     expect(html).toContain("Synchronizovat hovory");
   });
 
@@ -94,8 +94,8 @@ describe("ProductCatalogClient role surface", () => {
       state: "partial",
     });
 
-    expect(html).toContain("Battle-card data unavailable");
-    expect(html).not.toContain("0 Battle-Card Rebuttals");
+    expect(html).toContain("Data námitkových karet nejsou dostupná");
+    expect(html).not.toContain("0 argumentů proti námitkám");
   });
 
   it("labels unavailable order counts and omits reassignment", () => {
@@ -105,9 +105,9 @@ describe("ProductCatalogClient role surface", () => {
       state: "partial",
     });
 
-    expect(html).toContain("Order counts unavailable");
-    expect(html).not.toContain("Reassign 0 order(s)");
-    expect(html).not.toContain("Reassign 3 order(s)");
+    expect(html).toContain("Počty objednávek nejsou dostupné");
+    expect(html).not.toContain("Přeřadit 0 objednávku/ek");
+    expect(html).not.toContain("Přeřadit 3 objednávku/ek");
   });
 
   it("shows operators when order counts are unavailable without exposing reassignment", () => {
@@ -117,7 +117,7 @@ describe("ProductCatalogClient role surface", () => {
       state: "partial",
     });
 
-    expect(html).toContain("Order counts unavailable");
-    expect(html).not.toContain("Reassign");
+    expect(html).toContain("Počty objednávek nejsou dostupné");
+    expect(html).not.toContain("Přeřadit");
   });
 });

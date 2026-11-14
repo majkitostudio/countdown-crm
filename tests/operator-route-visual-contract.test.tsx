@@ -29,17 +29,17 @@ describe("daily operator route rendering", () => {
   it("renders the orders filter as accessible shared buttons while keeping normal order status neutral", () => {
     const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} initialViewMode="table" />);
 
-    expect(markup).toContain("In-Progress");
+    expect(markup).toContain("Zpracovává se");
     expect(markup).toContain("border-status-neutral-border bg-status-neutral text-status-neutral-text");
     expect(markup).toContain("focus-visible:ring-2");
     expect(getOrderStatusTone("in_progress")).toBe("neutral");
-    expect(renderToStaticMarkup(<StatusBadge tone="neutral">In progress</StatusBadge>)).not.toMatch(/emerald|amber|rose/);
+    expect(renderToStaticMarkup(<StatusBadge tone="neutral">Zpracovává se</StatusBadge>)).not.toMatch(/emerald|amber|rose/);
   });
 
   it("keeps delivered confirmation as the approved semantic success state", () => {
     const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "delivered" } as WorkspaceOrderDTO]} initialViewMode="table" />);
 
-    expect(markup).toContain("Delivered");
+    expect(markup).toContain("Doručeno");
     expect(markup).toContain("border-status-success-border bg-status-success text-status-success-text");
     expect(getOrderStatusTone("delivered")).toBe("success");
   });
@@ -47,8 +47,8 @@ describe("daily operator route rendering", () => {
   it("renders the Kanban pipeline by default with dedicated stage columns", () => {
     const markup = renderToStaticMarkup(<OrderPipeline orders={[{ ...baseOrder, status: "in_progress" } as WorkspaceOrderDTO]} />);
 
-    expect(markup).toContain("Processing");
-    expect(markup).toContain("Awaiting Pickup");
+    expect(markup).toContain("Zpracovává se");
+    expect(markup).toContain("Čeká na vyzvednutí");
     expect(markup).toContain("Kanban");
     expect(markup).toContain("Tabulka");
   });

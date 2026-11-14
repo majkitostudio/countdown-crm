@@ -54,7 +54,7 @@ export async function getProducts(options?: {
 
 export async function createProduct(product: Partial<Product>): Promise<Product> {
   const newProduct: Partial<Product> = {
-    title: product.title || "New Product",
+    title: product.title || "Nový produkt",
     category: (product.category as ProductCategory) || "supplements",
     price: Number(product.price) || 0,
     currency: product.currency || "USD",

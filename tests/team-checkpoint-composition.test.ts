@@ -27,7 +27,7 @@ describe("team checkpoint composition (approved Macaly layout, app design langua
   });
 
   it("shows operator detail only from the existing checkpoint read model", () => {
-    expect(detail).toContain("Zpět na checkpoint");
+    expect(detail).toContain("Zpět na denní přehled");
     expect(detail).toContain("Kvalita hovorů");
     expect(detail).not.toContain("posledních 10");
     expect(detail).not.toContain("Posledních 10");
@@ -37,7 +37,7 @@ describe("team checkpoint composition (approved Macaly layout, app design langua
     expect(handover).toContain("Konec směny");
     expect(handover).toContain("přenáší");
     expect(handover).toContain("Otevřít Naplánované hovory a týmovou frontu");
-    expect(handover).not.toContain("Dokončit checkpoint");
+    expect(handover).not.toContain("Dokončit denní přehled");
   });
 
   it("wires detail and handover into the checkpoint tab", () => {

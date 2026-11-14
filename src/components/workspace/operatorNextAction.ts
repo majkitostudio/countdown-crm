@@ -58,10 +58,10 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "recovery_required") {
     return {
       kind: "recover_call",
-      title: "Recover interrupted call",
+      title: "Obnovit přerušený hovor",
       description: input.leadName
-        ? `${input.leadName} remains assigned to you until the call is safely recovered.`
-        : "The interrupted assignment must be recovered before another call can start.",
+        ? `Zákazník ${input.leadName} vám zůstává přiřazen, dokud nebude hovor bezpečně obnoven.`
+        : "Před zahájením dalšího hovoru je nutné obnovit přerušené přiřazení.",
       urgency: "critical",
     };
   }
@@ -69,8 +69,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "awaiting_outcome" || input.state === "schedule_modal") {
     return {
       kind: "complete_outcome",
-      title: "Complete call outcome",
-      description: "Choose the explicit outcome before continuing to another contact.",
+      title: "Dokončit výsledek hovoru",
+      description: "Než přejdete na další kontakt, zvolte výsledek hovoru.",
       urgency: "attention",
     };
   }
@@ -78,8 +78,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "completion_pending") {
     return {
       kind: "complete_outcome",
-      title: "Saving call outcome",
-      description: "The server is recording the outcome and the next assignment.",
+      title: "Ukládání výsledku hovoru",
+      description: "Server ukládá výsledek a další přiřazení.",
       urgency: "attention",
     };
   }
@@ -87,8 +87,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "in_call") {
     return {
       kind: "end_call",
-      title: "Finish the active call",
-      description: input.leadName ? `When ready, end the call with ${input.leadName}.` : "When ready, end the active call.",
+      title: "Dokončit aktivní hovor",
+      description: input.leadName ? `Až budete připraveni, ukončete hovor se zákazníkem ${input.leadName}.` : "Až budete připraveni, ukončete aktivní hovor.",
       urgency: "attention",
     };
   }
@@ -96,8 +96,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "dialing") {
     return {
       kind: "wait_for_connection",
-      title: "Waiting for connection",
-      description: "The call is being connected. Cancel only if the customer cannot be reached.",
+      title: "Čekání na spojení",
+      description: "Hovor se spojuje. Zrušte jej pouze tehdy, pokud zákazník není dostupný.",
       urgency: "attention",
     };
   }
@@ -105,8 +105,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "ready" && input.leadName) {
     return {
       kind: "start_call",
-      title: "Start the next call",
-      description: `Call ${input.leadName} using the approved product information.`,
+      title: "Zahájit další hovor",
+      description: `Zavolejte zákazníkovi ${input.leadName} a použijte schválené informace o produktu.`,
       urgency: "neutral",
     };
   }
@@ -114,8 +114,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "post_call_summary") {
     return {
       kind: "continue",
-      title: "Continue to the next lead",
-      description: "The previous call is saved. Continue when you are ready for the next assignment.",
+      title: "Pokračovat na další lead",
+      description: "Předchozí hovor je uložen. Pokračujte, až budete připraveni na další přiřazení.",
       urgency: "neutral",
     };
   }
@@ -123,8 +123,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
   if (input.state === "waiting_assignment" && dueScheduledCall) {
     return {
       kind: "claim_scheduled_call",
-      title: "Check the due scheduled call",
-      description: `${dueScheduledCall.leadName} has a scheduled call due at ${new Date(dueScheduledCall.scheduledAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}. Refresh the queue to claim it when available.`,
+      title: "Zkontrolovat naplánovaný hovor v termínu",
+      description: `Zákazník ${dueScheduledCall.leadName} má naplánovaný hovor na ${new Date(dueScheduledCall.scheduledAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}. Obnovte frontu a převezměte jej, jakmile bude dostupný.`,
       urgency: "critical",
       scheduledCall: dueScheduledCall,
     };
@@ -132,8 +132,8 @@ export function getOperatorNextAction(input: OperatorNextActionInput): OperatorN
 
   return {
     kind: "wait_for_assignment",
-    title: "Waiting for assignment",
-    description: "No callable contact is currently assigned. The routing service will place one here when available.",
+    title: "Čekání na přiřazení",
+    description: "Momentálně nemáte přiřazený kontakt k volání. Jakmile bude dostupný, služba směrování jej sem přiřadí.",
     urgency: "neutral",
   };
 }

@@ -26,7 +26,7 @@ export interface QueueReason {
 
 const QUEUE_REASONS: Record<string, QueueReason> = {
   objection: { label: "Námitka – recyklace na další den", kind: "rescue" },
-  package_returned: { label: "Vrácený balíček – Re-ship", kind: "rescue" },
+  package_returned: { label: "Vrácený balíček – opětovné odeslání", kind: "rescue" },
   at_risk_pickup: { label: "Balíček na výdejně (3+ dny)", kind: "rescue" },
   retention_followup: { label: "Retence – 21 dní po doručení", kind: "retention" },
 };

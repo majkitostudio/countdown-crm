@@ -99,8 +99,8 @@ export function getNextBestAction(input: NextBestActionInput = {}): NextBestActi
 
   return {
     kind: "queue",
-    title: "Claim next lead",
-    description: "Nejsou k dispozici urgentní naplánované hovory ani re-order odhady.",
+    title: "Převzít další lead",
+    description: "Nejsou k dispozici urgentní naplánované hovory ani odhady opakovaného nákupu.",
     href: "/console",
     source: "lead queue",
     source_id: null,

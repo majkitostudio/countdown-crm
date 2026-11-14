@@ -35,11 +35,11 @@ function normalizeRange(from?: string, to?: string): { from: string; to: string 
   const end = to ? Date.parse(to) : Date.now() + 14 * 24 * 60 * 60 * 1000;
 
   if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end) {
-    throw new DataAccessError("VALIDATION", "Calendar date range is invalid.");
+    throw new DataAccessError("VALIDATION", "Období kalendáře je neplatné. Zvolte začátek před koncem období.");
   }
 
   if (end - start > 45 * 24 * 60 * 60 * 1000) {
-    throw new DataAccessError("VALIDATION", "Calendar date range cannot exceed 45 days.");
+    throw new DataAccessError("VALIDATION", "Období kalendáře nesmí přesáhnout 45 dní. Zvolte kratší období.");
   }
 
   return { from: new Date(start).toISOString(), to: new Date(end).toISOString() };
@@ -49,7 +49,7 @@ function mapScheduledCallEntries(scheduledCalls: Awaited<ReturnType<typeof listS
   return scheduledCalls.map((scheduledCall) => ({
     id: scheduledCall.id,
     type: "scheduled_call",
-    title: `Schedule: ${scheduledCall.lead.full_name}`,
+    title: `Naplánovaný hovor: ${scheduledCall.lead.full_name}`,
     starts_at: scheduledCall.scheduled_at,
     remind_at: null,
     status: "scheduled",
@@ -95,7 +95,7 @@ function resolveSourceState(result: PromiseSettledResult<unknown>): CalendarSour
 
   return {
     state: "unavailable",
-    message: "Calendar source could not be loaded.",
+    message: "Zdroj kalendáře se nepodařilo načíst.",
   };
 }
 

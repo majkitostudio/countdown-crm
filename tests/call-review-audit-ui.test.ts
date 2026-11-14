@@ -46,8 +46,8 @@ const log: AuditLogEntry = {
 
 describe("call review audit disclosure", () => {
   it("labels both review audit actions", () => {
-    expect(auditActionLabel("CALL_REVIEW_COMPLETED")).toBe("Call review completed");
-    expect(auditActionLabel("CALL_REVIEW_CORRECTED")).toBe("Call review corrected");
+    expect(auditActionLabel("CALL_REVIEW_COMPLETED")).toBe("Kontrola hovoru dokončena");
+    expect(auditActionLabel("CALL_REVIEW_CORRECTED")).toBe("Kontrola hovoru opravena");
     expect(auditActionLabel("CALL_COMPLETED")).toBe("CALL_COMPLETED");
   });
 
@@ -60,14 +60,14 @@ describe("call review audit disclosure", () => {
 
     const rendered = renderToStaticMarkup(React.createElement(AuditDetailCell, { log }));
 
-    expect(rendered).toContain("Call review corrected");
+    expect(rendered).toContain("Kontrola hovoru opravena");
     expect(rendered).toContain("Původní coaching");
     expect(rendered).toContain("Opravený coaching");
     expect(rendered).toContain("Upřesnění po druhé kontrole");
     expect(rendered).toContain("manager-1");
     expect(rendered).toContain("admin-1");
-    expect(rendered).toContain("Revision 1");
-    expect(rendered).toContain("Revision 2");
+    expect(rendered).toContain("Revize 1");
+    expect(rendered).toContain("Revize 2");
   });
 
   it("keeps malformed legacy details visible as plain text", () => {
@@ -79,6 +79,6 @@ describe("call review audit disclosure", () => {
     }));
 
     expect(rendered).toContain(malformed);
-    expect(rendered).not.toContain("Previous review");
+    expect(rendered).not.toContain("Předchozí hodnocení");
   });
 });

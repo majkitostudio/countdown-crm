@@ -11,12 +11,12 @@ export interface OperatorIdentity {
 }
 
 export function getOperatorRoleLabel(role: OperatorRole | null): string {
-  if (!role) return "Role unavailable";
+  if (!role) return "Role není dostupná";
   return role === "operator"
-    ? "Operator"
+    ? "Operátor"
     : role === "team_leader"
-      ? "Team Leader"
-      : "Administrator";
+      ? "Vedoucí týmu"
+      : "Administrátor";
 }
 
 export function getOperatorInitials(name: string): string {

@@ -117,7 +117,7 @@ export function OrderTrackingCard({
 
           <div>
             <label className="block text-xs font-medium text-zinc-300">
-              Číslo zásilky (Tracking code)
+              Číslo zásilky
             </label>
             <input
               type="text"

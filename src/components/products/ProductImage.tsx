@@ -36,7 +36,7 @@ export function ProductImage({
   }
 
   return (
-    <div className={fallbackClassName} role="img" aria-label={`${alt}: no product image`}>
+    <div className={fallbackClassName} role="img" aria-label={`${alt}: bez obrázku produktu`}>
       <ImageOff className={iconClassName} aria-hidden="true" />
       {fallbackText && <span className="text-xs font-medium">{fallbackText}</span>}
     </div>

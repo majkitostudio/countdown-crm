@@ -198,7 +198,7 @@ async function loadTelephonyActivities(
 function toOperatorMetricInput(operators: WorkspaceMemberDTO[]): TeamWorkspaceOperator[] {
   return operators.map((operator) => ({
     id: operator.user_id,
-    name: operator.full_name || operator.email || "Unknown operator",
+    name: operator.full_name || operator.email || "Neznámý operátor",
   }));
 }
 
@@ -259,11 +259,11 @@ function mapRecentCallsByOperator(calls: CallRow[]): Record<string, TeamWorkspac
 }
 
 function mapOrders(rows: OrderRow[], operators: WorkspaceMemberDTO[]): TeamWorkspaceOrderSummary[] {
-  const operatorNames = new Map(operators.map((operator) => [operator.user_id, operator.full_name || operator.email || "Unknown operator"]));
+  const operatorNames = new Map(operators.map((operator) => [operator.user_id, operator.full_name || operator.email || "Neznámý operátor"]));
   return rows.map((row) => ({
     id: row.id,
     operatorId: row.agent_id,
-    operatorName: row.agent_id ? operatorNames.get(row.agent_id) || "Unknown operator" : "Unassigned",
+    operatorName: row.agent_id ? operatorNames.get(row.agent_id) || "Neznámý operátor" : "Nepřiřazeno",
     status: row.status,
     source: row.order_source,
     totalAmount: Number(row.total_amount || 0),
@@ -342,15 +342,15 @@ export async function loadTeamWorkspaceCheckpoint(
   };
 
   const sources = {
-    orders: ordersResult.status === "fulfilled" ? ready() : unavailable("New team orders could not be loaded."),
-    calls: callsResult.status === "fulfilled" ? ready() : unavailable("Team calls could not be loaded."),
+    orders: ordersResult.status === "fulfilled" ? ready() : unavailable("Nové týmové objednávky se nepodařilo načíst."),
+    calls: callsResult.status === "fulfilled" ? ready() : unavailable("Týmové hovory se nepodařilo načíst."),
     scheduledCalls: overdueScheduledCallsResult.status === "fulfilled" && upcomingScheduledCallsResult.status === "fulfilled"
       ? ready()
-      : unavailable("Scheduled calls could not be fully loaded."),
+      : unavailable("Naplánované hovory se nepodařilo načíst v úplném rozsahu."),
     activities: queueActivitiesResult.status === "fulfilled" && telephonyActivitiesResult.status === "fulfilled"
       ? ready()
-      : unavailable("Talk Time activity could not be fully loaded."),
-    shifts: unavailable("Shift planning is not implemented yet."),
+      : unavailable("Údaje o době hovorů se nepodařilo načíst v úplném rozsahu."),
+    shifts: unavailable("Plánování směn zatím není dostupné."),
   } satisfies TeamWorkspaceCheckpoint["sources"];
 
   const { overdue, upcoming } = splitScheduledCallSummaries([...overdueScheduledCalls, ...upcomingScheduledCalls], now);

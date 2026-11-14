@@ -40,8 +40,8 @@ export type TeamMutationHandler = (mutation: () => Promise<unknown>) => Promise<
 type TeamWorkspaceView = "checkpoint" | "queues" | "quality" | "orders" | "operators" | "queue";
 
 const TEAM_WORKSPACE_VIEWS: Array<{ id: TeamWorkspaceView; label: string }> = [
-  { id: "checkpoint", label: "Denní checkpoint" },
-  { id: "queues", label: "Queues" },
+  { id: "checkpoint", label: "Denní přehled" },
+  { id: "queues", label: "Fronty" },
   { id: "quality", label: "Kontrola kvality hovorů" },
   { id: "orders", label: "Objednávky" },
   { id: "operators", label: "Aktivní operátoři" },
@@ -237,7 +237,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
 
   return (
     <div className="space-y-6">
-      <nav className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/60 p-1" aria-label="Team Workspace views">
+      <nav className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/60 p-1" aria-label="Pohledy týmového pracovního prostoru">
         <div className="flex min-w-max gap-1" role="tablist">
           {TEAM_WORKSPACE_VIEWS.map((item) => {
             const selected = view === item.id;
@@ -342,7 +342,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
                   />
                 </div>
               )
-            : <SourceUnavailablePanel title="Denní checkpoint není dostupný" message="Denní checkpoint není dostupný." />}
+            : <SourceUnavailablePanel title="Denní přehled není dostupný" message="Denní přehled není dostupný." />}
         </div>
       )}
 
@@ -356,7 +356,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
               initialDepartment={departmentPreset}
             />
           )
-          : <SourceUnavailablePanel title="Queues unavailable" message="Přehled front oddělení není dostupný." />
+          : <SourceUnavailablePanel title="Fronty nejsou dostupné" message="Přehled front oddělení není dostupný." />
       )}
 
       {view === "quality" && (
@@ -368,7 +368,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
       {view === "orders" && (
         currentData.checkpoint.status === "ready"
           ? <TeamDailyCheckpointPanel checkpoint={currentData.checkpoint.data} section="orders" periodKey={currentData.checkpoint.data.periodKey} />
-          : <SourceUnavailablePanel title="Orders unavailable" message="Team orders are unavailable." />
+          : <SourceUnavailablePanel title="Objednávky nejsou dostupné" message="Týmové objednávky nejsou dostupné." />
       )}
 
       {view === "operators" && (
@@ -376,20 +376,20 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           {currentData.roster.status === "ready" ? (
             <TeamRosterPanel teams={currentData.roster.data.teams} memberships={currentData.roster.data.memberships} />
           ) : (
-            <SourceUnavailablePanel title="Team roster unavailable" message="Team roster is unavailable." />
+            <SourceUnavailablePanel title="Složení týmu není dostupné" message="Složení týmu není dostupné." />
           )}
           {currentData.operators.status === "ready" && currentData.presence.status === "ready" ? (
             <TeamPresencePanel operators={currentData.operators.data} presence={currentData.presence.data} />
           ) : currentData.presence.status === "unavailable" ? (
-            <SourceUnavailablePanel title="Operator status unavailable" message="Operator status is unavailable." />
+            <SourceUnavailablePanel title="Stav operátorů není dostupný" message="Stav operátorů není dostupný." />
           ) : (
-            <SourceUnavailablePanel title="Operators unavailable" message="Operators are unavailable." />
+            <SourceUnavailablePanel title="Operátoři nejsou dostupní" message="Operátoři nejsou dostupní." />
           )}
           {role === "administrator" && currentData.members?.status === "ready" && (
             <TeamMembersPanel members={currentData.members.data} currentUserId={currentUserId} onMutation={runMutation} />
           )}
           {role === "administrator" && currentData.members?.status === "unavailable" && (
-            <SourceUnavailablePanel title="Workspace Members unavailable" message="Workspace members are unavailable." />
+            <SourceUnavailablePanel title="Členové pracovního prostoru nejsou dostupní" message="Členové pracovního prostoru nejsou dostupní." />
           )}
         </div>
       )}
@@ -403,7 +403,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
             onMutation={runMutation}
           />
         ) : (
-          <SourceUnavailablePanel title="Lead Queue Operations unavailable" message="Lead queue is unavailable." />
+          <SourceUnavailablePanel title="Správa fronty leadů není dostupná" message="Fronta leadů není dostupná." />
         )
       )}
     </div>

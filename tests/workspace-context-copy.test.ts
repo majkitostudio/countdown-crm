@@ -10,17 +10,17 @@ const drawer = readFileSync(resolve(root, "src/components/calls/CallDetailDrawer
 
 describe("workspace and call context copy", () => {
   it("uses schedule terminology and treats an absent last order as neutral history", () => {
-    expect(recentContext).toContain('label="Schedule"');
-    expect(recentContext).toContain('kind === "order" ? "Never"');
-    expect(recentContext).toContain("Schedule set");
+    expect(recentContext).toContain('label="Naplánovaný hovor"');
+    expect(recentContext).toContain('kind === "order" ? "Nikdy"');
+    expect(recentContext).toContain("Hovor naplánován");
     expect(brief).toContain('data-testid="conversation-brief-compact"');
-    expect(brief).not.toContain("Last order");
+    expect(brief).not.toContain("Poslední objednávka");
   });
 
   it("keeps scheduled call outcomes and unavailable transcript evidence visually neutral", () => {
     expect(outcomeStyles).toContain('case "followup_scheduled":\n      return "border-zinc');
-    expect(drawer).toContain('>Call review</span>');
-    expect(drawer).not.toContain("AI Sentiment");
+    expect(drawer).toContain('>Kontrola hovoru</span>');
+    expect(drawer).not.toContain("Nálada podle AI");
     expect(drawer).toContain('<StatusAlert tone="neutral">');
   });
 });

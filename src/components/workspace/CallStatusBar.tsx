@@ -36,8 +36,8 @@ interface CallStatusBarProps {
 
 export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds, isMuted, isOnHold, activeLeadName, activeLeadPhone, onToggleCall, onToggleMute, onToggleHold, onSimulateIncoming, onStatusChange, showIncomingSimulator = true, isStarting = false, isAwaitingOutcome = false, telephonyAdapter = "simulation" }: CallStatusBarProps) {
   const formatTimer = (totalSeconds: number) => `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`;
-  const statusLabel = status === "ready" ? "Ready for Calls" : status === "in_call" ? "In Call" : "On Break";
-  const telephonyLabel = telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call";
+  const statusLabel = status === "ready" ? "Připraven k hovorům" : status === "in_call" ? "Na hovoru" : "Na přestávce";
+  const telephonyLabel = telephonyAdapter === "local_sip" ? "Místní SIP hovor" : telephonyAdapter === "telnyx" ? "Hovor přes Telnyx" : "Simulovaný hovor";
 
   return (
     <Surface variant="page" className="w-full">
@@ -47,10 +47,10 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
           <div className="flex items-center gap-2">
             <StatusBadge tone="neutral">{statusLabel}</StatusBadge>
             <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
-            <select aria-label="Operator status" value={status} onChange={(event) => onStatusChange(event.target.value as OperatorStatus)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
-              <option value="ready">Ready for Calls</option>
-              <option value="in_call">In Call</option>
-              <option value="break">On Break</option>
+            <select aria-label="Stav operátora" value={status} onChange={(event) => onStatusChange(event.target.value as OperatorStatus)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+              <option value="ready">Připraven k hovorům</option>
+              <option value="in_call">Na hovoru</option>
+              <option value="break">Na přestávce</option>
             </select>
           </div>
         </div>
@@ -58,28 +58,28 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
           <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-zinc-200 text-sm shrink-0">{activeLeadName?.charAt(0) || "L"}</div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm font-semibold text-zinc-100 truncate">{activeLeadName || "Select a Lead"}</span>
+              <span className="text-sm font-semibold text-zinc-100 truncate">{activeLeadName || "Vyberte lead"}</span>
               {activeLeadPhone && <span className="text-xs font-mono text-zinc-400 whitespace-nowrap">({activeLeadPhone})</span>}
             </div>
-            {isDialing && <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5"><Radio className="w-3.5 h-3.5 animate-spin" />Dialing customer...</div>}
-            {isCallActive && !isDialing && <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5"><span className="inline-flex h-2 w-2 rounded-full bg-zinc-500" aria-hidden="true" /><span>{telephonyLabel} ·</span><span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>{telephonyAdapter === "simulation" && <span className="text-zinc-300" aria-label="Simulated audio activity">▮▮▮▮</span>}</div>}
-            {!isCallActive && !isDialing && <span className="text-[11px] text-zinc-400 block">Ready to place a call</span>}
+            {isDialing && <div className="flex items-center gap-2 text-zinc-300 text-xs font-medium mt-0.5"><Radio className="w-3.5 h-3.5 animate-spin" />Vytáčení zákazníka…</div>}
+            {isCallActive && !isDialing && <div className="flex items-center gap-3 text-zinc-300 text-xs font-medium mt-0.5"><span className="inline-flex h-2 w-2 rounded-full bg-zinc-500" aria-hidden="true" /><span>{telephonyLabel} ·</span><span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>{telephonyAdapter === "simulation" && <span className="text-zinc-300" aria-label="Simulovaná zvuková aktivita">▮▮▮▮</span>}</div>}
+            {!isCallActive && !isDialing && <span className="text-[11px] text-zinc-400 block">Připraveno k volání</span>}
           </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 justify-end">
-        <Button variant={isCallActive ? "danger" : "primary"} onClick={onToggleCall} disabled={isStarting} aria-busy={isStarting} aria-label={isCallActive ? `End call with ${activeLeadName || "current lead"}` : isDialing ? "Cancel dialing" : "Call client"} title={isCallActive ? "End call" : isDialing ? "Cancel dialing" : "Call client"}>
+        <Button variant={isCallActive ? "danger" : "primary"} onClick={onToggleCall} disabled={isStarting} aria-busy={isStarting} aria-label={isCallActive ? `Ukončit hovor: ${activeLeadName || "aktuální lead"}` : isDialing ? "Zrušit vytáčení" : "Zavolat zákazníkovi"} title={isCallActive ? "Ukončit hovor" : isDialing ? "Zrušit vytáčení" : "Zavolat zákazníkovi"}>
           {isCallActive ? <PhoneOff className="w-4 h-4" /> : <PhoneCall className="w-4 h-4 fill-current" />}
-          <span className={isCallActive ? "sr-only" : ""}>{isStarting ? "Starting Call..." : isDialing ? "Cancel Dial" : isCallActive ? "End Call" : "Call Client"}</span>
+          <span className={isCallActive ? "sr-only" : ""}>{isStarting ? "Zahajování hovoru…" : isDialing ? "Zrušit vytáčení" : isCallActive ? "Ukončit hovor" : "Zavolat zákazníkovi"}</span>
         </Button>
         {isCallActive && <>
-          <Button variant="secondary" onClick={onToggleMute} aria-label={isMuted ? "Unmute microphone" : "Mute microphone"} title={isMuted ? "Unmute microphone" : "Mute microphone"}>{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</Button>
-          <Button variant="secondary" onClick={onToggleHold} aria-label={isOnHold ? "Resume call" : "Put call on hold"} title={isOnHold ? "Resume call" : "Put call on hold"}>{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</Button>
-          <Link href="/settings" aria-label="Open settings" title="Open settings" className={getButtonClassName("secondary")}><Settings className="w-4 h-4" /></Link>
+          <Button variant="secondary" onClick={onToggleMute} aria-label={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"} title={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"}>{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</Button>
+          <Button variant="secondary" onClick={onToggleHold} aria-label={isOnHold ? "Pokračovat v hovoru" : "Podržet hovor"} title={isOnHold ? "Pokračovat v hovoru" : "Podržet hovor"}>{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</Button>
+          <Link href="/settings" aria-label="Otevřít nastavení" title="Otevřít nastavení" className={getButtonClassName("secondary")}><Settings className="w-4 h-4" /></Link>
         </>}
-        {isAwaitingOutcome && <StatusAlert tone="warning" className="w-full">Post-call outcome required.</StatusAlert>}
-        {!isCallActive && !isDialing && showIncomingSimulator && <Button variant="secondary" onClick={onSimulateIncoming} title="Simulate an incoming call" aria-label="Simulate an incoming call"><PhoneIncoming className="w-4 h-4" /></Button>}
+        {isAwaitingOutcome && <StatusAlert tone="warning" className="w-full">Je nutné zvolit výsledek hovoru.</StatusAlert>}
+        {!isCallActive && !isDialing && showIncomingSimulator && <Button variant="secondary" onClick={onSimulateIncoming} title="Simulovat příchozí hovor" aria-label="Simulovat příchozí hovor"><PhoneIncoming className="w-4 h-4" /></Button>}
       </div>
     </section>
     </Surface>

@@ -11,10 +11,11 @@ import type {
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
 
 function formatDate(value: string | null): string {
-  if (!value) return "Not recorded";
-  return new Intl.DateTimeFormat("en-GB", {
+  if (!value) return "Nezaznamenáno";
+  return new Intl.DateTimeFormat("cs-CZ", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
@@ -27,7 +28,16 @@ function formatDuration(seconds: number): string {
 }
 
 function humanize(value: string | null): string {
-  if (!value) return "Not recorded";
+  if (!value) return "Nezaznamenáno";
+  const labels: Record<string, string> = {
+    order_placed: "Objednávka vytvořena",
+    followup_scheduled: "Hovor naplánován",
+    objection: "Neúspěšný",
+    objection_handled: "Neúspěšný",
+    no_answer: "Bez odpovědi",
+    completed: "Dokončeno",
+  };
+  if (labels[value]) return labels[value];
   return value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
@@ -50,8 +60,8 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
   if (transcript.kind === "unavailable") {
     return (
       <StatusAlert tone="warning">
-        <p className="text-xs font-semibold text-amber-200">Transcript unavailable</p>
-        <p className="mt-1 text-xs leading-relaxed text-amber-200/70">No verified transcript was captured. The CRM has not reconstructed or invented one.</p>
+        <p className="text-xs font-semibold text-amber-200">Přepis není dostupný</p>
+        <p className="mt-1 text-xs leading-relaxed text-amber-200/70">Nebyl zachycen ověřený přepis. CRM jej nerekonstruovalo ani nevymyslelo.</p>
       </StatusAlert>
     );
   }
@@ -59,7 +69,7 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
   if (transcript.kind === "plain_text") {
     return (
       <Surface variant="inset"><div className="p-4">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Legacy unstructured transcript</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Starší nestrukturovaný přepis</p>
         <p className="mt-3 whitespace-pre-wrap text-xs leading-6 text-zinc-300">{transcript.text}</p>
       </div></Surface>
     );
@@ -67,14 +77,14 @@ function TranscriptEvidence({ review }: { review: CallReviewDTO }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Structured transcript</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Strukturovaný přepis</p>
       {transcript.entries.map((entry, index) => (
         <Surface key={`${entry.timestamp}-${index}`} variant="inset" className="w-full">
         <article
           className={`p-3 text-xs ${entry.speaker === "operator" ? "ml-6" : "mr-6"}`}
         >
           <div className="mb-1 flex justify-between gap-3 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
-            <span>{entry.speaker === "operator" ? review.operator?.name || "Operator name not recorded" : review.customer?.name || "Customer name not recorded"}</span>
+            <span>{entry.speaker === "operator" ? review.operator?.name || "Jméno operátora není zaznamenáno" : review.customer?.name || "Jméno zákazníka není zaznamenáno"}</span>
             <time>{entry.timestamp}</time>
           </div>
           <p className="leading-5 text-zinc-300">{entry.text}</p>
@@ -90,8 +100,8 @@ function ScriptEvidence({ review }: { review: CallReviewDTO }) {
   if (script.kind === "not_recorded") {
     return (
       <StatusAlert tone="warning">
-        <p className="text-xs font-semibold text-amber-200">Script version was not recorded for this call</p>
-        <p className="mt-1 text-xs leading-relaxed text-amber-200/70">This is an older or unlinked call. The CRM will not guess which script was used.</p>
+        <p className="text-xs font-semibold text-amber-200">Verze skriptu nebyla u tohoto hovoru zaznamenána</p>
+        <p className="mt-1 text-xs leading-relaxed text-amber-200/70">Jde o starší nebo nepropojený hovor. CRM nebude odhadovat, který skript byl použit.</p>
       </StatusAlert>
     );
   }
@@ -99,20 +109,20 @@ function ScriptEvidence({ review }: { review: CallReviewDTO }) {
   if (script.kind === "unavailable") {
     return (
       <StatusAlert tone="warning">
-        <p className="text-xs font-semibold text-amber-200">No script was available when this call started</p>
-        <p className="mt-1 text-xs text-amber-200/70">This unavailable state was captured at {formatDate(script.capturedAt)}.</p>
+        <p className="text-xs font-semibold text-amber-200">Při zahájení tohoto hovoru nebyl dostupný žádný skript</p>
+        <p className="mt-1 text-xs text-amber-200/70">Tento stav nedostupnosti byl zachycen dne {formatDate(script.capturedAt)}.</p>
       </StatusAlert>
     );
   }
 
   const label = script.kind === "published_version"
-    ? `Published version ${script.versionNumber} captured for this call`
-    : "Built-in fallback captured for this call";
+    ? `Pro tento hovor byla zachycena publikovaná verze ${script.versionNumber}`
+    : "Pro tento hovor byla zachycena vestavěná náhradní verze";
   return (
     <div className="space-y-3">
       <StatusAlert tone="success" role="status">
         <p className="text-xs font-semibold text-emerald-200">{label}</p>
-        <p className="mt-1 text-[11px] text-emerald-200/60">{script.productTitle} · captured {formatDate(script.capturedAt)}</p>
+        <p className="mt-1 text-[11px] text-emerald-200/60">{script.productTitle} · zachyceno {formatDate(script.capturedAt)}</p>
       </StatusAlert>
       <Surface variant="inset"><div
         className="p-5 text-sm leading-7 text-zinc-300 [&_p]:mb-3 [&_p:last-child]:mb-0"
@@ -161,7 +171,7 @@ export function CallReviewForm({
           coachingNote,
           correctionReason: isCorrectionMode ? correctionReason : null,
         });
-        setSuccessMessage(isCorrectionMode ? "Correction saved as a new revision." : "Human review saved.");
+        setSuccessMessage(isCorrectionMode ? "Oprava byla uložena jako nová revize." : "Kontrola člověkem byla uložena.");
         onSaved?.();
         router.refresh();
       } catch (error) {
@@ -173,10 +183,10 @@ export function CallReviewForm({
         ) || (error instanceof Error && error.message.includes("Review has changed"));
         setErrorMessage(
           isConflict
-            ? "Another manager changed this review. Your text is preserved; reload the page before trying again."
+            ? "Tuto kontrolu změnil jiný vedoucí. Váš text zůstal zachován. Před dalším pokusem znovu načtěte stránku."
             : error instanceof Error
               ? error.message
-              : "The review could not be saved.",
+              : "Kontrolu se nepodařilo uložit.",
         );
       }
     });
@@ -185,10 +195,10 @@ export function CallReviewForm({
   return (
     <form className="space-y-4" onSubmit={submit}>
       <Surface variant="inset"><p className="px-3 py-2 text-xs text-zinc-300">
-        Human decision only. AI has not issued this verdict.
+        Jde výhradně o rozhodnutí člověka. AI tento verdikt nevydala.
       </p></Surface>
       <label className="block text-xs font-medium text-zinc-400">
-        Verdict
+        Verdikt
         <input
           name="verdict"
           value={verdict}
@@ -197,11 +207,11 @@ export function CallReviewForm({
           maxLength={200}
           disabled={isPending}
           className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-600 disabled:opacity-60"
-          placeholder="Write the Team Leader's decision"
+          placeholder="Napište rozhodnutí vedoucího týmu"
         />
       </label>
       <label className="block text-xs font-medium text-zinc-400">
-        Coaching note
+        Poznámka ke koučinku
         <textarea
           name="coachingNote"
           value={coachingNote}
@@ -212,12 +222,12 @@ export function CallReviewForm({
           rows={5}
           disabled={isPending}
           className="mt-2 w-full resize-y rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm leading-6 text-zinc-100 outline-none focus:border-zinc-600 disabled:opacity-60"
-          placeholder="Record specific, human-authored coaching"
+          placeholder="Zapište konkrétní doporučení od člověka"
         />
       </label>
       {isCorrectionMode && (
         <label className="block text-xs font-medium text-zinc-400">
-          Reason for correction
+          Důvod opravy
           <textarea
             name="correctionReason"
             required
@@ -228,7 +238,7 @@ export function CallReviewForm({
             onChange={(event) => setCorrectionReason(event.target.value)}
             disabled={isPending}
             className="mt-2 w-full resize-y rounded-xl border border-amber-900/60 bg-zinc-950 px-3 py-2.5 text-sm leading-6 text-zinc-100 outline-none focus:border-amber-700 disabled:opacity-60"
-            placeholder="Explain why the previous completed review is being corrected"
+            placeholder="Vysvětlete, proč opravujete předchozí dokončenou kontrolu"
           />
         </label>
       )}
@@ -240,14 +250,14 @@ export function CallReviewForm({
           disabled={isPending}
         >
           {isPending
-            ? "Saving…"
+            ? "Ukládání…"
             : isCorrectionMode
-              ? `Save correction as revision ${expectedRevision + 1}`
-              : "Complete human review"}
+              ? `Uložit opravu jako revizi ${expectedRevision + 1}`
+              : "Dokončit kontrolu člověkem"}
         </Button>
         {isCorrectionMode && (
           <Button type="button" onClick={onCancel} disabled={isPending} variant="secondary">
-            Cancel correction
+            Zrušit opravu
           </Button>
         )}
       </div>
@@ -265,52 +275,52 @@ export function CallReviewWorkspace({
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
   const latestRevision = initialReview.revisions.at(-1) || null;
   const callSourceLabel = initialReview.callSource === "not_recorded"
-    ? "Call source was not recorded"
+    ? "Zdroj hovoru nebyl zaznamenán"
     : initialReview.callSource === "local_sip"
-      ? "Local SIP"
+      ? "Místní SIP"
       : initialReview.callSource === "telnyx"
         ? "Telnyx"
-        : "Simulation";
+        : "Simulace";
 
   return (
     <main className="space-y-5">
       <div className="grid gap-5 lg:grid-cols-2">
-        <Section title="Call facts" icon={<PhoneCall className="h-4 w-4" />}>
+        <Section title="Údaje o hovoru" icon={<PhoneCall className="h-4 w-4" />}>
           <dl className="grid grid-cols-2 gap-4 text-xs">
-            <div><dt className="text-zinc-500">Started</dt><dd className="mt-1 text-zinc-200">{formatDate(initialReview.call.createdAt)}</dd></div>
-            <div><dt className="text-zinc-500">Duration</dt><dd className="mt-1 font-mono text-zinc-200">{formatDuration(initialReview.call.durationSeconds)}</dd></div>
-            <div><dt className="text-zinc-500">Customer</dt><dd className="mt-1 text-zinc-200">{initialReview.customer?.name || "Name not recorded"}</dd></div>
-            <div><dt className="text-zinc-500">Operator</dt><dd className="mt-1 text-zinc-200">{initialReview.operator?.name || "Name not recorded"}</dd></div>
-            <div className="col-span-2"><dt className="text-zinc-500">Source</dt><dd className="mt-1 text-zinc-200">{callSourceLabel}</dd></div>
+            <div><dt className="text-zinc-500">Zahájeno</dt><dd className="mt-1 text-zinc-200">{formatDate(initialReview.call.createdAt)}</dd></div>
+            <div><dt className="text-zinc-500">Délka</dt><dd className="mt-1 font-mono text-zinc-200">{formatDuration(initialReview.call.durationSeconds)}</dd></div>
+            <div><dt className="text-zinc-500">Zákazník</dt><dd className="mt-1 text-zinc-200">{initialReview.customer?.name || "Jméno není zaznamenáno"}</dd></div>
+            <div><dt className="text-zinc-500">Operátor</dt><dd className="mt-1 text-zinc-200">{initialReview.operator?.name || "Jméno není zaznamenáno"}</dd></div>
+            <div className="col-span-2"><dt className="text-zinc-500">Zdroj</dt><dd className="mt-1 text-zinc-200">{callSourceLabel}</dd></div>
           </dl>
         </Section>
 
-        <Section title="Outcome and operator note" icon={<UserRound className="h-4 w-4" />}>
+        <Section title="Výsledek a poznámka operátora" icon={<UserRound className="h-4 w-4" />}>
           <dl className="space-y-3 text-xs">
-            <div><dt className="text-zinc-500">Outcome</dt><dd className="mt-1 text-zinc-200">{humanize(initialReview.call.outcome)}</dd></div>
-            <div><dt className="text-zinc-500">Fail reason</dt><dd className="mt-1 text-zinc-200">{humanize(initialReview.call.failReason)}</dd></div>
-            <div><dt className="text-zinc-500">Operator note</dt><dd className="mt-1 whitespace-pre-wrap leading-5 text-zinc-200">{initialReview.call.operatorNote || "No operator note was recorded."}</dd></div>
-            {initialReview.call.scheduledAt && <div><dt className="text-zinc-500">Schedule</dt><dd className="mt-1 text-zinc-200">{formatDate(initialReview.call.scheduledAt)}</dd></div>}
+            <div><dt className="text-zinc-500">Výsledek</dt><dd className="mt-1 text-zinc-200">{humanize(initialReview.call.outcome)}</dd></div>
+            <div><dt className="text-zinc-500">Důvod neúspěchu</dt><dd className="mt-1 text-zinc-200">{isFailReason(initialReview.call.failReason) ? getFailReasonLabel(initialReview.call.failReason) : humanize(initialReview.call.failReason)}</dd></div>
+            <div><dt className="text-zinc-500">Poznámka operátora</dt><dd className="mt-1 whitespace-pre-wrap leading-5 text-zinc-200">{initialReview.call.operatorNote || "Poznámka operátora nebyla zaznamenána."}</dd></div>
+            {initialReview.call.scheduledAt && <div><dt className="text-zinc-500">Naplánovaný hovor</dt><dd className="mt-1 text-zinc-200">{formatDate(initialReview.call.scheduledAt)}</dd></div>}
           </dl>
         </Section>
       </div>
 
-      <Section title="Transcript" icon={<FileText className="h-4 w-4" />}><TranscriptEvidence review={initialReview} /></Section>
-      <Section title="Script evidence" icon={<ShieldCheck className="h-4 w-4" />}><ScriptEvidence review={initialReview} /></Section>
+      <Section title="Přepis" icon={<FileText className="h-4 w-4" />}><TranscriptEvidence review={initialReview} /></Section>
+      <Section title="Zaznamenaný skript" icon={<ShieldCheck className="h-4 w-4" />}><ScriptEvidence review={initialReview} /></Section>
 
-      <Section title="Current human review" icon={<RefreshCw className="h-4 w-4" />}>
+      <Section title="Aktuální kontrola člověkem" icon={<RefreshCw className="h-4 w-4" />}>
         {readOnly ? (
           latestRevision ? (
             <div className="space-y-3">
               <Surface variant="inset"><div className="p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest verdict · revision {latestRevision.revisionNumber}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Poslední verdikt · revize {latestRevision.revisionNumber}</p>
                 <p className="mt-2 text-sm font-semibold text-zinc-100">{latestRevision.verdict}</p>
                 <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-zinc-300">{latestRevision.coachingNote}</p>
               </div></Surface>
-              <StatusAlert tone="neutral">Review is read-only for your current permissions.</StatusAlert>
+              <StatusAlert tone="neutral">S vašimi oprávněními je kontrola dostupná pouze pro čtení.</StatusAlert>
             </div>
           ) : (
-            <StatusAlert tone="neutral">No completed review exists yet. This view is read-only for your current permissions.</StatusAlert>
+            <StatusAlert tone="neutral">Zatím neexistuje dokončená kontrola. S vašimi oprávněními je tento pohled dostupný pouze pro čtení.</StatusAlert>
           )
         ) : !latestRevision || isCorrectionMode ? (
           <CallReviewForm
@@ -324,32 +334,32 @@ export function CallReviewWorkspace({
         ) : (
           <div className="space-y-3">
             <Surface variant="inset"><div className="p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest verdict · revision {latestRevision.revisionNumber}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Poslední verdikt · revize {latestRevision.revisionNumber}</p>
               <p className="mt-2 text-sm font-semibold text-zinc-100">{latestRevision.verdict}</p>
               <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-zinc-300">{latestRevision.coachingNote}</p>
             </div></Surface>
             <Button type="button" onClick={() => setIsCorrectionMode(true)} variant="secondary">
-              Correct completed review
+              Opravit dokončenou kontrolu
             </Button>
           </div>
         )}
       </Section>
 
-      <Section title="Revision timeline" icon={<History className="h-4 w-4" />}>
+      <Section title="Historie revizí" icon={<History className="h-4 w-4" />}>
         {initialReview.revisions.length === 0 ? (
-          <p className="text-xs text-zinc-500">No completed review exists yet.</p>
+          <p className="text-xs text-zinc-500">Zatím neexistuje dokončená kontrola.</p>
         ) : (
           <ol className="space-y-4">
             {initialReview.revisions.map((revision) => (
               <Surface key={revision.id} variant="inset" className="w-full"><li className="relative p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-zinc-200">Revision {revision.revisionNumber}</p>
+                  <p className="text-xs font-semibold text-zinc-200">Revize {revision.revisionNumber}</p>
                   <p className="inline-flex items-center gap-1.5 text-[10px] text-zinc-500"><Clock3 className="h-3 w-3" />{formatDate(revision.createdAt)}</p>
                 </div>
                 <p className="mt-2 text-sm font-semibold text-zinc-100">{revision.verdict}</p>
                 <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-zinc-300">{revision.coachingNote}</p>
-                {revision.correctionReason && <p className="mt-3 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200/80"><strong>Correction reason:</strong> {revision.correctionReason}</p>}
-                <p className="mt-3 text-[10px] text-zinc-500">Reviewed by {revision.reviewer.name || "name not recorded"}</p>
+                {revision.correctionReason && <p className="mt-3 rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200/80"><strong>Důvod opravy:</strong> {revision.correctionReason}</p>}
+                <p className="mt-3 text-[10px] text-zinc-500">Kontroloval: {revision.reviewer.name || "jméno není zaznamenáno"}</p>
               </li></Surface>
             ))}
           </ol>

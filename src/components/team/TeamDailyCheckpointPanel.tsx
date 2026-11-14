@@ -18,13 +18,13 @@ function formatDuration(seconds: number): string {
 }
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 function formatSource(value: string): string {
   const labels: Record<string, string> = {
     manual: "Ruční vytvoření",
-    previous_call: "Post-call",
+    previous_call: "Po hovoru",
     email: "E-mail",
     web_form: "Webový formulář",
     other: "Jiný zdroj",
@@ -91,7 +91,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
           <div className="flex items-start gap-3">
             <BarChart3 className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">{section === "orders" ? "Objednávky" : "Denní checkpoint"}</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">{section === "orders" ? "Objednávky" : "Denní přehled"}</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
                 {section === "orders" ? "Objednávky vytvořené v zvoleném období v povoleném týmovém rozsahu." : "Týmový přehled objednávek, prošlých naplánovaných hovorů a aktuálních výsledků operátorů v zvoleném období."}
               </p>

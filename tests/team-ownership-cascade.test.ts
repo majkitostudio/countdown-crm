@@ -94,7 +94,7 @@ describe("Team Ownership route boundary", () => {
 
     const markup = renderToStaticMarkup(await TeamOwnershipPage());
 
-    expect(markup).toContain("Team Ownership je dostupné pouze administrátorovi");
+    expect(markup).toContain("Vlastnictví týmů je dostupné pouze administrátorovi");
     expect(loadTeamOwnershipActionMock).not.toHaveBeenCalled();
   });
 
@@ -107,7 +107,7 @@ describe("Team Ownership route boundary", () => {
 
     const markup = renderToStaticMarkup(await TeamOwnershipPage());
 
-    expect(markup).toContain("Team Ownership");
+    expect(markup).toContain("Vlastnictví týmů");
     expect(loadTeamOwnershipActionMock).toHaveBeenCalledTimes(1);
   });
 });

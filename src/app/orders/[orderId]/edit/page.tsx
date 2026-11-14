@@ -56,11 +56,11 @@ export default async function OrderEditPage({
     return (
       <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-rose-400" />
-        <h1 className="text-base font-semibold text-zinc-100">Order edit unavailable</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">The order could not be loaded from the active workspace.</p>
+        <h1 className="text-base font-semibold text-zinc-100">Úprava objednávky není dostupná</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-rose-200/80">Objednávku se nepodařilo načíst z aktivního pracovního prostoru. Zkuste to znovu.</p>
         <Link href="/orders" className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Orders
+          Zpět na objednávky
         </Link>
       </Surface>
     );
@@ -71,14 +71,14 @@ export default async function OrderEditPage({
     return (
       <Surface variant="empty" className="w-full">
         <CircleAlert className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Order not found</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">This order does not exist in the active workspace or is no longer available.</p>
+        <h1 className="text-base font-semibold text-zinc-100">Objednávka nenalezena</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Tato objednávka v aktivním pracovním prostoru neexistuje nebo už není dostupná.</p>
 <Link
           href={backHref}
           className={getButtonClassName("secondary")}
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to order
+          Zpět na objednávku
         </Link>
       </Surface>
     );
@@ -88,13 +88,13 @@ export default async function OrderEditPage({
     return (
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-amber-300" />
-        <h1 className="text-base font-semibold text-zinc-100">Legacy order is read-only</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Historická objednávka je pouze pro čtení</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-amber-100/70">
-          This historical order has no editable item snapshot. Its product and total remain available on the detail page as read-only history.
+          Tato historická objednávka nemá upravitelné údaje položek. Produkt a celková částka zůstávají dostupné v detailu jako historie pouze pro čtení.
         </p>
         <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to order
+          Zpět na objednávku
         </Link>
       </Surface>
     );
@@ -104,13 +104,13 @@ export default async function OrderEditPage({
     return (
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-amber-300" />
-        <h1 className="text-base font-semibold text-zinc-100">Order details are read-only</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Údaje objednávky jsou pouze pro čtení</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-amber-100/70">
-          Operators can edit only while the order is pending or in preparation. After it is sent, only an administrator can make a correction.
+          Operátoři mohou upravovat objednávku jen během čekání nebo přípravy. Po odeslání ji může opravit pouze administrátor.
         </p>
         <Link href={backHref} className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to order
+          Zpět na objednávku
         </Link>
       </Surface>
     );
@@ -120,10 +120,10 @@ export default async function OrderEditPage({
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={Package}
-        title="Edit Order"
-        badge={{ label: `Revision ${result.order.revision}`, tone: "neutral" }}
-        backLink={{ href: backHref, label: result.origin === "workspace" ? "Back to Operator Console" : "Back to order" }}
-        description={`Stav je nyní ${result.order.status === "in_progress" ? "In-Progress" : result.order.status.charAt(0).toUpperCase() + result.order.status.slice(1)}. Zákazník, přiřazený operátor a stav jsou zde pouze pro čtení.`}
+        title="Upravit objednávku"
+        badge={{ label: `Verze ${result.order.revision}`, tone: "neutral" }}
+        backLink={{ href: backHref, label: result.origin === "workspace" ? "Zpět do konzole operátora" : "Zpět na objednávku" }}
+        description={`Aktuální stav: ${({ pending: "Čeká na zpracování", in_progress: "Zpracovává se", sent: "Odesláno", delivered: "Doručeno", returned: "Vráceno", cancelled: "Zrušeno", completed: "Dokončeno" } as Record<string, string>)[result.order.status] || result.order.status}. Zákazník, přiřazený operátor a stav jsou zde pouze pro čtení.`}
       />
       <OrderEditForm
         order={result.order}

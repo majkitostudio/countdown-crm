@@ -180,13 +180,13 @@ function queueOwner(row: QueueSourceRow): ExceptionQueueItemDTO["owner"] {
   if (row.assigned_operator_id) {
     return {
       id: row.assigned_operator_id,
-      name: row.assigned_operator?.full_name || "Unknown operator",
+      name: row.assigned_operator?.full_name || "Neznámý operátor",
     };
   }
   if (row.preferred_operator_id) {
     return {
       id: row.preferred_operator_id,
-      name: row.preferred_operator?.full_name || "Unknown operator",
+      name: row.preferred_operator?.full_name || "Neznámý operátor",
     };
   }
   return null;
@@ -226,13 +226,13 @@ function buildQueueExceptions(
         id: `queue:outcome_recovery:${row.id}`,
         type: "outcome_recovery",
         priority: "critical",
-        reason: "The call ended without a completed outcome and needs a manager check.",
+        reason: "Hovor skončil bez dokončeného výsledku a vyžaduje kontrolu vedoucího.",
         owner,
         target,
         source: { table: "lead_queue_items", id: row.id },
         occurred_at: row.updated_at,
         due_at: row.lease_expires_at,
-        next_action: { label: "Open queue operations", href: "/team" },
+        next_action: { label: "Otevřít správu front", href: "/team" },
         callReview,
       });
       continue;
@@ -243,13 +243,13 @@ function buildQueueExceptions(
         id: `queue:overdue_scheduled_call:${row.id}`,
         type: "overdue_scheduled_call",
         priority: "high",
-        reason: "The promised scheduled call time has passed and no newer queue state closed it.",
+        reason: "Termín naplánovaného hovoru uplynul a novější stav fronty jej neuzavřel.",
         owner,
         target,
         source: { table: "lead_queue_items", id: row.id },
         occurred_at: row.scheduled_at,
         due_at: row.scheduled_at,
-        next_action: { label: "Open customer", href: `/leads/${row.lead_id}` },
+        next_action: { label: "Otevřít zákazníka", href: `/leads/${row.lead_id}` },
         callReview,
       });
       continue;
@@ -260,13 +260,13 @@ function buildQueueExceptions(
         id: `queue:expired_lease:${row.id}`,
         type: "expired_lease",
         priority: "high",
-        reason: "The operator assignment expired before the contact was completed.",
+        reason: "Přidělení operátorovi vypršelo před dokončením kontaktu.",
         owner,
         target,
         source: { table: "lead_queue_items", id: row.id },
         occurred_at: row.lease_expires_at,
         due_at: row.lease_expires_at,
-        next_action: { label: "Open queue operations", href: "/team" },
+        next_action: { label: "Otevřít správu front", href: "/team" },
         callReview,
       });
     }
@@ -280,20 +280,20 @@ function buildWorkflowExceptions(rows: WorkflowSourceRow[]): ExceptionQueueItemD
     if (row.status !== "failure") return [];
     const error = isRecord(row.logs) && typeof row.logs.error === "string"
       ? row.logs.error.trim()
-      : "The workflow execution recorded a failure.";
-    const workflowName = row.workflow?.name || "Workflow";
+      : "Spuštění automatizace skončilo chybou.";
+    const workflowName = row.workflow?.name || "Automatizace";
 
     return [{
       id: `workflow:failure:${row.id}`,
       type: "workflow_failure" as const,
       priority: "medium" as const,
-      reason: error || "The workflow execution recorded a failure.",
+      reason: error || "Spuštění automatizace skončilo chybou.",
       owner: null,
       target: { kind: "workflow" as const, id: row.rule_id || row.id, label: workflowName },
       source: { table: "workflow_executions" as const, id: row.id },
       occurred_at: row.created_at,
       due_at: null,
-      next_action: { label: "Open automations", href: "/automations" },
+      next_action: { label: "Otevřít automatizace", href: "/automations" },
       callReview: null,
     }];
   });
@@ -310,13 +310,13 @@ function buildScriptExceptions(
       id: `script:missing:${product.id}`,
       type: "missing_script" as const,
       priority: "medium" as const,
-      reason: "This active product has no published operator script.",
+      reason: "Tento aktivní produkt nemá zveřejněný scénář pro operátory.",
       owner: null,
       target: { kind: "product" as const, id: product.id, label: product.title },
       source: { table: "products" as const, id: product.id },
       occurred_at: product.created_at,
       due_at: null,
-      next_action: { label: "Open product scripts", href: "/settings/scripts" },
+      next_action: { label: "Otevřít produktové scénáře", href: "/settings/scripts" },
       callReview: null,
     }];
   });
@@ -343,13 +343,13 @@ function buildPickupRiskExceptions(
       id: `order:pickup_risk:${row.id}`,
       type: "pickup_risk" as const,
       priority: "high" as const,
-      reason: `The package has been waiting at the pickup point for ${risk.daysOnPickup} day(s) without a completed pickup call.`,
+      reason: `Balíček čeká na výdejně ${risk.daysOnPickup} dní bez dokončeného hovoru k vyzvednutí.`,
       owner: null,
-      target: { kind: "order" as const, id: row.id, label: row.lead?.full_name || "Order" },
+      target: { kind: "order" as const, id: row.id, label: row.lead?.full_name || "Objednávka" },
       source: { table: "orders" as const, id: row.id },
       occurred_at: occurredAt,
       due_at: occurredAt,
-      next_action: { label: "Open order", href: `/orders/${row.id}` },
+      next_action: { label: "Otevřít objednávku", href: `/orders/${row.id}` },
       callReview: null,
     }];
   });
@@ -390,7 +390,7 @@ export function buildTeamLeaderExceptionQueue(
     }];
   });
 
-  const workspaceGlobalRestrictionMessage = "Workspace-global checks are available to Administrators only.";
+  const workspaceGlobalRestrictionMessage = "Kontroly celého pracovního prostoru jsou dostupné pouze administrátorům.";
 
   return {
     items: visibleItems
@@ -402,26 +402,26 @@ export function buildTeamLeaderExceptionQueue(
     sources: {
       queue: sources.queueItems.status === "fulfilled"
         ? available()
-        : unavailable("Lead queue checks could not be loaded."),
+        : unavailable("Kontroly fronty leadů se nepodařilo načíst."),
       orders: sources.pickupRiskOrders.status === "fulfilled"
         ? available()
-        : unavailable("Pickup risk checks could not be loaded."),
+        : unavailable("Kontroly rizika nevyzvednutí se nepodařilo načíst."),
       workflows: sources.globalSourcesRestricted
         ? unavailable(workspaceGlobalRestrictionMessage)
         : sources.workflowExecutions.status === "fulfilled"
           ? available()
-          : unavailable("Workflow failure checks could not be loaded."),
+          : unavailable("Kontroly chyb automatizací se nepodařilo načíst."),
       scripts: sources.globalSourcesRestricted
         ? unavailable(workspaceGlobalRestrictionMessage)
         : sources.products.status === "fulfilled" && sources.productScripts.status === "fulfilled"
           ? available()
-          : unavailable("Published script checks could not be loaded."),
+          : unavailable("Kontroly zveřejněných scénářů se nepodařilo načíst."),
       actions: sources.actions.status === "fulfilled"
         ? available()
-        : unavailable("Resolved and snoozed exception state could not be loaded."),
+        : unavailable("Stav vyřešených a odložených výjimek se nepodařilo načíst."),
       callReviews: sources.callSessions.status === "fulfilled"
         ? available()
-        : unavailable("Exact call review links could not be loaded."),
+        : unavailable("Přesné odkazy na kontroly hovorů se nepodařilo načíst."),
     },
   };
 }

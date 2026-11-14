@@ -67,7 +67,7 @@ export async function updateWorkspaceTelephonyAdapter(
     throw new DataAccessError("VALIDATION", "Unsupported telephony adapter.");
   }
   if (isTelnyxActivationBlocked(adapter)) {
-    throw new DataAccessError("VALIDATION", "Telnyx activation is currently blocked.");
+    throw new DataAccessError("VALIDATION", "Aktivace Telnyxu je zablokována, dokud nebude telefonní číslo externě ověřeno.");
   }
 
   const context = await requireWorkspaceRole(["administrator"]);

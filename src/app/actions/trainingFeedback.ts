@@ -23,6 +23,6 @@ export async function generateTrainingFeedbackAction(input: {
     return { ok: true, feedback };
   } catch (error) {
     console.error("Training feedback generation failed:", error);
-    return { ok: false, code: "PROVIDER", message: "Generování coachingové zpětné vazby selhalo." };
+    return { ok: false, code: "PROVIDER", message: "Generování koučovací zpětné vazby selhalo." };
   }
 }

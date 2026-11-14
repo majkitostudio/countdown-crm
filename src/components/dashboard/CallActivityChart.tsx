@@ -36,7 +36,7 @@ export function CallActivityChart() {
             ok: false,
             code: "UNAVAILABLE",
             status: 503,
-            message: error instanceof Error ? error.message : "Call activity query failed",
+            message: error instanceof Error ? error.message : "Aktivitu hovorů se nepodařilo načíst.",
           });
         }
       }
@@ -52,7 +52,7 @@ export function CallActivityChart() {
   const isForbidden = result?.ok === false && result.code === "FORBIDDEN";
   const activity = result?.ok ? result.data.callActivity : createEmptyCallActivity();
   const hasCalls = activity.totalCalls > 0;
-  const scopeLabel = result?.ok ? (result.data.scope === "team" ? "Týmová data" : "Celý workspace") : "";
+  const scopeLabel = result?.ok ? (result.data.scope === "team" ? "Týmová data" : "Celý pracovní prostor") : "";
 
   return (
     <div
@@ -65,7 +65,7 @@ export function CallActivityChart() {
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <BarChart2 className="w-4 h-4 text-zinc-400" />
-          <h3 className="text-sm font-semibold text-zinc-100">Call Volume &amp; Hourly Activity</h3>
+          <h3 className="text-sm font-semibold text-zinc-100">Počet hovorů a hodinová aktivita</h3>
         </div>
         <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider shrink-0">
           {isLoading ? "Načítání" : `${activity.periodDays} dní • ${scopeLabel}`}
@@ -98,7 +98,7 @@ export function CallActivityChart() {
           </div>
 
           <div className="space-y-1">
-            <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Call volume po dnech</p>
+            <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Počet hovorů po dnech</p>
             <div className="h-28 rounded-lg bg-zinc-950/60 border border-zinc-800/60 px-1 py-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={activity.daily} margin={{ top: 2, right: 4, bottom: 0, left: -22 }}>

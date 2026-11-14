@@ -15,19 +15,19 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
   if (typeof window === "undefined") return;
 
   const rows = [
-    ["Metric", "Value"],
-    ["Analytics scope", data.scopeLabel],
-    ...(data.scope === "team" ? [["Teams in scope", data.accessibleTeams.map((team) => team.name).join("; ")]] : []),
-    ["Revenue by currency", formatCurrencyAmounts(data.revenueByCurrency)],
-    ["AI Forecast Revenue (Next 30d)", "Unavailable"],
-    ["Average Order Value by currency", formatCurrencyAmounts(data.avgOrderValueByCurrency)],
-    ["Conversion Rate", data.conversionAvailable ? `${data.conversionRate}%` : "Unavailable"],
+    ["Ukazatel", "Hodnota"],
+    ["Rozsah přehledu", data.scopeLabel],
+    ...(data.scope === "team" ? [["Zahrnuté týmy", data.accessibleTeams.map((team) => team.name).join("; ")]] : []),
+    ["Tržby podle měny", formatCurrencyAmounts(data.revenueByCurrency)],
+    ["AI odhad tržeb (příštích 30 dní)", "Nedostupné"],
+    ["Průměrná hodnota objednávky podle měny", formatCurrencyAmounts(data.avgOrderValueByCurrency)],
+    ["Konverze", data.conversionAvailable ? `${data.conversionRate}%` : "Nedostupné"],
     [
-      "Objection Resolution Rate",
-      data.objectionResolutionRate === null ? "Unavailable" : `${data.objectionResolutionRate}%`,
+      "Úspěšnost řešení námitek",
+      data.objectionResolutionRate === null ? "Nedostupné" : `${data.objectionResolutionRate}%`,
     ],
     [],
-    ["Operator", "Calls", "Orders", "Revenue", "Conversion Rate%"],
+    ["Operátor", "Hovory", "Objednávky", "Tržby", "Konverze %"],
     ...data.teamLeaderboard.map((agent) => [
       agent.agentName,
       String(agent.callsCount),

@@ -14,7 +14,7 @@ export function formatCurrencyAmount(amount: number, currency: string): string {
 export function formatCurrencyAmounts(amounts: CurrencyAmount[]): string {
   return amounts.length > 0
     ? amounts.map((entry) => formatCurrencyAmount(entry.amount, entry.currency)).join(" · ")
-    : "Unavailable";
+    : "Nedostupné";
 }
 
 export function aggregateCurrencyAmounts<T>(

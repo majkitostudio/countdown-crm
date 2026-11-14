@@ -28,12 +28,12 @@ export function buildDefaultScriptHtml(product: Product | undefined): string {
     sectionHeading(3, "Představení řešení"),
     ...script.approvedBenefits.map(paragraph),
     ...Object.entries(script.objectionResponses).map(([key, value]) =>
-      labeledParagraph(key.replaceAll("_", " "), value),
+      labeledParagraph(({ price: "Cena", effectiveness: "Účinnost", delivery: "Doručení", hesitation: "Váhání" } as Record<string, string>)[key] || key.replaceAll("_", " "), value),
     ),
-    labeledParagraph("Internal guidance", script.nextBestAction),
+    labeledParagraph("Interní pokyn", script.nextBestAction),
     sectionHeading(4, "Závěrečný pozitivní dojem"),
     paragraph(script.closing),
-    ...script.guardrails.map((guardrail) => labeledParagraph("Script guidance", guardrail)),
+    ...script.guardrails.map((guardrail) => labeledParagraph("Pokyn ke scénáři", guardrail)),
   ].join("");
 }
 
@@ -58,7 +58,7 @@ export function sanitizeScriptHtml(value: string): string {
 export function validateScriptHtml(value: string): string {
   const sanitized = sanitizeScriptHtml(value);
   if (!sanitized || sanitized.length > 100000) {
-    throw new Error("Script content must be between 1 and 100,000 characters.");
+    throw new Error("Obsah skriptu musí mít 1 až 100 000 znaků.");
   }
   return sanitized;
 }

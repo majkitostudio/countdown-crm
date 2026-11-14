@@ -19,7 +19,7 @@ describe("operator next action", () => {
     });
 
     expect(result.kind).toBe("recover_call");
-    expect(result.title).toBe("Recover interrupted call");
+    expect(result.title).toBe("Obnovit přerušený hovor");
   });
 
   it("guides an operator with an assigned lead toward starting the call", () => {
@@ -55,7 +55,7 @@ describe("operator next action", () => {
     });
 
     expect(result.kind).toBe("wait_for_assignment");
-    expect(result.title).toBe("Waiting for assignment");
-    expect(result.description).toContain("No callable contact");
+    expect(result.title).toBe("Čekání na přiřazení");
+    expect(result.description).toContain("nemáte přiřazený kontakt k volání");
   });
 });

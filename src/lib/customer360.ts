@@ -57,49 +57,49 @@ export function buildCustomer360Snapshot(
 
   if (!lastCall && !lastOrder) {
     nextAction = {
-      title: "Start first outreach",
+      title: "Zahájit první kontakt",
       description: "Lead zatím nemá uložený hovor ani objednávku.",
       href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lastOrder && ["pending", "in_progress", "sent"].includes(lastOrder.status)) {
     nextAction = {
-      title: "Check order progress",
+      title: "Zkontrolovat stav objednávky",
       description: `Poslední objednávka čeká na dokončení (${lastOrder.product_title}).`,
       href: `/orders/${lastOrder.id}`,
     };
   } else if (lastCall?.outcome === "followup_scheduled") {
     nextAction = {
-      title: "Honor the scheduled follow-up",
-      description: "Poslední hovor obsahuje naplánovaný follow-up.",
+      title: "Navázat na naplánovaný hovor",
+      description: "Po posledním hovoru je naplánován další kontakt.",
       href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lastCall?.outcome === "no_answer") {
     nextAction = {
-      title: "Try a new outreach window",
+      title: "Zkusit kontakt v jinou dobu",
       description: "Poslední pokus skončil bez spojení.",
       href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lastCall?.outcome === "objection") {
     nextAction = {
-      title: "Review objection battlecards",
+      title: "Projít odpovědi na námitky",
       description: "Před dalším hovorem projděte poslední zaznamenanou námitku.",
       href: "/products",
     };
   } else if (!lastOrder) {
     nextAction = {
-      title: "Continue qualification",
+      title: "Pokračovat v posouzení zájmu",
       description: "Lead má kontaktovanou historii, ale zatím žádnou objednávku.",
       href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else if (lead.status === "customer") {
     nextAction = {
-      title: "Review repeat-purchase opportunity",
+      title: "Posoudit možnost opakovaného nákupu",
       description: `Poslední dokončená objednávka: ${lastFulfilledOrder?.product_title || lastOrder.product_title}.`,
       href: `/console?leadId=${encodeURIComponent(lead.id)}`,
     };
   } else {
     nextAction = {
-      title: "Review the latest timeline",
+      title: "Projít poslední události",
       description: "Zkontrolujte poslední kontakt před další akcí.",
       href: `/leads/${encodeURIComponent(lead.id)}`,
     };

@@ -24,10 +24,10 @@ const CALL_OUTCOME_OPTIONS: ReadonlyArray<{
   icon: typeof PhoneMissed;
   shortcut: string;
 }> = [
-  { value: "call_later", label: "Inaccessible", icon: PhoneMissed, shortcut: "1" },
-  { value: "schedule", label: "Schedule", icon: CalendarClock, shortcut: "2" },
-  { value: "fail", label: "Failed", icon: XCircle, shortcut: "3" },
-  { value: "order", label: "Create Order", icon: ShoppingBag, shortcut: "4" },
+  { value: "call_later", label: "Nedostupný", icon: PhoneMissed, shortcut: "1" },
+  { value: "schedule", label: "Naplánovat hovor", icon: CalendarClock, shortcut: "2" },
+  { value: "fail", label: "Neúspěšný", icon: XCircle, shortcut: "3" },
+  { value: "order", label: "Vytvořit objednávku", icon: ShoppingBag, shortcut: "4" },
 ];
 
 export function getCallOutcomeLabel(outcome: CallOutcome): string {
@@ -128,16 +128,16 @@ export function CallOutcomePanel({
             tabIndex={-1}
             className="rounded-sm text-[10px] font-semibold uppercase tracking-wider text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
           >
-            Post-call outcome required
+            Je nutné zvolit výsledek hovoru
           </h2>
           <p className="mt-1 text-[11px] text-amber-300/80">
-            {recoveryRequired ? "The call was interrupted. This lead remains assigned to you for recovery." : "Choose one explicit outcome to finish this call."}
+            {recoveryRequired ? "Hovor byl přerušen. Tento lead vám zůstává přiřazen pro obnovu." : "Dokončete hovor výběrem jednoho výsledku."}
           </p>
         </div>
-        {isCompletionPending && <span className="text-[10px] text-amber-200">Saving…</span>}
+        {isCompletionPending && <span className="text-[10px] text-amber-200">Ukládání…</span>}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Post-call outcome options">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Možnosti výsledku hovoru">
         {CALL_OUTCOME_OPTIONS.map(({ value, label, icon: Icon, shortcut }) => {
           const isSelected = selectedOutcome === value;
           return (
@@ -155,7 +155,7 @@ export function CallOutcomePanel({
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{label}</span>
-              {isSelected && <span className="sr-only">Selected</span>}
+              {isSelected && <span className="sr-only">Vybráno</span>}
             </button>
           );
         })}
@@ -164,7 +164,7 @@ export function CallOutcomePanel({
       {selectedOutcome === "fail" && (
         <div className="mt-3 space-y-3 rounded-lg border border-rose-900/60 bg-rose-950/20 p-3" data-testid="fail-details-panel">
           <div>
-            <label htmlFor="fail-reason" className="text-[11px] font-semibold text-rose-100">Fail reason</label>
+            <label htmlFor="fail-reason" className="text-[11px] font-semibold text-rose-100">Důvod neúspěchu</label>
             <select
               id="fail-reason"
               value={failReason}
@@ -174,13 +174,13 @@ export function CallOutcomePanel({
               }}
               className="mt-1.5 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-100 outline-none focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
             >
-              <option value="">Select a reason…</option>
+              <option value="">Vyberte důvod…</option>
               {FAIL_REASON_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </div>
           <div>
             <label htmlFor="fail-note" className="text-[11px] font-semibold text-rose-100">
-              {isNoteRequiredForFailReason(failReason) ? "Short note (required)" : "Short note (optional)"}
+              {isNoteRequiredForFailReason(failReason) ? "Krátká poznámka (povinná)" : "Krátká poznámka (nepovinná)"}
             </label>
             <textarea
               id="fail-note"
@@ -191,7 +191,7 @@ export function CallOutcomePanel({
               }}
               rows={3}
               maxLength={2_000}
-              placeholder={isNoteRequiredForFailReason(failReason) ? "What prevented the conversion? Describe offered bundles..." : "Optional context for future contact..."}
+              placeholder={isNoteRequiredForFailReason(failReason) ? "Co zabránilo prodeji? Popište nabídnuté balíčky…" : "Doplňující informace pro další kontakt…"}
               className="mt-1.5 w-full resize-y rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs leading-relaxed text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-sky-300"
             />
           </div>
@@ -203,7 +203,7 @@ export function CallOutcomePanel({
               disabled={isCompletionPending}
               className="rounded-lg bg-rose-200 px-3 py-2 text-[11px] font-semibold text-rose-950 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Save Failed
+              Uložit neúspěšný hovor
             </button>
           </div>
         </div>
@@ -242,17 +242,17 @@ export function OperatorCallControls({
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
               </span>
-              <span>{telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call"}</span>
+              <span>{telephonyAdapter === "local_sip" ? "Místní SIP hovor" : telephonyAdapter === "telnyx" ? "Hovor přes Telnyx" : "Simulovaný hovor"}</span>
               <span className="font-mono text-zinc-100">{formatTimer(durationSeconds)}</span>
-              {telephonyAdapter === "simulation" && <span className="text-emerald-400" aria-label="Simulated audio activity">▮▮▮▮</span>}
+              {telephonyAdapter === "simulation" && <span className="text-emerald-400" aria-label="Simulovaná zvuková aktivita">▮▮▮▮</span>}
             </div>
           ) : isDialing ? (
             <div className="flex items-center gap-2 text-xs text-zinc-300">
               <Radio className="h-3.5 w-3.5 animate-spin" />
-              Dialing customer…
+              Vytáčení zákazníka…
             </div>
           ) : (
-            <p className="text-xs text-zinc-500">Ready to place a call</p>
+            <p className="text-xs text-zinc-500">Připraveno k volání</p>
           )}
         </div>
 
@@ -265,14 +265,14 @@ export function OperatorCallControls({
             variant={isCallActive ? "danger" : "primary"}
           >
             {isCallActive ? <PhoneOff className="h-3.5 w-3.5" /> : <PhoneCall className="h-3.5 w-3.5" />}
-            {isStarting ? "Starting…" : isDialing ? "Cancel dial" : isCallActive ? "End call" : "Call client"}
+            {isStarting ? "Zahajování…" : isDialing ? "Zrušit vytáčení" : isCallActive ? "Ukončit hovor" : "Zavolat zákazníkovi"}
           </Button>
           {isCallActive && (
             <Button
               type="button"
               onClick={onToggleMute}
-              aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-              title={isMuted ? "Unmute microphone" : "Mute microphone"}
+              aria-label={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"}
+              title={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"}
               variant={isMuted ? "secondary" : "quiet"}
               className="p-2"
             >
@@ -283,8 +283,8 @@ export function OperatorCallControls({
             <Button
               type="button"
               onClick={onSimulateIncoming}
-              aria-label="Simulate an incoming call"
-              title="Simulate an incoming call"
+              aria-label="Simulovat příchozí hovor"
+              title="Simulovat příchozí hovor"
               variant="quiet"
               className="p-2"
             >

@@ -14,16 +14,16 @@ interface TeamPresencePanelProps {
 }
 
 const STATE_LABELS: Record<OperatorPresenceDTO["state"], string> = {
-  offline: "Offline",
-  available: "Ready",
-  break: "Break",
-  in_call: "In call",
-  after_call: "After call",
+  offline: "Odpojen",
+  available: "Připraven",
+  break: "Pauza",
+  in_call: "V hovoru",
+  after_call: "Po hovoru",
 };
 
 function formatDate(value: string | null): string {
-  if (!value) return "No signal recorded";
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  if (!value) return "Žádný zaznamenaný signál";
+  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 function statusTone(state: OperatorPresenceDTO["state"], fresh: boolean): "success" | "warning" | "neutral" | "danger" {
@@ -58,7 +58,7 @@ export function TeamPresencePanel({ operators, presence }: TeamPresencePanelProp
         <div className="flex items-start gap-3">
           <Activity className="mt-0.5 h-4 w-4 text-zinc-400" />
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Operator status</h2>
+            <h2 className="text-sm font-semibold text-zinc-100">Stav operátorů</h2>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
               Stav vychází z posledního signálu operátora. Signál starší než pět minut neoznačujeme jako aktuálně dostupný.
             </p>
@@ -100,7 +100,7 @@ export function TeamPresencePanel({ operators, presence }: TeamPresencePanelProp
                       <p className="truncate text-sm font-medium text-zinc-200">{operator.full_name || operator.email || "Neznámý operátor"}</p>
                       <p className="mt-1 truncate text-[11px] text-zinc-500">{operator.email || "Email není uveden"}</p>
                     </div>
-                    <StatusBadge tone={statusTone(state, fresh)}>{fresh ? STATE_LABELS[state] : "Offline / stale"}</StatusBadge>
+                    <StatusBadge tone={statusTone(state, fresh)}>{fresh ? STATE_LABELS[state] : "Odpojen / neaktuální"}</StatusBadge>
                   </div>
                   <div className="mt-4 flex items-center gap-2 text-[11px] text-zinc-500">
                     <Clock3 className="h-3.5 w-3.5 text-zinc-600" />

@@ -95,8 +95,8 @@ export function parseCallReviewAuditDetails(value: string): CallReviewAuditDetai
 }
 
 export function auditActionLabel(action: AuditActionType): string {
-  if (action === "CALL_REVIEW_COMPLETED") return "Call review completed";
-  if (action === "CALL_REVIEW_CORRECTED") return "Call review corrected";
+  if (action === "CALL_REVIEW_COMPLETED") return "Kontrola hovoru dokončena";
+  if (action === "CALL_REVIEW_CORRECTED") return "Kontrola hovoru opravena";
   return action;
 }
 

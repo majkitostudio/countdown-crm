@@ -11,6 +11,14 @@ import { P2_TRAINING_SCRIPTS, TRAINING_PERSONAS, getTrainingScenario, personalis
 import { speakText, stopSpeaking } from "@/lib/speechSynthesis";
 import { createContinuousSpeechRecognition, isBrowserSpeechRecognitionSupported, type BrowserSpeechRecognitionErrorEvent, type ContinuousSpeechRecognition } from "@/lib/speechRecognition";
 
+const FEEDBACK_TYPE_LABELS: Record<TrainingFeedback["type"], string> = {
+  objection: "Práce s námitkou",
+  direction: "Vedení hovoru",
+  closing: "Uzavření hovoru",
+  compliance: "Dodržování pravidel",
+  other: "Ostatní",
+};
+
 function timeLabel(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
@@ -153,7 +161,7 @@ const continuousRecognitionRef = useRef<ContinuousSpeechRecognition | null>(null
     const feedbackResult = await generateTrainingFeedbackAction({ scriptId, difficulty, personaId, history: messages });
     const feedback = feedbackResult.ok ? feedbackResult.feedback : [];
     setFeedbackUnavailable(!feedbackResult.ok);
-    if (!feedbackResult.ok) setNotice("Automatické AI hodnocení nyní není dostupné. Trénink lze uložit a Team Leader ho může projít ručně.");
+    if (!feedbackResult.ok) setNotice("Automatické AI hodnocení nyní není dostupné. Trénink lze uložit a vedoucí týmu ho může projít ručně.");
     const completedDuration = elapsedRef.current;
     setResult(feedback);
     setSaveState("saving");
@@ -179,7 +187,7 @@ function stopListening() {
     if (!isActive || isSending || speechStatus === "listening" || speechStatus === "processing") return;
     if (speechSupported !== true) {
       setSpeechStatus("unsupported");
-      setNotice("Tento prohlížeč nepodporuje browserový přepis. Můžete pokračovat psaním.");
+      setNotice("Tento prohlížeč nepodporuje hlasový přepis. Můžete pokračovat psaním.");
       return;
     }
 
@@ -207,7 +215,7 @@ function stopListening() {
         setSpeechStatus("error");
         setNotice(event.error === "not-allowed"
           ? "Přístup k mikrofonu nebyl povolen. Můžete pokračovat psaním."
-          : "Browserový přepis se nepodařilo dokončit. Zkuste to znovu nebo pokračujte psaním.");
+          : "Hlasový přepis se nepodařilo dokončit. Zkuste to znovu nebo pokračujte psaním.");
       },
       onEnd: () => {
         // Continuous recognition auto-restarts, onEnd only fires when stopped/aborted
@@ -224,7 +232,7 @@ function stopListening() {
 
     if (!continuous) {
       setSpeechStatus("unsupported");
-      setNotice("Tento prohlížeč nepodporuje browserový přepis. Můžete pokračovat psaním.");
+      setNotice("Tento prohlížeč nepodporuje hlasový přepis. Můžete pokračovat psaním.");
       return;
     }
 
@@ -258,7 +266,7 @@ function stopListening() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <PageHeader icon={PhoneOutgoing} title="AI Training" badge={{ label: "Interní pilot", tone: "neutral" }} description="Bezpečný nácvik prvního P2 hovoru s AI zákazníkem. Trénink nikdy nevytváří objednávku ani ostrý pracovní úkol." />
+      <PageHeader icon={PhoneOutgoing} title="AI trénink" badge={{ label: "Interní pilot", tone: "neutral" }} description="Bezpečný nácvik prvního P2 hovoru s AI zákazníkem. Trénink nikdy nevytváří objednávku ani ostrý pracovní úkol." />
 
       {!isActive && !result && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Moje poslední tréninky</h2><p className="mt-1 text-xs text-zinc-500">Pouze vaše cvičné hovory. Obchodní výsledky ani ostré hovory se sem nemíchají.</p></div><ClipboardList className="h-5 w-5 text-zinc-500" /></div>{historyUnavailable ? <p className="mt-4 text-xs text-zinc-500">Historii tréninků se nyní nepodařilo načíst.</p> : history.length === 0 ? <p className="mt-4 text-xs text-zinc-500">Zatím jste neměl/a žádný dokončený trénink.</p> : <div className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950">{history.slice(0, 5).map((entry) => { const fb = entry.feedback; const hasCritical = fb.some((f) => f.severity === "critical"); return       <div key={entry.sessionId} className="grid gap-2 px-4 py-3 text-xs sm:grid-cols-[1fr_auto_auto]"><div><p className="font-medium text-zinc-200">{entry.customerName}</p><p className="mt-1 text-zinc-500">{new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(entry.createdAt))} · {durationLabel(entry.durationSeconds)}</p></div><span className={`self-center rounded border px-2 py-1 text-[11px] ${hasCritical ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : fb.length > 0 ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"}`}>{hasCritical ? "Závažné chyby" : fb.length > 0 ? "K opravě" : "Bez zásadních chyb"}</span><span className="self-center font-mono text-zinc-300">{fb.length} {feedbackCountLabel(fb.length)}</span></div>})}</div>}</section>}
 
@@ -325,13 +333,13 @@ function stopListening() {
                   </button>
                   <span aria-live="polite">
                     {speechSupported === false
-                      ? "Browserový přepis není podporovaný"
+                      ? "Hlasový přepis není podporovaný"
                       : speechStatus === "ready"
                         ? "Přepis je připravený k úpravě"
                         : speechStatus === "error"
                           ? "Přepis selhal; můžete pokračovat psaním"
                           : inputSource === "browser_speech"
-                            ? "Zdroj: browserový přepis"
+                            ? "Zdroj: hlasový přepis"
                             : "Volitelné · audio se neukládá"}
                   </span>
                 </div>
@@ -350,14 +358,14 @@ function stopListening() {
           const borderClass = fb.severity === "critical" ? "border-rose-900/60 bg-rose-950/20" : fb.severity === "warning" ? "border-amber-900/60 bg-amber-950/20" : "border-zinc-800/60 bg-zinc-950/20";
           const badgeClass = fb.severity === "critical" ? "border-rose-900 text-rose-200" : fb.severity === "warning" ? "border-amber-900 text-amber-200" : "border-zinc-700 text-zinc-300";
           const severityLabel = fb.severity === "critical" ? "Závažné" : fb.severity === "warning" ? "Upozornění" : "Info";
-          return <div key={idx} className={`rounded-xl border p-4 ${borderClass}`}><div className="flex items-start gap-2"><span className={`flex-shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>{severityLabel}</span><span className="text-xs font-medium text-zinc-300 capitalize">{fb.type}</span></div><p className="mt-2 text-xs text-zinc-400"><strong>Řekl/a jsi:</strong> „{fb.operatorText}“</p><p className="mt-1 text-xs text-emerald-300"><strong>Správně:</strong> „{fb.suggestedText}“</p><p className="mt-1 text-xs text-zinc-500"><strong>Proč:</strong> {fb.reason}</p></div>;
+          return <div key={idx} className={`rounded-xl border p-4 ${borderClass}`}><div className="flex items-start gap-2"><span className={`flex-shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}>{severityLabel}</span><span className="text-xs font-medium text-zinc-300 capitalize">{FEEDBACK_TYPE_LABELS[fb.type]}</span></div><p className="mt-2 text-xs text-zinc-400"><strong>Řekli jste:</strong> „{fb.operatorText}“</p><p className="mt-1 text-xs text-emerald-300"><strong>Správně:</strong> „{fb.suggestedText}“</p><p className="mt-1 text-xs text-zinc-500"><strong>Proč:</strong> {fb.reason}</p></div>;
         });
         const noFeedback = feedbackUnavailable
-          ? <p className="mt-6 text-center text-amber-200">Automatické AI hodnocení nebylo dostupné. Trénink je uložený a může ho projít Team Leader.</p>
+          ? <p className="mt-6 text-center text-amber-200">Automatické AI hodnocení nebylo dostupné. Trénink je uložený a může ho projít vedoucí týmu.</p>
           : result.length === 0
             ? <p className="mt-6 text-center text-emerald-300">Bez zásadních chyb – dobrá práce.</p>
             : <div className="mt-6 space-y-4">{feedbackItems}</div>;
-        return <section className="mx-auto max-w-4xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6"><div className="text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900/50 text-zinc-300"><FileText className="h-6 w-6" /></div><h2 className="mt-3 text-lg font-semibold text-zinc-100">Co mělo znít lépe</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">AI coachingová zpětná vazba – konkrétní opravy bez bodování. Projděte si, přidejte vlastní poznámky a zkuste to znovu.</p></div>{noFeedback}<div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-center text-sm text-zinc-400">Zavřete toto okno a zkuste to znovu, nebo pokračujte do recenze Team Leadera.</div><div className="mt-6 flex justify-center"><button type="button" onClick={resetTraining} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><ClipboardList className="h-4 w-4" />Vybrat další cvičení</button></div></section>;
+        return <section className="mx-auto max-w-4xl rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6"><div className="text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900/50 text-zinc-300"><FileText className="h-6 w-6" /></div><h2 className="mt-3 text-lg font-semibold text-zinc-100">Co mělo znít lépe</h2><p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">Koučovací zpětná vazba AI – konkrétní opravy bez bodování. Projděte si, přidejte vlastní poznámky a zkuste to znovu.</p></div>{noFeedback}<div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-center text-sm text-zinc-400">Zavřete toto okno a zkuste to znovu, nebo pokračujte k hodnocení vedoucího týmu.</div><div className="mt-6 flex justify-center"><button type="button" onClick={resetTraining} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-zinc-200"><ClipboardList className="h-4 w-4" />Vybrat další cvičení</button></div></section>;
       })()}
     </div>
   );

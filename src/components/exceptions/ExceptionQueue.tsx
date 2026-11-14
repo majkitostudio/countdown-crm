@@ -32,22 +32,22 @@ function isHistoryItem(item: ExceptionQueueItemDTO | ExceptionHistoryItem): item
 }
 
 const TYPE_LABELS = {
-  outcome_recovery: "Outcome recovery",
-  overdue_scheduled_call: "Overdue scheduled call",
-  expired_lease: "Expired assignment",
-  pickup_risk: "Pickup risk",
-  workflow_failure: "Workflow failure",
-  missing_script: "Missing product script",
+  outcome_recovery: "Obnova výsledku",
+  overdue_scheduled_call: "Naplánovaný hovor po termínu",
+  expired_lease: "Propadlé přiřazení",
+  pickup_risk: "Riziko nevyzvednutí",
+  workflow_failure: "Selhání automatizace",
+  missing_script: "Chybějící skript produktu",
 } as const;
 
 const PRIORITY_LABELS = {
-  critical: "Critical",
-  high: "High",
-  medium: "Medium",
+  critical: "Kritická",
+  high: "Vysoká",
+  medium: "Střední",
 } as const;
 
 function formatDate(value: string | null): string {
-  if (!value) return "Not set";
+  if (!value) return "Neuvedeno";
   return new Intl.DateTimeFormat("cs-CZ", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -85,7 +85,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
     try {
       setData(await listTeamLeaderExceptionsAction());
     } catch (error) {
-      setMessage({ tone: "error", text: error instanceof Error ? error.message : "Exception Queue could not be refreshed." });
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "Frontu výjimek se nepodařilo obnovit." });
     } finally {
       setBusy(null);
     }
@@ -106,18 +106,18 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
     try {
       if (editor.mode === "resolve") {
         await resolveExceptionAction(editor.id, reason);
-        setMessage({ tone: "success", text: "Exception marked as handled." });
+        setMessage({ tone: "success", text: "Výjimka byla označena jako vyřešená." });
       } else {
         const hours = Number(snoozeHours) || 2;
         const until = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
         await snoozeExceptionAction(editor.id, until, reason);
-        setMessage({ tone: "success", text: "Exception snoozed." });
+        setMessage({ tone: "success", text: "Výjimka byla odložena." });
       }
       setData(await listTeamLeaderExceptionsAction());
       setEditor(null);
       setReason("");
     } catch (error) {
-      setMessage({ tone: "error", text: error instanceof Error ? error.message : "Exception action could not be completed." });
+      setMessage({ tone: "error", text: error instanceof Error ? error.message : "Akci u výjimky se nepodařilo dokončit." });
     } finally {
       setBusy(null);
     }
@@ -126,14 +126,14 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
   return (
     <section className="space-y-5" data-testid="exception-queue">
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard label="Open exceptions" value={data.items.length} icon={ShieldAlert} />
-        <SummaryCard label="Critical" value={data.items.filter((item) => item.priority === "critical").length} icon={AlertTriangle} />
-        <SummaryCard label="Handled / snoozed" value={data.history.length} icon={CheckCircle2} />
+        <SummaryCard label="Otevřené výjimky" value={data.items.length} icon={ShieldAlert} />
+        <SummaryCard label="Kritické" value={data.items.filter((item) => item.priority === "critical").length} icon={AlertTriangle} />
+        <SummaryCard label="Vyřešené / odložené" value={data.history.length} icon={CheckCircle2} />
       </div>
 
       {sourceWarnings.length > 0 && (
         <StatusAlert tone="warning" role="status">
-          <p className="font-medium">Exception Queue is only partially available.</p>
+          <p className="font-medium">Fronta výjimek je dostupná jen částečně.</p>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-amber-200/80">
             {sourceWarnings.map((warning) => <li key={warning}>{warning}</li>)}
           </ul>
@@ -154,36 +154,36 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
           <div>
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="h-4 w-4 text-zinc-300" aria-hidden="true" />
-              <h2 className="text-sm font-semibold text-zinc-100">Exception Queue</h2>
+              <h2 className="text-sm font-semibold text-zinc-100">Fronta výjimek</h2>
             </div>
-            <p className="mt-1 text-xs text-zinc-500">Only problems proven by current workspace data appear here.</p>
+            <p className="mt-1 text-xs text-zinc-500">Zobrazují se pouze problémy doložené aktuálními daty pracovního prostoru.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <SelectField
               value={view}
               onChange={(event) => setView(event.target.value as QueueView)}
-              aria-label="Exception status"
+              aria-label="Stav výjimky"
             >
-              <option value="open">Open ({data.items.length})</option>
-              <option value="handled">Handled / snoozed ({data.history.length})</option>
+              <option value="open">Otevřené ({data.items.length})</option>
+              <option value="handled">Vyřešené / odložené ({data.history.length})</option>
             </SelectField>
             <SelectField
               value={priority}
               onChange={(event) => setPriority(event.target.value)}
-              aria-label="Exception priority"
+              aria-label="Priorita výjimky"
             >
-              <option value="all">All priorities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
+              <option value="all">Všechny priority</option>
+              <option value="critical">Kritická</option>
+              <option value="high">Vysoká</option>
+              <option value="medium">Střední</option>
             </SelectField>
             <SelectField
               value={type}
               onChange={(event) => setType(event.target.value)}
-              aria-label="Exception type"
+              aria-label="Typ výjimky"
             >
-              <option value="all">All types</option>
+              <option value="all">Všechny typy</option>
               {Object.entries(TYPE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </SelectField>
             <Button variant="secondary"
@@ -192,7 +192,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
               disabled={busy !== null}
             >
               <RefreshCw className={`h-3.5 w-3.5 ${busy === "refresh" ? "animate-spin" : ""}`} aria-hidden="true" />
-              Refresh
+              Obnovit
             </Button>
           </div>
         </div>
@@ -200,8 +200,8 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
         {displayedItems.length === 0 ? (
           <div className="p-10 text-center">
             <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-500/70" aria-hidden="true" />
-            <p className="mt-3 text-sm font-medium text-zinc-200">Nothing needs attention in this view.</p>
-            <p className="mt-1 text-xs text-zinc-500">No placeholder exception was created.</p>
+            <p className="mt-3 text-sm font-medium text-zinc-200">V tomto pohledu nic nevyžaduje pozornost.</p>
+            <p className="mt-1 text-xs text-zinc-500">Žádná náhradní výjimka nebyla vytvořena.</p>
           </div>
         ) : (
           <div className="divide-y divide-zinc-800/70">
@@ -221,7 +221,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                         </span>
                         {historical && (
                           <span className="rounded-full border border-zinc-700 px-2.5 py-1 text-[10px] capitalize text-zinc-400">
-                            {item.status}
+                            {item.status === "resolved" ? "Vyřešeno" : "Odloženo"}
                           </span>
                         )}
                       </div>
@@ -232,26 +232,26 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                       </div>
 
                       <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-zinc-500">
-                        <span className="inline-flex items-center gap-1.5"><UserRound className="h-3.5 w-3.5" aria-hidden="true" />Owner: {item.owner?.name || "Workspace manager"}</span>
-                        <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Detected: {formatDate(item.occurred_at)}</span>
-                        {item.due_at && <span>Due: {formatDate(item.due_at)}</span>}
+                        <span className="inline-flex items-center gap-1.5"><UserRound className="h-3.5 w-3.5" aria-hidden="true" />Odpovídá: {item.owner?.name || "Správce pracovního prostoru"}</span>
+                        <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Zjištěno: {formatDate(item.occurred_at)}</span>
+                        {item.due_at && <span>Termín: {formatDate(item.due_at)}</span>}
                       </div>
 
                       {historical && (
                         <div className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-3 text-xs text-zinc-400">
-                          <span className="font-medium text-zinc-300">Manager note:</span> {item.resolution}
-                          {item.snoozed_until && <span className="ml-2">Until {formatDate(item.snoozed_until)}</span>}
+                          <span className="font-medium text-zinc-300">Poznámka vedoucího:</span> {item.resolution}
+                          {item.snoozed_until && <span className="ml-2">Do {formatDate(item.snoozed_until)}</span>}
                         </div>
                       )}
                       {item.callReview?.kind === "not_recorded" && (
-                        <p className="text-[11px] text-zinc-600">Exact call was not recorded for this exception</p>
+                        <p className="text-[11px] text-zinc-600">U této výjimky nebyl zaznamenán konkrétní hovor</p>
                       )}
                     </div>
 
                     <div className="flex shrink-0 flex-wrap gap-2">
                       {item.callReview?.kind === "linked" && (
                         <Link href={item.callReview.href} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-900/70 bg-sky-950/20 px-3 py-2 text-xs font-medium text-sky-200 hover:bg-sky-950/40">
-                          Open call review<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                          Otevřít kontrolu hovoru<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                         </Link>
                       )}
                       <Link href={item.next_action.href} className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 hover:bg-white">
@@ -259,8 +259,8 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                       </Link>
                       {!historical && (
                         <>
-                          <Button variant="secondary" onClick={() => openEditor(item.id, "resolve")}>Mark handled</Button>
-                          <Button variant="secondary" onClick={() => openEditor(item.id, "snooze")}>Snooze</Button>
+                          <Button variant="secondary" onClick={() => openEditor(item.id, "resolve")}>Označit jako vyřešené</Button>
+                          <Button variant="secondary" onClick={() => openEditor(item.id, "snooze")}>Odložit</Button>
                         </>
                       )}
                     </div>
@@ -269,7 +269,7 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                   {isEditing && (
                     <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
                       <label className="block text-xs font-medium text-zinc-300" htmlFor={`exception-reason-${item.id}`}>
-                        {editor.mode === "resolve" ? "What was done?" : "Why should this wait?"}
+                        {editor.mode === "resolve" ? "Co bylo provedeno?" : "Proč má tato výjimka počkat?"}
                       </label>
                       <TextAreaField
                         id={`exception-reason-${item.id}`}
@@ -280,16 +280,16 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                       />
                       <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                         {editor.mode === "snooze" && (
-                          <SelectField value={snoozeHours} onChange={(event) => setSnoozeHours(event.target.value)} aria-label="Snooze duration">
-                            <option value="2">2 hours</option>
-                            <option value="4">4 hours</option>
-                            <option value="24">1 day</option>
-                            <option value="168">1 week</option>
+                          <SelectField value={snoozeHours} onChange={(event) => setSnoozeHours(event.target.value)} aria-label="Doba odložení">
+                            <option value="2">2 hodiny</option>
+                            <option value="4">4 hodiny</option>
+                            <option value="24">1 den</option>
+                            <option value="168">1 týden</option>
                           </SelectField>
                         )}
-                        <button type="button" onClick={() => setEditor(null)} disabled={busy === item.id} className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400 disabled:opacity-50">Cancel</button>
+                        <button type="button" onClick={() => setEditor(null)} disabled={busy === item.id} className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-400 disabled:opacity-50">Zrušit</button>
                         <button type="button" onClick={() => void submitEditor()} disabled={busy === item.id} className="rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 disabled:opacity-50">
-                          {busy === item.id ? "Saving…" : editor.mode === "resolve" ? "Confirm handled" : "Confirm snooze"}
+                          {busy === item.id ? "Ukládám…" : editor.mode === "resolve" ? "Potvrdit vyřešení" : "Potvrdit odložení"}
                         </button>
                       </div>
                     </div>

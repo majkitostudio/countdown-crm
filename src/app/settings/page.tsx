@@ -60,8 +60,8 @@ export default function SettingsPage() {
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={SettingsIcon}
-        title="Settings"
-        badge={{ label: "Personal", tone: "neutral" }}
+        title="Nastavení"
+        badge={{ label: "Osobní", tone: "neutral" }}
         description="Osobní nastavení operátora."
       />
 
@@ -71,8 +71,8 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <div>
-            <p className="font-semibold text-zinc-100">Preferences saved successfully!</p>
-            <p className="text-[11px] text-zinc-400">Your preferences are saved to your account.</p>
+            <p className="font-semibold text-zinc-100">Předvolby byly úspěšně uloženy!</p>
+            <p className="text-[11px] text-zinc-400">Vaše předvolby jsou uloženy ve vašem účtu.</p>
           </div>
           </div>
         </StatusAlert>
@@ -80,7 +80,7 @@ export default function SettingsPage() {
 
       {preferencesError && (
         <StatusAlert tone="danger">
-          Preferences unavailable: {preferencesError}
+          Předvolby nedostupné: {preferencesError}
         </StatusAlert>
       )}
 
@@ -101,18 +101,18 @@ export default function SettingsPage() {
               <User className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">Operator Profile Information</h2>
-              <p className="text-[11px] text-zinc-400">Identity is sourced from the authenticated operator profile across CRM activity</p>
+              <h2 className="text-sm font-semibold text-zinc-100">Informace o profilu operátora</h2>
+              <p className="text-[11px] text-zinc-400">Identita pochází z autentizovaného profilu operátora napříč CRM aktivitou</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
-              <label htmlFor="operator-full-name" className="text-zinc-400 font-medium block">Full Name</label>
+              <label htmlFor="operator-full-name" className="text-zinc-400 font-medium block">Celé jméno</label>
               <input
                 id="operator-full-name"
                 type="text"
-                value={identity?.name || (isOperatorLoading ? "Loading operator..." : "Unknown operator")}
+                value={identity?.name || (isOperatorLoading ? "Načítání operátora..." : "Neznámý operátor")}
                 readOnly
                 disabled
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-base sm:text-xs text-zinc-100"
@@ -120,11 +120,11 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="operator-email" className="text-zinc-400 font-medium block">Email Address</label>
+              <label htmlFor="operator-email" className="text-zinc-400 font-medium block">E-mailová adresa</label>
               <input
                 id="operator-email"
                 type="email"
-                value={identity?.email || (isOperatorLoading ? "Loading operator..." : "Unavailable")}
+                value={identity?.email || (isOperatorLoading ? "Načítání operátora..." : "Nedostupné")}
                 readOnly
                 disabled
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2 text-base sm:text-xs text-zinc-100"
@@ -132,7 +132,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <label htmlFor="operator-role" className="text-zinc-400 font-medium block">Assigned Role</label>
+              <label htmlFor="operator-role" className="text-zinc-400 font-medium block">Přiřazená role</label>
               <div className="flex items-center gap-2">
                 <input
                   id="operator-role"
@@ -142,7 +142,7 @@ export default function SettingsPage() {
                   className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-400 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono text-base sm:text-xs"
                 />
                 <StatusBadge tone="success">
-                  Active Member
+                  Aktivní člen
                 </StatusBadge>
               </div>
             </div>
@@ -158,15 +158,15 @@ export default function SettingsPage() {
               <Volume2 className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">Virtual Call Audio Effects</h2>
-              <p className="text-[11px] text-zinc-400">Web Audio API dual-tone ringtones and call status audio feedback</p>
+              <h2 className="text-sm font-semibold text-zinc-100">Virtuální zvukové efekty hovoru</h2>
+              <p className="text-[11px] text-zinc-400">Dvoutónové vyzvánění a zvuková zpětná vazba stavu hovoru přes Web Audio API</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1.5">
               <label htmlFor="ringtone-volume" className="text-zinc-400 font-medium block flex items-center justify-between">
-                <span>Ringtone Volume ({settings.ringtone_volume}%)</span>
+                <span>Hlasitost vyzvánění ({settings.ringtone_volume}%)</span>
               </label>
               <input
                 id="ringtone-volume"
@@ -180,7 +180,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-zinc-400 font-medium block">Audio Feedback Test</label>
+              <label className="text-zinc-400 font-medium block">Test zvukové zpětné vazby</label>
               <Button
                 variant="secondary"
                 type="button"
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                 className="w-full"
               >
                 <Play className={`w-3.5 h-3.5 text-zinc-400 ${isPlayingTestSound ? "animate-spin" : ""}`} />
-                <span>{isPlayingTestSound ? "Playing Ringtone..." : "Test Ringtone Sound"}</span>
+                <span>{isPlayingTestSound ? "Přehrávání vyzvánění..." : "Test zvuku vyzvánění"}</span>
               </Button>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
             disabled={isPreferencesLoading || isSavingPreferences}
           >
             <Save className="w-4 h-4" />
-            <span>{isSavingPreferences ? "Saving..." : isPreferencesLoading ? "Loading..." : "Save Preferences"}</span>
+            <span>{isSavingPreferences ? "Ukládání..." : isPreferencesLoading ? "Načítání..." : "Uložit předvolby"}</span>
           </Button>
         </div>
       </form>

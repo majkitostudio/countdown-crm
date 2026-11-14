@@ -49,14 +49,14 @@ export function ProductCard({
           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
           fallbackClassName="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-600"
           iconClassName="h-8 w-8"
-          fallbackText="No product image"
+          fallbackText="Bez obrázku produktu"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-black/30" />
 
         {/* Category Pill Top Left */}
         <div className="absolute top-3 left-3">
           <span className="px-2.5 py-0.5 rounded-md text-xs font-mono uppercase tracking-wider border backdrop-blur-md bg-zinc-900 text-zinc-300 border-zinc-800">
-            {product.category}
+            {({ supplements: "Doplňky stravy", cosmetics: "Kosmetika", electronics: "Elektronika" } as Record<string, string>)[product.category] || product.category}
           </span>
         </div>
 
@@ -64,11 +64,11 @@ export function ProductCard({
         <div className="absolute top-3 right-3">
           {product.in_stock ? (
             <StatusBadge tone="success">
-              In Stock ({product.stock_count ?? 50})
+              Skladem ({product.stock_count ?? 50})
             </StatusBadge>
           ) : (
             <StatusBadge tone="danger">
-              Out of Stock
+              Není skladem
             </StatusBadge>
           )}
         </div>
@@ -101,14 +101,14 @@ export function ProductCard({
             onClick={() => onOpenObjections(product)}
           >
             <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
-            <span>{objectionsAvailable ? `${objectionsCount} Battle-Card Rebuttals` : "Battle-card data unavailable"}</span>
+            <span>{objectionsAvailable ? `${objectionsCount} argumentů proti námitkám` : "Data námitkových karet nejsou dostupná"}</span>
           </Button>
 
           {/* Cross Sell Count */}
           {crossSellCount > 0 && (
             <span className="text-zinc-400 flex items-center gap-1 text-[11px] font-mono">
               <Layers className="w-3 h-3 text-zinc-400" />
-              <span>{crossSellCount} Cross-sells</span>
+              <span>{crossSellCount} křížových prodejů</span>
             </span>
           )}
         </div>
@@ -121,20 +121,20 @@ export function ProductCard({
             className="w-full"
           >
             <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
-            <span>View Objections</span>
+            <span>Zobrazit námitky</span>
           </Button>
 
-          {!orderCountsAvailable && <span className="text-[11px] text-zinc-500">Order counts unavailable</span>}
+          {!orderCountsAvailable && <span className="text-[11px] text-zinc-500">Počty objednávek nejsou dostupné</span>}
           {canManageProducts && <>
-            <Button variant="secondary" onClick={() => onEditProduct(product)} title="Edit Product">
+            <Button variant="secondary" onClick={() => onEditProduct(product)} title="Upravit produkt">
               <Edit3 className="w-3.5 h-3.5" />
             </Button>
             {orderCountsAvailable && orderCount > 0 && (
-              <Button variant="secondary" onClick={() => onReassignOrders(product)} title={`Reassign ${orderCount} order(s)`}>
+              <Button variant="secondary" onClick={() => onReassignOrders(product)} title={`Přeřadit ${orderCount} objednávku/ek`}>
                 <ArrowRightLeft className="w-3.5 h-3.5" />
               </Button>
             )}
-            <Button variant="danger" onClick={() => onDeleteProduct(product)} title="Delete product">
+            <Button variant="danger" onClick={() => onDeleteProduct(product)} title="Smazat produkt">
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </>}

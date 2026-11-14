@@ -42,8 +42,8 @@ describe("TeamPage route boundary", () => {
 
     const html = renderToStaticMarkup(await TeamPage());
 
-    expect(html).toContain("Team operations unavailable");
-    expect(html).not.toContain("Lead Queue Operations");
+    expect(html).toContain("Správa týmu není dostupná");
+    expect(html).not.toContain("Správa fronty leadů");
     expect(mocks.loadTeamPageData).not.toHaveBeenCalled();
   });
 });

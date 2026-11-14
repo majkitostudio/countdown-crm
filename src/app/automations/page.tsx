@@ -14,20 +14,20 @@ export default async function WorkflowsPage() {
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <PageHeader
           icon={Zap}
-          title={isForbidden ? "Automation management unavailable" : "Automations unavailable"}
-          description="Správa automatizací je omezena na oprávněné role ve workspace."
-          badge={{ label: "Unavailable", tone: "unavailable" }}
+          title={isForbidden ? "Správa automatizací není dostupná" : "Automatizace nejsou dostupné"}
+          description="Správa automatizací je omezena na oprávněné role v pracovním prostoru."
+          badge={{ label: "Nedostupné", tone: "unavailable" }}
         />
         <div className="mx-auto max-w-xl">
           <Surface variant="empty">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
           <h2 className="text-base font-semibold text-zinc-100">
-            {isForbidden ? "Automation management unavailable" : "Automations unavailable"}
+            {isForbidden ? "Správa automatizací není dostupná" : "Automatizace nejsou dostupné"}
           </h2>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
             {isForbidden
-              ? "Pravidla automatizací a data o jejich běhu jsou dostupné jen Team Leaderům a administrátorům."
-              : "Automatizace se nepodařilo načíst z aktivního workspace. Žádná data ani ovládání se nezobrazují."}
+              ? "Pravidla automatizací a data o jejich běhu jsou dostupné jen vedoucím týmu a správcům."
+              : "Automatizace se nepodařilo načíst z aktivního pracovního prostoru. Žádná data ani ovládání se nezobrazují."}
           </p>
           </Surface>
         </div>

@@ -37,6 +37,41 @@ interface LocalTelephonyStatus {
 
 type TestCallState = LocalSipState | "idle";
 
+const CALL_STATE_LABELS: Record<string, string> = {
+  idle: "Připraveno",
+  initiated: "Zahajování",
+  ringing: "Vyzvánění",
+  connected: "Spojeno",
+  held: "Přidrženo",
+  ended: "Ukončeno",
+  failed: "Chyba",
+  cancelled: "Zrušeno",
+  busy: "Obsazeno",
+  no_answer: "Bez odpovědi",
+};
+
+const REGISTRATION_LABELS: Record<string, string> = {
+  configured: "Nastaveno",
+  registered: "Registrováno",
+  unregistered: "Neregistrováno",
+  unknown: "Neznámý stav",
+  checking: "Kontrola…",
+};
+
+const PROVIDER_LABELS: Record<string, string> = {
+  local_sip: "Místní SIP",
+  simulator: "Simulace",
+};
+
+const EVENT_LABELS: Record<string, string> = {
+  "local_sip.session.initiated": "Zahájení hovoru",
+  "local_sip.session.ringing": "Vyzvánění",
+  "local_sip.session.connected": "Spojení hovoru",
+  "local_sip.session.held": "Přidržení hovoru",
+  "local_sip.session.ended": "Ukončení hovoru",
+  "local_sip.session.failed": "Chyba hovoru",
+};
+
 function formatTime(value: string | null) {
   return value ? new Date(value).toLocaleTimeString("cs-CZ") : "—";
 }
@@ -54,7 +89,7 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
     let isCurrent = true;
     void fetch("/api/telephony/local/status", { cache: "no-store" })
       .then(async (response) => {
-        if (!response.ok) throw new Error("Status unavailable");
+        if (!response.ok) throw new Error("Stav není dostupný");
         return response.json() as Promise<LocalTelephonyStatus>;
       })
       .then((nextStatus) => {
@@ -105,7 +140,7 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
       if (adapter) await adapter.hangup();
       await syncTestSession("ended");
     } catch (error) {
-      setTestCallError(error instanceof Error ? error.message : "The internal test call could not be ended.");
+      setTestCallError(error instanceof Error ? error.message : "Interní testovací hovor se nepodařilo ukončit.");
     } finally {
       setTestCallState("ended");
       setIsTestCallPending(false);
@@ -138,7 +173,7 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
       await adapter.dial(`sip:${preparedCall.toExtension}@127.0.0.1`);
     } catch (error) {
       setTestCallState("failed");
-      setTestCallError(error instanceof Error ? error.message : "The internal test call could not be started.");
+      setTestCallError(error instanceof Error ? error.message : "Interní testovací hovor se nepodařilo spustit.");
       await syncTestSession("failed");
       testAdapterRef.current = null;
     } finally {
@@ -151,62 +186,62 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-3">
-        <MetricCard label="Active adapter" value={settings.active_adapter === "local_sip" ? "Local SIP" : "Simulation"} />
+        <MetricCard label="Aktivní adaptér" value={settings.active_adapter === "local_sip" ? "Místní SIP" : "Simulace"} />
         <MetricCard
-          label="Asterisk status"
-          value={status?.asterisk || "Checking..."}
+          label="Stav Asterisku"
+          value={status?.asterisk === "Available" ? "Dostupné" : status?.asterisk === "Unavailable" ? "Nedostupné" : "Kontrola..."}
           valueTone={status?.asterisk === "Available" ? "success" : status?.asterisk === "Unavailable" ? "danger" : "neutral"}
         />
         <MetricCard
-          label="Internal extensions"
+          label="Interní linky"
           value="1001 / 1002"
-          detail={(status?.extensionRegistration || [{ extension: "1001", status: "checking" }, { extension: "1002", status: "checking" }]).map((item) => `${item.extension}: ${item.status}`).join(" · ")}
+          detail={(status?.extensionRegistration || [{ extension: "1001", status: "checking" }, { extension: "1002", status: "checking" }]).map((item) => `${item.extension}: ${REGISTRATION_LABELS[item.status] || item.status}`).join(" · ")}
         />
       </section>
 
       <Surface variant="page"><div className="p-5">
-        <h2 className="text-sm font-semibold text-zinc-100">Local SIP boundaries</h2>
+        <h2 className="text-sm font-semibold text-zinc-100">Meze místního SIP</h2>
         <div className="mt-4 grid gap-3 text-xs text-zinc-300 sm:grid-cols-2">
-          <p>Local only</p>
-          <p>Public PSTN disabled</p>
-          <p>Recording disabled</p>
-          <p>Telnyx blocked</p>
+          <p>Pouze místní</p>
+          <p>Veřejná PSTN zakázána</p>
+          <p>Nahrávání zakázáno</p>
+          <p>Telnyx zablokován</p>
         </div>
       </div></Surface>
 
       <Surface variant="page"><div className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Internal test call</h2>
-            <p className="mt-2 text-xs text-zinc-400">Browser audio test between local extensions 1001 and 1002. No public number is used.</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Interní testovací hovor</h2>
+            <p className="mt-2 text-xs text-zinc-400">Zvukový test v prohlížeči mezi místními linkami 1001 a 1002. Nepoužívá se žádné veřejné číslo.</p>
           </div>
           {testCallActive ? (
             <Button variant="danger" onClick={() => void finishTestCall()} disabled={isTestCallPending}>
-              {isTestCallPending ? "Ending…" : "End test call"}
+              {isTestCallPending ? "Ukončování…" : "Ukončit testovací hovor"}
             </Button>
           ) : (
             <Button onClick={() => void startTestCall()} disabled={isTestCallPending || status?.asterisk !== "Available"}>
-              {isTestCallPending ? "Starting…" : "Call 1002 from 1001"}
+              {isTestCallPending ? "Spouštění…" : "Volat 1002 z 1001"}
             </Button>
           )}
         </div>
-        <p className="mt-3 text-xs text-zinc-400">State: <span className="font-mono text-zinc-200">{testCallState}</span></p>
+        <p className="mt-3 text-xs text-zinc-400">Stav: <span className="font-mono text-zinc-200">{CALL_STATE_LABELS[testCallState] || testCallState}</span></p>
         {testCallError && <StatusAlert tone="danger" className="w-full">{testCallError}</StatusAlert>}
       </div></Surface>
 
       <Surface variant="page"><div className="p-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-zinc-100">Active calls</h2>
+          <h2 className="text-sm font-semibold text-zinc-100">Aktivní hovory</h2>
           <span className="text-xs text-zinc-500">{status?.activeCalls.length ?? 0}</span>
         </div>
         {(status?.activeCalls.length ?? 0) === 0 ? (
-          <p className="mt-3 text-xs text-zinc-500">No active local or provider calls.</p>
+          <p className="mt-3 text-xs text-zinc-500">Žádné aktivní místní ani poskytovatelské hovory.</p>
         ) : (
           <div className="mt-3 space-y-2 text-xs text-zinc-300">
             {status?.activeCalls.map((call) => (
               <div key={call.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2">
-                <span className="font-mono text-zinc-400">{call.provider} · {call.status}</span>
-                <span>{call.toNumber || "internal"}</span>
+                <span className="font-mono text-zinc-400">{PROVIDER_LABELS[call.provider] || call.provider} · {CALL_STATE_LABELS[call.status] || call.status}</span>
+                <span>{call.toNumber || "interní"}</span>
                 <span className="text-zinc-500">{formatTime(call.startedAt || call.createdAt)}</span>
               </div>
             ))}
@@ -216,17 +251,17 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
 
       <Surface variant="page"><div className="p-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-zinc-100">Recent events</h2>
+          <h2 className="text-sm font-semibold text-zinc-100">Nedávné události</h2>
           <span className="text-xs text-zinc-500">{status?.recentEvents.length ?? 0}</span>
         </div>
         {(status?.recentEvents.length ?? 0) === 0 ? (
-          <p className="mt-3 text-xs text-zinc-500">No recent telephony events.</p>
+          <p className="mt-3 text-xs text-zinc-500">Žádné nedávné telekomunikační události.</p>
         ) : (
           <div className="mt-3 space-y-2 text-xs text-zinc-300">
             {status?.recentEvents.map((event) => (
               <div key={event.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-zinc-950/40 px-3 py-2">
-                <span className="font-mono text-zinc-400">{event.provider}</span>
-                <span>{event.eventType}</span>
+                <span className="font-mono text-zinc-400">{PROVIDER_LABELS[event.provider] || event.provider}</span>
+                <span>{EVENT_LABELS[event.eventType] || event.eventType}</span>
                 <span className="text-zinc-500">{formatTime(event.occurredAt || event.createdAt)}</span>
               </div>
             ))}

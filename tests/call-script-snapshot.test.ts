@@ -109,7 +109,7 @@ describe("resolveCallScriptSnapshot", () => {
     mocks.createDataClient.mockResolvedValue(client);
 
     await expect(resolveCallScriptSnapshot(product.id, workspaceId)).rejects.toEqual(
-      new DataAccessError("NOT_FOUND", "Product is not available in this workspace."),
+      new DataAccessError("NOT_FOUND", "Produkt není v tomto pracovním prostoru dostupný."),
     );
   });
 });

@@ -54,7 +54,7 @@ export function mergeMembershipProfiles(
     return {
       ...membership,
       role: membership.role as WorkspaceRole,
-      full_name: profile?.full_name?.trim() || "Unknown operator",
+      full_name: profile?.full_name?.trim() || "Neznámý operátor",
       email: profile?.email?.trim() || "",
       avatar_url: profile?.avatar_url || null,
     };
@@ -108,7 +108,7 @@ async function loadMember(
   return {
     ...(membership as MembershipRow),
     role: membership.role as WorkspaceRole,
-    full_name: profile?.full_name?.trim() || "Unknown operator",
+    full_name: profile?.full_name?.trim() || "Neznámý operátor",
     email: profile?.email?.trim() || "",
     avatar_url: profile?.avatar_url || null,
   };

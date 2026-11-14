@@ -116,7 +116,7 @@ describe("UsersHubPanel Component", () => {
     expect(html).toContain("Celkem pracovníků");
     expect(html).toContain(">3<"); // total count
     expect(html).toContain("Operátoři");
-    expect(html).toContain("Team Leadeři");
+    expect(html).toContain("Vedoucí týmů");
     expect(html).toContain("Administrátoři");
 
     // Members rendered
@@ -139,7 +139,7 @@ describe("UsersHubPanel Component", () => {
     expect(html).toContain("Linka P1 – Hlavní prodej");
     expect(html).toContain("Linka P4 – Retargeting");
     expect(html).toContain("Operátor");
-    expect(html).toContain("Team Leader");
+    expect(html).toContain("Vedoucí týmu");
     expect(html).toContain("Administrátor");
   });
 });

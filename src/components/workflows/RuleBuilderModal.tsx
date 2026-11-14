@@ -53,21 +53,21 @@ function getIcon(name: string) {
 
 const CONDITION_FIELDS: Record<TriggerType, { label: string; value: string }[]> = {
   on_call_ended: [
-    { label: "Call Outcome", value: "outcome" },
-    { label: "Sentiment", value: "sentiment" },
-    { label: "Order Value", value: "orderValue" },
+    { label: "Výsledek hovoru", value: "outcome" },
+    { label: "Nálada zákazníka", value: "sentiment" },
+    { label: "Hodnota objednávky", value: "orderValue" },
   ],
   on_lead_status_changed: [
-    { label: "New Status", value: "newStatus" },
-    { label: "Previous Status", value: "previousStatus" },
+    { label: "Nový stav", value: "newStatus" },
+    { label: "Předchozí stav", value: "previousStatus" },
   ],
   on_order_placed: [
-    { label: "Order Value", value: "orderValue" },
-    { label: "Product Title", value: "productTitle" },
+    { label: "Hodnota objednávky", value: "orderValue" },
+    { label: "Název produktu", value: "productTitle" },
   ],
   on_lead_created: [
-    { label: "Source", value: "source" },
-    { label: "Lead Name", value: "leadName" },
+    { label: "Zdroj", value: "source" },
+    { label: "Jméno leadu", value: "leadName" },
   ],
 };
 
@@ -186,11 +186,11 @@ export function RuleBuilderModal({
             </div>
             <div>
                 <h2 id="rule-builder-dialog-title" className="text-base font-semibold text-zinc-100">
-                {editingRule ? "Edit Automation Rule" : "New Automation Rule"}
+                {editingRule ? "Upravit automatizační pravidlo" : "Nové automatizační pravidlo"}
               </h2>
               <p className="text-xs text-zinc-500 font-mono">
                 Krok {step} z 3 —{" "}
-                {step === 1 ? "Trigger & Název" : step === 2 ? "Podmínky" : "Akce"}
+                {step === 1 ? "Spouštěč a název" : step === 2 ? "Podmínky" : "Akce"}
               </p>
             </div>
           </div>
@@ -230,7 +230,7 @@ export function RuleBuilderModal({
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Např. AI Summary po úspěšném hovoru"
+                  placeholder="Např. AI shrnutí po úspěšném hovoru"
                 />
               </div>
 
@@ -251,7 +251,7 @@ export function RuleBuilderModal({
               {/* Trigger Selection */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
-                  Spouštěč (Trigger)
+                  Spouštěč
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {TRIGGER_REGISTRY.map((t) => {
@@ -296,7 +296,7 @@ export function RuleBuilderModal({
                             {t.label}
                             {t.serverDispatch === "unavailable" && (
                               <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[9px] font-mono uppercase tracking-wide text-amber-300">
-                                Coming soon
+                                Již brzy
                               </span>
                             )}
                           </p>
@@ -444,7 +444,7 @@ export function RuleBuilderModal({
                             <span>{a.label}</span>
                             {isLocked && (
                               <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[9px] font-mono uppercase tracking-wide text-amber-300">
-                                Coming soon
+                                Již brzy
                               </span>
                             )}
                             {isAdded && (
@@ -460,8 +460,8 @@ export function RuleBuilderModal({
                   })}
                 </div>
                 <p className="text-[11px] text-zinc-500 leading-relaxed">
-                  Dnes funguje webhook ven (Zapier, Make, n8n, Slack). Ostatní akce
-                  jsou „coming soon“ — aktivují se, až je serverové runtime umí
+                  Nyní funguje odchozí webhook (Zapier, Make, n8n, Slack). Ostatní akce
+                  se připravují — aktivují se, až je server dokáže
                   opravdu provést. Existující pravidla se staršími akcemi zůstávají
                   viditelná, jen se nespouštějí.
                 </p>

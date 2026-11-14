@@ -55,13 +55,13 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:border focus:border-zinc-600 focus:bg-zinc-950 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-zinc-100"
       >
-        Skip to content
+        Přejít na obsah
       </a>
       {/* Global command palette */}
       <CommandPalette />
 
       {/* Shared navigation */}
-      {isMobileNavigationOpen ? <button type="button" aria-label="Close navigation" className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={() => setIsMobileNavigationOpen(false)} /> : null}
+      {isMobileNavigationOpen ? <button type="button" aria-label="Zavřít navigaci" className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={() => setIsMobileNavigationOpen(false)} /> : null}
       <Sidebar mobileOpen={isMobileNavigationOpen} onMobileOpenChange={setIsMobileNavigationOpen} />
 
       {/* Shared application canvas */}
@@ -79,9 +79,9 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-              Workspace ready
+              Pracovní prostor připraven
             </span>
-            <span>Live API latency unavailable</span>
+            <span>Živá latence API nedostupná</span>
           </div>
           <div>
             <span>Countdown CRM</span>

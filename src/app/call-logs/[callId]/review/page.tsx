@@ -38,16 +38,16 @@ export default async function CallReviewPage({
       return (
         <Surface variant="empty" className="w-full">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h1 className="text-base font-semibold text-zinc-100">Call review unavailable</h1>
+          <h1 className="text-base font-semibold text-zinc-100">Kontrola hovoru nedostupná</h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            This area is available to workspace Operators, Team Leaders and Administrators.
+            Tato oblast je dostupná operátorům, vedoucím týmů a administrátorům pracovního prostoru.
           </p>
           <Link
             href={returnToCallsHref}
             className={getButtonClassName("secondary")}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Back to calls
+            Zpět na hovory
           </Link>
         </Surface>
       );
@@ -61,15 +61,15 @@ export default async function CallReviewPage({
     <div className="mx-auto max-w-6xl space-y-5">
       <PageHeader
         icon={ShieldCheck}
-        title="Call Review"
+        title="Kontrola hovoru"
         description={`Kontrola zaznamenaných podkladů k hovoru #${review.call.id}.`}
-        badge={{ label: context.role === "operator" || review.canReview === false ? "Read-only call evidence" : "Real call evidence", tone: "neutral" }}
+        badge={{ label: context.role === "operator" || review.canReview === false ? "Záznam hovoru pouze pro čtení" : "Skutečný záznam hovoru", tone: "neutral" }}
         actions={
           <Link
             href={returnToCallsHref}
             className={getButtonClassName("secondary")}
           >
-            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />Back to calls
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />Zpět na hovory
           </Link>
         }
       />

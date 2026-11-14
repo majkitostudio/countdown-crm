@@ -108,7 +108,7 @@ export default function WorkflowsPage() {
   const [rules, setRules] = useState<WorkflowRule[]>([]);
   const [executionLog, setExecutionLog] = useState<ExecutionLogEntry[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState<WorkflowRule | null>(null);
+  const [editingRule, setUpravitingRule] = useState<WorkflowRule | null>(null);
   const [activeTab, setActiveTab] = useState<"rules" | "log">("rules");
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
   const [testMessage, setTestMessage] = useState<string | null>(null);
@@ -146,7 +146,7 @@ export default function WorkflowsPage() {
       const now = new Date().toISOString();
       await saveWorkflowAction({ ...rule, id: `rule-${Date.now()}`, createdAt: now, updatedAt: now });
     }
-    setEditingRule(null);
+    setUpravitingRule(null);
     await refreshState();
   };
 
@@ -162,8 +162,8 @@ export default function WorkflowsPage() {
     await refreshState();
   };
 
-  const handleEdit = (rule: WorkflowRule) => {
-    setEditingRule(rule);
+  const handleUpravit = (rule: WorkflowRule) => {
+    setUpravitingRule(rule);
     setIsModalOpen(true);
   };
 
@@ -176,7 +176,7 @@ export default function WorkflowsPage() {
         payload: {
           callId: "TEST_ONLY_CALL",
           leadId: "TEST_ONLY_LEAD",
-          leadName: "Test-only simulation lead",
+          leadName: "Lead pouze pro testovací simulaci",
           agentName: "TEST_ONLY",
           outcome: "order_placed",
           sentiment: "Positive",
@@ -184,10 +184,10 @@ export default function WorkflowsPage() {
           transcript: "",
         },
       });
-      setTestMessage(`Simulation: ${result.reason}`);
+      setTestMessage(`Simulace: ${result.reason}`);
       await refreshState();
     } catch (error) {
-      setTestMessage(error instanceof Error ? `Simulation failed: ${error.message}` : "Simulation failed.");
+      setTestMessage(error instanceof Error ? `Simulace selhala: ${error.message}` : "Simulace selhala.");
     }
   };
 
@@ -203,7 +203,7 @@ export default function WorkflowsPage() {
     <div className="min-h-screen space-y-6">
       <PageHeader
         icon={Zap}
-        title="Automations"
+        title="Automatizace"
         description={'Pravidla „když → tak“ pro opakující se procesy. Dnes posílají data ven webhookem (Zapier, Make, n8n, Slack); další akce a spouštěče přibudou postupně.'}
         actions={
           <>
@@ -212,13 +212,13 @@ export default function WorkflowsPage() {
             onClick={handleTestEmit}
           >
             <Activity className="w-3.5 h-3.5 text-zinc-400" />
-            Test-only simulation: Call Ended
+            Pouze testovací simulace: ukončení hovoru
           </Button>
 
           {/* Add Rule Button */}
           <Button
             onClick={() => {
-              setEditingRule(null);
+              setUpravitingRule(null);
               setIsModalOpen(true);
             }}
           >
@@ -231,7 +231,7 @@ export default function WorkflowsPage() {
 
       {testMessage && (
         <StatusAlert tone="neutral" role="status">
-          {testMessage} No production webhook, provider, or business mutation was invoked.
+          {testMessage} Nebyl vyvolán žádný produkční webhook, poskytovatel ani byznysová mutace.
         </StatusAlert>
       )}
 
@@ -268,7 +268,7 @@ export default function WorkflowsPage() {
         {(
           [
             { key: "rules", label: "Pravidla", icon: Zap },
-            { key: "log", label: "Audit Log", icon: Clock },
+          { key: "log", label: "Auditní záznamy", icon: Clock },
           ] as const
         ).map((tab) => {
           const Icon = tab.icon;
@@ -303,7 +303,7 @@ export default function WorkflowsPage() {
               <Zap className="w-10 h-10 mx-auto mb-3 opacity-30 text-zinc-500" />
               <p className="text-sm">Zatím nemáte žádná automatizační pravidla.</p>
               <p className="text-xs mt-1 text-zinc-500">
-                Klikněte na &quot;Nové pravidlo&quot; a vytvořte své první workflow.
+                Zvolte &quot;Nové pravidlo&quot; a vytvořte svou první automatizaci.
               </p>
             </Surface>
           ) : (
@@ -371,7 +371,7 @@ export default function WorkflowsPage() {
                                 {actionDef?.label}
                                 {actionDef?.availability === "coming_soon" && (
                                   <span className="uppercase tracking-wide text-[8px] text-amber-300/70">
-                                    · soon
+                                    · brzy
                                   </span>
                                 )}
                               </span>
@@ -391,14 +391,14 @@ export default function WorkflowsPage() {
                     <div className="flex items-center gap-2 shrink-0 ml-4">
                       <Button
                         variant="quiet"
-                        onClick={() => handleEdit(rule)}
+                        onClick={() => handleUpravit(rule)}
                       >
-                        Edit
+                        Upravit
                       </Button>
                       <Button
                         variant="quiet"
                         onClick={() => handleToggle(rule.id)}
-                        title={rule.enabled ? "Disable" : "Enable"}
+                        title={rule.enabled ? "Zakázat" : "Povolit"}
                       >
                         {rule.enabled ? (
                           <ToggleRight className="w-6 h-6 text-zinc-200" />
@@ -409,7 +409,7 @@ export default function WorkflowsPage() {
                       <Button
                         variant="danger"
                         onClick={() => handleDelete(rule.id)}
-                        title="Delete"
+                        title="Smazat"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -430,7 +430,7 @@ export default function WorkflowsPage() {
               <Clock className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">Zatím žádné záznamy o spuštění.</p>
               <p className="text-xs mt-1">
-                Použijte tlačítko &quot;Test-only simulation: Call Ended&quot; bez produkčního side effectu.
+                Použijte tlačítko &quot;Testovací simulace: Hovor ukončen&quot; bez produkčního vedlejšího efektu.
               </p>
             </Surface>
           ) : (
@@ -467,7 +467,7 @@ export default function WorkflowsPage() {
                     <div className="px-4 pb-4 pt-1 border-t border-zinc-800/60 space-y-2">
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
-                          <span className="text-zinc-500">Trigger:</span>{" "}
+                          <span className="text-zinc-500">Spouštěč:</span>{" "}
                           <span className="text-zinc-300">
                             {
                               TRIGGER_REGISTRY.find(
@@ -498,15 +498,15 @@ export default function WorkflowsPage() {
                         <div className="space-y-1 text-[11px]">
                           {entry.actionResults.map((result) => (
                             <div key={result.action} className="text-zinc-400">
-                              <span className="font-mono text-zinc-300">{result.action}</span>: {result.reason}
-                              <span className="ml-1 text-zinc-600">({result.durableEffect ? "durable" : "no durable effect"})</span>
+                              <span className="font-mono text-zinc-300">{ACTION_REGISTRY.find((action) => action.type === result.action)?.label || result.action}</span>: {result.reason}
+                              <span className="ml-1 text-zinc-600">({result.durableEffect ? "trvalá změna" : "bez trvalé změny"})</span>
                             </div>
                           ))}
                         </div>
                       )}
                       <details className="text-[11px]">
                         <summary className="text-zinc-500 cursor-pointer hover:text-zinc-400">
-                          Event Payload (JSON)
+                          Datová zátěž události (JSON)
                         </summary>
                         <pre className="mt-1 p-2 bg-zinc-950 rounded text-zinc-400 overflow-x-auto">
                           {JSON.stringify(entry.eventPayload, null, 2)}
@@ -526,7 +526,7 @@ export default function WorkflowsPage() {
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setEditingRule(null);
+          setUpravitingRule(null);
         }}
         onSave={handleAddRule}
         editingRule={editingRule}

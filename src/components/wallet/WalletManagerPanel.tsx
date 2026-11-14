@@ -66,9 +66,9 @@ export function WalletManagerPanel({
     startTransition(async () => {
       try {
         await updateWalletSettingsAction({ currency, monthlyCommissionRate: Number(rate) });
-        setMessage("Wallet settings saved.");
+        setMessage("Nastavení peněženky uloženo.");
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Wallet settings could not be saved.");
+        setError(caught instanceof Error ? caught.message : "Nastavení peněženky se nepodařilo uložit.");
       }
     });
   }
@@ -86,10 +86,10 @@ export function WalletManagerPanel({
         });
         setAdjustment("");
         setReason("");
-        setMessage("Wallet adjustment saved and audited.");
+        setMessage("Úprava peněženky uložena a auditována.");
         router.refresh();
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Wallet adjustment could not be saved.");
+        setError(caught instanceof Error ? caught.message : "Úpravu peněženky se nepodařilo uložit.");
       }
     });
   }
@@ -108,10 +108,10 @@ export function WalletManagerPanel({
         });
         setThreshold("");
         setBonus("");
-        setMessage("Bonus rule saved for future delivered orders.");
+        setMessage("Bonusové pravidlo uloženo pro budoucí doručené objednávky.");
         router.refresh();
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Bonus rule could not be saved.");
+        setError(caught instanceof Error ? caught.message : "Bonusové pravidlo se nepodařilo uložit.");
       }
     });
   }
@@ -131,16 +131,16 @@ export function WalletManagerPanel({
           <SlidersHorizontal className="h-4 w-4" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">{mode === "adjustment" ? "Audited wallet adjustment" : "Wallet rules"}</h2>
-          <p className="text-[11px] text-zinc-500">{mode === "adjustment" ? "Manual changes are recorded against an actor and audit record." : "Only future rewards use changed settings; posted transactions stay immutable."}</p>
+          <h2 className="text-sm font-semibold text-zinc-100">{mode === "adjustment" ? "Auditovaná úprava peněženky" : "Pravidla peněženky"}</h2>
+          <p className="text-[11px] text-zinc-500">{mode === "adjustment" ? "Ruční změny se zaznamenávají k aktérovi a auditnímu záznamu." : "Změněná nastavení používají jen budoucí odměny; zaúčtované transakce zůstávají neměnné."}</p>
         </div>
       </div>
 
       <div className={`grid gap-5 ${showSettings && showRules && showAdjustment ? "lg:grid-cols-3" : "lg:grid-cols-1"}`}>
         {showSettings && <form onSubmit={submitSettings} className="space-y-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
-          <h3 className="text-xs font-semibold text-zinc-200">Commission settings</h3>
+          <h3 className="text-xs font-semibold text-zinc-200">Nastavení provizí</h3>
           <FieldLabel htmlFor="wallet-currency">
-            Wallet currency
+            Měna peněženky
             <SelectField id="wallet-currency" value={currency} onChange={(event) => setCurrency(event.target.value as WalletCurrency)} disabled={isPending}>
               <option value="CZK">CZK</option>
               <option value="EUR">EUR</option>
@@ -148,46 +148,46 @@ export function WalletManagerPanel({
             </SelectField>
           </FieldLabel>
           <FieldLabel htmlFor="wallet-rate">
-            Monthly commission rate (%)
+            Měsíční sazba provize (%)
             <TextField id="wallet-rate" type="number" min="0" max="100" step="0.01" value={rate} onChange={(event) => setRate(event.target.value)} disabled={isPending} />
           </FieldLabel>
           <Button type="submit" disabled={isPending} className="w-full">
             {isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            Save settings
+            Uložit nastavení
           </Button>
         </form>}
 
         {showRules && <form onSubmit={submitRule} className="space-y-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
-          <h3 className="text-xs font-semibold text-zinc-200">Add bonus threshold</h3>
-          <p className="text-[11px] leading-relaxed text-zinc-500">The highest threshold at or below an order total wins.</p>
+          <h3 className="text-xs font-semibold text-zinc-200">Přidat bonusový práh</h3>
+          <p className="text-[11px] leading-relaxed text-zinc-500">Vyhrává nejvyšší práh, který je nižší nebo roven celkové částce objednávky.</p>
           <div className="grid grid-cols-2 gap-3">
-            <FieldLabel htmlFor="wallet-threshold">Order from<TextField id="wallet-threshold" type="number" min="0.01" step="0.01" value={threshold} onChange={(event) => setThreshold(event.target.value)} disabled={isPending} /></FieldLabel>
+            <FieldLabel htmlFor="wallet-threshold">Objednávka od<TextField id="wallet-threshold" type="number" min="0.01" step="0.01" value={threshold} onChange={(event) => setThreshold(event.target.value)} disabled={isPending} /></FieldLabel>
             <FieldLabel htmlFor="wallet-bonus">Bonus<TextField id="wallet-bonus" type="number" min="0.01" step="0.01" value={bonus} onChange={(event) => setBonus(event.target.value)} disabled={isPending} /></FieldLabel>
           </div>
-          <FieldLabel htmlFor="wallet-effective-from">Effective from<TextField id="wallet-effective-from" type="date" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} disabled={isPending} /></FieldLabel>
+          <FieldLabel htmlFor="wallet-effective-from">Platné od<TextField id="wallet-effective-from" type="date" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} disabled={isPending} /></FieldLabel>
           <Button type="submit" variant="secondary" disabled={isPending} className="w-full">
             {isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-            Add rule in {currency}
+            Přidat pravidlo v {currency}
           </Button>
         </form>}
 
         {showAdjustment && <form onSubmit={submitAdjustment} className="space-y-3 rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
-          <h3 className="text-xs font-semibold text-zinc-200">Manual adjustment</h3>
-          <FieldLabel htmlFor="wallet-member">Member<SelectField id="wallet-member" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)} disabled={isPending || members.length === 0}><option value="">Select member</option>{members.map((member) => <option key={member.user_id} value={member.user_id}>{member.full_name}</option>)}</SelectField></FieldLabel>
-          <FieldLabel htmlFor="wallet-adjustment">Amount (+ / - {currency})<TextField id="wallet-adjustment" type="number" step="0.01" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} disabled={isPending} /></FieldLabel>
-          <FieldLabel htmlFor="wallet-reason">Reason<TextAreaField id="wallet-reason" maxLength={500} rows={2} value={reason} onChange={(event) => setReason(event.target.value)} disabled={isPending} /></FieldLabel>
+          <h3 className="text-xs font-semibold text-zinc-200">Ruční úprava</h3>
+          <FieldLabel htmlFor="wallet-member">Člen<SelectField id="wallet-member" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)} disabled={isPending || members.length === 0}><option value="">Vyberte člena</option>{members.map((member) => <option key={member.user_id} value={member.user_id}>{member.full_name}</option>)}</SelectField></FieldLabel>
+          <FieldLabel htmlFor="wallet-adjustment">Částka (+ / - {currency})<TextField id="wallet-adjustment" type="number" step="0.01" value={adjustment} onChange={(event) => setAdjustment(event.target.value)} disabled={isPending} /></FieldLabel>
+          <FieldLabel htmlFor="wallet-reason">Důvod<TextAreaField id="wallet-reason" maxLength={500} rows={2} value={reason} onChange={(event) => setReason(event.target.value)} disabled={isPending} /></FieldLabel>
           <Button type="submit" variant="secondary" disabled={isPending || !targetUserId} className="w-full">
             {isPending && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
-            Save audited adjustment
+            Uložit auditovanou úpravu
           </Button>
         </form>}
       </div>
 
       {showRules && visibleRules.length > 0 && (
         <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4">
-          <h3 className="mb-3 text-xs font-semibold text-zinc-200">Active {currency} thresholds</h3>
+          <h3 className="mb-3 text-xs font-semibold text-zinc-200">Aktivní prahy {currency}</h3>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-            {visibleRules.map((rule) => <div key={rule.id} className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3"><p className="font-mono text-xs text-zinc-200">{formatAmount(rule.minimum_order_amount, currency)}+</p><p className="mt-1 text-[11px] text-emerald-300">bonus {formatAmount(rule.bonus_amount, currency)}</p><p className="mt-2 text-[10px] text-zinc-600">from {rule.effective_from}</p></div>)}
+            {visibleRules.map((rule) => <div key={rule.id} className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3"><p className="font-mono text-xs text-zinc-200">{formatAmount(rule.minimum_order_amount, currency)}+</p><p className="mt-1 text-[11px] text-emerald-300">bonus {formatAmount(rule.bonus_amount, currency)}</p><p className="mt-2 text-[10px] text-zinc-600">od {rule.effective_from}</p></div>)}
           </div>
         </div>
       )}

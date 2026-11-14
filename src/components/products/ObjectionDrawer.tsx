@@ -60,13 +60,13 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               product_id: product.id,
               objection_title:
                 key === "price"
-                  ? "Price is too high / Cannot afford"
+                  ? "Cena je příliš vysoká / Nemohu si to dovolit"
                   : key === "effectiveness"
-                    ? "Skeptical of effectiveness / Tried other solutions"
+                    ? "Skeptický k účinnosti / Zkoušel/a jiná řešení"
                     : key === "delivery"
-                      ? "Shipping cost / Delivery timing"
+                      ? "Cena dopravy / Doba doručení"
                       : key === "hesitation"
-                        ? "Needs time to decide / Consult family"
+                        ? "Potřebuje čas na rozhodnutí / Konzultace s rodinou"
                         : key,
               rebuttal_args: [value],
             })
@@ -81,7 +81,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
             ([key, value]) => ({
               id: `fallback-${key}`,
               product_id: product.id,
-              objection_title: key.charAt(0).toUpperCase() + key.slice(1),
+              objection_title: ({ price: "Cena je příliš vysoká", effectiveness: "Pochybnosti o účinnosti", delivery: "Cena dopravy a doba doručení", hesitation: "Potřeba času na rozhodnutí" } as Record<string, string>)[key] || key,
               rebuttal_args: [value],
             })
           );
@@ -145,7 +145,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               </div>
               <div>
                 <h2 id="objection-drawer-title" className="text-base font-semibold text-zinc-100">
-                  Sales Objection Battle-Card
+                  Námitkové karty (prodej)
                 </h2>
                 <p className="text-xs text-zinc-400 font-mono">
                   {product.title} (${product.price.toFixed(2)})
@@ -169,7 +169,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               <div className="flex items-start gap-3 p-4">
               <Sparkles className="w-5 h-5 text-zinc-400 shrink-0 mt-0.5" />
               <div className="text-xs text-zinc-300 leading-relaxed">
-                <strong className="text-zinc-100">AI Copilot Battle-Card:</strong> These rebuttal scripts are automatically surfaced to call operators in real-time when customer price or product objections are detected during live calls.
+                <strong className="text-zinc-100">Námitková karta AI asistenta:</strong> Tyto argumenty proti námitkám se operátorům automaticky zobrazují v reálném čase, když jsou při živém hovoru detekovány cenové nebo produktové námitky zákazníka.
               </div>
               </div>
             </Surface>
@@ -178,7 +178,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Known Customer Objections ({objectionsAvailable ? objections.length : "unavailable"})
+                  Známé námitky zákazníků ({objectionsAvailable ? objections.length : "nedostupné"})
                 </h3>
 
                 {canManage && <Button
@@ -186,32 +186,32 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                   onClick={() => setShowAddForm(!showAddForm)}
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  Add Objection
+                  Přidat námitku
                 </Button>}
               </div>
 
-              {/* Add Objection Inline Form */}
+              {/* Přidat námitku Inline Form */}
               {canManage && showAddForm && (
                 <Surface variant="inset">
                   <div className="animate-in space-y-3 p-4 fade-in duration-150 ease-interface motion-reduce:animate-none">
 
-                  <h4 className="text-xs font-semibold text-zinc-200">New Objection Template</h4>
+                  <h4 className="text-xs font-semibold text-zinc-200">Nová šablona námitky</h4>
                   <div>
-                    <FieldLabel htmlFor="new-objection-title">Customer Objection Title</FieldLabel>
+                    <FieldLabel htmlFor="new-objection-title">Název námitky zákazníka</FieldLabel>
                     <TextField
                       id="new-objection-title"
                       type="text"
-                      placeholder="e.g. Price is too high / Shipping takes too long"
+                      placeholder="např. Cena je příliš vysoká / Doprava trvá příliš dlouho"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                     />
                   </div>
                   <div>
-                    <FieldLabel htmlFor="new-objection-arguments">Rebuttal Arguments (One per line)</FieldLabel>
+                    <FieldLabel htmlFor="new-objection-arguments">Argumenty proti námitce (jeden na řádek)</FieldLabel>
                     <TextAreaField
                       id="new-objection-arguments"
                       rows={3}
-                      placeholder="Enter talking point 1...&#10;Enter talking point 2..."
+                      placeholder="Zadejte argument 1...&#10;Zadejte argument 2..."
                       value={newArgs}
                       onChange={(e) => setNewArgs(e.target.value)}
                     />
@@ -221,14 +221,14 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                       variant="quiet"
                       onClick={() => setShowAddForm(false)}
                     >
-                      Cancel
+                      Zrušit
                     </Button>
                     <Button
                       variant="primary"
                       onClick={handleAddObjection}
                       disabled={isSaving}
                     >
-                      Save Objection
+                      Uložit námitku
                     </Button>
                   </div>
                   </div>
@@ -238,12 +238,12 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               {/* List of Objections Cards */}
               {!objectionsAvailable ? (
                 <Surface variant="inset">
-                  <div className="p-8 text-center font-mono text-xs text-zinc-500">Battle-card data unavailable.</div>
+                  <div className="p-8 text-center font-mono text-xs text-zinc-500">Data námitkových karet nejsou dostupná.</div>
                 </Surface>
               ) : objections.length === 0 ? (
                 <Surface variant="inset">
                   <div className="p-8 text-center font-mono text-xs text-zinc-500">
-                  No objections registered yet for this product.
+                  Zatím nejsou pro tento produkt zaregistrovány žádné námitky.
                   </div>
                 </Surface>
               ) : (
@@ -276,7 +276,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                     {/* Rebuttal Talking Points */}
                     <div className="space-y-1.5 pt-2 border-t border-zinc-800/60">
                       <span className="text-[11px] text-zinc-500 uppercase tracking-wider font-semibold block">
-                        Recommended Operator Response:
+                        Doporučená odpověď operátora:
                       </span>
                       <ul className="space-y-1.5 text-xs text-zinc-300">
                         {obj.rebuttal_args.map((arg, aIdx) => (

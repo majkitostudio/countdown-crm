@@ -94,7 +94,7 @@ describe("dashboard Daily Brief scope", () => {
 
     const result = await loadDashboardDailyBriefAction();
 
-    expect(result).toMatchObject({ status: "ready", brief: { scope: "workspace", scopeLabel: "Celý workspace" } });
+    expect(result).toMatchObject({ status: "ready", brief: { scope: "workspace", scopeLabel: "Celý pracovní prostor" } });
   });
 
   it("keeps the brief available when optional sources fail", async () => {
@@ -110,9 +110,9 @@ describe("dashboard Daily Brief scope", () => {
       expect(result.brief.todayScheduledCalls).toBe(0);
       expect(result.brief.workspaceWalletBalance).toBeNull();
       expect(result.warnings).toEqual(expect.arrayContaining([
-        "Naplánované hovory a reminders nejsou dostupné.",
-        "Wallet souhrn není dostupný.",
-        "Review fronta není dostupná.",
+        "Naplánované hovory a připomínky nejsou dostupné.",
+        "Souhrn peněženky není dostupný.",
+        "Fronta hodnocení není dostupná.",
       ]));
     }
   });

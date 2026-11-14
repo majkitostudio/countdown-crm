@@ -31,7 +31,7 @@ describe("next best action presentation states", () => {
     expect(html).toContain("Doplnit objednávku: Petr Svoboda");
     expect(html).toContain('href="/console?leadId=lead-2"');
     expect(html).toContain("Scheduled calls could not be loaded.");
-    expect(html).toContain("Partial recommendation");
+    expect(html).toContain("Částečné doporučení");
   });
 
   it("shows a partial scheduled call with the reorder warning", () => {
@@ -80,6 +80,6 @@ describe("next best action presentation states", () => {
 
     expect(html).toContain("Claim next lead");
     expect(html).toContain('href="/console"');
-    expect(html).not.toContain("Partial recommendation");
+    expect(html).not.toContain("Částečné doporučení");
   });
 });

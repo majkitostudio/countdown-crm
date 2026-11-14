@@ -65,7 +65,7 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
 
   return {
     scope,
-    scopeLabel: scope === "team" ? "Týmová data" : "Celý workspace",
+    scopeLabel: scope === "team" ? "Týmová data" : "Celý pracovní prostor",
     daily: input.daily,
     scheduledCallsToAttend,
     todayScheduledCalls: scheduledCalls.filter((scheduledCall) => isSameDay(scheduledCall.scheduled_at, now)).length,

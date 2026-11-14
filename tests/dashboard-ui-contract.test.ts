@@ -20,12 +20,12 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(dashboard).toContain("<KpiCards compact scope={scope} />");
     expect(dashboard).toContain("dashboard-team-attention");
     expect(dashboard).toContain("scopeLabel");
-    expect(dashboard).toContain("No synthetic priorities");
+    expect(dashboard).toContain("Žádné syntetické priority");
     expect(dashboard).toContain("<NextBestActionCard scope={scope} />");
     expect(nextBestAction).toContain('data-testid="next-best-action"');
     expect(dashboard).toContain("<TeamLeaderDailyBriefCard />");
     expect(dailyBrief).toContain('data-testid="team-leader-daily-brief"');
-    expect(dailyBrief).toContain("Needs review");
+    expect(dailyBrief).toContain("Ke kontrole");
     expect(dailyBrief).toContain("Celofiremní peněženka");
     expect(dailyBrief).toContain("scopeLabel");
     expect(dailyBrief).toContain('href="/call-logs?review=unreviewed"');
@@ -37,15 +37,15 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(reorderWidget).toContain("loadReorderOpportunitiesAction");
     expect(reorderWidget).not.toContain("getReorderOpportunities");
     expect(dailyBrief).toContain('font-mono text-lg font-semibold text-zinc-100');
-    expect(kpis).toContain('scope === "team" ? "Team Calls" : "Workspace Calls"');
-    expect(kpis).toContain('scope === "team" ? "Team Conversion Rate" : "Workspace Conversion Rate"');
-    expect(kpis).toContain('scope === "team" ? "Team Revenue" : "Workspace Revenue"');
-    expect(kpis).toContain('scope === "team" ? "Operators in Team" : "Operators in Workspace"');
+    expect(kpis).toContain('scope === "team" ? "Hovory týmu" : "Hovory pracovního prostoru"');
+    expect(kpis).toContain('scope === "team" ? "Konverze týmu" : "Konverze pracovního prostoru"');
+    expect(kpis).toContain('scope === "team" ? "Příjmy týmu" : "Příjmy pracovního prostoru"');
+    expect(kpis).toContain('scope === "team" ? "Operátoři v týmu" : "Operátoři v pracovním prostoru"');
     expect(kpis).toContain("compact = false");
-    expect(kpis).not.toContain('label: "My Calls"');
+    expect(kpis).not.toContain('label: "Moje hovory"');
     for (const component of [kpis, topPerformers, recentActivity]) {
       expect(component).toContain('const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";');
-      expect(component).toContain("access is restricted");
+      expect(component).toContain("je omezen");
     }
   });
 });
@@ -57,8 +57,8 @@ describe("mobile order pipeline contract", () => {
     expect(pipeline).toContain('data-testid="mobile-order-card"');
     expect(pipeline).toContain("md:hidden");
     expect(pipeline).toContain("hidden md:block");
-    expect(pipeline).toContain("Status");
-    expect(pipeline).toContain("Operator");
-    expect(pipeline).toContain("Open order");
+    expect(pipeline).toContain("Stav");
+    expect(pipeline).toContain("Operátor");
+    expect(pipeline).toContain("Otevřít objednávku");
   });
 });

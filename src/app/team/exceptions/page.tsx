@@ -27,11 +27,11 @@ export default async function ExceptionsPage() {
       <div className="mx-auto max-w-xl">
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" aria-hidden="true" />
-        <h1 className="text-base font-semibold text-zinc-100">Exception Queue unavailable</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Fronta výjimek není dostupná</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
           {forbidden
-            ? "This workspace queue is available to Team Leaders and Administrators only."
-            : "Exception data could not be loaded. No placeholder problem was created."}
+            ? "Tato fronta pracovního prostoru je dostupná pouze vedoucím týmů a administrátorům."
+            : "Data výjimek se nepodařilo načíst. Žádný náhradní problém nebyl vytvořen."}
         </p>
       </Surface>
       </div>
@@ -42,9 +42,9 @@ export default async function ExceptionsPage() {
     <div className="mx-auto max-w-screen-2xl space-y-6">
       <PageHeader
         icon={ShieldAlert}
-        title="Exception Queue"
+        title="Fronta výjimek"
         description="Fronta naplánovaných hovorů, obnovy front, selhání automatizací a chybějících skriptů, které potřebují rozhodnutí manažera."
-        badge={{ label: "Workspace operations", tone: result.data.items.some((item) => item.priority === "critical") ? "unavailable" : "neutral" }}
+        badge={{ label: "Provoz pracovního prostoru", tone: result.data.items.some((item) => item.priority === "critical") ? "unavailable" : "neutral" }}
       />
       <TeamWorkspaceTabs />
       <ExceptionQueue initialData={result.data} />

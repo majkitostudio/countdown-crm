@@ -25,7 +25,7 @@ export function TelephonyAdapterSettings() {
         if (isCurrent) setSettings(nextSettings);
       })
       .catch((loadError) => {
-        if (isCurrent) setError(loadError instanceof Error ? loadError.message : "Telephony settings could not be loaded.");
+        if (isCurrent) setError(loadError instanceof Error ? loadError.message : "Nastavení telefonie se nepodařilo načíst.");
       })
       .finally(() => {
         if (isCurrent) setIsLoading(false);
@@ -43,7 +43,7 @@ export function TelephonyAdapterSettings() {
     try {
       setSettings(await updateWorkspaceTelephonyAdapterAction(adapter));
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Telephony settings could not be saved.");
+      setError(saveError instanceof Error ? saveError.message : "Nastavení telefonie se nepodařilo uložit.");
     } finally {
       setIsSaving(false);
     }
@@ -57,13 +57,13 @@ export function TelephonyAdapterSettings() {
           <Phone className="h-4 w-4" />
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">Telephony adapter</h2>
-          <p className="text-[11px] text-zinc-400">Workspace-wide provider used by the Operator Console.</p>
+          <h2 className="text-sm font-semibold text-zinc-100">Adaptér telefonie</h2>
+          <p className="text-[11px] text-zinc-400">Poskytovatel pro celý pracovní prostor používaný operátorskou konzolí.</p>
         </div>
       </div>
 
       {isLoading ? (
-        <StatusAlert role="status">Loading telephony adapter...</StatusAlert>
+        <StatusAlert role="status">Načítání adaptéru telefonie...</StatusAlert>
       ) : (
         <div className="space-y-4">
           <div className="grid gap-3 md:grid-cols-2">
@@ -74,8 +74,8 @@ export function TelephonyAdapterSettings() {
               aria-pressed={settings?.active_adapter === "local_sip"}
               className="rounded-xl border border-zinc-700 bg-zinc-950/60 p-4 text-left transition hover:border-zinc-500 disabled:cursor-wait disabled:opacity-60"
             >
-              <span className="flex items-center justify-between gap-2 text-xs font-semibold text-zinc-100">Local SIP {settings?.active_adapter === "local_sip" ? <StatusBadge tone="success">Active</StatusBadge> : null}</span>
-              <span className="mt-1 block text-[11px] text-zinc-400">Local Asterisk in Docker for internal test calls.</span>
+              <span className="flex items-center justify-between gap-2 text-xs font-semibold text-zinc-100">Místní SIP {settings?.active_adapter === "local_sip" ? <StatusBadge tone="success">Aktivní</StatusBadge> : null}</span>
+              <span className="mt-1 block text-[11px] text-zinc-400">Místní Asterisk v Dockeru pro interní testovací hovory.</span>
             </button>
             <button
               type="button"
@@ -83,24 +83,24 @@ export function TelephonyAdapterSettings() {
               aria-disabled="true"
               className="cursor-not-allowed rounded-xl border border-amber-900/60 bg-amber-950/10 p-4 text-left opacity-70"
             >
-              <span className="flex items-center justify-between gap-2 text-xs font-semibold text-zinc-300">Telnyx adapter <StatusBadge tone="warning">Unavailable</StatusBadge></span>
+              <span className="flex items-center justify-between gap-2 text-xs font-semibold text-zinc-300">Adaptér Telnyx <StatusBadge tone="warning">Nedostupné</StatusBadge></span>
               <span className="mt-1 block text-[11px] text-amber-300">{TELNYX_BLOCKER_COPY}</span>
             </button>
           </div>
 
           {settings?.active_adapter === "local_sip" ? (
             <Link href="/telephony" className="inline-flex items-center rounded-lg border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-200 hover:border-zinc-500 hover:text-white">
-              Open Local SIP console
+              Otevřít konzoli místního SIP
             </Link>
           ) : (
             <Link href="/admin/settings#telephony-adapter" className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200">
               <ShieldAlert className="h-3.5 w-3.5" />
-              Local SIP is not active. Enable Local SIP in Admin Settings to use this page.
+              Místní SIP není aktivní. Pro použití této stránky povolte místní SIP v nastavení správce.
             </Link>
           )}
 
           {settings?.active_adapter === "simulation" && (
-            <p className="text-[11px] text-zinc-500">Simulation remains the safe fallback until Local SIP is selected.</p>
+            <p className="text-[11px] text-zinc-500">Simulace zůstává bezpečným záložním režimem, dokud není vybrán místní SIP.</p>
           )}
           {error && <StatusAlert tone="danger">{error}</StatusAlert>}
         </div>

@@ -144,7 +144,7 @@ describe("workspace membership profile hydration", () => {
       },
       {
         ...membershipTwo,
-        full_name: "Unknown operator",
+        full_name: "Neznámý operátor",
         email: "",
         avatar_url: null,
       },
@@ -177,7 +177,7 @@ describe("workspace membership profile hydration", () => {
       },
       {
         ...membershipTwo,
-        full_name: "Unknown operator",
+        full_name: "Neznámý operátor",
         email: "",
         avatar_url: null,
       },

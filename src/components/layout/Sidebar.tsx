@@ -88,11 +88,11 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
   const getStatusLabel = (s: OperatorStatus) => {
     switch (s) {
       case "ready":
-        return "Ready for Calls";
+        return "Připraven na hovory";
       case "in_call":
-        return "In Call";
+        return "Na hovoru";
       case "break":
-        return "On Break";
+        return "Na přestávce";
     }
   };
 
@@ -122,7 +122,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="hidden rounded-md p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            title={isCollapsed ? "Rozbalit panel" : "Sbalit panel"}
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
@@ -134,7 +134,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       </div>
 
       {/* Navigation Links */}
-      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Primary navigation">
+      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Primární navigace">
         {getAllowedSidebarNavigationSections(isIdentityLoading ? null : identity?.role).map((group) => (
           <div key={group.section} className="space-y-1">
             {!isCompact && (
@@ -197,20 +197,20 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                 aria-haspopup="menu"
                 aria-controls={statusMenuId}
                 aria-expanded={statusMenuOpen}
-                aria-label={`Operator status: ${getStatusLabel(status)}. Open status menu`}
+                aria-label={`Stav operátora: ${getStatusLabel(status)}. Otevřít nabídku stavu`}
               >
                 <span className={cn("flex w-full items-center gap-3", isCompact && "justify-center")}>
                 {!isCompact && (
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
-                      Status
+                      Stav
                     </span>
                     <StatusBadge tone="neutral">
                       {getStatusLabel(status)}
                     </StatusBadge>
                   </div>
                 )}
-                {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Status</StatusBadge>}
+                {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Stav</StatusBadge>}
                 </span>
               </Button>
             </div>
@@ -219,7 +219,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
             {statusMenuOpen && (
               <div className="absolute bottom-full left-0 z-50 mb-2 w-48">
               <Surface variant="overlay" className="w-full">
-                <div ref={statusMenuRef} id={statusMenuId} role="menu" aria-label="Operator status" className="space-y-1 p-1.5 text-xs">
+                <div ref={statusMenuRef} id={statusMenuId} role="menu" aria-label="Stav operátora" className="space-y-1 p-1.5 text-xs">
                 {(["ready", "in_call", "break"] as OperatorStatus[]).map((s) => (
                   <Button
                     key={s}
@@ -244,7 +244,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
           </div>
         </div>
       ) : !isIdentityLoading && identity ? (
-        <div className="border-t border-zinc-800/80 bg-zinc-950/50 p-3" aria-label={`Current role: ${getWorkspaceRoleLabel(identity.role)}`}>
+        <div className="border-t border-zinc-800/80 bg-zinc-950/50 p-3" aria-label={`Aktuální role: ${getWorkspaceRoleLabel(identity.role)}`}>
           <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Role</span>
           <StatusBadge tone="neutral">{getWorkspaceRoleLabel(identity.role)}</StatusBadge>
         </div>

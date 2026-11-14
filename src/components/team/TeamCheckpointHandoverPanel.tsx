@@ -42,7 +42,7 @@ export function TeamCheckpointHandoverPanel({
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">Konec směny — co se přenáší</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                Shrnutí dne a otevřené položky pro další směnu. Předání je přehled, ne workflow krok —
+                Shrnutí dne a otevřené položky pro další směnu. Předání je přehled, ne krok automatizace —
                 řeší se v Naplánované hovory a týmová fronta.
               </p>
             </div>
@@ -88,7 +88,7 @@ export function TeamCheckpointHandoverPanel({
             ))}
             {handoverScheduledCalls.map((scheduledCall) => (
               <li key={scheduledCall.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
-                <StatusBadge tone="warning">Schedule</StatusBadge>
+                <StatusBadge tone="warning">Naplánovaný hovor</StatusBadge>
                 <span className="font-medium text-zinc-200">{scheduledCall.operatorName || scheduledCall.leadName}</span>
                 <span className="truncate text-zinc-500">{scheduledCall.leadName} · po termínu</span>
               </li>

@@ -23,7 +23,7 @@ describe("operator next action UI contract", () => {
     expect(workspacePage).toContain("listScheduledCallsAction");
     expect(nextActionPanel).toContain('data-testid="operator-next-action"');
     expect(nextActionPanel).toContain('data-testid="scheduled-call-recovery-inbox"');
-    expect(nextActionPanel).toContain("Ready to call");
+    expect(nextActionPanel).toContain("Připraveno k volání");
     expect(nextActionPanel).toContain("flex w-full min-w-0 flex-col items-stretch");
     expect(nextActionPanel).not.toContain("grid gap-4 xl:grid-cols");
   });

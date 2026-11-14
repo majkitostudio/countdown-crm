@@ -19,7 +19,7 @@ export interface WorkflowEvaluationOptions {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown workflow execution error";
+  return error instanceof Error ? error.message : "Neznámá chyba spuštění automatizace";
 }
 
 function executionId(): string {
@@ -72,7 +72,7 @@ async function executeAction(
       return {
         action: action.type,
         status: "failure",
-        reason: "Webhook URL is missing.",
+        reason: "Chybí URL webhooku.",
         durableEffect: false,
       };
     }
@@ -82,7 +82,7 @@ async function executeAction(
       return {
         action: action.type,
         status: "failure",
-        reason: `Unsupported webhook method: ${method}.`,
+        reason: `Nepodporovaná metoda webhooku: ${method}.`,
         durableEffect: false,
       };
     }
@@ -91,7 +91,7 @@ async function executeAction(
       return {
         action: action.type,
         status: "simulation",
-        reason: "Test-only simulation; no webhook request was sent.",
+        reason: "Pouze testovací simulace; požadavek webhooku nebyl odeslán.",
         durableEffect: false,
       };
     }
@@ -107,7 +107,7 @@ async function executeAction(
         return {
           action: action.type,
           status: "failure",
-          reason: `Webhook returned HTTP ${response.status}.`,
+          reason: `Webhook vrátil HTTP ${response.status}.`,
           durableEffect: false,
         };
       }
@@ -115,14 +115,14 @@ async function executeAction(
       return {
         action: action.type,
         status: "success",
-        reason: `Webhook accepted the request with HTTP ${response.status}.`,
+        reason: `Webhook přijal požadavek s HTTP ${response.status}.`,
         durableEffect: true,
       };
     } catch (error) {
       return {
         action: action.type,
         status: "failure",
-        reason: `Webhook request failed: ${errorMessage(error)}.`,
+        reason: `Požadavek webhooku selhal: ${errorMessage(error)}.`,
         durableEffect: false,
       };
     }
@@ -132,25 +132,25 @@ async function executeAction(
     return {
       action: action.type,
       status: "simulation",
-      reason: "Test-only simulation; no provider or database mutation was used.",
+      reason: "Pouze testovací simulace; nebyl použit poskytovatel ani změněna databáze.",
       durableEffect: false,
     };
   }
 
   switch (action.type) {
     case "compute_ai_summary":
-      return unavailable(action, "AI summary provider is not configured.");
+      return unavailable(action, "Poskytovatel AI shrnutí není nastaven.");
     case "send_email_followup":
-      return unavailable(action, "Email provider is not configured.");
+      return unavailable(action, "Poskytovatel e-mailu není nastaven.");
     case "update_lead_status":
-      return unavailable(action, "Workflow lead-status mutation has no enabled server provider.");
+      return unavailable(action, "Změna stavu leadu v automatizaci nemá aktivního serverového poskytovatele.");
     case "notify_manager":
       return unavailable(
         action,
-        `Manager notification provider is not configured${action.config.message ? ` (message: ${interpolateTemplate(action.config.message, payload)})` : "."}`,
+        `Poskytovatel upozornění vedoucímu není nastaven${action.config.message ? ` (zpráva: ${interpolateTemplate(action.config.message, payload)})` : "."}`,
       );
     default:
-      return unavailable(action, "This workflow action is not available on the server.");
+      return unavailable(action, "Tato akce automatizace není na serveru dostupná.");
   }
 }
 
@@ -206,7 +206,7 @@ async function persistEntry(
       ...entry,
       status: "failure",
       persistenceStatus: "failed",
-      errorMessage: `Execution log persistence failed: ${errorMessage(error)}.`,
+      errorMessage: `Uložení záznamu spuštění selhalo: ${errorMessage(error)}.`,
     };
   }
 }
@@ -229,7 +229,7 @@ export async function evaluateWorkflowEvent(
 
     if (!evaluateWorkflowConditions(rule.conditions, payload)) {
       entries.push(await persistEntry(
-        createEntry(rule, trigger, payload, options.eventId, "skipped", [], "Trigger conditions were not met."),
+        createEntry(rule, trigger, payload, options.eventId, "skipped", [], "Podmínky spuštění nebyly splněny."),
         options.persist,
       ));
       continue;
@@ -264,8 +264,8 @@ export async function evaluateWorkflowEvent(
     eventId: options.eventId,
     status,
     reason: matchingRules.length === 0
-      ? "No active workflow rules matched this event."
-      : entries.map((entry) => entry.errorMessage).filter(Boolean).join(" ") || "Workflow event evaluated.",
+      ? "Této události neodpovídá žádné aktivní pravidlo automatizace."
+      : entries.map((entry) => entry.errorMessage).filter(Boolean).join(" ") || "Událost automatizace byla vyhodnocena.",
     durableEffect: entries.some((entry) => entry.durableEffect),
     entries,
   };

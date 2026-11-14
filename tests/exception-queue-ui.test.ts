@@ -40,19 +40,19 @@ describe("Exception Queue UI", () => {
   it("shows the real problem, owner, next action and manager controls", () => {
     const html = renderToStaticMarkup(React.createElement(ExceptionQueue, { initialData: data }));
 
-    expect(html).toContain("Exception Queue");
-    expect(html).toContain("Outcome recovery");
-    expect(html).toContain("Pickup risk");
+    expect(html).toContain("Fronta výjimek");
+    expect(html).toContain("Obnova výsledku");
+    expect(html).toContain("Riziko nevyzvednutí");
     expect(html).toContain("Jana Nováková");
     expect(html).toContain("Jan Operator");
-    expect(html).toContain("Critical");
+    expect(html).toContain("Kritická");
     expect(html).toContain("Open queue operations");
-    expect(html).toContain("Open call review");
+    expect(html).toContain("Otevřít kontrolu hovoru");
     expect(html).toContain('/call-logs/call-1/review');
-    expect(html).toContain("Mark handled");
-    expect(html).toContain("Snooze");
+    expect(html).toContain("Označit jako vyřešené");
+    expect(html).toContain("Odložit");
     expect(html).toContain("Workflow failure checks could not be loaded.");
-    expect(html).not.toMatch(/AI recommendation|predicted issue|generated alert/i);
+    expect(html).not.toMatch(/AI doporučení|předpovězený problém|vygenerované upozornění/i);
   });
 
   it("states when the exact call link was not recorded", () => {
@@ -63,7 +63,7 @@ describe("Exception Queue UI", () => {
       },
     }));
 
-    expect(html).toContain("Exact call was not recorded for this exception");
-    expect(html).not.toContain("Open call review");
+    expect(html).toContain("U této výjimky nebyl zaznamenán konkrétní hovor");
+    expect(html).not.toContain("Otevřít kontrolu hovoru");
   });
 });

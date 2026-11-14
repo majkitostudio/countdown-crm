@@ -39,20 +39,20 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
       if (isDataAccessError(analyticsResult.reason) && analyticsResult.reason.code === "FORBIDDEN") {
         return { status: "forbidden", message: analyticsResult.reason.message };
       }
-      return { status: "unavailable", message: "Daily Brief není momentálně dostupný." };
+      return { status: "unavailable", message: "Denní přehled nyní není dostupný." };
     }
 
     const warnings: string[] = [];
     const calendar = calendarResult.status === "fulfilled" ? calendarResult.value : null;
-    if (calendarResult.status === "rejected") warnings.push("Naplánované hovory a reminders nejsou dostupné.");
+    if (calendarResult.status === "rejected") warnings.push("Naplánované hovory a připomínky nejsou dostupné.");
     if (calendar?.sources.scheduledCalls.state === "unavailable") {
       warnings.push(`Naplánované hovory nejsou dostupné: ${calendar.sources.scheduledCalls.message}`);
     }
     if (calendar?.sources.reminders.state === "unavailable") {
-      warnings.push(`Reminders nejsou dostupné: ${calendar.sources.reminders.message}`);
+      warnings.push(`Připomínky nejsou dostupné: ${calendar.sources.reminders.message}`);
     }
-    if (walletResult.status === "rejected") warnings.push("Wallet souhrn není dostupný.");
-    if (reviewsResult.status === "rejected") warnings.push("Review fronta není dostupná.");
+    if (walletResult.status === "rejected") warnings.push("Souhrn peněženky není dostupný.");
+    if (reviewsResult.status === "rejected") warnings.push("Fronta hodnocení není dostupná.");
 
     const calendarEntries = calendar?.entries ?? [];
     const scheduledCalls = calendarEntries
@@ -89,7 +89,7 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
     if (isDataAccessError(error) && error.code === "FORBIDDEN") {
       return { status: "forbidden", message: error.message };
     }
-    return { status: "unavailable", message: "Daily Brief není momentálně dostupný." };
+    return { status: "unavailable", message: "Denní přehled nyní není dostupný." };
   }
 }
 
@@ -97,6 +97,6 @@ export async function loadReorderOpportunitiesAction(): Promise<ReorderOpportuni
   try {
     return { ok: true, data: await getReorderOpportunities() };
   } catch {
-    return { ok: false, message: "Re-order opportunities are unavailable because fulfilled order history could not be loaded." };
+    return { ok: false, message: "Příležitosti k opakované objednávce nejsou dostupné, protože se nepodařilo načíst historii vyřízených objednávek." };
   }
 }

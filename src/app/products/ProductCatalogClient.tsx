@@ -139,26 +139,26 @@ export function ProductCatalogClient({ role, initialCatalog }: ProductCatalogCli
   };
 
   if (catalog.catalog.status === "unavailable") {
-    return <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-12 text-center text-zinc-400">Product catalog is temporarily unavailable.</div>;
+    return <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-12 text-center text-zinc-400">Katalog produktů je dočasně nedostupný.</div>;
   }
 
   return (
     <div className="space-y-8">
       {canManageProducts && <div className="flex flex-wrap justify-end gap-2">
           <button onClick={() => setIsTranscriptModalOpen(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-300"><Upload className="h-4 w-4" />Synchronizovat hovory</button>
-          <button onClick={() => { setSelectedObjectionCard(null); setIsObjectionEditorOpen(true); }} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-300"><ShieldAlert className="h-4 w-4" />+ New Objection Script</button>
-          <button onClick={() => { setSelectedEditProduct(null); setIsProductModalOpen(true); }} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-medium text-zinc-950"><Plus className="h-4 w-4" />Add New Product</button>
+          <button onClick={() => { setSelectedObjectionCard(null); setIsObjectionEditorOpen(true); }} className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-300"><ShieldAlert className="h-4 w-4" />Přidat námitkovou kartu</button>
+          <button onClick={() => { setSelectedEditProduct(null); setIsProductModalOpen(true); }} className="inline-flex items-center gap-2 rounded-xl bg-zinc-100 px-5 py-2.5 text-xs font-medium text-zinc-950"><Plus className="h-4 w-4" />Přidat produkt</button>
         </div>}
 
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 min-w-0">
         <div className="flex flex-wrap gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1 text-xs">
-          {["all", "supplements", "cosmetics", "electronics"].map((category) => <button key={category} onClick={() => setActiveCategory(category)} className={activeCategory === category ? "rounded-md bg-zinc-800 px-3 py-1 text-zinc-100" : "px-3 py-1 text-zinc-400"}>{category === "all" ? "All Categories" : category}</button>)}
+          {["all", "supplements", "cosmetics", "electronics"].map((category) => <button key={category} onClick={() => setActiveCategory(category)} className={activeCategory === category ? "rounded-md bg-zinc-800 px-3 py-1 text-zinc-100" : "px-3 py-1 text-zinc-400"}>{({ all: "Všechny kategorie", supplements: "Doplňky stravy", cosmetics: "Kosmetika", electronics: "Elektronika" } as Record<string, string>)[category] || category}</button>)}
         </div>
-        <label className="relative max-w-xs flex-1 min-w-0"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search products by title or keywords..." aria-label="Search products" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-4 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400" /></label>
+        <label className="relative max-w-xs flex-1 min-w-0"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Název produktu nebo klíčová slova…" aria-label="Hledat produkty" className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-2 pl-9 pr-4 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400" /></label>
       </div>
 
       {catalogActionError && <div role="alert" className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-4 text-xs text-rose-300">{catalogActionError}</div>}
-      {filteredProducts.length === 0 ? <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-12 text-center text-xs text-zinc-500">No products found matching your active filter.</div> : <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredProducts.map((product) => <ProductCard key={product.id} product={product} role={role} objectionsAvailable={objectionsAvailable} orderCountsAvailable={orderCountsAvailable} onOpenObjections={(selected) => { setSelectedObjectionProductId(selected.id); setIsObjectionDrawerOpen(true); }} onEditProduct={(selected) => { setSelectedEditProduct(selected); setIsProductModalOpen(true); }} orderCount={orderCounts[product.id] || 0} onReassignOrders={handleOpenReassignOrders} onDeleteProduct={handleDeleteProduct} />)}</div>}
+      {filteredProducts.length === 0 ? <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-12 text-center text-xs text-zinc-500">Žádný produkt neodpovídá filtru. Zkuste filtr změnit.</div> : <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredProducts.map((product) => <ProductCard key={product.id} product={product} role={role} objectionsAvailable={objectionsAvailable} orderCountsAvailable={orderCountsAvailable} onOpenObjections={(selected) => { setSelectedObjectionProductId(selected.id); setIsObjectionDrawerOpen(true); }} onEditProduct={(selected) => { setSelectedEditProduct(selected); setIsProductModalOpen(true); }} orderCount={orderCounts[product.id] || 0} onReassignOrders={handleOpenReassignOrders} onDeleteProduct={handleDeleteProduct} />)}</div>}
 
       <ObjectionDrawer product={selectedObjectionProduct} isOpen={isObjectionDrawerOpen} canManage={canManageProducts} objectionsAvailable={objectionsAvailable} onClose={() => setIsObjectionDrawerOpen(false)} onProductUpdated={reloadCatalog} onEditObjection={handleEditObjection} />
       {canManageProducts && <>

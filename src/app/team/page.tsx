@@ -14,8 +14,8 @@ export default async function TeamPage() {
       <div className="mx-auto max-w-xl">
         <Surface variant="empty">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h1 className="text-base font-semibold text-zinc-100">Team operations unavailable</h1>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Queue operations are available to Team Leaders and Administrators only.</p>
+          <h1 className="text-base font-semibold text-zinc-100">Správa týmu není dostupná</h1>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Správa fronty je dostupná pouze vedoucím týmů a administrátorům.</p>
         </Surface>
       </div>
     );
@@ -27,9 +27,9 @@ export default async function TeamPage() {
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={Users}
-        title="Team Workspace"
+        title="Týmový pracovní prostor"
         description="Přehled a každodenní řízení svěřených týmů a jejich operátorů."
-        badge={{ label: context.role === "administrator" ? "Administrator access" : "Team Leader access", tone: "neutral" }}
+        badge={{ label: context.role === "administrator" ? "Přístup administrátora" : "Přístup vedoucího týmu", tone: "neutral" }}
       />
       <TeamWorkspaceTabs />
       <TeamPageContent currentUserId={context.userId} role={context.role} data={data} />

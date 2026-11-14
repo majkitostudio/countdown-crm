@@ -19,7 +19,7 @@ export function TeamCheckpointQualitySection({
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">Kvalita hovorů</h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-                AI kontrola poznámek u reálných hovorů. Doporučení ke kontrole pro Team Leadera.
+                AI kontrola poznámek u reálných hovorů. Doporučení ke kontrole pro vedoucího týmu.
               </p>
             </div>
           </div>

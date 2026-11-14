@@ -119,11 +119,11 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
       <div className="space-y-5 p-6">
         <div className="flex items-center gap-3">
           <Layers className="h-4 w-4 text-zinc-400" aria-hidden="true" />
-          <h2 className="text-sm font-semibold text-zinc-100">Queues</h2>
+          <h2 className="text-sm font-semibold text-zinc-100">Fronty</h2>
         </div>
         <p className="-mt-3 text-xs leading-relaxed text-zinc-500">
           Přehled front podle oddělení P1–P4. Ukazuje, kolik práce v každém oddělení čeká a v jakém je stavu.
-          Department je typ práce, tým (např. P1K) je skupina operátorů pod ním.
+          Oddělení je typ práce, tým (např. P1K) je skupina operátorů pod ním.
         </p>
 
         <section aria-label="Souhrn oddělení" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -191,7 +191,7 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
 
           <div className="mt-3 grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">
             <label className="text-xs text-zinc-500">
-              Department
+              Oddělení
               <select
                 value={departmentFilter}
                 onChange={(event) => setDepartmentFilter(event.target.value as DepartmentFilter)}
@@ -248,7 +248,7 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
                 <thead className="border-b border-zinc-800 bg-zinc-950/80 text-[10px] uppercase tracking-wider text-zinc-500">
                   <tr>
                     <th className="px-4 py-3">Lead</th>
-                    <th className="px-4 py-3">Department</th>
+                    <th className="px-4 py-3">Oddělení</th>
                     <th className="px-4 py-3">Tým</th>
                     <th className="px-4 py-3">Stav</th>
                     <th className="px-4 py-3">Důvod</th>
@@ -287,7 +287,7 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
                         )}
                       </td>
                       <td className="px-4 py-3 text-zinc-300">
-                        {item.assigned_operator?.full_name || <span className="text-zinc-600">Volný pool</span>}
+                        {item.assigned_operator?.full_name || <span className="text-zinc-600">Volná fronta</span>}
                       </td>
                       <td className="px-4 py-3 font-mono text-[10px] text-zinc-500">{formatSince(item.available_at)}</td>
                       <td className="px-4 py-3 text-right">

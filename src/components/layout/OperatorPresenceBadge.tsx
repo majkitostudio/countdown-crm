@@ -14,10 +14,10 @@ export function OperatorPresenceBadge() {
       <Button
         variant="secondary"
         onClick={() => setIsOpen((open) => !open)}
-        title="Operator presence"
+        title="Přítomnost operátorů"
       >
         <Users className="w-3.5 h-3.5 text-zinc-500" />
-        <span className="hidden lg:inline text-zinc-200 font-mono">Presence unavailable</span>
+        <span className="hidden lg:inline text-zinc-200 font-mono">Přítomnost nedostupná</span>
         <ChevronDown className="w-3 h-3 text-zinc-400" />
       </Button>
 
@@ -27,12 +27,12 @@ export function OperatorPresenceBadge() {
           <div className="space-y-2 p-3">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80">
             <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-zinc-400" /> Active operators
+              <Users className="w-3.5 h-3.5 text-zinc-400" /> Aktivní operátoři
             </span>
-            <StatusBadge tone="neutral">Unavailable</StatusBadge>
+            <StatusBadge tone="neutral">Nedostupné</StatusBadge>
           </div>
           <p className="text-xs text-zinc-500">
-            No persisted presence or telephony stream is available in this pilot.
+            V tomto pilotu není dostupná žádná perzistentní přítomnost ani telekomunikační stream.
           </p>
           </div>
         </Surface>

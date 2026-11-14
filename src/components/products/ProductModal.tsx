@@ -80,7 +80,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
       onSaved();
       onClose();
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Product could not be saved.");
+      setSaveError(error instanceof Error ? error.message : "Produkt se nepodařilo uložit.");
     } finally {
       setIsSaving(false);
     }
@@ -96,7 +96,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
               <Package className="w-5 h-5" />
             </div>
             <h2 id="product-dialog-title" className="text-base font-semibold text-zinc-100">
-              {product ? "Edit Product" : "Add New Product"}
+              {product ? "Upravit produkt" : "Přidat nový produkt"}
             </h2>
           </div>
           <Button
@@ -112,12 +112,12 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
           
           {/* Title Input */}
           <div>
-            <FieldLabel htmlFor="product-title">Product Title *</FieldLabel>
+            <FieldLabel htmlFor="product-title">Název produktu *</FieldLabel>
             <TextField
               id="product-title"
               type="text"
               required
-              placeholder="e.g. Bio-Boost Anti-Aging Stack"
+                    placeholder="Např. Vitaminový komplex"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -126,20 +126,20 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
           {/* Category & Price Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <FieldLabel htmlFor="product-category">Category *</FieldLabel>
+              <FieldLabel htmlFor="product-category">Kategorie *</FieldLabel>
               <SelectField
                 id="product-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ProductCategory)}
               >
-                <option value="supplements">Supplements</option>
-                <option value="cosmetics">Cosmetics</option>
-                <option value="electronics">Electronics</option>
+                <option value="supplements">Doplňky stravy</option>
+                <option value="cosmetics">Kosmetika</option>
+                <option value="electronics">Elektronika</option>
               </SelectField>
             </div>
 
             <div>
-              <FieldLabel htmlFor="product-price">Price (USD) *</FieldLabel>
+              <FieldLabel htmlFor="product-price">Cena (USD) *</FieldLabel>
                 <TextField
                   id="product-price"
                   type="number"
@@ -153,7 +153,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
 
           {/* Image URL Input */}
           <div>
-            <FieldLabel htmlFor="product-image-url">Product Image URL</FieldLabel>
+            <FieldLabel htmlFor="product-image-url">URL obrázku produktu</FieldLabel>
             <TextField
               id="product-image-url"
               type="url"
@@ -165,11 +165,11 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
 
           {/* Description */}
           <div>
-            <FieldLabel htmlFor="product-description">Description & Benefits</FieldLabel>
+                <FieldLabel htmlFor="product-description">Popis a přínosy</FieldLabel>
             <TextAreaField
               id="product-description"
               rows={3}
-              placeholder="Describe key ingredients, usage instructions, and value proposition..."
+              placeholder="Popište klíčové složky, návod k použití a hodnotovou nabídku..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -178,7 +178,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
           {/* Stock Count & Availability */}
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-zinc-800">
             <div>
-              <FieldLabel htmlFor="product-stock-count">Stock Quantity</FieldLabel>
+              <FieldLabel htmlFor="product-stock-count">Množství na skladě</FieldLabel>
               <TextField
                 id="product-stock-count"
                 type="number"
@@ -196,7 +196,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
                 className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 text-emerald-500 focus:ring-0 cursor-pointer"
               />
               <label htmlFor="inStockCheck" className="text-zinc-200 font-medium cursor-pointer">
-                In Stock & Available
+                Skladem a dostupné
               </label>
             </div>
           </div>
@@ -214,7 +214,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
               type="button"
               onClick={onClose}
             >
-              Cancel
+              Zrušit
             </Button>
 
             <Button
@@ -223,7 +223,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
               disabled={isSaving}
             >
               <Check className="w-4 h-4" />
-              <span>{isSaving ? "Saving..." : product ? "Update Product" : "Create Product"}</span>
+              <span>{isSaving ? "Ukládání..." : product ? "Aktualizovat produkt" : "Vytvořit produkt"}</span>
             </Button>
           </div>
 

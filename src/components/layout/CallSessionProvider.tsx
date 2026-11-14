@@ -49,7 +49,7 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
     try {
       await action();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Call update failed.");
+      setError(cause instanceof Error ? cause.message : "Aktualizace hovoru se nezdařila.");
       throw cause;
     } finally {
       setIsActionPending(false);
@@ -94,7 +94,7 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
           if (result === null) stopped = true;
         })
         .catch((cause) => {
-          setError(cause instanceof Error ? cause.message : "Lead assignment heartbeat failed.");
+          setError(cause instanceof Error ? cause.message : "Obnovení přiřazení leadu se nezdařilo.");
         });
     };
     heartbeat();
@@ -117,6 +117,6 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
 
 export function useCallSession(): CallSessionContextValue {
   const context = useContext(CallSessionContext);
-  if (!context) throw new Error("useCallSession must be used inside CallSessionProvider");
+  if (!context) throw new Error("useCallSession musí být použito uvnitř CallSessionProvider");
   return context;
 }

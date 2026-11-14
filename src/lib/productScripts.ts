@@ -12,61 +12,61 @@ export interface ProductScript {
 
 const jointGelScript: ProductScript = {
   opening:
-    "I’m calling about {{product}}. Before I explain the product, may I ask what result you are hoping to achieve?",
+    "Volám ohledně produktu {{product}}. Než vám jej představím, mohu se zeptat, co od něj očekáváte?",
   discoveryQuestions: [
-    "What is the main issue you would like this product to help with?",
-    "What have you tried so far?",
-    "What is most important to you when choosing a product?",
+    "S čím by vám měl produkt především pomoci?",
+    "Co jste dosud vyzkoušeli?",
+    "Co je pro vás při výběru produktu nejdůležitější?",
   ],
   approvedBenefits: [
-    "Topical gel format designed for an easy application routine.",
-    "Present the product ingredients and usage instructions exactly as approved in the product record.",
-    "Set expectations clearly: results and suitability can differ between customers.",
+    "Gel k zevnímu použití pro snadnou pravidelnou aplikaci.",
+    "Představte složení a použití přesně podle schválených údajů u produktu.",
+    "Vysvětlete očekávání: výsledky i vhodnost se mohou u různých zákazníků lišit.",
   ],
   objectionResponses: {
     price:
-      "I understand. Let me first make sure the product is relevant to what you need, then we can review the current price and available options clearly.",
+      "Rozumím. Nejprve ověřme, zda produkt odpovídá vašim potřebám, a poté společně projdeme aktuální cenu a dostupné možnosti.",
     effectiveness:
-      "That is a fair question. I can explain the approved product information and how it is intended to be used, but I do not want to promise a result that cannot be guaranteed.",
+      "To je pochopitelná otázka. Mohu vám vysvětlit schválené informace a způsob použití, ale nechci slibovat výsledek, který nelze zaručit.",
     delivery:
-      "Let me confirm the delivery cost and expected timing for your address before we continue.",
+      "Než budeme pokračovat, ověřím cenu dopravy a předpokládaný termín doručení na vaši adresu.",
     hesitation:
-      "Of course. What information would help you make a comfortable decision?",
+      "Samozřejmě. Jaké informace by vám pomohly se rozhodnout?",
   },
-  nextBestAction: "Ask one discovery question before presenting the offer.",
+  nextBestAction: "Před představením nabídky položte jednu otázku ke zjištění potřeb.",
   closing:
-    "Thank you for sharing your situation. If you would like, we can review the next step and make sure the information is clear before you decide.",
+    "Děkuji za popis vaší situace. Pokud chcete, můžeme před vaším rozhodnutím projít další postup a vyjasnit případné otázky.",
   guardrails: [
-    "Do not promise a cure, guaranteed result, or medical outcome.",
-    "Do not invent discounts, referral details, delivery terms, or product claims.",
-    "Do not describe an item as free when the customer still pays fees or another item.",
+    "Neslibujte vyléčení, zaručený výsledek ani léčebný účinek.",
+    "Nevymýšlejte slevy, doporučení, dodací podmínky ani tvrzení o produktu.",
+    "Neoznačujte položku jako bezplatnou, pokud zákazník platí poplatky nebo jinou položku.",
   ],
 };
 
 const genericScript: ProductScript = {
   opening:
-    "I’m calling about {{product}}. May I ask what you are looking for before I walk you through the product?",
+    "Volám ohledně produktu {{product}}. Než vám jej představím, mohu se zeptat, co hledáte?",
   discoveryQuestions: [
-    "What are you hoping to improve or solve?",
-    "What have you tried before?",
-    "What matters most when choosing a product?",
+    "Co byste chtěli zlepšit nebo vyřešit?",
+    "Co jste již vyzkoušeli?",
+    "Co je pro vás při výběru produktu nejdůležitější?",
   ],
   approvedBenefits: [
-    "Use only benefits and product details maintained in the product record.",
-    "Explain the intended use and next step in plain language.",
-    "Set expectations without promising an outcome.",
+    "Používejte pouze přínosy a údaje vedené u produktu.",
+    "Srozumitelně vysvětlete způsob použití a další postup.",
+    "Vysvětlete očekávání bez slibování výsledku.",
   ],
   objectionResponses: {
-    price: "I understand. Let’s first confirm that the product fits your needs, then review the price and options clearly.",
-    effectiveness: "That is a fair question. I can explain the approved product information, but I do not want to promise a result that cannot be guaranteed.",
-    hesitation: "Of course. What information would help you make a comfortable decision?",
+    price: "Rozumím. Nejprve ověřme, zda produkt odpovídá vašim potřebám, a poté projdeme cenu a možnosti.",
+    effectiveness: "To je pochopitelná otázka. Mohu vysvětlit schválené informace o produktu, ale nechci slibovat výsledek, který nelze zaručit.",
+    hesitation: "Samozřejmě. Jaké informace by vám pomohly se rozhodnout?",
   },
-  nextBestAction: "Ask one discovery question before presenting the offer.",
+  nextBestAction: "Před představením nabídky položte jednu otázku ke zjištění potřeb.",
   closing:
-    "Thank you for your time and openness. If you have further questions, I can provide the approved product information and explain the next step clearly.",
+    "Děkuji za váš čas a otevřenost. Pokud máte další otázky, mohu vám poskytnout schválené informace o produktu a vysvětlit další postup.",
   guardrails: [
-    "Use only approved product information.",
-    "Do not invent claims, discounts, guarantees, or delivery terms.",
+    "Používejte pouze schválené informace o produktu.",
+    "Nevymýšlejte tvrzení, slevy, záruky ani dodací podmínky.",
   ],
 };
 
@@ -80,5 +80,5 @@ export function getProductScript(product: Product | undefined): ProductScript {
 }
 
 export function interpolateScript(text: string, product: Product | undefined): string {
-  return text.replace("{{product}}", product?.title || "this product");
+  return text.replace("{{product}}", product?.title || "tento produkt");
 }

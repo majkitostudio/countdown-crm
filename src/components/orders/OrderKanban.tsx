@@ -202,7 +202,7 @@ function OrderCard({
         <div className="mb-2.5 flex items-center justify-between rounded-lg bg-rose-500/10 px-2.5 py-1.5 text-[11px] font-semibold text-rose-300">
           <span className="flex items-center gap-1.5">
             <RotateCcw className="h-3 w-3 shrink-0 text-rose-400" />
-            Vratka ➜ Re-ship
+            Vratka ➜ Opětovné odeslání
           </span>
           <Link
             href={`/orders/${order.id}?origin=orders`}

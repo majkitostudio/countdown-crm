@@ -57,7 +57,7 @@ describe("Telnyx integration contracts", () => {
     vi.stubEnv("TELNYX_DEFAULT_CALLER_NUMBER", "+420777123456");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("secret-provider-body", { status: 500 }));
 
-    await expect(issueTelnyxToken("credential-1")).rejects.toThrow("Telnyx token request failed (500).");
+    await expect(issueTelnyxToken("credential-1")).rejects.toThrow("Požadavek na přístupový token Telnyxu selhal (500). Zkuste to znovu.");
     await expect(issueTelnyxToken("credential-1")).rejects.not.toThrow("secret-provider-body");
   });
 });

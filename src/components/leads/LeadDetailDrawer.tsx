@@ -63,7 +63,7 @@ export function LeadDetailDrawer({
       })
       .catch((error: unknown) => {
         if (!cancelled) {
-          setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
+          setActivitiesError(error instanceof Error ? error.message : "Historie aktivit není dostupná.");
         }
       })
       .finally(() => {
@@ -96,10 +96,10 @@ export function LeadDetailDrawer({
       try {
         setActivities(await getLeadActivities(currentLead.id));
       } catch (error: unknown) {
-        setActivitiesError(error instanceof Error ? error.message : "Activity timeline unavailable");
+        setActivitiesError(error instanceof Error ? error.message : "Historie aktivit není dostupná.");
       }
     } catch (error: unknown) {
-      setStatusError(error instanceof Error ? error.message : "Lead status could not be saved");
+      setStatusError(error instanceof Error ? error.message : "Stav leadu se nepodařilo uložit.");
     }
   };
 
@@ -113,7 +113,7 @@ export function LeadDetailDrawer({
       setActivities(await getLeadActivities(currentLead.id));
       setNewNote("");
     } catch (error) {
-      setActivitiesError(error instanceof Error ? error.message : "Note could not be saved");
+      setActivitiesError(error instanceof Error ? error.message : "Poznámku se nepodařilo uložit.");
     } finally {
       setIsSavingNote(false);
     }
@@ -139,10 +139,10 @@ export function LeadDetailDrawer({
                 </h2>
                 <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
                   <Building className="w-3.5 h-3.5" />
-                  <span>{currentLead.company || "Independent"}</span>
+                  <span>{currentLead.company || "Bez firmy"}</span>
                   <span>•</span>
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>{[currentLead.city, currentLead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
+                  <span>{[currentLead.city, currentLead.country].filter(Boolean).join(", ") || "Lokalita není uvedena"}</span>
                 </div>
               </div>
             </div>
@@ -150,7 +150,7 @@ export function LeadDetailDrawer({
             <Button
               onClick={onClose}
               variant="quiet"
-              aria-label="Close lead detail"
+              aria-label="Zavřít detail leadu"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -166,7 +166,7 @@ export function LeadDetailDrawer({
               <div className={`p-4 rounded-xl border flex flex-col justify-center items-center ${getScoreColor()}`}>
                 <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1 text-zinc-400">
                   <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>AI Propensity Score</span>
+                  <span>AI skóre zájmu</span>
                 </div>
                 <div className="text-3xl font-bold tracking-tight font-mono">
                   {currentLead.ai_score}
@@ -176,21 +176,21 @@ export function LeadDetailDrawer({
 
               {/* Status Select Box */}
               <div className="p-3 bg-zinc-950/60 border border-zinc-800 rounded-xl flex flex-col justify-center">
-                <FieldLabel htmlFor="lead-status">Status</FieldLabel>
+                <FieldLabel htmlFor="lead-status">Stav</FieldLabel>
                 <SelectField
                   id="lead-status"
                   value={currentLead.status}
                   onChange={(e) => handleStatusChange(e.target.value as Lead["status"])}
                 >
-                  <option value="new">New</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="qualified">Qualified</option>
-                  <option value="customer">Customer</option>
-                  <option value="unresponsive">Unresponsive</option>
+                  <option value="new">Nový</option>
+                  <option value="contacted">Kontaktovaný</option>
+                  <option value="qualified">Kvalifikovaný</option>
+                  <option value="customer">Zákazník</option>
+                  <option value="unresponsive">Nereaguje</option>
                 </SelectField>
                 {statusError && (
                   <StatusAlert tone="danger">
-                    Status nebyl uložen: {statusError}
+                    Stav nebyl uložen: {statusError}
                   </StatusAlert>
                 )}
               </div>
@@ -204,7 +204,7 @@ export function LeadDetailDrawer({
                 className="w-full"
               >
                 <PhoneCall className="w-4 h-4 fill-current" />
-                Start Virtual Call
+                Zahájit virtuální hovor
               </Button>
               
               <a
@@ -212,32 +212,32 @@ export function LeadDetailDrawer({
                 className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium rounded-lg text-sm flex items-center gap-2 transition-colors duration-150 ease-interface border border-zinc-700"
               >
                 <Mail className="w-4 h-4" />
-                Email
+                E-mail
               </a>
             </div>
 
             {/* Contact Details Grid */}
             <div className="bg-zinc-950/40 border border-zinc-800 rounded-xl p-4 space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Contact Information
+                Kontaktní údaje
               </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-xs text-zinc-500 block mb-0.5">Phone Number</span>
+                  <span className="text-xs text-zinc-500 block mb-0.5">Telefonní číslo</span>
                   <span className="font-mono text-zinc-200">{currentLead.phone}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-zinc-500 block mb-0.5">Email Address</span>
-                  <span className="text-zinc-200 truncate block">{currentLead.email || "N/A"}</span>
+                  <span className="text-xs text-zinc-500 block mb-0.5">E-mailová adresa</span>
+                  <span className="text-zinc-200 truncate block">{currentLead.email || "Neuvedeno"}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-zinc-500 block mb-0.5">Location</span>
-                  <span className="text-zinc-200">{[currentLead.city, currentLead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
+                  <span className="text-xs text-zinc-500 block mb-0.5">Lokalita</span>
+                  <span className="text-zinc-200">{[currentLead.city, currentLead.country].filter(Boolean).join(", ") || "Lokalita není uvedena"}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-zinc-500 block mb-0.5">Added On</span>
+                  <span className="text-xs text-zinc-500 block mb-0.5">Přidáno</span>
                   <span className="text-zinc-200 font-mono">
-                    {new Date(currentLead.created_at).toLocaleDateString("en-US", {
+                    {new Date(currentLead.created_at).toLocaleDateString("cs-CZ", {
                       month: "short",
                       day: "numeric",
                       year: "numeric"
@@ -252,18 +252,18 @@ export function LeadDetailDrawer({
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-                  AI Summary & Notes
+                  AI shrnutí a poznámky
                 </h3>
               </div>
               <p className="text-sm text-zinc-300 leading-relaxed bg-zinc-900/60 p-3 rounded-lg border border-zinc-800/80">
-                {currentLead.notes || "No notes available for this lead."}
+                {currentLead.notes || "Tento lead zatím nemá poznámky."}
               </p>
             </div>
 
             {/* Add New Note */}
             <div className="space-y-2">
               <FieldLabel htmlFor="lead-note">
-                Add Call Note
+                Přidat poznámku k hovoru
               </FieldLabel>
               <div className="flex gap-2">
                 <TextField
@@ -271,7 +271,7 @@ export function LeadDetailDrawer({
                   type="text"
                   value={newNote}
                   onChange={(event) => setNewNote(event.target.value)}
-                  placeholder="Type note regarding customer preference or agreement..."
+                  placeholder="Např. zákazník preferuje doručení odpoledne"
                   maxLength={2000}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") void handleAddNote();
@@ -284,7 +284,7 @@ export function LeadDetailDrawer({
                   variant="secondary"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  {isSavingNote ? "Saving..." : "Add"}
+                  {isSavingNote ? "Ukládám…" : "Přidat"}
                 </Button>
               </div>
             </div>
@@ -292,17 +292,17 @@ export function LeadDetailDrawer({
             {/* Activity & Interaction Timeline */}
             <div className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Activity Timeline
+                Historie aktivit
               </h3>
               
-              {isLoadingActivities && <p className="text-xs text-zinc-500">Loading activity timeline...</p>}
+              {isLoadingActivities && <p className="text-xs text-zinc-500">Načítám historii aktivit…</p>}
               {activitiesError && (
                 <p role="alert" className="text-xs text-rose-300 border border-rose-900/60 bg-rose-950/20 rounded-lg px-3 py-2">
-                  Activity timeline unavailable: {activitiesError}
+                  Historie aktivit není dostupná: {activitiesError}
                 </p>
               )}
               {!isLoadingActivities && !activitiesError && activities.length === 0 && (
-                <p className="text-xs text-zinc-500">No persisted activities for this lead.</p>
+                <p className="text-xs text-zinc-500">Tento lead zatím nemá uložené aktivity.</p>
               )}
               {!activitiesError && activities.length > 0 && <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-800">
                 {activities.map((act) => (
@@ -322,7 +322,7 @@ export function LeadDetailDrawer({
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="font-semibold text-zinc-200">{act.title}</span>
                         <span className="text-zinc-500 font-mono">
-                          {new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(act.timestamp).toLocaleTimeString("cs-CZ", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       <p className="text-xs text-zinc-400 leading-normal">
@@ -330,7 +330,7 @@ export function LeadDetailDrawer({
                       </p>
                       {act.actor && (
                         <div className="mt-2 text-[10px] text-zinc-500 font-medium font-mono">
-                          Logged by: {act.actor}
+                          Zaznamenal: {act.actor}
                         </div>
                       )}
                     </div>

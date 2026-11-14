@@ -128,34 +128,34 @@ function nextSafeStep(
   if (assignment.recovery_required) {
     return {
       kind: "recover_assignment",
-      label: "Recover the interrupted assignment before taking another action.",
+      label: "Než budete pokračovat, obnovte přerušené přidělení.",
     };
   }
 
   if (assignment.assignment_state === "awaiting_outcome") {
     return {
       kind: "complete_outcome",
-      label: "Complete the pending call outcome before continuing.",
+      label: "Než budete pokračovat, dokončete výsledek hovoru.",
     };
   }
 
   if (assignment.assignment_state === "in_progress") {
     return {
       kind: "continue_call",
-      label: "Continue the active call using only the product guidance shown below.",
+      label: "Pokračujte v hovoru pouze podle níže uvedených produktových pokynů.",
     };
   }
 
   if (productScripts.status === "fulfilled" && productScripts.value.length > 0) {
     return {
       kind: "review_script_then_call",
-      label: "Review the approved script, then start the call.",
+      label: "Projděte schválený scénář a poté zahajte hovor.",
     };
   }
 
   return {
     kind: "verify_script_before_call",
-    label: "Check the Product Script panel before calling and do not improvise product claims.",
+    label: "Před hovorem zkontrolujte produktový scénář a nevymýšlejte vlastní tvrzení o produktu.",
   };
 }
 
@@ -163,17 +163,17 @@ export function buildConversationBrief(
   assignment: LeadQueueSnapshot,
   input: ConversationBriefSourcesInput,
 ): ConversationBriefDTO {
-  const callState = sourceState(input.call, "Call history is unavailable.");
-  const noteState = sourceState(input.note, "Customer notes are unavailable.");
-  const orderState = sourceState(input.order, "Order history is unavailable.");
-  const queueReasonState = sourceState(input.queueReason, "Routing reason is unavailable.");
-  const productScriptState = sourceState(input.productScripts, "Approved product guidance is unavailable.");
+  const callState = sourceState(input.call, "Historie hovorů není dostupná.");
+  const noteState = sourceState(input.note, "Poznámky zákazníka nejsou dostupné.");
+  const orderState = sourceState(input.order, "Historie objednávek není dostupná.");
+  const queueReasonState = sourceState(input.queueReason, "Důvod zařazení není dostupný.");
+  const productScriptState = sourceState(input.productScripts, "Schválené produktové pokyny nejsou dostupné.");
   const call = input.call.status === "fulfilled" ? input.call.value : null;
   const scheduledCallFromAssignment = cleanOptionalText(assignment.scheduled_at);
   const scheduledCallFromCall = call ? cleanOptionalText(call.scheduled_at) : null;
   const scheduledCallState = scheduledCallFromAssignment || input.call.status === "fulfilled"
     ? { state: "available" } as const
-    : { state: "unavailable", message: "Schedule history is unavailable." } as const;
+    : { state: "unavailable", message: "Historie naplánovaných hovorů není dostupná." } as const;
   const note = input.note.status === "fulfilled" ? input.note.value : null;
   const order = input.order.status === "fulfilled" ? input.order.value : null;
   const productScripts = input.productScripts.status === "fulfilled" ? input.productScripts.value : null;
@@ -205,7 +205,7 @@ export function buildConversationBrief(
         }
       : null,
     last_note: note
-      ? { ...note, body: note.body.trim(), author_name: note.author_name.trim() || "Unknown operator" }
+      ? { ...note, body: note.body.trim(), author_name: note.author_name.trim() || "Neznámý operátor" }
       : null,
     scheduledCall: scheduledCallFromAssignment
       ? { scheduled_at: scheduledCallFromAssignment, source: "assignment" }
@@ -248,7 +248,7 @@ async function loadLatestCall(
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new DataAccessError("DATABASE", "Call history could not be loaded.");
+  if (error) throw new DataAccessError("DATABASE", "Historii hovorů se nepodařilo načíst.");
   return data ? data as ConversationBriefCallSource : null;
 }
 
@@ -266,7 +266,7 @@ async function loadLatestOrder(
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new DataAccessError("DATABASE", "Order history could not be loaded.");
+  if (error) throw new DataAccessError("DATABASE", "Historii objednávek se nepodařilo načíst.");
   return data ? { ...(data as ConversationBriefOrderSource), total_amount: Number(data.total_amount) } : null;
 }
 
@@ -275,19 +275,19 @@ function routingContextFromAssignment(
   call?: ConversationBriefCallSource | null,
   order?: ConversationBriefOrderSource | null,
 ): string {
-  if (assignment.scheduled_at) return "Scheduled call";
+  if (assignment.scheduled_at) return "Naplánovaný hovor";
   if (order?.status === "returned") {
-    return "P4 Záchrana — vrácený balíček (Re-ship)";
+    return "P4 Záchrana — vrácený balíček (opětovné odeslání)";
   }
   if (order?.status === "delivered") {
     return "P3 Retence — kontrola spokojenosti po doručení & nabídka kůry";
   }
   if (call?.outcome === "objection" && call?.fail_reason) {
     const czechReason = getFailReasonCzechLabel(call.fail_reason as FailReason);
-    return `P4 Retargeting — předchozí námitka: ${czechReason}`;
+    return `P4 Opětovné oslovení — předchozí námitka: ${czechReason}`;
   }
-  if (assignment.attempt_count > 1) return "Follow-up attempt";
-  return "New queue assignment";
+  if (assignment.attempt_count > 1) return "Opakovaný pokus o kontakt";
+  return "Nové přidělení z fronty";
 }
 
 export async function getConversationBriefForWorkspace(
@@ -296,7 +296,7 @@ export async function getConversationBriefForWorkspace(
 ): Promise<ConversationBriefDTO> {
   const context = await requireWorkspaceRole(["operator"], requestedWorkspaceId);
   if (typeof leadId !== "string" || !leadId.trim()) {
-    throw new DataAccessError("VALIDATION", "Lead ID is required.");
+    throw new DataAccessError("VALIDATION", "Je nutné zadat ID leadu.");
   }
 
   const assignment = await getCurrentLeadForWorkspace(context.workspaceId);

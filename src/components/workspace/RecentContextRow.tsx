@@ -17,7 +17,7 @@ interface RecentContextRowProps {
 
 function formatDate(value: string): string {
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Unavailable";
+  if (!Number.isFinite(date.getTime())) return "Nedostupné";
 
   return new Intl.DateTimeFormat("cs-CZ", {
     day: "numeric",
@@ -30,16 +30,16 @@ function formatDate(value: string): string {
 function outcomeLabel(value: string | undefined): string {
   switch (value) {
     case "order_placed":
-      return "Order placed";
+      return "Objednávka vytvořena";
     case "followup_scheduled":
-      return "Schedule set";
+      return "Hovor naplánován";
     case "no_answer":
-      return "No answer";
+      return "Nedostupný";
     case "objection":
     case "objection_handled":
-      return "Fail";
+      return "Neúspěšný";
     default:
-      return value?.trim() || "No result recorded";
+      return value?.trim() || "Výsledek není zaznamenán";
   }
 }
 
@@ -77,8 +77,8 @@ function Signal({
 function renderSignal(signal: RecentContextData["lastContact"], kind: "contact" | "result" | "order") {
   if (!signal) {
     return {
-      value: kind === "order" ? "Never" : "No record",
-      detail: kind === "order" ? "No order recorded" : "No data saved",
+      value: kind === "order" ? "Nikdy" : "Bez záznamu",
+      detail: kind === "order" ? "Žádná zaznamenaná objednávka" : "Žádná uložená data",
     };
   }
 
@@ -97,7 +97,7 @@ function renderSignal(signal: RecentContextData["lastContact"], kind: "contact" 
   }
   return {
     value: formatDate(activity.timestamp),
-    detail: activity.actor || "Unknown operator",
+    detail: activity.actor || "Neznámý operátor",
   };
 }
 
@@ -131,7 +131,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
         if (!cancelled) {
           setContext(null);
           setScheduledCallUnavailableMessage(null);
-          setLoadError(error instanceof Error ? error.message : "Recent context could not be loaded.");
+          setLoadError(error instanceof Error ? error.message : "Poslední kontext se nepodařilo načíst.");
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -144,14 +144,14 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
     };
   }, [leadId, refreshToken]);
 
-  const emptySignal = { value: "No record", detail: "No data saved" };
+  const emptySignal = { value: "Bez záznamu", detail: "Žádná uložená data" };
   const contact = renderSignal(context?.lastContact || null, "contact");
   const result = renderSignal(context?.lastCallResult || null, "result");
   const order = renderSignal(context?.lastOrder || null, "order");
   const scheduledCall = scheduledCallUnavailableMessage
-    ? { value: "Unavailable", detail: scheduledCallUnavailableMessage }
+    ? { value: "Nedostupné", detail: scheduledCallUnavailableMessage }
     : context?.activeScheduledCall
-      ? { value: formatDate(context.activeScheduledCall.scheduled_at), detail: "Scheduled call" }
+      ? { value: formatDate(context.activeScheduledCall.scheduled_at), detail: "Naplánovaný hovor" }
       : emptySignal;
 
   return (
@@ -159,22 +159,22 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
       <section className="p-3">
       <div className="flex items-center justify-between gap-3 px-1">
         <div>
-          <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Last signals</h3>
-          <p className="mt-1 text-[11px] text-zinc-500">Glance before you dial — details below</p>
+          <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Poslední události</h3>
+          <p className="mt-1 text-[11px] text-zinc-500">Přehled před voláním — podrobnosti níže</p>
         </div>
-        {isLoading && <StatusBadge tone="neutral">Loading…</StatusBadge>}
+        {isLoading && <StatusBadge tone="neutral">Načítání…</StatusBadge>}
       </div>
 
       {loadError ? (
         <StatusAlert tone="warning" className="w-full">
-          Recent context unavailable: {loadError}
+          Poslední kontext není dostupný: {loadError}
         </StatusAlert>
       ) : (
         <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-busy={isLoading}>
-          <Signal icon={PhoneCall} label="Last contact" value={isLoading ? "Loading…" : contact.value} detail={isLoading ? "" : contact.detail} />
-          <Signal icon={CheckCircle2} label="Last result" value={isLoading ? "Loading…" : result.value} detail={isLoading ? "" : result.detail} />
-          <Signal icon={ShoppingBag} label="Last order" value={isLoading ? "Loading…" : order.value} detail={isLoading ? "" : order.detail} />
-          <Signal icon={CalendarClock} label="Schedule" value={isLoading ? "Loading…" : scheduledCall.value} detail={isLoading ? "" : scheduledCall.detail} />
+          <Signal icon={PhoneCall} label="Poslední kontakt" value={isLoading ? "Načítání…" : contact.value} detail={isLoading ? "" : contact.detail} />
+          <Signal icon={CheckCircle2} label="Poslední výsledek" value={isLoading ? "Načítání…" : result.value} detail={isLoading ? "" : result.detail} />
+          <Signal icon={ShoppingBag} label="Poslední objednávka" value={isLoading ? "Načítání…" : order.value} detail={isLoading ? "" : order.detail} />
+          <Signal icon={CalendarClock} label="Naplánovaný hovor" value={isLoading ? "Načítání…" : scheduledCall.value} detail={isLoading ? "" : scheduledCall.detail} />
         </div>
       )}
       </section>

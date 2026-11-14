@@ -65,7 +65,7 @@ export function UserOnboardingModal({
 
       const roleLabels: Record<WorkspaceRole, string> = {
         operator: "Operátor",
-        team_leader: "Team Leader",
+        team_leader: "Vedoucí týmu",
         administrator: "Administrátor",
       };
 
@@ -103,7 +103,7 @@ export function UserOnboardingModal({
                 Přidat pracovníka do call centra
               </h2>
               <p className="text-xs text-zinc-400">
-                Založení operátora, team leadera nebo administrátora a přiřazení k lince.
+                Založení operátora, vedoucího týmu nebo administrátora a přiřazení k lince.
               </p>
             </div>
           </div>
@@ -152,7 +152,7 @@ export function UserOnboardingModal({
                 onChange={(e) => setRole(e.target.value as WorkspaceRole)}
               >
                 <option value="operator">Operátor (Telefonista)</option>
-                <option value="team_leader">Team Leader (Dohled)</option>
+                <option value="team_leader">Vedoucí týmu (dohled)</option>
                 <option value="administrator">Administrátor (Správce)</option>
               </SelectField>
             </div>

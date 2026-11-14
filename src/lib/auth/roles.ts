@@ -3,13 +3,13 @@ import type { Database } from "@/lib/supabase/types";
 export type WorkspaceRole = Database["public"]["Tables"]["workspace_members"]["Row"]["role"];
 
 export const WORKSPACE_ROLE_LABELS: Record<WorkspaceRole, string> = {
-  operator: "Operator",
-  team_leader: "Team Leader",
-  administrator: "Administrator",
+  operator: "Operátor",
+  team_leader: "Vedoucí týmu",
+  administrator: "Administrátor",
 };
 
 export function getWorkspaceRoleLabel(role: WorkspaceRole | null | undefined): string {
-  return role ? WORKSPACE_ROLE_LABELS[role] : "Role unavailable";
+  return role ? WORKSPACE_ROLE_LABELS[role] : "Role není dostupná";
 }
 
 export function isTeamLeaderOrAdministrator(role: WorkspaceRole | null | undefined): boolean {

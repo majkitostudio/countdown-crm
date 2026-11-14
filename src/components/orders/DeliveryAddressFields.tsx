@@ -192,9 +192,9 @@ export function DeliveryAddressFields({
     <fieldset disabled={disabled} className="space-y-3.5">
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2">
         <div>
-          <legend className="text-sm font-semibold text-zinc-100">Doručovací adresa (Delivery address)</legend>
+          <legend className="text-sm font-semibold text-zinc-100">Doručovací adresa</legend>
           <p className="text-xs text-zinc-500">
-            Povinné pro expedici objednávky. Ukládá se jako neměnný doručovací snapshot.
+            Povinné pro expedici objednávky. Ukládá se jako neměnný záznam doručovací adresy.
           </p>
         </div>
         {isComplete && isConfirmedWithClient && (
@@ -210,7 +210,7 @@ export function DeliveryAddressFields({
         <div className="flex items-center justify-between">
           <label htmlFor={`${idPrefix}-search`} className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
             <Search className="h-3.5 w-3.5 text-zinc-400" />
-            <span>Rychlé hledání adresy / One-line adresa:</span>
+            <span>Rychlé hledání adresy / adresa na jednom řádku:</span>
           </label>
           {leadContext?.recipient_name && !value.recipient_name && (
             <button
@@ -273,7 +273,7 @@ export function DeliveryAddressFields({
       {/* Formulářová pole pro kontrolu a přesnou editaci */}
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-zinc-400" htmlFor={`${idPrefix}-recipient-name`}>
-          Jméno příjemce (Recipient name)
+          Jméno příjemce
           <input
             id={`${idPrefix}-recipient-name`}
             autoComplete="shipping name"
@@ -284,7 +284,7 @@ export function DeliveryAddressFields({
           />
         </label>
         <label className="text-xs text-zinc-400" htmlFor={`${idPrefix}-country`}>
-          Stát / Země (Country)
+          Země
           <input
             id={`${idPrefix}-country`}
             autoComplete="shipping country"
@@ -297,7 +297,7 @@ export function DeliveryAddressFields({
       </div>
 
       <label className="block text-xs text-zinc-400" htmlFor={`${idPrefix}-line1`}>
-        Ulice a číslo domu (Address line 1)
+        Ulice a číslo domu
         <input
           id={`${idPrefix}-line1`}
           autoComplete="shipping address-line1"
@@ -310,7 +310,7 @@ export function DeliveryAddressFields({
       </label>
 
       <label className="block text-xs text-zinc-400" htmlFor={`${idPrefix}-line2`}>
-        Doplňující údaje / Byt / Patro (Address line 2) <span className="text-zinc-600">(volitelné)</span>
+        Doplňující údaje / byt / patro <span className="text-zinc-600">(nepovinné)</span>
         <input
           id={`${idPrefix}-line2`}
           autoComplete="shipping address-line2"
@@ -323,7 +323,7 @@ export function DeliveryAddressFields({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-zinc-400" htmlFor={`${idPrefix}-postal-code`}>
-          PSČ (Postal code)
+          PSČ
           <input
             id={`${idPrefix}-postal-code`}
             autoComplete="shipping postal-code"
@@ -335,7 +335,7 @@ export function DeliveryAddressFields({
           />
         </label>
         <label className="text-xs text-zinc-400" htmlFor={`${idPrefix}-city`}>
-          Město (City)
+          Město
           <input
             id={`${idPrefix}-city`}
             autoComplete="shipping address-level2"

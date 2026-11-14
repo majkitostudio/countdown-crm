@@ -57,7 +57,7 @@ export default function LoginPage() {
             COUNTDOWN CRM
           </h1>
           <p className="text-xs text-zinc-400">
-            AI Copilot & Tele-sales Operator Workspace
+            AI asistent a pracovní prostor operátora telefonního prodeje
           </p>
         </div>
 
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <div className="space-y-5 p-6">
           <div className="space-y-1">
             <h2 className="text-sm font-semibold text-zinc-200">
-              Sign In to Your Workspace
+              Přihlášení do pracovního prostoru
             </h2>
             <p className="text-xs text-zinc-400">
               Pro přístup do pracovního prostředí zadejte svůj e-mail a heslo.
@@ -79,7 +79,7 @@ export default function LoginPage() {
             {/* Email Input */}
             <div className="space-y-1.5">
               <label htmlFor="login-email" className="text-xs font-medium text-zinc-300 block">
-                Work Email
+                Pracovní e-mail
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -101,7 +101,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <label htmlFor="login-password" className="text-xs font-medium text-zinc-300 block">
-                  Password
+                  Heslo
                 </label>
               </div>
               <div className="relative">
@@ -125,7 +125,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full"
             >
-              <span>{loading ? "Signing In..." : "Sign In to Workspace"}</span>
+              <span>{loading ? "Přihlašování..." : "Přihlásit se do pracovního prostoru"}</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
@@ -135,14 +135,14 @@ export default function LoginPage() {
               href="/auth/forgot-password"
               className="text-xs text-zinc-400 hover:text-zinc-200 underline underline-offset-4"
             >
-              Forgot password?
+              Zapomněli jste heslo?
             </Link>
           </div>
 
           <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-400">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
-              Supabase Auth RLS Protected
+              Ochrana RLS (Supabase Auth)
             </span>
             <span className="font-mono">v0.1.0</span>
           </div>

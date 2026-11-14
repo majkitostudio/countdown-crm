@@ -72,9 +72,9 @@ describe("TeamPageContent partial source states", () => {
     });
 
     expect(html).toContain("Ada Lovelace");
-    expect(html).toContain("Workspace operators are unavailable.");
-    expect(html).toMatch(/<select[^>]*disabled=""[^>]*aria-label="Reassign Ada Lovelace"/);
-    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Assign<\/button>/);
+    expect(html).toContain("Operátoři pracovního prostoru nejsou dostupní.");
+    expect(html).toMatch(/<select[^>]*disabled=""[^>]*aria-label="Změnit přiřazení: Ada Lovelace"/);
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Přiřadit<\/button>/);
   });
 
   it("keeps a scheduled call queue row visible when its contact details are outside the readable scope", () => {
@@ -106,9 +106,9 @@ describe("TeamPageContent partial source states", () => {
       departmentQueues: emptyDepartmentQueues,
     });
 
-    expect(html).toContain("Lead queue is unavailable.");
-    expect(html).not.toContain("0 queue items");
-    expect(html).not.toContain("Queue is empty. No assignment data was fabricated.");
+    expect(html).toContain("Fronta leadů není dostupná.");
+    expect(html).not.toContain("Položky fronty: 0");
+    expect(html).not.toContain("Fronta je prázdná. Žádná náhradní přiřazení nebyla vytvořena.");
   });
 
   it("keeps the administrator queue and member warning in their separate views", () => {
@@ -124,7 +124,7 @@ describe("TeamPageContent partial source states", () => {
     };
 
     expect(render(data, "administrator", "queue")).toContain("Ada Lovelace");
-    expect(render(data, "administrator", "operators")).toContain("Workspace members are unavailable.");
+    expect(render(data, "administrator", "operators")).toContain("Členové pracovního prostoru nejsou dostupní.");
   });
 
   it("renders the established empty state only for an available empty queue", () => {
@@ -139,7 +139,7 @@ describe("TeamPageContent partial source states", () => {
       departmentQueues: emptyDepartmentQueues,
     });
 
-    expect(html).toContain("Queue is empty. No assignment data was fabricated.");
+    expect(html).toContain("Fronta je prázdná. Žádná náhradní přiřazení nebyla vytvořena.");
   });
 
   it("does not include membership management for a Team Leader", () => {
@@ -154,9 +154,9 @@ describe("TeamPageContent partial source states", () => {
       departmentQueues: emptyDepartmentQueues,
     });
 
-    expect(html).not.toContain("Current workspace members");
-    expect(html).not.toContain("Správa rolí Operator, Team Leader a Administrator.");
-    expect(html).not.toContain("Administrator only");
+    expect(html).not.toContain("Současní členové pracovního prostoru");
+    expect(html).not.toContain("Správa rolí operátor, vedoucí týmu a administrátor.");
+    expect(html).not.toContain("Pouze administrátor");
   });
 
   it("shows the department queue overview and the leads waiting in it", () => {
@@ -180,8 +180,8 @@ describe("TeamPageContent partial source states", () => {
       departmentQueues: { status: "ready", data: overview },
     }, "team_leader", "queues");
 
-    expect(html).toContain("Queues");
-    expect(html).toContain("Department P1");
+    expect(html).toContain("Fronty");
+    expect(html).toContain("Oddělení P1");
     expect(html).toContain("P1K");
     expect(html).toContain("Ada Lovelace");
   });
@@ -215,7 +215,7 @@ describe("TeamPageContent partial source states", () => {
     }, "team_leader", "queues");
 
     expect(html).toContain("Důvod");
-    expect(html).toContain("Vrácený balíček – Re-ship");
+    expect(html).toContain("Vrácený balíček – opětovné odeslání");
   });
 
   it("shows who is on the line right now on the daily checkpoint", () => {
@@ -445,8 +445,8 @@ describe("TeamPageContent partial source states", () => {
       departmentQueues: emptyDepartmentQueues,
     }, "team_leader", "queues");
 
-    expect(html).toContain("Department P1");
-    expect(html).toContain("Department P4");
+    expect(html).toContain("Oddělení P1");
+    expect(html).toContain("Oddělení P4");
     expect(html).toContain("Ve frontě nic nečeká.");
   });
 });

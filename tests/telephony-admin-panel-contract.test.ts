@@ -33,9 +33,9 @@ describe("telephony admin diagnostics contract", () => {
   it("keeps the diagnostic surface local-only and secret-free", () => {
     const panel = readSource("src/components/telephony/TelephonyAdminPanel.tsx");
 
-    expect(panel).toContain("Public PSTN disabled");
-    expect(panel).toContain("Recording disabled");
-    expect(panel).toContain("Telnyx blocked");
+    expect(panel).toContain("Veřejná PSTN zakázána");
+    expect(panel).toContain("Nahrávání zakázáno");
+    expect(panel).toContain("Telnyx zablokován");
     expect(panel).not.toContain("password");
     expect(panel).not.toContain("token");
   });

@@ -135,7 +135,7 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.entries).toEqual([expect.objectContaining({ type: "scheduled_call" })]);
     expect(result.sources.reminders).toEqual({
       state: "unavailable",
-      message: "Calendar source could not be loaded.",
+      message: "Zdroj kalendáře se nepodařilo načíst.",
     });
   });
 

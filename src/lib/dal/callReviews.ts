@@ -91,7 +91,7 @@ export async function listCallReviewStatuses(
   callIds: string[],
 ): Promise<Map<string, CallReviewStatus>> {
   if (context.role !== "team_leader" && context.role !== "administrator") {
-    throw new DataAccessError("FORBIDDEN", "Call review statuses are available to managers only.");
+    throw new DataAccessError("FORBIDDEN", "Stavy kontrol hovorů jsou dostupné pouze vedoucím.");
   }
 
   const statuses = new Map<string, CallReviewStatus>(callIds.map((callId) => [callId, "not_reviewed"]));
@@ -106,7 +106,7 @@ export async function listCallReviewStatuses(
     .order("revision_number", { ascending: false });
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to load call review statuses.");
+    throw new DataAccessError("DATABASE", "Stavy kontrol hovorů se nepodařilo načíst.");
   }
 
   for (const row of (data || []) as Array<{ call_id: string; revision_number: number }>) {
@@ -200,7 +200,7 @@ async function getDirectCallReview(
   const { data, error } = await supabase.rpc("get_workspace_call_review_detail", {
     target_call_id: callId,
   } as never);
-  if (error) throw new DataAccessError("DATABASE", "Unable to load the call review detail.");
+  if (error) throw new DataAccessError("DATABASE", "Podrobnosti kontroly hovoru se nepodařilo načíst.");
   if (!data || typeof data !== "object") return null;
 
   const payload = data as DirectReviewPayload;
@@ -233,7 +233,7 @@ async function getDirectCallReview(
 export async function getCallReview(callId: string): Promise<CallReviewDTO> {
   const context = await requireWorkspaceRole(["operator", "team_leader", "administrator"]);
   if (typeof callId !== "string" || !callId.trim()) {
-    throw new DataAccessError("VALIDATION", "Call ID is required.");
+    throw new DataAccessError("VALIDATION", "Je nutné zadat ID hovoru.");
   }
 
   const supabase = await createDataClient();
@@ -245,11 +245,11 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
     .maybeSingle();
 
   if (callError) {
-    throw new DataAccessError("DATABASE", "Unable to load the call for review.");
+    throw new DataAccessError("DATABASE", "Hovor ke kontrole se nepodařilo načíst.");
   }
   if (!callData) {
     return getDirectCallReview(callId, supabase).then((review) => {
-      if (!review) throw new DataAccessError("NOT_FOUND", "Call was not found in this workspace.");
+      if (!review) throw new DataAccessError("NOT_FOUND", "Hovor nebyl v tomto pracovním prostoru nalezen.");
       return review;
     });
   }
@@ -297,7 +297,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
   ]);
 
   if (leadResult.error || sessionResult.error || revisionsResult.error) {
-    throw new DataAccessError("DATABASE", "Unable to load all call review evidence.");
+    throw new DataAccessError("DATABASE", "Všechny podklady ke kontrole hovoru se nepodařilo načíst.");
   }
 
   const revisionRows = (revisionsResult.data || []) as RevisionRow[];
@@ -313,7 +313,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
       .select("id, full_name")
       .in("id", profileIds);
     if (profileError) {
-      throw new DataAccessError("DATABASE", "Unable to load call review people.");
+      throw new DataAccessError("DATABASE", "Osoby spojené s kontrolou hovoru se nepodařilo načíst.");
     }
     profileNames = new Map(
       (profileData || []).map((profile) => [profile.id, profile.full_name] as const),
@@ -359,7 +359,7 @@ export async function getCallReview(callId: string): Promise<CallReviewDTO> {
 
 function validateReviewInput(input: RecordCallReviewInput) {
   if (!input || typeof input !== "object") {
-    throw new DataAccessError("VALIDATION", "Call review input is invalid.");
+    throw new DataAccessError("VALIDATION", "Údaje kontroly hovoru nejsou platné.");
   }
 
   const callId = typeof input.callId === "string" ? input.callId.trim() : "";
@@ -370,22 +370,22 @@ function validateReviewInput(input: RecordCallReviewInput) {
     : null;
 
   if (!callId) {
-    throw new DataAccessError("VALIDATION", "Call ID is required.");
+    throw new DataAccessError("VALIDATION", "Je nutné zadat ID hovoru.");
   }
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 0) {
-    throw new DataAccessError("VALIDATION", "Expected review revision is invalid.");
+    throw new DataAccessError("VALIDATION", "Očekávaná revize kontroly není platná.");
   }
   if (verdict.length < 1 || verdict.length > 200) {
-    throw new DataAccessError("VALIDATION", "Verdict must be between 1 and 200 characters.");
+    throw new DataAccessError("VALIDATION", "Verdikt musí mít 1 až 200 znaků.");
   }
   if (coachingNote.length < 3 || coachingNote.length > 4000) {
-    throw new DataAccessError("VALIDATION", "Coaching note must be between 3 and 4,000 characters.");
+    throw new DataAccessError("VALIDATION", "Poznámka ke koučinku musí mít 3 až 4 000 znaků.");
   }
   if (input.expectedRevision === 0 && correctionReason !== null) {
-    throw new DataAccessError("VALIDATION", "Initial review cannot contain a correction reason.");
+    throw new DataAccessError("VALIDATION", "První kontrola nesmí obsahovat důvod opravy.");
   }
   if (input.expectedRevision > 0 && (!correctionReason || correctionReason.length < 3 || correctionReason.length > 1000)) {
-    throw new DataAccessError("VALIDATION", "Correction reason must be between 3 and 1,000 characters.");
+    throw new DataAccessError("VALIDATION", "Důvod opravy musí mít 3 až 1 000 znaků.");
   }
 
   return {
@@ -417,7 +417,7 @@ export async function recordCallReview(
     if (error?.message?.includes("Review has changed; reload and try again")) {
       throw new DataAccessError("CONFLICT", "Review has changed; reload and try again.");
     }
-    throw new DataAccessError("DATABASE", "Unable to record the call review.");
+    throw new DataAccessError("DATABASE", "Kontrolu hovoru se nepodařilo zaznamenat.");
   }
 
   return mapRevision(data as RevisionRow, new Map());

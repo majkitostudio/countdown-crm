@@ -47,12 +47,12 @@ export interface WorkspaceNavigationSectionGroup {
 }
 
 export const NAVIGATION_SECTION_LABELS: Record<WorkspaceNavigationSection, string> = {
-  work: "Work",
-  team: "Team",
-  reporting: "Reporting",
-  learn: "Learn",
-  administration: "Administration",
-  account: "Account",
+  work: "Práce",
+  team: "Tým",
+  reporting: "Reporty",
+  learn: "Učení",
+  administration: "Administrace",
+  account: "Účet",
 };
 
 export const NAVIGATION_SECTION_ORDER: readonly WorkspaceNavigationSection[] = [
@@ -68,29 +68,29 @@ const MANAGER_ROLES: WorkspaceRole[] = ["team_leader", "administrator"];
 
 const NAVIGATION_ITEMS: readonly WorkspaceNavigationItem[] = [
   // Work
-  { label: "Operator Console", href: "/console", icon: PhoneCall, section: "work" },
-  { label: "Orders", href: "/orders", icon: ShoppingBag, section: "work" },
-  { label: "Schedule", href: "/schedule", icon: CalendarDays, section: "work" },
-  { label: "Wallet", href: "/wallet", icon: WalletCards, section: "work" },
+  { label: "Operátorská konzole", href: "/console", icon: PhoneCall, section: "work" },
+  { label: "Objednávky", href: "/orders", icon: ShoppingBag, section: "work" },
+  { label: "Plán hovorů", href: "/schedule", icon: CalendarDays, section: "work" },
+  { label: "Peněženka", href: "/wallet", icon: WalletCards, section: "work" },
 
   // Team
-  { label: "Team Workspace", href: "/team", icon: Users, section: "team", roles: MANAGER_ROLES },
-  { label: "Leads", href: "/leads", icon: Contact, section: "team", roles: MANAGER_ROLES },
+  { label: "Týmový prostor", href: "/team", icon: Users, section: "team", roles: MANAGER_ROLES },
+  { label: "Leady", href: "/leads", icon: Contact, section: "team", roles: MANAGER_ROLES },
 
   // Reporting
-  { label: "Reports", href: "/reports", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
-  { label: "Audit Log", href: "/audit", icon: History, section: "reporting", roles: MANAGER_ROLES },
-  { label: "Call Logs", href: "/call-logs", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Reporty", href: "/reports", icon: LayoutDashboard, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Auditní záznamy", href: "/audit", icon: History, section: "reporting", roles: MANAGER_ROLES },
+  { label: "Záznamy hovorů", href: "/call-logs", icon: ScrollText, section: "reporting", roles: MANAGER_ROLES },
 
   // Learn
-  { label: "AI Training", href: "/training", icon: GraduationCap, section: "learn" },
-  { label: "Product Catalog", href: "/products", icon: Package, section: "learn" },
+  { label: "AI trénink", href: "/training", icon: GraduationCap, section: "learn" },
+  { label: "Katalog produktů", href: "/products", icon: Package, section: "learn" },
 
   // Administration
-  { label: "Management", href: "/admin", icon: ShieldCheck, section: "administration", roles: ["administrator"] },
+  { label: "Správa", href: "/admin", icon: ShieldCheck, section: "administration", roles: ["administrator"] },
 
   // Account
-  { label: "Settings", href: "/settings", icon: Settings, section: "account" },
+  { label: "Nastavení", href: "/settings", icon: Settings, section: "account" },
 ];
 
 export function getAllowedWorkspaceNavigationItems(
@@ -113,14 +113,14 @@ export function getAllowedWorkspaceNavigationSections(
 
 export function getCommandPalettePlaceholder(role: WorkspaceRole | null | undefined): string {
   return role === "operator"
-    ? "Type a product or page..."
-    : "Type a command, lead name, product or page...";
+    ? "Zadejte produkt nebo stránku..."
+    : "Zadejte příkaz, jméno leadu, produkt nebo stránku...";
 }
 
 export function getHeaderSearchPlaceholder(
   role: WorkspaceRole | null | undefined,
   isLoading: boolean,
 ): string {
-  if (isLoading) return "Open pages and commands... (Ctrl + K)";
+  if (isLoading) return "Otevřít stránky a příkazy... (Ctrl + K)";
   return `${getCommandPalettePlaceholder(role).replace("...", "")}... (Ctrl + K)`;
 }

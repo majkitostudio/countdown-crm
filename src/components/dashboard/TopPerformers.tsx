@@ -31,7 +31,7 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
             ok: false,
             code: "UNAVAILABLE",
             status: 503,
-            message: error instanceof Error ? error.message : "Leaderboard query failed",
+            message: error instanceof Error ? error.message : "Žebříček se nepodařilo načíst.",
           });
         }
       } finally {
@@ -54,30 +54,30 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
         <div className="flex items-center gap-2">
           <Trophy className="w-4 h-4 text-zinc-400" />
           <h3 className="text-sm font-semibold text-zinc-100">
-            Top Performing Operators
+            Nejúspěšnější operátoři
           </h3>
         </div>
         <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
-          {scope === "team" ? "Team ranking" : "Workspace ranking"}
+          {scope === "team" ? "Pořadí v týmu" : "Pořadí v pracovním prostoru"}
         </span>
       </div>
 
       {isLoading ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
-          Loading {scope === "team" ? "team" : "workspace"} leaderboard...
+          Načítám žebříček {scope === "team" ? "týmu" : "pracovního prostoru"}…
         </div>
       ) : result && !result.ok ? (
         <StatusAlert tone={feedbackTone}>
           <p className="text-xs font-medium">
-            {result.code === "FORBIDDEN" ? "Leaderboard access is restricted" : "Leaderboard unavailable"}
+            {result.code === "FORBIDDEN" ? "Přístup k žebříčku je omezen" : "Žebříček není dostupný"}
           </p>
           <p className="mt-1 text-[11px] leading-relaxed">{result.message}</p>
         </StatusAlert>
       ) : leaderboard.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-zinc-200">No attributed activity yet</p>
+          <p className="text-xs font-medium text-zinc-200">Zatím žádná přiřazená aktivita</p>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            The leaderboard appears after {scope === "team" ? "team" : "workspace"} calls or completed orders have an operator attribution.
+            Žebříček se zobrazí, až budou hovory nebo dokončené objednávky {scope === "team" ? "týmu" : "pracovního prostoru"} přiřazené operátorům.
           </p>
         </div>
       ) : (
@@ -97,7 +97,7 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
                 <div className="flex flex-col min-w-0">
                   <span className="text-xs font-medium text-zinc-200 truncate">{agent.agentName}</span>
                   <span className="text-[10px] text-zinc-400 font-mono truncate">
-                    {agent.role} • {agent.callsCount} calls • {agent.conversionRate.toFixed(1)}% conv.
+                    {agent.role} • Hovory: {agent.callsCount} • Konverze {agent.conversionRate.toFixed(1)} %
                   </span>
                 </div>
               </div>
@@ -107,7 +107,7 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
                   {formatCurrencyAmounts(agent.revenueByCurrency)}
                 </span>
                 <span className="block text-[10px] text-zinc-500 font-mono">
-                  {agent.ordersCount} orders
+                  Objednávky: {agent.ordersCount}
                 </span>
               </div>
             </div>

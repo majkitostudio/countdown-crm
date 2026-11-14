@@ -22,8 +22,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Countdown CRM — Call Center Workspace",
-  description: "Workspace-scoped CRM and operator console for a high-velocity sales pilot",
+  title: "Countdown CRM — Pracovní prostor call centra",
+  description: "CRM a operátorská konzole v rámci pracovního prostoru pro prodejní pilot",
 };
 
 export default async function RootLayout({

@@ -27,34 +27,34 @@ export interface TriggerDefinition {
 export const TRIGGER_REGISTRY: TriggerDefinition[] = [
   {
     type: "on_call_ended",
-    label: "Call Ended",
-    description: "Fires when an operator finishes a call in the Operator Console",
+    label: "Hovor ukončen",
+    description: "Spustí se po ukončení hovoru v konzoli operátora",
     icon: "PhoneOff",
     serverDispatch: "supported",
   },
   {
     type: "on_lead_status_changed",
-    label: "Lead Status Changed",
-    description: "Fires when a lead moves to a different pipeline stage",
+    label: "Stav leadu změněn",
+    description: "Spustí se při změně stavu leadu",
     icon: "ArrowRightLeft",
     serverDispatch: "unavailable",
-    unavailableReason: "No server event source is wired for lead status mutations yet.",
+    unavailableReason: "Změny stavu leadu zatím nejsou napojené na serverové události.",
   },
   {
     type: "on_order_placed",
-    label: "Order Placed",
-    description: "Fires when a new order is successfully created",
+    label: "Objednávka vytvořena",
+    description: "Spustí se po vytvoření nové objednávky",
     icon: "ShoppingCart",
     serverDispatch: "unavailable",
-    unavailableReason: "No server event source is wired for order creation yet.",
+    unavailableReason: "Vytváření objednávek zatím není napojené na serverové události.",
   },
   {
     type: "on_lead_created",
-    label: "Lead Created",
-    description: "Fires when a new lead is imported or manually created",
+    label: "Lead vytvořen",
+    description: "Spustí se po importu nebo ručním vytvoření leadu",
     icon: "UserPlus",
     serverDispatch: "unavailable",
-    unavailableReason: "No server event source is wired for lead creation yet.",
+    unavailableReason: "Vytváření leadů zatím není napojené na serverové události.",
   },
 ];
 
@@ -98,60 +98,60 @@ export interface ActionConfigField {
 export const ACTION_REGISTRY: ActionDefinition[] = [
   {
     type: "compute_ai_summary",
-    label: "Generate AI Summary",
-    description: "Unavailable until a verified AI provider is configured; never claims a generated summary",
+    label: "Vytvořit AI shrnutí",
+    description: "Nedostupné bez ověřeného poskytovatele AI; nevydává neexistující shrnutí za vytvořené",
     icon: "Sparkles",
     availability: "coming_soon",
   },
   {
     type: "send_email_followup",
-    label: "Send Follow-up Email",
-    description: "Unavailable until a verified email provider is configured; never claims delivery",
+    label: "Odeslat navazující e-mail",
+    description: "Nedostupné bez ověřeného poskytovatele e-mailu; nepředstírá doručení",
     icon: "Mail",
     availability: "coming_soon",
     configFields: [
-      { key: "template", label: "Email Template", type: "select", options: [
-        { label: "Thank You (Post-Order)", value: "thank_you" },
-        { label: "Follow-Up (After Call)", value: "followup_call" },
-        { label: "Re-Engagement (Cold Lead)", value: "re_engagement" },
+      { key: "template", label: "Šablona e-mailu", type: "select", options: [
+        { label: "Poděkování po objednávce", value: "thank_you" },
+        { label: "Navázání na hovor", value: "followup_call" },
+        { label: "Obnovení kontaktu", value: "re_engagement" },
       ]},
     ],
   },
   {
     type: "update_lead_status",
-    label: "Update Lead Status",
-    description: "Unavailable in the workflow server runtime until a safe mutation provider is enabled",
+    label: "Změnit stav leadu",
+    description: "Nedostupné bez bezpečného serverového zpracování změn",
     icon: "RefreshCw",
     availability: "coming_soon",
     configFields: [
-      { key: "target_status", label: "Target Status", type: "select", options: [
-        { label: "Contacted", value: "contacted" },
-        { label: "Qualified", value: "qualified" },
-        { label: "Customer", value: "customer" },
-        { label: "Unresponsive", value: "unresponsive" },
+      { key: "target_status", label: "Cílový stav", type: "select", options: [
+        { label: "Kontaktován", value: "contacted" },
+        { label: "Kvalifikován", value: "qualified" },
+        { label: "Zákazník", value: "customer" },
+        { label: "Nereaguje", value: "unresponsive" },
       ]},
     ],
   },
   {
     type: "notify_manager",
-    label: "Notify Team Leader",
-    description: "Unavailable until a verified manager-notification provider is configured",
+    label: "Upozornit vedoucího týmu",
+    description: "Nedostupné bez ověřeného poskytovatele upozornění pro vedoucí",
     icon: "Bell",
     availability: "coming_soon",
     configFields: [
-      { key: "message", label: "Notification Message", type: "text", placeholder: "E.g. High-value order placed by {{lead_name}}" },
+      { key: "message", label: "Text upozornění", type: "text", placeholder: "Např. {{lead_name}} vytvořil objednávku s vysokou hodnotou" },
     ],
   },
   {
     type: "send_webhook",
     label: "HTTP Webhook (Zapier/Make)",
-    description: "Sends real-time event payload to an external Webhook URL (Zapier, Make, n8n, Slack)",
+    description: "Odešle data události v reálném čase na externí webhook (Zapier, Make, n8n, Slack)",
     icon: "Globe",
     availability: "available",
     configFields: [
-      { key: "webhook_url", label: "Webhook Endpoint URL", type: "text", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
-      { key: "method", label: "HTTP Method", type: "select", options: [
-        { label: "POST (JSON Payload)", value: "POST" },
+      { key: "webhook_url", label: "URL webhooku", type: "text", placeholder: "https://hooks.zapier.com/hooks/catch/..." },
+      { key: "method", label: "Metoda HTTP", type: "select", options: [
+        { label: "POST (data JSON)", value: "POST" },
         { label: "GET", value: "GET" },
       ]},
     ],

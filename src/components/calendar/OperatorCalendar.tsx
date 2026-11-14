@@ -109,12 +109,12 @@ function isReminderDue(entry: CalendarEntryDTO): boolean {
 
 function entryStatus(entry: CalendarEntryDTO): { label: string; tone: SemanticTone } {
   if (entry.status === "completed") {
-    return { label: "Completed", tone: "success" };
+    return { label: "Dokončeno", tone: "success" };
   }
   if (isDue(entry)) {
-    return { label: entry.type === "scheduled_call" ? "Due" : "Overdue", tone: "danger" };
+    return { label: entry.type === "scheduled_call" ? "Splatné" : "Po termínu", tone: "danger" };
   }
-  return { label: entry.type === "scheduled_call" ? "Scheduled" : "Open", tone: "neutral" };
+  return { label: entry.type === "scheduled_call" ? "Naplánováno" : "Otevřeno", tone: "neutral" };
 }
 
 function toIso(localValue: string, label: string): string {
@@ -126,8 +126,8 @@ function toIso(localValue: string, label: string): string {
 }
 
 const SOURCE_LABELS = {
-  scheduledCalls: "Schedules",
-  reminders: "Reminders",
+scheduledCalls: "Naplánované hovory",
+  reminders: "Připomínky",
 } satisfies Record<keyof CalendarLoadResult["sources"], string>;
 
 type CalendarSourceKey = keyof CalendarLoadResult["sources"];
@@ -150,7 +150,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
     try {
       setCalendar(await listCalendarEntriesAction());
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Agenda could not be refreshed.");
+      setErrorMessage(error instanceof Error ? error.message : "Agenda se nepodařila obnovit.");
     } finally {
       setIsLoading(false);
     }
@@ -205,8 +205,8 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
       const input = {
         title: form.title,
         note: form.note || null,
-        due_at: toIso(form.dueAt, "Due time"),
-        remind_at: toIso(form.remindAt, "Reminder time"),
+        due_at: toIso(form.dueAt, "Termín"),
+        remind_at: toIso(form.remindAt, "Čas upozornění"),
       };
       if (editingId) await updateReminderAction(editingId, input);
       else await createReminderAction(input);
@@ -254,7 +254,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
         <StatusAlert tone="warning" role="status">
           {unavailableSources.map(({ sourceKey, source }) => (
             <p key={sourceKey}>
-              {SOURCE_LABELS[sourceKey]} unavailable: {source.message}
+              {SOURCE_LABELS[sourceKey]} nedostupné: {source.message}
             </p>
           ))}
         </StatusAlert>
@@ -331,7 +331,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
 
         <div className="flex items-center gap-2">
           <Button type="button" variant="secondary" onClick={() => void refresh()} disabled={isLoading}>
-            <RefreshCw className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} /> Refresh
+            <RefreshCw className={isLoading ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} /> Obnovit
           </Button>
           <Button type="button" onClick={openCreate}>
             <Plus className="h-3.5 w-3.5" /> Nová připomínka
@@ -444,7 +444,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                                   href={`/console?leadId=${entry.lead.id}`}
                                   className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-950 transition-colors duration-150 ease-interface hover:bg-white"
                                 >
-                                  <PhoneCall className="h-3.5 w-3.5" /> Call now
+                                  <PhoneCall className="h-3.5 w-3.5" /> Zavolat nyní
                                 </Link>
                                 <Link
                                   href={`/leads/${entry.lead.id}`}
@@ -525,7 +525,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
                 Osobní pracovní úkol operátora.
               </p>
             </div>
-            <Button type="button" variant="quiet" onClick={() => setIsEditorOpen(false)} aria-label="Close">
+            <Button type="button" variant="quiet" onClick={() => setIsEditorOpen(false)} aria-label="Zavřít">
               <X className="h-4 w-4" />
             </Button>
           </div>

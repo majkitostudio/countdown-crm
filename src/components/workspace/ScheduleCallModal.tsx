@@ -61,15 +61,15 @@ export function ScheduleCallModal({
           <div className="flex items-start gap-3">
             <div className="rounded-lg bg-zinc-900 p-2 text-zinc-300"><CalendarClock className="h-4 w-4" /></div>
             <div>
-              <h2 id="schedule-dialog-title" className="text-base font-semibold text-zinc-100">Schedule Call</h2>
-              <p className="mt-1 text-xs text-zinc-500">{leadName || "Current lead"}</p>
+              <h2 id="schedule-dialog-title" className="text-base font-semibold text-zinc-100">Naplánovat hovor</h2>
+              <p className="mt-1 text-xs text-zinc-500">{leadName || "Aktuální lead"}</p>
             </div>
           </div>
-          <Button type="button" variant="quiet" onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></Button>
+          <Button type="button" variant="quiet" onClick={onClose} aria-label="Zavřít"><X className="h-4 w-4" /></Button>
         </div>
 
         <FieldLabel htmlFor="scheduled-call-at">
-          <span className="text-xs font-medium text-zinc-300">Scheduled date and time</span>
+          <span className="text-xs font-medium text-zinc-300">Datum a čas naplánovaného hovoru</span>
           <TextField id="scheduled-call-at" ref={dateInputRef} type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} min={toLocalInputValue(new Date())} required />
           <span className="block text-[11px] text-zinc-600">Časová zóna browseru: {Intl.DateTimeFormat().resolvedOptions().timeZone}</span>
         </FieldLabel>
@@ -77,8 +77,8 @@ export function ScheduleCallModal({
         {(validationError || errorMessage) && <StatusAlert ref={errorRef} tone="danger" tabIndex={-1}>{validationError || errorMessage}</StatusAlert>}
 
         <div className="flex justify-end gap-2 border-t border-zinc-800 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Scheduling…" : "Schedule"}</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>Zrušit</Button>
+          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Plánování…" : "Naplánovat hovor"}</Button>
         </div>
       </form>
     </Dialog>

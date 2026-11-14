@@ -55,25 +55,25 @@ export async function createOrderForWorkspace(
   workspaceId?: string
 ): Promise<OrderDTO> {
   if (!Array.isArray(input.items) || !input.items.length || input.items.length > 50) {
-    throw new DataAccessError("VALIDATION", "Order must contain between 1 and 50 items");
+    throw new DataAccessError("VALIDATION", "Objednávka musí obsahovat 1 až 50 položek.");
   }
   if (new Set(input.items.map((item) => item.product_id)).size !== input.items.length) {
-    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+    throw new DataAccessError("VALIDATION", "Každý produkt může být v objednávce pouze jednou.");
   }
   for (const item of input.items) {
     if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
-      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+      throw new DataAccessError("VALIDATION", "Množství položky objednávky musí být od 1 do 1 000.");
     }
     if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1000000000) {
-      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+      throw new DataAccessError("VALIDATION", "Jednotková cena položky objednávky musí být od 0 do 1 000 000 000.");
     }
   }
   if (input.source_note && input.source_note.trim().length > 1000) {
-    throw new DataAccessError("VALIDATION", "Order source note is too long");
+    throw new DataAccessError("VALIDATION", "Poznámka ke zdroji objednávky může mít nejvýše 1 000 znaků.");
   }
   const deliveryAddress = parseDeliveryAddressSnapshot(input.delivery_address_snapshot);
   if (!deliveryAddress) {
-    throw new DataAccessError("VALIDATION", "A complete delivery address is required.");
+    throw new DataAccessError("VALIDATION", "Vyplňte úplnou doručovací adresu.");
   }
 
   const context = await requireWorkspaceContext(workspaceId);
@@ -81,7 +81,7 @@ export async function createOrderForWorkspace(
 
   if (context.role === "operator") {
     await getScopedLeadForWorkspace(input.lead_id, context.workspaceId).catch(() => {
-      throw new DataAccessError("VALIDATION", "Order lead is not available in the active workspace");
+      throw new DataAccessError("VALIDATION", "Lead objednávky není v aktivním pracovním prostoru dostupný.");
     });
   }
 
@@ -101,7 +101,7 @@ export async function createOrderForWorkspace(
 
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) {
-    throw new DataAccessError("DATABASE", "Order creation failed");
+    throw new DataAccessError("DATABASE", "Objednávku se nepodařilo vytvořit. Zkuste to znovu.");
   }
 
   return row as OrderDTO;
@@ -111,13 +111,13 @@ export async function updateOrderStatusForWorkspace(
   input: UpdateOrderStatusInput,
 ): Promise<OrderDTO> {
   if (!input.orderId.trim()) {
-    throw new DataAccessError("VALIDATION", "Order id is required");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID objednávky.");
   }
   if (!input.status) {
-    throw new DataAccessError("VALIDATION", "Order status is required");
+    throw new DataAccessError("VALIDATION", "Vyberte stav objednávky.");
   }
   if (input.note && input.note.trim().length > 500) {
-    throw new DataAccessError("VALIDATION", "Order status note is too long");
+    throw new DataAccessError("VALIDATION", "Poznámka ke stavu objednávky může mít nejvýše 500 znaků.");
   }
 
   const context = await requireWorkspaceContext();
@@ -130,7 +130,7 @@ export async function updateOrderStatusForWorkspace(
 
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) {
-    const message = error?.message || "Order status update failed";
+    const message = error?.message || "Stav objednávky se nepodařilo uložit. Zkuste to znovu.";
     if (
       message.includes("not available") ||
       message.includes("Only workspace managers") ||
@@ -144,7 +144,7 @@ export async function updateOrderStatusForWorkspace(
   }
 
   if ((row as OrderRow).workspace_id !== context.workspaceId) {
-    throw new DataAccessError("FORBIDDEN", "Order is not available in the active workspace");
+    throw new DataAccessError("FORBIDDEN", "Objednávka není v aktivním pracovním prostoru dostupná.");
   }
 
   return row as OrderDTO;
@@ -166,13 +166,13 @@ export async function bulkUpdateOrderStatusForWorkspace(
   input: BulkUpdateOrderStatusInput,
 ): Promise<BulkUpdateOrderStatusResult> {
   if (!Array.isArray(input.orderIds) || input.orderIds.length === 0) {
-    throw new DataAccessError("VALIDATION", "At least one order must be selected");
+    throw new DataAccessError("VALIDATION", "Vyberte alespoň jednu objednávku.");
   }
   if (input.orderIds.length > 100) {
-    throw new DataAccessError("VALIDATION", "Cannot update more than 100 orders at once");
+    throw new DataAccessError("VALIDATION", "Najednou lze aktualizovat nejvýše 100 objednávek.");
   }
   if (!input.status) {
-    throw new DataAccessError("VALIDATION", "Order status is required");
+    throw new DataAccessError("VALIDATION", "Vyberte stav objednávky.");
   }
 
   await requireWorkspaceRole(["team_leader", "administrator"]);
@@ -191,7 +191,7 @@ export async function bulkUpdateOrderStatusForWorkspace(
       successCount++;
     } catch (err) {
       failureCount++;
-      const message = err instanceof Error ? err.message : `Failed to update order ${orderId}`;
+      const message = err instanceof Error ? err.message : `Objednávku ${orderId} se nepodařilo aktualizovat.`;
       errors.push(`${orderId}: ${message}`);
     }
   }
@@ -200,50 +200,50 @@ export async function bulkUpdateOrderStatusForWorkspace(
 }
 
 function orderDetailsError(error: { message?: string } | null): DataAccessError {
-  const message = error?.message || "Order details update failed";
+  const message = error?.message || "Údaje objednávky se nepodařilo uložit.";
   if (message.includes("changed since it was opened")) {
-    return new DataAccessError("VALIDATION", "The order changed since it was opened. Reload and try again.");
+    return new DataAccessError("VALIDATION", "Objednávka se od otevření změnila. Načtěte ji znovu a opakujte akci.");
   }
   if (message.includes("can no longer be edited") || message.includes("administrator and a reason")) {
-    return new DataAccessError("FORBIDDEN", "This order is read-only for your current role and status.");
+    return new DataAccessError("FORBIDDEN", "Pro vaši aktuální roli a stav je tato objednávka pouze pro čtení.");
   }
   if (message.includes("reason") || message.includes("item") || message.includes("source") || message.includes("currency")) {
     return new DataAccessError("VALIDATION", message);
   }
-  return new DataAccessError("DATABASE", "Order details update failed");
+  return new DataAccessError("DATABASE", "Údaje objednávky se nepodařilo uložit. Zkuste to znovu.");
 }
 
 export async function updateOrderDetailsForWorkspace(
   input: UpdateOrderDetailsInput,
 ): Promise<OrderDTO> {
   if (!input.orderId.trim()) {
-    throw new DataAccessError("VALIDATION", "Order id is required");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID objednávky.");
   }
   if (!Number.isInteger(input.expectedRevision) || input.expectedRevision < 1) {
-    throw new DataAccessError("VALIDATION", "Order revision is required");
+    throw new DataAccessError("VALIDATION", "Je vyžadována verze objednávky.");
   }
   if (!Array.isArray(input.items) || input.items.length < 1 || input.items.length > 50) {
-    throw new DataAccessError("VALIDATION", "Order must contain between 1 and 50 items");
+    throw new DataAccessError("VALIDATION", "Objednávka musí obsahovat 1 až 50 položek.");
   }
   if (new Set(input.items.map((item) => item.product_id)).size !== input.items.length) {
-    throw new DataAccessError("VALIDATION", "Each product may appear only once in an order");
+    throw new DataAccessError("VALIDATION", "Každý produkt může být v objednávce pouze jednou.");
   }
   for (const item of input.items) {
     if (!item.product_id.trim() || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 1000) {
-      throw new DataAccessError("VALIDATION", "Order item quantity must be between 1 and 1000");
+      throw new DataAccessError("VALIDATION", "Množství položky objednávky musí být od 1 do 1 000.");
     }
     if (!Number.isFinite(item.unit_price) || item.unit_price < 0 || item.unit_price > 1_000_000_000) {
-      throw new DataAccessError("VALIDATION", "Order item unit price must be between 0 and 1000000000");
+      throw new DataAccessError("VALIDATION", "Jednotková cena položky objednávky musí být od 0 do 1 000 000 000.");
     }
   }
   if (!input.order_source) {
-    throw new DataAccessError("VALIDATION", "Order source is required");
+    throw new DataAccessError("VALIDATION", "Vyberte zdroj objednávky.");
   }
   if (input.source_note && input.source_note.trim().length > 1000) {
-    throw new DataAccessError("VALIDATION", "Order source note is too long");
+    throw new DataAccessError("VALIDATION", "Poznámka ke zdroji objednávky může mít nejvýše 1 000 znaků.");
   }
   if (input.reason && input.reason.trim().length > 500) {
-    throw new DataAccessError("VALIDATION", "Order edit reason is too long");
+    throw new DataAccessError("VALIDATION", "Důvod úpravy objednávky může mít nejvýše 500 znaků.");
   }
 
   const context = await requireWorkspaceContext();
@@ -266,7 +266,7 @@ export async function updateOrderDetailsForWorkspace(
     throw orderDetailsError(error);
   }
   if ((row as OrderRow).workspace_id !== context.workspaceId) {
-    throw new DataAccessError("FORBIDDEN", "Order is not available in the active workspace");
+    throw new DataAccessError("FORBIDDEN", "Objednávka není v aktivním pracovním prostoru dostupná.");
   }
 
   return row as OrderDTO;
@@ -289,7 +289,7 @@ export async function listOrderProductCountsForWorkspace(
     .eq("workspace_id", workspaceId);
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to load order product counts.");
+    throw new DataAccessError("DATABASE", "Počty objednávek produktů se nepodařilo načíst.");
   }
 
   return (data || []).reduce<Record<string, number>>((counts, order) => {
@@ -308,7 +308,7 @@ export async function reassignOrdersProductForWorkspace(
   const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
 
   if (!sourceProductId.trim() || !targetProductId.trim() || sourceProductId === targetProductId) {
-    throw new DataAccessError("VALIDATION", "Source and target products must be different.");
+    throw new DataAccessError("VALIDATION", "Vyberte odlišný zdrojový a cílový produkt.");
   }
 
   const supabase = await createDataClient();
@@ -325,13 +325,13 @@ export async function reassignOrdersProductForWorkspace(
   } | null;
   if (error) {
     if (error.message?.includes("must belong to the active workspace")) {
-      throw new DataAccessError("VALIDATION", "Both products must belong to the active workspace.");
+      throw new DataAccessError("VALIDATION", "Oba produkty musí patřit do aktivního pracovního prostoru.");
     }
-    throw new DataAccessError("DATABASE", "Unable to reassign the selected orders.");
+    throw new DataAccessError("DATABASE", "Vybrané objednávky se nepodařilo přeřadit. Zkuste to znovu.");
   }
 
   if (!row) {
-    throw new DataAccessError("DATABASE", "Unable to reassign the selected orders.");
+    throw new DataAccessError("DATABASE", "Vybrané objednávky se nepodařilo přeřadit. Zkuste to znovu.");
   }
 
   return {
@@ -352,13 +352,13 @@ export async function updateOrderTrackingForWorkspace(
   requestedWorkspaceId?: string
 ): Promise<{ id: string; status: string; tracking_number: string | null; carrier: string | null; revision: number }> {
   if (!input.orderId.trim()) {
-    throw new DataAccessError("VALIDATION", "Order id is required");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID objednávky.");
   }
   if (input.trackingNumber && input.trackingNumber.trim().length > 100) {
-    throw new DataAccessError("VALIDATION", "Tracking number is too long");
+    throw new DataAccessError("VALIDATION", "Číslo zásilky může mít nejvýše 100 znaků.");
   }
   if (input.carrier && input.carrier.trim().length > 50) {
-    throw new DataAccessError("VALIDATION", "Carrier identifier is too long");
+    throw new DataAccessError("VALIDATION", "Identifikátor dopravce může mít nejvýše 50 znaků.");
   }
 
   await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
@@ -371,7 +371,7 @@ export async function updateOrderTrackingForWorkspace(
 
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) {
-    const message = error?.message || "Order tracking update failed";
+    const message = error?.message || "Sledování objednávky se nepodařilo aktualizovat. Zkuste to znovu.";
     if (
       message.includes("Only workspace managers") ||
       message.includes("Access forbidden") ||
@@ -411,10 +411,10 @@ export async function recordOrderTrackingEventForWorkspace(
   revision: number;
 }> {
   if (!input.orderId?.trim()) {
-    throw new DataAccessError("VALIDATION", "Order id is required");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID objednávky.");
   }
   if (!input.title?.trim()) {
-    throw new DataAccessError("VALIDATION", "Tracking event title is required");
+    throw new DataAccessError("VALIDATION", "Vyplňte název události zásilky.");
   }
 
   await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
@@ -430,7 +430,7 @@ export async function recordOrderTrackingEventForWorkspace(
 
   const row = Array.isArray(data) ? data[0] : data;
   if (error || !row) {
-    const message = error?.message || "Recording tracking event failed";
+    const message = error?.message || "Událost zásilky se nepodařilo uložit. Zkuste to znovu.";
     if (
       message.includes("Access forbidden") ||
       message.includes("Order not found") ||

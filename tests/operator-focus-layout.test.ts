@@ -38,9 +38,9 @@ describe("operator client-profile and script focus layout", () => {
     expect(header).toContain('target="_blank"');
     expect(header).toContain('rel="noopener noreferrer"');
     expect(header).toContain("/leads/${encodeURIComponent(activeLead.id)}");
-    expect(header).toContain('aria-label="Open read-only profile"');
-    expect(header).not.toContain(">Open read-only profile<");
-    expect(header).not.toContain("Source: not recorded");
+    expect(header).toContain('aria-label="Otevřít profil pouze pro čtení"');
+    expect(header).not.toContain(">Otevřít profil pouze pro čtení<");
+    expect(header).not.toContain("Zdroj: nezaznamenán");
   });
 
   it("keeps the client profile read-only while exposing shared note append", () => {
@@ -48,7 +48,7 @@ describe("operator client-profile and script focus layout", () => {
 
     expect(profile).toContain("listLeadNotesForWorkspace");
     expect(profile).toContain("LeadNotesSection");
-    expect(profile).toContain("Read-only contact view");
+    expect(profile).toContain("Kontakt pouze pro čtení");
     expect(profile).not.toContain("CreateLeadModal");
 
     const notesSection = readFileSync(
@@ -85,11 +85,11 @@ describe("operator client-profile and script focus layout", () => {
       }),
     );
 
-    expect(markup).toContain('aria-label="Expand script"');
-    expect(markup).not.toContain("Download script");
-    expect(markup).toContain("Product Script");
+    expect(markup).toContain('aria-label="Rozbalit skript"');
+    expect(markup).not.toContain("Stáhnout skript");
+    expect(markup).toContain("Produktový skript");
     expect(readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductScriptPanel.tsx"), "utf8")).not.toContain("buildScriptDownloadHtml");
-    expect(readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductScriptPanel.tsx"), "utf8")).toContain("Discovery questions");
+    expect(readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductScriptPanel.tsx"), "utf8")).toContain("Zjišťovací otázky");
   });
 
   it("renders the shared note history section used by the read-only profile", () => {
@@ -97,9 +97,9 @@ describe("operator client-profile and script focus layout", () => {
       React.createElement(LeadNotesSection, { leadId: "lead-1", initialNotes: [] }),
     );
 
-    expect(markup).toContain("Notes for this customer");
-    expect(markup).toContain("Save Note");
-    expect(markup).toContain("No notes for this lead yet.");
+    expect(markup).toContain("Poznámky k zákazníkovi");
+    expect(markup).toContain("Uložit poznámku");
+    expect(markup).toContain("K tomuto leadu zatím nejsou žádné poznámky.");
   });
 
   it("renders quick objections in standard view and switches to drawer trigger in extended view", () => {
@@ -116,7 +116,7 @@ describe("operator client-profile and script focus layout", () => {
     expect(standardMarkup).toContain('data-testid="script-quick-objections"');
     expect(standardMarkup).toContain("Drahé / Cena");
     expect(standardMarkup).toContain("Nevěřím účinku");
-    expect(standardMarkup).not.toContain('aria-label="Open objection catalog"');
+    expect(standardMarkup).not.toContain('aria-label="Otevřít katalog námitek"');
 
     const extendedMarkup = renderToStaticMarkup(
       React.createElement(ProductScriptPanel, {
@@ -129,7 +129,7 @@ describe("operator client-profile and script focus layout", () => {
     );
 
     expect(extendedMarkup).not.toContain('data-testid="script-quick-objections"');
-    expect(extendedMarkup).toContain('aria-label="Open objection catalog"');
+    expect(extendedMarkup).toContain('aria-label="Otevřít katalog námitek"');
     expect(extendedMarkup).toContain("Katalog námitek");
   });
 });

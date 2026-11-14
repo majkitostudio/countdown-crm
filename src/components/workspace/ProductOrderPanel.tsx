@@ -171,7 +171,7 @@ export function ProductOrderPanel({
   const handlePlaceOrder = async () => {
     if (!selectedProduct || !activeLead || isSubmitting) return;
     if (!deliveryAddressSnapshot) {
-      setOrderError("Enter a complete delivery address before placing the order.");
+      setOrderError("Před vytvořením objednávky zadejte úplnou doručovací adresu.");
       return;
     }
 
@@ -195,13 +195,13 @@ export function ProductOrderPanel({
         deliveryAddressSnapshot,
       });
       if (!result) {
-        setOrderError("Order was not created. Check the error above and try again.");
+        setOrderError("Objednávka nebyla vytvořena. Zkontrolujte chybu výše a zkuste to znovu.");
         return;
       }
 
       setLastOrderId(result.orderId);
       if (!result.callCompleted) {
-        setOrderError(`Order #${result.orderId} was created, but call completion failed. The order was not reported as fully completed.`);
+        setOrderError(`Objednávka #${result.orderId} byla vytvořena, ale dokončení hovoru selhalo. Objednávka nebyla označena jako plně dokončená.`);
         return;
       }
 
@@ -230,20 +230,20 @@ export function ProductOrderPanel({
           </div>
           <div>
             <h2 id="order-dialog-title" className="text-sm font-semibold text-zinc-100">
-              {orderMode === "manual" ? "Create Order" : "Sales Checkout & Negotiation"}
+              {orderMode === "manual" ? "Vytvořit objednávku" : "Dokončení prodeje a vyjednávání"}
             </h2>
             <p className="text-[11px] text-zinc-400">
               {orderMode === "manual"
-                ? "Record an order without creating a new call"
-                : "Order creation after call outcome selection"}
+                ? "Zaznamenejte objednávku bez vytvoření nového hovoru"
+                : "Vytvoření objednávky po výběru výsledku hovoru"}
             </p>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close order flow"
-          title="Close order flow"
+          aria-label="Zavřít vytvoření objednávky"
+          title="Zavřít vytvoření objednávky"
           className="p-2 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors duration-150 ease-interface"
         >
           <X className="w-4 h-4" />
@@ -256,8 +256,8 @@ export function ProductOrderPanel({
 
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
-            <p className="font-bold">Order #{lastOrderId} successfully placed!</p>
-            <p className="text-[11px] text-emerald-200/80">{formatCurrencyAmount(grandTotal, selectedProduct?.currency || "USD")} recorded for {activeLead?.full_name}.</p>
+            <p className="font-bold">Objednávka #{lastOrderId} byla vytvořena.</p>
+            <p className="text-[11px] text-emerald-200/80">Pro zákazníka {activeLead?.full_name} bylo zaznamenáno {formatCurrencyAmount(grandTotal, selectedProduct?.currency || "USD")}.</p>
           </div>
         </div>
       )}
@@ -284,7 +284,7 @@ export function ProductOrderPanel({
       {/* Primary Product Selector */}
       <div className="space-y-2">
         <label className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-          Primary Product Selection
+          Výběr hlavního produktu
         </label>
 
         <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
@@ -528,7 +528,7 @@ export function ProductOrderPanel({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Doplňkový produkt (Cross-Sell)</span>
+              <span>Doplňkový produkt</span>
             </div>
             <span className="px-2 py-0.5 bg-zinc-900 text-zinc-300 text-[10px] font-medium rounded-md border border-zinc-800">
               Sleva 15%
@@ -570,7 +570,7 @@ export function ProductOrderPanel({
           </div>
 
           <p className="text-[11px] text-zinc-400 leading-tight">
-            <strong className="text-zinc-300">Operator Script:</strong> &ldquo;{topRec.reason}&rdquo;
+            <strong className="text-zinc-300">Skript operátora:</strong> &ldquo;{topRec.reason}&rdquo;
           </p>
         </div>
       )}
@@ -670,7 +670,7 @@ export function ProductOrderPanel({
       {orderMode === "manual" && (
         <div className="space-y-2 pt-2 border-t border-zinc-800">
           <label htmlFor="order-source" className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
-            Zdroj objednávky (Order source)
+            Zdroj objednávky
           </label>
           <select
             id="order-source"
@@ -710,7 +710,7 @@ export function ProductOrderPanel({
             className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 "
           >
             <option value="order_placed">Objednávka vytvořena — Prodej úspěšně dokončen</option>
-            <option value="followup_scheduled">Naplánován další follow-up</option>
+            <option value="followup_scheduled">Naplánován další hovor</option>
             <option value="objection_handled">Námitka vyřešena / Čeká na potvrzení</option>
             <option value="no_answer">Nezvedá / Hlasová schránka</option>
           </select>

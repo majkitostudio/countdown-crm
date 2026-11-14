@@ -64,6 +64,6 @@ describe("product script section structure", () => {
 
     expect(rendered).toContain("Approved v7 used for this call");
     expect(rendered).not.toContain("První pozitivní dojem");
-    expect(rendered).toContain("Version 7 captured for this call");
+    expect(rendered).toContain("Pro tento hovor byla zachycena verze 7");
   });
 });

@@ -19,12 +19,12 @@ export function getTelnyxConfig() {
 
   if (!apiKey || !connectionId || !callerNumber) {
     throw new TelnyxConfigurationError(
-      "Telnyx is not configured. Set TELNYX_API_KEY, TELNYX_CONNECTION_ID and TELNYX_DEFAULT_CALLER_NUMBER.",
+      "Telnyx není nastaven. Doplňte TELNYX_API_KEY, TELNYX_CONNECTION_ID a TELNYX_DEFAULT_CALLER_NUMBER.",
     );
   }
 
   if (normalizePhoneNumber(callerNumber) !== callerNumber) {
-    throw new TelnyxConfigurationError("TELNYX_DEFAULT_CALLER_NUMBER must be an E.164 phone number.");
+    throw new TelnyxConfigurationError("TELNYX_DEFAULT_CALLER_NUMBER musí obsahovat telefonní číslo ve formátu E.164.");
   }
 
   return { apiKey, connectionId, callerNumber };
@@ -43,7 +43,7 @@ async function telnyxRequest<T>(path: string, apiKey: string, init?: RequestInit
 
   if (!response.ok) {
     await response.text();
-    throw new Error(`Telnyx API request failed (${response.status}).`);
+    throw new Error(`Požadavek na API Telnyxu selhal (${response.status}). Zkuste to znovu.`);
   }
 
   return (await response.json()) as T;
@@ -68,7 +68,7 @@ export async function createTelnyxCredential(input: {
     }),
   });
   const credentialId = result.data?.id;
-  if (!credentialId) throw new Error("Telnyx did not return a telephony credential ID.");
+  if (!credentialId) throw new Error("Telnyx nevrátil identifikátor přístupových údajů pro telefonii. Zkuste to znovu.");
   return credentialId;
 }
 
@@ -85,11 +85,11 @@ export async function issueTelnyxToken(credentialId: string): Promise<string> {
 
   if (!response.ok) {
     await response.text();
-    throw new Error(`Telnyx token request failed (${response.status}).`);
+    throw new Error(`Požadavek na přístupový token Telnyxu selhal (${response.status}). Zkuste to znovu.`);
   }
 
   const raw = (await response.text()).trim();
-  if (!raw) throw new Error("Telnyx returned an empty WebRTC token.");
+  if (!raw) throw new Error("Telnyx vrátil prázdný token WebRTC. Zkuste to znovu.");
   try {
     const parsed = JSON.parse(raw) as { token?: string; data?: { token?: string } };
     return parsed.token || parsed.data?.token || raw.replace(/^"|"$/g, "");

@@ -192,7 +192,7 @@ describe("wallet runtime partial-failure contract", () => {
     expect(overview.transactions).toHaveLength(1);
     expect(overview.sections.settings).toEqual({
       state: "unavailable",
-      message: "Wallet settings could not be loaded.",
+      message: "Nastavení peněženky se nepodařilo načíst.",
     });
     expect(overview.sections.transactions).toEqual({ state: "available" });
   });
@@ -207,10 +207,10 @@ describe("wallet runtime partial-failure contract", () => {
     const overview = await getWalletOverview();
 
     expect(overview.transactions).toEqual([
-      expect.objectContaining({ user_name: "Unknown user" }),
+      expect.objectContaining({ user_name: "Neznámý uživatel" }),
     ]);
     expect(overview.balances).toEqual([
-      expect.objectContaining({ user_name: "Unknown user" }),
+      expect.objectContaining({ user_name: "Neznámý uživatel" }),
     ]);
     expect(overview.sections.profiles.state).toBe("unavailable");
   });
@@ -223,14 +223,14 @@ describe("wallet runtime partial-failure contract", () => {
     const overview = await getWalletOverview();
 
     expect(overview.transactions).toEqual([
-      expect.objectContaining({ user_name: "Unknown user" }),
+      expect.objectContaining({ user_name: "Neznámý uživatel" }),
     ]);
     expect(overview.balances).toEqual([
-      expect.objectContaining({ user_name: "Unknown user" }),
+      expect.objectContaining({ user_name: "Neznámý uživatel" }),
     ]);
     expect(overview.sections.profiles).toEqual({
       state: "unavailable",
-      message: "Wallet member names could not be loaded.",
+      message: "Jména členů v peněžence se nepodařilo načíst.",
     });
   });
 

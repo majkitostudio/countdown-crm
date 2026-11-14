@@ -22,7 +22,7 @@ describe("Customer 360 retention playbook", () => {
     expect(snapshot.totalRevenue).toBe(125);
     expect(snapshot.revenueByCurrency).toEqual([{ currency: "CZK", amount: 125 }]);
     expect(snapshot.currency).toBe("CZK");
-    expect(snapshot.nextAction.title).toBe("Check order progress");
+    expect(snapshot.nextAction.title).toBe("Zkontrolovat stav objednávky");
   });
 
   it("turns a no-answer or objection outcome into an explainable outreach action", () => {
@@ -31,7 +31,7 @@ describe("Customer 360 retention playbook", () => {
       orders: [],
     });
 
-    expect(snapshot.nextAction.title).toBe("Review objection battlecards");
+    expect(snapshot.nextAction.title).toBe("Projít odpovědi na námitky");
     expect(snapshot.nextAction.href).toBe("/products");
   });
 
@@ -41,7 +41,7 @@ describe("Customer 360 retention playbook", () => {
     expect(snapshot.totalCalls).toBe(0);
     expect(snapshot.totalOrders).toBe(0);
     expect(snapshot.currency).toBeNull();
-    expect(snapshot.nextAction.title).toBe("Start first outreach");
+    expect(snapshot.nextAction.title).toBe("Zahájit první kontakt");
   });
 
   it("keeps fulfilled revenue separated when a customer has multiple currencies", () => {

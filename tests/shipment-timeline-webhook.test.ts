@@ -105,11 +105,11 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
     it("validates that orderId and title are required", async () => {
       await expect(
         recordOrderTrackingEventForWorkspace({ orderId: "", title: "Pohyb" })
-      ).rejects.toThrow("Order id is required");
+      ).rejects.toThrow("Je vyžadováno ID objednávky.");
 
       await expect(
         recordOrderTrackingEventForWorkspace({ orderId: "123", title: "  " })
-      ).rejects.toThrow("Tracking event title is required");
+      ).rejects.toThrow("Vyplňte název události zásilky.");
     });
 
     it("calls record_order_tracking_event RPC with parameters", async () => {
@@ -361,7 +361,7 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
       expect(orderDetailPage).toContain("packageLocation={order.package_location || null}");
       expect(orderDetailPage).toContain("events={order.tracking_events || []}");
 
-      expect(timelineCard).toContain("Časová osa zásilky (Timeline)");
+      expect(timelineCard).toContain("Časová osa zásilky");
       expect(timelineCard).toContain("Kde se balíček právě nachází:");
       expect(timelineCard).toContain("Při hovoru s klientem můžete ihned nahlásit toto výdejní místo");
     });
@@ -370,7 +370,7 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
       const pipeline = source("src/components/orders/OrderPipeline.tsx");
 
       expect(pipeline).toContain("sent_and_returned");
-      expect(pipeline).toContain("🔥 Senty & Returny");
+      expect(pipeline).toContain("🔥 Odeslané a vrácené");
       expect(pipeline).toContain("order.package_location");
       expect(pipeline).toContain("PhoneCall");
       expect(pipeline).toContain("Zavolat zákazníkovi");

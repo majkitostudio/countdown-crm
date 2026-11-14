@@ -106,12 +106,12 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
 
     return rawRows.slice(0, 3).map((row) => {
       const leadData: Partial<Lead> = {
-        full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Unnamed Lead",
+        full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Lead bez jména",
         phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "",
         email: emailIdx !== -1 && row[emailIdx] ? row[emailIdx] : null,
         city: cityIdx !== -1 && row[cityIdx] ? row[cityIdx] : null,
         company: companyIdx !== -1 && row[companyIdx] ? row[companyIdx] : null,
-        notes: notesIdx !== -1 && row[notesIdx] ? row[notesIdx] : "Imported from CSV",
+        notes: notesIdx !== -1 && row[notesIdx] ? row[notesIdx] : "Importováno z CSV",
         status: "new",
       };
       leadData.ai_score = calculateAiLeadScore(leadData);
@@ -133,7 +133,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
     const notesIdx = getColIndex(columnMapping.notes);
 
     if (nameIdx === -1 || phoneIdx === -1) {
-      setImportError("CSV mapping must include both Full Name and Phone Number.");
+      setImportError("Přiřaďte sloupce se jménem a telefonním číslem.");
       setIsImporting(false);
       return;
     }
@@ -143,19 +143,19 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
     );
 
     if (validRows.length === 0) {
-      setImportError("No rows contain both a name and a phone number.");
+      setImportError("Žádný řádek neobsahuje jméno i telefonní číslo. Zkontrolujte CSV.");
       setIsImporting(false);
       return;
     }
 
     const leadsToInsert: Partial<Lead>[] = validRows.map((row) => {
       const item: Partial<Lead> = {
-        full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Imported Lead",
+        full_name: nameIdx !== -1 && row[nameIdx] ? row[nameIdx] : "Importovaný lead",
         phone: phoneIdx !== -1 && row[phoneIdx] ? row[phoneIdx] : "",
         email: emailIdx !== -1 && row[emailIdx] ? row[emailIdx] : null,
         city: cityIdx !== -1 && row[cityIdx] ? row[cityIdx] : null,
         company: companyIdx !== -1 && row[companyIdx] ? row[companyIdx] : null,
-        notes: notesIdx !== -1 && row[notesIdx] ? row[notesIdx] : "CSV Import",
+        notes: notesIdx !== -1 && row[notesIdx] ? row[notesIdx] : "Import z CSV",
         status: "new",
       };
       item.ai_score = calculateAiLeadScore(item);
@@ -167,7 +167,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
       onImportComplete(leadsToInsert.length);
       onClose();
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : "Lead import failed.");
+      setImportError(error instanceof Error ? error.message : "Leady se nepodařilo importovat. Zkuste to znovu.");
     } finally {
       setIsImporting(false);
     }
@@ -186,14 +186,14 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h2 id="csv-import-dialog-title" className="text-base font-semibold text-zinc-100">Import Leads from CSV</h2>
-              <p className="text-xs text-zinc-400">Upload CSV file and map fields with auto AI propensity scoring</p>
+              <h2 id="csv-import-dialog-title" className="text-base font-semibold text-zinc-100">Importovat leady z CSV</h2>
+              <p className="text-xs text-zinc-400">Nahrajte CSV a přiřaďte sloupce. AI automaticky vypočítá skóre zájmu.</p>
             </div>
           </div>
           <Button
             onClick={onClose}
             variant="quiet"
-            aria-label="Close CSV import"
+            aria-label="Zavřít import CSV"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -227,10 +227,10 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               </div>
               <div>
                 <p className="text-sm font-medium text-zinc-200">
-                  Click to upload or drag & drop CSV file
+                  Vyberte soubor CSV nebo ho sem přetáhněte
                 </p>
                 <p className="text-xs text-zinc-500 mt-1">
-                  Supports comma (,) or semicolon (;) separated .csv files up to 10MB
+                  Soubory CSV do 10 MB s hodnotami oddělenými čárkou (,) nebo středníkem (;)
                 </p>
               </div>
             </div>
@@ -244,7 +244,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   <div>
                     <p className="text-xs font-semibold text-zinc-200">{file.name}</p>
                     <p className="text-[11px] text-zinc-500 font-mono">
-                      {rawRows.length} rows detected • {csvHeaders.length} columns
+                      Počet řádků: {rawRows.length} • Počet sloupců: {csvHeaders.length}
                     </p>
                   </div>
                 </div>
@@ -256,18 +256,18 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   }}
                   className="text-xs text-zinc-400 hover:text-zinc-200 font-medium px-2 py-1 bg-zinc-900 rounded border border-zinc-800"
                 >
-                  Change File
+                  Změnit soubor
                 </button>
               </div>
 
               {/* Column Mapping Selector */}
               <div className="space-y-3">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Column Field Mapping
+                  Přiřazení sloupců
                 </h3>
                 <div className="grid grid-cols-2 gap-3 bg-zinc-950/40 p-4 border border-zinc-800 rounded-xl text-xs">
                   <div>
-                    <label className="text-zinc-400 block mb-1">Full Name *</label>
+                    <label className="text-zinc-400 block mb-1">Celé jméno *</label>
                     <SelectField
                       value={columnMapping.full_name}
                       onChange={(e) => setColumnMapping({ ...columnMapping, full_name: e.target.value })}
@@ -279,7 +279,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   </div>
 
                   <div>
-                    <label className="text-zinc-400 block mb-1">Phone Number *</label>
+                    <label className="text-zinc-400 block mb-1">Telefonní číslo *</label>
                     <SelectField
                       value={columnMapping.phone}
                       onChange={(e) => setColumnMapping({ ...columnMapping, phone: e.target.value })}
@@ -291,12 +291,12 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   </div>
 
                   <div>
-                    <label className="text-zinc-400 block mb-1">Email Address</label>
+                    <label className="text-zinc-400 block mb-1">E-mailová adresa</label>
                     <SelectField
                       value={columnMapping.email}
                       onChange={(e) => setColumnMapping({ ...columnMapping, email: e.target.value })}
                     >
-                      <option value="">-- None --</option>
+                      <option value="">— Žádný —</option>
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
@@ -304,12 +304,12 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   </div>
 
                   <div>
-                    <label className="text-zinc-400 block mb-1">City / Region</label>
+                    <label className="text-zinc-400 block mb-1">Město / region</label>
                     <SelectField
                       value={columnMapping.city}
                       onChange={(e) => setColumnMapping({ ...columnMapping, city: e.target.value })}
                     >
-                      <option value="">-- None --</option>
+                      <option value="">— Žádný —</option>
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
@@ -324,7 +324,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
-                      Live AI Score Preview (First 3 Rows)
+                      Náhled AI skóre (první 3 řádky)
                     </span>
                   </div>
                   <div className="space-y-2">
@@ -339,13 +339,13 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
                           </div>
                           <div>
                             <p className="font-semibold text-zinc-200">{item.full_name}</p>
-                            <p className="text-zinc-500 font-mono">{item.phone || "Phone unavailable"} • {item.email || "No email"}</p>
+                            <p className="text-zinc-500 font-mono">{item.phone || "Telefon není uveden"} • {item.email || "Bez e-mailu"}</p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 text-zinc-300 px-2.5 py-1 rounded-md font-mono">
                           <Sparkles className="w-3 h-3 text-zinc-400" />
-                          <span>Score: {item.ai_score}/100</span>
+                          <span>Skóre: {item.ai_score}/100</span>
                         </div>
                       </div>
                     ))}
@@ -364,7 +364,7 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
             onClick={onClose}
             variant="secondary"
           >
-            Cancel
+            Zrušit
           </Button>
 
           {file && (
@@ -373,10 +373,10 @@ export function CsvImportModal({ isOpen, onClose, onImportComplete }: CsvImportM
               disabled={isImporting || rawRows.length === 0}
             >
               {isImporting ? (
-                <span>Importing...</span>
+                <span>Importuji…</span>
               ) : (
                 <>
-                  <span>Import {rawRows.length} Leads</span>
+                  <span>Importovat leady ({rawRows.length})</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </>
               )}

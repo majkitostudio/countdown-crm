@@ -29,9 +29,9 @@ export default async function OrdersPage() {
     return (
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">{isForbidden ? "Order directory unavailable" : "Orders unavailable"}</h1>
+        <h1 className="text-base font-semibold text-zinc-100">{isForbidden ? "Seznam objednávek není dostupný" : "Objednávky nejsou dostupné"}</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-          {isForbidden ? "You do not have access to the order directory in this workspace." : "The order directory could not be loaded from the active workspace."}
+          {isForbidden ? "V tomto pracovním prostoru nemáte přístup k seznamu objednávek." : "Seznam objednávek se nepodařilo načíst z aktivního pracovního prostoru. Zkuste to znovu."}
         </p>
       </Surface>
     );
@@ -43,11 +43,11 @@ export default async function OrdersPage() {
       <div className="mx-auto max-w-screen-2xl space-y-8">
         <PageHeader
           icon={ShoppingCart}
-          title="Orders"
-          badge={{ label: `${orders.length} total`, tone: "neutral" }}
+          title="Objednávky"
+          badge={{ label: `Celkem: ${orders.length}`, tone: "neutral" }}
           description={role === "operator"
             ? "Sledujte přiřazené objednávky a další kroky doručení."
-            : "Přehled objednávek workspace a přiřazení operátorů."}
+            : "Přehled objednávek pracovního prostoru a přiřazení operátorů."}
           actions={
             role === "operator" ? undefined : (
               <Link
@@ -55,7 +55,7 @@ export default async function OrdersPage() {
                 className={getButtonClassName("primary")}
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                Create Order
+                Vytvořit objednávku
               </Link>
             )
           }

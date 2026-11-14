@@ -98,7 +98,7 @@ function getLatestVersion(productId: string, versions: ProductScriptVersionDTO[]
 }
 
 function getVersionStatusLabel(status: ProductScriptVersionDTO["status"]): string {
-  return status === "published" ? "Published" : status === "archived" ? "Archived" : "Draft";
+  return status === "published" ? "Publikováno" : status === "archived" ? "Archivováno" : "Návrh";
 }
 
 function getScriptHtml(
@@ -153,7 +153,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
   const selectProduct = (product: Product) => {
     if (isPending) return;
     if (hasChanges) {
-      setFeedback({ tone: "error", message: "Save or reset the current script before switching products." });
+      setFeedback({ tone: "error", message: "Před přepnutím produktu uložte nebo resetujte aktuální skript." });
       return;
     }
     setSelectedProductId(product.id);
@@ -170,7 +170,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
   const selectVersion = (version: ProductScriptVersionDTO) => {
     if (isPending) return;
     if (hasChanges) {
-      setFeedback({ tone: "error", message: "Save or reset the current script before switching versions." });
+      setFeedback({ tone: "error", message: "Před přepnutím verze uložte nebo resetujte aktuální skript." });
       return;
     }
     const nextHtml = sanitizeScriptHtml(version.content_html);
@@ -206,7 +206,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
     const rawHtml = editorRef.current?.innerHTML || editorHtml;
     const cleanHtml = normalizeEditorMarkup(rawHtml);
     if (!cleanHtml) {
-      setFeedback({ tone: "error", message: "Script cannot be empty." });
+      setFeedback({ tone: "error", message: "Skript nemůže být prázdný." });
       return;
     }
 
@@ -221,11 +221,11 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
         setActiveVersionId(draft.id);
         setEditorHtml(draft.content_html);
         setHasChanges(false);
-        setFeedback({ tone: "success", message: `Draft v${draft.version_number} saved. Publish it when it is ready for operators.` });
+        setFeedback({ tone: "success", message: `Návrh v${draft.version_number} uložen. Publikujte ho, až bude připraven pro operátory.` });
       } catch (error) {
         setFeedback({
           tone: "error",
-          message: error instanceof Error ? error.message : "Script could not be saved.",
+          message: error instanceof Error ? error.message : "Skript se nepodařilo uložit.",
         });
       }
     });
@@ -255,11 +255,11 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
         setActiveVersionId(published.id);
         setEditorHtml(published.content_html);
         setHasChanges(false);
-        setFeedback({ tone: "success", message: `Version v${published.version_number} is now published to the Operator Console.` });
+        setFeedback({ tone: "success", message: `Verze v${published.version_number} je nyní publikována v operátorské konzoli.` });
       } catch (error) {
         setFeedback({
           tone: "error",
-          message: error instanceof Error ? error.message : "Script version could not be published.",
+          message: error instanceof Error ? error.message : "Verzi skriptu se nepodařilo publikovat.",
         });
       }
     });
@@ -270,16 +270,16 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
       <div className="mx-auto max-w-3xl">
         <Surface variant="empty">
         <FileText className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h2 className="text-base font-semibold text-zinc-100">No products available</h2>
+        <h2 className="text-base font-semibold text-zinc-100">Žádné dostupné produkty</h2>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-          Add a product to the catalog before creating an approved operator script.
+          Před vytvořením schváleného operátorského skriptu přidejte produkt do katalogu.
         </p>
         <a
           href="/settings"
           className="mt-5 inline-flex items-center gap-2 rounded-xl border border-zinc-800 px-4 py-2.5 text-xs text-zinc-300 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-100"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Settings
+          Zpět do nastavení
         </a>
         </Surface>
       </div>
@@ -294,8 +294,8 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
           <div className="p-4">
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-100">Products</h2>
-              <p className="mt-1 text-[11px] text-zinc-500">Choose a script to edit.</p>
+              <h2 className="text-sm font-semibold text-zinc-100">Produkty</h2>
+              <p className="mt-1 text-[11px] text-zinc-500">Vyberte skript k úpravě.</p>
             </div>
             <span className="font-mono text-[10px] text-zinc-500">{products.length}</span>
           </div>
@@ -321,7 +321,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                   <span className="block truncate text-xs font-medium">{product.title}</span>
                   <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-zinc-500">
                     <span className="capitalize">{product.category}</span>
-                    {isSaved ? <span className="text-emerald-400">Published</span> : <span>Fallback</span>}
+                    {isSaved ? <span className="text-emerald-400">Publikováno</span> : <span>Záložní</span>}
                   </span>
                 </button>
               );
@@ -336,18 +336,18 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
           <div className="flex flex-col gap-4 border-b border-zinc-800/80 pb-5 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                <span>Product Script</span>
+                <span>Skript produktu</span>
                 <StatusBadge tone="neutral">
                   {activeVersion
                     ? `${getVersionStatusLabel(activeVersion.status)} · v${activeVersion.version_number}`
                     : hasSavedScript
-                      ? "Published"
-                      : "Fallback preview"}
+                      ? "Publikováno"
+                      : "Náhled záložního"}
                 </StatusBadge>
               </div>
               <h2 className="truncate text-lg font-semibold text-zinc-100">{selectedProduct.title}</h2>
               <p className="mt-1 text-xs text-zinc-500">
-                {selectedProduct.description || "No product description available."}
+                {selectedProduct.description || "Popis produktu není dostupný."}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -356,7 +356,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 onClick={() => setIsPreview((current) => !current)}
               >
                 {isPreview ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                {isPreview ? "Edit" : "Preview"}
+                {isPreview ? "Upravit" : "Náhled"}
               </Button>
               <Button
                 variant="secondary"
@@ -364,7 +364,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 disabled={isPending}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                Reset fallback
+                Resetovat záložní
               </Button>
               <Button
                 variant="primary"
@@ -372,7 +372,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 disabled={isPending || isPreview || hasChanges || activeVersion?.status !== "draft"}
               >
                 <Send className="h-3.5 w-3.5" />
-                Publish version
+                Publikovat verzi
               </Button>
             </div>
           </div>
@@ -381,9 +381,9 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
             <div className="mb-2 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <History className="h-3.5 w-3.5 text-zinc-500" />
-                <span className="text-[11px] font-medium text-zinc-300">Version history</span>
+                <span className="text-[11px] font-medium text-zinc-300">Historie verzí</span>
               </div>
-              <span className="font-mono text-[10px] text-zinc-600">{productVersions.length} versions</span>
+              <span className="font-mono text-[10px] text-zinc-600">{productVersions.length} verzí</span>
             </div>
             {productVersions.length ? (
               <div className="flex flex-wrap gap-2">
@@ -403,7 +403,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 ))}
               </div>
             ) : (
-              <p className="text-[10px] text-zinc-600">No saved versions yet. The editor is showing the built-in fallback.</p>
+              <p className="text-[10px] text-zinc-600">Zatím žádné uložené verze. Editor zobrazuje vestavěný záložní skript.</p>
             )}
           </div>
 
@@ -414,8 +414,8 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("bold")}
                 className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
-                aria-label="Bold"
-                title="Bold"
+                aria-label="Tučné"
+                title="Tučné"
               >
                 <Bold className="h-4 w-4" />
               </button>
@@ -424,8 +424,8 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("italic")}
                 className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
-                aria-label="Italic"
-                title="Italic"
+                aria-label="Kurzíva"
+                title="Kurzíva"
               >
                 <Italic className="h-4 w-4" />
               </button>
@@ -434,8 +434,8 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("hiliteColor", "#facc15")}
                 className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
-                aria-label="Highlight"
-                title="Highlight"
+                aria-label="Zvýraznění"
+                title="Zvýraznění"
               >
                 <Highlighter className="h-4 w-4" />
               </button>
@@ -444,13 +444,13 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("insertHorizontalRule")}
                 className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
-                aria-label="Insert horizontal rule"
-                title="Insert horizontal rule"
+                aria-label="Vložit vodorovnou čáru"
+                title="Vložit vodorovnou čáru"
               >
                 <Minus className="h-4 w-4" />
               </button>
               <span className="mx-1 h-5 w-px bg-zinc-800" />
-              <span className="px-2 text-[11px] text-zinc-500">Formatting applies to the approved workspace script after Save.</span>
+              <span className="px-2 text-[11px] text-zinc-500">Formátování se použije na schválený skript pracovního prostoru po uložení.</span>
             </div>
           )}
 
@@ -479,7 +479,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
 
           <div className="mt-5 flex flex-col gap-3 border-t border-zinc-800/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[11px] leading-relaxed text-zinc-500">
-              {hasChanges ? "Unsaved changes" : "No unsaved changes"}. Save creates a draft; publishing updates the operator-facing script. HTML is reduced to safe text formatting before it is stored.
+              {hasChanges ? "Neuložené změny" : "Žádné neuložené změny"}. Uložení vytvoří návrh; publikování aktualizuje skript viditelný operátorům. HTML se před uložením redukuje na bezpečné textové formátování.
             </p>
             <Button
               variant="primary"
@@ -487,7 +487,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
               disabled={isPending || isPreview || !hasChanges}
             >
               {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {isPending ? "Saving…" : "Save draft"}
+              {isPending ? "Ukládání…" : "Uložit návrh"}
             </Button>
           </div>
         </section>

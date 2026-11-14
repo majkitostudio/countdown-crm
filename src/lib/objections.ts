@@ -47,7 +47,7 @@ export function matchObjectionToProduct(
   }
 
   return {
-    matchedTitle: detectedObjection || "No detected objection",
+    matchedTitle: detectedObjection || "Nebyla zjištěna námitka",
     matchScore: 0,
     rebuttalArgs: [],
   };

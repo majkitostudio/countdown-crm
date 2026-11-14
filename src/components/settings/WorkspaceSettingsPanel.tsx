@@ -26,7 +26,7 @@ export function WorkspaceSettingsPanel() {
       })
       .catch((error) => {
         if (isCurrent) {
-          setWalletError(error instanceof Error ? error.message : "Wallet settings could not be loaded.");
+          setWalletError(error instanceof Error ? error.message : "Nastavení peněženky se nepodařilo načíst.");
         }
       });
 
@@ -39,18 +39,18 @@ export function WorkspaceSettingsPanel() {
     <div className="space-y-8">
       <section data-testid="wallet-settings-boundary" className="space-y-4">
         {walletOverview === null && !walletError ? (
-          <Surface variant="inset"><div className="p-5 text-xs text-zinc-400">Loading workspace wallet settings...</div></Surface>
+          <Surface variant="inset"><div className="p-5 text-xs text-zinc-400">Načítání nastavení peněženky pracovního prostoru...</div></Surface>
         ) : walletError ? (
-          <StatusAlert tone="danger">Wallet settings unavailable: {walletError}</StatusAlert>
+          <StatusAlert tone="danger">Nastavení peněženky není dostupné: {walletError}</StatusAlert>
         ) : walletOverview && !walletSettingsAvailable ? (
           <StatusAlert tone="danger">
-            Wallet settings unavailable: {walletOverview.sections.settings.state === "unavailable" ? walletOverview.sections.settings.message : "Wallet settings are not available."}
+            Nastavení peněženky není dostupné: {walletOverview.sections.settings.state === "unavailable" ? walletOverview.sections.settings.message : "Nastavení peněženky není dostupné."}
           </StatusAlert>
         ) : walletOverview?.settings ? (
           <>
             {!walletRulesAvailable && (
               <StatusAlert tone="warning">
-                Wallet bonus rules unavailable: {walletOverview.sections.rules.state === "unavailable" ? walletOverview.sections.rules.message : "Wallet bonus rules are not available."}
+                Bonusová pravidla peněženky nejsou dostupná: {walletOverview.sections.rules.state === "unavailable" ? walletOverview.sections.rules.message : "Bonusová pravidla peněženky nejsou dostupná."}
               </StatusAlert>
             )}
             <WalletManagerPanel mode="settings" settings={walletOverview.settings} rules={walletOverview.rules} members={[]} rulesAvailable={walletRulesAvailable} />

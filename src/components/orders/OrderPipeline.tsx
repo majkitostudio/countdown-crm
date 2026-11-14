@@ -18,8 +18,8 @@ type ViewMode = "table" | "kanban";
 type PipelineStatus = "all" | "sent_and_returned" | OrderStage;
 
 const filters: Array<{ value: PipelineStatus; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "sent_and_returned", label: "🔥 Senty & Returny" },
+  { value: "all", label: "Všechny" },
+  { value: "sent_and_returned", label: "🔥 Odeslané a vrácené" },
   { value: "processing", label: ORDER_STAGE_LABELS.processing },
   { value: "sent", label: ORDER_STAGE_LABELS.sent },
   { value: "awaiting_pickup", label: ORDER_STAGE_LABELS.awaiting_pickup },
@@ -29,7 +29,7 @@ const filters: Array<{ value: PipelineStatus; label: string }> = [
 ];
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 export function getOrderStatusTone(status: string): SemanticTone {
@@ -48,8 +48,7 @@ function pickupRiskTone(order: WorkspaceOrderDTO): { text: string; icon: string 
 }
 
 function statusLabel(status: string): string {
-  if (status === "in_progress") return "In-Progress";
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  return ({ pending: "Čeká na zpracování", in_progress: "Zpracovává se", sent: "Odesláno", delivered: "Doručeno", returned: "Vráceno", cancelled: "Zrušeno", completed: "Dokončeno" } as Record<string, string>)[status] || status;
 }
 
 export function OrderPipeline({
@@ -143,24 +142,24 @@ export function OrderPipeline({
     startTransition(async () => {
       try {
         if (!onBulkStatusUpdate) {
-          throw new Error("Bulk status update is not available.");
+          throw new Error("Hromadná změna stavu není dostupná.");
         }
         const result = await onBulkStatusUpdate(idsToUpdate, status);
         if (result.failureCount === 0) {
           setMessage({
-            text: `Successfully updated ${result.successCount} ${result.successCount === 1 ? "order" : "orders"} to ${statusLabel(status)}.`,
+            text: `Počet aktualizovaných objednávek: ${result.successCount}. Nový stav: ${statusLabel(status)}.`,
             tone: "success",
           });
           setSelectedIds(new Set());
         } else {
           setMessage({
-            text: `Updated ${result.successCount} orders; ${result.failureCount} failed: ${result.errors.join("; ")}`,
+            text: `Aktualizované objednávky: ${result.successCount}; neúspěšné: ${result.failureCount}. ${result.errors.join("; ")}`,
             tone: result.successCount > 0 ? "success" : "danger",
           });
         }
       } catch (err) {
         setMessage({
-          text: err instanceof Error ? err.message : "Bulk status update failed",
+          text: err instanceof Error ? err.message : "Hromadná změna stavu se nepodařila. Zkuste to znovu.",
           tone: "danger",
         });
       }
@@ -176,14 +175,14 @@ export function OrderPipeline({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <span className="text-xs font-semibold text-zinc-100">
-                Selected <span className="font-mono text-zinc-200">{selectedIds.size}</span> {selectedIds.size === 1 ? "order" : "orders"}
+                Vybrané objednávky: <span className="font-mono text-zinc-200">{selectedIds.size}</span>
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
                 className="text-[11px] text-zinc-400 underline transition-colors duration-150 ease-interface hover:text-zinc-200"
               >
-                Clear selection
+                Zrušit výběr
               </button>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -200,7 +199,7 @@ export function OrderPipeline({
                 }}
               />
               <div className="hidden h-4 w-px bg-zinc-800 sm:block" />
-              <span className="text-[11px] uppercase tracking-wider text-zinc-500">Change status:</span>
+              <span className="text-[11px] uppercase tracking-wider text-zinc-500">Změnit stav:</span>
               <Button
                 type="button"
                 variant="secondary"
@@ -208,7 +207,7 @@ export function OrderPipeline({
                 onClick={() => handleBulkStatus("sent")}
               >
                 {isUpdating && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
-                Mark Sent
+                Označit jako odeslané
               </Button>
               <Button
                 type="button"
@@ -217,7 +216,7 @@ export function OrderPipeline({
                 onClick={() => handleBulkStatus("delivered")}
               >
                 {isUpdating && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
-                Mark Delivered
+                Označit jako doručené
               </Button>
               <Button
                 type="button"
@@ -226,7 +225,7 @@ export function OrderPipeline({
                 onClick={() => handleBulkStatus("returned")}
               >
                 {isUpdating && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
-                Mark Returned
+                Označit jako vrácené
               </Button>
               <Button
                 type="button"
@@ -234,7 +233,7 @@ export function OrderPipeline({
                 disabled={isUpdating}
                 onClick={() => handleBulkStatus("cancelled")}
               >
-                Cancel
+                Stornovat
               </Button>
             </div>
           </div>
@@ -340,7 +339,7 @@ export function OrderPipeline({
           <div className="p-12 text-center">
             <ClipboardList className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
             <h2 className="text-sm font-semibold text-zinc-200">Žádné odpovídající objednávky</h2>
-            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-500">Zkus jiný status nebo vyhledávací výraz.</p>
+            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-500">Zkuste jiný stav nebo vyhledávací výraz.</p>
           </div>
         ) : (
           <>
@@ -354,7 +353,7 @@ export function OrderPipeline({
                           type="checkbox"
                           checked={selectedIds.has(order.id)}
                           onChange={() => toggleSelect(order.id)}
-                          aria-label={`Select order ${order.id}`}
+                          aria-label={`Vybrat objednávku ${order.id}`}
                           className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-indigo-600 focus:ring-0"
                         />
                       )}
@@ -363,13 +362,13 @@ export function OrderPipeline({
                         <span className="mt-1 block text-[11px] text-zinc-500">{formatDate(order.created_at)}</span>
                       </div>
                     </div>
-                    <Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex shrink-0 rounded-lg border border-zinc-800 p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200">
+                    <Link href={`/orders/${order.id}?origin=orders`} aria-label={`Otevřít objednávku ${order.id}`} className="inline-flex shrink-0 rounded-lg border border-zinc-800 p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200">
                       <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                   <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
                     <div className="min-w-0">
-                      <dt className="text-[10px] uppercase tracking-wider text-zinc-600">Customer</dt>
+                      <dt className="text-[10px] uppercase tracking-wider text-zinc-600">Zákazník</dt>
                       <dd className="mt-1 flex items-center gap-1.5 truncate font-medium text-zinc-200">
                         <span className="truncate">{order.lead_name}</span>
                         {order.lead_id && (
@@ -383,9 +382,9 @@ export function OrderPipeline({
                         )}
                       </dd>
                     </div>
-                    <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Product</dt><dd className="mt-1 truncate text-zinc-300">{order.product_title}</dd></div>
+                    <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Produkt</dt><dd className="mt-1 truncate text-zinc-300">{order.product_title}</dd></div>
                     <div>
-                      <dt className="text-[10px] uppercase tracking-wider text-zinc-600">Status</dt>
+                      <dt className="text-[10px] uppercase tracking-wider text-zinc-600">Stav</dt>
                       <dd className="mt-1 space-y-1">
                         <StatusBadge tone={getOrderStatusTone(order.status)}>{statusLabel(order.status)}</StatusBadge>
                         {order.package_location && (
@@ -396,8 +395,8 @@ export function OrderPipeline({
                         )}
                       </dd>
                     </div>
-                    <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Operator</dt><dd className="mt-1 truncate text-zinc-400">{order.agent_name}</dd></div>
-                    <div><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Total</dt><dd className="mt-1 font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
+                    <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Operátor</dt><dd className="mt-1 truncate text-zinc-400">{order.agent_name}</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Celkem</dt><dd className="mt-1 font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
                   </dl>
                 </article>
               ))}
@@ -412,18 +411,18 @@ export function OrderPipeline({
                         type="checkbox"
                         checked={isAllVisibleSelected}
                         onChange={toggleSelectAll}
-                        aria-label="Select all orders"
+                        aria-label="Vybrat všechny objednávky"
                         className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-indigo-600 focus:ring-0"
                       />
                     </th>
                   )}
-                  <th className="px-5 py-3">Order</th>
-                  <th className="px-5 py-3">Customer</th>
-                  <th className="px-5 py-3">Product</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Operator</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                  <th className="px-5 py-3 text-right"><span className="sr-only">Open</span></th>
+                  <th className="px-5 py-3">Objednávka</th>
+                  <th className="px-5 py-3">Zákazník</th>
+                  <th className="px-5 py-3">Produkt</th>
+                  <th className="px-5 py-3">Stav</th>
+                  <th className="px-5 py-3">Operátor</th>
+                  <th className="px-5 py-3 text-right">Celkem</th>
+                  <th className="px-5 py-3 text-right"><span className="sr-only">Otevřít</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60">
@@ -435,7 +434,7 @@ export function OrderPipeline({
                           type="checkbox"
                           checked={selectedIds.has(order.id)}
                           onChange={() => toggleSelect(order.id)}
-                          aria-label={`Select order ${order.id}`}
+                          aria-label={`Vybrat objednávku ${order.id}`}
                           className="h-3.5 w-3.5 rounded border-zinc-700 bg-zinc-900 text-indigo-600 focus:ring-0"
                         />
                       </td>
@@ -460,7 +459,7 @@ export function OrderPipeline({
                     </td>
                     <td className="px-5 py-4">
                       <span className="block text-zinc-300">{order.product_title}</span>
-                      <span className="mt-1 block text-[10px] uppercase tracking-wider text-zinc-600">{order.order_source.replaceAll("_", " ")}</span>
+                      <span className="mt-1 block text-[10px] uppercase tracking-wider text-zinc-600">{({ manual: "Ruční zadání", previous_call: "Předchozí hovor", email: "E-mail", web_form: "Webový formulář", other: "Jiné" } as Record<string, string>)[order.order_source] || order.order_source}</span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1">
@@ -477,7 +476,7 @@ export function OrderPipeline({
                     </td>
                     <td className="px-5 py-4 text-zinc-400">{order.agent_name}</td>
                     <td className="px-5 py-4 text-right font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</td>
-                    <td className="px-5 py-4 text-right"><Link href={`/orders/${order.id}?origin=orders`} aria-label={`Open order ${order.id}`} className="inline-flex rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200"><ArrowRight className="h-3.5 w-3.5" /></Link></td>
+                    <td className="px-5 py-4 text-right"><Link href={`/orders/${order.id}?origin=orders`} aria-label={`Otevřít objednávku ${order.id}`} className="inline-flex rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200"><ArrowRight className="h-3.5 w-3.5" /></Link></td>
                   </tr>
                 ))}
               </tbody>

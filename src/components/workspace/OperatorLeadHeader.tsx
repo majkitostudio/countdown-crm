@@ -65,7 +65,7 @@ export function OperatorLeadHeader({
   if (!activeLead) {
     return (
       <Surface variant="page" data-testid="operator-lead-primary" data-state="waiting_assignment">
-        <section className="p-5 text-sm text-zinc-400">No active customer selected.</section>
+        <section className="p-5 text-sm text-zinc-400">Není vybrán žádný aktivní zákazník.</section>
       </Surface>
     );
   }
@@ -85,10 +85,10 @@ export function OperatorLeadHeader({
       type="button"
       disabled={assistancePending}
       onClick={() => onRequestHelp("help")}
-      title={assistancePending ? "Žádost o pomoc čeká na Team Leadera" : "Požádat o pomoc k přiřazenému leadu"}
+      title={assistancePending ? "Žádost o pomoc čeká na vedoucího týmu" : "Požádat o pomoc k přiřazenému leadu"}
     >
       <HandHelping className="h-4 w-4" />
-      {assistancePending ? "Pomoc čeká" : "Request Help"}
+      {assistancePending ? "Pomoc čeká" : "Požádat o pomoc"}
     </Button>
   ) : null;
   return (
@@ -101,21 +101,21 @@ export function OperatorLeadHeader({
     <section className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Assigned customer</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Přiřazený zákazník</p>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             <h2 id="operator-lead-title" className="text-xl font-semibold tracking-tight text-white">{activeLead.full_name}</h2>
             <Link
               href={`/leads/${encodeURIComponent(activeLead.id)}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open read-only profile"
-              title="Open read-only profile"
+              aria-label="Otevřít profil pouze pro čtení"
+              title="Otevřít profil pouze pro čtení"
               className="inline-flex items-center gap-1 text-xs font-medium text-sky-300 underline-offset-4 hover:text-sky-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
             <StatusBadge tone="neutral">
-              {activeLead.status || "New lead"}
+              {({ new: "Nový", contacted: "Kontaktovaný", qualified: "Kvalifikovaný", customer: "Zákazník", unresponsive: "Nereaguje" })[activeLead.status] || "Nový lead"}
             </StatusBadge>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium text-zinc-200">
@@ -130,30 +130,30 @@ export function OperatorLeadHeader({
               </span>
             )}
           </div>
-          <p className="mt-1.5 font-mono text-[11px] text-zinc-400">Lead ID: {activeLead.id}</p>
+          <p className="mt-1.5 font-mono text-[11px] text-zinc-400">ID leadu: {activeLead.id}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           {isCallActive || isDialing ? (
             <>
               <div className="mr-1 text-right">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">{isDialing ? "Dialing…" : telephonyAdapter === "local_sip" ? "Local SIP call" : telephonyAdapter === "telnyx" ? "Telnyx call" : "Simulated call"}</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">{isDialing ? "Vytáčení…" : telephonyAdapter === "local_sip" ? "Místní SIP hovor" : telephonyAdapter === "telnyx" ? "Hovor přes Telnyx" : "Simulovaný hovor"}</p>
                 <p className="font-mono text-sm font-semibold tabular-nums text-zinc-100">{formatTimer(durationSeconds)}</p>
               </div>
               <Button
                 variant="secondary"
                 onClick={onToggleMute}
-                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
+                aria-label={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"}
                 aria-keyshortcuts="M"
-                title={`${isMuted ? "Unmute microphone" : "Mute microphone"} (M)`}
+                title={`${isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"} (M)`}
               >
                 {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
               {assistanceControls}
               <Link
                 href="/settings"
-                aria-label="Open settings"
-                title="Open settings"
+                aria-label="Otevřít nastavení"
+                title="Otevřít nastavení"
                 className={getButtonClassName("secondary")}
               >
                 <Settings className="h-4 w-4" />
@@ -161,9 +161,9 @@ export function OperatorLeadHeader({
               <Button
                 variant="danger"
                 onClick={onToggleCall}
-                aria-label="End call"
+                aria-label="Ukončit hovor"
                 aria-keyshortcuts="C"
-                title="End call (C)"
+                title="Ukončit hovor (C)"
               >
                 <PhoneOff className="h-4 w-4" />
               </Button>
@@ -172,7 +172,7 @@ export function OperatorLeadHeader({
             <>
               <StatusAlert tone="danger" className="w-full">
                 <div className="max-w-xs text-right">
-                  <p className="text-[10px] uppercase tracking-wider text-rose-200">Call failed</p>
+                  <p className="text-[10px] uppercase tracking-wider text-rose-200">Hovor selhal</p>
                   <p className="mt-0.5 text-[10px] text-rose-300/80">{callFailureMessage}</p>
                 </div>
               </StatusAlert>
@@ -181,8 +181,8 @@ export function OperatorLeadHeader({
           ) : isAwaitingOutcome ? (
             <>
               <div className="rounded-xl border border-amber-900/60 bg-amber-950/20 px-3 py-2 text-right">
-                <p className="text-[10px] uppercase tracking-wider text-amber-200">Outcome required</p>
-                <p className="mt-0.5 text-[10px] text-amber-300/80">Lead remains assigned</p>
+                <p className="text-[10px] uppercase tracking-wider text-amber-200">Je nutné zvolit výsledek</p>
+                <p className="mt-0.5 text-[10px] text-amber-300/80">Lead zůstává přiřazen</p>
               </div>
               {assistanceControls}
             </>
@@ -194,10 +194,10 @@ export function OperatorLeadHeader({
                 disabled={isStarting}
                 aria-busy={isStarting}
                 aria-keyshortcuts="C"
-                title="Call client (C)"
+                title="Zavolat zákazníkovi (C)"
               >
                 <PhoneCall className="h-4 w-4" />
-                {isStarting ? "Starting call..." : "Call Client"}
+                {isStarting ? "Zahajování hovoru…" : "Zavolat zákazníkovi"}
                 {!isStarting && <kbd className="rounded border border-zinc-300/60 bg-zinc-200/70 px-1 font-mono text-[10px] text-zinc-600">C</kbd>}
               </Button>
               {assistanceControls}
@@ -206,7 +206,7 @@ export function OperatorLeadHeader({
                   variant="secondary"
                   onClick={onCreateOrder}
                 >
-                  Create Order
+                  Vytvořit objednávku
                 </Button>
               )}
               {showIncomingSimulator && onSimulateIncoming && (
@@ -214,8 +214,8 @@ export function OperatorLeadHeader({
                   variant="secondary"
                   type="button"
                   onClick={onSimulateIncoming}
-                  title="Simulate an incoming call"
-                  aria-label="Simulate an incoming call"
+                  title="Simulovat příchozí hovor"
+                  aria-label="Simulovat příchozí hovor"
                 >
                   <PhoneIncoming className="h-4 w-4" />
                 </Button>

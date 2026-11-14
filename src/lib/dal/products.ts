@@ -49,23 +49,23 @@ function isProductCategory(value: unknown): value is ProductCategory {
 
 function validateProductInput(input: ProductInput): ProductInput {
   if (!input || typeof input !== "object") {
-    throw new DataAccessError("VALIDATION", "Product input is invalid.");
+    throw new DataAccessError("VALIDATION", "Údaje produktu nejsou platné. Zkontrolujte je.");
   }
 
   if (typeof input.title !== "string") {
-    throw new DataAccessError("VALIDATION", "Product title is required.");
+    throw new DataAccessError("VALIDATION", "Vyplňte název produktu.");
   }
 
   if (input.currency !== undefined && typeof input.currency !== "string") {
-    throw new DataAccessError("VALIDATION", "Product currency is invalid.");
+    throw new DataAccessError("VALIDATION", "Zadejte platnou měnu produktu.");
   }
 
   if (input.description !== undefined && input.description !== null && typeof input.description !== "string") {
-    throw new DataAccessError("VALIDATION", "Product description is invalid.");
+    throw new DataAccessError("VALIDATION", "Popis produktu musí obsahovat text.");
   }
 
   if (input.image_url !== undefined && input.image_url !== null && typeof input.image_url !== "string") {
-    throw new DataAccessError("VALIDATION", "Product image URL is invalid.");
+    throw new DataAccessError("VALIDATION", "Zadejte platnou URL obrázku produktu.");
   }
 
   const title = input.title.trim();
@@ -74,31 +74,31 @@ function validateProductInput(input: ProductInput): ProductInput {
   const image_url = input.image_url?.trim() || null;
 
   if (!title || title.length > 300) {
-    throw new DataAccessError("VALIDATION", "Product title must be between 1 and 300 characters.");
+    throw new DataAccessError("VALIDATION", "Název produktu musí mít 1 až 300 znaků.");
   }
 
   if (!isProductCategory(input.category)) {
-    throw new DataAccessError("VALIDATION", "Product category is invalid.");
+    throw new DataAccessError("VALIDATION", "Vyberte platnou kategorii produktu.");
   }
 
   if (!Number.isFinite(input.price) || input.price < 0 || input.price > 1_000_000_000) {
-    throw new DataAccessError("VALIDATION", "Product price must be a non-negative number.");
+    throw new DataAccessError("VALIDATION", "Cena produktu musí být číslo od 0 do 1 000 000 000.");
   }
 
   if (currency.length > 10) {
-    throw new DataAccessError("VALIDATION", "Product currency is too long.");
+    throw new DataAccessError("VALIDATION", "Měna produktu může mít nejvýše 10 znaků.");
   }
 
   if (description && description.length > 5000) {
-    throw new DataAccessError("VALIDATION", "Product description is too long.");
+    throw new DataAccessError("VALIDATION", "Popis produktu může mít nejvýše 5 000 znaků.");
   }
 
   if (image_url && image_url.length > 2000) {
-    throw new DataAccessError("VALIDATION", "Product image URL is too long.");
+    throw new DataAccessError("VALIDATION", "URL obrázku produktu může mít nejvýše 2 000 znaků.");
   }
 
   if (input.in_stock !== undefined && typeof input.in_stock !== "boolean") {
-    throw new DataAccessError("VALIDATION", "Product stock status is invalid.");
+    throw new DataAccessError("VALIDATION", "Vyberte platný stav dostupnosti produktu.");
   }
 
   return {
@@ -140,7 +140,7 @@ export async function listProductsForWorkspace(
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to load products.");
+    throw new DataAccessError("DATABASE", "Produkty se nepodařilo načíst. Zkuste to znovu.");
   }
 
   let products = ((data || []) as ProductRow[]).map(mapProduct);
@@ -180,7 +180,7 @@ export async function createProductForWorkspace(
     .single();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Unable to create the product.");
+    throw new DataAccessError("DATABASE", "Produkt se nepodařilo vytvořit. Zkuste to znovu.");
   }
 
   return mapProduct(data as ProductRow);
@@ -194,7 +194,7 @@ export async function updateProductForWorkspace(
   const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
 
   if (!id.trim()) {
-    throw new DataAccessError("VALIDATION", "Product ID is required.");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID produktu.");
   }
 
   const candidate: ProductInput = {
@@ -212,7 +212,7 @@ export async function updateProductForWorkspace(
   );
 
   if (Object.keys(payload).length === 0) {
-    throw new DataAccessError("VALIDATION", "At least one product field is required.");
+    throw new DataAccessError("VALIDATION", "Vyplňte alespoň jedno pole produktu.");
   }
 
   const supabase = await createDataClient();
@@ -225,11 +225,11 @@ export async function updateProductForWorkspace(
     .maybeSingle();
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to update the product.");
+    throw new DataAccessError("DATABASE", "Produkt se nepodařilo aktualizovat. Zkuste to znovu.");
   }
 
   if (!data) {
-    throw new DataAccessError("NOT_FOUND", "Product not found in this workspace.");
+    throw new DataAccessError("NOT_FOUND", "Produkt nebyl v tomto pracovním prostoru nalezen.");
   }
 
   return mapProduct(data as ProductRow);
@@ -242,7 +242,7 @@ export async function deleteProductForWorkspace(
   const { workspaceId } = await requireWorkspaceRole(["team_leader", "administrator"], requestedWorkspaceId);
 
   if (!id.trim()) {
-    throw new DataAccessError("VALIDATION", "Product ID is required.");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID produktu.");
   }
 
   const supabase = await createDataClient();
@@ -253,12 +253,12 @@ export async function deleteProductForWorkspace(
     .eq("product_id", id);
 
   if (orderError) {
-    throw new DataAccessError("DATABASE", "Unable to verify product order history.");
+    throw new DataAccessError("DATABASE", "Historii objednávek produktu se nepodařilo ověřit.");
   }
   if ((orderCount || 0) > 0) {
     throw new DataAccessError(
       "VALIDATION",
-      "Product cannot be deleted while it is referenced by order history. Reassign those orders first."
+      "Produkt nelze smazat, dokud na něj odkazuje historie objednávek. Nejprve tyto objednávky přeřaďte."
     );
   }
 
@@ -271,9 +271,9 @@ export async function deleteProductForWorkspace(
     .maybeSingle();
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to delete the product.");
+    throw new DataAccessError("DATABASE", "Produkt se nepodařilo smazat. Zkuste to znovu.");
   }
   if (!data) {
-    throw new DataAccessError("NOT_FOUND", "Product not found in this workspace.");
+    throw new DataAccessError("NOT_FOUND", "Produkt nebyl v tomto pracovním prostoru nalezen.");
   }
 }

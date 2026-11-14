@@ -2,12 +2,12 @@ export type TelephonyAdapter = "simulation" | "local_sip" | "telnyx";
 export type SelectableTelephonyAdapter = Exclude<TelephonyAdapter, "simulation">;
 
 export const TELEPHONY_ADAPTER_LABELS: Record<TelephonyAdapter, string> = {
-  simulation: "Simulation",
-  local_sip: "Local SIP",
-  telnyx: "Telnyx adapter",
+  simulation: "Simulace",
+  local_sip: "Místní SIP",
+  telnyx: "Adaptér Telnyx",
 };
 
-export const TELNYX_BLOCKER_COPY = "Telnyx activation is currently blocked until the phone number is externally verified.";
+export const TELNYX_BLOCKER_COPY = "Aktivace Telnyxu je zablokována, dokud nebude telefonní číslo externě ověřeno.";
 
 export function isSelectableTelephonyAdapter(value: string): value is SelectableTelephonyAdapter {
   return value === "local_sip" || value === "telnyx";

@@ -50,9 +50,9 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
     setSuccessMessage(null);
     try {
       await onMutation(() => removeWorkspaceMemberAction(member.user_id));
-      setSuccessMessage("Člen workspace byl odebrán.");
+      setSuccessMessage("Člen pracovního prostoru byl odebrán.");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Člena workspace se nepodařilo odebrat.");
+      setErrorMessage(error instanceof Error ? error.message : "Člena pracovního prostoru se nepodařilo odebrat.");
     } finally {
       setBusyUserId(null);
     }
@@ -69,12 +69,12 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
                 <UserCog className="h-4 w-4" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-zinc-100">Členové workspace</h2>
-                <p className="mt-1 text-xs text-zinc-400">Správa rolí Operator, Team Leader a Administrator.</p>
+                <h2 className="text-xl font-semibold tracking-tight text-zinc-100">Členové pracovního prostoru</h2>
+                <p className="mt-1 text-xs text-zinc-400">Správa rolí operátor, vedoucí týmu a administrátor.</p>
               </div>
             </div>
             <p className="mt-5 max-w-2xl text-xs leading-relaxed text-zinc-500">
-              Správa rolí a členství v aktuálním workspace. Kompletní přehled pracovníků, pozvánky a přiřazení k prodejním linkám můžete spravovat v{" "}
+              Správa rolí a členství v aktuálním pracovním prostoru. Kompletní přehled pracovníků, pozvánky a přiřazení k prodejním linkám můžete spravovat v{" "}
               <a href="/admin/users" className="text-zinc-300 underline underline-offset-2 hover:text-zinc-100">
                 Centru správy uživatelů (/admin/users)
               </a>.
@@ -90,7 +90,7 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
 
       <Surface variant="table">
         <div className="border-b border-zinc-800/80 px-6 py-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Current workspace members</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">Současní členové pracovního prostoru</h2>
         </div>
         <div className="divide-y divide-zinc-800/70">
           {members.map((member) => {
@@ -114,7 +114,7 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
                     disabled={isBusy || isCurrentUser}
                     onChange={(event) => void changeRole(member.user_id, event.target.value as WorkspaceRole)}
                     className="w-32"
-                    aria-label={`Role for ${member.full_name || member.email}`}
+                    aria-label={`Role pro ${member.full_name || member.email}`}
                   >
                     {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{getWorkspaceRoleLabel(role)}</option>)}
                   </SelectField>
@@ -122,8 +122,8 @@ export function TeamMembersPanel({ members, currentUserId, onMutation }: TeamMem
                     variant="danger"
                     disabled={isBusy || isCurrentUser}
                     onClick={() => void removeMember(member)}
-                    title={isCurrentUser ? "You cannot remove yourself" : "Remove member"}
-                    aria-label={isCurrentUser ? "You cannot remove yourself" : `Remove ${member.full_name || member.email}`}
+                    title={isCurrentUser ? "Nemůžete odebrat vlastní účet" : "Odebrat člena"}
+                    aria-label={isCurrentUser ? "Nemůžete odebrat vlastní účet" : `Odebrat člena ${member.full_name || member.email}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

@@ -90,7 +90,7 @@ export function ProductScriptPanel({
   const scriptLoadError = activeSnapshot ? null : hasCurrentScriptResource ? scriptResource.error : null;
   const isLoadingScript = Boolean(currentProductId) && scriptStatus === "loading";
   const scriptHtml = activeSnapshot?.html || persistedHtml || (scriptStatus === "not_found" ? fallbackHtml : "");
-  const scriptTitle = activeSnapshot?.productTitle || product?.title || "Product Script";
+  const scriptTitle = activeSnapshot?.productTitle || product?.title || "Produktový skript";
   useEffect(() => {
     let cancelled = false;
     if (activeSnapshot) return () => {
@@ -118,7 +118,7 @@ export function ProductScriptPanel({
             productId,
             html: null,
             status: "error",
-            error: "The approved script is unavailable. No saved script is being shown.",
+            error: "Schválený skript není dostupný. Žádný uložený skript se nezobrazuje.",
           });
         }
       });
@@ -138,24 +138,24 @@ export function ProductScriptPanel({
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h2 id="product-script-title" className="text-sm font-semibold text-zinc-100">Product Script</h2>
+              <h2 id="product-script-title" className="text-sm font-semibold text-zinc-100">Produktový skript</h2>
               <StatusBadge tone="neutral">
-                Continuous script
+                Souvislý skript
               </StatusBadge>
             </div>
-            <p className="text-xs text-zinc-300">{scriptTitle} · read top to bottom</p>
+            <p className="text-xs text-zinc-300">{scriptTitle} · čtěte shora dolů</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge tone="neutral">
-            {isCallActive ? "Active" : "Ready"}
+            {isCallActive ? "Aktivní" : "Připraveno"}
           </StatusBadge>
           {isExpanded && onOpenObjections && (
             <Button
               variant="secondary"
               onClick={onOpenObjections}
-              aria-label="Open objection catalog"
-              title="Open objection catalog"
+              aria-label="Otevřít katalog námitek"
+              title="Otevřít katalog námitek"
             >
               <ShieldAlert className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
               Katalog námitek
@@ -165,11 +165,11 @@ export function ProductScriptPanel({
             <Button
               variant="secondary"
               onClick={onToggleExpand}
-              aria-label={isExpanded ? "Collapse script" : "Expand script"}
-              title={isExpanded ? "Collapse script" : "Expand script"}
+              aria-label={isExpanded ? "Sbalit skript" : "Rozbalit skript"}
+              title={isExpanded ? "Sbalit skript" : "Rozbalit skript"}
             >
               {isExpanded ? <Minimize2 className="h-3.5 w-3.5" aria-hidden="true" /> : <Maximize2 className="h-3.5 w-3.5" aria-hidden="true" />}
-              {isExpanded ? "Collapse" : "Expand"}
+              {isExpanded ? "Sbalit" : "Rozbalit"}
             </Button>
           )}
         </div>
@@ -177,19 +177,19 @@ export function ProductScriptPanel({
 
       {activeSnapshot?.source === "published_version" && (
         <StatusAlert tone="success" className="w-full">
-          Version {activeSnapshot.versionNumber} captured for this call
+          Pro tento hovor byla zachycena verze {activeSnapshot.versionNumber}
         </StatusAlert>
       )}
       {activeSnapshot?.source === "built_in_fallback" && (
-        <StatusAlert tone="neutral" className="w-full">Built-in fallback captured for this call</StatusAlert>
+        <StatusAlert tone="neutral" className="w-full">Pro tento hovor byla zachycena vestavěná náhradní verze</StatusAlert>
       )}
       {activeSnapshot?.source === "unavailable" && (
-        <StatusAlert tone="warning" className="w-full">No script was captured for this call.</StatusAlert>
+        <StatusAlert tone="warning" className="w-full">Pro tento hovor nebyl zachycen žádný skript.</StatusAlert>
       )}
 
       {scriptLoadError && <StatusAlert tone="warning" className="w-full">{scriptLoadError}</StatusAlert>}
-      {scriptStatus === "not_found" && <StatusAlert tone="neutral" className="w-full">No saved script for this product — showing the built-in fallback.</StatusAlert>}
-      {isLoadingScript && <p className="text-[11px] text-zinc-400">Checking for the latest approved script…</p>}
+      {scriptStatus === "not_found" && <StatusAlert tone="neutral" className="w-full">Pro tento produkt není uložený skript — zobrazuje se vestavěná náhradní verze.</StatusAlert>}
+      {isLoadingScript && <p className="text-[11px] text-zinc-400">Kontrola nejnovějšího schváleného skriptu…</p>}
 
       {scriptStatus !== "error" && (
         <Surface variant="inset" className="w-full flex-1 min-h-0">
@@ -207,8 +207,8 @@ export function ProductScriptPanel({
           <div className="flex items-center gap-2">
             <CircleHelp className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
             <div>
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Discovery questions</h3>
-              <p className="mt-0.5 text-[10px] text-zinc-500">Ask while you listen — in this order</p>
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Zjišťovací otázky</h3>
+              <p className="mt-0.5 text-[10px] text-zinc-500">Ptejte se při naslouchání — v tomto pořadí</p>
             </div>
           </div>
           <ol className="mt-2 space-y-1.5">
@@ -264,7 +264,7 @@ export function ProductScriptPanel({
             <div className="mt-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 p-3 text-xs text-zinc-300">
               <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 text-xs font-medium text-zinc-200">
                 <span>{activeQuickObjection.title}</span>
-                <span className="rounded bg-zinc-800 border border-zinc-700/60 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-400">Battle-card</span>
+                <span className="rounded bg-zinc-800 border border-zinc-700/60 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-400">Tahák</span>
               </div>
               <p className="mt-2 leading-relaxed text-zinc-200">
                 {activeQuickObjection.response}

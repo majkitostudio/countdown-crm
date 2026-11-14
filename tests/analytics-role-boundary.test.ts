@@ -183,7 +183,7 @@ describe("analytics server role boundary", () => {
 
     const result = await getAnalyticsData("workspace-1");
 
-    expect(result).toMatchObject({ scope: "workspace", scopeLabel: "Celý workspace" });
+    expect(result).toMatchObject({ scope: "workspace", scopeLabel: "Celý pracovní prostor" });
     expect(result.accessibleTeams).toHaveLength(2);
     expect(client.filtersByTable.orders?.some((filter) => filter.startsWith("team_id in"))).toBe(false);
     expect(client.filtersByTable.calls?.some((filter) => filter.startsWith("team_id in"))).toBe(false);

@@ -146,7 +146,7 @@ describe("operator Conversation Brief", () => {
 
     const brief = await getConversationBriefForWorkspace("lead-1");
 
-    expect(brief.queue_reason).toBe("Scheduled call");
+    expect(brief.queue_reason).toBe("Naplánovaný hovor");
     expect(from).not.toHaveBeenCalledWith("lead_queue_events");
   });
 
@@ -224,11 +224,11 @@ describe("operator Conversation Brief", () => {
     });
     expect(brief.sources.note).toEqual({
       state: "unavailable",
-      message: "Customer notes are unavailable.",
+      message: "Poznámky zákazníka nejsou dostupné.",
     });
     expect(brief.sources.product_scripts).toEqual({
       state: "unavailable",
-      message: "Approved product guidance is unavailable.",
+      message: "Schválené produktové pokyny nejsou dostupné.",
     });
     expect(brief.next_safe_step.kind).toBe("verify_script_before_call");
   });
@@ -245,11 +245,11 @@ describe("operator Conversation Brief", () => {
     expect(brief.scheduledCall).toBeNull();
     expect(brief.sources.call).toEqual({
       state: "unavailable",
-      message: "Call history is unavailable.",
+      message: "Historie hovorů není dostupná.",
     });
     expect(brief.sources.scheduledCall).toEqual({
       state: "unavailable",
-      message: "Schedule history is unavailable.",
+      message: "Historie naplánovaných hovorů není dostupná.",
     });
   });
 
@@ -277,10 +277,10 @@ describe("operator Conversation Brief", () => {
       }),
     );
 
-    expect(html).toContain("Call context");
+    expect(html).toContain("Kontext hovoru");
     expect(html).toContain("Hledá šetrné řešení pro bolest kloubů.");
-    expect(html).toContain("Customer notes are unavailable.");
-    expect(html).toContain("Review the approved script, then start the call.");
-    expect(html).not.toMatch(/\bAI\b|predicted|recommended by model|invented urgency/i);
+    expect(html).toContain("Poznámky zákazníka nejsou dostupné.");
+    expect(html).toContain("Projděte schválený scénář a poté zahajte hovor.");
+    expect(html).not.toMatch(/\bAI\b|předpovězen|doporučeno modelem|vymyšlená naléhavost/i);
   });
 });

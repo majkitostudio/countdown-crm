@@ -103,7 +103,7 @@ export async function resolveCallScriptSnapshot(
     };
   }
   if (!productId.trim()) {
-    throw new DataAccessError("VALIDATION", "Product ID is required when a call script is shown.");
+    throw new DataAccessError("VALIDATION", "Pro zobrazení skriptu hovoru je vyžadováno ID produktu.");
   }
 
   const supabase = await createDataClient();
@@ -115,10 +115,10 @@ export async function resolveCallScriptSnapshot(
     .maybeSingle();
 
   if (productError) {
-    throw new DataAccessError("DATABASE", "Unable to verify the call script product.");
+    throw new DataAccessError("DATABASE", "Produkt skriptu hovoru se nepodařilo ověřit.");
   }
   if (!productData) {
-    throw new DataAccessError("NOT_FOUND", "Product is not available in this workspace.");
+    throw new DataAccessError("NOT_FOUND", "Produkt není v tomto pracovním prostoru dostupný.");
   }
 
   const product = mapScriptProduct(productData as ProductRow);
@@ -131,7 +131,7 @@ export async function resolveCallScriptSnapshot(
     .maybeSingle();
 
   if (versionError) {
-    throw new DataAccessError("DATABASE", "Unable to load the published call script.");
+    throw new DataAccessError("DATABASE", "Publikovaný skript hovoru se nepodařilo načíst.");
   }
 
   if (versionData) {
@@ -139,7 +139,7 @@ export async function resolveCallScriptSnapshot(
     try {
       html = validateScriptHtml(versionData.content_html);
     } catch {
-      throw new DataAccessError("DATABASE", "The published call script contains invalid content.");
+      throw new DataAccessError("DATABASE", "Publikovaný skript hovoru obsahuje neplatný obsah.");
     }
     return {
       source: "published_version",
@@ -175,7 +175,7 @@ export async function listProductScriptsForWorkspace(
     .order("updated_at", { ascending: false });
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to load product scripts.");
+    throw new DataAccessError("DATABASE", "Produktové skripty se nepodařilo načíst.");
   }
 
   return ((data || []) as ProductScriptRow[]).map(mapProductScript);
@@ -187,7 +187,7 @@ export async function getProductScriptForWorkspace(
 ): Promise<ProductScriptDTO | null> {
   const { workspaceId } = await requireWorkspaceContext(requestedWorkspaceId);
   if (!productId.trim()) {
-    throw new DataAccessError("VALIDATION", "Product ID is required.");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID produktu.");
   }
 
   const supabase = await createDataClient();
@@ -199,7 +199,7 @@ export async function getProductScriptForWorkspace(
     .maybeSingle();
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to load the product script.");
+    throw new DataAccessError("DATABASE", "Produktový skript se nepodařilo načíst.");
   }
 
   return data ? mapProductScript(data as ProductScriptRow) : null;
@@ -217,7 +217,7 @@ export async function listProductScriptVersionsForWorkspace(
     .order("version_number", { ascending: false });
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Unable to load product script versions.");
+    throw new DataAccessError("DATABASE", "Verze produktových skriptů se nepodařilo načíst.");
   }
 
   return ((data || []) as ProductScriptVersionRow[]).map(mapProductScriptVersion);
@@ -230,7 +230,7 @@ export async function createProductScriptDraftForWorkspace(
 ): Promise<ProductScriptVersionDTO> {
   const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
   if (!productId.trim()) {
-    throw new DataAccessError("VALIDATION", "Product ID is required.");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID produktu.");
   }
 
   let sanitizedHtml: string;
@@ -239,7 +239,7 @@ export async function createProductScriptDraftForWorkspace(
   } catch {
     throw new DataAccessError(
       "VALIDATION",
-      "Script content must be between 1 and 100,000 safe HTML characters.",
+      "Obsah skriptu musí mít 1 až 100 000 znaků bezpečného HTML.",
     );
   }
 
@@ -253,7 +253,7 @@ export async function createProductScriptDraftForWorkspace(
     .single();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Unable to save the product script draft.");
+    throw new DataAccessError("DATABASE", "Koncept produktového skriptu se nepodařilo uložit. Zkuste to znovu.");
   }
 
   return mapProductScriptVersion(data as ProductScriptVersionRow);
@@ -265,7 +265,7 @@ export async function publishProductScriptVersionForWorkspace(
 ): Promise<ProductScriptVersionDTO> {
   const context = await requireWorkspaceRole(["administrator"], requestedWorkspaceId);
   if (!versionId.trim()) {
-    throw new DataAccessError("VALIDATION", "Version ID is required.");
+    throw new DataAccessError("VALIDATION", "Je vyžadováno ID verze.");
   }
 
   const supabase = await createDataClient();
@@ -277,10 +277,10 @@ export async function publishProductScriptVersionForWorkspace(
     .maybeSingle();
 
   if (versionError) {
-    throw new DataAccessError("DATABASE", "Unable to verify the product script version.");
+    throw new DataAccessError("DATABASE", "Verzi produktového skriptu se nepodařilo ověřit.");
   }
   if (!version) {
-    throw new DataAccessError("NOT_FOUND", "Product script version not found in this workspace.");
+    throw new DataAccessError("NOT_FOUND", "Verze produktového skriptu nebyla v tomto pracovním prostoru nalezena.");
   }
 
   const { data, error } = await supabase
@@ -288,7 +288,7 @@ export async function publishProductScriptVersionForWorkspace(
     .single();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Unable to publish the product script version.");
+    throw new DataAccessError("DATABASE", "Verzi produktového skriptu se nepodařilo publikovat. Zkuste to znovu.");
   }
 
   return mapProductScriptVersion(data as ProductScriptVersionRow);

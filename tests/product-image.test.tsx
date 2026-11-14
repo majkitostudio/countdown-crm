@@ -27,7 +27,7 @@ describe("ProductImage", () => {
 
     expect(html).not.toContain("<img");
     expect(html).toContain('role="img"');
-    expect(html).toContain("Example product: no product image");
+    expect(html).toContain("Example product: bez obrázku produktu");
     expect(html).toContain("No product image");
   });
 
@@ -62,7 +62,7 @@ describe("ProductImage", () => {
     });
 
     expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector('[role="img"]')?.getAttribute("aria-label")).toBe("Example product: no product image");
+    expect(container.querySelector('[role="img"]')?.getAttribute("aria-label")).toBe("Example product: bez obrázku produktu");
     expect(container.textContent).toContain("No product image");
   });
 });

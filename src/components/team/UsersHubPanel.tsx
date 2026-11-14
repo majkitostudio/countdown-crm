@@ -178,7 +178,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
 
         <Surface variant="inset" className="p-4">
           <div className="flex items-center justify-between text-zinc-400">
-            <span className="text-xs font-medium">Team Leadeři</span>
+            <span className="text-xs font-medium">Vedoucí týmů</span>
             <UserCheck className="h-4 w-4 text-sky-400" />
           </div>
           <div className="mt-2 text-2xl font-bold tracking-tight text-sky-400">{leaderCount}</div>
@@ -252,7 +252,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
             >
               <option value="all">Všechny role</option>
               <option value="operator">Pouze Operátoři</option>
-              <option value="team_leader">Pouze Team Leadeři</option>
+              <option value="team_leader">Pouze vedoucí týmů</option>
               <option value="administrator">Pouze Administrátoři</option>
             </select>
 
@@ -329,7 +329,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
                         } ${isCurrentUser ? "cursor-not-allowed opacity-80" : ""}`}
                       >
                         <option value="operator">Operátor</option>
-                        <option value="team_leader">Team Leader</option>
+                        <option value="team_leader">Vedoucí týmu</option>
                         <option value="administrator">Administrátor</option>
                       </select>
                     </div>

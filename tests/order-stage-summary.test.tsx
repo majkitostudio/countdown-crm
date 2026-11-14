@@ -44,13 +44,13 @@ describe("OrderStageSummary", () => {
     );
 
     expect(markup).toContain('data-testid="order-stage-summary"');
-    expect(markup).toContain("Total");
-    expect(markup).toContain("Processing");
-    expect(markup).toContain("Awaiting Pickup");
-    expect(markup).toContain("Delivered");
-    expect(markup).toContain("Returned");
-    expect(markup).toContain("Canceled");
-    expect(markup).toContain("Warning");
-    expect(markup).toContain("Alarm");
+    expect(markup).toContain("Celkem");
+    expect(markup).toContain("Zpracovává se");
+    expect(markup).toContain("Čeká na vyzvednutí");
+    expect(markup).toContain("Doručeno");
+    expect(markup).toContain("Vráceno");
+    expect(markup).toContain("Zrušeno");
+    expect(markup).toContain("Upozornění");
+    expect(markup).toContain("Výstraha");
   });
 });

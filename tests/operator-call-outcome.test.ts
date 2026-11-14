@@ -7,7 +7,7 @@ import {
 
 describe("post-call outcome selection", () => {
   it("labels schedule outcome as Schedule instead of Callback", () => {
-    expect(getCallOutcomeLabel("schedule")).toBe("Schedule");
+    expect(getCallOutcomeLabel("schedule")).toBe("Naplánovat hovor");
   });
 
   it("keeps selection local and allows exactly one selected value", () => {

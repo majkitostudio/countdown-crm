@@ -77,7 +77,7 @@ async function loadWalletSettings(
     .maybeSingle();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Wallet settings could not be loaded.");
+    throw new DataAccessError("DATABASE", "Nastavení peněženky se nepodařilo načíst.");
   }
   return data as WalletSettingsRow;
 }
@@ -99,7 +99,7 @@ async function loadWalletRules(
     .order("minimum_order_amount", { ascending: false });
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Wallet bonus rules could not be loaded.");
+    throw new DataAccessError("DATABASE", "Bonusová pravidla peněženky se nepodařilo načíst.");
   }
 
   return (data || []) as WalletBonusRuleRow[];
@@ -144,7 +144,7 @@ async function loadWalletTransactions(
   const { data, error } = await query;
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Wallet transactions could not be loaded.");
+    throw new DataAccessError("DATABASE", "Transakce peněženky se nepodařilo načíst.");
   }
 
   return (data || []) as WalletTransactionRow[];
@@ -178,7 +178,7 @@ async function loadWalletBalances(
   const { data, error } = await supabase.rpc("get_wallet_balances", { p_workspace_id: workspaceId } as never);
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Wallet balances could not be loaded.");
+    throw new DataAccessError("DATABASE", "Zůstatky peněženky se nepodařilo načíst.");
   }
 
   return (data || []) as Array<Record<string, unknown>>;
@@ -232,15 +232,15 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
   ]);
 
   const settings = canManage
-    ? resolveSettledSection(settingsResult, "Wallet settings could not be loaded.")
+    ? resolveSettledSection(settingsResult, "Nastavení peněženky se nepodařilo načíst.")
     : { data: null, section: notApplicableSection() };
   const rules = canManage
-    ? resolveSettledSection(rulesResult, "Wallet bonus rules could not be loaded.")
+    ? resolveSettledSection(rulesResult, "Bonusová pravidla peněženky se nepodařilo načíst.")
     : { data: [], section: notApplicableSection() };
-  const transactions = resolveSettledSection(transactionsResult, "Wallet transactions could not be loaded.");
-  const balances = resolveSettledSection(balancesResult, "Wallet balances could not be loaded.");
+  const transactions = resolveSettledSection(transactionsResult, "Transakce peněženky se nepodařilo načíst.");
+  const balances = resolveSettledSection(balancesResult, "Zůstatky peněženky se nepodařilo načíst.");
   const members = canManage
-    ? resolveSettledSection(membersResult, "Workspace operators could not be loaded.")
+    ? resolveSettledSection(membersResult, "Operátory pracovního prostoru se nepodařilo načíst.")
     : { data: [], section: notApplicableSection() };
 
   const rawTransactions = transactions.data || [];
@@ -261,12 +261,12 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
         .in("id", userIds);
 
       if (profilesError) {
-        profilesSection = { state: "unavailable", message: "Wallet member names could not be loaded." };
+        profilesSection = { state: "unavailable", message: "Jména členů v peněžence se nepodařilo načíst." };
       } else {
-        profileNames = new Map((profiles || []).map((profile) => [profile.id, profile.full_name?.trim() || "Unknown user"]));
+        profileNames = new Map((profiles || []).map((profile) => [profile.id, profile.full_name?.trim() || "Neznámý uživatel"]));
       }
     } catch {
-      profilesSection = { state: "unavailable", message: "Wallet member names could not be loaded." };
+      profilesSection = { state: "unavailable", message: "Jména členů v peněžence se nepodařilo načíst." };
     }
   }
 
@@ -276,7 +276,7 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
     balance: numberValue(balance.balance),
     total_credits: numberValue(balance.total_credits),
     total_debits: numberValue(balance.total_debits),
-    user_name: profileNames.get(String(balance.user_id)) || "Unknown user",
+    user_name: profileNames.get(String(balance.user_id)) || "Neznámý uživatel",
   }));
 
   return {
@@ -285,7 +285,7 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
     transactions: rawTransactions.map((transaction) => ({
       ...transaction,
       amount: numberValue(transaction.amount),
-      user_name: profileNames.get(transaction.user_id) || "Unknown user",
+      user_name: profileNames.get(transaction.user_id) || "Neznámý uživatel",
     })),
     balances: normalizedBalances,
     members: members.data || [],
@@ -304,7 +304,7 @@ export async function getWalletOverview(): Promise<WalletOverviewDTO> {
 
 function validateCurrency(currency: string): asserts currency is WalletCurrency {
   if (!(["CZK", "EUR", "PLN"] as string[]).includes(currency)) {
-    throw new DataAccessError("VALIDATION", "Unsupported wallet currency.");
+    throw new DataAccessError("VALIDATION", "Měna peněženky není podporována. Zvolte CZK, EUR nebo PLN.");
   }
 }
 
@@ -315,7 +315,7 @@ export async function updateWalletSettings(input: {
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   validateCurrency(input.currency);
   if (!Number.isFinite(input.monthlyCommissionRate) || input.monthlyCommissionRate < 0 || input.monthlyCommissionRate > 100) {
-    throw new DataAccessError("VALIDATION", "Monthly commission rate must be between 0 and 100.");
+    throw new DataAccessError("VALIDATION", "Zadejte měsíční sazbu provize od 0 do 100 %.");
   }
 
   const supabase = await createDataClient();
@@ -324,7 +324,7 @@ export async function updateWalletSettings(input: {
     p_currency: input.currency,
     p_monthly_commission_rate: input.monthlyCommissionRate,
   } as never);
-  if (error || !data) throw new DataAccessError("DATABASE", "Wallet settings could not be saved.");
+  if (error || !data) throw new DataAccessError("DATABASE", "Nastavení peněženky se nepodařilo uložit.");
   return (Array.isArray(data) ? data[0] : data) as WalletSettingsRow;
 }
 
@@ -337,10 +337,10 @@ export async function addWalletBonusRule(input: {
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   validateCurrency(input.currency);
   if (!Number.isFinite(input.minimumOrderAmount) || input.minimumOrderAmount <= 0 || !Number.isFinite(input.bonusAmount) || input.bonusAmount <= 0) {
-    throw new DataAccessError("VALIDATION", "Order threshold and bonus must be positive.");
+    throw new DataAccessError("VALIDATION", "Zadejte kladný práh objednávky a kladný bonus.");
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.effectiveFrom)) {
-    throw new DataAccessError("VALIDATION", "A valid effective date is required.");
+    throw new DataAccessError("VALIDATION", "Zadejte platné datum účinnosti ve formátu RRRR-MM-DD.");
   }
 
   const supabase = await createDataClient();
@@ -351,7 +351,7 @@ export async function addWalletBonusRule(input: {
     p_bonus_amount: input.bonusAmount,
     p_effective_from: input.effectiveFrom,
   } as never);
-  if (error || !data) throw new DataAccessError("DATABASE", "Bonus rule could not be saved.");
+  if (error || !data) throw new DataAccessError("DATABASE", "Bonusové pravidlo se nepodařilo uložit.");
   return (Array.isArray(data) ? data[0] : data) as WalletBonusRuleRow;
 }
 
@@ -362,10 +362,10 @@ export async function addWalletManualAdjustment(input: {
 }): Promise<WalletTransactionRow> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   if (!input.userId.trim() || !Number.isFinite(input.amount) || input.amount === 0 || Math.abs(input.amount) > 1_000_000_000) {
-    throw new DataAccessError("VALIDATION", "Adjustment must be non-zero and within the allowed range.");
+    throw new DataAccessError("VALIDATION", "Vyberte uživatele a zadejte nenulovou úpravu v rozsahu −1 000 000 000 až 1 000 000 000.");
   }
   if (!input.reason.trim() || input.reason.trim().length > 500) {
-    throw new DataAccessError("VALIDATION", "A reason between 1 and 500 characters is required.");
+    throw new DataAccessError("VALIDATION", "Zadejte důvod v délce 1 až 500 znaků.");
   }
 
   const supabase = await createDataClient();
@@ -375,7 +375,7 @@ export async function addWalletManualAdjustment(input: {
     p_amount: input.amount,
     p_reason: input.reason.trim(),
   } as never);
-  if (error || !data) throw new DataAccessError("DATABASE", "Wallet adjustment could not be saved.");
+  if (error || !data) throw new DataAccessError("DATABASE", "Úpravu peněženky se nepodařilo uložit.");
   return (Array.isArray(data) ? data[0] : data) as WalletTransactionRow;
 }
 
@@ -449,10 +449,10 @@ export async function finalizeWalletMonthlyCommission(input: {
 }): Promise<WalletTransactionRow | null> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   if (!input.userId?.trim()) {
-    throw new DataAccessError("VALIDATION", "User ID is required.");
+    throw new DataAccessError("VALIDATION", "Vyberte uživatele.");
   }
   if (!/^\d{4}-\d{2}-01$/.test(input.periodStart)) {
-    throw new DataAccessError("VALIDATION", "Period start must be the first day of the month (YYYY-MM-01).");
+    throw new DataAccessError("VALIDATION", "Začátek období musí být první den měsíce ve formátu RRRR-MM-01.");
   }
 
   const supabase = await createDataClient();
@@ -463,7 +463,7 @@ export async function finalizeWalletMonthlyCommission(input: {
   } as never);
 
   if (error) {
-    throw new DataAccessError("DATABASE", error.message || "Monthly commission could not be finalized.");
+    throw new DataAccessError("DATABASE", error.message || "Měsíční provizi se nepodařilo uzavřít.");
   }
   return data as WalletTransactionRow | null;
 }
@@ -484,7 +484,7 @@ export async function finalizeWorkspaceMonthlySettlement(input: {
 }> {
   const context = await requireWorkspaceRole(["team_leader", "administrator"]);
   if (!/^\d{4}-\d{2}-01$/.test(input.periodStart)) {
-    throw new DataAccessError("VALIDATION", "Period start must be the first day of the month (YYYY-MM-01).");
+    throw new DataAccessError("VALIDATION", "Začátek období musí být první den měsíce ve formátu RRRR-MM-01.");
   }
 
   const supabase = await createDataClient();
@@ -494,7 +494,7 @@ export async function finalizeWorkspaceMonthlySettlement(input: {
   } as never);
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", error?.message || "Monthly workspace settlement could not be completed.");
+    throw new DataAccessError("DATABASE", error?.message || "Měsíční uzávěrku pracovního prostoru se nepodařilo dokončit.");
   }
   return data as {
     period_start: string;
@@ -601,7 +601,7 @@ export async function getMonthlySettlementSummary(input?: {
         .lt("delivered_at", pEndIso)
         .order("id", { ascending: true })
         .range(from, to),
-      "Monthly settlement orders could not be loaded.",
+      "Objednávky pro měsíční uzávěrku se nepodařilo načíst.",
     ),
     loadMonthlySettlementPages(
       (from, to) => supabase
@@ -613,7 +613,7 @@ export async function getMonthlySettlementSummary(input?: {
         .lt("returned_at", pEndIso)
         .order("id", { ascending: true })
         .range(from, to),
-      "Monthly settlement orders could not be loaded.",
+      "Objednávky pro měsíční uzávěrku se nepodařilo načíst.",
     ),
     loadMonthlySettlementPages(
       (from, to) => supabase
@@ -624,7 +624,7 @@ export async function getMonthlySettlementSummary(input?: {
         .eq("source_period_start", periodStart)
         .order("id", { ascending: true })
         .range(from, to),
-      "Finalized commission transactions could not be loaded.",
+      "Transakce uzavřených provizí se nepodařilo načíst.",
     ),
     loadMonthlySettlementPages(
       (from, to) => supabase
@@ -637,7 +637,7 @@ export async function getMonthlySettlementSummary(input?: {
         .order("created_at", { ascending: true })
         .order("id", { ascending: true })
         .range(from, to),
-      "Monthly bonus transactions could not be loaded.",
+      "Transakce měsíčních bonusů se nepodařilo načíst.",
     ),
   ]);
 
@@ -664,7 +664,7 @@ export async function getMonthlySettlementSummary(input?: {
   if (hasMismatchedOrderCurrency) {
     throw new DataAccessError(
       "VALIDATION",
-      "Monthly settlement contains orders in another currency.",
+      "Měsíční uzávěrka obsahuje objednávky v jiné měně.",
     );
   }
 
@@ -675,7 +675,7 @@ export async function getMonthlySettlementSummary(input?: {
   if (hasMismatchedLedgerCurrency) {
     throw new DataAccessError(
       "VALIDATION",
-      "Monthly settlement contains wallet entries in another currency.",
+      "Měsíční uzávěrka obsahuje záznamy peněženky v jiné měně.",
     );
   }
 

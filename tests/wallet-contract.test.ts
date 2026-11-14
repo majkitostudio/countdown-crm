@@ -58,15 +58,15 @@ describe("user wallet MVP contract", () => {
     expect(walletDal).toContain("Promise.allSettled");
     expect(walletDal).toContain("add_wallet_manual_adjustment");
     expect(walletPage).toContain("getWalletOverview");
-    expect(walletPage).toContain("No wallet transactions yet");
+    expect(walletPage).toContain("Zatím žádné transakce v peněžence");
     expect(walletPage).toContain("state === \"unavailable\"");
-    expect(walletPage).toContain("Derived from posted ledger transactions");
+    expect(walletPage).toContain("Odvozeno z zaúčtovaných transakcí deníku");
     expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
     expect(workspaceSettingsPanel).toContain('WalletManagerPanel mode="settings"');
     expect(workspaceSettingsPanel).toContain('data-testid="wallet-settings-boundary"');
     expect(workspaceSettingsPanel).toContain('walletOverview.sections.settings.state');
     expect(workspaceSettingsPanel).toContain('walletOverview.sections.rules.state');
-    expect(workspaceSettingsPanel).toContain("Wallet bonus rules unavailable");
+    expect(workspaceSettingsPanel).toContain("Bonusová pravidla peněženky nejsou dostupná");
     expect(settingsPage).not.toContain('WalletManagerPanel mode="settings"');
     expect(rlsMigration).toContain("Workspace managers can view wallet settings");
     expect(rlsMigration).toContain("Workspace managers can view wallet bonus rules");

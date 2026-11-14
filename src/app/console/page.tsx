@@ -195,7 +195,7 @@ function WorkspaceContent() {
       })));
     } catch (error) {
       setScheduledCalls([]);
-      setScheduledCallInboxError(error instanceof Error ? error.message : "Schedule inbox could not be loaded.");
+      setScheduledCallInboxError(error instanceof Error ? error.message : "Naplánované hovory se nepodařilo načíst.");
     } finally {
       setIsScheduledCallsLoading(false);
     }
@@ -209,7 +209,7 @@ function WorkspaceContent() {
     setAssistancePending(true);
     try {
       await requestAssistanceAction({ queueItemId: activeQueueItemId, requestType });
-      setNotificationToast(requestType === "sos" ? "SOS signál byl odeslán Team Leaderovi." : "Žádost o pomoc byla odeslána Team Leaderovi.");
+      setNotificationToast(requestType === "sos" ? "SOS signál byl odeslán vedoucímu týmu." : "Žádost o pomoc byla odeslána vedoucímu týmu.");
     } catch (error) {
       setAssistancePending(false);
       setNotificationToast(error instanceof Error ? error.message : "Žádost o pomoc se nepodařilo odeslat.");
@@ -237,7 +237,7 @@ function WorkspaceContent() {
       setAssistancePending(false);
       await refreshScheduledCallInbox();
     } catch (error) {
-      setNotificationToast(error instanceof Error ? error.message : "The operator assignment could not be refreshed.");
+      setNotificationToast(error instanceof Error ? error.message : "Přiřazení operátora se nepodařilo obnovit.");
     } finally {
       setIsAssignmentRefreshing(false);
     }
@@ -383,7 +383,7 @@ function WorkspaceContent() {
       } catch (error) {
         if (!cancelled) {
           setLeadNotes([]);
-          setNotificationToast(error instanceof Error ? error.message : "Lead notes could not be loaded.");
+          setNotificationToast(error instanceof Error ? error.message : "Poznámky k leadu se nepodařily načíst.");
         }
       }
     }
@@ -413,7 +413,7 @@ function WorkspaceContent() {
       } catch (error) {
         if (!cancelled) {
           setConversationBrief(null);
-          setConversationBriefError(error instanceof Error ? error.message : "Conversation Brief could not be loaded.");
+          setConversationBriefError(error instanceof Error ? error.message : "Přehled konverzace se nepodařil načíst.");
         }
       } finally {
         if (!cancelled) setIsConversationBriefLoading(false);
@@ -437,7 +437,7 @@ function WorkspaceContent() {
           if (result === null) stopped = true;
         })
         .catch((error) => {
-          setNotificationToast(error instanceof Error ? error.message : "Lead assignment heartbeat failed.");
+          setNotificationToast(error instanceof Error ? error.message : "Pravidelné potvrzení přiřazení leadu selhalo.");
         });
     };
 
@@ -457,7 +457,7 @@ function WorkspaceContent() {
       setLoadError(null);
       try {
         if (!identity) {
-          throw new Error("Authenticated workspace role is unavailable");
+          throw new Error("Autentizovaná role pracovního prostoru není dostupná");
         }
 
         if (identity.role === "operator") {
@@ -500,7 +500,7 @@ function WorkspaceContent() {
           setActiveLead(fetchedLeads[0]);
         }
       } catch (error) {
-        setLoadError(error instanceof Error ? error.message : "Workspace data could not be loaded");
+        setLoadError(error instanceof Error ? error.message : "Data pracovního prostoru se nepodařila načíst");
       }
       setIsLoading(false);
     }
@@ -537,7 +537,7 @@ function WorkspaceContent() {
     try {
       if (identity?.role === "operator") {
         if (!queueItemId) {
-          throw new Error("No active server assignment is available for call completion");
+          throw new Error("Pro dokončení hovoru není dostupné aktivní serverové přiřazení");
         }
 
         const queueOutcome = outcome === "objection_handled" ? "objection" : outcome;
@@ -665,8 +665,8 @@ function WorkspaceContent() {
       });
       setNotificationToast(
         error instanceof Error
-          ? `Call completion failed: ${error.message}`
-          : "Call completion failed. No successful summary was recorded."
+          ? `Dokončení hovoru selhalo: ${error.message}`
+          : "Dokončení hovoru selhalo. Nebyl zaznamenán žádný úspěšný souhrn."
       );
       return null;
     } finally {
@@ -708,13 +708,13 @@ function WorkspaceContent() {
       if (identity?.role === "operator" && activeQueueItemId) {
         void abortLeadCallStartAction(activeQueueItemId, "Operator cancelled call start")
           .then((assignment) => setAssignmentState(assignment.assignment_state))
-          .catch((error) => setNotificationToast(error instanceof Error ? error.message : "Call start recovery failed."));
+          .catch((error) => setNotificationToast(error instanceof Error ? error.message : "Obnova zahájení hovoru selhala."));
       }
       return;
     }
 
     if (isAwaitingOutcome) {
-      setNotificationToast("Choose the post-call outcome before starting another call.");
+      setNotificationToast("Před zahájením dalšího hovoru zvolte výsledek po hovoru.");
       return;
     }
 
@@ -737,7 +737,7 @@ function WorkspaceContent() {
             setNotificationToast(null);
           })
           .catch((error) => {
-            setNotificationToast(error instanceof Error ? `Call could not be ended safely: ${error.message}` : "Call could not be ended safely.");
+            setNotificationToast(error instanceof Error ? `Hovor se nepodařilo bezpečně ukončit: ${error.message}` : "Hovor se nepodařilo bezpečně ukončit.");
           })
           .finally(() => setIsEndCallPending(false));
         return;
@@ -748,23 +748,23 @@ function WorkspaceContent() {
     } else {
       // Start Outbound Call
       if (!activeLead) {
-        setNotificationToast("Select a lead before starting a call.");
+        setNotificationToast("Před zahájením hovoru vyberte lead.");
         return;
       }
 
       if (identity?.role === "operator") {
         if (!activeQueueItemId) {
-          setNotificationToast("No active server assignment is available for this call.");
+          setNotificationToast("Pro tento hovor není dostupné žádné aktivní serverové přiřazení.");
           return;
         }
         if (assignmentState !== "assigned") {
-          setNotificationToast("The server assignment requires recovery before another call can start.");
+          setNotificationToast("Serverové přiřazení vyžaduje obnovu před zahájením dalšího hovoru.");
           return;
         }
 
         if (callStartPendingRef.current) return;
         if (callStartRecoveryRef.current) {
-          setNotificationToast("Call start recovery is still in progress. Wait for it to finish or reload the workspace.");
+          setNotificationToast("Obnova zahájení hovoru stále probíhá. Počkejte na její dokončení nebo znovu načtěte pracovní prostor.");
           return;
         }
         setCallEndedInSession(false);
@@ -782,7 +782,7 @@ function WorkspaceContent() {
             );
             queueCallStarted = true;
             if (startedAssignment.assignment_state !== "in_progress") {
-              throw new Error("Server did not activate the lead assignment");
+              throw new Error("Server neaktivoval přiřazení leadu");
             }
             setActiveLead(startedAssignment.lead);
             setLeads([startedAssignment.lead]);
@@ -799,9 +799,9 @@ function WorkspaceContent() {
                 { queueItemId: activeQueueItemId, productId: products[0]?.id || null },
               ),
               CALL_START_SERVER_TIMEOUT_MS,
-              "Audio initialization timed out",
+              "Vypršel čas pro spuštění zvuku",
             );
-            if (!audioReady) throw new Error("Audio session could not be initialized");
+            if (!audioReady) throw new Error("Zvukové spojení se nepodařilo spustit");
           } catch (error) {
             let recoveryError: unknown = null;
             let recoveredAssignment: LeadQueueSnapshot | null = null;
@@ -821,10 +821,10 @@ function WorkspaceContent() {
                 .then((recoveredAssignment) => {
                   setAssignmentState(recoveredAssignment.assignment_state);
                   setRecoveryRequired(recoveredAssignment.recovery_required);
-                  setNotificationToast("Call start timed out, but the server assignment was recovered. You can try again.");
+                  setNotificationToast("Zahájení hovoru vypršelo, ale serverové přiřazení bylo obnoveno. Můžete to zkusit znovu.");
                 })
                 .catch(() => {
-                  setNotificationToast("Call start timed out. Reload the workspace to recover the server assignment before retrying.");
+                  setNotificationToast("Zahájení hovoru vypršelo. Znovu načtěte pracovní prostor pro obnovu serverového přiřazení před opakováním.");
                 })
                 .finally(() => {
                   callStartRecoveryRef.current = false;
@@ -843,10 +843,10 @@ function WorkspaceContent() {
             }
             setNotificationToast(
               recoveryError instanceof Error
-                ? `Call start recovery failed: ${recoveryError.message}. Reload the workspace before retrying.`
+                ? `Obnova zahájení hovoru selhala: ${recoveryError.message}. Před dalším pokusem znovu načtěte pracovní prostor.`
                 : error instanceof Error
-                  ? `Call could not be started: ${error.message}`
-                  : "Call could not be started. No CRM activity was recorded."
+                  ? `Hovor se nepodařilo zahájit: ${error.message}`
+                  : "Hovor se nepodařilo zahájit. Nebyla zaznamenána žádná CRM aktivita."
             );
           } finally {
             callStartPendingRef.current = false;
@@ -866,7 +866,7 @@ function WorkspaceContent() {
         productId: products[0]?.id || null,
       })
         .then((audioReady) => {
-          if (!audioReady) throw new Error("Audio session could not be initialized");
+          if (!audioReady) throw new Error("Zvukové spojení se nepodařilo spustit");
         })
         .catch((error) => {
           if (stopAudioRef.current) {
@@ -876,8 +876,8 @@ function WorkspaceContent() {
           softphoneController.cancelDial();
           setNotificationToast(
             error instanceof Error
-              ? `Call could not be started: ${error.message}`
-              : "Call could not be started. No CRM activity was recorded."
+              ? `Hovor se nepodařilo zahájit: ${error.message}`
+              : "Hovor se nepodařilo zahájit. Nebyla zaznamenána žádná CRM aktivita."
           );
         })
         .finally(() => {
@@ -906,13 +906,13 @@ function WorkspaceContent() {
     setIsIncomingCallOpen(false);
     void softphoneController.answer()
       .then((audioReady) => {
-        if (!audioReady) throw new Error("Audio session could not be initialized");
+        if (!audioReady) throw new Error("Zvukové spojení se nepodařilo spustit");
       })
       .catch((error) => {
         setNotificationToast(
           error instanceof Error
-            ? `Incoming call could not be answered: ${error.message}`
-            : "Incoming call could not be answered."
+            ? `Příchozí hovor se nepodařilo přijmout: ${error.message}`
+            : "Příchozí hovor se nepodařilo přijmout."
         );
       });
   };
@@ -938,7 +938,7 @@ function WorkspaceContent() {
 
     if (outcome === "order") {
       if (!activeLead || !activeQueueItemId) {
-        setNotificationToast("Order creation is unavailable because the active assignment could not be verified.");
+        setNotificationToast("Vytvoření objednávky není dostupné, protože aktivní přiřazení nebylo možné ověřit.");
         return;
       }
       setNotificationToast(null);
@@ -953,9 +953,9 @@ function WorkspaceContent() {
     }
 
     const outcomeConfig: Record<Exclude<CallOutcome, "order">, [CompletionOutcome, string]> = {
-      call_later: ["no_answer", "Inaccessible"],
-      schedule: ["followup_scheduled", "Schedule"],
-      fail: ["objection_handled", "Failed"],
+      call_later: ["no_answer", "Nedostupný"],
+      schedule: ["followup_scheduled", "Naplánovaný hovor"],
+      fail: ["objection_handled", "Neúspěšný"],
     };
     const [callOutcome, outcomeLabel] = outcomeConfig[outcome];
     void completeCall(callOutcome, outcomeLabel, "not_created", 0, undefined, undefined, undefined, failDetails?.note, failDetails?.failReason);
@@ -967,7 +967,7 @@ function WorkspaceContent() {
     setScheduleModalError(null);
     const completion = await completeCall(
       "followup_scheduled",
-      "Follow-up scheduled",
+      "Naplánovaný hovor",
       "not_created",
       0,
       undefined,
@@ -976,7 +976,7 @@ function WorkspaceContent() {
     if (completion) {
       setIsScheduleModalOpen(false);
     } else {
-      setScheduleModalError("Naplánovaný hovor se nepodařilo uložit. Zkontrolujte aktivní assignment a zkuste to znovu.");
+      setScheduleModalError("Naplánovaný hovor se nepodařilo uložit. Zkontrolujte aktivní přiřazení a zkuste to znovu.");
     }
     setIsScheduleModalPending(false);
   };
@@ -1060,17 +1060,17 @@ function WorkspaceContent() {
                       : "ready";
 
   const pageHeaderBadge = {
-    loading: { label: "Loading", tone: "neutral" as const },
-    load_error: { label: "Unavailable", tone: "unavailable" as const },
-    waiting_assignment: { label: "Waiting for assignment", tone: "neutral" as const },
-    ready: { label: "Ready for assignment", tone: "neutral" as const },
-    dialing: { label: "Dialing", tone: "neutral" as const },
-    in_call: { label: "In call", tone: "neutral" as const },
-    awaiting_outcome: { label: "Awaiting outcome", tone: "warning" as const },
-    schedule_modal: { label: "Schedule", tone: "warning" as const },
-    completion_pending: { label: "Saving outcome", tone: "warning" as const },
-    recovery_required: { label: "Recovery required", tone: "warning" as const },
-    post_call_summary: { label: "Call completed", tone: "neutral" as const },
+    loading: { label: "Načítání", tone: "neutral" as const },
+    load_error: { label: "Nedostupné", tone: "unavailable" as const },
+    waiting_assignment: { label: "Čekání na přiřazení", tone: "neutral" as const },
+    ready: { label: "Připraveno k přiřazení", tone: "neutral" as const },
+    dialing: { label: "Vytáčení", tone: "neutral" as const },
+    in_call: { label: "Na hovoru", tone: "neutral" as const },
+    awaiting_outcome: { label: "Čekání na výsledek", tone: "warning" as const },
+    schedule_modal: { label: "Naplánovaný hovor", tone: "warning" as const },
+    completion_pending: { label: "Ukládání výsledku", tone: "warning" as const },
+    recovery_required: { label: "Vyžadována obnova", tone: "warning" as const },
+    post_call_summary: { label: "Hovor dokončen", tone: "neutral" as const },
   }[operatorConsoleState];
 
   const operatorActionState: OperatorNextActionState = operatorConsoleState === "loading" || operatorConsoleState === "load_error"
@@ -1145,7 +1145,7 @@ function WorkspaceContent() {
       } : undefined}
       onCreateOrder={identity?.role === "operator" ? undefined : () => {
         if (isCallActive || isDialing) {
-          setNotificationToast("Finish the active call before opening order creation.");
+          setNotificationToast("Dokončete aktivní hovor před otevřením vytvoření objednávky.");
           return;
         }
         if (!activeLead) return;
@@ -1186,13 +1186,13 @@ function WorkspaceContent() {
   );
 
   const supportingContextRail = (
-    <aside className="min-w-0 space-y-4 border-zinc-800/70 xl:border-l xl:pl-4" aria-label="Supporting customer context" data-testid="supporting-context-rail">
+    <aside className="min-w-0 space-y-4 border-zinc-800/70 xl:border-l xl:pl-4" aria-label="Podpůrný kontext zákazníka" data-testid="supporting-context-rail">
       <div className="flex items-start justify-between gap-3 px-1">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Customer history</p>
-          <p className="mt-1 text-[11px] text-zinc-500">Timeline, notes and questions — glance only, nothing here blocks your call</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Historie zákazníka</p>
+          <p className="mt-1 text-[11px] text-zinc-500">Časová osa, poznámky a otázky — jen na pohled, nic zde neblokuje váš hovor</p>
         </div>
-        <StatusBadge tone="neutral">History</StatusBadge>
+        <StatusBadge tone="neutral">Historie</StatusBadge>
       </div>
       {activeLead && (
         <LeadNotesCard
@@ -1211,7 +1211,7 @@ function WorkspaceContent() {
         {activeLead ? (
           <CustomerTimelineCard leadId={activeLead.id} refreshToken={activityRefreshToken} includeNotes={false} />
         ) : (
-          <p className="text-sm text-zinc-400">No active customer selected.</p>
+          <p className="text-sm text-zinc-400">Není vybrán žádný aktivní zákazník.</p>
         )}
         </section>
       </Surface>
@@ -1221,7 +1221,7 @@ function WorkspaceContent() {
   const pageHeader = (
     <PageHeader
       icon={PhoneCall}
-      title="Operator Console"
+      title="Operátorská konzole"
       description="Obsluha přiřazeného zákazníka na jednom místě — podklad, schválený skript a výsledek hovoru."
       badge={pageHeaderBadge}
       actionsLayout="stacked"
@@ -1235,7 +1235,7 @@ function WorkspaceContent() {
         {pageHeader}
         <div className="flex min-h-[400px] items-center justify-center text-xs text-zinc-400">
           <RefreshCw className="mr-2 h-5 w-5 animate-spin text-zinc-300" />
-          <span>Loading Operator Workspace Environment...</span>
+          <span>Načítání operátorského pracovního prostředí...</span>
         </div>
       </div>
     );
@@ -1247,12 +1247,12 @@ function WorkspaceContent() {
         {pageHeader}
         <StatusAlert tone="danger" className="w-full">
           <div className="mx-auto max-w-xl text-sm text-rose-200">
-            <h2 className="font-semibold">Workspace data could not be loaded</h2>
+            <h2 className="font-semibold">Data pracovního prostoru se nepodařilo načíst</h2>
             <p className="mt-2 text-xs text-rose-300">{loadError}</p>
             <div className="mt-4">
               <Button type="button" variant="secondary" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
                 <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                Retry
+                Zkusit znovu
               </Button>
             </div>
           </div>
@@ -1278,7 +1278,7 @@ function WorkspaceContent() {
         <StatusAlert tone="neutral" className="w-full animate-in fade-in slide-in-from-top-2 duration-150 ease-interface motion-reduce:animate-none" role="status" aria-live="polite">
           <div className="flex items-center justify-between text-xs font-semibold text-zinc-100">
           <span>{notificationToast}</span>
-          <Button variant="quiet" onClick={() => setNotificationToast(null)} aria-label="Dismiss notification">
+          <Button variant="quiet" onClick={() => setNotificationToast(null)} aria-label="Zavřít oznámení">
             <X className="w-3.5 h-3.5" />
           </Button>
           </div>
@@ -1299,7 +1299,7 @@ function WorkspaceContent() {
       {/* Operator Console hierarchy: P0/P1 lead action first, P2 script second, P3 support in the right rail. */}
       {isScriptExpanded ? (
         <div className="space-y-4" data-testid="operator-focus-workspace">
-          <section key={activeLead?.id} className="flex min-h-0 min-w-0 flex-col gap-4 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" aria-label="Focused operator work area">
+          <section key={activeLead?.id} className="flex min-h-0 min-w-0 flex-col gap-4 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" aria-label="Soustředěný pracovní prostor operátora">
             {operatorLeadHeader}
             {conversationBriefCard}
             {productScriptPanel}
@@ -1310,7 +1310,7 @@ function WorkspaceContent() {
         </div>
 ) : (
         <div className="grid h-auto min-h-[calc(100vh-12rem)] grid-cols-1 gap-4 xl:h-[calc(100vh-12rem)] xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <section key={activeLead?.id} className="flex min-h-0 min-w-0 flex-col gap-4 overflow-visible xl:overflow-hidden animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" aria-label="Primary operator work area" data-testid="operator-primary-work-area">
+          <section key={activeLead?.id} className="flex min-h-0 min-w-0 flex-col gap-4 overflow-visible xl:overflow-hidden animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" aria-label="Hlavní pracovní prostor operátora" data-testid="operator-primary-work-area">
             {operatorLeadHeader}
             {conversationBriefCard}
             {productScriptPanel}
@@ -1358,7 +1358,7 @@ export default function WorkspacePage() {
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[400px] text-zinc-400 text-xs">
         <RefreshCw className="w-5 h-5 animate-spin mr-2 text-zinc-300" />
-        <span>Loading Workspace...</span>
+        <span>Načítání pracovního prostoru…</span>
       </div>
     }>
       <WorkspaceContent />

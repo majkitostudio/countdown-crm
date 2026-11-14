@@ -59,7 +59,7 @@ describe("Team Leader Daily Brief", () => {
     });
 
     expect(brief.scope).toBe("workspace");
-    expect(brief.scopeLabel).toBe("Celý workspace");
+    expect(brief.scopeLabel).toBe("Celý pracovní prostor");
     expect(brief.workspaceWalletBalance).toBe(300);
     expect(brief.workspaceWalletTransactions).toBe(2);
   });

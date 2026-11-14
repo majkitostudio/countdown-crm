@@ -30,8 +30,8 @@ export default async function TelephonyPage() {
       <div className="mx-auto max-w-xl">
       <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Telephony administration unavailable</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{forbidden ? "Only a workspace Administrator can access Local SIP administration." : "Telephony status could not be loaded."}</p>
+        <h1 className="text-base font-semibold text-zinc-100">Správa telefonie není dostupná</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{forbidden ? "K správě místního SIP má přístup pouze správce pracovního prostoru." : "Stav telefonie se nepodařilo načíst."}</p>
       </Surface>
       </div>
     );
@@ -42,13 +42,13 @@ export default async function TelephonyPage() {
       <div className="mx-auto max-w-xl">
       <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Local SIP is not active.</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Enable Local SIP in Admin Settings to use this page.</p>
+          <h1 className="text-base font-semibold text-zinc-100">Místní SIP není aktivní.</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Pro použití této stránky povolte místní SIP v nastavení správce.</p>
         <Link
           href="/admin/settings#telephony-adapter"
           className={getButtonClassName("secondary")}
         >
-          Open Telephony adapter settings
+          Otevřít nastavení adaptéru telefonie
         </Link>
       </Surface>
       </div>
@@ -57,7 +57,7 @@ export default async function TelephonyPage() {
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
-      <PageHeader icon={Phone} title="Local SIP" badge={{ label: "Administrator only", tone: "neutral" }} backLink={{ href: "/admin/settings#telephony-adapter", label: "Back to Workspace Settings" }} description="Lokální Asterisk konzole pro interní testování telefonie v CRM." />
+      <PageHeader icon={Phone} title="Místní SIP" badge={{ label: "Pouze pro správce", tone: "neutral" }} backLink={{ href: "/admin/settings#telephony-adapter", label: "Zpět do nastavení pracovního prostoru" }} description="Místní konzole Asterisk pro interní testování telefonie v CRM." />
       <TelephonyAdminPanel settings={result.settings} />
     </div>
   );

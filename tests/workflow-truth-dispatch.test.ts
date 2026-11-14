@@ -68,7 +68,7 @@ describe("truthful workflow execution contract", () => {
       options(),
     );
     expect(missing.status).toBe("failure");
-    expect(missing.entries[0].actionResults[0].reason).toContain("missing");
+    expect(missing.entries[0].actionResults[0].reason).toContain("Chybí URL webhooku.");
 
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
     const transport = await evaluateWorkflowEvent(

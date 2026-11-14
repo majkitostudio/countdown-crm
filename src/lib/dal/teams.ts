@@ -55,7 +55,7 @@ function mapTeamMembership(
   const profile = profilesById.get(membership.user_id);
   return {
     ...membership,
-    full_name: profile?.full_name?.trim() || "Unknown user",
+    full_name: profile?.full_name?.trim() || "Neznámý uživatel",
     email: profile?.email?.trim() || "",
     avatar_url: profile?.avatar_url || null,
   };

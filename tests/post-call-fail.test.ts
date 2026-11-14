@@ -42,10 +42,10 @@ describe("post-call fail details", () => {
   });
 
   it("requires both a reason and a note for pitch objections, but allows optional note for cold refusals", () => {
-    expect(validateFailDetails({ failReason: "", note: "" })).toBe("Select a fail reason.");
-    expect(validateFailDetails({ failReason: "unsuccessful_sale", note: "  " })).toBe("Add a short note for this fail.");
+    expect(validateFailDetails({ failReason: "", note: "" })).toBe("Vyberte důvod neúspěchu.");
+    expect(validateFailDetails({ failReason: "unsuccessful_sale", note: "  " })).toBe("Doplňte krátkou poznámku k neúspěšnému hovoru.");
     expect(validateFailDetails({ failReason: "unsuccessful_sale", note: "Klient nekoupil po kompletním představení." })).toBeNull();
-    expect(validateFailDetails({ failReason: "other", note: "  " })).toBe("Add a short note for this fail.");
+    expect(validateFailDetails({ failReason: "other", note: "  " })).toBe("Doplňte krátkou poznámku k neúspěšnému hovoru.");
     expect(validateFailDetails({ failReason: "other", note: "Specifický důvod." })).toBeNull();
     expect(validateFailDetails({ failReason: "no_interest", note: "" })).toBeNull();
     expect(validateFailDetails({ failReason: "invalid_lead", note: "" })).toBeNull();
@@ -54,7 +54,7 @@ describe("post-call fail details", () => {
   });
 
   it("renames the negative outcome to Failed", () => {
-    expect(getCallOutcomeLabel("fail")).toBe("Failed");
+    expect(getCallOutcomeLabel("fail")).toBe("Neúspěšný");
   });
 
   it("guarantees every UI fail reason is accepted by the latest DB constraint", () => {

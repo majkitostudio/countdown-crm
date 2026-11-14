@@ -24,14 +24,14 @@ function formatCallDuration(seconds: number): string {
 
 function outcomeLabel(outcome: string): string {
   if (outcome === "order_placed") return "Prodej";
-  if (outcome === "objection") return "Fail";
+  if (outcome === "objection") return "Neúspěch";
   if (outcome === "no_answer") return "Bez spojení";
-  if (outcome === "followup_scheduled") return "Schedule";
+  if (outcome === "followup_scheduled") return "Naplánovaný hovor";
   return outcome;
 }
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 export interface TeamOperatorDetailData {
@@ -70,7 +70,7 @@ export function TeamOperatorDetailPanel({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Button variant="quiet" onClick={onBack}>
-              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Zpět na checkpoint
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Zpět na denní přehled
             </Button>
             <h2 className="mt-2 text-sm font-semibold text-zinc-100">{metric.operatorName}</h2>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
@@ -97,11 +97,11 @@ export function TeamOperatorDetailPanel({
             <p className="text-xs font-medium text-zinc-500">Čas hovoru</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{formatDuration(metric.talkTimeSeconds)}</p>
             <p className="mt-1 text-xs text-zinc-500">
-              Konverze {metric.conversionPercent === null ? "—" : `${metric.conversionPercent}%`} · Talk % {metric.talkTimePercent === null ? "—" : `${metric.talkTimePercent}%`}
+              Konverze {metric.conversionPercent === null ? "-" : `${metric.conversionPercent}%`} · Podíl času hovoru {metric.talkTimePercent === null ? "-" : `${metric.talkTimePercent}%`}
             </p>
           </div>
         </section>
-        <p className="text-[11px] text-zinc-500">Talk % se zavede se směnami.</p>
+        <p className="text-[11px] text-zinc-500">Podíl času hovoru se zavede se směnami.</p>
 
         <section className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4" aria-label="Poslední hovory operátora">
           <div className="flex items-center gap-2">
@@ -193,10 +193,10 @@ export function TeamOperatorDetailPanel({
                   <li key={request.id} className="rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
                     <span className="flex flex-wrap items-center gap-2">
                       <StatusBadge tone={request.requestType === "sos" ? "danger" : "warning"}>
-                        {request.requestType === "sos" ? "SOS" : "Request Help"}
+                        {request.requestType === "sos" ? "SOS" : "Žádost o pomoc"}
                       </StatusBadge>
                       <StatusBadge tone="neutral">
-                        {request.status === "claimed" ? "Převzato" : request.status === "open" ? "Čeká na pomoc" : request.status}
+                        {request.status === "claimed" ? "Převzato" : request.status === "open" ? "Čeká na pomoc" : request.status === "resolved" ? "Vyřešeno" : request.status === "cancelled" ? "Zrušeno" : request.status}
                       </StatusBadge>
                     </span>
                     {request.note && <span className="mt-2 block leading-relaxed text-zinc-300">„{request.note}“</span>}

@@ -27,16 +27,16 @@ import { Surface } from "@/components/ui/Surface";
 
 function ReviewAuditState({ label, state }: { label: string; state: CallReviewAuditState | null }) {
   if (!state) {
-    return <p className="text-[11px] text-zinc-500"><strong className="text-zinc-500">{label}:</strong> No previous review</p>;
+    return <p className="text-[11px] text-zinc-500"><strong className="text-zinc-500">{label}:</strong> Žádné předchozí hodnocení</p>;
   }
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">{label} · Revision {state.revisionNumber}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">{label} · Revize {state.revisionNumber}</p>
       <dl className="mt-2 space-y-2 text-[11px] text-zinc-300">
-        <div><dt className="text-zinc-500">Verdict</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.verdict}</dd></div>
-        <div><dt className="text-zinc-500">Coaching</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.coachingNote}</dd></div>
-        <div><dt className="text-zinc-500">Reviewer ID</dt><dd className="mt-0.5 break-all font-mono text-zinc-500">{state.reviewerId}</dd></div>
+        <div><dt className="text-zinc-500">Verdikt</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.verdict}</dd></div>
+        <div><dt className="text-zinc-500">Doporučení pro rozvoj</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.coachingNote}</dd></div>
+        <div><dt className="text-zinc-500">ID hodnotitele</dt><dd className="mt-0.5 break-all font-mono text-zinc-500">{state.reviewerId}</dd></div>
       </dl>
     </div>
   );
@@ -51,12 +51,12 @@ export function AuditDetailCell({ log }: { log: AuditLogEntry }) {
 
   return (
     <details className="min-w-[22rem] rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
-      <summary className="cursor-pointer text-[11px] font-semibold text-zinc-200">{auditActionLabel(log.actionType)} · show exact change</summary>
+      <summary className="cursor-pointer text-[11px] font-semibold text-zinc-200">{auditActionLabel(log.actionType)} · zobrazit přesnou změnu</summary>
       <div className="mt-3 space-y-3">
-        <ReviewAuditState label="Previous review" state={reviewDetails.previous} />
-        <ReviewAuditState label="New review" state={reviewDetails.next} />
+        <ReviewAuditState label="Předchozí hodnocení" state={reviewDetails.previous} />
+        <ReviewAuditState label="Nové hodnocení" state={reviewDetails.next} />
         {reviewDetails.correctionReason && (
-          <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200/80"><strong>Correction reason:</strong> {reviewDetails.correctionReason}</p>
+          <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200/80"><strong>Důvod opravy:</strong> {reviewDetails.correctionReason}</p>
         )}
       </div>
     </details>
@@ -83,7 +83,7 @@ const [isLoading, setIsLoading] = useState(false);
         setLoadError(null);
       } catch (error) {
         setLogs([]);
-        setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
+        setLoadError(error instanceof Error ? error.message : "Auditní protokol není dostupný.");
       } finally {
         setIsLoading(false);
       }
@@ -100,7 +100,7 @@ const [isLoading, setIsLoading] = useState(false);
       setLoadError(null);
     } catch (error) {
       setLogs([]);
-      setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
+      setLoadError(error instanceof Error ? error.message : "Auditní protokol není dostupný.");
     } finally {
       setIsLoading(false);
     }
@@ -133,7 +133,7 @@ const [isLoading, setIsLoading] = useState(false);
     return (
       <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-500">
         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-        Načítám oprávnění workspace…
+        Načítám oprávnění pracovního prostoru…
       </div>
     );
   }
@@ -143,9 +143,9 @@ const [isLoading, setIsLoading] = useState(false);
       <div className="mx-auto max-w-xl">
         <Surface variant="empty" className="w-full">
           <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-          <h1 className="text-base font-semibold text-zinc-100">Audit Log unavailable</h1>
+          <h1 className="text-base font-semibold text-zinc-100">Auditní protokol není dostupný</h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            Audit logs are available to Team Leaders and Administrators only.
+            Auditní protokol je dostupný pouze vedoucím týmů a administrátorům.
           </p>
         </Surface>
       </div>
@@ -156,14 +156,14 @@ const [isLoading, setIsLoading] = useState(false);
     <div className="space-y-8 max-w-screen-2xl mx-auto">
       <PageHeader
         icon={ShieldAlert}
-        title="Audit Log"
-        badge={{ label: loadError ? "Unavailable" : "System Audit", tone: loadError ? "unavailable" : "neutral" }}
+        title="Auditní protokol"
+        badge={{ label: loadError ? "Nedostupné" : "Systémový audit", tone: loadError ? "unavailable" : "neutral" }}
         description="Kompletní protokol událostí, exportů dat, změn v CRM a aktivních relací operátorů."
         actions={
           <>
             <Button
               onClick={handleRefresh}
-              aria-label="Obnovit auditní log"
+              aria-label="Obnovit auditní protokol"
               variant="secondary"
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
@@ -174,7 +174,7 @@ const [isLoading, setIsLoading] = useState(false);
               disabled={isExporting}
             >
               <Download className="h-4 w-4 text-zinc-950" aria-hidden="true" />
-              <span>{isExporting ? "Exportuji CSV..." : "Exportovat Audit Log (CSV)"}</span>
+              <span>{isExporting ? "Exportuji CSV…" : "Exportovat auditní protokol (CSV)"}</span>
             </Button>
           </>
         }
@@ -209,8 +209,8 @@ const [isLoading, setIsLoading] = useState(false);
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Vyhledat v auditním logu"
-              placeholder="Vyhledat v auditním logu podle operátora, akce, IP adresy..."
+              aria-label="Vyhledat v auditním protokolu"
+              placeholder="Vyhledat v auditním protokolu podle operátora, akce, IP adresy…"
               className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-200 placeholder:text-zinc-500 focus:border-zinc-700"
             />
           </div>
@@ -246,9 +246,9 @@ const [isLoading, setIsLoading] = useState(false);
         <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider font-mono flex items-center gap-2">
             <Activity className="w-4 h-4 text-zinc-500" />
-            Auditní Protokol Událostí ({filteredLogs.length})
+            Auditní protokol událostí ({filteredLogs.length})
           </h2>
-          <span className="text-[11px] font-mono text-zinc-500">Formát: UTF-8 Log Table</span>
+          <span className="text-[11px] font-mono text-zinc-500">Formát: tabulka záznamů UTF-8</span>
         </div>
 
         {isLoading ? (
@@ -264,12 +264,12 @@ const [isLoading, setIsLoading] = useState(false);
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-zinc-800 text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
-                  <th className="py-3 px-3">Čas Záznamu</th>
+                  <th className="py-3 px-3">Čas záznamu</th>
                   <th className="py-3 px-3">Operátor</th>
-                  <th className="py-3 px-3">Typ Akce</th>
+                  <th className="py-3 px-3">Typ akce</th>
                   <th className="py-3 px-3">Závažnost</th>
-                  <th className="py-3 px-3">IP Adresa</th>
-                  <th className="py-3 px-3">Detail Události</th>
+                  <th className="py-3 px-3">IP adresa</th>
+                  <th className="py-3 px-3">Detail události</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/50 font-mono">
@@ -284,7 +284,7 @@ const [isLoading, setIsLoading] = useState(false);
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <StatusBadge tone={log.severity === "critical" ? "danger" : log.severity === "high" ? "warning" : "neutral"}>
-                        {log.severity.toUpperCase()}
+                        {({ critical: "Kritická", high: "Vysoká", medium: "Střední", low: "Nízká" } as Record<string, string>)[log.severity] ?? log.severity}
                       </StatusBadge>
                     </td>
                     <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">{log.ipAddress}</td>

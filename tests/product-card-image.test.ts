@@ -31,6 +31,6 @@ describe("ProductCard image fallback", () => {
     }));
 
     expect(html).not.toContain("<img");
-    expect(html).toContain("No product image");
+    expect(html).toContain("Bez obrázku produktu");
   });
 });

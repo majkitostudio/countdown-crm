@@ -34,7 +34,7 @@ export function TeamLeaderDailyBriefCard() {
           ...result,
         });
       } catch {
-        if (!cancelled) setState({ status: "unavailable", message: "Daily Brief není momentálně dostupný." });
+        if (!cancelled) setState({ status: "unavailable", message: "Denní souhrn není momentálně dostupný." });
       }
     }
 
@@ -52,40 +52,40 @@ export function TeamLeaderDailyBriefCard() {
             <ClipboardList className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-zinc-100">Team Leader Daily Brief</h2>
-            <p className="mt-0.5 text-xs text-zinc-400">Přehled dnešních aktivit v rozsahu: {readyState?.brief.scopeLabel ?? "ověřuji rozsah"}. Peněženka je společná za celý workspace.</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Denní souhrn vedoucího týmu</h2>
+            <p className="mt-0.5 text-xs text-zinc-400">Přehled dnešních aktivit v rozsahu: {readyState?.brief.scopeLabel ?? "ověřuji rozsah"}. Peněženka je společná za celý pracovní prostor.</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {readyState && <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-400">{readyState.brief.scopeLabel}</span>}
-          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Read-only</span>
+          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Pouze ke čtení</span>
         </div>
       </div>
 
       {state.status === "loading" ? (
-        <div className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Načítám dnešní brief…</div>
+        <div className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Načítám dnešní souhrn…</div>
       ) : state.status === "forbidden" ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Daily Brief je dostupný pouze Team Leaderům a Administrátorům.</div>
+        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Denní souhrn je dostupný pouze vedoucím týmů a administrátorům.</div>
       ) : state.status === "unavailable" ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Daily Brief není dostupný: {state.message}</div>
+        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Denní souhrn není dostupný: {state.message}</div>
       ) : readyState ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <BriefMetric label="Calls today" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
-            <BriefMetric label="Orders today" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
-            <BriefMetric label="Revenue today" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
-            <BriefMetric label="Scheduled calls" value={String(readyState.brief.scheduledCallsToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueScheduledCalls} po termínu`} />
+            <BriefMetric label="Dnešní hovory" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
+            <BriefMetric label="Dnešní objednávky" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
+            <BriefMetric label="Dnešní příjmy" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
+            <BriefMetric label="Naplánované hovory" value={String(readyState.brief.scheduledCallsToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueScheduledCalls} po termínu`} />
           </div>
 
           <div className="grid gap-3 md:grid-cols-4">
-            <BriefDetail label="Today" value={`${formatDate(readyState.brief.daily.date)} • ${readyState.brief.daily.conversionRate.toFixed(1)}% conversion`} />
-            <BriefDetail label="Open reminders" value={String(readyState.brief.openReminders)} href="/schedule" />
+            <BriefDetail label="Dnes" value={`${formatDate(readyState.brief.daily.date)} • Konverze ${readyState.brief.daily.conversionRate.toFixed(1)} %`} />
+            <BriefDetail label="Otevřené připomínky" value={String(readyState.brief.openReminders)} href="/schedule" />
             <BriefDetail
-              label="Needs review"
+              label="Ke kontrole"
               value={readyState.brief.pendingReviews === null
-                ? "Unavailable"
+                ? "Nedostupné"
                 : readyState.brief.pendingReviews === 0
-                  ? "All calls reviewed"
+                  ? "Všechny hovory zkontrolovány"
                   : String(readyState.brief.pendingReviews)}
               href="/call-logs?review=unreviewed"
             />
@@ -96,7 +96,7 @@ export function TeamLeaderDailyBriefCard() {
             )}
           </div>
 
-          {readyState.warnings.length > 0 && <p role="status" className="text-[11px] text-amber-300/80">Částečný brief: {readyState.warnings.join(" ")}</p>}
+          {readyState.warnings.length > 0 && <p role="status" className="text-[11px] text-amber-300/80">Částečný souhrn: {readyState.warnings.join(" ")}</p>}
         </>
       ) : null}
     </section>
@@ -125,5 +125,5 @@ function BriefMetric({
 
 function BriefDetail({ label, value, href }: { label: string; value: string; href?: string }) {
   const content = <><p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label}</p><p className="mt-1 text-xs text-zinc-300">{value}</p></>;
-  return href ? <Link href={href} className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 transition-colors duration-150 ease-interface hover:border-zinc-700">{content}<span className="mt-2 inline-flex items-center gap-1 text-[10px] text-zinc-500">Open <ArrowRight className="h-3 w-3" aria-hidden="true" /></span></Link> : <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">{content}</div>;
+  return href ? <Link href={href} className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 transition-colors duration-150 ease-interface hover:border-zinc-700">{content}<span className="mt-2 inline-flex items-center gap-1 text-[10px] text-zinc-500">Otevřít <ArrowRight className="h-3 w-3" aria-hidden="true" /></span></Link> : <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">{content}</div>;
 }

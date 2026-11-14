@@ -41,7 +41,7 @@ describe("workspace health strip UI contract", () => {
 
     expect(adminPage).toContain("WorkspaceHealthStrip");
     expect(adminPage).toContain("getWorkspaceReadinessForWorkspace");
-    expect(adminPage).toContain("Workspace health is unavailable");
+    expect(adminPage).toContain("Stav pracovního prostoru není dostupný");
 
     const retiredPagePath = resolve(process.cwd(), "src/app/controls/page.tsx");
     const retiredPanelPath = resolve(
@@ -55,7 +55,7 @@ describe("workspace health strip UI contract", () => {
   it("keeps the health surface out of global navigation while Management stays the hub", () => {
     const navigation = readSource("src/components/layout/navigation.ts");
 
-    expect(navigation).not.toContain('label: "Readiness"');
-    expect(navigation).not.toContain('label: "Workspace Readiness"');
+    expect(navigation).not.toContain('label: "Připravenost"');
+    expect(navigation).not.toContain('label: "Připravenost pracovního prostoru"');
   });
 });

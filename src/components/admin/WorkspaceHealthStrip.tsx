@@ -36,17 +36,17 @@ const BUSINESS_CHECK_KEYS = new Set<
 ]);
 
 const CHECK_COPY: Record<string, { label: string; actionLabel: string }> = {
-  calendar: { label: "Kalendář a naplánované hovory", actionLabel: "Open Schedule" },
-  wallet: { label: "Wallet", actionLabel: "Open Wallet" },
-  lead_queue: { label: "Fronta leadů", actionLabel: "Open Console" },
-  published_scripts: { label: "Skripty produktů", actionLabel: "Open Scripts" },
-  workflows: { label: "Automations", actionLabel: "Open Automations" },
-  critical_errors: { label: "Kritické chyby v auditu", actionLabel: "Open Audit Log" },
+  calendar: { label: "Kalendář a naplánované hovory", actionLabel: "Otevřít kalendář" },
+  wallet: { label: "Peněženka", actionLabel: "Otevřít peněženku" },
+  lead_queue: { label: "Fronta leadů", actionLabel: "Otevřít konzoli" },
+  published_scripts: { label: "Skripty produktů", actionLabel: "Otevřít skripty" },
+  workflows: { label: "Automatizace", actionLabel: "Otevřít automatizace" },
+  critical_errors: { label: "Kritické chyby v auditu", actionLabel: "Otevřít auditní protokol" },
 };
 
 const ISSUE_COPY: Record<string, string> = {
   calendar: "Zdroje kalendáře nejsou plně dostupné.",
-  wallet: "Wallet není plně dostupný.",
+  wallet: "Peněženka není plně dostupná.",
   lead_queue: "Frontu leadů se nepodařilo načíst.",
   published_scripts: "Některé produkty nemají publikovaný prodejní skript.",
   workflows: "Některé aktivní spouštěče automatizací jsou nedostupné.",
@@ -58,17 +58,17 @@ const STATUS_COPY: Record<
   { label: string; className: string; icon: typeof CheckCircle2 }
 > = {
   ready: {
-    label: "Ready",
+    label: "Připraveno",
     className: "border-emerald-800/70 bg-emerald-950/50 text-emerald-300",
     icon: CheckCircle2,
   },
   needs_attention: {
-    label: "Attention",
+    label: "Vyžaduje pozornost",
     className: "border-amber-800/70 bg-amber-950/50 text-amber-300",
     icon: AlertTriangle,
   },
   blocked: {
-    label: "Blocked",
+    label: "Blokováno",
     className: "border-rose-800/70 bg-rose-950/50 text-rose-300",
     icon: CircleSlash2,
   },
@@ -103,7 +103,7 @@ export function WorkspaceHealthStrip({
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <Activity className="h-4 w-4 shrink-0 text-zinc-400" aria-hidden="true" />
-          <h2 className="text-sm font-semibold text-zinc-100">Workspace health</h2>
+          <h2 className="text-sm font-semibold text-zinc-100">Stav pracovního prostoru</h2>
           <span
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wide",
@@ -158,7 +158,7 @@ export function WorkspaceHealthStrip({
                     href={check.actionHref}
                     className="ml-auto inline-flex items-center gap-1 text-[11px] font-medium text-zinc-300 transition-colors duration-150 ease-interface hover:text-white"
                   >
-                    {copy?.actionLabel ?? "Open"}
+                    {copy?.actionLabel ?? "Otevřít"}
                     <ArrowRight className="h-3 w-3" aria-hidden="true" />
                   </Link>
                 )}

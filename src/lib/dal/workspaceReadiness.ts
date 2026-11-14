@@ -111,9 +111,9 @@ function buildCalendarCheck(
   if (!probe.ok) {
     return createCheck(
       "calendar",
-      "Calendar",
+      "Kalendář",
       "needs_attention",
-      "Calendar is unavailable.",
+      "Kalendář není dostupný.",
       probe.message,
       checkedAt,
       "/schedule",
@@ -122,14 +122,14 @@ function buildCalendarCheck(
 
   const unavailableSources = Object.entries(probe.value.sources)
     .filter(([, source]) => source.state === "unavailable")
-    .map(([name, source]) => `${name}: ${source.state === "unavailable" ? source.message : "unavailable"}`);
+    .map(([name, source]) => `${({ scheduledCalls: "Naplánované hovory", reminders: "Připomínky" } as Record<string, string>)[name] ?? name}: ${source.state === "unavailable" ? source.message : "nedostupné"}`);
 
   if (unavailableSources.length > 0) {
     return createCheck(
       "calendar",
-      "Calendar",
+      "Kalendář",
       "needs_attention",
-      "Calendar is only partially available.",
+      "Kalendář je dostupný jen částečně.",
       unavailableSources.join(" "),
       checkedAt,
       "/schedule",
@@ -138,10 +138,10 @@ function buildCalendarCheck(
 
   return createCheck(
     "calendar",
-    "Calendar",
+    "Kalendář",
     "ready",
-    "Calendar sources are available.",
-    `${probe.value.entries.length} calendar entries were returned by scheduled calls and reminders.`,
+    "Zdroje kalendáře jsou dostupné.",
+    `Počet záznamů kalendáře z naplánovaných hovorů a připomínek: ${probe.value.entries.length}.`,
     checkedAt,
     "/schedule",
   );
@@ -154,9 +154,9 @@ function buildWalletCheck(
   if (!probe.ok) {
     return createCheck(
       "wallet",
-      "Wallet",
+      "Peněženka",
       "needs_attention",
-      "Wallet is unavailable.",
+      "Peněženka není dostupná.",
       probe.message,
       checkedAt,
       "/wallet",
@@ -166,24 +166,24 @@ function buildWalletCheck(
   const sectionEntries = Object.entries(probe.value.sections) as Array<[string, WalletSectionState]>;
   const unavailableSections = sectionEntries
     .filter(([, section]) => section.state === "unavailable")
-    .map(([name, section]) => `${name}: ${section.state === "unavailable" ? section.message : "unavailable"}`);
+    .map(([name, section]) => `${({ balances: "Zůstatky", transactions: "Transakce", settings: "Nastavení", members: "Členové", profiles: "Profily", rules: "Pravidla" } as Record<string, string>)[name] ?? name}: ${section.state === "unavailable" ? section.message : "nedostupné"}`);
   const notApplicableSections = sectionEntries
     .filter(([, section]) => section.state === "not_applicable")
-    .map(([name]) => name);
+    .map(([name]) => ({ balances: "Zůstatky", transactions: "Transakce", settings: "Nastavení", members: "Členové", profiles: "Profily", rules: "Pravidla" } as Record<string, string>)[name] ?? name);
 
   if (unavailableSections.length > 0 || notApplicableSections.length > 0) {
     const details = [
       unavailableSections.join(" "),
       notApplicableSections.length > 0
-        ? `Not applicable sections: ${notApplicableSections.join(", ")}.`
+        ? `Nepoužitelné sekce: ${notApplicableSections.join(", ")}.`
         : "",
     ].filter(Boolean).join(" ");
 
     return createCheck(
       "wallet",
-      "Wallet",
+      "Peněženka",
       "needs_attention",
-      "Wallet is only partially available.",
+      "Peněženka je dostupná jen částečně.",
       details,
       checkedAt,
       "/wallet",
@@ -192,10 +192,10 @@ function buildWalletCheck(
 
   return createCheck(
     "wallet",
-    "Wallet",
+    "Peněženka",
     "ready",
-    "Wallet sections are available.",
-    `${probe.value.transactions.length} transactions and ${probe.value.balances.length} balances were returned.`,
+    "Sekce peněženky jsou dostupné.",
+    `Načtené transakce: ${probe.value.transactions.length}; zůstatky: ${probe.value.balances.length}.`,
     checkedAt,
     "/wallet",
   );
@@ -208,9 +208,9 @@ function buildQueueCheck(
   if (!probe.ok) {
     return createCheck(
       "lead_queue",
-      "Lead queue",
+      "Fronta leadů",
       "needs_attention",
-      "Lead queue is unavailable.",
+      "Fronta leadů není dostupná.",
       probe.message,
       checkedAt,
       "/console",
@@ -218,15 +218,15 @@ function buildQueueCheck(
   }
 
   const queueLabel = probe.value.length === 0
-    ? "Lead queue is available but empty."
-    : `Lead queue is available with ${probe.value.length} item${probe.value.length === 1 ? "" : "s"}.`;
+    ? "Fronta leadů je dostupná, ale prázdná."
+    : `Fronta leadů je dostupná. Počet položek: ${probe.value.length}.`;
 
   return createCheck(
     "lead_queue",
-    "Lead queue",
+    "Fronta leadů",
     "ready",
     queueLabel,
-    "The server returned the current workspace queue without fabricating assignments.",
+    "Server vrátil aktuální frontu pracovního prostoru bez vytváření náhradních přiřazení.",
     checkedAt,
     "/console",
   );
@@ -239,9 +239,9 @@ function buildPublishedScriptsCheck(
   if (!probe.ok) {
     return createCheck(
       "published_scripts",
-      "Published scripts",
+      "Publikované skripty",
       "needs_attention",
-      "Published scripts are unavailable.",
+      "Publikované skripty nejsou dostupné.",
       probe.message,
       checkedAt,
       "/products?tab=scripts",
@@ -251,10 +251,10 @@ function buildPublishedScriptsCheck(
   if (probe.value.products.length === 0) {
     return createCheck(
       "published_scripts",
-      "Published scripts",
+      "Publikované skripty",
       "needs_attention",
-      "No products are available to verify.",
-      "The catalog returned no products, so the system cannot prove that operator scripts are ready.",
+      "Nejsou dostupné žádné produkty k ověření.",
+      "Katalog nevrátil žádné produkty, takže systém nemůže potvrdit připravenost skriptů pro operátory.",
       checkedAt,
       "/products",
     );
@@ -269,13 +269,13 @@ function buildPublishedScriptsCheck(
 
   if (missingProducts.length > 0) {
     const productNames = missingProducts.slice(0, 5).map((product) => product.title).join(", ");
-    const suffix = missingProducts.length > 5 ? " and more" : "";
+    const suffix = missingProducts.length > 5 ? " a další" : "";
     return createCheck(
       "published_scripts",
-      "Published scripts",
+      "Publikované skripty",
       "needs_attention",
-      `${missingProducts.length} product${missingProducts.length === 1 ? " lacks" : "s lack"} a published script.`,
-      `Products needing a published version: ${productNames}${suffix}.`,
+      `Počet produktů bez publikovaného skriptu: ${missingProducts.length}.`,
+      `Produkty vyžadující publikovanou verzi: ${productNames}${suffix}.`,
       checkedAt,
       "/products?tab=scripts",
     );
@@ -283,10 +283,10 @@ function buildPublishedScriptsCheck(
 
   return createCheck(
     "published_scripts",
-    "Published scripts",
+    "Publikované skripty",
     "ready",
-    "Every catalog product has a published script.",
-    `${probe.value.products.length} product${probe.value.products.length === 1 ? "" : "s"} has a published version available to operators.`,
+    "Každý produkt v katalogu má publikovaný skript.",
+    `Počet produktů s publikovanou verzí dostupnou operátorům: ${probe.value.products.length}.`,
     checkedAt,
     "/products?tab=scripts",
   );
@@ -299,9 +299,9 @@ function buildLocalSipCheck(
   if (!probe.ok) {
     return createCheck(
       "local_sip",
-      "Local SIP",
+      "Lokální SIP",
       "needs_attention",
-      "Local SIP settings are unavailable.",
+      "Nastavení lokálního SIP není dostupné.",
       probe.message,
       checkedAt,
       "/settings#telephony-adapter",
@@ -311,10 +311,10 @@ function buildLocalSipCheck(
   if (probe.value.active_adapter !== "local_sip") {
     return createCheck(
       "local_sip",
-      "Local SIP",
+      "Lokální SIP",
       "needs_attention",
-      "Local SIP is not active.",
-      `The active telephony adapter is ${probe.value.active_adapter}. Local SIP can be enabled in Admin Settings.`,
+      "Lokální SIP není aktivní.",
+      `Aktivní telefonní adaptér: ${probe.value.active_adapter}. Lokální SIP lze zapnout v nastavení správy.`,
       checkedAt,
       "/settings#telephony-adapter",
     );
@@ -322,10 +322,10 @@ function buildLocalSipCheck(
 
   return createCheck(
     "local_sip",
-    "Local SIP",
+    "Lokální SIP",
     "ready",
-    "Local SIP is selected for this workspace.",
-    "The workspace configuration points to the local SIP adapter. A live audio call remains a separate pilot check.",
+    "Pro tento pracovní prostor je zvolen lokální SIP.",
+    "Nastavení pracovního prostoru odkazuje na lokální SIP adaptér. Živý hlasový hovor zůstává samostatnou pilotní kontrolou.",
     checkedAt,
     "/telephony",
   );
@@ -338,9 +338,9 @@ function buildWorkflowsCheck(
   if (!probe.ok) {
     return createCheck(
       "workflows",
-      "Workflows",
+      "Automatizace",
       "needs_attention",
-      "Workflows are unavailable.",
+      "Automatizace nejsou dostupné.",
       probe.message,
       checkedAt,
       "/automations",
@@ -357,10 +357,10 @@ function buildWorkflowsCheck(
   if (unavailableTriggers.length > 0) {
     return createCheck(
       "workflows",
-      "Workflows",
+      "Automatizace",
       "needs_attention",
-      "Some active workflow triggers are unavailable.",
-      `Unavailable active triggers: ${Array.from(new Set(unavailableTriggers)).join(", ")}.`,
+      "Některé aktivní spouštěče automatizací jsou nedostupné.",
+      `Nedostupné aktivní spouštěče: ${Array.from(new Set(unavailableTriggers)).join(", ")}.`,
       checkedAt,
       "/automations",
     );
@@ -368,10 +368,10 @@ function buildWorkflowsCheck(
 
   return createCheck(
     "workflows",
-    "Workflows",
+    "Automatizace",
     "ready",
-    "Workflow rules are readable.",
-    `${probe.value.length} workflow rule${probe.value.length === 1 ? "" : "s"} were returned from the workspace.`,
+    "Pravidla automatizací lze načíst.",
+    `Počet pravidel automatizací načtených z pracovního prostoru: ${probe.value.length}.`,
     checkedAt,
     "/automations",
   );
@@ -389,7 +389,7 @@ function buildMigrationCheck(
 
   return createCheck(
     "migration_history",
-    "Migration history",
+    "Historie migrací",
     status,
     evidence.summary,
     evidence.details,
@@ -404,7 +404,7 @@ function buildRoleBoundaryCheck(
 ): WorkspaceReadinessCheck {
   return createCheck(
     "role_boundaries",
-    "RLS and role boundaries",
+    "RLS a hranice oprávnění rolí",
     evidence.status,
     evidence.summary,
     evidence.details,
@@ -420,9 +420,9 @@ function buildCriticalErrorsCheck(
   if (!probe.ok) {
     return createCheck(
       "critical_errors",
-      "Recent critical errors",
+      "Nedávné kritické chyby",
       "needs_attention",
-      "Recent critical errors could not be checked.",
+      "Nedávné kritické chyby se nepodařilo zkontrolovat.",
       probe.message,
       checkedAt,
       "/audit",
@@ -448,9 +448,9 @@ function buildCriticalErrorsCheck(
       .join(" ");
     return createCheck(
       "critical_errors",
-      "Recent critical errors",
+      "Nedávné kritické chyby",
       "needs_attention",
-      `${recentCriticalErrors.length} high or critical audit event${recentCriticalErrors.length === 1 ? "" : "s"} needs review.`,
+      `Počet auditních událostí s vysokou nebo kritickou závažností ke kontrole: ${recentCriticalErrors.length}.`,
       details,
       checkedAt,
       "/audit",
@@ -459,10 +459,10 @@ function buildCriticalErrorsCheck(
 
   return createCheck(
     "critical_errors",
-    "Recent critical errors",
+    "Nedávné kritické chyby",
     "ready",
-    "No recent high or critical audit events were found.",
-    "The last 24 hours of workspace audit events contain no high or critical severity entries.",
+    "Nebyly nalezeny žádné nedávné auditní události s vysokou nebo kritickou závažností.",
+    "Auditní události pracovního prostoru za posledních 24 hodin neobsahují žádné záznamy s vysokou nebo kritickou závažností.",
     checkedAt,
     "/audit",
   );
@@ -483,7 +483,7 @@ export function buildWorkspaceReadiness(inputs: WorkspaceReadinessInputs): Works
     buildLocalSipCheck(inputs.telephony, inputs.checkedAt),
     createCheck(
       "telnyx",
-      "Telnyx adapter",
+      "Adaptér Telnyx",
       inputs.telnyx.status,
       inputs.telnyx.summary,
       inputs.telnyx.details,
@@ -524,7 +524,7 @@ function getTelnyxReadinessEvidence(): TelnyxReadinessEvidence {
   if (process.env.NEXT_PUBLIC_TELNYX_ENABLED !== "true") {
     return {
       status: "blocked",
-      summary: "Telnyx pilot is blocked.",
+      summary: "Pilot Telnyx je zablokován.",
       details: TELNYX_BLOCKER_COPY,
     };
   }
@@ -532,8 +532,8 @@ function getTelnyxReadinessEvidence(): TelnyxReadinessEvidence {
   if (process.env.TELNYX_NUMBER_VERIFIED !== "true") {
     return {
       status: "blocked",
-      summary: "Telnyx number verification is missing.",
-      details: "The Telnyx adapter cannot be treated as ready until the assigned number is externally verified.",
+      summary: "Chybí ověření čísla Telnyx.",
+      details: "Adaptér Telnyx nelze považovat za připravený, dokud přiřazené číslo neprojde externím ověřením.",
     };
   }
 
@@ -548,15 +548,15 @@ function getTelnyxReadinessEvidence(): TelnyxReadinessEvidence {
   if (missingVariables.length > 0) {
     return {
       status: "needs_attention",
-      summary: "Telnyx number is verified but configuration is incomplete.",
-      details: `Missing required server configuration: ${missingVariables.join(", ")}.`,
+      summary: "Číslo Telnyx je ověřené, ale nastavení není úplné.",
+      details: `Chybí povinné nastavení serveru: ${missingVariables.join(", ")}.`,
     };
   }
 
   return {
     status: "ready",
-    summary: "Telnyx configuration is present.",
-    details: "The required server configuration and external number verification are present. A live browser/audio call remains a separate pilot proof.",
+    summary: "Nastavení Telnyx je k dispozici.",
+    details: "Povinné nastavení serveru a externí ověření čísla jsou k dispozici. Živý hlasový hovor v prohlížeči zůstává samostatným pilotním ověřením.",
   };
 }
 
@@ -567,23 +567,23 @@ function getMigrationReadinessEvidence(): MigrationReadinessEvidence {
   if (status === "mismatch") {
     return {
       status: "mismatch",
-      summary: "Migration history does not match the recorded deployment evidence.",
-      details: "Stop rollout and reconcile migration/schema evidence before relying on this workspace.",
+      summary: "Historie migrací neodpovídá uloženým dokladům o nasazení.",
+      details: "Zastavte nasazování a ověřte shodu dokladů o migracích a schématu, než se na tento pracovní prostor spolehnete.",
     };
   }
 
   if (status === "verified" && verifiedAt && Number.isFinite(Date.parse(verifiedAt))) {
     return {
       status: "verified",
-      summary: "Migration history is verified.",
-      details: `Recorded migration evidence timestamp: ${verifiedAt}.`,
+      summary: "Historie migrací je ověřená.",
+      details: `Čas zaznamenaného ověření migrací: ${verifiedAt}.`,
     };
   }
 
   return {
     status: "unavailable",
-    summary: "Migration history evidence is unavailable at runtime.",
-    details: "The application does not shell out to run migrations during a request. Record a verified deployment checkpoint before reporting migration history as ready.",
+    summary: "Doklady o historii migrací nejsou za běhu dostupné.",
+    details: "Aplikace během požadavku nespouští migrace v příkazové řádce. Než označíte historii migrací za připravenou, zaznamenejte ověření nasazení.",
   };
 }
 
@@ -594,23 +594,23 @@ function getRoleBoundaryReadinessEvidence(): RoleBoundaryReadinessEvidence {
   if (status === "mismatch") {
     return {
       status: "blocked",
-      summary: "Role boundary evidence reports a mismatch.",
-      details: "Stop rollout and reconcile the server role matrix with the workspace RLS policies before relying on access boundaries.",
+      summary: "Doklady o hranicích oprávnění rolí vykazují nesoulad.",
+      details: "Zastavte nasazování a sjednoťte serverovou matici rolí se zásadami RLS pracovního prostoru, než se na hranice přístupu spolehnete.",
     };
   }
 
   if (status === "verified" && verifiedAt && Number.isFinite(Date.parse(verifiedAt))) {
     return {
       status: "ready",
-      summary: "RLS and role boundary evidence is verified.",
-      details: `Recorded role/RLS matrix evidence timestamp: ${verifiedAt}.`,
+      summary: "Doklady o RLS a hranicích oprávnění rolí jsou ověřené.",
+      details: `Čas zaznamenaného ověření matice rolí a RLS: ${verifiedAt}.`,
     };
   }
 
   return {
     status: "needs_attention",
-    summary: "RLS and role boundary evidence is not recorded.",
-    details: "The server-side administrator guard is active, but this runtime has no recorded negative role/RLS matrix evidence to claim full readiness.",
+    summary: "Doklady o RLS a hranicích oprávnění rolí nejsou zaznamenané.",
+    details: "Serverová ochrana přístupu administrátora je aktivní, ale za běhu chybí zaznamenané negativní testy matice rolí a RLS pro potvrzení úplné připravenosti.",
   };
 }
 
@@ -632,15 +632,15 @@ export async function getWorkspaceReadinessForWorkspace(): Promise<WorkspaceRead
   return buildWorkspaceReadiness({
     workspaceId,
     checkedAt: new Date().toISOString(),
-    calendar: toProbe(calendar, "Calendar could not be loaded."),
-    wallet: toProbe(wallet, "Wallet could not be loaded."),
-    queue: toProbe(queue, "Lead queue could not be loaded."),
-    productsAndScripts: toProbe(productsAndScripts, "Products and published scripts could not be loaded."),
-    workflows: toProbe(workflows, "Workflows could not be loaded."),
-    telephony: toProbe(telephony, "Telephony settings could not be loaded."),
+    calendar: toProbe(calendar, "Kalendář se nepodařilo načíst."),
+    wallet: toProbe(wallet, "Peněženku se nepodařilo načíst."),
+    queue: toProbe(queue, "Frontu leadů se nepodařilo načíst."),
+    productsAndScripts: toProbe(productsAndScripts, "Produkty a publikované skripty se nepodařilo načíst."),
+    workflows: toProbe(workflows, "Automatizace se nepodařilo načíst."),
+    telephony: toProbe(telephony, "Nastavení telefonie se nepodařilo načíst."),
     migration: getMigrationReadinessEvidence(),
     roleBoundaries: getRoleBoundaryReadinessEvidence(),
-    criticalErrors: toProbe(criticalErrors, "Recent critical errors could not be checked."),
+    criticalErrors: toProbe(criticalErrors, "Nedávné kritické chyby se nepodařilo zkontrolovat."),
     telnyx: getTelnyxReadinessEvidence(),
   });
 }

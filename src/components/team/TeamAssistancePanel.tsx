@@ -100,7 +100,7 @@ export function TeamAssistancePanel({
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-sm font-semibold text-zinc-100">{request.operatorName}</h3>
-                          <StatusBadge tone={isSos ? "danger" : "warning"}>{isSos ? "SOS" : "Request Help"}</StatusBadge>
+                          <StatusBadge tone={isSos ? "danger" : "warning"}>{isSos ? "SOS" : "Žádost o pomoc"}</StatusBadge>
                           <StatusBadge tone={request.status === "claimed" ? "neutral" : overdue ? "warning" : "warning"}>
                             {request.status === "claimed" ? "Převzato" : "Čeká na pomoc"}
                           </StatusBadge>

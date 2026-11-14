@@ -16,7 +16,7 @@ export interface DepartmentDefinition {
   key: DepartmentKey;
   /** Canonical, lowercase slug shared with teams and queue routing. */
   slug: string;
-  /** English display name (rule: page and section names are English). */
+  /** Czech display name. */
   name: string;
   /** Short Czech description of the work this department handles. */
   purpose: string;
@@ -26,26 +26,26 @@ export const DEPARTMENTS: readonly DepartmentDefinition[] = [
   {
     key: "P1",
     slug: "p1",
-    name: "Department P1",
-    purpose: "Prioritní prodej — hot leads a doobjednávky z e-shopu.",
+    name: "Oddělení P1",
+    purpose: "Prioritní prodej — leady s vysokým zájmem a doobjednávky z e-shopu.",
   },
   {
     key: "P2",
     slug: "p2",
-    name: "Department P2",
+    name: "Oddělení P2",
     purpose: "Standardní prodej — masové volání napříč zdroji leadů.",
   },
   {
     key: "P3",
     slug: "p3",
-    name: "Department P3",
+    name: "Oddělení P3",
     purpose: "Retence a péče — kontakt 21 dní po doručení balíčku.",
   },
   {
     key: "P4",
     slug: "p4",
-    name: "Department P4",
-    purpose: "Poslední záchrana — včerejší faily, vratky a balíčky na výdejně.",
+    name: "Oddělení P4",
+    purpose: "Poslední záchrana — včerejší neúspěšné hovory, vratky a balíčky na výdejně.",
   },
 ];
 

@@ -22,7 +22,7 @@ export async function prepareLocalSipTestCall(options: {
   const bootstrapResponse = await fetch("/api/telephony/local/bootstrap", { cache: "no-store" });
   const bootstrap = await bootstrapResponse.json() as LocalSipBootstrapResponse;
   if (!bootstrapResponse.ok || !bootstrap.server || !bootstrap.aor || !bootstrap.username || !bootstrap.password || !bootstrap.expiresAt) {
-    throw new Error(bootstrap.error || "Local SIP connection could not be prepared.");
+    throw new Error(bootstrap.error || "Připojení k místnímu SIP se nepodařilo připravit. Zkuste to znovu.");
   }
 
   const sessionResponse = await fetch("/api/telephony/local/test-call", {
@@ -31,7 +31,7 @@ export async function prepareLocalSipTestCall(options: {
     body: JSON.stringify({ fromExtension: "1001", toExtension: "1002" }),
   });
   const session = await sessionResponse.json() as LocalSipTestSessionResponse;
-  if (!sessionResponse.ok || !session.sessionId || !session.toExtension) throw new Error(session.error || "The internal test call session could not be created.");
+  if (!sessionResponse.ok || !session.sessionId || !session.toExtension) throw new Error(session.error || "Interní testovací hovor se nepodařilo vytvořit. Zkuste to znovu.");
 
   const audio = document.createElement("audio");
   audio.autoplay = true;

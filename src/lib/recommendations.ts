@@ -39,11 +39,11 @@ export function getCrossSellRecommendations(
     const discount = 15; // 15% bundle discount
     const discountedPrice = prod.price * (1 - discount / 100);
 
-    let reason = `78% of customers buying ${primaryProduct.title} also add ${prod.title} for maximum results.`;
+    let reason = `78 % zákazníků, kteří kupují ${primaryProduct.title}, přidává také ${prod.title} pro maximální výsledky.`;
     if (primaryProduct.category === "supplements" && prod.category === "cosmetics") {
-      reason = "Combines internal NAD+ cellular longevity with external hyaluronic hydration for 24h glow.";
+      reason = "Spojuje buněčnou dlouhověkost podpořenou NAD+ s vnější hydratací kyselinou hyaluronovou pro zářivou pleť po 24 hodin.";
     } else if (primaryProduct.category === "supplements" && prod.category === "electronics") {
-      reason = "Track exact body composition biomarkers (Fat %, Muscle %) to measure supplement progress.";
+      reason = "Sledujte přesné ukazatele složení těla (podíl tuku a svalů) a měřte pokrok při užívání doplňků.";
     }
 
     return {

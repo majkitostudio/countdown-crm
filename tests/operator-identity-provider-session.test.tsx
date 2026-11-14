@@ -122,7 +122,7 @@ describe("OperatorIdentityProvider session handling", () => {
     expect(captured).toMatchObject({
       isLoading: false,
       identity: null,
-      error: "Authenticated workspace membership is unavailable",
+      error: "Ověřené členství v pracovním prostoru není dostupné",
     });
   });
 });

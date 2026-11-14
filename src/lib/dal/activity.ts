@@ -200,7 +200,7 @@ async function loadActivityRows(
   const [callsResult, ordersResult] = await Promise.all([callsQuery, ordersQuery]);
 
   if (callsResult.error || ordersResult.error) {
-    throw new DataAccessError("DATABASE", "Workspace activity query failed");
+    throw new DataAccessError("DATABASE", "Aktivitu pracovního prostoru se nepodařilo načíst");
   }
 
   const calls = (callsResult.data || []) as CallRow[];
@@ -230,7 +230,7 @@ async function loadActivityRows(
   ]);
 
   if (leadsQuery.error || profilesQuery.error) {
-    throw new DataAccessError("DATABASE", "Workspace activity attribution lookup failed");
+    throw new DataAccessError("DATABASE", "Autory aktivity pracovního prostoru se nepodařilo dohledat");
   }
 
   return {
@@ -293,11 +293,11 @@ function mapDirectOrder(payload: DirectOrderPayload): WorkspaceOrderDTO {
     id: payload.id,
     team_id: payload.team_id,
     lead_id: payload.lead_id || "",
-    lead_name: payload.lead_name?.trim() || "Unknown customer",
+    lead_name: payload.lead_name?.trim() || "Neznámý zákazník",
     product_id: payload.product_id || items[0]?.product_id || "",
-    product_title: items[0]?.product_title || payload.product_title || "Unknown product",
+    product_title: items[0]?.product_title || payload.product_title || "Neznámý produkt",
     agent_id: payload.agent_id,
-    agent_name: payload.agent_name?.trim() || "Unknown operator",
+    agent_name: payload.agent_name?.trim() || "Neznámý operátor",
     total_amount: Number(payload.total_amount || 0),
     currency: payload.currency || items[0]?.currency || "USD",
     items,
@@ -323,9 +323,9 @@ function mapDirectCall(call: NonNullable<DirectLeadActivityPayload["calls"]>[num
   return {
     id: call.id,
     lead_id: call.lead_id || leadId,
-    lead_name: "Unknown customer",
+    lead_name: "Neznámý zákazník",
     agent_id: call.agent_id,
-    agent_name: call.agent_name?.trim() || "Unknown operator",
+    agent_name: call.agent_name?.trim() || "Neznámý operátor",
     duration_seconds: call.duration_seconds || 0,
     outcome: call.outcome,
     fail_reason: call.fail_reason,
@@ -341,24 +341,24 @@ async function getDirectOrder(orderId: string, supabase: SupabaseClient): Promis
   const { data, error } = await supabase.rpc("get_workspace_order_detail", {
     target_order_id: orderId,
   } as never);
-  if (error) throw new DataAccessError("DATABASE", "Order detail query failed");
+  if (error) throw new DataAccessError("DATABASE", "Podrobnosti objednávky se nepodařilo načíst");
   if (!data || typeof data !== "object") return null;
   return mapDirectOrder(data as DirectOrderPayload);
 }
 
 function buildLookups(rows: ActivityRows) {
   const leadNames = new Map(
-    rows.leads.map((lead) => [lead.id, nameOrUnknown(lead.full_name, "Unknown customer")])
+    rows.leads.map((lead) => [lead.id, nameOrUnknown(lead.full_name, "Neznámý zákazník")])
   );
   const operatorNames = new Map(
-    rows.profiles.map((profile) => [profile.id, nameOrUnknown(profile.full_name, "Unknown operator")])
+    rows.profiles.map((profile) => [profile.id, nameOrUnknown(profile.full_name, "Neznámý operátor")])
   );
 
   return {
     customerNameFor: (leadId: string | null) =>
-      (leadId && leadNames.get(leadId)) || "Unknown customer",
+      (leadId && leadNames.get(leadId)) || "Neznámý zákazník",
     operatorNameFor: (agentId: string | null) =>
-      (agentId && operatorNames.get(agentId)) || "Unknown operator",
+      (agentId && operatorNames.get(agentId)) || "Neznámý operátor",
   };
 }
 
@@ -566,7 +566,7 @@ export async function listWorkspaceOrdersInContext(
   const { data, error } = await supabase.rpc("list_workspace_orders", {
     target_workspace_id: context.workspaceId,
   } as never);
-  if (error) throw new DataAccessError("DATABASE", "Workspace orders query failed");
+  if (error) throw new DataAccessError("DATABASE", "Objednávky pracovního prostoru se nepodařilo načíst");
 
   const rows = Array.isArray(data) ? data : [];
   const orders = rows
@@ -602,7 +602,7 @@ export async function getWorkspaceOrder(
     .order("created_at", { ascending: true });
 
   if (historyError) {
-    throw new DataAccessError("DATABASE", "Order status history query failed");
+    throw new DataAccessError("DATABASE", "Historii stavů objednávky se nepodařilo načíst");
   }
 
   return toWorkspaceOrderDTO(order, customerNameFor(order.lead_id), operatorNameFor(order.agent_id), (history || []) as OrderStatusHistoryRow[]);
@@ -634,7 +634,7 @@ function toWorkspaceOrderDTO(
     lead_id: order.lead_id || "",
     lead_name: leadName,
     product_id: order.product_id || items[0]?.product_id || "",
-    product_title: items[0]?.product_title || order.products?.title || "Unknown product",
+    product_title: items[0]?.product_title || order.products?.title || "Neznámý produkt",
     agent_id: order.agent_id,
     agent_name: operatorName,
     total_amount: Number(order.total_amount || 0),
@@ -684,9 +684,9 @@ export async function listWorkspaceLeadActivity(
   const { data, error } = await supabase.rpc("get_workspace_lead_activity_detail", {
     target_lead_id: leadId,
   } as never);
-  if (error) throw new DataAccessError("DATABASE", "Customer activity query failed");
+  if (error) throw new DataAccessError("DATABASE", "Aktivitu zákazníka se nepodařilo načíst");
   if (!data || typeof data !== "object") {
-    throw new DataAccessError("NOT_FOUND", "Lead not found in workspace");
+    throw new DataAccessError("NOT_FOUND", "Lead nebyl v pracovním prostoru nalezen");
   }
 
   const payload = data as DirectLeadActivityPayload;
@@ -705,7 +705,7 @@ async function loadCustomerActivityEvents(
     const rows: T[] = [];
     for (;;) {
       const result = await query(rows.length);
-      if (result.error) throw new DataAccessError("DATABASE", "Customer activity query failed");
+      if (result.error) throw new DataAccessError("DATABASE", "Aktivitu zákazníka se nepodařilo načíst");
       if (!result.data?.length) return rows;
       rows.push(...result.data);
     }
@@ -750,19 +750,31 @@ async function loadCustomerActivityEvents(
     : { data: [], error: null };
 
   if (profilesResult.error) {
-    throw new DataAccessError("DATABASE", "Customer activity attribution lookup failed");
+    throw new DataAccessError("DATABASE", "Autory aktivity zákazníka se nepodařilo dohledat");
   }
 
   const actorNames = new Map(
     ((profilesResult.data || []) as Pick<ProfileRow, "id" | "full_name">[])
-      .map((profile) => [profile.id, nameOrUnknown(profile.full_name, "Unknown operator")]),
+      .map((profile) => [profile.id, nameOrUnknown(profile.full_name, "Neznámý operátor")]),
   );
   const actorNameFor = (actorId: string | null): string =>
-    (actorId && actorNames.get(actorId)) || "Unknown operator";
+    (actorId && actorNames.get(actorId)) || "Neznámý operátor";
 
   const callEvents: CustomerActivityEvent[] = calls.map((call) => {
     const duration = call.duration_seconds || 0;
     const sentiment = call.ai_sentiment || "Neutral";
+    const outcomeLabel = ({
+      order_placed: "Objednávka vytvořena",
+      followup_scheduled: "Hovor naplánován",
+      objection: "Neúspěšný",
+      no_answer: "Bez odpovědi",
+      completed: "Dokončeno",
+    } as Record<string, string>)[call.outcome] || "Neznámý výsledek";
+    const sentimentLabel = ({
+      positive: "Pozitivní",
+      neutral: "Neutrální",
+      negative: "Negativní",
+    } as Record<string, string>)[sentiment.toLowerCase()] || "Neznámá";
     return {
       id: `call:${call.id}`,
       source_entity_id: call.id,
@@ -773,8 +785,8 @@ async function loadCustomerActivityEvents(
       channel: "voice",
       actor: { id: call.agent_id, display_name: actorNameFor(call.agent_id) },
       preview: {
-        title: "Call logged in workspace",
-        text: `Duration: ${Math.floor(duration / 60)}m ${duration % 60}s • Outcome: ${call.outcome} • Sentiment: ${sentiment}`,
+        title: "Hovor zaznamenán v pracovním prostoru",
+        text: `Délka: ${Math.floor(duration / 60)}m ${duration % 60}s • Výsledek: ${outcomeLabel} • Nálada: ${sentimentLabel}`,
       },
       metadata: {
         duration_seconds: duration,
@@ -785,7 +797,7 @@ async function loadCustomerActivityEvents(
   });
 
   const orderEvents: CustomerActivityEvent[] = orders.map((order) => {
-    const productTitle = order.order_items?.[0]?.product_title_snapshot || order.products?.title || "Unknown product";
+    const productTitle = order.order_items?.[0]?.product_title_snapshot || order.products?.title || "Neznámý produkt";
     const amount = Number(order.total_amount || 0);
     return {
       id: `order:${order.id}`,
@@ -797,7 +809,7 @@ async function loadCustomerActivityEvents(
       channel: "commerce",
       actor: { id: order.agent_id, display_name: actorNameFor(order.agent_id) },
       preview: {
-        title: `Order recorded (${amount.toFixed(2)} ${order.currency || "USD"})`,
+        title: `Objednávka zaznamenána (${amount.toFixed(2)} ${order.currency || "USD"})`,
         text: previewText(`${productTitle}${order.source_note ? ` • ${order.source_note}` : ""}`),
       },
       metadata: {
@@ -819,7 +831,7 @@ async function loadCustomerActivityEvents(
     channel: "internal_note",
     actor: { id: note.author_id, display_name: actorNameFor(note.author_id) },
     preview: {
-      title: "Operator note",
+      title: "Poznámka operátora",
       text: note.body,
     },
     metadata: {},
@@ -829,7 +841,7 @@ async function loadCustomerActivityEvents(
 }
 
 export async function listWorkspaceLeadActivityEvents(leadId: string): Promise<CustomerActivityEvent[]> {
-  if (!leadId?.trim()) throw new DataAccessError("VALIDATION", "Lead id is required");
+  if (!leadId?.trim()) throw new DataAccessError("VALIDATION", "Je nutné zadat ID leadu");
   const context = await requireWorkspaceContext();
   await getScopedLeadForWorkspace(leadId, context.workspaceId);
   return normalizeCustomerActivityEvents(await loadCustomerActivityEvents(context.workspaceId, leadId));
@@ -841,7 +853,7 @@ export async function listWorkspaceLeadActivityPage(
   requestedWorkspaceId?: string,
 ): Promise<CustomerActivityPage> {
   if (!leadId?.trim()) {
-    throw new DataAccessError("VALIDATION", "Lead id is required");
+    throw new DataAccessError("VALIDATION", "Je nutné zadat ID leadu");
   }
 
   const context = await requireWorkspaceContext(requestedWorkspaceId);

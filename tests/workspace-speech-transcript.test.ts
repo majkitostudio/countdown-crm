@@ -33,7 +33,7 @@ describe("workspace silent speech transcription and quality review integration",
 
     // Runs silently without disturbing operator toasts for recognition errors
     expect(workspacePage).toContain("[SpeechRecognition] Silent");
-    expect(workspacePage).not.toContain('setNotificationToast("Speech recognition');
+    expect(workspacePage).not.toContain('setNotificationToast("Rozpoznávání řeči');
   });
 
   it("renders captured transcript indicator in PostCallSummaryCard", () => {
@@ -54,8 +54,8 @@ describe("workspace silent speech transcription and quality review integration",
       }),
     );
 
-    expect(html).toContain("Call transcript captured.");
-    expect(html).not.toContain("Call transcript unavailable.");
+    expect(html).toContain("Přepis hovoru byl zachycen.");
+    expect(html).not.toContain("Přepis hovoru není dostupný.");
   });
 
   it("renders unavailable transcript indicator when transcript was not captured", () => {
@@ -76,8 +76,8 @@ describe("workspace silent speech transcription and quality review integration",
       }),
     );
 
-    expect(html).toContain("Call transcript unavailable.");
-    expect(html).not.toContain("Call transcript captured.");
+    expect(html).toContain("Přepis hovoru není dostupný.");
+    expect(html).not.toContain("Přepis hovoru byl zachycen.");
   });
 
   it("formats structured transcript into human-readable dialog for Gemini quality review", () => {

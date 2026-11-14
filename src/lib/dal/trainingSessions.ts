@@ -143,7 +143,7 @@ export async function getTrainingSessionReview(
     operator_email: operator?.email || "",
     turn_count: turns?.length || 0,
     turns: (turns || []) as TrainingTurnRow[],
-    revisions: (revisions || []).map((revision) => ({ ...(revision as TrainingReviewRevisionRow), reviewer_name: operatorProfiles.get(revision.reviewer_id)?.full_name || "Unknown reviewer" })),
+    revisions: (revisions || []).map((revision) => ({ ...(revision as TrainingReviewRevisionRow), reviewer_name: operatorProfiles.get(revision.reviewer_id)?.full_name || "Neznámý hodnotitel" })),
   };
 }
 

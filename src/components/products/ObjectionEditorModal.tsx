@@ -130,7 +130,7 @@ export function ObjectionEditorModal({
                 {initialCard ? "Upravit námitkovou kartu" : "Vytvořit námitkovou kartu"}
               </h2>
               <p className="text-xs text-zinc-400">
-                Karty se ukládají do workspace a zobrazují se operátorům jako schválené podklady.
+                Karty se ukládají do pracovního prostoru a zobrazují se operátorům jako schválené podklady.
               </p>
             </div>
           </div>

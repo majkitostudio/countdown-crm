@@ -56,11 +56,11 @@ export function LeadsTable({
 
   const getStatusBadge = (status: Lead["status"]) => {
     const config: Record<Lead["status"], { label: string }> = {
-      new: { label: "New" },
-      contacted: { label: "Contacted" },
-      qualified: { label: "Qualified" },
-      customer: { label: "Customer" },
-      unresponsive: { label: "Unresponsive" },
+      new: { label: "Nový" },
+      contacted: { label: "Kontaktovaný" },
+      qualified: { label: "Kvalifikovaný" },
+      customer: { label: "Zákazník" },
+      unresponsive: { label: "Nereaguje" },
     };
 
     const current = config[status] || config.new;
@@ -80,8 +80,8 @@ export function LeadsTable({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search leads, phone, city..."
-              aria-label="Search leads"
+              placeholder="Jméno, telefon nebo město…"
+              aria-label="Hledat leady"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-700 transition-colors duration-150 ease-interface"
@@ -98,7 +98,7 @@ export function LeadsTable({
                 variant={statusFilter === st ? "primary" : "quiet"}
                 aria-pressed={statusFilter === st}
               >
-                {st}
+                {({ all: "Všechny", new: "Nové", contacted: "Kontaktované", qualified: "Kvalifikované", customer: "Zákazníci" } as Record<string, string>)[st]}
               </Button>
             ))}
           </div></Surface>
@@ -109,16 +109,16 @@ export function LeadsTable({
           {/* Sort dropdown */}
           <Surface variant="inset"><div className="flex items-center gap-2 px-3 py-2 text-xs text-zinc-300">
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="text-zinc-500">Sort:</span>
+            <span className="text-zinc-500">Řazení:</span>
             <select
-              aria-label="Sort leads"
+              aria-label="Řadit leady"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "newest" | "score" | "name")}
               className="bg-transparent text-zinc-200 cursor-pointer text-xs focus:border-zinc-700"
             >
-              <option value="score" className="bg-zinc-900">AI Score (High to Low)</option>
-              <option value="newest" className="bg-zinc-900">Newest Created</option>
-              <option value="name" className="bg-zinc-900">Name (A-Z)</option>
+              <option value="score" className="bg-zinc-900">AI skóre (od nejvyššího)</option>
+              <option value="newest" className="bg-zinc-900">Nejnovější</option>
+              <option value="name" className="bg-zinc-900">Jméno (A–Z)</option>
             </select>
           </div></Surface>
 
@@ -127,22 +127,22 @@ export function LeadsTable({
             onClick={onOpenImportModal}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Import CSV</span>
+            <span>Importovat CSV</span>
           </Button>
         </div>
 
       </div>
 
       {/* Table Body */}
-      <div className="overflow-x-auto" role="region" aria-label="Leads table" tabIndex={0}>
+      <div className="overflow-x-auto" role="region" aria-label="Tabulka leadů" tabIndex={0}>
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400 font-semibold bg-zinc-950/40 uppercase tracking-wider">
-              <th className="py-3 px-4">Customer / Lead</th>
-              <th className="py-3 px-4">Contact Info</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">AI Score</th>
-              <th className="py-3 px-4 text-right">Actions</th>
+              <th className="py-3 px-4">Zákazník / lead</th>
+              <th className="py-3 px-4">Kontaktní údaje</th>
+              <th className="py-3 px-4">Stav</th>
+              <th className="py-3 px-4">AI skóre</th>
+              <th className="py-3 px-4 text-right">Akce</th>
             </tr>
           </thead>
 
@@ -150,7 +150,7 @@ export function LeadsTable({
             {filteredLeads.length === 0 ? (
               <tr>
                 <td colSpan={5} className="py-12 text-center text-zinc-500 font-mono">
-                  No leads found matching your filter criteria.
+                  Žádný lead neodpovídá filtrům. Zkuste je změnit.
                 </td>
               </tr>
             ) : (
@@ -184,7 +184,7 @@ export function LeadsTable({
                   <td className="py-3 px-4">
                     <div className="font-mono text-zinc-200">{lead.phone}</div>
                     <div className="text-[11px] text-zinc-400 truncate max-w-[180px]">
-                      {lead.email || [lead.city, lead.country].filter(Boolean).join(", ") || "Contact unavailable"}
+                      {lead.email || [lead.city, lead.country].filter(Boolean).join(", ") || "Kontakt není uveden"}
                     </div>
                   </td>
 
@@ -203,7 +203,7 @@ export function LeadsTable({
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => onStartCall(lead)}
-                        title="Start Virtual Call"
+                        title="Zahájit virtuální hovor"
                         className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg transition-colors duration-150 ease-interface cursor-pointer"
                       >
                         <Phone className="w-3.5 h-3.5" />
@@ -211,7 +211,7 @@ export function LeadsTable({
 
                       <button
                         onClick={() => onSelectLead(lead)}
-                        title="View Details"
+                        title="Zobrazit detail"
                         className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors duration-150 ease-interface border border-zinc-800 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -227,8 +227,8 @@ export function LeadsTable({
 
       {/* Table Footer */}
       <div className="flex items-center justify-between border-t border-zinc-800 p-3 text-xs text-zinc-400">
-        <span>Showing <strong className="text-zinc-200">{filteredLeads.length}</strong> of <strong className="text-zinc-200">{leads.length}</strong> total leads</span>
-        <span className="text-zinc-400 text-[11px]">Powered by AI Propensity Scoring Engine</span>
+        <span>Zobrazeno <strong className="text-zinc-200">{filteredLeads.length}</strong> z <strong className="text-zinc-200">{leads.length}</strong> leadů</span>
+        <span className="text-zinc-400 text-[11px]">Skóre zájmu vyhodnocuje AI</span>
       </div>
 
     </Surface>

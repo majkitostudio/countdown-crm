@@ -17,7 +17,7 @@ describe("post-call Fail read model contract", () => {
   it("keeps Fail details available to call records and their detail view", () => {
     expect(calls).toContain("fail_reason: WorkspaceCallDTO[\"fail_reason\"];");
     expect(calls).toContain("operator_note: WorkspaceCallDTO[\"operator_note\"];");
-    expect(drawer).toContain("Fail details");
+    expect(drawer).toContain("Podrobnosti neúspěchu");
     expect(drawer).toContain("getFailReasonLabel");
   });
 });

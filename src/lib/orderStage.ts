@@ -30,12 +30,12 @@ export const ORDER_STAGES: readonly OrderStage[] = [
 ] as const;
 
 export const ORDER_STAGE_LABELS: Record<OrderStage, string> = {
-  processing: "Processing",
-  sent: "Sent",
-  awaiting_pickup: "Awaiting Pickup",
-  delivered: "Delivered",
-  returned: "Returned",
-  cancelled: "Canceled",
+  processing: "Zpracovává se",
+  sent: "Odesláno",
+  awaiting_pickup: "Čeká na vyzvednutí",
+  delivered: "Doručeno",
+  returned: "Vráceno",
+  cancelled: "Zrušeno",
 };
 
 /**

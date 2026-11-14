@@ -123,7 +123,7 @@ export async function createAuditLogForWorkspace(input: CreateAuditLogInput): Pr
     throw new DataAccessError("DATABASE", "Unable to resolve the audit operator.");
   }
 
-  const actorName = profile?.full_name?.trim() || "Unknown operator";
+  const actorName = profile?.full_name?.trim() || "Neznámý operátor";
   const { data, error } = await supabase
     .from("audit_logs")
     .insert({

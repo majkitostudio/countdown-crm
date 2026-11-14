@@ -27,6 +27,6 @@ describe("Incoming call accessibility contract", () => {
   });
 
   it("gives the decline icon button an accessible name", () => {
-    expect(incomingCall).toContain('aria-label="Decline incoming call"');
+    expect(incomingCall).toContain('aria-label="Odmítnout příchozí hovor"');
   });
 });

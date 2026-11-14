@@ -17,16 +17,16 @@ interface ClientProfileCardProps {
 }
 
 const STATUS_LABELS: Record<Lead["status"], string> = {
-  new: "New",
-  contacted: "Contacted",
-  qualified: "Qualified",
-  customer: "Customer",
-  unresponsive: "Unresponsive",
+  new: "Nový",
+  contacted: "Kontaktovaný",
+  qualified: "Kvalifikovaný",
+  customer: "Zákazník",
+  unresponsive: "Nereaguje",
 };
 
 function formatRecordDate(value: string): string {
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "Unavailable";
+  if (!Number.isFinite(date.getTime())) return "Nedostupné";
 
   return date.toLocaleString("cs-CZ", {
     day: "numeric",
@@ -75,7 +75,7 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
           <UserRound className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Call context</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Kontext hovoru</p>
           <h2 id="client-profile-card-title" className="mt-1 truncate text-[15px] font-semibold tracking-tight text-white">
             {lead.full_name}
           </h2>
@@ -83,38 +83,38 @@ export function ClientProfileCard({ lead }: ClientProfileCardProps) {
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        <ProfileField icon={Phone} label="Phone">
+        <ProfileField icon={Phone} label="Telefon">
           <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`tel:${lead.phone}`}>
             {lead.phone}
           </a>
         </ProfileField>
-        <ProfileField icon={Mail} label="Email">
+        <ProfileField icon={Mail} label="E-mail">
           {lead.email ? (
             <a className="mt-1.5 block truncate text-sm text-zinc-200 hover:text-white" href={`mailto:${lead.email}`}>
               {lead.email}
             </a>
           ) : (
-            <p className="mt-1.5 truncate text-sm text-zinc-500">Unavailable</p>
+            <p className="mt-1.5 truncate text-sm text-zinc-500">Nedostupné</p>
           )}
         </ProfileField>
-        <ProfileField icon={CircleGauge} label="Lead status" value={STATUS_LABELS[lead.status]} />
+        <ProfileField icon={CircleGauge} label="Stav leadu" value={STATUS_LABELS[lead.status]} />
       </div>
 
       <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        <ProfileField icon={CircleGauge} label="Lead score">
+        <ProfileField icon={CircleGauge} label="Skóre leadu">
           <div className="mt-2 flex items-center gap-2">
-            <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-label="Lead score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score}>
+            <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-zinc-800" role="progressbar" aria-label="Skóre leadu" aria-valuemin={0} aria-valuemax={100} aria-valuenow={score}>
               <div className="h-full rounded-full bg-zinc-500" style={{ width: `${score}%` }} />
             </div>
             <span className="shrink-0 font-mono text-sm text-zinc-200">{score}/100</span>
           </div>
         </ProfileField>
-        <ProfileField icon={Hash} label="Lead ID" value={lead.id} />
-        <ProfileField icon={CalendarDays} label="Created" value={formatRecordDate(lead.created_at)} />
+        <ProfileField icon={Hash} label="ID leadu" value={lead.id} />
+        <ProfileField icon={CalendarDays} label="Vytvořeno" value={formatRecordDate(lead.created_at)} />
       </div>
 
       <p className="mt-3 text-[10px] text-zinc-500">
-        Full customer history, notes and verified delivery address will be available in Client Profile.
+        Úplná historie zákazníka, poznámky a ověřená doručovací adresa budou dostupné v profilu zákazníka.
       </p>
     </Surface>
   );

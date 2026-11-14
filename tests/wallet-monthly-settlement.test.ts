@@ -56,7 +56,7 @@ describe("Milník 4.1: Měsíční uzávěrka pro Team Leadera", () => {
 
     it("validuje formát data YYYY-MM-01 pro začátek měsíce", () => {
       expect(walletDal).toContain("^\\d{4}-\\d{2}-01$");
-      expect(walletDal).toContain("Period start must be the first day of the month");
+      expect(walletDal).toContain("Začátek období musí být první den měsíce");
     });
 
     it("správně kalkuluje čistý obrat s odečtem vratek", () => {

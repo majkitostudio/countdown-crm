@@ -15,7 +15,7 @@ describe("server-backed telephony adapter boundary", () => {
     expect(source).toContain('"simulation" | "local_sip" | "telnyx"');
     expect(source).toContain('"local_sip" | "telnyx"');
     expect(source).toContain("isTelnyxActivationBlocked");
-    expect(source).toContain("Telnyx activation is currently blocked");
+    expect(source).toContain("Aktivace Telnyxu je zablokována");
   });
 
   it("derives the workspace on the server and uses the safe simulation fallback", () => {

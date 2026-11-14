@@ -52,14 +52,14 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
             <span id="incoming-call-title" className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
-              Incoming Call...
+              Příchozí hovor…
             </span>
           </div>
 
           <Button
             variant="quiet"
             onClick={onDecline}
-            aria-label="Decline incoming call"
+            aria-label="Odmítnout příchozí hovor"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </Button>
@@ -75,7 +75,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
             <p className="text-xs font-mono text-zinc-400">{lead.phone}</p>
             <div className="flex items-center gap-1.5 text-[10px] text-zinc-500 mt-0.5">
               <MapPin className="w-3 h-3" />
-              <span>{[lead.city, lead.country].filter(Boolean).join(", ") || "Location unavailable"}</span>
+              <span>{[lead.city, lead.country].filter(Boolean).join(", ") || "Poloha není dostupná"}</span>
             </div>
           </div>
         </div>
@@ -89,14 +89,14 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
             onClick={onDecline}
           >
             <PhoneOff className="w-3.5 h-3.5" />
-            Decline
+            Odmítnout
           </Button>
 
           <Button
             onClick={onAccept}
           >
             <Phone className="w-3.5 h-3.5 fill-current" />
-            Accept Call
+            Přijmout hovor
           </Button>
         </div>
 

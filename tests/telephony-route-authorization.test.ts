@@ -15,7 +15,7 @@ describe("telephony admin route contract", () => {
     expect(page).toContain('requireWorkspaceRole(["administrator"])');
     expect(page).toContain("TelephonyAdminPanel");
     expect(page).toContain("/admin/settings#telephony-adapter");
-    expect(page).toContain("Local SIP is not active");
+    expect(page).toContain("Místní SIP není aktivní");
   });
 
   it("returns safe local status without exposing environment values", () => {
@@ -40,10 +40,10 @@ describe("telephony admin route contract", () => {
   it("keeps the first admin panel truthful about local-only boundaries", () => {
     const panel = readSource("src/components/telephony/TelephonyAdminPanel.tsx");
 
-    expect(panel).toContain("Local only");
-    expect(panel).toContain("Public PSTN disabled");
-    expect(panel).toContain("Recording disabled");
-    expect(panel).toContain("Telnyx blocked");
+    expect(panel).toContain("Pouze místní");
+    expect(panel).toContain("Veřejná PSTN zakázána");
+    expect(panel).toContain("Nahrávání zakázáno");
+    expect(panel).toContain("Telnyx zablokován");
   });
 });
 

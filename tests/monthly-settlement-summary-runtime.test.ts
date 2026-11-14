@@ -126,7 +126,7 @@ describe("monthly settlement summary runtime", () => {
     }));
 
     await expect(getMonthlySettlementSummary({ periodStart: "2026-09-01" })).rejects.toThrow(
-      "Wallet settings could not be loaded.",
+      "Nastavení peněženky se nepodařilo načíst.",
     );
   });
 
@@ -136,7 +136,7 @@ describe("monthly settlement summary runtime", () => {
     }));
 
     await expect(getMonthlySettlementSummary({ periodStart: "2026-09-01" })).rejects.toThrow(
-      "Monthly settlement orders could not be loaded.",
+      "Objednávky pro měsíční uzávěrku se nepodařilo načíst.",
     );
   });
 
@@ -146,7 +146,7 @@ describe("monthly settlement summary runtime", () => {
     }));
 
     await expect(getMonthlySettlementSummary({ periodStart: "2026-09-01" })).rejects.toThrow(
-      "Finalized commission transactions could not be loaded.",
+      "Transakce uzavřených provizí se nepodařilo načíst.",
     );
   });
 
@@ -156,7 +156,7 @@ describe("monthly settlement summary runtime", () => {
     }));
 
     await expect(getMonthlySettlementSummary({ periodStart: "2026-09-01" })).rejects.toThrow(
-      "Monthly bonus transactions could not be loaded.",
+      "Transakce měsíčních bonusů se nepodařilo načíst.",
     );
   });
 
@@ -177,7 +177,7 @@ describe("monthly settlement summary runtime", () => {
     }));
 
     await expect(getMonthlySettlementSummary({ periodStart: "2026-09-01" })).rejects.toThrow(
-      "Monthly settlement contains orders in another currency.",
+      "Měsíční uzávěrka obsahuje objednávky v jiné měně.",
     );
   });
 
@@ -190,7 +190,7 @@ describe("monthly settlement summary runtime", () => {
     }));
 
     await expect(getMonthlySettlementSummary({ periodStart: "2026-09-01" })).rejects.toThrow(
-      "Monthly settlement contains wallet entries in another currency.",
+      "Měsíční uzávěrka obsahuje záznamy peněženky v jiné měně.",
     );
   });
 

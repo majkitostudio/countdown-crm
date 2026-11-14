@@ -27,17 +27,17 @@ export interface CallRecord {
 export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
   switch (outcome) {
     case "order_placed":
-      return "Order placed";
+      return "Objednávka vytvořena";
     case "followup_scheduled":
-      return "Schedule set";
+      return "Hovor naplánován";
     case "objection":
-      return "Fail";
+      return "Neúspěšný";
     case "no_answer":
-      return "No answer";
+      return "Bez odpovědi";
     case "completed":
-      return "Completed";
+      return "Dokončeno";
     default:
-      return "Unknown outcome";
+      return "Neznámý výsledek";
   }
 }
 

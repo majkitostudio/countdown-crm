@@ -32,7 +32,7 @@ describe("real call review page boundary", () => {
     );
 
     expect(source).toContain('error.code === "FORBIDDEN"');
-    expect(source).toContain("workspace Operators, Team Leaders and Administrators");
+    expect(source).toContain("operátorům, vedoucím týmů a administrátorům pracovního prostoru");
   });
 
   it("preserves the unreviewed Call Logs filter when returning from a review", () => {

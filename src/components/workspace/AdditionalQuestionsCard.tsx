@@ -13,8 +13,8 @@ export function AdditionalQuestionsCard({ questions }: AdditionalQuestionsCardPr
     <Surface variant="page"><section className="p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-[13px] font-semibold text-zinc-100">Discovery questions</h2>
-          <p className="mt-0.5 text-[11px] text-zinc-500">Ask while you listen — in this order</p>
+          <h2 className="text-[13px] font-semibold text-zinc-100">Zjišťovací otázky</h2>
+          <p className="mt-0.5 text-[11px] text-zinc-500">Ptejte se při naslouchání — v tomto pořadí</p>
         </div>
         <ChevronUp className="h-4 w-4 shrink-0 text-zinc-500" aria-hidden="true" />
       </div>

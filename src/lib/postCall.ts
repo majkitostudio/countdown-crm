@@ -94,19 +94,19 @@ export function isNoteRequiredForFailReason(reason: unknown): boolean {
 }
 
 export function validateFailDetails(details: { failReason: unknown; note: string }): string | null {
-  if (!isFailReason(details.failReason)) return "Select a fail reason.";
+  if (!isFailReason(details.failReason)) return "Vyberte důvod neúspěchu.";
   if (isNoteRequiredForFailReason(details.failReason) && !details.note.trim()) {
-    return "Add a short note for this fail.";
+    return "Doplňte krátkou poznámku k neúspěšnému hovoru.";
   }
-  if (details.note.trim().length > 2_000) return "Fail note must contain at most 2,000 characters.";
+  if (details.note.trim().length > 2_000) return "Poznámka k neúspěchu může mít nejvýše 2 000 znaků.";
   return null;
 }
 
 export function validateCallFailFields(details: { outcome: string; failReason: unknown; note: string }): string | null {
-  if (details.note.trim().length > 2_000) return "Call note must contain at most 2,000 characters";
+  if (details.note.trim().length > 2_000) return "Poznámka k hovoru může mít nejvýše 2 000 znaků";
   if (details.outcome === "objection") return validateFailDetails(details);
   if (details.failReason !== null && details.failReason !== undefined) {
-    return "Fail reason is only valid for a fail outcome";
+    return "Důvod neúspěchu lze zadat pouze u neúspěšného hovoru";
   }
   return null;
 }

@@ -13,16 +13,16 @@ describe("workflow server-boundary UI contract", () => {
 
   it("labels the manual workflow action as test-only simulation", () => {
     const workflowsClient = readFileSync(path.join(projectRoot, "src", "app", "automations", "WorkflowsManagementClient.tsx"), "utf8");
-    expect(workflowsClient).toContain("Test-only simulation: Call Ended");
+    expect(workflowsClient).toContain("Pouze testovací simulace: ukončení hovoru");
     expect(workflowsClient).toContain("TEST_ONLY_CALL");
-    expect(workflowsClient).not.toContain("Demo test transcript");
+    expect(workflowsClient).not.toContain("Ukázkový testovací přepis");
   });
 
   it("guards the management route before rendering its client controls", () => {
     const workflowsPage = readFileSync(path.join(projectRoot, "src", "app", "automations", "page.tsx"), "utf8");
     expect(workflowsPage).not.toContain('"use client"');
     expect(workflowsPage).toContain('requireWorkspaceRole(["team_leader", "administrator"])');
-    expect(workflowsPage).toContain("Pravidla automatizací a data o jejich běhu jsou dostupné jen Team Leaderům a administrátorům.");
+    expect(workflowsPage).toContain("Pravidla automatizací a data o jejich běhu jsou dostupné jen vedoucím týmu a správcům.");
     expect(workflowsPage).toContain("return <WorkflowsManagementClient />");
   });
 
@@ -38,7 +38,7 @@ describe("workflow server-boundary UI contract", () => {
     expect(workspacePage).toContain("const startedAssignment = await withTimeout(");
     expect(workspacePage).toContain("const audioReady = await withTimeout(");
     expect(workspacePage).toContain("abortLeadCallStartAction(activeQueueItemId, \"Server call start timed out\")");
-    expect(workspacePage).toContain("Call start recovery is still in progress");
+    expect(workspacePage).toContain("Obnova zahájení hovoru stále probíhá");
   });
 
   it("guides interrupted calls to the required outcome instead of retrying the call", () => {
@@ -69,7 +69,7 @@ describe("workflow server-boundary UI contract", () => {
     expect(leadHeader).toContain('data-testid="operator-lead-primary"');
     expect(leadHeader).toContain('data-state={leadState}');
     expect(summary).toContain('data-testid="post-call-summary"');
-    expect(summary).toContain('aria-label="Dismiss post-call summary"');
+    expect(summary).toContain('aria-label="Zavřít souhrn hovoru"');
   });
 
   it("keeps the post-call summary visible when no next assignment is available", () => {
@@ -83,8 +83,8 @@ describe("workflow server-boundary UI contract", () => {
     const scriptPanel = readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductScriptPanel.tsx"), "utf8");
     const orderPanel = readFileSync(path.join(projectRoot, "src", "components", "workspace", "ProductOrderPanel.tsx"), "utf8");
 
-    expect(scriptPanel).not.toContain("Pilot suggestion");
-    expect(scriptPanel).not.toContain("Use pilot suggestion");
+    expect(scriptPanel).not.toContain("Pilotní návrh");
+    expect(scriptPanel).not.toContain("Použít pilotní návrh");
     expect(orderPanel).not.toContain("appliedPitch");
   });
 

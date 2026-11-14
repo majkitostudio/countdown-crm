@@ -191,7 +191,7 @@ describe("Team Leader Exception Queue", () => {
       priority: "high",
       target: { kind: "order", id: "order-alarm", label: "Pickup Customer" },
       source: { table: "orders", id: "order-alarm" },
-      next_action: { label: "Open order", href: "/orders/order-alarm" },
+      next_action: { label: "Otevřít objednávku", href: "/orders/order-alarm" },
       callReview: null,
     });
     expect(pickupItems[0].occurred_at).toBe("2026-09-06T09:00:00.000Z");
@@ -236,7 +236,7 @@ describe("Team Leader Exception Queue", () => {
     expect(item?.callReview).toBeNull();
     expect(result.sources.callReviews).toEqual({
       state: "unavailable",
-      message: "Exact call review links could not be loaded.",
+      message: "Přesné odkazy na kontroly hovorů se nepodařilo načíst.",
     });
   });
 
@@ -309,7 +309,7 @@ describe("Team Leader Exception Queue", () => {
     expect(result.items.some((item) => item.source.table === "workflow_executions")).toBe(true);
     expect(result.sources.queue).toEqual({
       state: "unavailable",
-      message: "Lead queue checks could not be loaded.",
+      message: "Kontroly fronty leadů se nepodařilo načíst.",
     });
   });
 

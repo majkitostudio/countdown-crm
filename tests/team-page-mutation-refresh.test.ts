@@ -164,9 +164,9 @@ describe("Team mutation composite refresh", () => {
 
     const html = render(state);
     expect(events).toEqual(["mutation", "refresh", "replace"]);
-    expect(html).toContain("Lead queue is unavailable.");
+    expect(html).toContain("Fronta leadů není dostupná.");
     expect(html).not.toContain("Stale Queue Lead");
-    expect(html).not.toContain("1 queue item");
+    expect(html).not.toContain("Položky fronty: 1");
   });
 
   it.each([

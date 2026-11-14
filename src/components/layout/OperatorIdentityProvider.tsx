@@ -43,7 +43,7 @@ export function OperatorIdentityProvider({
       if (isDemoAuthEnabled()) {
         setIdentity({
           id: "demo-user",
-          name: "Demo Administrator",
+          name: "Demo administrátor",
           email: "demo@countdowncrm.local",
           role: "administrator",
           avatarUrl: null,
@@ -68,7 +68,7 @@ export function OperatorIdentityProvider({
       try {
         workspaceContext = await getCurrentWorkspaceContextAction();
       } catch {
-        setError("Authenticated workspace membership is unavailable");
+        setError("Ověřené členství v pracovním prostoru není dostupné");
         setIsLoading(false);
         return;
       }
@@ -90,14 +90,14 @@ export function OperatorIdentityProvider({
         typedProfile
           ? {
               id: typedProfile.id,
-              name: typedProfile.full_name.trim() || "Unknown operator",
+              name: typedProfile.full_name.trim() || "Neznámý operátor",
               email: typedProfile.email.trim(),
               role: workspaceContext.role,
               avatarUrl: typedProfile.avatar_url,
             }
           : {
               id: workspaceContext.userId,
-              name: user?.user_metadata?.full_name || "Unknown operator",
+              name: user?.user_metadata?.full_name || "Neznámý operátor",
               email: user?.email || "",
               role: workspaceContext.role,
               avatarUrl: null,

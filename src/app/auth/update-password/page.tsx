@@ -85,7 +85,7 @@ export default function UpdatePasswordPage() {
         <Surface variant="page">
           <div className="space-y-5 p-6">
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold text-zinc-200">Set a new password</h2>
+              <h2 className="text-sm font-semibold text-zinc-200">Nastavit nové heslo</h2>
               <p className="text-xs text-zinc-400">
                 {pageState === "checking"
                   ? "Ověřujeme odkaz pro obnovu hesla."
@@ -104,7 +104,7 @@ export default function UpdatePasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="new-password" className="text-xs font-medium text-zinc-300 block">
-                    New Password
+                    Nové heslo
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -124,7 +124,7 @@ export default function UpdatePasswordPage() {
 
                 <div className="space-y-1.5">
                   <label htmlFor="confirm-password" className="text-xs font-medium text-zinc-300 block">
-                    Confirm New Password
+                    Potvrdit nové heslo
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -143,7 +143,7 @@ export default function UpdatePasswordPage() {
                 </div>
 
                 <Button type="submit" disabled={loading} className="w-full">
-                  <span>{loading ? "Saving..." : "Save new password"}</span>
+                  <span>{loading ? "Ukládání..." : "Uložit nové heslo"}</span>
                 </Button>
               </form>
             )}
@@ -153,7 +153,7 @@ export default function UpdatePasswordPage() {
               className="inline-flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 underline underline-offset-4"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              {isInvalid ? "Request another link" : "Back to sign in"}
+              {isInvalid ? "Vyžádat nový odkaz" : "Zpět na přihlášení"}
             </Link>
           </div>
         </Surface>

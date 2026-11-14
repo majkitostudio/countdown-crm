@@ -93,7 +93,7 @@ export function ShipmentTimelineCard({
         <div>
           <div className="flex items-center gap-2">
             <Truck className="h-4 w-4 text-zinc-400" />
-            <h2 className="text-sm font-semibold text-zinc-100">Časová osa zásilky (Timeline)</h2>
+            <h2 className="text-sm font-semibold text-zinc-100">Časová osa zásilky</h2>
           </div>
           <p className="mt-1 text-xs text-zinc-500">
             Detailní historie pohybu balíčku od expedice po doručení či vrácení.

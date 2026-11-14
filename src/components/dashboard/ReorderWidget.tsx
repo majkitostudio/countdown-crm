@@ -24,7 +24,7 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
         setOpportunities(result.data);
       } catch (error) {
         setOpportunities([]);
-        setLoadError(error instanceof Error ? error.message : "Re-order data could not be loaded.");
+        setLoadError(error instanceof Error ? error.message : "Data opakovaných objednávek se nepodařilo načíst.");
       } finally {
         setLoading(false);
       }
@@ -41,14 +41,14 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-zinc-100 flex flex-wrap items-center gap-2">
-              Re-Order Opportunities
+              Příležitosti k opakované objednávce
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800">
                 <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-                Heuristic estimate
+                Orientační odhad
               </span>
             </h2>
             <p className="text-xs text-zinc-400 break-words">
-              Estimated replenishment dates from {scope === "team" ? "team" : "workspace"} fulfilled order history and product-category cycles
+              Odhad termínů doplnění zásob podle historie vyřízených objednávek {scope === "team" ? "týmu" : "pracovního prostoru"} a cyklů kategorií produktů
             </p>
           </div>
         </div>
@@ -57,21 +57,21 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
           href="/leads"
           className="text-xs font-medium text-zinc-400 hover:text-zinc-200 flex items-center gap-1 transition-colors duration-150 ease-interface"
         >
-          View all leads <ArrowRight className="w-3.5 h-3.5" />
+          Zobrazit všechny leady <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
       {loading ? (
         <div className="py-8 text-center text-xs text-zinc-400 font-mono">
-          Calculating replenishment rates...
+          Počítám termíny doplnění zásob…
         </div>
       ) : loadError ? (
         <div role="status" className="py-6 text-center text-xs text-zinc-500">
-          Re-order opportunities are unavailable because fulfilled order history could not be loaded.
+          Příležitosti k opakované objednávce nejsou dostupné, protože se nepodařilo načíst historii vyřízených objednávek.
         </div>
       ) : opportunities.length === 0 ? (
         <div className="py-6 text-center text-xs text-zinc-500">
-          No re-order opportunities due in the next 14 days.
+          V příštích 14 dnech nejsou žádné příležitosti k opakované objednávce.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -87,11 +87,11 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
                   </span>
                   {op.urgency === "urgent" ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Urgent ({op.days_remaining}d)
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Naléhavé ({op.days_remaining} dní)
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-300 border border-zinc-800 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Due in {op.days_remaining}d
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Za {op.days_remaining} dní
                     </span>
                   )}
                 </div>
@@ -107,7 +107,7 @@ export function ReorderWidget({ scope = "workspace" }: { scope?: "team" | "works
                 className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium transition-colors duration-150 ease-interface flex items-center gap-1.5 shrink-0"
               >
                 <PhoneCall className="w-3.5 h-3.5 text-zinc-300" />
-                Call
+                Zavolat
               </Link>
             </div>
           ))}

@@ -26,8 +26,8 @@ import { cn } from "@/lib/utils";
  */
 
 const PRODUCTS_TABS = [
-  { key: "catalog", label: "Catalog", href: "/products" },
-  { key: "scripts", label: "Scripts", href: "/products?tab=scripts" },
+  { key: "catalog", label: "Katalog", href: "/products" },
+  { key: "scripts", label: "Skripty", href: "/products?tab=scripts" },
 ] as const;
 
 type ProductsTabKey = (typeof PRODUCTS_TABS)[number]["key"];
@@ -57,7 +57,7 @@ async function loadProductScripts(): Promise<ProductScriptsLoadResult> {
 
 function ProductsTabs({ activeTab }: { activeTab: ProductsTabKey }) {
   return (
-    <nav aria-label="Products &amp; Scripts sections" className="flex flex-wrap items-center gap-2">
+    <nav aria-label="Sekce produktů a skriptů" className="flex flex-wrap items-center gap-2">
       {PRODUCTS_TABS.map((tab) => {
         const isActive = tab.key === activeTab;
         return (
@@ -100,9 +100,9 @@ export default async function ProductsPage(
         <div className="mx-auto max-w-screen-2xl space-y-6">
           <PageHeader
             icon={Package}
-            title="Products & Scripts"
-            badge={{ label: "Administrator only", tone: "neutral" }}
-            backLink={{ href: "/admin", label: "Back to Management" }}
+            title="Produkty a skripty"
+            badge={{ label: "Pouze pro administrátory", tone: "neutral" }}
+            backLink={{ href: "/admin", label: "Zpět do správy" }}
             description="Jeden souvislý skript na produkt: uložte koncept a publikujte zkontrolovanou verzi operátorům."
           />
           <ProductsTabs activeTab="scripts" />
@@ -110,15 +110,15 @@ export default async function ProductsPage(
             <Surface variant="empty">
               <Package className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
               <h1 className="text-base font-semibold text-zinc-100">
-                Products &amp; Scripts unavailable
+                Produkty a skripty nejsou dostupné
               </h1>
               <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
                 {isForbidden
-                  ? "Only a workspace Administrator can edit approved product scripts."
-                  : "The approved product scripts could not be loaded right now."}
+                  ? "Schválené produktové skripty může upravovat pouze administrátor pracovního prostoru."
+                  : "Schválené produktové skripty se právě nepodařilo načíst."}
               </p>
               <Link href="/admin" className={getButtonClassName("secondary")}>
-                Back to Management
+                Zpět do správy
               </Link>
             </Surface>
           </div>
@@ -130,9 +130,9 @@ export default async function ProductsPage(
       <div className="mx-auto max-w-screen-2xl space-y-6">
         <PageHeader
           icon={Package}
-          title="Products & Scripts"
-          badge={{ label: "Administrator only", tone: "neutral" }}
-          backLink={{ href: "/admin", label: "Back to Management" }}
+          title="Produkty a skripty"
+          badge={{ label: "Pouze pro administrátory", tone: "neutral" }}
+          backLink={{ href: "/admin", label: "Zpět do správy" }}
           description="Jeden souvislý skript na produkt: uložte koncept a publikujte zkontrolovanou verzi operátorům."
         />
         <ProductsTabs activeTab="scripts" />
@@ -158,14 +158,14 @@ export default async function ProductsPage(
   const initialCatalog = await loadProductCatalog(context);
   const badge =
     initialCatalog.catalog.status === "ready"
-      ? { label: `${initialCatalog.catalog.data.length} Products`, tone: "neutral" as const }
-      : { label: "Catalog unavailable", tone: "unavailable" as const };
+      ? { label: `${initialCatalog.catalog.data.length} produktů`, tone: "neutral" as const }
+      : { label: "Katalog není dostupný", tone: "unavailable" as const };
 
   return (
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={Package}
-        title={isAdministrator ? "Products & Scripts" : "Product Catalog"}
+        title={isAdministrator ? "Produkty a skripty" : "Katalog produktů"}
         badge={badge}
         description="Katalog produktů, skriptů a námitkových karet pro operátory."
       />

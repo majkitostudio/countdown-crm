@@ -74,22 +74,22 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
     return (
       <Surface variant="empty" className="w-full">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Order creation unavailable</h1>
+        <h1 className="text-base font-semibold text-zinc-100">Vytvoření objednávky není dostupné</h1>
         <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
           {isUnavailable
-            ? "Operators can create an order only for their currently assigned contact. Return to the Operator Console and open Create Order from that contact."
+            ? "Operátoři mohou vytvořit objednávku jen pro aktuálně přiřazený kontakt. Vraťte se do konzole operátora a u tohoto kontaktu zvolte Vytvořit objednávku."
             : requiresAssignedContact
-              ? "Open Create Order from the currently assigned contact in the Operator Console."
+              ? "V konzoli operátora u aktuálně přiřazeného kontaktu zvolte Vytvořit objednávku."
               : callNoLongerPending
-                ? "The call outcome is no longer waiting for order completion. Return to the Operator Console and verify the current assignment."
-            : "The create order workspace data could not be loaded."}
+                ? "Výsledek hovoru už nečeká na dokončení objednávky. Vraťte se do konzole operátora a ověřte aktuální přiřazení."
+            : "Data pracovního prostoru pro vytvoření objednávky se nepodařilo načíst. Zkuste to znovu."}
         </p>
         <Link
           href="/console"
           className={getButtonClassName("secondary")}
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Operator Console
+          Zpět do konzole operátora
         </Link>
       </Surface>
     );
@@ -100,12 +100,12 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
     <div className="mx-auto max-w-screen-xl space-y-6">
       <PageHeader
         icon={ShoppingCart}
-        title="Create Order"
-        badge={{ label: flow === "call" ? "Complete call" : "Not saved", tone: "neutral" }}
-        backLink={{ href: origin === "workspace" ? "/console" : "/orders", label: origin === "workspace" ? "Back to Operator Console" : "Back to Orders" }}
+        title="Vytvořit objednávku"
+        badge={{ label: flow === "call" ? "Dokončit hovor" : "Neuloženo", tone: "neutral" }}
+        backLink={{ href: origin === "workspace" ? "/console" : "/orders", label: origin === "workspace" ? "Zpět do konzole operátora" : "Zpět na objednávky" }}
         description={flow === "call"
           ? "Dokončete aktuální hovor kontrolou a vytvořením objednávky."
-          : "Vytvořte objednávku a pokračujte jejím doručovacím cyklem v Orders."}
+          : "Vytvořte objednávku a sledujte její doručení v přehledu objednávek."}
       />
       <OrderCreateForm
         leads={leads}

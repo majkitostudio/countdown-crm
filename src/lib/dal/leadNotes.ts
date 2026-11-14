@@ -19,12 +19,12 @@ const NOTE_FIELDS = "id, workspace_id, lead_id, author_id, body, created_at";
 
 function validateBody(body: string): string {
   if (typeof body !== "string") {
-    throw new DataAccessError("VALIDATION", "Note body is required.");
+    throw new DataAccessError("VALIDATION", "Vyplňte text poznámky.");
   }
 
   const normalized = body.trim();
   if (!normalized || normalized.length > 2000) {
-    throw new DataAccessError("VALIDATION", "Note body must be between 1 and 2,000 characters.");
+    throw new DataAccessError("VALIDATION", "Text poznámky musí mít 1 až 2 000 znaků.");
   }
 
   return normalized;
@@ -42,16 +42,16 @@ async function loadAuthorNames(
     .in("id", authorIds);
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Lead note author lookup failed.");
+    throw new DataAccessError("DATABASE", "Autora poznámky leadu se nepodařilo načíst.");
   }
 
-  return new Map((data || []).map((profile) => [profile.id, profile.full_name?.trim() || "Unknown operator"]));
+  return new Map((data || []).map((profile) => [profile.id, profile.full_name?.trim() || "Neznámý operátor"]));
 }
 
 function mapNote(row: LeadNoteRow, authorNames: Map<string, string>): LeadNoteDTO {
   return {
     ...row,
-    author_name: authorNames.get(row.author_id) || "Unknown operator",
+    author_name: authorNames.get(row.author_id) || "Neznámý operátor",
   };
 }
 
@@ -69,7 +69,7 @@ export async function listLeadNotesForWorkspace(
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new DataAccessError("DATABASE", "Lead notes could not be loaded.");
+    throw new DataAccessError("DATABASE", "Poznámky leadu se nepodařilo načíst. Zkuste to znovu.");
   }
 
   const rows = (data || []) as LeadNoteRow[];
@@ -91,7 +91,7 @@ export async function createLeadNoteForWorkspace(
       await getScopedLeadForWorkspace(leadId, context.workspaceId);
     } catch (error) {
       if (error instanceof DataAccessError && error.code === "DATABASE") throw error;
-      throw new DataAccessError("FORBIDDEN", "Contact is not available in the current assignment.");
+      throw new DataAccessError("FORBIDDEN", "Kontakt není dostupný v aktuálním přiřazení.");
     }
   }
 
@@ -106,10 +106,10 @@ export async function createLeadNoteForWorkspace(
       .maybeSingle();
 
     if (leadError) {
-      throw new DataAccessError("DATABASE", "Lead lookup for note failed.");
+      throw new DataAccessError("DATABASE", "Lead pro poznámku se nepodařilo načíst.");
     }
     if (!lead) {
-      throw new DataAccessError("NOT_FOUND", "Lead not found in workspace.");
+      throw new DataAccessError("NOT_FOUND", "Lead nebyl v pracovním prostoru nalezen.");
     }
   }
 
@@ -125,7 +125,7 @@ export async function createLeadNoteForWorkspace(
     .single();
 
   if (error || !data) {
-    throw new DataAccessError("DATABASE", "Lead note could not be saved.");
+    throw new DataAccessError("DATABASE", "Poznámku leadu se nepodařilo uložit. Zkuste to znovu.");
   }
 
   const authorNames = await loadAuthorNames([context.userId]);

@@ -12,10 +12,10 @@ import { Surface } from "@/components/ui/Surface";
 import { OperatorCommissionBadge } from "./OperatorCommissionBadge";
 
 function getHeaderSearchPlaceholder(role: Parameters<typeof isTeamLeaderOrAdministrator>[0], isLoading: boolean): string {
-  if (isLoading) return "Open pages and commands... (Ctrl + K)";
+  if (isLoading) return "Otevřít stránky a příkazy... (Ctrl + K)";
   return role === "operator"
-    ? "Search products or pages... (Ctrl + K)"
-    : "Search leads, products, or pages... (Ctrl + K)";
+    ? "Hledat produkty nebo stránky... (Ctrl + K)"
+    : "Hledat leady, produkty nebo stránky... (Ctrl + K)";
 }
 
 export { getHeaderSearchPlaceholder };
@@ -30,7 +30,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
   const userMenuButtonRef = useRef<HTMLButtonElement>(null);
   const signOutButtonRef = useRef<HTMLButtonElement>(null);
 
-  const rawOperatorName = identity?.name || (isIdentityLoading ? "Loading operator" : "Unknown operator");
+  const rawOperatorName = identity?.name || (isIdentityLoading ? "Načítání operátora" : "Neznámý operátor");
   const initials = getOperatorInitials(rawOperatorName);
   const roleLabel = getOperatorRoleLabel(identity?.role || null);
 
@@ -67,7 +67,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
     setSignOutError(null);
     const { error } = await createClient().auth.signOut();
     if (error) {
-      setSignOutError("Sign out failed. Please try again.");
+      setSignOutError("Odhlášení se nezdařilo. Zkuste to prosím znovu.");
       setIsSignOutPending(false);
       return;
     }
@@ -76,11 +76,11 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
 
   return (
     <header className="sticky top-0 z-20 flex min-h-16 shrink-0 items-center justify-between gap-4 border-b border-zinc-800/80 bg-zinc-950/90 px-4 backdrop-blur-md sm:px-6 lg:px-8">
-      <Button variant="quiet" className="md:hidden" onClick={onOpenNavigation} aria-label="Open navigation" aria-controls="primary-navigation">
+      <Button variant="quiet" className="md:hidden" onClick={onOpenNavigation} aria-label="Otevřít navigaci" aria-controls="primary-navigation">
         <Menu className="h-5 w-5" aria-hidden="true" />
       </Button>
       <div className="min-w-0 flex-1 max-w-2xl">
-        <Button variant="secondary" onClick={openCommandPalette} className="w-full" aria-label="Open command palette">
+        <Button variant="secondary" onClick={openCommandPalette} className="w-full" aria-label="Otevřít příkazovou paletu">
         <span className="flex min-w-0 flex-1 items-center gap-3 text-zinc-400">
           <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="min-w-0 flex-1 truncate">{getHeaderSearchPlaceholder(identity?.role, isIdentityLoading)}</span>
@@ -102,7 +102,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
             }}
             aria-haspopup="menu"
             aria-expanded={isUserMenuOpen}
-            aria-label={`${rawOperatorName}, ${roleLabel}. Open user menu`}
+            aria-label={`${rawOperatorName}, ${roleLabel}. Otevřít uživatelské menu`}
             className="flex items-center gap-2 rounded-xl border border-transparent py-1 pl-1 pr-1.5 text-left transition-colors duration-150 ease-interface hover:border-zinc-800 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:gap-3 sm:pl-3 sm:pr-2"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-xs font-semibold text-zinc-200" aria-hidden="true">
@@ -120,11 +120,11 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
 
           {isUserMenuOpen && (
             <div className="absolute right-0 top-full z-50 mt-2 w-64">
-            <Surface variant="overlay" className="w-full" role="menu" aria-label="User menu">
+            <Surface variant="overlay" className="w-full" role="menu" aria-label="Uživatelská nabídka">
               <div className="p-2">
               <div className="rounded-lg bg-zinc-900/70 px-3 py-2.5" role="presentation">
                 <p className="truncate text-xs font-semibold text-zinc-100">{rawOperatorName}</p>
-                <p className="mt-0.5 truncate text-[11px] text-zinc-400">{identity?.email || (isIdentityLoading ? "Loading email" : "Email unavailable")}</p>
+                <p className="mt-0.5 truncate text-[11px] text-zinc-400">{identity?.email || (isIdentityLoading ? "Načítání e-mailu" : "E-mail nedostupný")}</p>
                 <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-zinc-300">
                   <ShieldCheck className="h-3 w-3 text-zinc-400" aria-hidden="true" />
                   {roleLabel}
@@ -140,7 +140,7 @@ export function AppHeader({ onOpenNavigation }: { onOpenNavigation: () => void }
                 className={`${getButtonClassName("quiet")} w-full`}
               >
                 <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-                {isSignOutPending ? "Signing out..." : "Sign out"}
+                {isSignOutPending ? "Odhlašování..." : "Odhlásit se"}
               </button>
               </div>
             </Surface>

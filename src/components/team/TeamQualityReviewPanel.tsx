@@ -16,7 +16,7 @@ const signalLabels: Record<string, string> = {
   missing_note: "Chybí poznámka",
   short_note: "Krátká poznámka",
   short_call: "Krátký hovor",
-  missing_fail_reason: "Chybí důvod Failu",
+  missing_fail_reason: "Chybí důvod neúspěchu",
 };
 
 const sectionLabels: Record<string, string> = {
@@ -42,9 +42,9 @@ function statusCopy(status: CallQualityReviewDTO["status"]): { label: string; cl
 
 function outcomeCopy(outcome: string): string {
   if (outcome === "order_placed") return "Prodej";
-  if (outcome === "objection") return "Fail";
+  if (outcome === "objection") return "Neúspěch";
   if (outcome === "no_answer") return "Bez spojení";
-  if (outcome === "followup_scheduled") return "Schedule";
+  if (outcome === "followup_scheduled") return "Naplánovaný hovor";
   return outcome;
 }
 
@@ -159,7 +159,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
       <header>
         <h2 id="team-quality-review-heading" className="text-lg font-semibold text-zinc-100">Kontrola kvality hovorů</h2>
         <p className="mt-1 text-sm leading-relaxed text-zinc-500">
-          AI pouze vytipuje záznamy k běžné kontrole Team Leaderem. Nemění výsledek hovoru, objednávku ani práci operátora.
+          AI pouze vytipuje záznamy k běžné kontrole vedoucím týmu. Nemění výsledek hovoru, objednávku ani práci operátora.
         </p>
       </header>
 
@@ -268,7 +268,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
             <option value="missing_note">Chybí poznámka</option>
             <option value="short_note">Krátká poznámka</option>
             <option value="short_call">Krátký hovor</option>
-            <option value="missing_fail_reason">Chybí důvod Failu</option>
+            <option value="missing_fail_reason">Chybí důvod neúspěchu</option>
           </select>
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-outcome-filter">
@@ -281,7 +281,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
           </select>
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-fail-reason-filter">
-          Důvod Failu
+          Důvod neúspěchu
           <select id="quality-fail-reason-filter" name="quality-fail-reason" value={failReason} onChange={(event) => { setFailReason(event.target.value); setActiveViewId(null); }} className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200">
             <option value="all">Všechny důvody</option>
             {FAIL_REASON_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

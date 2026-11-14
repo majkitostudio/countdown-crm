@@ -18,7 +18,7 @@ interface Customer360RetentionCardProps {
 }
 
 function formatDate(value: string | null): string {
-  if (!value) return "No persisted activity";
+  if (!value) return "Bez uložené aktivity";
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
@@ -36,49 +36,49 @@ export function Customer360RetentionCard({
     <section id="customer-360" className="space-y-4 p-6" data-testid="customer-360-retention">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-100">Customer 360 · Retention playbook</h2>
+          <h2 className="text-sm font-semibold text-zinc-100">Přehled zákazníka · Plán udržení</h2>
           <p className="mt-1 text-xs text-zinc-500">Přehled skutečné historie zákazníka a další vysvětlitelný krok.</p>
         </div>
-        <StatusBadge tone="neutral">Persisted workspace data</StatusBadge>
+        <StatusBadge tone="neutral">Uložená data pracovního prostoru</StatusBadge>
       </div>
 
       {activityUnavailable ? (
-        <StatusAlert tone="neutral" role="status">Customer activity is unavailable. No retention recommendation was created from substitute data.</StatusAlert>
+        <StatusAlert tone="neutral" role="status">Aktivity zákazníka nejsou dostupné. Doporučení pro udržení zákazníka nebylo vytvořeno z náhradních dat.</StatusAlert>
       ) : snapshot ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <SnapshotMetric label="Calls" value={String(snapshot.totalCalls)} icon={PhoneCall} />
-            <SnapshotMetric label="Orders" value={`${snapshot.fulfilledOrders}/${snapshot.totalOrders}`} icon={ShoppingBag} detail="fulfilled / total" />
+            <SnapshotMetric label="Hovory" value={String(snapshot.totalCalls)} icon={PhoneCall} />
+            <SnapshotMetric label="Objednávky" value={`${snapshot.fulfilledOrders}/${snapshot.totalOrders}`} icon={ShoppingBag} detail="vyřízené / celkem" />
             <SnapshotMetric
-              label="Revenue"
+              label="Tržby"
               value={formatCurrencyAmounts(snapshot.revenueByCurrency)}
-              detail={snapshot.revenueByCurrency.length > 1 ? "separate currencies; not summed" : undefined}
+              detail={snapshot.revenueByCurrency.length > 1 ? "měny jsou uvedeny zvlášť, nesčítají se" : undefined}
               icon={CheckCircle2}
             />
-            <SnapshotMetric label="Last touch" value={formatDate(snapshot.lastCallAt)} icon={CalendarClock} compact />
+            <SnapshotMetric label="Poslední kontakt" value={formatDate(snapshot.lastCallAt)} icon={CalendarClock} compact />
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
             <Surface variant="inset"><div className="p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Latest order</p>
-              <p className="mt-1 text-xs font-medium text-zinc-200">{snapshot.lastProduct || "No order yet"}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Poslední objednávka</p>
+              <p className="mt-1 text-xs font-medium text-zinc-200">{snapshot.lastProduct || "Zatím bez objednávky"}</p>
               <p className="mt-1 text-[11px] text-zinc-500">{formatDate(snapshot.lastOrderAt)}</p>
             </div></Surface>
             <Surface variant="inset"><div className="p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Last call outcome</p>
-              <p className="mt-1 text-xs font-medium text-zinc-200">{snapshot.lastCallOutcome?.replaceAll("_", " ") || "No call yet"}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Výsledek posledního hovoru</p>
+              <p className="mt-1 text-xs font-medium text-zinc-200">{snapshot.lastCallOutcome ? ({ order_placed: "Objednávka vytvořena", followup_scheduled: "Naplánovaný hovor", no_answer: "Bez odpovědi", objection: "Námitka", completed: "Dokončeno", sale: "Prodej", rejected: "Odmítnuto", scheduled: "Naplánovaný hovor", transferred: "Přepojeno" } as Record<string, string>)[snapshot.lastCallOutcome] || snapshot.lastCallOutcome.replaceAll("_", " ") : "Zatím bez hovoru"}</p>
               <p className="mt-1 text-[11px] text-zinc-500">{formatDate(snapshot.lastCallAt)}</p>
             </div></Surface>
           </div>
 
           <Surface variant="inset"><div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Next retention action</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Další krok pro udržení zákazníka</p>
               <p className="mt-1 text-sm font-medium text-zinc-100">{snapshot.nextAction.title}</p>
               <p className="mt-1 text-xs text-zinc-400">{snapshot.nextAction.description}</p>
             </div>
             <Link href={snapshot.nextAction.href} className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-950 transition-colors duration-150 ease-interface hover:bg-white">
-              Open action <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              Otevřít akci <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div></Surface>
         </>

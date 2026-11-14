@@ -39,12 +39,12 @@ const REMINDER_FIELDS = `
 
 function normalizeTitle(title: string): string {
   if (typeof title !== "string") {
-    throw new DataAccessError("VALIDATION", "Reminder title is required.");
+    throw new DataAccessError("VALIDATION", "Zadejte název připomínky.");
   }
 
   const normalized = title.trim();
   if (!normalized || normalized.length > 200) {
-    throw new DataAccessError("VALIDATION", "Reminder title must be between 1 and 200 characters.");
+    throw new DataAccessError("VALIDATION", "Název připomínky musí mít 1 až 200 znaků.");
   }
 
   return normalized;
@@ -53,23 +53,23 @@ function normalizeTitle(title: string): string {
 function normalizeNote(note: string | null | undefined): string | null {
   if (note === null || note === undefined) return null;
   if (typeof note !== "string" || note.trim().length > 2000) {
-    throw new DataAccessError("VALIDATION", "Reminder note must contain at most 2,000 characters.");
+    throw new DataAccessError("VALIDATION", "Poznámka k připomínce může mít nejvýše 2 000 znaků.");
   }
   return note.trim() || null;
 }
 
 function normalizeDate(value: string, label: string): string {
   if (typeof value !== "string" || !value.trim() || !Number.isFinite(Date.parse(value))) {
-    throw new DataAccessError("VALIDATION", `${label} must be a valid date and time.`);
+    throw new DataAccessError("VALIDATION", `${label} musí být platné datum a čas.`);
   }
   return new Date(value).toISOString();
 }
 
 function validateSchedule(dueAt: string, remindAt: string): { due_at: string; remind_at: string } {
-  const due_at = normalizeDate(dueAt, "Due time");
-  const remind_at = normalizeDate(remindAt, "Reminder time");
+  const due_at = normalizeDate(dueAt, "Termín");
+  const remind_at = normalizeDate(remindAt, "Čas upozornění");
   if (Date.parse(remind_at) > Date.parse(due_at)) {
-    throw new DataAccessError("VALIDATION", "Reminder time cannot be after the due time.");
+    throw new DataAccessError("VALIDATION", "Čas upozornění nesmí být po termínu připomínky.");
   }
   return { due_at, remind_at };
 }
@@ -88,8 +88,8 @@ async function assertLeadInWorkspace(
     .eq("workspace_id", workspaceId)
     .maybeSingle();
 
-  if (error) throw new DataAccessError("DATABASE", "Reminder lead lookup failed.");
-  if (!data) throw new DataAccessError("NOT_FOUND", "Reminder lead was not found in this workspace.");
+  if (error) throw new DataAccessError("DATABASE", "Lead připomínky se nepodařilo vyhledat.");
+  if (!data) throw new DataAccessError("NOT_FOUND", "Lead připomínky nebyl v tomto pracovním prostoru nalezen.");
 }
 
 function mapReminder(row: unknown): OperatorReminderDTO {
@@ -114,7 +114,7 @@ export async function listOperatorRemindersForWorkspace(
     .lte("due_at", range.due_at)
     .order("due_at", { ascending: true });
 
-  if (error) throw new DataAccessError("DATABASE", "Operator reminders could not be loaded.");
+  if (error) throw new DataAccessError("DATABASE", "Připomínky operátora se nepodařilo načíst.");
   return ((data || []) as unknown[]).map(mapReminder);
 }
 
@@ -144,7 +144,7 @@ export async function createOperatorReminderForWorkspace(
     .select(REMINDER_FIELDS)
     .single();
 
-  if (error || !data) throw new DataAccessError("DATABASE", "Reminder could not be saved.");
+  if (error || !data) throw new DataAccessError("DATABASE", "Připomínku se nepodařilo uložit.");
   return mapReminder(data);
 }
 
@@ -153,7 +153,7 @@ export async function updateOperatorReminderForWorkspace(
   input: UpdateOperatorReminderInput,
   requestedWorkspaceId?: string,
 ): Promise<OperatorReminderDTO> {
-  if (!reminderId.trim()) throw new DataAccessError("VALIDATION", "Reminder ID is required.");
+  if (!reminderId.trim()) throw new DataAccessError("VALIDATION", "Je nutné zadat ID připomínky.");
 
   const context = await requireWorkspaceContext(requestedWorkspaceId);
   const supabase = await createDataClient();
@@ -166,11 +166,11 @@ export async function updateOperatorReminderForWorkspace(
     .eq("status", "open")
     .maybeSingle();
 
-  if (existingError) throw new DataAccessError("DATABASE", "Reminder lookup failed.");
-  if (!existing) throw new DataAccessError("NOT_FOUND", "Reminder was not found for this operator.");
+  if (existingError) throw new DataAccessError("DATABASE", "Připomínku se nepodařilo vyhledat.");
+  if (!existing) throw new DataAccessError("NOT_FOUND", "Připomínka tohoto operátora nebyla nalezena.");
 
-  const due_at = input.due_at === undefined ? existing.due_at : normalizeDate(input.due_at, "Due time");
-  const remind_at = input.remind_at === undefined ? existing.remind_at : normalizeDate(input.remind_at, "Reminder time");
+  const due_at = input.due_at === undefined ? existing.due_at : normalizeDate(input.due_at, "Termín");
+  const remind_at = input.remind_at === undefined ? existing.remind_at : normalizeDate(input.remind_at, "Čas upozornění");
   validateSchedule(due_at, remind_at);
   const lead_id = input.lead_id === undefined ? existing.lead_id : input.lead_id || null;
   await assertLeadInWorkspace(supabase, lead_id, context.workspaceId);
@@ -192,7 +192,7 @@ export async function updateOperatorReminderForWorkspace(
     .select(REMINDER_FIELDS)
     .single();
 
-  if (error || !data) throw new DataAccessError("DATABASE", "Reminder could not be updated.");
+  if (error || !data) throw new DataAccessError("DATABASE", "Připomínku se nepodařilo aktualizovat.");
   return mapReminder(data);
 }
 
@@ -201,7 +201,7 @@ async function setReminderStatus(
   status: Extract<ReminderStatus, "completed" | "cancelled">,
   requestedWorkspaceId?: string,
 ): Promise<OperatorReminderDTO> {
-  if (!reminderId.trim()) throw new DataAccessError("VALIDATION", "Reminder ID is required.");
+  if (!reminderId.trim()) throw new DataAccessError("VALIDATION", "Je nutné zadat ID připomínky.");
 
   const context = await requireWorkspaceContext(requestedWorkspaceId);
   const supabase = await createDataClient();
@@ -219,7 +219,7 @@ async function setReminderStatus(
     .select(REMINDER_FIELDS)
     .single();
 
-  if (error || !data) throw new DataAccessError("NOT_FOUND", "Reminder could not be updated.");
+  if (error || !data) throw new DataAccessError("NOT_FOUND", "Připomínku se nepodařilo aktualizovat.");
   return mapReminder(data);
 }
 

@@ -13,8 +13,8 @@ describe("Local SIP settings UI contract", () => {
     const component = readSource("src/components/settings/TelephonyAdapterSettings.tsx");
 
     expect(component).toContain('id="telephony-adapter"');
-    expect(component).toContain("Local SIP");
-    expect(component).toContain("Telnyx adapter");
+    expect(component).toContain("Místní SIP");
+    expect(component).toContain("Adaptér Telnyx");
     expect(component).toContain("disabled");
     expect(component).toContain("href=\"/telephony\"");
     expect(component).toContain("/admin/settings#telephony-adapter");

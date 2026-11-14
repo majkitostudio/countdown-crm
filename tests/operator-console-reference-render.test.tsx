@@ -130,7 +130,7 @@ it("keeps an active simulated call visually neutral while preserving the destruc
   expect(markup).toContain('class="inline-flex h-2 w-2 rounded-full bg-zinc-500" aria-hidden="true"');
   expect(markup).not.toContain("bg-rose-400");
   expect(markup).not.toContain("bg-rose-500");
-  expect(markup).toContain('class="text-zinc-300" aria-label="Simulated audio activity"');
+  expect(markup).toContain('class="text-zinc-300" aria-label="Simulovaná zvuková aktivita"');
   expect(markup).not.toContain("text-emerald-400");
   const renderedCall = document.createElement("div");
   renderedCall.innerHTML = markup;
@@ -138,7 +138,7 @@ it("keeps an active simulated call visually neutral while preserving the destruc
     element.getAttribute("class")?.includes("border-status-danger-border")
   ));
   expect(dangerControls).toHaveLength(1);
-  expect(dangerControls[0]?.getAttribute("aria-label")).toBe("End call with Alex Customer");
+  expect(dangerControls[0]?.getAttribute("aria-label")).toBe("Ukončit hovor: Alex Customer");
 });
 
 it("restores focus to the command-palette opener after Escape and traps Tab within the dialog", () => {
@@ -151,7 +151,7 @@ it("restores focus to the command-palette opener after Escape and traps Tab with
   dispatchWindowKey("k", { ctrlKey: true });
 
   const dialog = document.querySelector<HTMLElement>('[role="dialog"]');
-  const input = document.querySelector<HTMLInputElement>('input[aria-label="Search commands and available records"]');
+  const input = document.querySelector<HTMLInputElement>('input[aria-label="Hledat příkazy a dostupné záznamy"]');
   expect(dialog).not.toBeNull();
   expect(input).not.toBeNull();
   expect(document.activeElement).toBe(input);
@@ -179,7 +179,7 @@ describe("sidebar operator-status menu", () => {
       toggle?.click();
     });
 
-    const menu = document.querySelector<HTMLElement>('[role="menu"][aria-label="Operator status"]');
+    const menu = document.querySelector<HTMLElement>('[role="menu"][aria-label="Stav operátora"]');
     expect(menu).not.toBeNull();
     expect(toggle?.getAttribute("aria-expanded")).toBe("true");
     const statusChoices = menu?.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]') ?? [];
@@ -213,7 +213,7 @@ describe("sidebar operator-status menu", () => {
     expect(document.activeElement).toBe(reopenedChoices[1]);
 
     dispatchWindowKey("Escape");
-    expect(document.querySelector('[role="menu"][aria-label="Operator status"]')).toBeNull();
+    expect(document.querySelector('[role="menu"][aria-label="Stav operátora"]')).toBeNull();
     expect(document.activeElement).toBe(toggle);
   });
 });

@@ -16,6 +16,24 @@ interface TeamOwnershipPanelProps {
   initialData: Pick<TeamManagementData, "teams" | "ownership">;
 }
 
+const LEAD_STATUS_LABELS: Record<string, string> = {
+  new: "Nový",
+  contacted: "Kontaktovaný",
+  qualified: "Kvalifikovaný",
+  customer: "Zákazník",
+  unresponsive: "Nereaguje",
+};
+
+const QUEUE_STATE_LABELS: Record<string, string> = {
+  available: "Volná fronta",
+  assigned: "Přiřazeno",
+  in_progress: "Probíhá",
+  awaiting_outcome: "Čeká na výsledek",
+  scheduled: "Naplánovaný hovor",
+  closed: "Uzavřeno",
+  paused: "Pozastaveno",
+};
+
 function ownershipKey(resourceType: TeamOwnershipResourceType, resourceId: string): string {
   return `${resourceType}:${resourceId}`;
 }
@@ -154,7 +172,7 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
                   <div key={lead.id} className="grid gap-3 rounded-control border border-border-default bg-surface-inset p-3 sm:grid-cols-[1fr_auto] sm:items-center">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-medium text-text-primary">{lead.full_name}</p>
-                      <p className="truncate text-[11px] text-text-muted">{lead.phone} · {lead.status} · {teamLabel(lead.team_id, data.teams)}</p>
+                      <p className="truncate text-[11px] text-text-muted">{lead.phone} · {LEAD_STATUS_LABELS[lead.status] ?? lead.status} · {teamLabel(lead.team_id, data.teams)}</p>
                     </div>
                     <div className="flex gap-2 sm:min-w-[220px]">
                       <SelectField
@@ -192,7 +210,7 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
                   <div key={item.id} className="grid gap-3 rounded-control border border-border-default bg-surface-inset p-3 sm:grid-cols-[1fr_auto] sm:items-center">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-medium text-text-primary">{leadName}</p>
-                      <p className="truncate text-[11px] text-text-muted">{item.state} · {operator} · {teamLabel(item.team_id, data.teams)}</p>
+                      <p className="truncate text-[11px] text-text-muted">{QUEUE_STATE_LABELS[item.state] ?? item.state} · {operator} · {teamLabel(item.team_id, data.teams)}</p>
                     </div>
                     <div className="flex gap-2 sm:min-w-[220px]">
                       <SelectField

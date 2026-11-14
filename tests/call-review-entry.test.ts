@@ -96,9 +96,9 @@ describe("Calls review entry authorization", () => {
       onClose: vi.fn(),
     }));
 
-    expect(managerHtml).toContain("Open Team Leader Review");
+    expect(managerHtml).toContain("Otevřít kontrolu vedoucího týmu");
     expect(managerHtml).toContain('/call-logs/call-1/review');
-    expect(operatorHtml).not.toContain("Open Team Leader Review");
+    expect(operatorHtml).not.toContain("Otevřít kontrolu vedoucího týmu");
     expect(operatorHtml).not.toContain('/call-logs/call-1/review');
   });
 });

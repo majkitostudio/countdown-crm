@@ -60,7 +60,7 @@ export async function getLeads(options?: {
 
 export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
   if (leads.some((item) => !item.full_name?.trim() || !item.phone?.trim())) {
-    throw new Error("Lead name and phone are required");
+    throw new Error("Vyplňte jméno a telefon leadu.");
   }
 
   const payload = leads.map((item) => ({
@@ -81,7 +81,7 @@ export async function addLeadsBatch(leads: Partial<Lead>[]): Promise<Lead[]> {
 
 export async function updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
   if (!updates.status) {
-    throw new Error("Only lead status updates are supported by the Supabase lead service");
+    throw new Error("Služba pro leady podporuje pouze změny stavu leadu.");
   }
 
   const saved = await updateLeadStatusAction(id, updates.status);

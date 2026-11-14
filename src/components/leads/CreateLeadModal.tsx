@@ -57,8 +57,8 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
       <div className="w-full max-w-lg p-6">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 id="create-lead-dialog-title" className="text-base font-semibold text-zinc-100">Create Lead</h2>
-            <p className="mt-1 text-xs text-zinc-400">Uloží se přímo do aktivního workspace.</p>
+            <h2 id="create-lead-dialog-title" className="text-base font-semibold text-zinc-100">Vytvořit lead</h2>
+            <p className="mt-1 text-xs text-zinc-400">Uloží se přímo do aktivního pracovního prostoru.</p>
           </div>
           <button
             type="button"
@@ -78,7 +78,7 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <FieldLabel htmlFor="lead-full-name">
-            Full name <span className="text-rose-400">*</span>
+            Celé jméno <span className="text-rose-400">*</span>
             <TextField
               id="lead-full-name"
               required
@@ -88,7 +88,7 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
           </FieldLabel>
 
           <FieldLabel htmlFor="lead-phone">
-            Phone <span className="text-rose-400">*</span>
+            Telefon <span className="text-rose-400">*</span>
             <TextField
               id="lead-phone"
               required
@@ -99,7 +99,7 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FieldLabel htmlFor="lead-email">
-              Email
+              E-mail
               <TextField
                 id="lead-email"
                 type="email"
@@ -108,7 +108,7 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
               />
             </FieldLabel>
             <FieldLabel htmlFor="lead-city">
-              City
+              Město
               <TextField
                 id="lead-city"
                 value={city}
@@ -118,7 +118,7 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
           </div>
 
           <FieldLabel htmlFor="lead-notes">
-            Notes
+            Poznámky
             <TextAreaField
               id="lead-notes"
               value={notes}
@@ -133,13 +133,13 @@ export function CreateLeadModal({ isOpen, onClose, onCreated }: CreateLeadModalP
               onClick={onClose}
               variant="secondary"
             >
-              Cancel
+              Zrušit
             </Button>
             <Button
               type="submit"
               disabled={isSaving}
             >
-              {isSaving ? "Saving..." : "Create Lead"}
+              {isSaving ? "Ukládám…" : "Vytvořit lead"}
             </Button>
           </div>
         </form>

@@ -67,18 +67,18 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
   const dispatchUnavailable = summary.workflowDispatches.some((dispatch) => dispatch.status === "unavailable");
   const dispatchSimulation = summary.workflowDispatches.some((dispatch) => dispatch.status === "simulation");
   const automationSummary = failureCount > 0
-    ? `Automation failed — ${failureCount} action${failureCount === 1 ? "" : "s"}`
+    ? `Automatizace selhala — počet akcí: ${failureCount}`
     : dispatchFailure
-    ? "Automation dispatch failed"
+    ? "Spuštění automatizace selhalo"
     : unavailableCount > 0 || dispatchUnavailable
-    ? `Automation unavailable — ${unavailableCount} rule${unavailableCount === 1 ? "" : "s"}`
+    ? `Automatizace není dostupná — počet pravidel: ${unavailableCount}`
     : simulationCount > 0 || dispatchSimulation
-    ? `Automation simulation — no durable effect`
+    ? `Simulace automatizace — bez trvalého účinku`
     : successCount > 0
-    ? `Automation completed — ${successCount} action${successCount === 1 ? "" : "s"}`
+    ? `Automatizace dokončena — počet akcí: ${successCount}`
     : skippedCount > 0
-    ? `Automation skipped — ${skippedCount} rule${skippedCount === 1 ? "" : "s"}`
-    : "No automation triggered";
+    ? `Automatizace přeskočena — počet pravidel: ${skippedCount}`
+    : "Žádná automatizace nebyla spuštěna";
 
   return (
     <Surface variant="page"><section className="space-y-3 p-4 animate-in fade-in slide-in-from-bottom-2 duration-180 ease-interface motion-reduce:animate-none" data-testid="post-call-summary" role="region" aria-labelledby="post-call-summary-title">
@@ -90,14 +90,14 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           </div>
           <div>
             <h2 id="post-call-summary-title" className="text-sm font-semibold text-zinc-100">
-              Post-call summary
+              Souhrn hovoru
             </h2>
             <p className="text-[10px] text-zinc-500 font-mono">
               {summary.leadName} • {summary.outcomeLabel} • {Math.round(summary.durationSeconds / 60)}m
-              {failureCount > 0 && ` • ${failureCount} failed`}
-              {unavailableCount > 0 && ` • ${unavailableCount} unavailable`}
-              {simulationCount > 0 && ` • ${simulationCount} simulated`}
-              {skippedCount > 0 && ` • ${skippedCount} skipped`}
+              {failureCount > 0 && ` • selhalo: ${failureCount}`}
+              {unavailableCount > 0 && ` • nedostupné: ${unavailableCount}`}
+              {simulationCount > 0 && ` • simulované: ${simulationCount}`}
+              {skippedCount > 0 && ` • přeskočené: ${skippedCount}`}
             </p>
           </div>
         </div>
@@ -105,7 +105,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Dismiss post-call summary"
+          aria-label="Zavřít souhrn hovoru"
           className="rounded-md p-1.5 text-zinc-500 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         >
           <X className="w-4 h-4" />
@@ -114,20 +114,20 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
         <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Outcome</span>
+          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Výsledek</span>
           <strong className="mt-1 block text-zinc-100">{summary.outcomeLabel}</strong>
         </div>
         <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Order</span>
+          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Objednávka</span>
           <strong className="mt-1 block text-zinc-100">
-            {summary.orderStatus === "created" ? "Created" : "Not created"}
+            {summary.orderStatus === "created" ? "Vytvořena" : "Nevytvořena"}
             {summary.orderId && (
               <span className="block mt-1 text-[10px] font-mono text-zinc-500">#{summary.orderId}</span>
             )}
           </strong>
         </div>
         <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Automation</span>
+          <span className="block text-[10px] uppercase tracking-wider text-zinc-500">Automatizace</span>
           <strong className="mt-1 block text-zinc-100">{automationSummary}</strong>
         </div>
       </div>
@@ -144,17 +144,17 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
         aria-live="polite"
         data-testid="post-call-save-state"
       >
-        {saveState === "saving" ? "Saving" : saveState === "failed" ? "Failed" : "Saved"}
+        {saveState === "saving" ? "Ukládání" : saveState === "failed" ? "Selhalo" : "Uloženo"}
         {saveState === "failed" && onRetry && (
           <button type="button" onClick={onRetry} className="ml-3 underline underline-offset-2">
-            Retry
+            Zkusit znovu
           </button>
         )}
       </div>
 
       {summary.failReasonLabel && (
         <div className="rounded-lg border border-rose-900/60 bg-rose-950/20 p-3 text-xs">
-          <span className="block text-[10px] uppercase tracking-wider text-rose-300/80">Fail details</span>
+          <span className="block text-[10px] uppercase tracking-wider text-rose-300/80">Podrobnosti neúspěchu</span>
           <strong className="mt-1 block text-rose-100">{summary.failReasonLabel}</strong>
           {summary.operatorNote && <p className="mt-1 whitespace-pre-wrap text-rose-200/80">{summary.operatorNote}</p>}
         </div>
@@ -162,15 +162,15 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
 
       {summary.transcriptStatus === "unavailable" && (
         <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
-          <strong className="font-semibold">Call transcript unavailable.</strong>
-          <span className="ml-1 text-amber-300/80">This call did not capture a verified speech transcript or recording.</span>
+          <strong className="font-semibold">Přepis hovoru není dostupný.</strong>
+          <span className="ml-1 text-amber-300/80">U tohoto hovoru nebyl zachycen ověřený přepis řeči ani nahrávka.</span>
         </div>
       )}
 
       {summary.transcriptStatus === "captured" && (
         <div className="rounded-lg border border-emerald-900/60 bg-emerald-950/20 p-3 text-xs text-emerald-200" role="status">
-          <strong className="font-semibold">Call transcript captured.</strong>
-          <span className="ml-1 text-emerald-300/80">A speech transcript was recorded and linked for quality review.</span>
+          <strong className="font-semibold">Přepis hovoru byl zachycen.</strong>
+          <span className="ml-1 text-emerald-300/80">Přepis řeči byl zaznamenán a připojen ke kontrole kvality.</span>
         </div>
       )}
 
@@ -180,7 +180,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
           .filter((dispatch) => dispatch.entries.length === 0 && dispatch.status !== "success")
           .map((dispatch) => (
             <div key={`${dispatch.trigger}-${dispatch.eventId}`} className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3 text-xs text-amber-200" role="status">
-              {dispatch.status === "failure" ? "Automation dispatch failed" : dispatch.status === "simulation" ? "Automation simulation" : "Automation unavailable"}: {dispatch.reason}
+              {dispatch.status === "failure" ? "Spuštění automatizace selhalo" : dispatch.status === "simulation" ? "Simulace automatizace" : "Automatizace není dostupná"}: {dispatch.reason}
             </div>
           ))}
         {entries.map((entry, entryIndex) => {
@@ -258,7 +258,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
                   <div className="mt-1.5 space-y-0.5">
                     {entry.actionResults.map((result) => (
                       <p key={result.action} className="text-[10px] text-zinc-500 font-mono">
-                        {result.action}: {result.reason}
+                        {ACTION_REGISTRY.find((action) => action.type === result.action)?.label || result.action}: {result.reason}
                       </p>
                     ))}
                   </div>
@@ -283,10 +283,10 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
         </span>
         <div className="flex items-center gap-3">
           <a href="/automations" className="text-[10px] text-zinc-400 hover:text-zinc-200 font-medium transition-colors duration-150 ease-interface">
-            View automations →
+            Zobrazit automatizace →
           </a>
           <Button onClick={onNextLead}>
-            Continue to next lead
+            Pokračovat na další lead
           </Button>
         </div>
       </div>

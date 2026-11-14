@@ -178,7 +178,7 @@ describe("workspace readiness read model", () => {
     expect(result.checks).toEqual(expect.arrayContaining([
       expect.objectContaining({ key: "calendar", status: "ready" }),
       expect.objectContaining({ key: "wallet", status: "ready" }),
-      expect.objectContaining({ key: "lead_queue", status: "ready", summary: expect.stringContaining("empty") }),
+      expect.objectContaining({ key: "lead_queue", status: "ready", summary: expect.stringContaining("prázdná") }),
       expect.objectContaining({ key: "published_scripts", status: "ready" }),
     ]));
   });

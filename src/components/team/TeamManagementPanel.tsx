@@ -23,7 +23,7 @@ interface TeamManagementPanelProps {
 }
 
 function memberLabel(member: WorkspaceMemberDTO): string {
-  return `${member.full_name || "Unknown user"} — ${member.email || member.user_id}`;
+  return `${member.full_name || "Neznámý uživatel"} - ${member.email || member.user_id}`;
 }
 
 function activeMemberships(data: TeamManagementData): TeamMembershipDTO[] {
@@ -150,7 +150,7 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
             <p className="mt-1 text-xl font-semibold text-text-primary">{unassignedMembers.length}</p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-text-muted">Celkem členů workspace</p>
+            <p className="text-[11px] uppercase tracking-wider text-text-muted">Celkem členů pracovního prostoru</p>
             <p className="mt-1 text-xl font-semibold text-text-primary">{data.members.length}</p>
           </div>
         </div>
@@ -175,7 +175,7 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <h2 className="text-base font-semibold text-text-primary">{team.name}</h2>
-                        <StatusBadge tone={team.status === "active" ? "neutral" : "warning"}>{team.status === "active" ? "Active" : "Archived"}</StatusBadge>
+                        <StatusBadge tone={team.status === "active" ? "neutral" : "warning"}>{team.status === "active" ? "Aktivní" : "Archivovaný"}</StatusBadge>
                       </div>
                       <p className="mt-1 text-xs text-text-muted">{team.slug}</p>
                     </div>
@@ -191,7 +191,7 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
                       <div key={membership.id} className="flex items-center justify-between gap-3 rounded-control border border-border-default bg-surface-inset px-3 py-2.5">
                         <div className="min-w-0">
                           <p className="truncate text-xs font-medium text-text-primary">{membership.full_name}</p>
-                          <p className="truncate text-[11px] text-text-muted">{membership.membership_role === "leader" ? "Team Leader" : "Operator"} · {membership.email}</p>
+                          <p className="truncate text-[11px] text-text-muted">{membership.membership_role === "leader" ? "Vedoucí týmu" : "Operátor"} · {membership.email}</p>
                         </div>
                         <Button variant="quiet" disabled={busyKey === membership.id} onClick={() => void endMembership(membership)}>
                           Odebrat
@@ -213,10 +213,10 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
                         </div>
                       </div>
                       <div>
-                        <FieldLabel htmlFor={`${team.id}-leader`}>Přidat Team Leadera</FieldLabel>
+                        <FieldLabel htmlFor={`${team.id}-leader`}>Přidat vedoucího týmu</FieldLabel>
                         <div className="flex gap-2">
                           <SelectField id={`${team.id}-leader`} value={selectedUsers[`${team.id}:leader`] || ""} onChange={(event) => setSelectedUsers((current) => ({ ...current, [`${team.id}:leader`]: event.target.value }))}>
-                            <option value="">Vyberte Team Leadera</option>
+                            <option value="">Vyberte vedoucího týmu</option>
                             {availableLeaders.map((member) => <option key={member.user_id} value={member.user_id}>{memberLabel(member)}</option>)}
                           </SelectField>
                           <Button variant="secondary" disabled={!selectedUsers[`${team.id}:leader`] || busyKey === `${team.id}:leader`} onClick={() => void addMember(team.id, "leader")}>Přidat</Button>

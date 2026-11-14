@@ -33,35 +33,35 @@ interface AdminHubCard {
 const ADMIN_HUB_CARDS: readonly AdminHubCard[] = [
   {
     href: "/admin/users",
-    label: "Users & Teams",
-    description: "Členové, role ve workspace a členství v týmech.",
+    label: "Uživatelé a týmy",
+    description: "Členové, role v pracovním prostoru a členství v týmech.",
     legacyPath: "/settings/users",
     icon: Users,
   },
   {
     href: "/admin/ownership",
-    label: "Team Ownership",
+    label: "Vlastnictví týmů",
     description: "Kteří zákazníci a položky fronty ještě čekají na odpovědný tým.",
     icon: Route,
   },
   {
     href: "/products?tab=scripts",
-    label: "Products & Scripts",
+    label: "Produkty a skripty",
     description: "Katalog produktů a schválené skripty, které čtou operátoři.",
     legacyPath: "/settings/scripts",
     icon: FileText,
   },
   {
     href: "/automations",
-    label: "Automations",
+    label: "Automatizace",
     description: "Automatická pravidla a webhooky spouštěné událostmi.",
     legacyPath: "/workflows",
     icon: Workflow,
   },
   {
     href: "/admin/settings",
-    label: "Workspace Settings",
-    description: "Pravidla a provize walletu pro celý workspace.",
+    label: "Nastavení pracovního prostoru",
+    description: "Pravidla a provize peněženky pro celý pracovní prostor.",
     legacyPath: "/settings",
     icon: WalletCards,
   },
@@ -84,10 +84,10 @@ export default async function AdminHubPage() {
         <Surface variant="empty">
           <LockKeyhole className="mx-auto h-8 w-8 text-zinc-500" />
           <h1 className="mt-4 text-base font-semibold text-zinc-100">
-            Management is available to administrators only
+            Správa je dostupná pouze pro administrátory
           </h1>
           <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">
-            Správa workspace nepatří k práci operátora ani Team Leadera.
+            Správa pracovního prostoru nepatří k práci operátora ani vedoucího týmu.
           </p>
         </Surface>
       </div>
@@ -105,16 +105,16 @@ export default async function AdminHubPage() {
     <div className="mx-auto max-w-screen-2xl space-y-8">
       <PageHeader
         icon={ShieldCheck}
-        title="Management"
-        description="Jedno místo pro správu workspace: členové a týmy, odpovědnost za zákazníky, produkty a skripty, automatizace a nastavení."
-        badge={{ label: "Administrator only", tone: "neutral" }}
+        title="Správa"
+        description="Jedno místo pro správu pracovního prostoru: členové a týmy, odpovědnost za zákazníky, produkty a skripty, automatizace a nastavení."
+        badge={{ label: "Pouze pro administrátory", tone: "neutral" }}
       />
 
       {healthChecks ? (
         <WorkspaceHealthStrip checks={healthChecks} />
       ) : (
         <Surface variant="empty" className="w-full">
-          <p className="text-sm font-semibold text-zinc-100">Workspace health is unavailable</p>
+          <p className="text-sm font-semibold text-zinc-100">Stav pracovního prostoru není dostupný</p>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500">
             Provozní kontroly se nepodařilo načíst — zkuste to prosím později.
           </p>
@@ -146,7 +146,7 @@ export default async function AdminHubPage() {
               <span className="text-xs leading-relaxed text-zinc-400">{card.description}</span>
               {card.legacyPath ? (
                 <span className="mt-auto font-mono text-[11px] uppercase tracking-wider text-zinc-400">
-                  was {card.legacyPath}
+                  dříve {card.legacyPath}
                 </span>
               ) : null}
             </Link>

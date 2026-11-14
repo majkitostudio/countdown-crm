@@ -14,7 +14,7 @@ function formatDuration(seconds: number): string {
 }
 
 function formatTimestamp(timestamp: string): string {
-  return new Date(timestamp).toLocaleString("en-US", {
+  return new Date(timestamp).toLocaleString("cs-CZ", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -25,22 +25,30 @@ function formatTimestamp(timestamp: string): string {
 function getCallOutcomeLabel(outcome: string): string {
   switch (outcome) {
     case "order_placed":
-      return "Order placed";
+      return "Objednávka vytvořena";
     case "followup_scheduled":
-      return "Follow-up scheduled";
+      return "Naplánovaný hovor";
     case "no_answer":
-      return "No answer";
+      return "Bez odpovědi";
     case "objection":
-      return "Fail";
+      return "Neúspěch";
     case "completed":
-      return "Completed";
+      return "Dokončeno";
     default:
       return outcome.replaceAll("_", " ");
   }
 }
 
 function getOrderOutcomeLabel(outcome: string): string {
-  return `${outcome.charAt(0).toUpperCase()}${outcome.slice(1)} order`;
+  return ({
+    completed: "Dokončená objednávka",
+    pending: "Čekající objednávka",
+    in_progress: "Zpracovávaná objednávka",
+    sent: "Odeslaná objednávka",
+    delivered: "Doručená objednávka",
+    returned: "Vrácená objednávka",
+    cancelled: "Zrušená objednávka",
+  } as Record<string, string>)[outcome] ?? outcome;
 }
 
 export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "workspace" }) {
@@ -66,7 +74,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
             ok: false,
             code: "UNAVAILABLE",
             status: 503,
-            message: error instanceof Error ? error.message : "Recent activity query failed",
+            message: error instanceof Error ? error.message : "Nedávnou aktivitu se nepodařilo načíst.",
           });
         }
       } finally {
@@ -90,11 +98,11 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-zinc-400" />
             <h3 className="text-sm font-semibold text-zinc-100">
-            Recent {scope === "team" ? "Team" : "Workspace"} Activity
+            Nedávná aktivita {scope === "team" ? "týmu" : "pracovního prostoru"}
             </h3>
           </div>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Persisted calls and orders with {scope === "team" ? "team" : "workspace"} attribution
+            Uložené hovory a objednávky přiřazené {scope === "team" ? "týmu" : "pracovnímu prostoru"}
           </p>
         </div>
 
@@ -102,34 +110,34 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
           href="/call-logs"
           className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors duration-150 ease-interface"
         >
-          <span>View All Calls</span>
+          <span>Zobrazit všechny hovory</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
         </a>
       </div>
 
       {isLoading ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 text-xs text-zinc-400">
-          Loading recent {scope === "team" ? "team" : "workspace"} activity...
+          Načítám nedávnou aktivitu {scope === "team" ? "týmu" : "pracovního prostoru"}…
         </div>
       ) : result && !result.ok ? (
         <StatusAlert tone={feedbackTone}>
           <p className="text-xs font-medium">
-            {result.code === "FORBIDDEN" ? "Recent activity access is restricted" : "Recent activity unavailable"}
+            {result.code === "FORBIDDEN" ? "Přístup k nedávné aktivitě je omezen" : "Nedávná aktivita není dostupná"}
           </p>
           <p className="mt-1 text-[11px] leading-relaxed">{result.message}</p>
         </StatusAlert>
       ) : activity.entries.length === 0 ? (
         <div className="rounded-lg bg-zinc-950/60 border border-zinc-800/60 p-4 space-y-2">
-          <p className="text-xs font-medium text-zinc-200">{activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Recent activity is partially unavailable" : `No recent ${scope === "team" ? "team" : "workspace"} activity`}</p>
+          <p className="text-xs font-medium text-zinc-200">{activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Nedávná aktivita je částečně nedostupná" : `Žádná nedávná aktivita ${scope === "team" ? "týmu" : "pracovního prostoru"}`}</p>
           <p className="text-[11px] leading-relaxed text-zinc-400">
-            {activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "The available source returned no recent records; the missing source is not being shown as empty." : `Persisted calls and orders will appear here after they are attributed to the active ${scope === "team" ? "team" : "workspace"}.`}
+            {activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable" ? "Dostupný zdroj nevrátil žádné nedávné záznamy; chybějící zdroj nezobrazujeme jako prázdný." : `Uložené hovory a objednávky se zde zobrazí po přiřazení k aktivnímu ${scope === "team" ? "týmu" : "pracovnímu prostoru"}.`}
           </p>
         </div>
       ) : (
         <div className="space-y-2.5">
           {(activity.sources.calls === "unavailable" || activity.sources.orders === "unavailable") && (
             <p role="status" className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200">
-              Partial activity: {activity.sources.calls === "unavailable" ? "calls" : ""}{activity.sources.calls === "unavailable" && activity.sources.orders === "unavailable" ? " and " : ""}{activity.sources.orders === "unavailable" ? "orders" : ""} are unavailable.
+              Částečný přehled. Nedostupné zdroje: {activity.sources.calls === "unavailable" ? "hovory" : ""}{activity.sources.calls === "unavailable" && activity.sources.orders === "unavailable" ? " a " : ""}{activity.sources.orders === "unavailable" ? "objednávky" : ""}.
             </p>
           )}
           {activity.entries.map((entry) => (
@@ -166,7 +174,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
               <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
                 {entry.type === "call" && entry.sentiment && entry.sentiment !== "Neutral" && (
                   <span className="hidden sm:inline-block px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300 font-mono">
-                    {entry.sentiment}
+                    {({ Positive: "Pozitivní", Negative: "Negativní", Neutral: "Neutrální" } as Record<string, string>)[entry.sentiment] ?? entry.sentiment}
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
