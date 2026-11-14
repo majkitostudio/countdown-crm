@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/lib/supabase/types";
 
 export const runtime = "nodejs";
+
+type CarrierOrderRecord = Pick<
+  Database["public"]["Tables"]["orders"]["Row"],
+  "id" | "status" | "tracking_number" | "workspace_id"
+>;
 
 interface WebhookTrackingPayload {
   tracking_number?: string | null;
@@ -89,7 +95,8 @@ export function normalizeCarrierStatus(raw?: string | null): "delivered" | "retu
 
 export async function POST(request: Request) {
   const secret = process.env.CARRIER_WEBHOOK_SECRET?.trim();
-  if (!secret) {
+  const workspaceId = process.env.CARRIER_WEBHOOK_WORKSPACE_ID?.trim();
+  if (!secret || !workspaceId) {
     return NextResponse.json({ error: "Carrier webhook is not configured." }, { status: 503 });
   }
 
@@ -141,17 +148,25 @@ export async function POST(request: Request) {
     }
 
     try {
-      // Find matching order
-      let query = admin.from("orders").select("id, status, tracking_number").limit(1);
-      if (orderId) {
-        query = query.eq("id", orderId);
-      } else if (trackingNumber) {
-        query = query.eq("tracking_number", trackingNumber);
-      }
+      // The webhook credential is bound to one workspace by server configuration.
+      const lookupResult: { data: CarrierOrderRecord | null; error: unknown } = orderId
+        ? await admin
+            .from("orders")
+            .select("id, status, tracking_number, workspace_id")
+            .eq("workspace_id", workspaceId)
+            .eq("id", orderId)
+            .limit(1)
+            .maybeSingle()
+        : await admin
+            .from("orders")
+            .select("id, status, tracking_number, workspace_id")
+            .eq("workspace_id", workspaceId)
+            .eq("tracking_number", trackingNumber!)
+            .limit(1)
+            .maybeSingle();
+      const { data: order, error: findError } = lookupResult;
 
-      const { data: order, error: findError } = await query.maybeSingle();
-
-      if (findError || !order) {
+      if (findError || !order || order.workspace_id !== workspaceId) {
         results.push({
           orderId,
           trackingNumber,

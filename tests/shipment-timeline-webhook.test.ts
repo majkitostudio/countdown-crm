@@ -28,12 +28,45 @@ function source(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
 }
 
+type MockOrder = {
+  id: string;
+  status: string;
+  tracking_number: string | null;
+  workspace_id: string;
+};
+
+function createOrderLookupQuery(orders: MockOrder[]) {
+  const activeFilters: Array<[keyof MockOrder, string]> = [];
+  const filters: Array<[keyof MockOrder, string]> = [];
+  const query = {
+    eq: vi.fn(),
+    limit: vi.fn(),
+    maybeSingle: vi.fn(),
+  };
+  query.eq.mockImplementation((column: keyof MockOrder, value: string) => {
+    activeFilters.push([column, value]);
+    filters.push([column, value]);
+    return query;
+  });
+  query.limit.mockImplementation(() => query);
+  query.maybeSingle.mockImplementation(async () => {
+    const currentFilters = activeFilters.splice(0);
+    return {
+      data: orders.find((order) => currentFilters.every(([column, value]) => order[column] === value)) ?? null,
+      error: null,
+    };
+  });
+
+  return { query, filters };
+}
+
 const migration = source("supabase/migrations/20261007141000_shipment_timeline_and_courier_webhook.sql").replace(/\s+/g, " ");
 
 describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.CARRIER_WEBHOOK_SECRET = "test-secret-key";
+    process.env.CARRIER_WEBHOOK_WORKSPACE_ID = "workspace-1";
   });
 
   describe("SQL Migration & Database Schema", () => {
@@ -167,6 +200,21 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
       expect(mocks.createAdminClient).not.toHaveBeenCalled();
     });
 
+    it("fails closed before creating an admin client when the workspace binding is missing", async () => {
+      delete process.env.CARRIER_WEBHOOK_WORKSPACE_ID;
+
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tracking_number: "Z123" }),
+      });
+
+      const res = await POST(req);
+
+      expect(res.status).toBe(503);
+      expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    });
+
     it("rejects malformed event fields before creating an admin client", async () => {
       process.env.CARRIER_WEBHOOK_SECRET = "test-secret-key";
 
@@ -249,19 +297,14 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
 
     it("successfully processes event matching order by tracking_number and calls RPC", async () => {
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
+      const { query, filters } = createOrderLookupQuery([{
+        id: "order-456",
+        status: "sent",
+        tracking_number: "Z123456789",
+        workspace_id: "workspace-1",
+      }]);
       const mockAdmin = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({
-                  data: { id: "order-456", status: "sent", tracking_number: "Z123456789" },
-                  error: null,
-                }),
-              }),
-            }),
-          }),
-        }),
+        from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue(query) }),
         rpc: mockRpc,
       };
 
@@ -288,6 +331,7 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
       expect(res.status).toBe(200);
       expect(json.ok).toBe(true);
       expect(json.successCount).toBe(1);
+      expect(filters).toContainEqual(["workspace_id", "workspace-1"]);
       expect(mockRpc).toHaveBeenCalledWith("record_order_tracking_event", expect.objectContaining({
         p_order_id: "order-456",
         p_status: "delivered",
@@ -297,26 +341,47 @@ describe("Milestone 1.4: Shipment Timeline & Courier Webhook", () => {
       }));
     });
 
+    it("does not process an order from another workspace", async () => {
+      const mockRpc = vi.fn().mockResolvedValue({ error: null });
+      const { query, filters } = createOrderLookupQuery([{
+        id: "order-other-workspace",
+        status: "sent",
+        tracking_number: "Z_OTHER",
+        workspace_id: "workspace-2",
+      }]);
+      const mockAdmin = {
+        from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue(query) }),
+        rpc: mockRpc,
+      };
+
+      mocks.createAdminClient.mockReturnValue(mockAdmin);
+
+      const req = new Request("http://localhost:3000/api/carriers/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-webhook-secret": "test-secret-key",
+        },
+        body: JSON.stringify({ tracking_number: "Z_OTHER", title: "Cizí zásilka" }),
+      });
+
+      const res = await POST(req);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.successCount).toBe(0);
+      expect(json.results[0].error).toBe("Order not found");
+      expect(filters).toContainEqual(["workspace_id", "workspace-1"]);
+      expect(mockRpc).not.toHaveBeenCalled();
+    });
+
     it("handles batch webhook events and reports partial failures gracefully", async () => {
       const mockRpc = vi.fn().mockResolvedValue({ error: null });
+      const { query } = createOrderLookupQuery([
+        { id: "order-1", status: "sent", tracking_number: "Z_EXISTS", workspace_id: "workspace-1" },
+      ]);
       const mockAdmin = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              eq: vi.fn().mockImplementation((col: string, val: string) => ({
-                maybeSingle: vi.fn().mockImplementation(() => {
-                  if (val === "Z_EXISTS") {
-                    return Promise.resolve({
-                      data: { id: "order-1", status: "sent", tracking_number: "Z_EXISTS" },
-                      error: null,
-                    });
-                  }
-                  return Promise.resolve({ data: null, error: null });
-                }),
-              })),
-            }),
-          }),
-        }),
+        from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue(query) }),
         rpc: mockRpc,
       };
 

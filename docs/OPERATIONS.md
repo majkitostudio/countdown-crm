@@ -26,6 +26,10 @@ npm run test:smoke
 
 `verify:all` spouští lint, typecheck, testy a build. Smoke test je samostatný browserový běh. Výsledek kontroly vždy vztahuj ke konkrétnímu běhu a jeho prostředí.
 
+### Webhook kurýra
+
+Endpoint `/api/carriers/webhook` přijímá události pouze tehdy, když jsou nastavené serverové proměnné `CARRIER_WEBHOOK_SECRET` a `CARRIER_WEBHOOK_WORKSPACE_ID`. Druhá proměnná určuje jediný workspace, jehož objednávky může tento endpoint aktualizovat; samotný `workspace_id` v těle požadavku není důvěryhodný. Pokud proměnná chybí, endpoint vrací HTTP 503 a události nezpracuje. Tajný klíč ani jeho hodnoty neukládej do repozitáře nebo `NEXT_PUBLIC_*`.
+
 ### Ověření prostředí — 11. 11. 2026
 
 - Běžné `npm run dev` používá `.env.local` a připojuje aplikaci k sandboxu `countdown-crm-sandbox-20260824`; lokální Supabase je oddělený stack na portech 54321/54322. Docker nyní běží a lokální Supabase odpovídá; při dřívějším pokusu byl daemon dočasně nedostupný.
