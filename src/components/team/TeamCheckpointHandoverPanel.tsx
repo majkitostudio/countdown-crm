@@ -41,7 +41,7 @@ export function TeamCheckpointHandoverPanel({
             <MoonStar className="mt-0.5 h-4 w-4 text-zinc-400" aria-hidden="true" />
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">Konec směny — co se přenáší</h2>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400">
                 Shrnutí dne a otevřené položky pro další směnu. Předání je přehled, ne krok automatizace —
                 řeší se v Naplánované hovory a týmová fronta.
               </p>
@@ -54,25 +54,25 @@ export function TeamCheckpointHandoverPanel({
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Souhrn dne">
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-            <p className="text-xs font-medium text-zinc-500">Nové objednávky</p>
+            <p className="text-xs font-medium text-zinc-400">Nové objednávky</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{checkpoint.orders.length}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-            <p className="text-xs font-medium text-zinc-500">Prodeje dnes</p>
+            <p className="text-xs font-medium text-zinc-400">Prodeje dnes</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{totalSales}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-            <p className="text-xs font-medium text-zinc-500">Vytočeno celkem</p>
+            <p className="text-xs font-medium text-zinc-400">Vytočeno celkem</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{totalDialed}</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-            <p className="text-xs font-medium text-zinc-500">Spojeno celkem</p>
+            <p className="text-xs font-medium text-zinc-400">Spojeno celkem</p>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-100">{totalConnected}</p>
           </div>
         </div>
 
         {handoverCount === 0 ? (
-          <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
+          <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-400">
             Klidný den — v tomto týmovém rozsahu nezůstává nic otevřeného k předání.
           </p>
         ) : (
@@ -83,14 +83,14 @@ export function TeamCheckpointHandoverPanel({
                   {request.requestType === "sos" ? "SOS" : "Pomoc"}
                 </StatusBadge>
                 <span className="font-medium text-zinc-200">{request.operatorName}</span>
-                <span className="truncate text-zinc-500">{request.note || "bez poznámky"}</span>
+                <span className="truncate text-zinc-400">{request.note || "bez poznámky"}</span>
               </li>
             ))}
             {handoverScheduledCalls.map((scheduledCall) => (
               <li key={scheduledCall.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
                 <StatusBadge tone="warning">Naplánovaný hovor</StatusBadge>
                 <span className="font-medium text-zinc-200">{scheduledCall.operatorName || scheduledCall.leadName}</span>
-                <span className="truncate text-zinc-500">{scheduledCall.leadName} · po termínu</span>
+                <span className="truncate text-zinc-400">{scheduledCall.leadName} · po termínu</span>
               </li>
             ))}
           </ul>
@@ -105,7 +105,7 @@ export function TeamCheckpointHandoverPanel({
           </Button>
         </div>
         {checkpoint.sources.scheduledCalls.state === "ready" && (
-          <p className="text-[11px] text-zinc-500">
+          <p className="text-[11px] text-zinc-400">
             Naplánované hovory v období — po termínu: {checkpoint.overdueScheduledCalls.length} · naplánované: {checkpoint.upcomingScheduledCalls.length}
           </p>
         )}

@@ -60,7 +60,7 @@ export default async function WalletPage() {
       <Surface variant="empty">
         <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
         <h1 className="text-base font-semibold text-zinc-100">Peněženka není dostupná</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">Peněženku se nepodařilo načíst z aktivního pracovního prostoru.</p>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-400">Peněženku se nepodařilo načíst z aktivního pracovního prostoru.</p>
       </Surface>
       </div>
     );
@@ -136,8 +136,8 @@ export default async function WalletPage() {
 
       {data.canManage && balancesAvailable && data.balances.length > 0 && (
         <Surface variant="page">
-          <div className="border-b border-zinc-800/80 p-5"><h2 className="text-sm font-semibold text-zinc-100">Zůstatky týmu</h2><p className="mt-1 text-xs text-zinc-500">Členové pracovního prostoru s aktivitou v peněžence.</p></div>
-          <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">{data.balances.map((balance) => <Surface key={balance.user_id} variant="inset" className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs font-medium text-zinc-200">{balance.user_name}</p><p className="mt-1 text-[10px] text-zinc-600">{balance.transaction_count} transakcí</p></div><p className={`font-mono text-sm font-semibold ${balance.balance >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{formatAmount(balance.balance, presentationCurrency)}</p></div></Surface>)}</div>
+          <div className="border-b border-zinc-800/80 p-5"><h2 className="text-sm font-semibold text-zinc-100">Zůstatky týmu</h2><p className="mt-1 text-xs text-zinc-400">Členové pracovního prostoru s aktivitou v peněžence.</p></div>
+          <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">{data.balances.map((balance) => <Surface key={balance.user_id} variant="inset" className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs font-medium text-zinc-200">{balance.user_name}</p><p className="mt-1 text-[10px] text-zinc-400">{balance.transaction_count} transakcí</p></div><p className={`font-mono text-sm font-semibold ${balance.balance >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{formatAmount(balance.balance, presentationCurrency)}</p></div></Surface>)}</div>
         </Surface>
       )}
 
@@ -161,23 +161,23 @@ export default async function WalletPage() {
         <div className="flex flex-col gap-2 border-b border-zinc-800/80 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">Deník transakcí</h2>
-            <p className="mt-1 text-xs text-zinc-500">Každý záznam je neměnný a propojený se zdrojem nebo auditním záznamem.</p>
+            <p className="mt-1 text-xs text-zinc-400">Každý záznam je neměnný a propojený se zdrojem nebo auditním záznamem.</p>
           </div>
-          <span className="text-[10px] font-mono text-zinc-600">{data.transactions.length} záznamů</span>
+          <span className="text-[10px] font-mono text-zinc-400">{data.transactions.length} záznamů</span>
         </div>
         {transactionsAvailable ? (
           data.transactions.length === 0 ? (
             <div className="p-12 text-center">
               <WalletCards className="mx-auto mb-4 h-8 w-8 text-zinc-600" />
               <h3 className="text-sm font-semibold text-zinc-200">Zatím žádné transakce v peněžence</h3>
-              <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-500">
+              <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-zinc-400">
                 Bonusy z doručených objednávek, měsíční provize a auditované úpravy se zde zobrazí.
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[860px] text-left text-xs text-zinc-300">
-                <thead className="border-b border-zinc-800/80 bg-zinc-950/80 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                <thead className="border-b border-zinc-800/80 bg-zinc-950/80 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
                   <tr>
                     <th className="px-5 py-3">Datum</th>
                     <th className="px-5 py-3">Člen</th>
@@ -190,7 +190,7 @@ export default async function WalletPage() {
                 <tbody className="divide-y divide-zinc-800/60">
                   {data.transactions.map((transaction) => (
                     <tr key={transaction.id} className="hover:bg-zinc-800/30">
-                      <td className="whitespace-nowrap px-5 py-4 text-zinc-500">{formatDate(transaction.created_at)}</td>
+                      <td className="whitespace-nowrap px-5 py-4 text-zinc-400">{formatDate(transaction.created_at)}</td>
                       <td className="px-5 py-4 font-medium text-zinc-200">{transaction.user_name}</td>
                       <td className="px-5 py-4">
                         <span className="rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-300">
@@ -198,7 +198,7 @@ export default async function WalletPage() {
                         </span>
                       </td>
                       <td className="max-w-[320px] px-5 py-4 text-zinc-400">{transaction.reason}</td>
-                      <td className="px-5 py-4 font-mono text-[10px] text-zinc-600">
+                      <td className="px-5 py-4 font-mono text-[10px] text-zinc-400">
                         {transaction.source_order_id
                           ? `order:${transaction.source_order_id.slice(0, 8)}`
                           : transaction.source_period_start || "ruční"}
