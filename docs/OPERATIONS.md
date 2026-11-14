@@ -30,6 +30,10 @@ npm run test:smoke
 
 Endpoint `/api/carriers/webhook` přijímá události pouze tehdy, když jsou nastavené serverové proměnné `CARRIER_WEBHOOK_SECRET` a `CARRIER_WEBHOOK_WORKSPACE_ID`. Druhá proměnná určuje jediný workspace, jehož objednávky může tento endpoint aktualizovat; samotný `workspace_id` v těle požadavku není důvěryhodný. Pokud proměnná chybí, endpoint vrací HTTP 503 a události nezpracuje. Tajný klíč ani jeho hodnoty neukládej do repozitáře nebo `NEXT_PUBLIC_*`.
 
+### Odchozí webhooky automatizací
+
+Serverové webhooky automatizací přijímají pouze cíle přes HTTPS na portu 443. Před odesláním se DNS přeloží a spojení se připne na ověřenou veřejnou IP adresu; lokální, privátní, link-local, testovací a další speciální rozsahy se odmítají. Přesměrování se nenásledují a požadavek má limit 10 sekund. Webhook na HTTP, vlastním portu nebo pouze interní IPv6 adrese proto není podporován.
+
 ### Ověření prostředí — 11. 11. 2026
 
 - Běžné `npm run dev` používá `.env.local` a připojuje aplikaci k sandboxu `countdown-crm-sandbox-20260824`; lokální Supabase je oddělený stack na portech 54321/54322. Docker nyní běží a lokální Supabase odpovídá; při dřívějším pokusu byl daemon dočasně nedostupný.

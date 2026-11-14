@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const mocks = vi.hoisted(() => ({
+  sendSecureWebhook: vi.fn(),
+}));
+
+vi.mock("@/lib/workflows/secureWebhook", () => ({
+  sendSecureWebhook: mocks.sendSecureWebhook,
+}));
+
 import { evaluateWorkflowEvent } from "@/lib/workflows/evaluator";
 import { TRIGGER_REGISTRY, type ExecutionLogEntry, type WorkflowRule } from "@/lib/workflows/types";
 import { readFileSync } from "node:fs";
@@ -33,6 +41,7 @@ function options(overrides: Partial<Parameters<typeof evaluateWorkflowEvent>[3]>
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  mocks.sendSecureWebhook.mockReset();
 });
 
 describe("truthful workflow execution contract", () => {
@@ -70,7 +79,7 @@ describe("truthful workflow execution contract", () => {
     expect(missing.status).toBe("failure");
     expect(missing.entries[0].actionResults[0].reason).toContain("Chybí URL webhooku.");
 
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
+    mocks.sendSecureWebhook.mockRejectedValueOnce(new Error("network down"));
     const transport = await evaluateWorkflowEvent(
       [ruleWithActions([{ type: "send_webhook", config: { webhook_url: "https://example.test/hook" } }])],
       "on_call_ended",
@@ -80,7 +89,7 @@ describe("truthful workflow execution contract", () => {
     expect(transport.status).toBe("failure");
     expect(transport.entries[0].actionResults[0].reason).toContain("network down");
 
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad", { status: 500 })));
+    mocks.sendSecureWebhook.mockResolvedValueOnce(500);
     const httpFailure = await evaluateWorkflowEvent(
       [ruleWithActions([{ type: "send_webhook", config: { webhook_url: "https://example.test/hook" } }])],
       "on_call_ended",
@@ -90,7 +99,7 @@ describe("truthful workflow execution contract", () => {
     expect(httpFailure.status).toBe("failure");
     expect(httpFailure.entries[0].actionResults[0].reason).toContain("HTTP 500");
 
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 204 })));
+    mocks.sendSecureWebhook.mockResolvedValueOnce(204);
     const success = await evaluateWorkflowEvent(
       [ruleWithActions([{ type: "send_webhook", config: { webhook_url: "https://example.test/hook" } }])],
       "on_call_ended",
@@ -100,11 +109,15 @@ describe("truthful workflow execution contract", () => {
     expect(success.status).toBe("success");
     expect(success.entries[0].executedActions).toEqual(["send_webhook"]);
     expect(success.entries[0].durableEffect).toBe(true);
+    expect(mocks.sendSecureWebhook).toHaveBeenLastCalledWith(
+      "https://example.test/hook",
+      "POST",
+      payload,
+    );
   });
 
   it("marks manual emit as simulation and never calls the webhook", async () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+    const webhookMock = mocks.sendSecureWebhook;
     const result = await evaluateWorkflowEvent(
       [ruleWithActions([
         { type: "send_webhook", config: { webhook_url: "https://example.test/hook" } },
@@ -117,7 +130,7 @@ describe("truthful workflow execution contract", () => {
 
     expect(result.status).toBe("simulation");
     expect(result.durableEffect).toBe(false);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(webhookMock).not.toHaveBeenCalled();
     expect(result.entries[0].actionResults.every((item) => item.status === "simulation")).toBe(true);
   });
 
@@ -152,8 +165,7 @@ describe("truthful workflow execution contract", () => {
       executedAt: "2026-08-26T00:00:00.000Z",
     };
     const persist = vi.fn();
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
+    const webhookMock = mocks.sendSecureWebhook;
 
     const result = await evaluateWorkflowEvent(
       [ruleWithActions([{ type: "send_webhook", config: { webhook_url: "https://example.test/hook" } }])],
@@ -167,7 +179,7 @@ describe("truthful workflow execution contract", () => {
 
     expect(result.entries).toEqual([existing]);
     expect(persist).not.toHaveBeenCalled();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(webhookMock).not.toHaveBeenCalled();
   });
 });
 

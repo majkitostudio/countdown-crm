@@ -8,6 +8,7 @@ import type {
   WorkflowDispatchResult,
   WorkflowRule,
 } from "./types";
+import { sendSecureWebhook } from "./secureWebhook";
 
 export type WorkflowExecutionMode = "server" | "simulation";
 
@@ -97,17 +98,13 @@ async function executeAction(
     }
 
     try {
-      const response = await fetch(targetUrl, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: method === "POST" ? JSON.stringify(payload) : undefined,
-      });
+      const status = await sendSecureWebhook(targetUrl, method, payload);
 
-      if (!response.ok) {
+      if (status < 200 || status >= 300) {
         return {
           action: action.type,
           status: "failure",
-          reason: `Webhook vrátil HTTP ${response.status}.`,
+          reason: `Webhook vrátil HTTP ${status}.`,
           durableEffect: false,
         };
       }
@@ -115,7 +112,7 @@ async function executeAction(
       return {
         action: action.type,
         status: "success",
-        reason: `Webhook přijal požadavek s HTTP ${response.status}.`,
+        reason: `Webhook přijal požadavek s HTTP ${status}.`,
         durableEffect: true,
       };
     } catch (error) {
