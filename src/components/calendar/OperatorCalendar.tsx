@@ -125,11 +125,6 @@ function toIso(localValue: string, label: string): string {
   return parsed.toISOString();
 }
 
-const SOURCE_LABELS = {
-scheduledCalls: "Naplánované hovory",
-  reminders: "Připomínky",
-} satisfies Record<keyof CalendarLoadResult["sources"], string>;
-
 type CalendarSourceKey = keyof CalendarLoadResult["sources"];
 type UnavailableCalendarSource = Extract<CalendarLoadResult["sources"][CalendarSourceKey], { state: "unavailable" }>;
 
@@ -254,7 +249,7 @@ export function OperatorCalendar({ initialCalendar }: OperatorCalendarProps) {
         <StatusAlert tone="warning" role="status">
           {unavailableSources.map(({ sourceKey, source }) => (
             <p key={sourceKey}>
-              {SOURCE_LABELS[sourceKey]} nedostupné: {source.message}
+              {source.message}
             </p>
           ))}
         </StatusAlert>

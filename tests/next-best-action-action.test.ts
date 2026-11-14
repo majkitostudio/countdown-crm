@@ -62,7 +62,7 @@ describe("next best action server boundary", () => {
       status: "partial",
       action: expect.objectContaining({ kind: "reorder", source_id: "reorder-1" }),
       unavailableSources: ["scheduledCalls"],
-      message: "Scheduled calls could not be loaded.",
+      message: "Naplánované hovory nejsou dostupné. Zkuste to znovu později.",
     });
   });
 
@@ -74,7 +74,7 @@ describe("next best action server boundary", () => {
       status: "partial",
       action: expect.objectContaining({ kind: "scheduled_call", source_id: "scheduled-call-1" }),
       unavailableSources: ["reorders"],
-      message: "Re-order estimates could not be loaded.",
+      message: "Odhady opakovaných objednávek nejsou dostupné. Zkuste to znovu později.",
     });
   });
 

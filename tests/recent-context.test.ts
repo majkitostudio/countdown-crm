@@ -91,7 +91,7 @@ describe("recent context", () => {
         sources: {
           scheduledCalls: {
             state: "unavailable",
-            message: "Scheduled calls could not be loaded.",
+            message: "Naplánované hovory se nepodařilo načíst.",
           },
           reminders: { state: "available" },
         },
@@ -101,7 +101,7 @@ describe("recent context", () => {
 
     expect(result.scheduledCallSource).toEqual({
       state: "unavailable",
-      message: "Scheduled calls could not be loaded.",
+      message: "Naplánované hovory se nepodařilo načíst.",
     });
     expect(result.context.activeScheduledCall).toBeNull();
     expect(result.context.lastContact?.activity.id).toBe("call-latest");
@@ -111,7 +111,7 @@ describe("recent context", () => {
     const result = buildRecentContextFromSources({
       leadId: "lead-1",
       activities: { status: "ready", data: activities },
-      scheduledCalls: { status: "unavailable", reason: "database", message: "Calendar temporarily unavailable." },
+      scheduledCalls: { status: "unavailable", reason: "database", message: "Kalendář je dočasně nedostupný." },
       now: Date.parse("2026-08-31T00:00:00.000Z"),
     });
 
@@ -119,7 +119,7 @@ describe("recent context", () => {
     expect(result.context?.lastContact?.activity.id).toBe("call-latest");
     expect(result.context?.activeScheduledCall).toBeNull();
     expect(result.unavailableSources).toEqual(["scheduledCalls"]);
-    expect(result.messages.calendar).toBe("Calendar temporarily unavailable.");
+    expect(result.messages.calendar).toBe("Kalendář je dočasně nedostupný.");
   });
 
   it("keeps valid calendar scheduled calls when activities are unavailable", () => {

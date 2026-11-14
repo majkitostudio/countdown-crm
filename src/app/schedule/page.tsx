@@ -5,6 +5,23 @@ import { OperatorCalendar } from "@/components/calendar/OperatorCalendar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
 
+function getCalendarLoadErrorMessage(error: unknown): string {
+  if (!isDataAccessError(error)) {
+    return "Kalendář operátora se nepodařilo načíst. Zkuste to znovu.";
+  }
+
+  switch (error.code) {
+    case "UNAUTHORIZED":
+      return "Pro zobrazení kalendáře se přihlaste.";
+    case "FORBIDDEN":
+      return "K tomuto pracovnímu prostoru nemáte přístup.";
+    case "VALIDATION":
+      return "Požadavek na zobrazení kalendáře není platný.";
+    default:
+      return "Kalendář operátora se nepodařilo načíst. Zkuste to znovu.";
+  }
+}
+
 export default async function CalendarPage() {
   let calendar: CalendarLoadResult | null = null;
   let loadError: unknown = null;
@@ -16,9 +33,7 @@ export default async function CalendarPage() {
   }
 
   if (loadError) {
-    const message = isDataAccessError(loadError)
-      ? loadError.message
-      : "Kalendář operátora se nepodařilo načíst. Nebyla vytvořena žádná kalendářová data.";
+    const message = getCalendarLoadErrorMessage(loadError);
 
     return (
       <Surface variant="empty" className="w-full">

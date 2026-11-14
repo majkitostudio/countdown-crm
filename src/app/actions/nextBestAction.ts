@@ -10,13 +10,16 @@ import {
 } from "@/lib/nextBestAction";
 import { getReorderOpportunities, type ReorderOpportunity } from "@/lib/reorder";
 
-function resolveDatabaseSource<T>(result: PromiseSettledResult<T>): NextBestActionSource<T> {
+function resolveDatabaseSource<T>(
+  result: PromiseSettledResult<T>,
+  unavailableMessage: string,
+): NextBestActionSource<T> {
   if (result.status === "fulfilled") {
     return { state: "available", data: result.value };
   }
 
   if (result.reason instanceof DataAccessError && result.reason.code === "DATABASE") {
-    return { state: "unavailable", message: result.reason.message };
+    return { state: "unavailable", message: unavailableMessage };
   }
 
   throw result.reason;
@@ -42,8 +45,14 @@ export async function loadNextBestActionAction(): Promise<NextBestActionState> {
     getReorderOpportunities(),
   ]);
 
-  const scheduledCalls = resolveDatabaseSource(scheduledCallsResult);
-  const reorders = resolveDatabaseSource<ReorderOpportunity[]>(reordersResult);
+  const scheduledCalls = resolveDatabaseSource(
+    scheduledCallsResult,
+    "Naplánované hovory nejsou dostupné. Zkuste to znovu později.",
+  );
+  const reorders = resolveDatabaseSource<ReorderOpportunity[]>(
+    reordersResult,
+    "Odhady opakovaných objednávek nejsou dostupné. Zkuste to znovu později.",
+  );
 
   return resolveNextBestActionState(
     scheduledCalls.state === "available"

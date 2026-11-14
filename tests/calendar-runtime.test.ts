@@ -67,7 +67,7 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.sources.scheduledCalls).toEqual({ state: "available" });
     expect(result.sources.reminders).toEqual({
       state: "unavailable",
-      message: "Operator reminders could not be loaded.",
+      message: "Připomínky se nepodařilo načíst.",
     });
   });
 
@@ -83,7 +83,7 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.entries).toEqual([expect.objectContaining({ type: "reminder" })]);
     expect(result.sources.scheduledCalls).toEqual({
       state: "unavailable",
-      message: "Scheduled calls could not be loaded.",
+      message: "Naplánované hovory se nepodařilo načíst.",
     });
     expect(result.sources.reminders).toEqual({ state: "available" });
   });
@@ -104,11 +104,11 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.sources).toEqual({
       scheduledCalls: {
         state: "unavailable",
-        message: "Scheduled calls could not be loaded.",
+        message: "Naplánované hovory se nepodařilo načíst.",
       },
       reminders: {
         state: "unavailable",
-        message: "Operator reminders could not be loaded.",
+        message: "Připomínky se nepodařilo načíst.",
       },
     });
   });
@@ -135,7 +135,7 @@ describe("calendar runtime partial-failure contract", () => {
     expect(result.entries).toEqual([expect.objectContaining({ type: "scheduled_call" })]);
     expect(result.sources.reminders).toEqual({
       state: "unavailable",
-      message: "Zdroj kalendáře se nepodařilo načíst.",
+      message: "Připomínky se nepodařilo načíst.",
     });
   });
 

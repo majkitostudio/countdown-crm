@@ -77,7 +77,10 @@ function sortCalendarEntries(entries: CalendarEntryDTO[]): CalendarEntryDTO[] {
   return entries.sort((left, right) => Date.parse(left.starts_at) - Date.parse(right.starts_at));
 }
 
-function resolveSourceState(result: PromiseSettledResult<unknown>): CalendarSourceState {
+function resolveSourceState(
+  result: PromiseSettledResult<unknown>,
+  unavailableMessage: string,
+): CalendarSourceState {
   if (result.status === "fulfilled") {
     return { state: "available" };
   }
@@ -89,13 +92,13 @@ function resolveSourceState(result: PromiseSettledResult<unknown>): CalendarSour
 
     return {
       state: "unavailable",
-      message: result.reason.message,
+      message: unavailableMessage,
     };
   }
 
   return {
     state: "unavailable",
-    message: "Zdroj kalendáře se nepodařilo načíst.",
+    message: unavailableMessage,
   };
 }
 
@@ -104,8 +107,14 @@ export function buildCalendarLoadResult(
   remindersResult: PromiseSettledResult<OperatorReminderDTO[]>,
 ): CalendarLoadResult {
   const sources = {
-    scheduledCalls: resolveSourceState(scheduledCallsResult),
-    reminders: resolveSourceState(remindersResult),
+    scheduledCalls: resolveSourceState(
+      scheduledCallsResult,
+      "Naplánované hovory se nepodařilo načíst.",
+    ),
+    reminders: resolveSourceState(
+      remindersResult,
+      "Připomínky se nepodařilo načíst.",
+    ),
   };
 
   const scheduledCallEntries =

@@ -25,12 +25,12 @@ describe("next best action presentation states", () => {
         source_id: "reorder-1",
       },
       unavailableSources: ["scheduledCalls"],
-      message: "Scheduled calls could not be loaded.",
+      message: "Naplánované hovory nejsou dostupné. Zkuste to znovu později.",
     });
 
     expect(html).toContain("Doplnit objednávku: Petr Svoboda");
     expect(html).toContain('href="/console?leadId=lead-2"');
-    expect(html).toContain("Scheduled calls could not be loaded.");
+    expect(html).toContain("Naplánované hovory nejsou dostupné. Zkuste to znovu později.");
     expect(html).toContain("Částečné doporučení");
   });
 
@@ -46,21 +46,21 @@ describe("next best action presentation states", () => {
         source_id: "scheduled-call-1",
       },
       unavailableSources: ["reorders"],
-      message: "Re-order estimates could not be loaded.",
+      message: "Odhady opakovaných objednávek nejsou dostupné. Zkuste to znovu později.",
     });
 
     expect(html).toContain("Navázat na naplánovaný hovor: Jana Nováková");
-    expect(html).toContain("Re-order estimates could not be loaded.");
+    expect(html).toContain("Odhady opakovaných objednávek nejsou dostupné. Zkuste to znovu později.");
   });
 
   it("does not render an action link when priority is unavailable", () => {
     const html = render({
       status: "unavailable",
       unavailableSources: ["scheduledCalls", "reorders"],
-      message: "Priority sources could not be loaded.",
+      message: "Prioritní signály nejsou dostupné.",
     });
 
-    expect(html).toContain("Priority sources could not be loaded.");
+    expect(html).toContain("Prioritní signály nejsou dostupné.");
     expect(html).not.toContain("Open action");
     expect(html).not.toContain("href=");
   });
