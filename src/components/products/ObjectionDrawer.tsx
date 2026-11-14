@@ -193,7 +193,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               {/* Přidat námitku Inline Form */}
               {canManage && showAddForm && (
                 <Surface variant="inset">
-                  <div className="animate-in space-y-3 p-4 fade-in duration-150 ease-interface motion-reduce:animate-none">
+                  <div className="animate-in space-y-3 p-4 fade-in duration-150 ease-interface">
 
                   <h4 className="text-xs font-semibold text-zinc-200">Nová šablona námitky</h4>
                   <div>

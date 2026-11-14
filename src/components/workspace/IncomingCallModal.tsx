@@ -39,7 +39,7 @@ export function IncomingCallModal({ lead, isOpen, onAccept, onDecline }: Incomin
       aria-labelledby="incoming-call-title"
       aria-describedby="incoming-call-customer"
       tabIndex={-1}
-      className="fixed inset-x-3 bottom-3 z-50 animate-in fade-in slide-in-from-bottom-2 duration-180 ease-interface motion-reduce:animate-none sm:inset-x-auto sm:bottom-6 sm:right-6"
+      className="fixed inset-x-3 bottom-3 z-50 animate-in fade-in slide-in-from-bottom-2 duration-180 ease-interface sm:inset-x-auto sm:bottom-6 sm:right-6"
     >
       <Surface variant="overlay" className="w-full sm:w-80">
       <div className="relative max-h-[calc(100vh-1.5rem)] space-y-4 overflow-y-auto p-5 text-zinc-100">

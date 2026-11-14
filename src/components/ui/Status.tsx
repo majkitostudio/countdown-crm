@@ -35,5 +35,5 @@ export type StatusAlertProps = Omit<ComponentPropsWithoutRef<"div">, "className"
 
 export const StatusAlert = forwardRef<HTMLDivElement, StatusAlertProps>(function StatusAlert({ tone = "neutral", className, style: _style, role, ...props }, ref) {
   void _style;
-  return <div ref={ref} role={role ?? "alert"} className={["rounded-xl border p-4 text-sm animate-in fade-in duration-120 ease-interface motion-reduce:animate-none", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
+  return <div ref={ref} role={role ?? "alert"} className={["rounded-xl border p-4 text-sm animate-in fade-in duration-120 ease-interface", getStatusClassName(tone), getSafeLayoutClassName(className)].filter(Boolean).join(" ")} {...props} />;
 });

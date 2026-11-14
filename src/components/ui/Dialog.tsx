@@ -134,9 +134,9 @@ export function Dialog({
   if (!isOpen) return null;
 
   return (
-    <div ref={overlayRef} className={`fixed inset-0 z-50 bg-black/70 p-0 backdrop-blur-xs animate-in fade-in duration-150 ease-interface motion-reduce:animate-none ${DIALOG_PLACEMENT_CLASS_NAMES[placement]}`}>
+    <div ref={overlayRef} className={`fixed inset-0 z-50 bg-black/70 p-0 backdrop-blur-xs animate-in fade-in duration-150 ease-interface ${DIALOG_PLACEMENT_CLASS_NAMES[placement]}`}>
       <button type="button" aria-label="Zavřít dialog" className="absolute inset-0 cursor-default" onClick={onClose} />
-      <div className={`${getDialogPanelClassName(size, placement)} animate-in ${placement === "right" ? "slide-in-from-right-2" : "zoom-in-95"} fade-in duration-150 ease-interface motion-reduce:animate-none`}>
+      <div className={`${getDialogPanelClassName(size, placement)} animate-in ${placement === "right" ? "slide-in-from-right-2" : "zoom-in-95"} fade-in duration-150 ease-interface`}>
         <Surface
           ref={dialogRef}
           variant="overlay"

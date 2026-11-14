@@ -40,7 +40,7 @@ export function KpiCards({ compact = false, scope = "workspace" }: { compact?: b
   const feedbackTone = result?.ok === false && result.code === "FORBIDDEN" ? "neutral" : "danger";
 
   return (
-    <div className="space-y-3 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none">
+    <div className="space-y-3 animate-in fade-in duration-150 ease-interface">
       {result && !result.ok && (
         <StatusAlert tone={feedbackTone}>
           {result.code === "FORBIDDEN" ? "Přístup k analytice je omezen: " : "Analytika není dostupná: "}{result.message}

@@ -252,7 +252,7 @@ export function ProductOrderPanel({
 
       {/* Success Notification Alert */}
       {isSuccessAlert && (
-        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none">
+        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-150 ease-interface">
 
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>

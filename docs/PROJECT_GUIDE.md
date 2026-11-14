@@ -29,6 +29,7 @@ Záznam bez potvrzeného týmu (`team_id IS NULL`) je záměrný stav čekajíc�
 
 - Zobrazuj práci podle skutečných rolí a workflow, ne podle struktury databázových tabulek.
 - Uživatelské chyby formuluj česky a bezpečně; interní technické zprávy z databáze nevypisuj přímo do rozhraní.
+- Pohyb používej jen k objasnění změny nebo návaznosti a vždy respektuj předvolbu omezeného pohybu.
 - Nezaváděj obecné moduly, vlastní entity ani další obrazovky bez konkrétního pracovního přínosu.
 - Skutečný zdroj leadů ani produkční telefonie nejsou podmínkou pro iteraci nad ostatními částmi systému.
 - Nezaměňuj návrh nebo historický audit za schválené zadání. Stav implementace ověřuj v kódu a testech; stav nasazení ověř zvlášť.

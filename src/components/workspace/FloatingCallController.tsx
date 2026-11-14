@@ -30,7 +30,7 @@ export function FloatingCallController() {
       : isDialing ? "Vytáčení" : session.state === "on_hold" ? "Podržený hovor" : "Na hovoru";
 
   return createPortal(
-    <aside className="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-950/95 p-4 text-zinc-100 shadow-2xl shadow-black/50 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-150 ease-interface motion-reduce:animate-none" data-testid="floating-call-controller" aria-label="Plovoucí ovládání hovoru">
+    <aside className="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-950/95 p-4 text-zinc-100 shadow-2xl shadow-black/50 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-150 ease-interface" data-testid="floating-call-controller" aria-label="Plovoucí ovládání hovoru">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400">

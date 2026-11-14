@@ -112,7 +112,7 @@ export default function CallLogsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-screen-2xl mx-auto animate-in fade-in duration-120 ease-interface motion-reduce:animate-none">
+    <div className="space-y-8 max-w-screen-2xl mx-auto animate-in fade-in duration-120 ease-interface">
       
       <PageHeader
         icon={PhoneCall}
@@ -141,7 +141,7 @@ actions={
       />
 
       {/* KPI Cards Header */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-120 ease-interface motion-reduce:animate-none">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-120 ease-interface">
         <MetricCard label="Zaznamenané hovory" value={totalCallsCount} />
         <MetricCard label="Průměrné zpracování" value={formatDuration(avgDuration)} />
         <MetricCard label="Tržby" value={formatCurrencyAmount(totalSalesVolume, "CZK")} />

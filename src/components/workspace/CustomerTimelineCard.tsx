@@ -179,7 +179,7 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
       )}
 
       {includeNotes && isAddingNote && (
-        <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none">
+        <form onSubmit={handleAddNote} className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 animate-in fade-in duration-150 ease-interface">
           <textarea
             rows={2}
             aria-label="Poznámka k aktivitě zákazníka"

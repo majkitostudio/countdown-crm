@@ -89,7 +89,7 @@ export function NextBestActionCard({ scope = "workspace" }: { scope?: "team" | "
       : ListChecks;
 
   return (
-    <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 space-y-4 animate-in fade-in duration-150 ease-interface motion-reduce:animate-none" data-testid="next-best-action">
+    <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 space-y-4 animate-in fade-in duration-150 ease-interface" data-testid="next-best-action">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-2.5">
           <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-2 text-zinc-300">
