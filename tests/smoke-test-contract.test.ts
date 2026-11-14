@@ -20,4 +20,11 @@ describe("Playwright smoke test failure contract", () => {
     expect(smokeTest).toContain("if (hasFailure)");
     expect(smokeTest).toContain("process.exitCode = 1");
   });
+
+  it("uses the Czech accessible name of the login button", () => {
+    expect(smokeTest).toContain(
+      'page.getByRole("button", { name: "Přihlásit se do pracovního prostoru" }).click()',
+    );
+    expect(smokeTest).not.toContain("Sign In to Workspace");
+  });
 });

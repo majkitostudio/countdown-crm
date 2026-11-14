@@ -144,7 +144,7 @@ async function run() {
         await page.goto(`${BASE_URL}/login`, { waitUntil: "networkidle", timeout: 15000 });
         await page.locator("#login-email").fill(smokeEmail);
         await page.locator("#login-password").fill(smokePassword);
-        await page.getByRole("button", { name: "Sign In to Workspace" }).click();
+        await page.getByRole("button", { name: "Přihlásit se do pracovního prostoru" }).click();
         await page.waitForURL((url) => url.pathname !== "/login", { timeout: 15000 });
       } catch (error) {
         hasFailure = true;
