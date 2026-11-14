@@ -236,17 +236,19 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
             <input
               type="text"
               placeholder="Hledat podle jména nebo e-mailu..."
+              aria-label="Hledat uživatele"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-1.5 pl-9 pr-3 text-xs text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-700 focus:outline-none"
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 py-1.5 pl-9 pr-3 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-700"
             />
           </div>
 
           <div className="flex items-center gap-2">
             <select
+              aria-label="Filtr podle role"
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-300 focus:border-zinc-700 focus:outline-none"
+              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-base sm:text-xs text-zinc-300 focus:border-zinc-700"
             >
               <option value="all">Všechny role</option>
               <option value="operator">Pouze Operátoři</option>
@@ -255,9 +257,10 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
             </select>
 
             <select
+              aria-label="Filtr podle týmu"
               value={teamFilter}
               onChange={(e) => setTeamFilter(e.target.value)}
-              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-300 focus:border-zinc-700 focus:outline-none"
+              className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-1.5 text-base sm:text-xs text-zinc-300 focus:border-zinc-700"
             >
               <option value="all">Všechny linky</option>
               <option value="unassigned">⚠️ Bez přiřazené linky</option>

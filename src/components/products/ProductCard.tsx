@@ -114,7 +114,7 @@ export function ProductCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
           <Button
             variant="secondary"
             onClick={() => onOpenObjections(product)}

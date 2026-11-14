@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ShieldAlert,
   Search,
@@ -27,16 +27,16 @@ import { Surface } from "@/components/ui/Surface";
 
 function ReviewAuditState({ label, state }: { label: string; state: CallReviewAuditState | null }) {
   if (!state) {
-    return <p className="text-[11px] text-zinc-500"><strong className="text-zinc-400">{label}:</strong> No previous review</p>;
+    return <p className="text-[11px] text-zinc-500"><strong className="text-zinc-500">{label}:</strong> No previous review</p>;
   }
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{label} · Revision {state.revisionNumber}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">{label} · Revision {state.revisionNumber}</p>
       <dl className="mt-2 space-y-2 text-[11px] text-zinc-300">
         <div><dt className="text-zinc-500">Verdict</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.verdict}</dd></div>
         <div><dt className="text-zinc-500">Coaching</dt><dd className="mt-0.5 whitespace-pre-wrap">{state.coachingNote}</dd></div>
-        <div><dt className="text-zinc-500">Reviewer ID</dt><dd className="mt-0.5 break-all font-mono text-zinc-400">{state.reviewerId}</dd></div>
+        <div><dt className="text-zinc-500">Reviewer ID</dt><dd className="mt-0.5 break-all font-mono text-zinc-500">{state.reviewerId}</dd></div>
       </dl>
     </div>
   );
@@ -71,24 +71,39 @@ export default function AuditPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadLogs = useCallback(() => {
-    if (identity?.role === "operator") return;
-    void getAuditLogs()
-      .then(setLogs)
-      .catch((error) => {
-        setLogs([]);
-        setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
-      });
-  }, [identity?.role]);
+const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isIdentityLoading || identity?.role === "operator") return;
-    loadLogs();
-  }, [identity?.role, isIdentityLoading, loadLogs]);
+    async function load() {
+      setIsLoading(true);
+      try {
+        const data = await getAuditLogs();
+        setLogs(data);
+        setLoadError(null);
+      } catch (error) {
+        setLogs([]);
+        setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    void load();
+  }, [identity?.role, isIdentityLoading]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setLoadError(null);
-    loadLogs();
+    setIsLoading(true);
+    try {
+      const data = await getAuditLogs();
+      setLogs(data);
+      setLoadError(null);
+    } catch (error) {
+      setLogs([]);
+      setLoadError(error instanceof Error ? error.message : "Audit log is unavailable.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleExport = () => {
@@ -116,7 +131,7 @@ export default function AuditPage() {
 
   if (isIdentityLoading) {
     return (
-      <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-400">
+      <div className="flex min-h-[360px] items-center justify-center text-xs text-zinc-500">
         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
         Načítám oprávnění workspace…
       </div>
@@ -194,8 +209,9 @@ export default function AuditPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Vyhledat v auditním logu"
               placeholder="Vyhledat v auditním logu podle operátora, akce, IP adresy..."
-              className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700"
+              className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-200 placeholder:text-zinc-500 focus:border-zinc-700"
             />
           </div>
 
@@ -213,8 +229,10 @@ export default function AuditPage() {
             ].map((sev) => (
               <Button
                 key={sev.id}
+                type="button"
                 onClick={() => setSelectedSeverity(sev.id)}
                 variant={selectedSeverity === sev.id ? "primary" : "secondary"}
+                aria-pressed={selectedSeverity === sev.id}
               >
                 {sev.label}
               </Button>
@@ -227,21 +245,25 @@ export default function AuditPage() {
       <Surface variant="table"><div className="space-y-3 p-6">
         <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider font-mono flex items-center gap-2">
-            <Activity className="w-4 h-4 text-zinc-400" />
+            <Activity className="w-4 h-4 text-zinc-500" />
             Auditní Protokol Událostí ({filteredLogs.length})
           </h2>
           <span className="text-[11px] font-mono text-zinc-500">Formát: UTF-8 Log Table</span>
         </div>
 
-        {filteredLogs.length === 0 ? (
+        {isLoading ? (
+          <div className="p-12 text-center text-zinc-500 text-xs font-mono">
+            Načítám auditní záznamy…
+          </div>
+        ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center text-zinc-500 text-xs font-mono">
             Žádné auditní záznamy neodpovídají zadanému filtru.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" role="region" aria-label="Auditní protokol" aria-busy={isLoading} tabIndex={0}>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-zinc-800 text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                <tr className="border-b border-zinc-800 text-[11px] font-mono text-zinc-400 uppercase tracking-wider">
                   <th className="py-3 px-3">Čas Záznamu</th>
                   <th className="py-3 px-3">Operátor</th>
                   <th className="py-3 px-3">Typ Akce</th>
@@ -253,7 +275,7 @@ export default function AuditPage() {
               <tbody className="divide-y divide-zinc-800/50 font-mono">
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-zinc-900/80 transition-colors duration-150 ease-interface">
-                    <td className="py-3 px-3 text-[11px] text-zinc-400 whitespace-nowrap">{log.timestamp}</td>
+                    <td className="py-3 px-3 text-[11px] text-zinc-500 whitespace-nowrap">{log.timestamp}</td>
                     <td className="py-3 px-3 text-zinc-200 font-medium whitespace-nowrap">{log.operatorName}</td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span className="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 text-[10px]">

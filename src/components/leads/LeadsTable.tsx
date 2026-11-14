@@ -74,16 +74,17 @@ export function LeadsTable({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800/80 p-4">
 
         {/* Left Side: Search + Status Filter Pills */}
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[300px]">
+        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
           {/* Search Box */}
           <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
               placeholder="Search leads, phone, city..."
+              aria-label="Search leads"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors duration-150 ease-interface"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-700 transition-colors duration-150 ease-interface"
             />
           </div>
 
@@ -92,8 +93,10 @@ export function LeadsTable({
             {["all", "new", "contacted", "qualified", "customer"].map((st) => (
               <Button
                 key={st}
+                type="button"
                 onClick={() => setStatusFilter(st)}
                 variant={statusFilter === st ? "primary" : "quiet"}
+                aria-pressed={statusFilter === st}
               >
                 {st}
               </Button>
@@ -108,9 +111,10 @@ export function LeadsTable({
             <ArrowUpDown className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-zinc-500">Sort:</span>
             <select
+              aria-label="Sort leads"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "newest" | "score" | "name")}
-              className="bg-transparent text-zinc-200 focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent text-zinc-200 cursor-pointer text-xs focus:border-zinc-700"
             >
               <option value="score" className="bg-zinc-900">AI Score (High to Low)</option>
               <option value="newest" className="bg-zinc-900">Newest Created</option>
@@ -130,7 +134,7 @@ export function LeadsTable({
       </div>
 
       {/* Table Body */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" role="region" aria-label="Leads table" tabIndex={0}>
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="border-b border-zinc-800 text-zinc-400 font-semibold bg-zinc-950/40 uppercase tracking-wider">
@@ -167,7 +171,7 @@ export function LeadsTable({
                           {lead.full_name}
                         </div>
                         {lead.company && (
-                          <div className="text-[10px] text-zinc-500 flex items-center gap-1">
+                          <div className="text-[10px] text-zinc-400 flex items-center gap-1">
                             <Building className="w-3 h-3" />
                             <span>{lead.company}</span>
                           </div>
@@ -224,7 +228,7 @@ export function LeadsTable({
       {/* Table Footer */}
       <div className="flex items-center justify-between border-t border-zinc-800 p-3 text-xs text-zinc-400">
         <span>Showing <strong className="text-zinc-200">{filteredLeads.length}</strong> of <strong className="text-zinc-200">{leads.length}</strong> total leads</span>
-        <span className="text-zinc-500 text-[11px]">Powered by AI Propensity Scoring Engine</span>
+        <span className="text-zinc-400 text-[11px]">Powered by AI Propensity Scoring Engine</span>
       </div>
 
     </Surface>

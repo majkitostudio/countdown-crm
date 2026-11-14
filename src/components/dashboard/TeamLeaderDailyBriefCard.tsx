@@ -115,10 +115,10 @@ function BriefMetric({
   icon: typeof PhoneCall;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4">
-      <div className="flex items-center justify-between gap-2 text-[10px] text-zinc-500"><span>{label}</span><Icon className="h-3.5 w-3.5 text-zinc-600" aria-hidden="true" /></div>
-      <p className="mt-2 font-mono text-lg font-semibold text-zinc-100">{value}</p>
-      {detail && <p className="mt-1 text-[10px] text-zinc-500">{detail}</p>}
+    <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/50 p-4 min-w-0">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-zinc-400"><span className="min-w-0 break-words">{label}</span><Icon className="h-3.5 w-3.5 text-zinc-400 shrink-0" aria-hidden="true" /></div>
+      <p className="mt-2 font-mono text-lg font-semibold text-zinc-100 break-words">{value}</p>
+      {detail && <p className="mt-1 text-[11px] text-zinc-400 break-words">{detail}</p>}
     </div>
   );
 }

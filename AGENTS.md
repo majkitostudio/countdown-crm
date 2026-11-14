@@ -18,8 +18,6 @@ Tento soubor obsahuje pouze pravidla specifická pro Countdown CRM a doplňuje g
 
 ## Uživatelské rozhraní
 
-- Titulky stránek, názvy menu, názvy sekcí, obecná tlačítka a štítky jsou anglicky.
-- Popisy pod titulkem a běžný obsah stránky, včetně tabulek a hlášek, jsou česky.
 - Při revizi obrazovky urči roli a četnost použití, rozhodni ponechat/sjednotit/odstranit, seřaď důležitost a zvaž vhodný alternativní koncept UI.
 
 ## Terminologie plánovaných hovorů

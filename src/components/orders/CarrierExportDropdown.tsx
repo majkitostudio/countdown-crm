@@ -136,7 +136,7 @@ export function CarrierExportDropdown({
                 role="menuitem"
                 onClick={() => handleSelectFormat(option.format)}
                 data-testid={`export-option-${option.format}`}
-                className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150 ease-interface hover:bg-zinc-800/60 focus:bg-zinc-800/80 focus:outline-none"
+                className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150 ease-interface hover:bg-zinc-800/60 focus:bg-zinc-800/80"
               >
                 <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-zinc-800 bg-zinc-900 text-zinc-300">
                   {option.format === "universal" ? (

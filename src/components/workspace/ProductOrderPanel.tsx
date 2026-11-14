@@ -582,7 +582,7 @@ export function ProductOrderPanel({
           <select
             value={discountPercent}
             onChange={(e) => setDiscountPercent(Number(e.target.value))}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-xs text-zinc-200 focus:outline-none"
+            className="bg-zinc-950 border border-zinc-800 rounded-lg px-2 py-1 text-xs text-zinc-200 "
           >
             <option value={0}>0% Bez dodatečné slevy</option>
             <option value={5}>5% První objednávka</option>
@@ -676,7 +676,7 @@ export function ProductOrderPanel({
             id="order-source"
             value={orderSource}
             onChange={(event) => setOrderSource(event.target.value as OrderSource)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 "
           >
             <option value="manual">Manuální / administrativní záznam</option>
             <option value="previous_call">Předchozí hovor</option>
@@ -693,7 +693,7 @@ export function ProductOrderPanel({
             value={sourceNote}
             onChange={(event) => setSourceNote(event.target.value)}
             placeholder="Doplňující poznámka k objednávce nebo dohodnuté specifikaci..."
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600  focus:border-zinc-700"
           />
         </div>
       )}
@@ -707,7 +707,7 @@ export function ProductOrderPanel({
           <select
             value={callOutcome}
             onChange={(e) => setCallOutcome(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 "
           >
             <option value="order_placed">Objednávka vytvořena — Prodej úspěšně dokončen</option>
             <option value="followup_scheduled">Naplánován další follow-up</option>
@@ -720,7 +720,7 @@ export function ProductOrderPanel({
             value={wrapUpNotes}
             onChange={(e) => setWrapUpNotes(e.target.value)}
             placeholder="Poznamenejte reakci zákazníka, domluvené termíny doručení..."
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 placeholder:text-zinc-600  focus:border-zinc-700"
           />
         </div>
       )}

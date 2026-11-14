@@ -178,7 +178,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         )}
 
         {viewsStatus === "ready" && savedViews.length === 0 && (
-          <span className="text-xs text-zinc-600">Zatím žádné. Nastav filtry a ulož si je pod jménem.</span>
+          <span className="text-xs text-zinc-400">Zatím žádné. Nastav filtry a ulož si je pod jménem.</span>
         )}
 
         {viewsStatus === "ready" && savedViews.map((view) => {
@@ -226,7 +226,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
               placeholder="Např. Neúspěšné hovory včera"
               maxLength={60}
               autoFocus
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-base sm:text-sm text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-500"
             />
             <button
               type="button"
@@ -289,7 +289,7 @@ export function TeamQualityReviewPanel({ reviews }: { reviews: CallQualityReview
         </label>
         <label className="text-xs text-zinc-500" htmlFor="quality-search-filter">
           Hledat operátora nebo klienta
-          <input id="quality-search-filter" name="quality-search" value={search} onChange={(event) => { setSearch(event.target.value); setActiveViewId(null); }} placeholder="Začněte psát…" className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600" />
+          <input id="quality-search-filter" name="quality-search" value={search} onChange={(event) => { setSearch(event.target.value); setActiveViewId(null); }} placeholder="Začněte psát…" className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-400" />
         </label>
       </div>
 

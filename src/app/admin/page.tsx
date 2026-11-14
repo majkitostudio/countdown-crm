@@ -145,7 +145,7 @@ export default async function AdminHubPage() {
               <span className="text-sm font-semibold text-zinc-100">{card.label}</span>
               <span className="text-xs leading-relaxed text-zinc-400">{card.description}</span>
               {card.legacyPath ? (
-                <span className="mt-auto font-mono text-[10px] uppercase tracking-wider text-zinc-600">
+                <span className="mt-auto font-mono text-[11px] uppercase tracking-wider text-zinc-400">
                   was {card.legacyPath}
                 </span>
               ) : null}

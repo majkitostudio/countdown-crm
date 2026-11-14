@@ -146,7 +146,7 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
           placeholder="What should the next operator know? (N)"
           maxLength={2000}
           aria-keyshortcuts="Control+Enter Meta+Enter"
-          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-700 focus:outline-none"
+          className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-base sm:text-xs text-zinc-200 placeholder:text-zinc-400 focus:border-zinc-700"
         />
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 text-[10px] text-zinc-500">

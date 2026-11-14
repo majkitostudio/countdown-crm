@@ -90,10 +90,10 @@ export default async function ReportsPage(
             <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
               <div className="flex flex-wrap items-end justify-between gap-3 px-1">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team attention</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Team attention</p>
                   <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Next opportunities from {scope === "workspace" ? "workspace" : "team"} data</h2>
                 </div>
-                <span className="text-[10px] text-zinc-600">No synthetic priorities</span>
+                <span className="text-[11px] text-zinc-400">No synthetic priorities</span>
               </div>
               <ReorderWidget scope={scope} />
               <NextBestActionCard scope={scope} />
@@ -102,10 +102,10 @@ export default async function ReportsPage(
             <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-overview-title" data-testid="dashboard-team-overview">
               <div className="flex flex-wrap items-end justify-between gap-3 px-1">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Team activity</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Team activity</p>
                   <h2 id="dashboard-team-overview-title" className="mt-1 text-sm font-semibold text-zinc-100">{scopeLabel} performance at a glance</h2>
                 </div>
-                <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[10px] font-mono text-zinc-500">{scopeLabel}</span>
+                <span className="rounded-md border border-zinc-800 bg-zinc-950/60 px-2 py-1 text-[11px] font-mono text-zinc-400">{scopeLabel}</span>
               </div>
               <KpiCards compact scope={scope} />
             </section></Surface>
@@ -114,10 +114,10 @@ export default async function ReportsPage(
           <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-supporting-title" data-testid="dashboard-supporting-analytics">
             <div className="flex items-end justify-between gap-3 px-1">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Supporting context</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Supporting context</p>
                 <h2 id="dashboard-supporting-title" className="mt-1 text-sm font-semibold text-zinc-100">Team performance and activity</h2>
               </div>
-              <span className="text-[10px] text-zinc-600">P2 / P3</span>
+              <span className="text-[11px] text-zinc-400">P2 / P3</span>
             </div>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">
