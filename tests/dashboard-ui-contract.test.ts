@@ -17,6 +17,7 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(dashboard).toContain('data-testid="dashboard-team-overview"');
     expect(dashboard).toContain('data-testid="dashboard-team-attention"');
     expect(dashboard).toContain('data-testid="dashboard-supporting-analytics"');
+    expect(dashboard).not.toContain("P2 / P3");
     expect(dashboard).toContain("<KpiCards compact scope={scope} />");
     expect(dashboard).toContain("dashboard-team-attention");
     expect(dashboard).toContain("scopeLabel");

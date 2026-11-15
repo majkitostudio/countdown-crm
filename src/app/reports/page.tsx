@@ -113,7 +113,6 @@ export default async function ReportsPage(
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Podpůrný kontext</p>
                 <h2 id="dashboard-supporting-title" className="mt-1 text-sm font-semibold text-zinc-100">Výkon a aktivita týmu</h2>
               </div>
-              <span className="text-[11px] text-zinc-400">P2 / P3</span>
             </div>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2">

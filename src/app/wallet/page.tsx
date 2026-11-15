@@ -18,6 +18,12 @@ function formatAmount(amount: number, currency: string): string {
   return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(amount);
 }
 
+function formatMetricAmount(amount: number | null, currency: string) {
+  return amount === null
+    ? "Nedostupné"
+    : <span className="font-mono tabular-nums">{formatAmount(amount, currency)}</span>;
+}
+
 function transactionLabel(type: string): string {
   if (type === "order_bonus") return "Bonus z objednávky";
   if (type === "monthly_commission") return "Měsíční provize";
@@ -127,9 +133,9 @@ export default async function WalletPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard label={data.canManage ? "Týmový zůstatek" : "Aktuální zůstatek"} value={visibleBalance === null ? "Nedostupné" : formatAmount(visibleBalance, presentationCurrency)} detail="Odvozeno z zaúčtovaných transakcí deníku" />
-        <MetricCard label="Kredity" value={totalCredits === null ? "Nedostupné" : formatAmount(totalCredits, presentationCurrency)} valueTone={creditsTone} detail="Bonusy a finalizované provize" />
-        <MetricCard label="Debety" value={totalDebits === null ? "Nedostupné" : formatAmount(totalDebits, presentationCurrency)} valueTone={debitsTone} detail="Pokuty, opravy a vrácení" />
+        <MetricCard label={data.canManage ? "Týmový zůstatek" : "Aktuální zůstatek"} value={formatMetricAmount(visibleBalance, presentationCurrency)} detail="Odvozeno z zaúčtovaných transakcí deníku" />
+        <MetricCard label="Kredity" value={formatMetricAmount(totalCredits, presentationCurrency)} valueTone={creditsTone} detail="Bonusy a finalizované provize" />
+        <MetricCard label="Debety" value={formatMetricAmount(totalDebits, presentationCurrency)} valueTone={debitsTone} detail="Pokuty, opravy a vrácení" />
       </div>
 
       <SectionWarning title="Souhrn zůstatku není dostupný" state={data.sections.balances} />

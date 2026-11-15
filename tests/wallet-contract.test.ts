@@ -72,4 +72,11 @@ describe("user wallet MVP contract", () => {
     expect(rlsMigration).toContain("Workspace managers can view wallet bonus rules");
     expect(rlsMigration).toContain("private.is_workspace_manager_or_admin(workspace_id)");
   });
+
+  it("uses the wallet's tabular monospace style for available KPI amounts", () => {
+    expect(walletPage).toContain('<span className="font-mono tabular-nums">{formatAmount(amount, currency)}</span>');
+    expect(walletPage).toContain("value={formatMetricAmount(visibleBalance, presentationCurrency)}");
+    expect(walletPage).toContain("value={formatMetricAmount(totalCredits, presentationCurrency)}");
+    expect(walletPage).toContain("value={formatMetricAmount(totalDebits, presentationCurrency)}");
+  });
 });
