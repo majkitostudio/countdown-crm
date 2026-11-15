@@ -163,13 +163,13 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
           <p className="mt-1 text-xs text-text-muted">Vytvořte první tým nahoře. Teprve potom do něj přiřaďte operátory.</p>
         </Surface>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="grid min-w-0 gap-5 xl:grid-cols-2">
           {data.teams.map((team) => {
             const memberships = (data.memberships[team.id] || []).filter((membership) => membership.active_until === null);
             const availableOperators = data.members.filter((member) => member.role === "operator" && !assignedUserIds.has(member.user_id));
             const availableLeaders = data.members.filter((member) => member.role === "team_leader" && !memberships.some((membership) => membership.user_id === member.user_id && membership.membership_role === "leader"));
             return (
-              <Surface key={team.id} variant="page">
+              <Surface key={team.id} variant="page" className="min-w-0">
                 <div className="space-y-5 p-6">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -205,7 +205,7 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
                       <div>
                         <FieldLabel htmlFor={`${team.id}-operator`}>Přidat operátora</FieldLabel>
                         <div className="flex gap-2">
-                          <SelectField id={`${team.id}-operator`} value={selectedUsers[`${team.id}:member`] || ""} onChange={(event) => setSelectedUsers((current) => ({ ...current, [`${team.id}:member`]: event.target.value }))}>
+                          <SelectField className="min-w-0 flex-1" id={`${team.id}-operator`} value={selectedUsers[`${team.id}:member`] || ""} onChange={(event) => setSelectedUsers((current) => ({ ...current, [`${team.id}:member`]: event.target.value }))}>
                             <option value="">Vyberte operátora</option>
                             {availableOperators.map((member) => <option key={member.user_id} value={member.user_id}>{memberLabel(member)}</option>)}
                           </SelectField>
@@ -215,7 +215,7 @@ export function TeamManagementPanel({ initialData }: TeamManagementPanelProps) {
                       <div>
                         <FieldLabel htmlFor={`${team.id}-leader`}>Přidat vedoucího týmu</FieldLabel>
                         <div className="flex gap-2">
-                          <SelectField id={`${team.id}-leader`} value={selectedUsers[`${team.id}:leader`] || ""} onChange={(event) => setSelectedUsers((current) => ({ ...current, [`${team.id}:leader`]: event.target.value }))}>
+                          <SelectField className="min-w-0 flex-1" id={`${team.id}-leader`} value={selectedUsers[`${team.id}:leader`] || ""} onChange={(event) => setSelectedUsers((current) => ({ ...current, [`${team.id}:leader`]: event.target.value }))}>
                             <option value="">Vyberte vedoucího týmu</option>
                             {availableLeaders.map((member) => <option key={member.user_id} value={member.user_id}>{memberLabel(member)}</option>)}
                           </SelectField>

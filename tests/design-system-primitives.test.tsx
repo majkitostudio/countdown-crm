@@ -164,5 +164,19 @@ describe("shared operator console design primitives", () => {
     expect(markup[3]).toContain("border-status-danger-border bg-status-danger text-status-danger-text");
     expect(markup[4]).toContain("bg-surface-inset");
     expect(markup[4]).toContain("text-status-success-text");
+
+    const constrainedSurface = renderToStaticMarkup(
+      <Surface variant="page" className="min-w-0">
+        <div />
+      </Surface>,
+    );
+    const constrainedSelect = renderToStaticMarkup(
+      <SelectField className="min-w-0 flex-1">
+        <option>Choose</option>
+      </SelectField>,
+    );
+
+    expect(constrainedSurface).toContain("min-w-0");
+    expect(constrainedSelect).toContain("min-w-0");
   });
 });

@@ -139,7 +139,7 @@ export default function SettingsPage() {
                   type="text"
                   disabled
                   value={getOperatorRoleLabel(identity?.role || null)}
-                  className="flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-400 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono text-base sm:text-xs"
+                  className="min-w-0 flex-1 bg-zinc-950/60 border border-zinc-800 text-zinc-400 rounded-lg px-3.5 py-2 cursor-not-allowed font-mono text-base sm:text-xs"
                 />
                 <StatusBadge tone="success">
                   Aktivní člen
