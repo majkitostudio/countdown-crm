@@ -7,7 +7,6 @@ import {
   Eye,
   Building,
   ArrowUpDown,
-  UserPlus
 } from "lucide-react";
 import { Lead } from "@/lib/leads";
 import { Button } from "@/components/ui/Button";
@@ -18,14 +17,12 @@ interface LeadsTableProps {
   leads: Lead[];
   onSelectLead: (lead: Lead) => void;
   onStartCall: (lead: Lead) => void;
-  onOpenImportModal: () => void;
 }
 
 export function LeadsTable({
   leads,
   onSelectLead,
   onStartCall,
-  onOpenImportModal,
 }: LeadsTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -70,7 +67,7 @@ export function LeadsTable({
   return (
     <Surface variant="table">
 
-      {/* Controls Bar: Search, Filters & Import Button */}
+      {/* Controls Bar: Search and filters */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800/80 p-4">
 
         {/* Left Side: Search + Status Filter Pills */}
@@ -122,13 +119,6 @@ export function LeadsTable({
             </select>
           </div></Surface>
 
-          {/* Import CSV CTA */}
-          <Button
-            onClick={onOpenImportModal}
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Importovat CSV</span>
-          </Button>
         </div>
 
       </div>

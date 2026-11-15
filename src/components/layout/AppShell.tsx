@@ -75,15 +75,15 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
         </main>
 
       {/* Shell status */}
-        <footer className={`${isOperatorConsole ? "hidden" : "flex"} h-8 border-t border-zinc-800/80 bg-zinc-950 px-6 items-center justify-between text-[11px] text-zinc-400 select-none`}>
-          <div className="flex items-center gap-4">
+        <footer className={`${isOperatorConsole ? "hidden" : "flex"} min-h-8 h-auto flex-wrap gap-x-3 gap-y-1 border-t border-zinc-800/80 bg-zinc-950 px-3 py-2 items-center justify-between text-[11px] text-zinc-400 select-none sm:px-6 sm:py-0`}>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
               Pracovní prostor připraven
             </span>
             <span>Živá latence API nedostupná</span>
           </div>
-          <div>
+          <div className="shrink-0">
             <span>Countdown CRM</span>
           </div>
         </footer>

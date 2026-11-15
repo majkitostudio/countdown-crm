@@ -38,6 +38,16 @@ export async function createTelephonySession(input: CreateTelephonySessionInput)
     input.productId ?? null,
     input.workspaceId,
   );
+  if (
+    input.direction === "outbound"
+    && (input.leadId || input.queueItemId)
+    && scriptSnapshot.source !== "published_version"
+  ) {
+    throw new DataAccessError(
+      "VALIDATION",
+      "Hovor nelze zahájit bez publikovaného schváleného skriptu pro vybraný produkt. Otevřete správu produktů a skriptů.",
+    );
+  }
   const { data, error } = await createAdminClient()
     .from("telephony_call_sessions")
     .insert({

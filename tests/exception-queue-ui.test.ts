@@ -64,6 +64,9 @@ describe("Exception Queue UI", () => {
     }));
 
     expect(html).toContain("U této výjimky nebyl zaznamenán konkrétní hovor");
+    expect(html).toContain("Zkontrolujte časovou osu kontaktu.");
+    expect(html).toContain('href="/leads/lead-1"');
+    expect(html).toContain("Otevřít historii kontaktu");
     expect(html).not.toContain("Otevřít kontrolu hovoru");
   });
 });

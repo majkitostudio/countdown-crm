@@ -18,6 +18,14 @@ describe("workflow server-boundary UI contract", () => {
     expect(workflowsClient).not.toContain("Ukázkový testovací přepis");
   });
 
+  it("does not describe unsupported workflow triggers as a server outage", () => {
+    const workflowsClient = readFileSync(path.join(projectRoot, "src", "app", "automations", "WorkflowsManagementClient.tsx"), "utf8");
+    expect(workflowsClient).not.toContain("Server nedostupný");
+    expect(workflowsClient).toContain("Spouštěč není napojen");
+    expect(workflowsClient).toContain("Pravidlo se samo nespustí.");
+    expect(workflowsClient).toContain("vyberte „Hovor ukončen“, nebo ho vypněte.");
+  });
+
   it("guards the management route before rendering its client controls", () => {
     const workflowsPage = readFileSync(path.join(projectRoot, "src", "app", "automations", "page.tsx"), "utf8");
     expect(workflowsPage).not.toContain('"use client"');

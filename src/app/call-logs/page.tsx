@@ -9,7 +9,6 @@ import {
   Eye,
 } from "lucide-react";
 import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
-import { formatCurrencyAmount } from "@/lib/currency";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -97,7 +96,6 @@ export default function CallLogsPage() {
   };
 
   const totalCallsCount = calls.length;
-  const totalSalesVolume = calls.reduce((acc, c) => acc + c.order_value, 0);
   const avgDuration = totalCallsCount > 0
     ? Math.round(calls.reduce((acc, c) => acc + c.duration_seconds, 0) / totalCallsCount)
     : 0;
@@ -144,7 +142,11 @@ actions={
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-120 ease-interface">
         <MetricCard label="Zaznamenané hovory" value={totalCallsCount} />
         <MetricCard label="Průměrné zpracování" value={formatDuration(avgDuration)} />
-        <MetricCard label="Tržby" value={formatCurrencyAmount(totalSalesVolume, "CZK")} />
+        <MetricCard
+          label="Objem objednávek u hovorů"
+          value="Nelze bezpečně sečíst"
+          detail="U částek v záznamech hovorů není uložena měna."
+        />
         <MetricCard label="Konverze" value={`${conversionRate}%`} />
       </div>
 
@@ -238,7 +240,7 @@ actions={
                 <th className="px-5 py-3">Operátor</th>
                 <th className="px-5 py-3">Délka</th>
                 <th className="px-5 py-3">Výsledek</th>
-                <th className="px-5 py-3">Tržby</th>
+                <th className="px-5 py-3">Hodnota u hovoru (měna neuvedena)</th>
                 <th className="px-5 py-3">Kontrola hovoru</th>
               </tr>
             </thead>
@@ -296,7 +298,8 @@ actions={
                     </span>
                   </td>
                   <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
-                    {formatCurrencyAmount(c.order_value, "CZK")}
+                    <span>{new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(c.order_value)}</span>
+                    <span className="ml-1.5 text-[10px] font-sans font-normal text-zinc-400">bez měny</span>
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-between gap-2">

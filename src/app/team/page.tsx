@@ -5,6 +5,7 @@ import { TeamWorkspaceTabs } from "@/components/team/TeamWorkspaceTabs";
 import { loadTeamPageData } from "@/lib/dal/teamPage";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Surface } from "@/components/ui/Surface";
+import { TeamLeaderDailyBriefCard } from "@/components/dashboard/TeamLeaderDailyBriefCard";
 
 export default async function TeamPage() {
   const context = await requireWorkspaceContext();
@@ -32,6 +33,7 @@ export default async function TeamPage() {
         badge={{ label: context.role === "administrator" ? "Přístup administrátora" : "Přístup vedoucího týmu", tone: "neutral" }}
       />
       <TeamWorkspaceTabs />
+      <TeamLeaderDailyBriefCard />
       <TeamPageContent currentUserId={context.userId} role={context.role} data={data} />
     </div>
   );

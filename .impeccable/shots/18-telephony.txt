@@ -1,0 +1,1 @@
+"{\n \"url\": \"http://localhost:3000/telephony\",\n \"title\": \"Countdown CRM — Pracovní prostor call centra\",\n \"nav\": \"Hledat leady, produkty nebo stránky... (Ctrl + K)\\nCtrl + K\\nPROVIZE\\n0 Kč\\nQA\",\n \"main\": \"Místní SIP není aktivní.\\n\\nPro použití této stránky povolte místní SIP v nastavení správce.\\n\\nOtevřít nastavení adaptéru telefonie\"\n}"

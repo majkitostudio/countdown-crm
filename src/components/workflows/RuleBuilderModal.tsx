@@ -188,8 +188,8 @@ export function RuleBuilderModal({
                 <h2 id="rule-builder-dialog-title" className="text-base font-semibold text-zinc-100">
                 {editingRule ? "Upravit automatizační pravidlo" : "Nové automatizační pravidlo"}
               </h2>
-              <p className="text-xs text-zinc-500 font-mono">
-                Krok {step} z 3 —{" "}
+              <p className="text-[11px] text-zinc-400">
+                Krok <span className="font-mono tabular-nums">{step} z 3</span> —{" "}
                 {step === 1 ? "Spouštěč a název" : step === 2 ? "Podmínky" : "Akce"}
               </p>
             </div>
@@ -295,12 +295,12 @@ export function RuleBuilderModal({
                           >
                             {t.label}
                             {t.serverDispatch === "unavailable" && (
-                              <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[9px] font-mono uppercase tracking-wide text-amber-300">
+                              <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[11px] font-medium uppercase tracking-wide text-amber-300">
                                 Již brzy
                               </span>
                             )}
                           </p>
-                          <p className="text-[11px] text-zinc-500 mt-0.5 leading-tight">
+                          <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight">
                             {t.description}
                           </p>
                         </div>
@@ -334,7 +334,7 @@ export function RuleBuilderModal({
               </div>
 
               {conditions.length === 0 ? (
-                <div className="text-center py-8 text-zinc-600 text-xs font-mono">
+                <div className="text-center py-8 text-zinc-400 text-xs">
                   Žádné podmínky — pravidlo se spustí při každé události typu &quot;{TRIGGER_REGISTRY.find((t) => t.type === trigger)?.label}&quot;.
                 </div>
               ) : (
@@ -443,7 +443,7 @@ export function RuleBuilderModal({
                           >
                             <span>{a.label}</span>
                             {isLocked && (
-                              <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[9px] font-mono uppercase tracking-wide text-amber-300">
+                              <span className="rounded border border-amber-900/60 bg-amber-950/30 px-1 py-0.5 text-[11px] font-medium uppercase tracking-wide text-amber-300">
                                 Již brzy
                               </span>
                             )}
@@ -451,7 +451,7 @@ export function RuleBuilderModal({
                               <Check className="w-3.5 h-3.5 text-zinc-400" />
                             )}
                           </p>
-                          <p className="text-[11px] text-zinc-500 mt-0.5 leading-tight">
+                          <p className="text-[11px] text-zinc-400 mt-0.5 leading-tight">
                             {a.description}
                           </p>
                         </div>

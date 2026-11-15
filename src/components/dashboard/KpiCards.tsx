@@ -51,11 +51,11 @@ export function KpiCards({ compact = false, scope = "workspace" }: { compact?: b
           Načítám analytiku pracovního prostoru…
         </StatusAlert>
       ) : result.ok ? (
-      <div className={`grid grid-cols-2 gap-3 ${compact ? "" : "sm:grid-cols-2 lg:grid-cols-4 sm:gap-6"}`}>
+      <div className={`grid grid-cols-1 gap-3 ${compact ? "sm:grid-cols-2" : "sm:grid-cols-2 lg:grid-cols-4 sm:gap-6"}`}>
         {[
-          { id: "calls", label: scope === "team" ? "Hovory týmu" : "Hovory pracovního prostoru", value: String(result.data.totalCalls), detail: scope === "team" ? "všechny hovory týmu" : "všechny hovory pracovního prostoru" },
-          { id: "conversion", label: scope === "team" ? "Konverze týmu" : "Konverze pracovního prostoru", value: `${result.data.conversionRate.toFixed(1)}%`, detail: scope === "team" ? "objednávky / hovory týmu" : "objednávky / hovory pracovního prostoru" },
-          { id: "revenue", label: scope === "team" ? "Příjmy týmu" : "Příjmy pracovního prostoru", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: scope === "team" ? "dokončené objednávky týmu; měny odděleně" : "dokončené objednávky pracovního prostoru; měny odděleně" },
+          { id: "calls", label: scope === "team" ? "Hovory týmu" : "Hovory pracovního prostoru", value: String(result.data.totalCalls), detail: scope === "team" ? "všechny hovory týmu za celé dostupné období" : "všechny hovory pracovního prostoru za celé dostupné období" },
+          { id: "conversion", label: scope === "team" ? "Konverze týmu" : "Konverze pracovního prostoru", value: `${result.data.conversionRate.toFixed(1)}%`, detail: scope === "team" ? "objednávky / hovory týmu za celé dostupné období" : "objednávky / hovory pracovního prostoru za celé dostupné období" },
+          { id: "revenue", label: scope === "team" ? "Příjmy týmu" : "Příjmy pracovního prostoru", value: formatCurrencyAmounts(result.data.revenueByCurrency), detail: scope === "team" ? "dokončené objednávky týmu za celé období; měny odděleně" : "dokončené objednávky pracovního prostoru za celé období; měny odděleně" },
           { id: "operators", label: scope === "team" ? "Operátoři v týmu" : "Operátoři v pracovním prostoru", value: "-", detail: scope === "team" ? "dostupnost týmu není k dispozici" : "dostupnost pracovního prostoru není k dispozici" },
         ].map((kpi) => <MetricCard key={kpi.id} label={kpi.label} value={kpi.value} detail={kpi.detail} />)}
       </div>

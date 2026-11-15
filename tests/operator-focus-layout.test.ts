@@ -102,7 +102,7 @@ describe("operator client-profile and script focus layout", () => {
     expect(markup).toContain("K tomuto leadu zatím nejsou žádné poznámky.");
   });
 
-  it("renders quick objections in standard view and switches to drawer trigger in extended view", () => {
+  it("does not present unapproved canned objections and keeps the catalog available in extended view", () => {
     const standardMarkup = renderToStaticMarkup(
       React.createElement(ProductScriptPanel, {
         product,
@@ -113,9 +113,8 @@ describe("operator client-profile and script focus layout", () => {
       }),
     );
 
-    expect(standardMarkup).toContain('data-testid="script-quick-objections"');
-    expect(standardMarkup).toContain("Drahé / Cena");
-    expect(standardMarkup).toContain("Nevěřím účinku");
+    expect(standardMarkup).not.toContain('data-testid="script-quick-objections"');
+    expect(standardMarkup).not.toContain("Naprosto vám rozumím");
     expect(standardMarkup).not.toContain('aria-label="Otevřít katalog námitek"');
 
     const extendedMarkup = renderToStaticMarkup(

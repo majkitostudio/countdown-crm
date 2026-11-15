@@ -163,6 +163,59 @@ export async function resolveCallScriptSnapshot(
   };
 }
 
+export async function requirePublishedCallScripts(
+  productIds: string[],
+  workspaceId: string,
+): Promise<void> {
+  const normalizedProductIds = productIds.map((id) => id.trim());
+  const uniqueProductIds = [...new Set(normalizedProductIds)];
+  if (uniqueProductIds.length === 0 || normalizedProductIds.some((id) => !id)) {
+    throw new DataAccessError(
+      "VALIDATION",
+      "Pro každý produkt objednávky musí být vybrán publikovaný schválený skript. Otevřete správu produktů a skriptů.",
+    );
+  }
+
+  const supabase = await createDataClient();
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .in("id", uniqueProductIds);
+
+  if (productsError) {
+    throw new DataAccessError("DATABASE", "Produkty objednávky se nepodařilo ověřit.");
+  }
+  if ((products || []).length !== uniqueProductIds.length) {
+    throw new DataAccessError("VALIDATION", "Některý produkt objednávky není v tomto pracovním prostoru dostupný.");
+  }
+
+  const { data: versions, error: versionsError } = await supabase
+    .from("product_script_versions")
+    .select("product_id")
+    .eq("workspace_id", workspaceId)
+    .in("product_id", uniqueProductIds)
+    .eq("status", "published");
+
+  if (versionsError) {
+    throw new DataAccessError("DATABASE", "Publikované skripty produktů se nepodařilo ověřit.");
+  }
+  const publishedProductIds = new Set((versions || []).map((version) => version.product_id));
+  if (uniqueProductIds.some((id) => !publishedProductIds.has(id))) {
+    throw new DataAccessError(
+      "VALIDATION",
+      "Hovor ani objednávku nelze dokončit: pro každý produkt musí být publikovaný schválený skript. Otevřete správu produktů a skriptů.",
+    );
+  }
+}
+
+export async function getCallScriptSnapshotForCurrentWorkspace(
+  productId: string,
+): Promise<ScriptSnapshotDTO> {
+  const { workspaceId } = await requireWorkspaceContext();
+  return resolveCallScriptSnapshot(productId, workspaceId);
+}
+
 export async function listProductScriptsForWorkspace(
   requestedWorkspaceId?: string,
 ): Promise<ProductScriptDTO[]> {

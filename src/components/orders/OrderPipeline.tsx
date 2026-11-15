@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, ClipboardList, Columns3, List, LoaderCircle, MapPin, PhoneCall, Search } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import type { WorkspaceOrderDTO } from "@/lib/dal/activity";
 import type { WorkspaceRole } from "@/lib/auth/roles";
 import { StatusAlert, StatusBadge, type SemanticTone } from "@/components/ui/Status";
@@ -67,6 +67,7 @@ export function OrderPipeline({
   initialViewMode?: ViewMode;
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
+  const [hasUserSelectedViewMode, setHasUserSelectedViewMode] = useState(false);
   const [activeFilter, setActiveFilter] = useState<PipelineStatus>("all");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -75,6 +76,19 @@ export function OrderPipeline({
 
   const isManager = role === "team_leader" || role === "administrator";
   const normalizedSearch = search.trim().toLowerCase();
+
+  useEffect(() => {
+    const viewport = window.matchMedia("(max-width: 639px)");
+    const syncDefaultView = () => {
+      if (!hasUserSelectedViewMode) {
+        setViewMode(viewport.matches ? "table" : initialViewMode);
+      }
+    };
+
+    syncDefaultView();
+    viewport.addEventListener("change", syncDefaultView);
+    return () => viewport.removeEventListener("change", syncDefaultView);
+  }, [hasUserSelectedViewMode, initialViewMode]);
 
   const visibleOrders = useMemo(
     () =>
@@ -247,7 +261,10 @@ export function OrderPipeline({
           <div className="flex items-center rounded-xl border border-zinc-800 bg-zinc-950/60 p-1 gap-1">
             <button
               type="button"
-              onClick={() => setViewMode("kanban")}
+              onClick={() => {
+                setHasUserSelectedViewMode(true);
+                setViewMode("kanban");
+              }}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 ease-interface ${
                 viewMode === "kanban"
                   ? "bg-zinc-800 text-zinc-100"
@@ -260,7 +277,10 @@ export function OrderPipeline({
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("table")}
+              onClick={() => {
+                setHasUserSelectedViewMode(true);
+                setViewMode("table");
+              }}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-150 ease-interface ${
                 viewMode === "table"
                   ? "bg-zinc-800 text-zinc-100"

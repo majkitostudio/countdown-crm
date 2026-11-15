@@ -1,0 +1,4 @@
+{
+  "dialog": "Vytvořit lead\n\nUloží se přímo do aktivního pracovního prostoru.\n\nCelé jméno *\nTelefon *\nE-mail\nMěsto\nPoznámky\nZrušit\nVytvořit lead",
+  "dialogs": 1
+}

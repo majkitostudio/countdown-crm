@@ -11,6 +11,7 @@ import { reviewCompletedCallForWorkspace } from "@/lib/dal/callQualityReviews";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { isFailReason, validateCallFailFields, type FailReason } from "@/lib/postCall";
+import { requirePublishedCallScripts } from "@/lib/dal/productScripts";
 
 export type QueueState = Database["public"]["Tables"]["lead_queue_items"]["Row"]["state"];
 export type OperatorPresenceState = Database["public"]["Tables"]["operator_presence"]["Row"]["state"];
@@ -316,6 +317,12 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
     ? parseDeliveryAddressSnapshot(input.delivery_address_snapshot)
     : null;
   const context = await requireWorkspaceRole(["operator"]);
+  if (hasOrder) {
+    await requirePublishedCallScripts(
+      orderItems.map((item) => item.product_id),
+      context.workspaceId,
+    );
+  }
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call_with_order_items_idempotent", {
     completion_key: input.call_session_id,

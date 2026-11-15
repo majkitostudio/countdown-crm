@@ -20,6 +20,7 @@ import { getCrossSellRecommendations, Recommendation } from "@/lib/recommendatio
 import { buildCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { ProductImage } from "@/components/products/ProductImage";
+import { resolveProductImageSource } from "@/lib/productImageSafety";
 import {
   DeliveryAddressFields,
   EMPTY_DELIVERY_ADDRESS_DRAFT,
@@ -309,7 +310,7 @@ export function ProductOrderPanel({
                   </div>
                   <div>
                     <p className="font-semibold text-zinc-200 line-clamp-1">{prod.title}</p>
-                    <p className="text-[11px] text-zinc-500 uppercase">{prod.category}</p>
+                    <p className="text-[11px] text-zinc-400 uppercase">{prod.category}</p>
                   </div>
                 </div>
                 <span className="font-mono font-semibold text-zinc-200 shrink-0">{formatCurrencyAmount(prod.price, prod.currency || "USD")}</span>
@@ -346,7 +347,7 @@ export function ProductOrderPanel({
         {/* 1. Volba délky kúry (Počet balení) */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[10px]">
+            <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[11px]">
               Délka kúry (počet balení):
             </span>
             <span className="text-zinc-400 text-[11px]">Doporučeno: 4 balení (plná kúra)</span>
@@ -367,7 +368,7 @@ export function ProductOrderPanel({
                   }`}
                 >
                   <div className="text-xs">{opt.label}</div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">{opt.months} měs.</div>
+                   <div className="text-[11px] text-zinc-400 mt-0.5">{opt.months} měs.</div>
                 </button>
               );
             })}
@@ -377,7 +378,7 @@ export function ProductOrderPanel({
         {/* 2. Cenové schody vyjednávání */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[10px]">
+            <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[11px]">
               Cenový schod pro vyjednávání v hovoru:
             </span>
             <span className="text-zinc-500 text-[11px]">Zvolte podle reakce klienta</span>
@@ -538,7 +539,7 @@ export function ProductOrderPanel({
           <div className="flex items-center justify-between gap-3 bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800/80">
             <div className="flex items-center gap-2.5">
               <ProductImage
-                src={topRec.recommendedProduct.image_url}
+                src={resolveProductImageSource(topRec.recommendedProduct, products)}
                 alt={topRec.recommendedProduct.title}
                 className="h-9 w-9 shrink-0 rounded-lg border border-zinc-800 object-cover"
                 fallbackClassName="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-500"

@@ -8,7 +8,6 @@ import { TopPerformers } from "@/components/dashboard/TopPerformers";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import { ReorderWidget } from "@/components/dashboard/ReorderWidget";
 import { NextBestActionCard } from "@/components/dashboard/NextBestActionCard";
-import { TeamLeaderDailyBriefCard } from "@/components/dashboard/TeamLeaderDailyBriefCard";
 import { AnalyticsPanel } from "@/components/analytics/AnalyticsPanel";
 import { getRoleHomePath } from "@/lib/auth/roleHome";
 import { isTeamLeaderOrAdministrator } from "@/lib/auth/roles";
@@ -84,8 +83,6 @@ export default async function ReportsPage(
         <AnalyticsPanel />
       ) : (
         <>
-          <TeamLeaderDailyBriefCard />
-
           <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,.85fr)]">
             <Surface variant="page"><section className="space-y-3 p-5" aria-labelledby="dashboard-team-attention-title" data-testid="dashboard-team-attention">
               <div className="flex flex-wrap items-end justify-between gap-3 px-1">
@@ -93,7 +90,6 @@ export default async function ReportsPage(
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Pozornost týmu</p>
                   <h2 id="dashboard-team-attention-title" className="mt-1 text-sm font-semibold text-zinc-100">Další příležitosti z dat {scope === "workspace" ? "pracovního prostoru" : "týmu"}</h2>
                 </div>
-                <span className="text-[11px] text-zinc-400">Žádné syntetické priority</span>
               </div>
               <ReorderWidget scope={scope} />
               <NextBestActionCard scope={scope} />

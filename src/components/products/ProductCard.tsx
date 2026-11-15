@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { ProductImage } from "@/components/products/ProductImage";
+import { resolveProductImageSource } from "@/lib/productImageSafety";
 
 interface ProductCardProps {
   product: Product;
+  catalogProducts?: readonly Product[];
   role: WorkspaceRole;
   objectionsAvailable: boolean;
   orderCountsAvailable: boolean;
@@ -24,6 +26,7 @@ interface ProductCardProps {
 
 export function ProductCard({
   product,
+  catalogProducts = [product],
   role,
   objectionsAvailable,
   orderCountsAvailable,
@@ -36,6 +39,7 @@ export function ProductCard({
   const canManageProducts = role === "team_leader" || role === "administrator";
   const objectionsCount = product.objections ? product.objections.length : 0;
   const crossSellCount = product.cross_sell_ids ? product.cross_sell_ids.length : 0;
+  const imageSource = resolveProductImageSource(product, catalogProducts);
 
   return (
     <Surface variant="page">
@@ -44,18 +48,18 @@ export function ProductCard({
       {/* Product Image Box */}
       <div className="relative h-48 w-full bg-zinc-950 overflow-hidden">
         <ProductImage
-          src={product.image_url}
+          src={imageSource}
           alt={product.title}
           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
           fallbackClassName="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-600"
           iconClassName="h-8 w-8"
-          fallbackText="Bez obrázku produktu"
+          fallbackText={product.image_url && !imageSource ? "Obrázek není ověřen" : "Bez obrázku produktu"}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-black/30" />
 
         {/* Category Pill Top Left */}
         <div className="absolute top-3 left-3">
-          <span className="px-2.5 py-0.5 rounded-md text-xs font-mono uppercase tracking-wider border backdrop-blur-md bg-zinc-900 text-zinc-300 border-zinc-800">
+          <span className="px-2.5 py-0.5 rounded-md text-xs font-medium uppercase tracking-wider border backdrop-blur-md bg-zinc-900 text-zinc-300 border-zinc-800">
             {({ supplements: "Doplňky stravy", cosmetics: "Kosmetika", electronics: "Elektronika" } as Record<string, string>)[product.category] || product.category}
           </span>
         </div>
@@ -106,9 +110,9 @@ export function ProductCard({
 
           {/* Cross Sell Count */}
           {crossSellCount > 0 && (
-            <span className="text-zinc-400 flex items-center gap-1 text-[11px] font-mono">
+            <span className="text-zinc-400 flex items-center gap-1 text-[11px]">
               <Layers className="w-3 h-3 text-zinc-400" />
-              <span>{crossSellCount} křížových prodejů</span>
+              <span><span className="font-mono tabular-nums">{crossSellCount}</span> křížových prodejů</span>
             </span>
           )}
         </div>

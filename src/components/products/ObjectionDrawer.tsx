@@ -147,8 +147,8 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                 <h2 id="objection-drawer-title" className="text-base font-semibold text-zinc-100">
                   Námitkové karty (prodej)
                 </h2>
-                <p className="text-xs text-zinc-400 font-mono">
-                  {product.title} (${product.price.toFixed(2)})
+                <p className="text-xs text-zinc-400">
+                  {product.title} (<span className="font-mono tabular-nums">${product.price.toFixed(2)}</span>)
                 </p>
               </div>
             </div>
@@ -238,11 +238,11 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
               {/* List of Objections Cards */}
               {!objectionsAvailable ? (
                 <Surface variant="inset">
-                  <div className="p-8 text-center font-mono text-xs text-zinc-500">Data námitkových karet nejsou dostupná.</div>
+                  <div className="p-8 text-center text-xs text-zinc-400">Data námitkových karet nejsou dostupná.</div>
                 </Surface>
               ) : objections.length === 0 ? (
                 <Surface variant="inset">
-                  <div className="p-8 text-center font-mono text-xs text-zinc-500">
+                  <div className="p-8 text-center text-xs text-zinc-400">
                   Zatím nejsou pro tento produkt zaregistrovány žádné námitky.
                   </div>
                 </Surface>

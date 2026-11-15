@@ -57,17 +57,17 @@ export function TeamLeaderDailyBriefCard() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {readyState && <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-400">{readyState.brief.scopeLabel}</span>}
-          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] font-mono text-zinc-500">Pouze ke čtení</span>
+          {readyState && <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-medium text-zinc-400">{readyState.brief.scopeLabel}</span>}
+          <span className="w-fit rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] font-medium text-zinc-400">Pouze ke čtení</span>
         </div>
       </div>
 
       {state.status === "loading" ? (
         <div className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Načítám dnešní souhrn…</div>
       ) : state.status === "forbidden" ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Denní souhrn je dostupný pouze vedoucím týmů a administrátorům.</div>
+        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Denní souhrn je dostupný pouze vedoucím týmů a administrátorům.</div>
       ) : state.status === "unavailable" ? (
-        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-500">Denní souhrn není dostupný: {state.message}</div>
+        <div role="status" className="rounded-xl border border-zinc-800/60 bg-zinc-950/60 p-4 text-xs text-zinc-400">Denní souhrn není dostupný: {state.message}</div>
       ) : readyState ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

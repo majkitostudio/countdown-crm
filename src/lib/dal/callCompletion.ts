@@ -10,6 +10,7 @@ import { reviewCompletedCallForWorkspace } from "@/lib/dal/callQualityReviews";
 import type { WorkflowDispatchResult } from "@/lib/workflows/types";
 import { totalCallOrderItems, type CallOrderItemInput } from "@/lib/callOrder";
 import { validateCallFailFields, type FailReason } from "@/lib/postCall";
+import { requirePublishedCallScripts } from "@/lib/dal/productScripts";
 
 type CallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
 
@@ -147,6 +148,12 @@ async function completeCallForAuthorizedWorkspace(
   }
 
   const lead = await getScopedLeadForWorkspace(input.lead_id, context.workspaceId);
+  if (hasOrder && context.role === "operator") {
+    await requirePublishedCallScripts(
+      orderItems.map((item) => item.product_id),
+      context.workspaceId,
+    );
+  }
   const supabase = await createDataClient();
   const { data: operatorProfile, error: operatorProfileError } = await supabase
     .from("profiles")

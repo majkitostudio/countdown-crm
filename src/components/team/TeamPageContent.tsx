@@ -237,16 +237,43 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
 
   return (
     <div className="space-y-6">
+      <div>
       <nav className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/60 p-1" aria-label="Pohledy týmového pracovního prostoru">
-        <div className="flex min-w-max gap-1" role="tablist">
+        <div
+          className="flex min-w-max gap-1"
+          role="tablist"
+          onKeyDown={(event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            const currentIndex = TEAM_WORKSPACE_VIEWS.findIndex((item) => item.id === view);
+            const nextIndex = event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? TEAM_WORKSPACE_VIEWS.length - 1
+                : (currentIndex + (event.key === "ArrowRight" ? 1 : -1) + TEAM_WORKSPACE_VIEWS.length) % TEAM_WORKSPACE_VIEWS.length;
+            const nextView = TEAM_WORKSPACE_VIEWS[nextIndex];
+            const nextTab = event.currentTarget.querySelector<HTMLButtonElement>(
+              `[data-team-view-tab="${nextView.id}"]`,
+            );
+
+            if (nextTab) {
+              event.preventDefault();
+              setView(nextView.id);
+              nextTab.focus();
+            }
+          }}
+        >
           {TEAM_WORKSPACE_VIEWS.map((item) => {
             const selected = view === item.id;
             return (
               <button
                 key={item.id}
+                id={`team-workspace-tab-${item.id}`}
                 type="button"
                 role="tab"
                 aria-selected={selected}
+                aria-controls="team-workspace-panel"
+                tabIndex={selected ? 0 : -1}
+                data-team-view-tab={item.id}
                 onClick={() => setView(item.id)}
                 className={selected
                   ? "rounded-lg bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-950"
@@ -258,6 +285,8 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           })}
         </div>
       </nav>
+      <p className="mt-1 px-1 text-[11px] text-zinc-400">Další týmové pohledy zobrazíte posunutím této lišty do strany.</p>
+      </div>
 
       <TeamWorkspaceContextBar
         periodKey={scope.periodKey ?? currentData.scope.periodKey}
@@ -267,6 +296,12 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
         onScopeChange={applyScope}
       />
 
+      <div
+        id="team-workspace-panel"
+        role="tabpanel"
+        aria-labelledby={`team-workspace-tab-${view}`}
+        tabIndex={0}
+      >
       {view === "checkpoint" && (
         <div className="space-y-6">
           {/* Provoz na lince teď — kdo právě teď může vzít hovor */}
@@ -406,6 +441,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           <SourceUnavailablePanel title="Správa fronty leadů není dostupná" message="Fronta leadů není dostupná." />
         )
       )}
+      </div>
     </div>
   );
 }

@@ -341,13 +341,18 @@ export default function WorkflowsPage() {
                           </span>
                           {triggerDef?.serverDispatch === "unavailable" && (
                             <span className="px-2 py-0.5 bg-amber-950/30 border border-amber-900/60 text-amber-300 text-[10px] font-mono rounded">
-                              Server nedostupný
+                              Spouštěč není napojen
                             </span>
                           )}
                         </div>
                         {rule.description && (
                           <p className="text-xs text-zinc-400 mt-0.5 truncate">
                             {rule.description}
+                          </p>
+                        )}
+                        {triggerDef?.serverDispatch === "unavailable" && (
+                          <p className="mt-2 max-w-3xl text-xs leading-relaxed text-amber-200">
+                            {triggerDef.unavailableReason} Pravidlo se samo nespustí. Upravte ho a vyberte „Hovor ukončen“, nebo ho vypněte.
                           </p>
                         )}
                         {/* Action Pills */}

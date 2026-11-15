@@ -19,7 +19,7 @@ import {
   getMonthlySettlementSummaryAction,
 } from "@/app/actions/wallet";
 import type { MonthlySettlementSummaryDTO } from "@/lib/dal/wallet";
-import { exportPayrollToCsv } from "@/lib/payrollExport";
+import { exportPayrollToCsv, getPayrollSettlementStatus } from "@/lib/payrollExport";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, SelectField } from "@/components/ui/Field";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
@@ -282,7 +282,7 @@ export function WalletSettlementPanel({
               {formatCurrency(summary.totalPayout, currency)}
             </p>
             <p className="mt-1 text-[10px] text-emerald-500/80">
-              Provize {formatCurrency(summary.totalCommission, currency)} + bonusy
+              Provize {formatCurrency(summary.totalCommission, currency)} + bonusy {formatCurrency(summary.totalFixedBonuses, currency)} + úpravy {formatCurrency(summary.totalManualAdjustments, currency)}
             </p>
           </Surface>
         </div>
@@ -300,7 +300,7 @@ export function WalletSettlementPanel({
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-zinc-800/80">
-            <table className="w-full min-w-[960px] text-left text-xs text-zinc-300">
+            <table className="w-full min-w-[1120px] text-left text-xs text-zinc-300">
               <thead className="border-b border-zinc-800 bg-zinc-950/80 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
                 <tr>
                   <th className="px-4 py-3">Operátor</th>
@@ -308,6 +308,7 @@ export function WalletSettlementPanel({
                   <th className="px-4 py-3 text-right">Celkový obrat</th>
                   <th className="px-4 py-3 text-right">Fixní bonusy</th>
                   <th className="px-4 py-3 text-right">Procentuální provize ({summary.commissionRate} %)</th>
+                  <th className="px-4 py-3 text-right">Manuální úpravy</th>
                   <th className="px-4 py-3 text-right font-bold text-emerald-400">K výplatě</th>
                   <th className="px-4 py-3 text-center">Stav</th>
                   <th className="px-4 py-3 text-right">Akce</th>
@@ -316,7 +317,7 @@ export function WalletSettlementPanel({
               <tbody className="divide-y divide-zinc-800/60 bg-zinc-950/40">
                 {summary.operators.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-zinc-500">
                       V tomto týmu nejsou registrováni žádní aktivní operátoři.
                     </td>
                   </tr>
@@ -351,23 +352,16 @@ export function WalletSettlementPanel({
                       <td className="px-4 py-3.5 text-right font-mono text-cyan-300">
                         {formatCurrency(op.commissionAmount, currency)}
                       </td>
+                      <td className="px-4 py-3.5 text-right font-mono text-zinc-300">
+                        {formatCurrency(op.manualAdjustments, currency)}
+                      </td>
                       <td className="px-4 py-3.5 text-right font-mono font-bold text-sm text-emerald-300">
                         {formatCurrency(op.totalPayout, currency)}
                       </td>
                       <td className="px-4 py-3.5 text-center">
-                        {op.isFinalized ? (
-                          <StatusBadge tone="success">
-                            ✓ Uzavřeno & vyplaceno
-                          </StatusBadge>
-                        ) : op.commissionAmount > 0 ? (
-                          <StatusBadge tone="warning">
-                            K uzávěrce
-                          </StatusBadge>
-                        ) : (
-                          <StatusBadge tone="neutral">
-                            Nulový nárok
-                          </StatusBadge>
-                        )}
+                        <StatusBadge tone={op.isFinalized ? "success" : op.commissionAmount > 0 ? "warning" : "neutral"}>
+                          {getPayrollSettlementStatus(op)}
+                        </StatusBadge>
                       </td>
                       <td className="px-4 py-3.5 text-right">
                         {op.isFinalized ? (

@@ -7,7 +7,6 @@ import {
   PhoneCall,
   Clock,
   User,
-  DollarSign,
   FileText,
   ClipboardCheck,
   Volume2,
@@ -58,8 +57,10 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="call-detail-dialog-title" className="text-base font-semibold text-zinc-100 font-mono">Záznam hovoru #{call.id}</h2>
-                <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(call.outcome)}`}>
+                <h2 id="call-detail-dialog-title" className="text-base font-semibold text-zinc-100">
+                  Záznam hovoru <span className="font-mono">#{call.id}</span>
+                </h2>
+                <span className={`px-2.5 py-0.5 rounded-md text-xs border ${getCallOutcomeClassName(call.outcome)}`}>
                   {formatCallOutcome(call.outcome)}
                 </span>
               </div>
@@ -92,7 +93,7 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-3 gap-3 text-xs">
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Délka hovoru</span>
+              <span className="text-zinc-400 block text-[11px] uppercase font-semibold">Délka hovoru</span>
               <span className="font-mono font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
                 <Clock className="w-4 h-4 text-zinc-400" />
                 {formatDuration(call.duration_seconds)}
@@ -100,16 +101,15 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
             </div>
 
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Hodnota objednávky</span>
+              <span className="text-zinc-400 block text-[11px] uppercase font-semibold">Hodnota · měna neuvedena</span>
               <span className="font-mono font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
-                <DollarSign className="w-4 h-4 text-zinc-400" />
-                ${call.order_value.toFixed(2)}
+                {new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(call.order_value)}
               </span>
             </div>
 
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-500 block text-[10px] uppercase font-semibold">Kontrola hovoru</span>
-              <span className="font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5 font-mono">
+              <span className="text-zinc-400 block text-[11px] uppercase font-semibold">Kontrola hovoru</span>
+              <span className="font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
                 <ClipboardCheck className="w-4 h-4 text-zinc-400" />
                 {reviewStatusLabel(call.review_status)}
               </span>

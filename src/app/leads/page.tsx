@@ -155,7 +155,6 @@ function LeadsPageContent() {
         leads={filteredLeads}
         onSelectLead={handleSelectLead}
         onStartCall={handleStartCall}
-        onOpenImportModal={() => setIsImportModalOpen(true)}
       />
 
       {/* Slide-over Detail Drawer */}

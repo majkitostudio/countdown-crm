@@ -244,7 +244,15 @@ export function ExceptionQueue({ initialData }: { initialData: ExceptionQueueDTO
                         </div>
                       )}
                       {item.callReview?.kind === "not_recorded" && (
-                        <p className="text-[11px] text-zinc-600">U této výjimky nebyl zaznamenán konkrétní hovor</p>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-400">
+                          <span>U této výjimky nebyl zaznamenán konkrétní hovor. Zkontrolujte časovou osu kontaktu.</span>
+                          <Link
+                            href={`/leads/${item.target.id}`}
+                            className="font-medium text-zinc-200 underline underline-offset-2"
+                          >
+                            Otevřít historii kontaktu
+                          </Link>
+                        </div>
                       )}
                     </div>
 

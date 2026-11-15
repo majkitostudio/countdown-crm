@@ -161,4 +161,25 @@ describe("createTelephonySession script evidence", () => {
       },
     });
   });
+
+  it("rejects a lead call without a published script before inserting a session", async () => {
+    mocks.createDataClient.mockResolvedValue(createClient(null));
+    const insert = vi.fn();
+    mocks.createAdminClient.mockReturnValue({
+      from: vi.fn().mockReturnValue({ insert }),
+    });
+
+    await expect(createTelephonySession({
+      workspaceId,
+      operatorId: "53333333-3333-4333-8333-333333333333",
+      provider: "simulation",
+      leadId: "57777777-7777-4777-8777-777777777777",
+      queueItemId: null,
+      toNumber: "+420700000011",
+      direction: "outbound",
+      productId: product.id,
+    })).rejects.toMatchObject({ code: "VALIDATION" });
+
+    expect(insert).not.toHaveBeenCalled();
+  });
 });

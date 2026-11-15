@@ -71,6 +71,30 @@ const queueSnapshot = {
   },
 };
 
+function createPublishedScriptClient(rpc: ReturnType<typeof vi.fn>, productIds: string[]) {
+  const query = (data: unknown[]) => {
+    const builder = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      in: vi.fn(),
+      then: (resolve: (result: { data: unknown[]; error: null }) => unknown) => Promise.resolve(resolve({ data, error: null })),
+    };
+    builder.select.mockReturnValue(builder);
+    builder.eq.mockReturnValue(builder);
+    builder.in.mockReturnValue(builder);
+    return builder;
+  };
+
+  return {
+    rpc,
+    from: vi.fn((table: string) => query(
+      table === "products"
+        ? productIds.map((id) => ({ id }))
+        : productIds.map((product_id) => ({ product_id })),
+    )),
+  };
+}
+
 describe("lead queue server contract", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -168,7 +192,7 @@ describe("lead queue server contract", () => {
   it("forwards every checkout item to the atomic completion RPC", async () => {
     const completion = { call_id: "call-2", order_id: "order-2", queue_state: "completed" };
     const rpc = vi.fn().mockResolvedValueOnce({ data: { ...completion, lead_id: "lead-1", lead_name: "Test Lead" }, error: null });
-    mocks.createDataClient.mockResolvedValue({ rpc });
+    mocks.createDataClient.mockResolvedValue(createPublishedScriptClient(rpc, ["product-1", "product-2"]));
     const orderItems = [
       { product_id: "product-1", quantity: 2, unit_price: 18.5 },
       { product_id: "product-2", quantity: 1, unit_price: 9.99 },

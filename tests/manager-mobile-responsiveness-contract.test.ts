@@ -15,8 +15,8 @@ describe("Manager mobile and tablet responsiveness contract (Phase 7)", () => {
     expect(dashboard).toContain("grid grid-cols-1 gap-6");
     expect(dashboard).toContain("lg:grid-cols-3");
 
-    // KPI cards use two-column compact grid on mobile rather than single-column blowup
-    expect(kpiCards).toContain("grid grid-cols-2 gap-3");
+    // Compact KPI cards stack on phones so multi-currency totals remain readable.
+    expect(kpiCards).toContain('grid grid-cols-1 gap-3 ${compact ? "sm:grid-cols-2"');
   });
 
   it("ensures Team Workspace accommodates mobile viewports with horizontal scroll tabs", () => {
@@ -29,6 +29,29 @@ describe("Manager mobile and tablet responsiveness contract (Phase 7)", () => {
     // Context bar stacks vertically on mobile and horizontally on sm+
     expect(teamContent).toContain("flex flex-col gap-3");
     expect(teamContent).toContain("sm:flex-row sm:items-center");
+    expect(teamContent).toContain('role="tabpanel"');
+    expect(teamContent).toContain('event.key === "ArrowRight"');
+    expect(teamContent).toContain("tabIndex={selected ? 0 : -1}");
+  });
+
+  it("defaults mobile order views to the table and supports keyboard scrolling in Kanban", () => {
+    const pipeline = readSource("src/components/orders/OrderPipeline.tsx");
+    const kanban = readSource("src/components/orders/OrderKanban.tsx");
+
+    expect(pipeline).toContain('window.matchMedia("(max-width: 639px)")');
+    expect(pipeline).toContain('viewport.matches ? "table" : initialViewMode');
+    expect(kanban).toContain('aria-label="Sloupce stavů objednávek"');
+    expect(kanban).toContain('event.key === "ArrowRight"');
+    expect(kanban).toContain('event.key === "Home"');
+    expect(kanban).toContain('event.key === "End"');
+  });
+
+  it("allows the shared status footer to wrap on narrow screens", () => {
+    const appShell = readSource("src/components/layout/AppShell.tsx");
+
+    expect(appShell).toContain("min-h-8 h-auto flex-wrap");
+    expect(appShell).toContain("px-3 py-2");
+    expect(appShell).toContain("sm:px-6 sm:py-0");
   });
 
   it("ensures Exception Queue uses flex articles rather than rigid fixed-width tables", () => {

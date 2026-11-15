@@ -5,6 +5,17 @@ export interface PayrollExportOptions {
   filenamePrefix?: string;
 }
 
+export function getPayrollSettlementStatus(op: {
+  isFinalized: boolean;
+  commissionAmount: number;
+  totalPayout: number;
+}): string {
+  if (op.isFinalized) return "Provize uzavřena";
+  if (op.commissionAmount > 0) return "K uzávěrce provize";
+  if (op.totalPayout > 0) return "Odměny evidovány";
+  return "Nulový nárok";
+}
+
 export function escapeCsvField(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "";
   const stringValue = String(value);
@@ -59,11 +70,7 @@ export function buildPayrollCsv(
     totalReturnedCount += op.returnedCount;
     totalNetOrders += netOrders;
 
-    const statusText = op.isFinalized
-      ? "Uzavřeno a vyplaceno"
-      : op.commissionAmount > 0
-      ? "K uzávěrce"
-      : "Nulový nárok";
+    const statusText = getPayrollSettlementStatus(op);
 
     const row = [
       op.userName,

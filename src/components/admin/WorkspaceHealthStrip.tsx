@@ -106,7 +106,7 @@ export function WorkspaceHealthStrip({
           <h2 className="text-sm font-semibold text-zinc-100">Stav pracovního prostoru</h2>
           <span
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wide",
+              "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
               STATUS_COPY[status].className,
             )}
           >
@@ -115,7 +115,7 @@ export function WorkspaceHealthStrip({
           </span>
         </div>
         {openChecks.length > 0 && (
-          <span className="shrink-0 text-[11px] text-zinc-500">
+            <span className="shrink-0 text-[11px] text-zinc-400">
             {openChecks.length} otevřen{openChecks.length === 1 ? "á" : "é"} kontrol{openChecks.length === 1 ? "a" : "y"}
           </span>
         )}
@@ -142,7 +142,7 @@ export function WorkspaceHealthStrip({
               >
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[9px] font-mono uppercase tracking-wide",
+                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
                     checkBadge.className,
                   )}
                 >
@@ -150,7 +150,7 @@ export function WorkspaceHealthStrip({
                   {checkBadge.label}
                 </span>
                 <span className="text-xs font-medium text-zinc-200">{copy?.label}</span>
-                <span className="text-[11px] text-zinc-500">
+                <span className="text-[11px] text-zinc-400">
                   {issueText ?? check.summary}
                 </span>
                 {check.actionHref && (

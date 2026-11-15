@@ -72,7 +72,7 @@ export function PageHeader({
           {badge && (
             <span
               className={cn(
-                "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-mono",
+                "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
                 getPageHeaderBadgeClassName(badge.tone)
               )}
             >

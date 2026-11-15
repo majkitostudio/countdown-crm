@@ -93,11 +93,11 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
   return (
     <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
+      <div className="flex w-full min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full min-w-0">
+          <div className="flex w-full min-w-0 items-start gap-2">
             <Activity className="w-4 h-4 text-zinc-400" />
-            <h3 className="text-sm font-semibold text-zinc-100">
+            <h3 className="min-w-0 flex-1 break-words text-sm font-semibold text-zinc-100">
             Nedávná aktivita {scope === "team" ? "týmu" : "pracovního prostoru"}
             </h3>
           </div>
@@ -108,7 +108,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
 
         <a
           href="/call-logs"
-          className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors duration-150 ease-interface"
+          className="max-w-full text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors duration-150 ease-interface"
         >
           <span>Zobrazit všechny hovory</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -151,7 +151,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-zinc-100 truncate">{entry.customerName}</span>
+                     <span className="text-xs font-semibold text-zinc-100 [overflow-wrap:anywhere]">{entry.customerName}</span>
                     <span className="text-[10px] text-zinc-500 font-mono">{formatTimestamp(entry.timestamp)}</span>
                   </div>
                   <div className="flex items-center gap-3 text-[11px] text-zinc-400 mt-0.5 flex-wrap">

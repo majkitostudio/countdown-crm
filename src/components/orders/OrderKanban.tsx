@@ -249,8 +249,29 @@ export function OrderKanban({
   return (
     <div className="space-y-4">
 
-      {/* kanban columns — horizontal scroll on small screens */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      {/* Kanban columns remain side-by-side on narrow screens and can be scrolled. */}
+      <p className="text-xs text-zinc-400">Další stavy objednávek zobrazíte posunutím sloupců do strany.</p>
+      <div
+        className="flex gap-4 overflow-x-auto pb-4"
+        role="region"
+        aria-label="Sloupce stavů objednávek"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          const region = event.currentTarget;
+          const step = Math.max(160, region.clientWidth * 0.8);
+          let nextScrollLeft: number | null = null;
+
+          if (event.key === "ArrowRight") nextScrollLeft = region.scrollLeft + step;
+          if (event.key === "ArrowLeft") nextScrollLeft = region.scrollLeft - step;
+          if (event.key === "Home") nextScrollLeft = 0;
+          if (event.key === "End") nextScrollLeft = region.scrollWidth;
+
+          if (nextScrollLeft !== null) {
+            event.preventDefault();
+            region.scrollTo({ left: nextScrollLeft, behavior: "auto" });
+          }
+        }}
+      >
         {COLUMNS.map((col) => {
           const colOrders = grouped[col.id];
           const Icon = col.icon;

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { buildPayrollCsv, escapeCsvField } from "../src/lib/payrollExport";
+import { buildPayrollCsv, escapeCsvField, getPayrollSettlementStatus } from "../src/lib/payrollExport";
 import type { MonthlySettlementSummaryDTO } from "../src/lib/dal/wallet";
 
 const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.url), "utf8");
@@ -59,6 +59,13 @@ describe("Milník 4.2: Export podkladů pro mzdy (Payroll Export)", () => {
   };
 
   describe("Generování CSV podkladů (buildPayrollCsv)", () => {
+    it("rozlišuje uzavřenou provizi, evidované odměny a nulový nárok", () => {
+      expect(getPayrollSettlementStatus({ isFinalized: true, commissionAmount: 0, totalPayout: 0 })).toBe("Provize uzavřena");
+      expect(getPayrollSettlementStatus({ isFinalized: false, commissionAmount: 0, totalPayout: 500 })).toBe("Odměny evidovány");
+      expect(getPayrollSettlementStatus({ isFinalized: false, commissionAmount: 100, totalPayout: 100 })).toBe("K uzávěrce provize");
+      expect(getPayrollSettlementStatus({ isFinalized: false, commissionAmount: 0, totalPayout: 0 })).toBe("Nulový nárok");
+    });
+
     it("obsahuje všechny mzdové sloupce definované v zadání", () => {
       const csv = buildPayrollCsv(mockSummary);
       const lines = csv.trim().split("\r\n");
@@ -84,7 +91,7 @@ describe("Milník 4.2: Export podkladů pro mzdy (Payroll Export)", () => {
       expect(janLine).toContain("4000"); // fixní bonusy
       expect(janLine).toContain("6720"); // procentuální provize
       expect(janLine).toContain("11220"); // celkem k výplatě
-      expect(janLine).toContain("Uzavřeno a vyplaceno");
+      expect(janLine).toContain("Provize uzavřena");
 
       // Eva Svobodová
       const evaLine = lines.find((l) => l.includes("Eva Svobodová"));
@@ -111,6 +118,22 @@ describe("Milník 4.2: Export podkladů pro mzdy (Payroll Export)", () => {
     it("respektuje volitelný oddělovač (např. čárka)", () => {
       const csv = buildPayrollCsv(mockSummary, { delimiter: "," });
       expect(csv.split("\r\n")[0]).toContain("Operátor,Email,Období");
+    });
+
+    it("označí odměny bez provize jako evidované v CSV", () => {
+      const summary = {
+        ...mockSummary,
+        operators: [{
+          ...mockSummary.operators[0],
+          commissionAmount: 0,
+          fixedBonuses: 500,
+          manualAdjustments: 0,
+          totalPayout: 500,
+          isFinalized: false,
+        }],
+      };
+      const row = buildPayrollCsv(summary).split("\r\n")[1];
+      expect(row).toContain("Odměny evidovány");
     });
   });
 

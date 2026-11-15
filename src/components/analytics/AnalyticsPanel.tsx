@@ -164,6 +164,9 @@ export function AnalyticsPanel() {
       )}
 
       {result?.ok && <>
+      <StatusAlert tone="neutral" className="w-full">
+        Celkové příjmy a průměrná hodnota objednávky vycházejí ze všech dostupných dokončených objednávek v tomto rozsahu. Částky v různých měnách se nepřevádějí ani nesčítají; týdenní graf pokrývá posledních sedm dní.
+      </StatusAlert>
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 

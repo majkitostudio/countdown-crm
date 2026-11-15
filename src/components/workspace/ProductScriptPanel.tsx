@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ChevronRight, CircleHelp, Maximize2, MessageSquareQuote, Minimize2, ShieldAlert, ShieldCheck, Type } from "lucide-react";
-import { getProductScriptAction } from "@/app/actions/productScripts";
+import { useEffect, useState } from "react";
+import { ChevronRight, CircleHelp, Maximize2, Minimize2, ShieldAlert, ShieldCheck, Type } from "lucide-react";
+import Link from "next/link";
+import { getCallScriptSnapshotAction } from "@/app/actions/productScripts";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Product } from "@/lib/products";
-import { getProductScript } from "@/lib/productScripts";
-import { buildDefaultScriptHtml } from "@/lib/scriptContent";
 import type { ScriptSnapshotDTO } from "@/lib/dal/productScripts";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
 
 interface ProductScriptPanelProps {
   product?: Product;
@@ -31,65 +29,21 @@ export function ProductScriptPanel({
   onOpenObjections,
   discoveryQuestions = [],
 }: ProductScriptPanelProps) {
-  const [selectedQuickObjectionId, setSelectedQuickObjectionId] = useState<string | null>(null);
-
-  const quickObjections = useMemo(() => {
-    const script = getProductScript(product);
-    const scriptResponses = script.objectionResponses || {};
-    return [
-      {
-        id: "price",
-        label: "Drahé / Cena",
-        title: "Námitka: Vysoká cena / „Nemám peníze“",
-        response:
-          scriptResponses.price ||
-          "Naprosto vám rozumím. Pojďme se nejprve ujistit, zda vám produkt skutečně vyřeší potíže, a pak společně projdeme možnosti a zvýhodněné ceny.",
-      },
-      {
-        id: "effectiveness",
-        label: "Nevěřím účinku",
-        title: "Námitka: Nedůvěra / „Nevěřím, že to pomůže“",
-        response:
-          scriptResponses.effectiveness ||
-          "Chápu vaši otázku. Mohu vám vysvětlit schválené složení a jak přípravek v těle působí, ale nechci vám slibovat zázraky, které nelze garantovat.",
-      },
-      {
-        id: "hesitation",
-        label: "Chci čas / Porada",
-        title: "Námitka: Váhání / „Musím si to promyslet“",
-        response:
-          scriptResponses.hesitation ||
-          "To je samozřejmě rozumné. Jaké další informace by vám pomohly udělat pro sebe příjemné a pohodlné rozhodnutí?",
-      },
-      {
-        id: "delivery",
-        label: "Doprava / Doručení",
-        title: "Námitka: Poštovné a doručení",
-        response:
-          scriptResponses.delivery ||
-          "Rád vám potvrdím cenu dopravy i přesný termín doručení na vaši adresu ještě předtím, než budeme pokračovat.",
-      },
-    ];
-  }, [product]);
-
-  const activeQuickObjection = useMemo(() => {
-    if (!selectedQuickObjectionId) return null;
-    return quickObjections.find((item) => item.id === selectedQuickObjectionId) || null;
-  }, [quickObjections, selectedQuickObjectionId]);
   const [scriptResource, setScriptResource] = useState<{
     productId: string | null;
     html: string | null;
     status: "idle" | "loading" | "ready" | "not_found" | "error";
     error: string | null;
   }>({ productId: null, html: null, status: "idle", error: null });
-  const fallbackHtml = useMemo(() => buildDefaultScriptHtml(product), [product]);
   const currentProductId = product?.id || null;
   const hasCurrentScriptResource = scriptResource.productId === currentProductId;
   const persistedHtml = hasCurrentScriptResource ? scriptResource.html : null;
   const scriptStatus = activeSnapshot ? "ready" : hasCurrentScriptResource ? scriptResource.status : "loading";
   const scriptLoadError = activeSnapshot ? null : hasCurrentScriptResource ? scriptResource.error : null;
   const isLoadingScript = Boolean(currentProductId) && scriptStatus === "loading";
-  const scriptHtml = activeSnapshot?.html || persistedHtml || (scriptStatus === "not_found" ? fallbackHtml : "");
+  const scriptHtml = activeSnapshot?.source === "published_version"
+    ? activeSnapshot.html
+    : persistedHtml || "";
   const scriptTitle = activeSnapshot?.productTitle || product?.title || "Produktový skript";
   useEffect(() => {
     let cancelled = false;
@@ -101,13 +55,13 @@ export function ProductScriptPanel({
       cancelled = true;
     };
 
-    void getProductScriptAction(productId)
-      .then((savedScript) => {
+    void getCallScriptSnapshotAction(productId)
+      .then((snapshot) => {
         if (!cancelled) {
           setScriptResource({
             productId,
-            html: savedScript?.content_html || null,
-            status: savedScript?.content_html ? "ready" : "not_found",
+            html: snapshot.source === "published_version" ? snapshot.html : null,
+            status: snapshot.source === "published_version" ? "ready" : "not_found",
             error: null,
           });
         }
@@ -188,10 +142,15 @@ export function ProductScriptPanel({
       )}
 
       {scriptLoadError && <StatusAlert tone="warning" className="w-full">{scriptLoadError}</StatusAlert>}
-      {scriptStatus === "not_found" && <StatusAlert tone="neutral" className="w-full">Pro tento produkt není uložený skript — zobrazuje se vestavěná náhradní verze.</StatusAlert>}
+      {scriptStatus === "not_found" && (
+        <StatusAlert tone="warning" className="w-full">
+          Pro tento produkt není publikovaný schválený skript. Hovor nelze zahájit.
+          {" "}<Link href="/products" className="font-medium underline underline-offset-2">Otevřít správu produktů a skriptů</Link>
+        </StatusAlert>
+      )}
       {isLoadingScript && <p className="text-[11px] text-zinc-400">Kontrola nejnovějšího schváleného skriptu…</p>}
 
-      {scriptStatus !== "error" && (
+      {scriptHtml && scriptStatus !== "error" && (
         <Surface variant="inset" className="w-full flex-1 min-h-0">
           <div className="h-full min-h-0 overflow-y-auto [scrollbar-color:theme(colors.zinc.700)_transparent] [scrollbar-width:thin]">
           <div
@@ -222,62 +181,12 @@ export function ProductScriptPanel({
         </div>
       )}
 
-      {!isExpanded && (
-        <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-3" data-testid="script-quick-objections">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MessageSquareQuote className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
-              <div>
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Rychlé námitky</h3>
-                <p className="mt-0.5 text-[10px] text-zinc-500">Schválené odpovědi do telefonu pro okamžitou reakci</p>
-              </div>
-            </div>
-            {selectedQuickObjectionId && (
-              <button
-                type="button"
-                onClick={() => setSelectedQuickObjectionId(null)}
-                className="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors duration-150 ease-interface"
-              >
-                Zavřít
-              </button>
-            )}
-          </div>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {quickObjections.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSelectedQuickObjectionId((prev) => (prev === item.id ? null : item.id))}
-                aria-pressed={selectedQuickObjectionId === item.id}
-                className={cn(
-                  "flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors duration-150 ease-interface",
-                  selectedQuickObjectionId === item.id
-                    ? "border-zinc-500 bg-zinc-800 text-zinc-100 shadow-sm ring-1 ring-zinc-500/30"
-                    : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
-                )}
-              >
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-          {activeQuickObjection && (
-            <div className="mt-2.5 rounded-lg border border-zinc-800 bg-zinc-900/90 p-3 text-xs text-zinc-300">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 text-xs font-medium text-zinc-200">
-                <span>{activeQuickObjection.title}</span>
-                <span className="rounded bg-zinc-800 border border-zinc-700/60 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-400">Tahák</span>
-              </div>
-              <p className="mt-2 leading-relaxed text-zinc-200">
-                {activeQuickObjection.response}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
+      {scriptHtml && scriptStatus !== "error" && (
       <div className="mt-auto flex items-center gap-1.5 border-t border-zinc-800/80 pt-3 text-[11px] text-zinc-400">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-        Stick to this approved wording — never diagnose or promise treatment.
+        Držte se tohoto schváleného znění; nediagnostikujte ani neslibujte léčbu.
       </div>
+      )}
       </section>
     </Surface>
   );

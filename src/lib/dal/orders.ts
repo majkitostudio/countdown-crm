@@ -7,6 +7,7 @@ import { requireWorkspaceContext } from "./workspace";
 import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
 import { parseDeliveryAddressSnapshot, type DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
+import { requirePublishedCallScripts } from "@/lib/dal/productScripts";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
@@ -83,6 +84,10 @@ export async function createOrderForWorkspace(
     await getScopedLeadForWorkspace(input.lead_id, context.workspaceId).catch(() => {
       throw new DataAccessError("VALIDATION", "Lead objednávky není v aktivním pracovním prostoru dostupný.");
     });
+    await requirePublishedCallScripts(
+      input.items.map((item) => item.product_id),
+      context.workspaceId,
+    );
   }
 
   const { data, error } = await supabase.rpc("create_order_with_items", {

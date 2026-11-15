@@ -50,7 +50,24 @@ describe("manual order delivery address contract", () => {
 
   it("forwards the validated snapshot to the atomic manual-order RPC", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: [{ id: "order-1" }], error: null });
-    mocks.createDataClient.mockResolvedValue({ rpc });
+    const createQuery = (data: unknown[]) => {
+      const query = {
+        select: vi.fn(),
+        eq: vi.fn(),
+        in: vi.fn(),
+        then: (resolve: (result: { data: unknown[]; error: null }) => unknown) => Promise.resolve(resolve({ data, error: null })),
+      };
+      query.select.mockReturnValue(query);
+      query.eq.mockReturnValue(query);
+      query.in.mockReturnValue(query);
+      return query;
+    };
+    mocks.createDataClient.mockResolvedValue({
+      rpc,
+      from: vi.fn((table: string) => table === "products"
+        ? createQuery([{ id: "product-1" }])
+        : createQuery([{ product_id: "product-1" }])),
+    });
 
     await expect(createOrderForWorkspace({
       lead_id: "lead-1",

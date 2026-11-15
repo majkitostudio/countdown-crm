@@ -17,7 +17,7 @@ export function OperatorPresenceBadge() {
         title="Přítomnost operátorů"
       >
         <Users className="w-3.5 h-3.5 text-zinc-500" />
-        <span className="hidden lg:inline text-zinc-200 font-mono">Přítomnost nedostupná</span>
+        <span className="hidden lg:inline text-zinc-200">Přítomnost nedostupná</span>
         <ChevronDown className="w-3 h-3 text-zinc-400" />
       </Button>
 

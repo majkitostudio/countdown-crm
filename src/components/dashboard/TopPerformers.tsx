@@ -50,16 +50,21 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
   return (
     <div className="p-6 rounded-xl bg-zinc-900/40 border border-zinc-800/80 flex flex-col justify-between space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-zinc-400" />
-          <h3 className="text-sm font-semibold text-zinc-100">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <Trophy className="w-4 h-4 shrink-0 text-zinc-400" />
+          <h3 className="min-w-0 text-sm font-semibold text-zinc-100">
             Nejúspěšnější operátoři
           </h3>
         </div>
-        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
-          {scope === "team" ? "Pořadí v týmu" : "Pořadí v pracovním prostoru"}
-        </span>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 sm:justify-end">
+          <span className="min-w-0 text-[11px] text-zinc-400">
+            Celé dostupné období · částky v měnách objednávek
+          </span>
+          <span className="min-w-0 text-[11px] text-zinc-400 uppercase tracking-wider">
+            {scope === "team" ? "Pořadí v týmu" : "Pořadí v pracovním prostoru"}
+          </span>
+        </div>
       </div>
 
       {isLoading ? (
@@ -85,29 +90,29 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
           {leaderboard.slice(0, 5).map((agent, index) => (
             <div
               key={`${agent.agentName}-${index}`}
-              className="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex items-center justify-between hover:border-zinc-700/80 transition-colors duration-150 ease-interface"
+              className="p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 flex flex-col gap-3 hover:border-zinc-700/80 transition-colors duration-150 ease-interface sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex w-full items-center gap-3 min-w-0">
                 <span className="w-5 text-center text-xs font-mono font-bold text-zinc-400 shrink-0">
                   #{index + 1}
                 </span>
                 <div className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-medium text-zinc-200 shrink-0">
                   {agent.agentName.slice(0, 2).toUpperCase()}
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-medium text-zinc-200 truncate">{agent.agentName}</span>
-                  <span className="text-[10px] text-zinc-400 font-mono truncate">
-                    {agent.role} • Hovory: {agent.callsCount} • Konverze {agent.conversionRate.toFixed(1)} %
+                <div className="flex flex-1 flex-col min-w-0">
+                  <span className="text-xs font-medium text-zinc-200 [overflow-wrap:anywhere]">{agent.agentName}</span>
+                  <span className="break-words text-[11px] text-zinc-400">
+                    {agent.role} • Hovory: <span className="font-mono tabular-nums">{agent.callsCount}</span> • Konverze <span className="font-mono tabular-nums">{agent.conversionRate.toFixed(1)} %</span>
                   </span>
                 </div>
               </div>
 
-              <div className="text-right shrink-0 pl-3">
+              <div className="min-w-0 text-left sm:shrink-0 sm:pl-3 sm:text-right">
                 <span className="text-xs font-semibold text-zinc-100 font-mono">
                   {formatCurrencyAmounts(agent.revenueByCurrency)}
                 </span>
-                <span className="block text-[10px] text-zinc-500 font-mono">
-                  Objednávky: {agent.ordersCount}
+                <span className="block text-[11px] text-zinc-400">
+                  Objednávky: <span className="font-mono tabular-nums">{agent.ordersCount}</span>
                 </span>
               </div>
             </div>
