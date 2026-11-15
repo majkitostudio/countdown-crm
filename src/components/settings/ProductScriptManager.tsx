@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Eye,
   FileText,
-  Highlighter,
   History,
   Italic,
   LoaderCircle,
@@ -42,7 +41,6 @@ const ALLOWED_EDITOR_TAGS = new Set([
   "b",
   "em",
   "i",
-  "mark",
   "ul",
   "ol",
   "li",
@@ -65,16 +63,7 @@ function normalizeEditorMarkup(value: string): string {
     const tagName = element.tagName.toLowerCase();
     const children = Array.from(element.childNodes).flatMap(normalizeNode);
 
-    if (tagName === "font" || tagName === "span") {
-      const style = element.getAttribute("style") || "";
-      const isHighlight = /(?:background|background-color)\s*:/i.test(style);
-      if (isHighlight) {
-        const mark = parsed.createElement("mark");
-        children.forEach((child) => mark.appendChild(child));
-        return [mark];
-      }
-      return children;
-    }
+    if (tagName === "font" || tagName === "span") return children;
 
     if (!ALLOWED_EDITOR_TAGS.has(tagName)) return children;
 
@@ -182,7 +171,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
   };
 
   const applyFormat = (
-    command: "bold" | "italic" | "hiliteColor" | "insertHorizontalRule",
+    command: "bold" | "italic" | "insertHorizontalRule",
     value?: string,
   ) => {
     if (isPreview || !editorRef.current) return;
@@ -318,7 +307,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                       : "border-transparent text-zinc-400 hover:border-zinc-800 hover:bg-zinc-950/70 hover:text-zinc-200"
                   }`}
                 >
-                  <span className="block truncate text-xs font-medium">{product.title}</span>
+                  <span className="block break-words text-xs font-medium">{product.title}</span>
                   <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-zinc-500">
                     <span className="capitalize">{product.category}</span>
                     {isSaved ? <span className="text-emerald-400">Publikováno</span> : <span>Záložní</span>}
@@ -345,12 +334,12 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                       : "Náhled záložního"}
                 </StatusBadge>
               </div>
-              <h2 className="truncate text-lg font-semibold text-zinc-100">{selectedProduct.title}</h2>
+              <h2 className="break-words text-lg font-semibold text-zinc-100">{selectedProduct.title}</h2>
               <p className="mt-1 text-xs text-zinc-500">
                 {selectedProduct.description || "Popis produktu není dostupný."}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="secondary"
                 onClick={() => setIsPreview((current) => !current)}
@@ -432,16 +421,6 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
               <button
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
-                onClick={() => applyFormat("hiliteColor", "#facc15")}
-                className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
-                aria-label="Zvýraznění"
-                title="Zvýraznění"
-              >
-                <Highlighter className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => applyFormat("insertHorizontalRule")}
                 className="rounded-lg p-2 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-800 hover:text-zinc-100"
                 aria-label="Vložit vodorovnou čáru"
@@ -463,16 +442,19 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
 
           {isPreview ? (
             <article
-              className="mt-5 min-h-[470px] rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-6 text-sm leading-7 text-zinc-200 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_li]:ml-5 [&_li]:pl-1 [&_mark]:rounded [&_mark]:bg-amber-300/80 [&_mark]:px-0.5 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal"
+              className="mt-5 min-h-[470px] rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-6 text-sm leading-7 text-zinc-200 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_li]:ml-5 [&_li]:pl-1 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal"
               dangerouslySetInnerHTML={{ __html: editorHtml }}
             />
           ) : (
             <div
               ref={editorRef}
               contentEditable
+              role="textbox"
+              aria-label="Text produktového skriptu"
+              aria-multiline="true"
               suppressContentEditableWarning
               onInput={() => setHasChanges(true)}
-              className="mt-5 min-h-[470px] rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-6 text-sm leading-7 text-zinc-200 outline-none transition-colors duration-150 ease-interface focus:border-zinc-600 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_li]:ml-5 [&_li]:pl-1 [&_mark]:rounded [&_mark]:bg-amber-300/80 [&_mark]:px-0.5 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal"
+              className="mt-5 min-h-[470px] rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-6 text-sm leading-7 text-zinc-200 transition-colors duration-150 ease-interface focus:border-zinc-600 [&_hr]:my-6 [&_hr]:border-zinc-700 [&_li]:ml-5 [&_li]:pl-1 [&_p]:my-4 [&_strong]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal"
               dangerouslySetInnerHTML={{ __html: editorHtml }}
             />
           )}

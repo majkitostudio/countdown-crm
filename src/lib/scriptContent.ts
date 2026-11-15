@@ -1,7 +1,7 @@
 import type { Product } from "@/lib/products";
 import { getProductScript, interpolateScript } from "@/lib/productScripts";
 
-const ALLOWED_TAGS = "p|br|strong|b|em|i|mark|ul|ol|li|hr";
+const ALLOWED_TAGS = "p|br|strong|b|em|i|ul|ol|li|hr";
 
 export function escapeHtml(value: string): string {
   return value
@@ -39,7 +39,7 @@ export function buildDefaultScriptHtml(product: Product | undefined): string {
 
 /**
  * Keeps the stored script intentionally small and predictable. The editor only
- * needs text marks and paragraph/list structure; links, styles and event
+ * needs emphasis and paragraph/list structure; links, inline styles and event
  * attributes are not part of the script contract.
  */
 export function sanitizeScriptHtml(value: string): string {

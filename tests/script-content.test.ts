@@ -14,13 +14,14 @@ const product = {
 };
 
 describe("product script content", () => {
-  it("keeps the approved text marks and removes executable or styled markup", () => {
+  it("removes highlights and executable or styled markup while keeping script text", () => {
     const sanitized = sanitizeScriptHtml(
       '<p onclick="alert(1)"><strong>Approved</strong> <mark style="background:red">line</mark></p><hr><script>alert(1)</script><a href="https://example.com">unsafe link</a>',
     );
 
     expect(sanitized).toContain("<strong>Approved</strong>");
-    expect(sanitized).toContain("<mark>line</mark>");
+    expect(sanitized).toContain("line");
+    expect(sanitized).not.toContain("<mark");
     expect(sanitized).toContain("<hr>");
     expect(sanitized).not.toContain("onclick");
     expect(sanitized).not.toContain("script");

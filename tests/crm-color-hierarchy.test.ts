@@ -65,9 +65,9 @@ describe("CRM color hierarchy", () => {
     expect(ruleBuilder).not.toContain("✓");
     expect(workspace).not.toContain("✕");
 
-    // Script panel uses subdued amber highlight, never neon yellow
+    // Script content does not add highlight styling
     expect(scriptPanel).not.toContain("bg-yellow-300");
-    expect(scriptPanel).toContain("bg-amber-500/20");
+    expect(scriptPanel).not.toContain("[&_mark]");
   });
 });
 
