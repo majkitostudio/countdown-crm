@@ -214,6 +214,7 @@ describe("analytics server role boundary", () => {
     expect(result.teamLeaderboard[0]).toMatchObject({
       ordersCount: 1,
       ordersWithoutCurrencyCount: 1,
+      ordersWithoutAmountCount: 0,
       revenueByCurrency: [],
       revenueCurrency: null,
       revenueGenerated: null,
@@ -242,11 +243,49 @@ describe("analytics server role boundary", () => {
     expect(incomplete.teamLeaderboard[0]).toMatchObject({
       ordersCount: 2,
       ordersWithoutCurrencyCount: 1,
+      ordersWithoutAmountCount: 0,
       revenueByCurrency: [{ currency: "CZK", amount: 0 }],
       revenueGenerated: null,
     });
     expect(incomplete.totalRevenue).toBeNull();
     expect(incomplete.avgOrderValue).toBeNull();
+  });
+
+  it.each([
+    ["null amount", null],
+    ["blank amount", "  "],
+  ])("does not convert an order with a %s to zero revenue", async (_label, totalAmount) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dateKey = today.toISOString().slice(0, 10);
+    mocks.createDataClient.mockResolvedValue(createAnalyticsClient({
+      orders: [{
+        id: "order-no-amount",
+        workspace_id: "workspace-1",
+        team_id: "team-1",
+        agent_id: "agent-1",
+        status: "completed",
+        total_amount: totalAmount,
+        currency: "CZK",
+        created_at: `${dateKey}T10:00:00.000Z`,
+      }],
+    }));
+
+    const result = await getAnalyticsData("workspace-1");
+
+    expect(result.revenueByCurrency).toEqual([]);
+    expect(result.currencies).toEqual(["CZK"]);
+    expect(result.completedOrdersWithoutAmountCount).toBe(1);
+    expect(result.totalRevenue).toBeNull();
+    expect(result.avgOrderValue).toBeNull();
+    expect(result.teamLeaderboard[0]).toMatchObject({
+      ordersCount: 1,
+      ordersWithoutCurrencyCount: 0,
+      ordersWithoutAmountCount: 1,
+      revenueGenerated: null,
+    });
+    const todayLabel = today.toLocaleDateString("en-US", { weekday: "short" });
+    expect(result.weeklySales.find((point) => point.day === todayLabel)?.revenue).toBeNull();
   });
 
   it.each([

@@ -12,6 +12,10 @@ const rlsMigration = readFileSync(
 
 const walletDal = readFileSync(new URL("../src/lib/dal/wallet.ts", import.meta.url), "utf8");
 const walletPage = readFileSync(new URL("../src/app/wallet/page.tsx", import.meta.url), "utf8");
+const walletSettlementPanel = readFileSync(
+  new URL("../src/components/wallet/WalletSettlementPanel.tsx", import.meta.url),
+  "utf8",
+).replace(/\s+/g, " ");
 const settingsPage = readFileSync(new URL("../src/app/settings/page.tsx", import.meta.url), "utf8");
 const workspaceSettingsPanel = readFileSync(new URL("../src/components/settings/WorkspaceSettingsPanel.tsx", import.meta.url), "utf8");
 
@@ -78,5 +82,12 @@ describe("user wallet MVP contract", () => {
     expect(walletPage).toContain("value={formatMetricAmount(visibleBalance, presentationCurrency, metricEmptyLabel)}");
     expect(walletPage).toContain("value={formatMetricAmount(totalCredits, presentationCurrency, metricEmptyLabel)}");
     expect(walletPage).toContain("value={formatMetricAmount(totalDebits, presentationCurrency, metricEmptyLabel)}");
+  });
+
+  it("formats zero fixed bonuses with the settlement currency", () => {
+    expect(walletSettlementPanel).toContain("{formatCurrency(op.fixedBonuses, currency)}");
+    expect(walletSettlementPanel).not.toContain(
+      'op.fixedBonuses > 0 ? formatCurrency(op.fixedBonuses, currency) : "0"',
+    );
   });
 });

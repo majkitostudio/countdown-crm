@@ -342,7 +342,7 @@ export function WalletSettlementPanel({
                         )}
                       </td>
                       <td className="px-4 py-3.5 text-right font-mono text-amber-300">
-                    {op.fixedBonuses > 0 ? formatCurrency(op.fixedBonuses, currency) : "0"}
+                        {formatCurrency(op.fixedBonuses, currency)}
                       </td>
                       <td className="px-4 py-3.5 text-right font-mono text-cyan-300">
                         {formatCurrency(op.commissionAmount, currency)}

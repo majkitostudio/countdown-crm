@@ -3,6 +3,11 @@ export interface CurrencyAmount {
   amount: number;
 }
 
+export function isRecordedAmount(amount: number | string | null | undefined): boolean {
+  if (amount == null || (typeof amount === "string" && !amount.trim())) return false;
+  return Number.isFinite(Number(amount));
+}
+
 export function formatCurrencyAmount(
   amount: number | null | undefined,
   currency: string | null | undefined,

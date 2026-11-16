@@ -67,11 +67,15 @@ export function TeamLeaderDailyBriefCard() {
               label="Dnešní příjmy"
               value={readyState.brief.daily.completedOrders === 0
                 ? formatCurrencyAmount(0, "CZK")
-                : readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0
+                : readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0 || readyState.brief.daily.completedOrdersWithoutAmountCount > 0
                   ? "—"
                   : formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)}
-              detail={readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0
-                ? `u ${readyState.brief.daily.completedOrdersWithoutCurrencyCount} objednávek chybí měna`
+              detail={readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0 || readyState.brief.daily.completedOrdersWithoutAmountCount > 0
+                ? readyState.brief.daily.completedOrdersWithoutAmountCount > 0 && readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0
+                  ? `U ${readyState.brief.daily.completedOrdersWithoutAmountCount} objednávek chybí částka a u ${readyState.brief.daily.completedOrdersWithoutCurrencyCount} měna`
+                  : readyState.brief.daily.completedOrdersWithoutAmountCount > 0
+                    ? `U ${readyState.brief.daily.completedOrdersWithoutAmountCount} objednávek chybí částka`
+                    : `U ${readyState.brief.daily.completedOrdersWithoutCurrencyCount} objednávek chybí měna`
                 : undefined}
               icon={Coins}
             />

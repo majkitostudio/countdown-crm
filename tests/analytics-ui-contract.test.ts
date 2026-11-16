@@ -26,4 +26,14 @@ describe("analytics UI authorization states", () => {
     expect(source).toContain("data.scope === \"team\"");
     expect(source).not.toContain("result.data.teamLeaderboard.filter");
   });
+
+  it("formats weekly revenue tooltip values in the displayed currency", () => {
+    const source = readFileSync(path.join(projectRoot, "src", "components", "analytics", "AnalyticsPanel.tsx"), "utf8");
+    const weeklyTooltip = source.match(/<Tooltip([\s\S]*?)\/>/)?.[1] ?? "";
+
+    expect(weeklyTooltip).toContain("formatter=");
+    expect(weeklyTooltip).toContain("formatCurrencyAmount");
+    expect(weeklyTooltip).toContain("data.currencies[0]");
+    expect(weeklyTooltip).toContain('typeof value === "number" ? value : typeof value === "string" ? Number(value) : null');
+  });
 });

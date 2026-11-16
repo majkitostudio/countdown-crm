@@ -23,6 +23,7 @@ describe("Team Leader Daily Brief", () => {
       calls: 1,
       completedOrders: 1,
       completedOrdersWithoutCurrencyCount: 0,
+      completedOrdersWithoutAmountCount: 0,
       revenue: 125,
       revenueByCurrency: [{ currency: "CZK", amount: 125 }],
       currency: "CZK",
@@ -35,6 +36,7 @@ describe("Team Leader Daily Brief", () => {
     expect(empty).toMatchObject({
       completedOrders: 0,
       completedOrdersWithoutCurrencyCount: 0,
+      completedOrdersWithoutAmountCount: 0,
       revenue: 0,
       revenueByCurrency: [],
       currency: "CZK",
@@ -46,6 +48,19 @@ describe("Team Leader Daily Brief", () => {
     expect(incomplete).toMatchObject({
       completedOrders: 1,
       completedOrdersWithoutCurrencyCount: 1,
+      completedOrdersWithoutAmountCount: 0,
+      revenue: null,
+      revenueByCurrency: [],
+      currency: null,
+    });
+
+    const missingAmount = getDailyTeamSummary([], [
+      { created_at: "2026-08-31T09:00:00.000Z", status: "completed", total_amount: null, currency: "CZK" },
+    ], now);
+    expect(missingAmount).toMatchObject({
+      completedOrders: 1,
+      completedOrdersWithoutCurrencyCount: 0,
+      completedOrdersWithoutAmountCount: 1,
       revenue: null,
       revenueByCurrency: [],
       currency: null,
@@ -58,6 +73,7 @@ describe("Team Leader Daily Brief", () => {
     expect(mixed).toMatchObject({
       completedOrders: 2,
       completedOrdersWithoutCurrencyCount: 1,
+      completedOrdersWithoutAmountCount: 0,
       revenue: null,
       revenueByCurrency: [{ currency: "CZK", amount: 0 }],
       currency: null,
@@ -67,7 +83,7 @@ describe("Team Leader Daily Brief", () => {
   it("summarizes scheduled call attention and team wallet without inventing missing wallet data", () => {
     const brief = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, completedOrdersWithoutAmountCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       scheduledCalls: [{
         id: "scheduled-call-1",
         lead_id: "lead-1",
@@ -89,7 +105,7 @@ describe("Team Leader Daily Brief", () => {
   it("labels administrator data as workspace-wide without relabeling the wallet as team data", () => {
     const brief = buildTeamLeaderDailyBrief({
       scope: "workspace",
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, completedOrdersWithoutAmountCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       wallet: { currency: "CZK", balances: [{ balance: 300, transaction_count: 2 }] },
     });
 
@@ -102,7 +118,7 @@ describe("Team Leader Daily Brief", () => {
   it("carries the persisted pending review count without inventing a value", () => {
     const brief = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, completedOrdersWithoutAmountCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       pendingReviews: 2,
     });
 
@@ -110,7 +126,7 @@ describe("Team Leader Daily Brief", () => {
 
     const unavailable = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 0, completedOrders: 0, completedOrdersWithoutCurrencyCount: 0, revenue: 0, revenueByCurrency: [], currency: "CZK", conversionRate: 0 },
+      daily: { date: "2026-08-31", calls: 0, completedOrders: 0, completedOrdersWithoutCurrencyCount: 0, completedOrdersWithoutAmountCount: 0, revenue: 0, revenueByCurrency: [], currency: "CZK", conversionRate: 0 },
     });
 
     expect(unavailable.pendingReviews).toBeNull();
