@@ -269,6 +269,10 @@ export function AnalyticsPanel() {
                 <YAxis stroke="#52525b" fontSize={11} tickLine={false} tickFormatter={(val: number | string) => formatCurrencyAmount(Number(val), data.currencies[0])} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#09090b", borderColor: "#27272a", borderRadius: "12px", fontSize: "12px" }}
+                  formatter={(value) => formatCurrencyAmount(
+                    typeof value === "number" ? value : typeof value === "string" ? Number(value) : null,
+                    data.currencies[0],
+                  )}
                 />
                 <Area type="monotone" dataKey="revenue" name="Příjmy" stroke="#e4e4e7" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
                 {data.forecastAvailable && <Area type="monotone" dataKey="forecast" name="Prognóza" stroke="#71717a" strokeWidth={2} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFore)" />}
