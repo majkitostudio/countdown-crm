@@ -186,7 +186,7 @@ export function TeamDepartmentQueuesPanel({ overview, queueItems, queueState, in
         <div>
           <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
             <h3 className="text-sm font-semibold text-zinc-100">Leady ve frontě</h3>
-            <p className="text-[11px] text-zinc-500">Zobrazeno {visibleRows.length} z {queueItems.length}</p>
+            <p className="text-xs text-zinc-400">Zobrazeno {visibleRows.length} z {queueItems.length}</p>
           </div>
 
           <div className="mt-3 grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/40 p-4 sm:grid-cols-2">

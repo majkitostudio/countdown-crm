@@ -29,7 +29,8 @@ describe("Dashboard team hierarchy UI contract", () => {
     expect(teamPage).toContain("<TeamLeaderDailyBriefCard />");
     expect(dailyBrief).toContain('data-testid="team-leader-daily-brief"');
     expect(dailyBrief).toContain("Ke kontrole");
-    expect(dailyBrief).toContain("Celofiremní peněženka");
+    expect(dailyBrief).toContain('label="Peněženka pracovního prostoru"');
+    expect(dailyBrief).not.toContain("Celofiremní peněženka");
     expect(dailyBrief).toContain("scopeLabel");
     expect(dailyBrief).toContain('href="/call-logs?review=unreviewed"');
     expect(dailyBrief).not.toContain("getReorderOpportunities");

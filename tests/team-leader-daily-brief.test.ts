@@ -22,6 +22,7 @@ describe("Team Leader Daily Brief", () => {
       date: "2026-08-31",
       calls: 1,
       completedOrders: 1,
+      completedOrdersWithoutCurrencyCount: 0,
       revenue: 125,
       revenueByCurrency: [{ currency: "CZK", amount: 125 }],
       currency: "CZK",
@@ -29,10 +30,44 @@ describe("Team Leader Daily Brief", () => {
     });
   });
 
+  it("keeps empty daily revenue at zero and incomplete revenue unavailable", () => {
+    const empty = getDailyTeamSummary([], [], now);
+    expect(empty).toMatchObject({
+      completedOrders: 0,
+      completedOrdersWithoutCurrencyCount: 0,
+      revenue: 0,
+      revenueByCurrency: [],
+      currency: "CZK",
+    });
+
+    const incomplete = getDailyTeamSummary([], [
+      { created_at: "2026-08-31T09:00:00.000Z", status: "completed", total_amount: 125, currency: null },
+    ], now);
+    expect(incomplete).toMatchObject({
+      completedOrders: 1,
+      completedOrdersWithoutCurrencyCount: 1,
+      revenue: null,
+      revenueByCurrency: [],
+      currency: null,
+    });
+
+    const mixed = getDailyTeamSummary([], [
+      { created_at: "2026-08-31T09:00:00.000Z", status: "completed", total_amount: 0, currency: "CZK" },
+      { created_at: "2026-08-31T09:30:00.000Z", status: "completed", total_amount: 125, currency: null },
+    ], now);
+    expect(mixed).toMatchObject({
+      completedOrders: 2,
+      completedOrdersWithoutCurrencyCount: 1,
+      revenue: null,
+      revenueByCurrency: [{ currency: "CZK", amount: 0 }],
+      currency: null,
+    });
+  });
+
   it("summarizes scheduled call attention and team wallet without inventing missing wallet data", () => {
     const brief = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       scheduledCalls: [{
         id: "scheduled-call-1",
         lead_id: "lead-1",
@@ -54,7 +89,7 @@ describe("Team Leader Daily Brief", () => {
   it("labels administrator data as workspace-wide without relabeling the wallet as team data", () => {
     const brief = buildTeamLeaderDailyBrief({
       scope: "workspace",
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       wallet: { currency: "CZK", balances: [{ balance: 300, transaction_count: 2 }] },
     });
 
@@ -67,7 +102,7 @@ describe("Team Leader Daily Brief", () => {
   it("carries the persisted pending review count without inventing a value", () => {
     const brief = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
+      daily: { date: "2026-08-31", calls: 3, completedOrders: 1, completedOrdersWithoutCurrencyCount: 0, revenue: 125, revenueByCurrency: [{ currency: "CZK", amount: 125 }], currency: "CZK", conversionRate: 33.3 },
       pendingReviews: 2,
     });
 
@@ -75,7 +110,7 @@ describe("Team Leader Daily Brief", () => {
 
     const unavailable = buildTeamLeaderDailyBrief({
       now,
-      daily: { date: "2026-08-31", calls: 0, completedOrders: 0, revenue: 0, revenueByCurrency: [], currency: "CZK", conversionRate: 0 },
+      daily: { date: "2026-08-31", calls: 0, completedOrders: 0, completedOrdersWithoutCurrencyCount: 0, revenue: 0, revenueByCurrency: [], currency: "CZK", conversionRate: 0 },
     });
 
     expect(unavailable.pendingReviews).toBeNull();

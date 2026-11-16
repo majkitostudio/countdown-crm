@@ -20,7 +20,12 @@ describe("assistance 5-minute attention threshold", () => {
   });
 
   it("formats short and long waits like the checkpoint badge", () => {
-    expect(formatAssistanceWait(atSecondsAgo(4), NOW)).toBe("4s");
-    expect(formatAssistanceWait(atSecondsAgo(125), NOW)).toBe("2m 5s");
+    expect(formatAssistanceWait(atSecondsAgo(4), NOW)).toBe("4 s");
+    expect(formatAssistanceWait(atSecondsAgo(125), NOW)).toBe("2 m 5 s");
+    expect(formatAssistanceWait(atSecondsAgo(39 * 24 * 60 * 60 + 4 * 60 + 49), NOW)).toBe("39 d 4 m");
+  });
+
+  it("shows an invalid timestamp as unavailable", () => {
+    expect(formatAssistanceWait("not-a-timestamp", NOW)).toBe("—");
   });
 });

@@ -1,21 +1,23 @@
 import Link from "next/link";
-import { ArrowLeft, Building2, LockKeyhole, Mail, MapPin, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import { getDirectLeadForWorkspace } from "@/lib/dal/leadQueue";
 import { isDataAccessError } from "@/lib/dal/errors";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Customer360RetentionCard } from "@/components/leads/Customer360RetentionCard";
-import { LeadOrdersSection } from "@/components/leads/LeadOrdersSection";
-import { LeadNotesSection } from "@/components/workspace/LeadNotesSection";
 import { listWorkspaceLeadActivity } from "@/lib/dal/activity";
 import { listLeadNotesForWorkspace } from "@/lib/dal/leadNotes";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
-import { StatusAlert, StatusBadge } from "@/components/ui/Status";
+import { getLeadActivityPage, TIMELINE_PAGE_LIMIT, type TimelineActivityEntry } from "@/lib/timeline";
+import { formatDateTime } from "@/lib/datetime";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { CustomerIdentityCard } from "@/components/lead-card/CustomerIdentityCard";
+import { CustomerSummaryCard } from "@/components/lead-card/CustomerSummaryCard";
+import { CustomerTimelineFeed } from "@/components/lead-card/CustomerTimelineFeed";
+import { LeadOrdersSection } from "@/components/leads/LeadOrdersSection";
+import { LeadNotesSection } from "@/components/workspace/LeadNotesSection";
+import { Alert, AlertDescription } from "@/components/shadcn/alert";
+import { Button } from "@/components/shadcn/button";
+import { getStatusClassName } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
-import { getButtonClassName } from "@/components/ui/Button";
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
+import { cn } from "@/lib/utils";
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ leadId: string }> }) {
   const { leadId } = await params;
@@ -39,15 +41,14 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
 
     return (
       <Surface variant="empty" className="w-full">
-        <LockKeyhole className="mx-auto mb-4 h-8 w-8 text-zinc-500" />
-        <h1 className="text-base font-semibold text-zinc-100">Kontakt není dostupný</h1>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-500">{message}</p>
-        <Link
-          href="/console"
-          className={getButtonClassName("secondary")}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Zpět do konzole operátora
-        </Link>
+        <LockKeyhole className="mx-auto mb-4 size-8 text-text-disabled" strokeWidth={1.75} aria-hidden="true" />
+        <h1 className="text-base font-semibold text-text-primary">Kontakt není dostupný</h1>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-text-muted">{message}</p>
+        <Button asChild variant="secondary">
+          <Link href="/console">
+            <ArrowLeft className="size-3.5" strokeWidth={1.75} aria-hidden="true" /> Zpět do konzole operátora
+          </Link>
+        </Button>
       </Surface>
     );
   }
@@ -68,55 +69,80 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ lea
     notesUnavailable = true;
   }
 
+  let timelineItems: TimelineActivityEntry[] = [];
+  let timelineCursor: string | null = null;
+  let timelineHasMore = false;
+  let timelineError: string | null = null;
+  try {
+    const page = await getLeadActivityPage(lead.id, { limit: TIMELINE_PAGE_LIMIT });
+    timelineItems = page.items;
+    timelineCursor = page.next_cursor;
+    timelineHasMore = page.has_more;
+  } catch (error) {
+    timelineError =
+      error instanceof Error ? error.message : "Historii zákazníka se nepodařilo načíst.";
+  }
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         icon={UserRound}
         title={lead.full_name}
         badge={{ label: "Kontakt pouze pro čtení", tone: "neutral" }}
         backLink={{ href: "/console", label: "Zpět do pracovního prostoru" }}
-        description={`Aktualizováno ${formatDate(lead.updated_at)}`}
+        description={`Aktualizováno ${formatDateTime(lead.updated_at)}`}
         actions={
-          <div className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-400">
-            <ShieldCheck className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+          <div className="inline-flex items-center gap-2 rounded-control border border-border-default bg-surface-inset px-3 py-2 text-[11px] text-text-muted">
+            <ShieldCheck className="size-3.5 text-text-muted" strokeWidth={1.75} aria-hidden="true" />
             Otevření této adresy neopravňuje k zahájení hovoru.
           </div>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Surface variant="page"><div className="p-6">
-          <h2 className="mb-5 text-xs font-semibold uppercase tracking-wider text-zinc-400">Kontaktní údaje</h2>
-          <dl className="space-y-4 text-xs">
-            <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-zinc-500" /><dt className="w-20 text-zinc-500">Telefon</dt><dd className="font-mono text-zinc-200">{lead.phone}</dd></div>
-            <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-zinc-500" /><dt className="w-20 text-zinc-500">E-mail</dt><dd className="truncate text-zinc-200">{lead.email || "—"}</dd></div>
-            <div className="flex items-center gap-3"><MapPin className="h-4 w-4 text-zinc-500" /><dt className="w-20 text-zinc-500">Lokalita</dt><dd className="text-zinc-200">{[lead.city, lead.country].filter(Boolean).join(", ") || "—"}</dd></div>
-            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-zinc-500" /><dt className="w-20 text-zinc-500">Firma</dt><dd className="text-zinc-200">{lead.company || "Bez firmy"}</dd></div>
-          </dl>
-        </div></Surface>
+      <div className="grid gap-6 lg:grid-cols-[minmax(300px,340px)_minmax(0,1fr)] lg:items-start">
+        <div className="lg:col-span-2">
+          <CustomerIdentityCard lead={lead} />
+        </div>
 
-        <Surface variant="page"><div className="p-6">
-          <h2 className="mb-5 text-xs font-semibold uppercase tracking-wider text-zinc-400">Stav v CRM</h2>
-          <dl className="space-y-4 text-xs">
-            <div className="flex items-center justify-between gap-4"><dt className="text-zinc-500">Stav</dt><dd><StatusBadge tone="neutral">{({ new: "Nový", contacted: "Kontaktovaný", qualified: "Kvalifikovaný", customer: "Zákazník", unresponsive: "Nereaguje" } as Record<string, string>)[lead.status] || lead.status}</StatusBadge></dd></div>
-            <div className="flex items-center justify-between gap-4"><dt className="text-zinc-500">AI skóre</dt><dd className="font-mono text-zinc-200">{lead.ai_score}</dd></div>
-            <div className="flex items-center justify-between gap-4"><dt className="text-zinc-500">Vytvořeno</dt><dd className="font-mono text-[11px] text-zinc-400">{formatDate(lead.created_at)}</dd></div>
-          </dl>
-          {lead.notes && <div className="mt-6 border-t border-zinc-800 pt-5"><h3 className="text-[10px] uppercase tracking-wider text-zinc-500">Poznámky</h3><p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">{lead.notes}</p></div>}
-        </div></Surface>
+        <div className="lg:col-start-1 lg:row-start-2">
+          <CustomerSummaryCard
+            lead={lead}
+            activity={activity}
+            activityUnavailable={activityUnavailable}
+          />
+        </div>
+
+        <div className="space-y-6 lg:col-start-2 lg:row-start-2">
+          <CustomerTimelineFeed
+            leadId={lead.id}
+            initialItems={timelineItems}
+            initialNextCursor={timelineCursor}
+            initialHasMore={timelineHasMore}
+            initialError={timelineError}
+          />
+          {!activityUnavailable && <LeadOrdersSection orders={activity.orders} leadId={lead.id} />}
+        </div>
+
+        <div className="lg:col-start-1 lg:row-start-3">
+          {context?.role === "operator" ? (
+            <Alert className={cn("border", getStatusClassName("neutral"))}>
+              <AlertDescription className="text-xs">
+                Tento profil zákazníka je pro operátory pouze ke čtení. Odtud lze otevřít objednávky
+                a historii hovorů.
+              </AlertDescription>
+            </Alert>
+          ) : notesUnavailable ? (
+            <Alert className={cn("border", getStatusClassName("warning"))}>
+              <AlertDescription className="text-xs">
+                Sdílené poznámky momentálně nejsou dostupné. Historie poznámek nebyla skryta ani
+                nahrazena smyšlenými údaji.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <LeadNotesSection leadId={lead.id} initialNotes={notes} />
+          )}
+        </div>
       </div>
-
-      <Customer360RetentionCard lead={lead} activity={activity} activityUnavailable={activityUnavailable} />
-      {!activityUnavailable && (
-        <LeadOrdersSection orders={activity.orders} leadId={lead.id} />
-      )}
-      {context?.role === "operator" ? (
-        <StatusAlert tone="neutral">Tento profil zákazníka je pro operátory pouze ke čtení. Odtud lze otevřít objednávky a historii hovorů.</StatusAlert>
-      ) : notesUnavailable ? (
-        <StatusAlert tone="warning">Sdílené poznámky momentálně nejsou dostupné. Historie poznámek nebyla skryta ani nahrazena smyšlenými údaji.</StatusAlert>
-      ) : (
-        <LeadNotesSection leadId={lead.id} initialNotes={notes} />
-      )}
     </div>
   );
 }

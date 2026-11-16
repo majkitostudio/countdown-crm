@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState, useTransition } from "react";
+import { formatCurrencyAmount } from "@/lib/currency";
 import {
   CheckCircle2,
   Clock3,
@@ -40,7 +41,7 @@ interface ProductOption {
   title: string;
   category: string;
   price: number;
-  currency: string;
+  currency: string | null;
   in_stock: boolean;
 }
 
@@ -116,7 +117,7 @@ export function OrderCreateForm({
       }),
     [draftItems, products],
   );
-  const orderCurrency = resolvedItems[0]?.product.currency || "USD";
+  const orderCurrency = resolvedItems[0]?.product.currency || "CZK";
   const orderTotal = roundMoney(resolvedItems.reduce((total, item) => total + item.lineTotal, 0));
   const minimumOrderTotal = roundMoney(
     resolvedItems.reduce((total, item) => total + item.minimumLineTotal, 0),
@@ -175,6 +176,10 @@ export function OrderCreateForm({
     event.preventDefault();
     if (!selectedLead || resolvedItems.length === 0) {
       setErrorMessage("Před vytvořením objednávky vyberte zákazníka a alespoň jeden produkt.");
+      return;
+    }
+    if (resolvedItems.some((item) => !item.product.currency?.trim())) {
+      setErrorMessage("U produktu chybí uložená měna. Před vytvořením objednávky ji musí správce doplnit v katalogu.");
       return;
     }
     const deliveryAddressSnapshot = toDeliveryAddressSnapshot(deliveryAddress);
@@ -340,7 +345,7 @@ export function OrderCreateForm({
                 <option value="">Vyberte produkt k přidání</option>
                 {addableProducts.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.title} · {product.currency} {product.price.toFixed(2)}
+                    {product.title} · {formatCurrencyAmount(product.price, product.currency)}
                   </option>
                 ))}
               </select>
@@ -366,7 +371,7 @@ export function OrderCreateForm({
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-100">{item.product.title}</p>
                         <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500">
-                          {({ supplements: "Doplňky stravy", cosmetics: "Kosmetika", electronics: "Elektronika" } as Record<string, string>)[item.product.category] || item.product.category} · minimum {item.product.currency} {item.product.price.toFixed(2)} za kus
+                          {({ supplements: "Doplňky stravy", cosmetics: "Kosmetika", electronics: "Elektronika" } as Record<string, string>)[item.product.category] || item.product.category} · minimum {formatCurrencyAmount(item.product.price, item.product.currency)} za kus
                         </p>
                       </div>
                       <button
@@ -413,11 +418,11 @@ export function OrderCreateForm({
                       <div className="space-y-1 text-[10px] uppercase tracking-wider text-zinc-500">
                         <span>Celkem za položku</span>
                         <p className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm font-mono normal-case tracking-normal text-zinc-100">
-                          {item.product.currency} {item.lineTotal.toFixed(2)}
+                          {formatCurrencyAmount(item.lineTotal, item.product.currency)}
                         </p>
                         {item.unitPrice < item.product.price && (
                           <p className="mt-1 text-[10px] normal-case tracking-normal text-amber-300">
-                            Pod minimem {item.product.currency} {item.product.price.toFixed(2)} / kus
+                            Pod minimem {formatCurrencyAmount(item.product.price, item.product.currency)} / kus
                           </p>
                         )}
                       </div>
@@ -519,18 +524,18 @@ export function OrderCreateForm({
               <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3 text-zinc-400">
                 <span>Celkem</span>
                 <span className="font-mono text-base font-semibold text-zinc-100">
-                  {resolvedItems.length ? `${orderCurrency} ${orderTotal.toFixed(2)}` : "—"}
+                  {formatCurrencyAmount(orderTotal, orderCurrency)}
                 </span>
               </div>
               <div className="flex justify-between gap-4 text-zinc-500">
                 <span>Minimální referenční součet</span>
-                <span className="font-mono">{resolvedItems.length ? `${orderCurrency} ${minimumOrderTotal.toFixed(2)}` : "—"}</span>
+                <span className="font-mono">{formatCurrencyAmount(minimumOrderTotal, orderCurrency)}</span>
               </div>
             </div>
             {isBelowMinimum && (
               <StatusAlert tone="warning" role="status" className="w-full">
                 <p className="font-semibold">Objednávka je pod minimální referenční cenou.</p>
-                <p className="mt-1 text-amber-200/80">Minimální referenční součet: {orderCurrency} {minimumOrderTotal.toFixed(2)}. Objednávku přesto můžete vytvořit.</p>
+                <p className="mt-1 text-amber-200/80">Minimální referenční součet: {formatCurrencyAmount(minimumOrderTotal, orderCurrency)}. Objednávku přesto můžete vytvořit.</p>
               </StatusAlert>
             )}
               <Surface variant="inset"><div className="mt-5 p-3 text-[11px] leading-relaxed text-zinc-400">

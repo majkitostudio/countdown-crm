@@ -10,6 +10,7 @@ import { listTrainingCallLogRecordsAction } from "@/app/actions/crm";
 import { P2_TRAINING_SCRIPTS, TRAINING_PERSONAS, getTrainingScenario, personaliseTrainingScript, type TrainingDifficulty, type TrainingMessage, type TrainingFeedback } from "@/lib/training";
 import { speakText, stopSpeaking } from "@/lib/speechSynthesis";
 import { createContinuousSpeechRecognition, isBrowserSpeechRecognitionSupported, type BrowserSpeechRecognitionErrorEvent, type ContinuousSpeechRecognition } from "@/lib/speechRecognition";
+import { formatDuration } from "@/lib/utils";
 
 const FEEDBACK_TYPE_LABELS: Record<TrainingFeedback["type"], string> = {
   objection: "Práce s námitkou",
@@ -23,7 +24,7 @@ function timeLabel(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
-function durationLabel(seconds: number): string {
+function formatTimer(seconds: number): string {
   return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`;
 }
 
@@ -268,7 +269,7 @@ function stopListening() {
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader icon={PhoneOutgoing} title="AI trénink" badge={{ label: "Interní pilot", tone: "neutral" }} description="Bezpečný nácvik prvního P2 hovoru s AI zákazníkem. Trénink nikdy nevytváří objednávku ani ostrý pracovní úkol." />
 
-      {!isActive && !result && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Moje poslední tréninky</h2><p className="mt-1 text-xs text-zinc-500">Pouze vaše cvičné hovory. Obchodní výsledky ani ostré hovory se sem nemíchají.</p></div><ClipboardList className="h-5 w-5 text-zinc-500" /></div>{historyUnavailable ? <p className="mt-4 text-xs text-zinc-500">Historii tréninků se nyní nepodařilo načíst.</p> : history.length === 0 ? <p className="mt-4 text-xs text-zinc-500">Zatím jste neměl/a žádný dokončený trénink.</p> : <div className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950">{history.slice(0, 5).map((entry) => { const fb = entry.feedback; const hasCritical = fb.some((f) => f.severity === "critical"); return       <div key={entry.sessionId} className="grid gap-2 px-4 py-3 text-xs sm:grid-cols-[1fr_auto_auto]"><div><p className="font-medium text-zinc-200">{entry.customerName}</p><p className="mt-1 text-zinc-500">{new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(entry.createdAt))} · {durationLabel(entry.durationSeconds)}</p></div><span className={`self-center rounded border px-2 py-1 text-[11px] ${hasCritical ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : fb.length > 0 ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"}`}>{hasCritical ? "Závažné chyby" : fb.length > 0 ? "K opravě" : "Bez zásadních chyb"}</span><span className="self-center font-mono text-zinc-300">{fb.length} {feedbackCountLabel(fb.length)}</span></div>})}</div>}</section>}
+      {!isActive && !result && <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold text-zinc-100">Moje poslední tréninky</h2><p className="mt-1 text-xs text-zinc-500">Pouze vaše cvičné hovory. Obchodní výsledky ani ostré hovory se sem nemíchají.</p></div><ClipboardList className="h-5 w-5 text-zinc-500" /></div>{historyUnavailable ? <p className="mt-4 text-xs text-zinc-500">Historii tréninků se nyní nepodařilo načíst.</p> : history.length === 0 ? <p className="mt-4 text-xs text-zinc-500">Zatím jste neměl/a žádný dokončený trénink.</p> : <div className="mt-4 divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-950">{history.slice(0, 5).map((entry) => { const fb = entry.feedback; const hasCritical = fb.some((f) => f.severity === "critical"); return       <div key={entry.sessionId} className="grid gap-2 px-4 py-3 text-xs sm:grid-cols-[1fr_auto_auto]"><div><p className="font-medium text-zinc-200">{entry.customerName}</p><p className="mt-1 text-zinc-500">{new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(entry.createdAt))} · {formatDuration(entry.durationSeconds)}</p></div><span className={`self-center rounded border px-2 py-1 text-[11px] ${hasCritical ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : fb.length > 0 ? "border-amber-900/70 bg-amber-950/30 text-amber-200" : "border-emerald-900/70 bg-emerald-950/30 text-emerald-200"}`}>{hasCritical ? "Závažné chyby" : fb.length > 0 ? "K opravě" : "Bez zásadních chyb"}</span><span className="self-center font-mono text-zinc-300">{fb.length} {feedbackCountLabel(fb.length)}</span></div>})}</div>}</section>}
 
       {!isActive && !result && (
         <section className="rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-6 shadow-sm">
@@ -307,7 +308,7 @@ function stopListening() {
           <section className="overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40">
             <div className="flex items-center justify-between border-b border-zinc-800 p-5">
               <div><h2 className="font-semibold text-zinc-100">Hovor s: {scenario.customer.name}</h2><p className="mt-1 text-xs text-zinc-500">{scenario.title} · {difficulty === "easy" ? "snadná" : "standardní"} obtížnost</p></div>
-              <span className="font-mono text-sm text-zinc-400">{durationLabel(elapsedSeconds)}</span>
+              <span className="font-mono text-sm text-zinc-400">{formatTimer(elapsedSeconds)}</span>
             </div>
             <div className="min-h-105 space-y-4 p-5">
               {messages.map((message) => <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] rounded-xl border p-3 ${message.sender === "user" ? "border-zinc-700 bg-zinc-900 text-zinc-100" : "border-zinc-800 bg-zinc-950 text-zinc-200"}`}><div className="mb-1 flex gap-2 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>{message.sender === "user" ? "Operátor" : scenario.customer.name}</span><span>{message.timestamp}</span>{message.sender === "ai_customer" && <button type="button" onClick={() => speakText(message.text)} className="ml-auto text-zinc-400 hover:text-zinc-100" aria-label="Přečíst odpověď"><Volume2 className="h-3.5 w-3.5" /></button>}</div><p className="text-sm leading-relaxed">{message.text}</p></div></div>)}

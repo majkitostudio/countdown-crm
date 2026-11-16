@@ -6,6 +6,8 @@ import { ImageOff } from "lucide-react";
 interface ProductImageProps {
   src?: string | null;
   alt: string;
+  width: number;
+  height: number;
   className?: string;
   fallbackClassName?: string;
   iconClassName?: string;
@@ -15,6 +17,8 @@ interface ProductImageProps {
 export function ProductImage({
   src,
   alt,
+  width,
+  height,
   className,
   fallbackClassName = "flex items-center justify-center text-zinc-600",
   iconClassName = "h-5 w-5",
@@ -29,6 +33,9 @@ export function ProductImage({
       <img
         src={source}
         alt={alt}
+        width={width}
+        height={height}
+        loading="lazy"
         className={className}
         onError={() => setFailedSource(source)}
       />

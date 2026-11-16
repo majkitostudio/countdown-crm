@@ -4,6 +4,19 @@ import { buildCustomer360Snapshot } from "@/lib/customer360";
 const lead = { id: "lead-1", status: "customer" as const };
 
 describe("Customer 360 retention playbook", () => {
+  it("excludes missing amounts and reports incomplete fulfilled orders", () => {
+    const snapshot = buildCustomer360Snapshot(lead, {
+      calls: [],
+      orders: [
+        { id: "a", created_at: "2026-08-30T11:00:00Z", product_title: "A", total_amount: null, currency: "CZK", status: "completed" },
+        { id: "b", created_at: "2026-08-30T11:00:00Z", product_title: "B", total_amount: 50, currency: null, status: "delivered" },
+        { id: "c", created_at: "2026-08-30T11:00:00Z", product_title: "C", total_amount: 0, currency: "EUR", status: "completed" },
+      ],
+    });
+    expect(snapshot.incompleteRevenueOrders).toBe(2);
+    expect(snapshot.totalRevenue).toBeNull();
+    expect(snapshot.revenueByCurrency).toEqual([{ currency: "EUR", amount: 0 }]);
+  });
   it("summarizes persisted calls, fulfilled orders and revenue", () => {
     const snapshot = buildCustomer360Snapshot(lead, {
       calls: [
@@ -53,7 +66,7 @@ describe("Customer 360 retention playbook", () => {
       ],
     });
 
-    expect(snapshot.totalRevenue).toBe(0);
+    expect(snapshot.totalRevenue).toBeNull();
     expect(snapshot.currency).toBeNull();
     expect(snapshot.revenueByCurrency).toEqual([
       { currency: "CZK", amount: 125 },

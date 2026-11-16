@@ -4,7 +4,8 @@ export interface DailyTeamSummary {
   date: string;
   calls: number;
   completedOrders: number;
-  revenue: number;
+  completedOrdersWithoutCurrencyCount: number;
+  revenue: number | null;
   revenueByCurrency: CurrencyAmount[];
   currency: string | null;
   conversionRate: number;
@@ -42,15 +43,25 @@ export function getDailyTeamSummary(
     (order) => order.currency,
   );
   const currency = singleCurrency(revenueByCurrency);
-  const revenue = currency ? revenueByCurrency[0]?.amount || 0 : 0;
+  const completedOrdersWithoutCurrencyCount = todayCompletedOrders.filter((order) => !order.currency?.trim()).length;
+  const revenue = todayCompletedOrders.length === 0
+    ? 0
+    : currency && completedOrdersWithoutCurrencyCount === 0
+      ? revenueByCurrency[0]?.amount ?? 0
+      : null;
 
   return {
     date,
     calls: todayCalls.length,
     completedOrders: todayCompletedOrders.length,
-    revenue: roundMetric(revenue),
+    completedOrdersWithoutCurrencyCount,
+    revenue: revenue === null ? null : roundMetric(revenue),
     revenueByCurrency,
-    currency,
+    currency: currency && completedOrdersWithoutCurrencyCount === 0
+      ? currency
+      : todayCompletedOrders.length === 0
+        ? "CZK"
+        : null,
     conversionRate: todayCalls.length > 0
       ? roundMetric((todayCompletedOrders.length / todayCalls.length) * 100)
       : 0,

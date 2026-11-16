@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCurrencyAmount } from "@/lib/currency";
 import { FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, Plus, Save, SlidersHorizontal } from "lucide-react";
@@ -27,10 +28,6 @@ interface WalletRule {
   minimum_order_amount: number;
   bonus_amount: number;
   effective_from: string;
-}
-
-function formatAmount(amount: number, currency: WalletCurrency): string {
-  return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(amount);
 }
 
 export function WalletManagerPanel({
@@ -187,7 +184,7 @@ export function WalletManagerPanel({
         <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 p-4">
           <h3 className="mb-3 text-xs font-semibold text-zinc-200">Aktivní prahy {currency}</h3>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-            {visibleRules.map((rule) => <div key={rule.id} className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3"><p className="font-mono text-xs text-zinc-200">{formatAmount(rule.minimum_order_amount, currency)}+</p><p className="mt-1 text-[11px] text-emerald-300">bonus {formatAmount(rule.bonus_amount, currency)}</p><p className="mt-2 text-[10px] text-zinc-600">od {rule.effective_from}</p></div>)}
+      {visibleRules.map((rule) => <div key={rule.id} className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3"><p className="font-mono text-xs text-zinc-200">{formatCurrencyAmount(rule.minimum_order_amount, currency)}+</p><p className="mt-1 text-[11px] text-emerald-300">bonus {formatCurrencyAmount(rule.bonus_amount, currency)}</p><p className="mt-2 text-[10px] text-zinc-600">od {rule.effective_from}</p></div>)}
           </div>
         </div>
       )}

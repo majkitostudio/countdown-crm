@@ -8,6 +8,7 @@ import { requireWorkspaceRole } from "./workspace";
 import { createDataClient } from "./db";
 import { parseDeliveryAddressSnapshot, type DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 import { requirePublishedCallScripts } from "@/lib/dal/productScripts";
+import { requireStoredOrderProductCurrencies } from "@/lib/dal/orderProductCurrency";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderStatus = OrderRow["status"];
@@ -90,6 +91,7 @@ export async function createOrderForWorkspace(
     );
   }
 
+  await requireStoredOrderProductCurrencies(input.items.map((item) => item.product_id), context.workspaceId);
   const { data, error } = await supabase.rpc("create_order_with_items", {
     p_workspace_id: context.workspaceId,
     p_lead_id: input.lead_id,
@@ -253,6 +255,7 @@ export async function updateOrderDetailsForWorkspace(
 
   const context = await requireWorkspaceContext();
   const supabase = await createDataClient();
+  await requireStoredOrderProductCurrencies(input.items.map((item) => item.product_id), context.workspaceId);
   const { data, error } = await supabase.rpc("update_order_with_items", {
     p_order_id: input.orderId,
     p_expected_revision: input.expectedRevision,

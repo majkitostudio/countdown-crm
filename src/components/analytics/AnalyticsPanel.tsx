@@ -39,6 +39,8 @@ export function AnalyticsPanel() {
     sources: { calls: "unavailable", orders: "unavailable", operators: "unavailable", teams: "unavailable" },
     totalRevenue: 0,
     revenueByCurrency: [],
+    completedOrdersCount: 0,
+    completedOrdersWithoutCurrencyCount: 0,
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
     forecastAvailable: false,
@@ -58,6 +60,7 @@ export function AnalyticsPanel() {
       date: new Date().toISOString().slice(0, 10),
       calls: 0,
       completedOrders: 0,
+      completedOrdersWithoutCurrencyCount: 0,
       revenue: 0,
       revenueByCurrency: [],
       currency: null,
@@ -167,23 +170,44 @@ export function AnalyticsPanel() {
       <StatusAlert tone="neutral" className="w-full">
         Celkové příjmy a průměrná hodnota objednávky vycházejí ze všech dostupných dokončených objednávek v tomto rozsahu. Částky v různých měnách se nepřevádějí ani nesčítají; týdenní graf pokrývá posledních sedm dní.
       </StatusAlert>
+      {data.completedOrdersWithoutCurrencyCount > 0 && (
+        <StatusAlert tone="warning" role="status" className="w-full">
+          U {data.completedOrdersWithoutCurrencyCount} dokončených objednávek chybí měna; celkové tržby a průměrnou hodnotu proto nelze spolehlivě určit.
+        </StatusAlert>
+      )}
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {/* Total Revenue & AI Forecast */}
         <MetricCard
           label="Celkový objem prodeje"
-          value={formatCurrencyAmounts(data.revenueByCurrency)}
+          value={data.sources.orders !== "ready"
+            ? "—"
+            : data.completedOrdersCount === 0
+              ? formatCurrencyAmount(0, "CZK")
+              : data.completedOrdersWithoutCurrencyCount > 0
+                ? "—"
+                : formatCurrencyAmounts(data.revenueByCurrency)}
           detail={data.forecastAvailable
-            ? `+${data.forecastGrowthPercent}% AI prognóza (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0] || "USD")})`
+            ? `+${data.forecastGrowthPercent}% AI prognóza (${formatCurrencyAmount(data.projectedRevenue, data.currencies[0])})`
             : "AI prognóza není dostupná"}
         />
 
         {/* Average Order Value AOV */}
-        <MetricCard label="Průměrná hodnota objednávky (AOV)" value={formatCurrencyAmounts(data.avgOrderValueByCurrency)} detail={`Výpočet z dokončených objednávek. Rozsah: ${scopeLabel.toLowerCase()}`} />
+        <MetricCard
+          label="Průměrná hodnota objednávky (AOV)"
+          value={data.sources.orders !== "ready"
+            ? "—"
+            : data.completedOrdersCount === 0
+              ? formatCurrencyAmount(0, "CZK")
+              : data.completedOrdersWithoutCurrencyCount > 0
+                ? "—"
+                : formatCurrencyAmounts(data.avgOrderValueByCurrency)}
+          detail={`Výpočet z dokončených objednávek. Rozsah: ${scopeLabel.toLowerCase()}`}
+        />
 
         {/* Conversion Rate */}
-        <MetricCard label="Konverze hovorů" value={`${data.conversionRate}%`} detail={`Počet hovorů: ${data.totalCalls}. Rozsah: ${scopeLabel.toLowerCase()}`} />
+        <MetricCard label="Konverze hovorů" value={data.conversionAvailable ? `${data.conversionRate}%` : "—"} detail={`Počet hovorů: ${data.totalCalls}. Rozsah: ${scopeLabel.toLowerCase()}`} />
 
         {/* Objection Resolution Rate */}
         <MetricCard label="Podíl překonaných námitek" value={data.objectionMetricsAvailable && data.objectionResolutionRate !== null ? `${data.objectionResolutionRate}%` : "—"} detail="Metrika výsledků námitek není uložená" />
@@ -238,7 +262,7 @@ export function AnalyticsPanel() {
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="day" stroke="#52525b" fontSize={11} tickLine={false} />
-                <YAxis stroke="#52525b" fontSize={11} tickLine={false} tickFormatter={(val: number | string) => formatCurrencyAmount(Number(val), data.currencies[0] || "USD")} />
+                <YAxis stroke="#52525b" fontSize={11} tickLine={false} tickFormatter={(val: number | string) => formatCurrencyAmount(Number(val), data.currencies[0])} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#09090b", borderColor: "#27272a", borderRadius: "12px", fontSize: "12px" }}
                 />
@@ -340,9 +364,20 @@ export function AnalyticsPanel() {
                     </div>
                   </td>
                   <td className="px-4 py-3.5 font-mono">{ag.callsCount}</td>
-                  <td className="px-4 py-3.5 font-mono text-zinc-200">{ag.ordersCount}</td>
+                  <td className="px-4 py-3.5 font-mono text-zinc-200">
+                    {ag.ordersCount}
+                    {ag.ordersWithoutCurrencyCount > 0 && (
+                      <span className="block font-sans text-[10px] font-normal text-zinc-400">
+                        Měna nezaznamenána u {ag.ordersWithoutCurrencyCount}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3.5 font-mono font-semibold text-zinc-200">
-                    {formatCurrencyAmounts(ag.revenueByCurrency)}
+                    {ag.ordersCount === 0
+                      ? formatCurrencyAmount(0, "CZK")
+                      : ag.ordersWithoutCurrencyCount > 0
+                        ? "—"
+                        : formatCurrencyAmounts(ag.revenueByCurrency)}
                   </td>
                   <td className="px-4 py-3.5 text-right font-semibold text-zinc-300 font-mono">
                     {ag.conversionRate}%

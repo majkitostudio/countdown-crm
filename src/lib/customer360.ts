@@ -10,8 +10,9 @@ export interface Customer360Snapshot {
   totalCalls: number;
   totalOrders: number;
   fulfilledOrders: number;
-  totalRevenue: number;
+  totalRevenue: number | null;
   revenueByCurrency: CurrencyAmount[];
+  incompleteRevenueOrders: number;
   currency: string | null;
   lastCallAt: string | null;
   lastCallOutcome: string | null;
@@ -46,12 +47,17 @@ export function buildCustomer360Snapshot(
   const lastOrder = latest(activity.orders);
   const fulfilledOrders = activity.orders.filter((order) => isFulfilled(order.status));
   const revenueByCurrency = aggregateCurrencyAmounts(
-    fulfilledOrders,
-    (order) => Number(order.total_amount || 0),
+    fulfilledOrders.filter((order) => order.total_amount !== null),
+    (order) => order.total_amount!,
     (order) => order.currency,
   );
   const currency = singleCurrency(revenueByCurrency);
-  const totalRevenue = currency ? revenueByCurrency[0]?.amount || 0 : 0;
+  const incompleteRevenueOrders = fulfilledOrders.filter((order) => order.total_amount == null || !order.currency?.trim()).length;
+  const totalRevenue = fulfilledOrders.length === 0
+    ? 0
+    : currency && incompleteRevenueOrders === 0
+      ? revenueByCurrency[0]?.amount ?? null
+      : null;
   const lastFulfilledOrder = latest(fulfilledOrders);
   let nextAction: Customer360Snapshot["nextAction"];
 
@@ -109,8 +115,9 @@ export function buildCustomer360Snapshot(
     totalCalls: activity.calls.length,
     totalOrders: activity.orders.length,
     fulfilledOrders: fulfilledOrders.length,
-    totalRevenue: Math.round(totalRevenue * 100) / 100,
+    totalRevenue: totalRevenue === null ? null : Math.round(totalRevenue * 100) / 100,
     revenueByCurrency,
+    incompleteRevenueOrders,
     currency,
     lastCallAt: lastCall?.created_at || null,
     lastCallOutcome: lastCall?.outcome || null,

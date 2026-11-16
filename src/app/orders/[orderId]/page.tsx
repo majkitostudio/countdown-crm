@@ -12,6 +12,7 @@ import { CarrierExportDropdown } from "@/components/orders/CarrierExportDropdown
 import { OrderTrackingCard } from "@/components/orders/OrderTrackingCard";
 import { ShipmentTimelineCard } from "@/components/orders/ShipmentTimelineCard";
 import { updateOrderTrackingAction } from "@/app/actions/crm";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -95,7 +96,7 @@ export default async function OrderDetailPage({
   const minimumOrderTotal = order.items.length > 0
     ? order.items.reduce((sum, item) => sum + item.minimum_unit_price * item.quantity, 0)
     : null;
-  const isBelowMinimum = minimumOrderTotal !== null && order.total_amount < minimumOrderTotal;
+  const isBelowMinimum = minimumOrderTotal !== null && order.total_amount !== null && order.total_amount < minimumOrderTotal;
   const deliveryAddress = parseDeliveryAddressSnapshot(order.delivery_address_snapshot);
 
   return (
@@ -194,11 +195,11 @@ export default async function OrderDetailPage({
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-zinc-100">{item.product_title}</p>
-                        <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">{item.currency} {item.unit_price.toFixed(2)} za kus · množství {item.quantity}</p>
+                        <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">{formatCurrencyAmount(item.unit_price, item.currency)} za kus · množství {item.quantity}</p>
                       </div>
-                      <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{item.currency} {item.line_total.toFixed(2)}</span>
+                      <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{formatCurrencyAmount(item.line_total, item.currency)}</span>
                     </div>
-                    {item.unit_price < item.minimum_unit_price && <p className="mt-2 text-[10px] text-amber-300">Pod minimální referenční cenou {item.currency} {item.minimum_unit_price.toFixed(2)} za kus</p>}
+                    {item.unit_price < item.minimum_unit_price && <p className="mt-2 text-[10px] text-amber-300">Pod minimální referenční cenou {formatCurrencyAmount(item.minimum_unit_price, item.currency)} za kus</p>}
                   </Surface>
                 ))}
               </div>
@@ -209,7 +210,7 @@ export default async function OrderDetailPage({
                     <p className="truncate text-sm font-medium text-zinc-100">{order.product_title}</p>
                     <p className="mt-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500">ID produktu {order.product_id || "nedostupné"}</p>
                   </div>
-                  <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</span>
+                  <span className="shrink-0 font-mono text-sm font-semibold text-zinc-100">{formatCurrencyAmount(order.total_amount, order.currency)}</span>
                 </div>
               </Surface>
             )}
@@ -278,8 +279,8 @@ export default async function OrderDetailPage({
             <dl className="space-y-3 text-xs">
               <div className="flex justify-between gap-4"><dt className="text-zinc-500">Zdroj</dt><dd className="text-right text-zinc-200">{({ manual: "Ruční zadání", previous_call: "Předchozí hovor", email: "E-mail", web_form: "Webový formulář", other: "Jiné" } as Record<string, string>)[order.order_source] || order.order_source}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-zinc-500">Operátor</dt><dd className="text-right text-zinc-200">{order.agent_name}</dd></div>
-              {minimumOrderTotal !== null && <div className="flex justify-between gap-4"><dt className="text-zinc-500">Minimální referenční součet</dt><dd className="font-mono text-right text-zinc-300">{order.currency} {minimumOrderTotal.toFixed(2)}</dd></div>}
-              <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3"><dt className="text-zinc-400">Celkem</dt><dd className="font-mono text-base font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
+              {minimumOrderTotal !== null && <div className="flex justify-between gap-4"><dt className="text-zinc-500">Minimální referenční součet</dt><dd className="font-mono text-right text-zinc-300">{formatCurrencyAmount(minimumOrderTotal, order.currency)}</dd></div>}
+              <div className="flex justify-between gap-4 border-t border-zinc-800/80 pt-3"><dt className="text-zinc-400">Celkem</dt><dd className="font-mono text-base font-semibold text-zinc-100">{formatCurrencyAmount(order.total_amount, order.currency)}</dd></div>
             </dl>
             {isBelowMinimum && <StatusAlert tone="warning">Tato objednávka je pod minimální referenční cenou. Přesto bylo povoleno ji vytvořit.</StatusAlert>}
           </section>

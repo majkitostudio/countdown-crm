@@ -109,7 +109,7 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
         <ScheduledCallMetric label="Naplánované hovory" value={scheduledCallAttention.total} />
         <ScheduledCallMetric label="Naplánované později" value={scheduledCallAttention.scheduled} />
         <ScheduledCallMetric label="Po termínu" value={scheduledCallAttention.overdue} tone={scheduledCallAttention.overdue > 0 ? "warning" : "neutral"} />
-        <p className="sm:col-span-3 text-[11px] leading-relaxed text-zinc-500">Původní operátor má přednost. Pokud není dostupný, může si naplánovaný hovor převzít volný operátor ze stejného týmu.</p>
+        <p className="sm:col-span-3 text-xs leading-relaxed text-zinc-400">Původní operátor má přednost. Pokud není dostupný, může si naplánovaný hovor převzít volný operátor ze stejného týmu.</p>
       </section>
 
       {successMessage && <StatusAlert tone="success" role="status">{successMessage}</StatusAlert>}

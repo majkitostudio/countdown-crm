@@ -56,6 +56,8 @@ Serverové webhooky automatizací přijímají pouze cíle přes HTTPS na portu 
 
 ### Obnova hesla
 
+Stránky `/auth/forgot-password` a `/auth/update-password` se stejně jako přihlášení zobrazují bez navigace pracovního prostoru.
+
 Obnovovací e-mail se vrací na `/auth/confirm` na stejné doméně, ze které uživatel o obnovu požádal. Přesnou návratovou adresu je nutné povolit v Supabase Auth Redirect URLs pro dané prostředí; pro lokální provoz se `localhost` a `127.0.0.1` posuzují samostatně. Odkaz PKCE je nutné otevřít ve stejném prohlížeči, ve kterém vznikla žádost. Funkčnost doručení e-mailu a návratu ověřuj samostatně na testovacím účtu.
 
 ## Katalog pro lokální demo

@@ -1,5 +1,5 @@
 import type { AnalyticsOverview } from "./analytics";
-import { formatCurrencyAmounts } from "./currency";
+import { formatCurrencyAmount, formatCurrencyAmounts } from "./currency";
 
 export function escapeCsvField(value: string): string {
   const escapedValue = value.replace(/"/g, '""');
@@ -18,21 +18,38 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
     ["Ukazatel", "Hodnota"],
     ["Rozsah přehledu", data.scopeLabel],
     ...(data.scope === "team" ? [["Zahrnuté týmy", data.accessibleTeams.map((team) => team.name).join("; ")]] : []),
-    ["Tržby podle měny", formatCurrencyAmounts(data.revenueByCurrency)],
+    ["Tržby podle měny", data.sources.orders !== "ready"
+      ? "—"
+      : data.completedOrdersCount === 0
+        ? formatCurrencyAmount(0, "CZK")
+        : data.completedOrdersWithoutCurrencyCount > 0
+          ? "—"
+          : formatCurrencyAmounts(data.revenueByCurrency)],
     ["AI odhad tržeb (příštích 30 dní)", "Nedostupné"],
-    ["Průměrná hodnota objednávky podle měny", formatCurrencyAmounts(data.avgOrderValueByCurrency)],
+    ["Průměrná hodnota objednávky podle měny", data.sources.orders !== "ready"
+      ? "—"
+      : data.completedOrdersCount === 0
+        ? formatCurrencyAmount(0, "CZK")
+        : data.completedOrdersWithoutCurrencyCount > 0
+          ? "—"
+          : formatCurrencyAmounts(data.avgOrderValueByCurrency)],
     ["Konverze", data.conversionAvailable ? `${data.conversionRate}%` : "Nedostupné"],
     [
       "Úspěšnost řešení námitek",
       data.objectionResolutionRate === null ? "Nedostupné" : `${data.objectionResolutionRate}%`,
     ],
     [],
-    ["Operátor", "Hovory", "Objednávky", "Tržby", "Konverze %"],
+    ["Operátor", "Hovory", "Objednávky", "Objednávky bez měny", "Tržby", "Konverze %"],
     ...data.teamLeaderboard.map((agent) => [
       agent.agentName,
       String(agent.callsCount),
       String(agent.ordersCount),
-      formatCurrencyAmounts(agent.revenueByCurrency),
+      String(agent.ordersWithoutCurrencyCount),
+      agent.ordersCount === 0
+        ? formatCurrencyAmount(0, "CZK")
+        : agent.ordersWithoutCurrencyCount > 0
+          ? "—"
+          : formatCurrencyAmounts(agent.revenueByCurrency),
       `${agent.conversionRate}%`,
     ]),
   ];

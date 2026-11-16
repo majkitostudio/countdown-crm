@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { TextField } from "@/components/ui/Field";
 import { StatusBadge } from "@/components/ui/Status";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 export { getAllowedNavigationCommands, getCommandPalettePlaceholder } from "./headerNavigation";
 
@@ -197,7 +198,7 @@ export function CommandPalette() {
                     <Package className="w-4 h-4 text-zinc-400" />
                     <span>{prod.title}</span>
                   </span>
-                  <span className="font-mono text-xs text-zinc-300">${prod.price}</span>
+                  <span className="font-mono text-xs text-zinc-300">{formatCurrencyAmount(prod.price, prod.currency)}</span>
                   </span>
                 </Button>
               ))}

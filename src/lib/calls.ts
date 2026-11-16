@@ -2,21 +2,21 @@ import { getCallAction, listCallsAction, listTrainingCallLogRecordsAction } from
 import { parseCallTranscript, type CallTranscript } from "./callTranscript";
 import type { WorkspaceCallDTO } from "./dal/activity";
 import type { CallReviewStatus } from "./dal/callReviews";
-import type { Database } from "./supabase/types";
+import { formatCallOutcome, type PersistedCallOutcome } from "./callOutcomes";
 
-export type PersistedCallOutcome = Database["public"]["Tables"]["calls"]["Row"]["outcome"];
+export { formatCallOutcome, type PersistedCallOutcome };
 
 export interface CallRecord {
   id: string;
   lead_id: string;
   lead_name: string;
   agent_name: string;
-  duration_seconds: number;
+  duration_seconds: number | null;
   outcome: PersistedCallOutcome;
   fail_reason: WorkspaceCallDTO["fail_reason"];
   operator_note: WorkspaceCallDTO["operator_note"];
   sentiment: "Positive" | "Price Objection" | "Product Objection" | "Neutral";
-  order_value: number;
+  order_value: number | null;
   transcript: CallTranscript;
   created_at: string;
   review_href: string | null;
@@ -24,21 +24,14 @@ export interface CallRecord {
   record_kind?: "production" | "training";
 }
 
-export function formatCallOutcome(outcome: CallRecord["outcome"]): string {
-  switch (outcome) {
-    case "order_placed":
-      return "Objednávka vytvořena";
-    case "followup_scheduled":
-      return "Hovor naplánován";
-    case "objection":
-      return "Neúspěšný";
-    case "no_answer":
-      return "Bez odpovědi";
-    case "completed":
-      return "Dokončeno";
-    default:
-      return "Neznámý výsledek";
-  }
+export function summarizeCallDurations(calls: Pick<CallRecord, "duration_seconds">[]): { average: number | null; recordedCount: number } {
+  const durations = calls.flatMap(({ duration_seconds }) =>
+    duration_seconds != null && Number.isFinite(duration_seconds) && duration_seconds >= 0 ? [duration_seconds] : [],
+  );
+  return {
+    average: durations.length ? Math.round(durations.reduce((sum, value) => sum + value, 0) / durations.length) : null,
+    recordedCount: durations.length,
+  };
 }
 
 export async function getCalls(): Promise<CallRecord[]> {
@@ -49,7 +42,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     lead_id: call.lead_id || "",
     lead_name: call.lead_name,
     agent_name: call.agent_name,
-    duration_seconds: call.duration_seconds || 0,
+    duration_seconds: call.duration_seconds,
     outcome: call.outcome,
     fail_reason: call.fail_reason,
     operator_note: call.operator_note,
@@ -71,7 +64,7 @@ export async function getCalls(): Promise<CallRecord[]> {
     fail_reason: null,
     operator_note: "Tréninkový hovor – nevznikla objednávka ani naplánovaný hovor.",
     sentiment: "Neutral" as const,
-    order_value: 0,
+    order_value: null,
     transcript: parseCallTranscript(call.transcript),
     created_at: call.createdAt,
     review_href: call.reviewHref,
@@ -90,7 +83,7 @@ export async function getCallById(id: string): Promise<CallRecord | null> {
     lead_id: call.lead_id || "",
     lead_name: call.lead_name,
     agent_name: call.agent_name,
-    duration_seconds: call.duration_seconds || 0,
+    duration_seconds: call.duration_seconds,
     outcome: call.outcome,
     fail_reason: call.fail_reason,
     operator_note: call.operator_note,

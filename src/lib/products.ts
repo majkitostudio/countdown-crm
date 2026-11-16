@@ -19,6 +19,7 @@ export interface Product {
   category: ProductCategory;
   price: number;
   currency: string;
+  currencyMissing?: boolean;
   description: string;
   image_url: string;
   in_stock: boolean;
@@ -44,7 +45,8 @@ export async function getProducts(options?: {
     title: product.title,
     category: product.category,
     price: Number(product.price),
-    currency: product.currency || "USD",
+    currency: product.currency || "CZK",
+    currencyMissing: !product.currency?.trim(),
     description: product.description || "",
     image_url: product.image_url || "",
     in_stock: product.in_stock ?? true,
@@ -57,7 +59,7 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     title: product.title || "Nový produkt",
     category: (product.category as ProductCategory) || "supplements",
     price: Number(product.price) || 0,
-    currency: product.currency || "USD",
+    currency: product.currency || "CZK",
     description: product.description || "",
     image_url: product.image_url || "",
     in_stock: product.in_stock ?? true,
@@ -78,7 +80,8 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     title: saved.title,
     category: saved.category,
     price: Number(saved.price),
-    currency: saved.currency || "USD",
+    currency: saved.currency || "CZK",
+    currencyMissing: !saved.currency?.trim(),
     description: saved.description || "",
     image_url: saved.image_url || "",
     in_stock: saved.in_stock ?? true,
@@ -102,7 +105,8 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
     title: saved.title,
     category: saved.category,
     price: Number(saved.price),
-    currency: saved.currency || "USD",
+    currency: saved.currency || "CZK",
+    currencyMissing: !saved.currency?.trim(),
     description: saved.description || "",
     image_url: saved.image_url || "",
     in_stock: saved.in_stock ?? true,

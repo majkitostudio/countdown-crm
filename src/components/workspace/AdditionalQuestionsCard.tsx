@@ -14,7 +14,7 @@ export function AdditionalQuestionsCard({ questions }: AdditionalQuestionsCardPr
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-[13px] font-semibold text-zinc-100">Zjišťovací otázky</h2>
-          <p className="mt-0.5 text-[11px] text-zinc-500">Ptejte se při naslouchání — v tomto pořadí</p>
+          <p className="mt-0.5 text-xs text-zinc-400">Ptejte se při naslouchání — v tomto pořadí</p>
         </div>
         <ChevronUp className="h-4 w-4 shrink-0 text-zinc-500" aria-hidden="true" />
       </div>

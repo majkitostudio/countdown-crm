@@ -3,18 +3,39 @@ export interface CurrencyAmount {
   amount: number;
 }
 
-export function formatCurrencyAmount(amount: number, currency: string): string {
+export function formatCurrencyAmount(
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  options?: { omitCzk?: boolean },
+): string {
+  if (amount == null || !Number.isFinite(amount)) return "—";
+  const normalizedCurrency = currency?.trim().toUpperCase() || "CZK";
+  if (normalizedCurrency === "CZK") {
+    const formattedAmount = new Intl.NumberFormat("cs-CZ", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+    return options?.omitCzk ? formattedAmount : `${formattedAmount} CZK`;
+  }
+
   try {
-    return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(amount);
+    return new Intl.NumberFormat("cs-CZ", {
+      style: "currency",
+      currency: normalizedCurrency,
+    }).format(amount);
   } catch {
-    return `${amount.toFixed(2)} ${currency}`;
+    const formattedAmount = new Intl.NumberFormat("cs-CZ", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+    return `${formattedAmount} (neplatný kód měny: ${currency?.trim()})`;
   }
 }
 
 export function formatCurrencyAmounts(amounts: CurrencyAmount[]): string {
   return amounts.length > 0
     ? amounts.map((entry) => formatCurrencyAmount(entry.amount, entry.currency)).join(" · ")
-    : "Nedostupné";
+    : "—";
 }
 
 export function aggregateCurrencyAmounts<T>(

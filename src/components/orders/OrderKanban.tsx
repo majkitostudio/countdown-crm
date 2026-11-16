@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
 import { getOrderRisk } from "@/lib/orderRisk";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 // --- helpers ---
 
@@ -25,10 +26,6 @@ function daysSince(dateStr: string | null | undefined): number | null {
   if (!dateStr) return null;
   const diff = Date.now() - new Date(dateStr).getTime();
   return Math.floor(diff / (1000 * 60 * 60 * 24));
-}
-
-function formatCurrency(currency: string, amount: number) {
-  return `${currency} ${amount.toFixed(0)}`;
 }
 
 function formatShortDate(dateStr: string): string {
@@ -217,7 +214,7 @@ function OrderCard({
       <div className="mt-3 flex items-center justify-between border-t border-zinc-800/60 pt-2.5">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-xs font-bold text-zinc-100">
-            {formatCurrency(order.currency, order.total_amount)}
+            {formatCurrencyAmount(order.total_amount, order.currency)}
           </span>
           {order.carrier && (
             <span className="rounded bg-zinc-800/80 px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">

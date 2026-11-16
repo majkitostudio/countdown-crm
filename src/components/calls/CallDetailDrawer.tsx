@@ -17,6 +17,8 @@ import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { StatusAlert } from "@/components/ui/Status";
+import { formatCurrencyAmount } from "@/lib/currency";
+import { formatDuration } from "@/lib/utils";
 
 function reviewStatusLabel(status: CallRecord["review_status"]): string {
   if (status === "not_reviewed") return "Nezkontrolováno";
@@ -38,12 +40,6 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
   const transcriptTurnCount = call.transcript.kind === "structured"
     ? call.transcript.entries.length
     : null;
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
-  };
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose} aria-labelledby="call-detail-dialog-title" placement="right" size="lg">
@@ -96,14 +92,14 @@ export function CallDetailDrawer({ call, isOpen, onClose, reviewHref = null }: C
               <span className="text-zinc-400 block text-[11px] uppercase font-semibold">Délka hovoru</span>
               <span className="font-mono font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
                 <Clock className="w-4 h-4 text-zinc-400" />
-                {formatDuration(call.duration_seconds)}
+                {call.duration_seconds == null ? "—" : formatDuration(call.duration_seconds)}
               </span>
             </div>
 
             <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-3">
-              <span className="text-zinc-400 block text-[11px] uppercase font-semibold">Hodnota · měna neuvedena</span>
+              <span className="text-zinc-400 block text-[11px] uppercase font-semibold">Hodnota u hovoru</span>
               <span className="font-mono font-bold text-zinc-200 text-sm flex items-center gap-1.5 mt-0.5">
-                {new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(call.order_value)}
+                {formatCurrencyAmount(call.order_value, "CZK")}
               </span>
             </div>
 

@@ -5,11 +5,13 @@ import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 import { sounds } from "@/lib/audio";
 import { getCurrentOperatorCommissionAction } from "@/app/actions/wallet";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 export function OperatorCommissionBadge() {
+  const [status, setStatus] = useState<"loading" | "available" | "unrecorded" | "unavailable">("loading");
   const [balance, setBalance] = useState<number | null>(null);
   const [displayBalance, setDisplayBalance] = useState<number | null>(null);
-  const [currency, setCurrency] = useState("CZK");
+  const [currency, setCurrency] = useState<string | null>(null);
   const [isBumping, setIsBumping] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -20,16 +22,18 @@ export function OperatorCommissionBadge() {
     void getCurrentOperatorCommissionAction()
       .then((data) => {
         if (!cancelled) {
-          setBalance(data.balance);
-          setDisplayBalance(data.balance);
-          setCurrency(data.currency);
+          setStatus(data.status);
+          if (data.status === "available") {
+            setBalance(data.balance);
+            setDisplayBalance(data.balance);
+            setCurrency(data.currency);
+          }
         }
       })
       .catch((err) => {
         console.warn("[OperatorCommissionBadge] Could not load initial balance:", err);
         if (!cancelled) {
-          setBalance(0);
-          setDisplayBalance(0);
+          setStatus("unavailable");
         }
       });
 
@@ -55,6 +59,7 @@ export function OperatorCommissionBadge() {
       }, 1800);
 
       // 3. Plynulá animace přepočítání (roll-up tickeru z aktuální hodnoty na cílovou)
+      setStatus("available");
       setBalance((currentBalance) => {
         const startVal = displayBalance ?? currentBalance ?? 0;
         const targetVal = (currentBalance ?? 0) + addedAmount;
@@ -92,9 +97,13 @@ export function OperatorCommissionBadge() {
     };
   }, [displayBalance]);
 
-  // Formátování měny
-  const formattedAmount = (displayBalance ?? balance ?? 0).toLocaleString("cs-CZ");
-  const currencySymbol = currency === "CZK" ? "Kč" : currency === "EUR" ? "€" : currency;
+  const amountToDisplay = displayBalance ?? balance;
+  const displayValue =
+    status === "available" && amountToDisplay !== null
+      ? formatCurrencyAmount(amountToDisplay, currency)
+      : status === "unrecorded"
+        ? formatCurrencyAmount(0, currency)
+        : "—";
 
   return (
     <Link
@@ -126,7 +135,7 @@ export function OperatorCommissionBadge() {
             isBumping ? "text-emerald-300" : "text-zinc-100"
           }`}
         >
-          {displayBalance === null ? "—" : `${formattedAmount} ${currencySymbol}`}
+          {displayValue}
         </span>
       </div>
     </Link>

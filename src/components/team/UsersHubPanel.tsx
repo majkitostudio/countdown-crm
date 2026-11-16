@@ -188,9 +188,9 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
         <Surface variant="inset" className="p-4">
           <div className="flex items-center justify-between text-zinc-400">
             <span className="text-xs font-medium">Administrátoři</span>
-            <Shield className="h-4 w-4 text-purple-400" />
+            <Shield className="h-4 w-4 text-amber-400" />
           </div>
-          <div className="mt-2 text-2xl font-bold tracking-tight text-purple-400">{adminCount}</div>
+          <div className="mt-2 text-2xl font-bold tracking-tight text-amber-400">{adminCount}</div>
           <p className="mt-1 text-[11px] text-zinc-400">plná systémová práva</p>
         </Surface>
       </div>

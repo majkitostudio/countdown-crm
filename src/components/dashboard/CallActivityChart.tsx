@@ -8,7 +8,7 @@ import type { AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
 import { createEmptyCallActivity } from "@/lib/callActivity";
 import { StatusAlert } from "@/components/ui/Status";
 
-const CHART_COLOR = "#a1a1aa";
+const CHART_COLOR = "var(--color-text-muted)";
 
 function formatHour(hour: number): string {
   return `${String(hour).padStart(2, "0")}:00`;
@@ -102,12 +102,12 @@ export function CallActivityChart() {
             <div className="h-28 rounded-lg bg-zinc-950/60 border border-zinc-800/60 px-1 py-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={activity.daily} margin={{ top: 2, right: 4, bottom: 0, left: -22 }}>
-                  <XAxis dataKey="day" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
-                  <YAxis allowDecimals={false} tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="day" tick={{ fill: "var(--color-text-muted)", fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
+                  <YAxis allowDecimals={false} tick={{ fill: "var(--color-text-muted)", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     cursor={{ fill: "rgba(244, 244, 245, 0.04)" }}
-                    contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", borderRadius: 8, fontSize: 11 }}
-                    labelStyle={{ color: "#a1a1aa" }}
+                    contentStyle={{ background: "var(--color-surface-overlay)", border: "1px solid var(--color-border-strong)", borderRadius: 8, fontSize: 11 }}
+                    labelStyle={{ color: "var(--color-text-muted)" }}
                     formatter={(value) => [value, "Hovory"]}
                     labelFormatter={(label, payload) => {
                       const point = payload?.[0]?.payload as { date?: string } | undefined;
@@ -122,8 +122,8 @@ export function CallActivityChart() {
 
           <div className="space-y-1">
             <div className="flex items-baseline justify-between gap-2 px-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Hodinová aktivita</p>
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Hodinová aktivita</p>
+              <p className="text-xs text-zinc-400">
                 {activity.peakHour !== null ? `Nejrušnější: ${formatHour(activity.peakHour)} UTC` : "Bez dat"}
               </p>
             </div>
@@ -132,17 +132,17 @@ export function CallActivityChart() {
                 <BarChart data={activity.hourly} margin={{ top: 2, right: 4, bottom: 0, left: -22 }}>
                   <XAxis
                     dataKey="hour"
-                    tick={{ fill: "#71717a", fontSize: 10 }}
+                    tick={{ fill: "var(--color-text-muted)", fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={formatHour}
                     interval={3}
                   />
-                  <YAxis allowDecimals={false} tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fill: "var(--color-text-muted)", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     cursor={{ fill: "rgba(244, 244, 245, 0.04)" }}
-                    contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", borderRadius: 8, fontSize: 11 }}
-                    labelStyle={{ color: "#a1a1aa" }}
+                    contentStyle={{ background: "var(--color-surface-overlay)", border: "1px solid var(--color-border-strong)", borderRadius: 8, fontSize: 11 }}
+                    labelStyle={{ color: "var(--color-text-muted)" }}
                     formatter={(value) => [value, "Hovory"]}
                     labelFormatter={(label) => `${formatHour(Number(label))} UTC`}
                   />
@@ -152,7 +152,7 @@ export function CallActivityChart() {
             </div>
           </div>
 
-          <p className="text-[11px] text-zinc-500 pt-2 border-t border-zinc-800/40">
+          <p className="text-xs text-zinc-400 pt-2 border-t border-zinc-800/40">
             Zdroj: tabulka calls (uložené časové značky, UTC). Hodiny odpovídají uloženému času hovoru.
           </p>
         </>

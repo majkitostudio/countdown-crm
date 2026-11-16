@@ -9,18 +9,8 @@ import type { TeamWorkspaceOperatorMetrics } from "@/lib/teamWorkspaceMetrics";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-}
-
-function formatCallDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-}
+import { formatDuration } from "@/lib/utils";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 function outcomeLabel(outcome: string): string {
   if (outcome === "order_placed") return "Prodej";
@@ -118,7 +108,7 @@ export function TeamOperatorDetailPanel({
                 <li key={call.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
                   <span className="text-zinc-500">{formatDate(call.createdAt)}</span>
                   <StatusBadge tone="neutral">{outcomeLabel(call.outcome)}</StatusBadge>
-                  <span className="font-mono text-zinc-400">{formatCallDuration(call.durationSeconds)}</span>
+                  <span className="font-mono text-zinc-400">{call.durationSeconds == null ? "—" : formatDuration(call.durationSeconds)}</span>
                   <Link href={`/call-logs/${call.id}/review`} className="ml-auto font-semibold text-zinc-300 hover:text-zinc-100">
                     Otevřít kontrolu →
                   </Link>
@@ -146,7 +136,7 @@ export function TeamOperatorDetailPanel({
                   <li key={order.id} className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800/80 px-3 py-2 text-xs">
                     <Link href={`/orders/${order.id}`} className="font-mono text-zinc-300 hover:text-zinc-100">#{order.id.slice(0, 8)}</Link>
                     <span className="text-zinc-500">{formatDate(order.createdAt)}</span>
-                    <span className="font-mono text-zinc-300">{order.currency} {order.totalAmount.toFixed(2)}</span>
+                    <span className="font-mono text-zinc-300">{formatCurrencyAmount(order.totalAmount, order.currency)}</span>
                   </li>
                 ))}
               </ul>

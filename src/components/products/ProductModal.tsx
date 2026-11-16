@@ -19,7 +19,8 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<ProductCategory>("supplements");
   const [price, setPrice] = useState<number>(49.99);
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("CZK");
+  const [confirmMissingCurrency, setConfirmMissingCurrency] = useState(false);
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [stockCount, setStockCount] = useState<number>(50);
@@ -31,11 +32,12 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
     if (!isOpen) return;
     const timer = setTimeout(() => {
       setSaveError(null);
+      setConfirmMissingCurrency(false);
       if (product) {
         setTitle(product.title);
         setCategory(product.category);
         setPrice(product.price);
-        setCurrency(product.currency || "USD");
+        setCurrency(product.currency || "CZK");
         setDescription(product.description);
         setImageUrl(product.image_url);
         setStockCount(product.stock_count ?? 50);
@@ -44,7 +46,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
         setTitle("");
         setCategory("supplements");
         setPrice(49.99);
-        setCurrency("USD");
+        setCurrency("CZK");
         setDescription("");
         setImageUrl("");
         setStockCount(50);
@@ -63,7 +65,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
       title,
       category,
       price: Number(price),
-      currency,
+      ...(!product || currency !== product.currency || (product.currencyMissing && confirmMissingCurrency) ? { currency } : {}),
       description,
       image_url: imageUrl.trim(),
       stock_count: Number(stockCount),
@@ -139,7 +141,7 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
             </div>
 
             <div>
-              <FieldLabel htmlFor="product-price">Cena (USD) *</FieldLabel>
+              <FieldLabel htmlFor="product-price">Cena *</FieldLabel>
                 <TextField
                   id="product-price"
                   type="number"
@@ -149,6 +151,26 @@ export function ProductModal({ product, isOpen, onClose, onSaved }: ProductModal
                   onChange={(e) => setPrice(Number(e.target.value))}
                 />
             </div>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="product-currency">Kód měny *</FieldLabel>
+            <TextField
+              id="product-currency"
+              type="text"
+              required
+              pattern="[A-Za-z]{3}"
+              maxLength={3}
+              title="Zadejte třípísmenný kód měny, například CZK nebo EUR."
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+            />
+            {product?.currencyMissing && (
+              <label className="mt-2 flex items-start gap-2 text-sm text-zinc-400">
+                <input type="checkbox" checked={confirmMissingCurrency} onChange={(e) => setConfirmMissingCurrency(e.target.checked)} />
+                Uložit uvedenou měnu k produktu. Bez toho jej nelze bezpečně použít v objednávce.
+              </label>
+            )}
           </div>
 
           {/* Image URL Input */}

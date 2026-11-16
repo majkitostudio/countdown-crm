@@ -50,6 +50,8 @@ export function ProductCard({
         <ProductImage
           src={imageSource}
           alt={product.title}
+          width={600}
+          height={400}
           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
           fallbackClassName="flex h-full w-full flex-col items-center justify-center gap-2 text-zinc-600"
           iconClassName="h-8 w-8"

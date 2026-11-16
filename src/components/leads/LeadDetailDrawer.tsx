@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { FieldLabel, SelectField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
+import { LEAD_STATUSES, getLeadStatusLabel } from "@/lib/leadStatus";
 
 interface LeadDetailDrawerProps {
   lead: Lead | null;
@@ -182,11 +183,11 @@ export function LeadDetailDrawer({
                   value={currentLead.status}
                   onChange={(e) => handleStatusChange(e.target.value as Lead["status"])}
                 >
-                  <option value="new">Nový</option>
-                  <option value="contacted">Kontaktovaný</option>
-                  <option value="qualified">Kvalifikovaný</option>
-                  <option value="customer">Zákazník</option>
-                  <option value="unresponsive">Nereaguje</option>
+                  {LEAD_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {getLeadStatusLabel(status)}
+                    </option>
+                  ))}
                 </SelectField>
                 {statusError && (
                   <StatusAlert tone="danger">

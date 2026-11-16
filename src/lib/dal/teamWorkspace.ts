@@ -36,8 +36,8 @@ export interface TeamWorkspaceOrderSummary {
   operatorName: string;
   status: TeamWorkspaceOrder["status"];
   source: string;
-  totalAmount: number;
-  currency: string;
+  totalAmount: number | null;
+  currency: string | null;
   createdAt: string;
 }
 
@@ -53,7 +53,7 @@ export interface TeamWorkspaceRecentCall {
   id: string;
   operatorId: string | null;
   outcome: TeamWorkspaceCall["outcome"];
-  durationSeconds: number;
+  durationSeconds: number | null;
   createdAt: string;
 }
 
@@ -251,7 +251,7 @@ function mapRecentCallsByOperator(calls: CallRow[]): Record<string, TeamWorkspac
       id: call.id,
       operatorId: call.agent_id,
       outcome: call.outcome,
-      durationSeconds: Number(call.duration_seconds || 0),
+      durationSeconds: call.duration_seconds == null ? null : Number(call.duration_seconds),
       createdAt: call.created_at,
     })),
     TEAM_WORKSPACE_RECENT_CALLS_PER_OPERATOR,
@@ -266,8 +266,8 @@ function mapOrders(rows: OrderRow[], operators: WorkspaceMemberDTO[]): TeamWorks
     operatorName: row.agent_id ? operatorNames.get(row.agent_id) || "Neznámý operátor" : "Nepřiřazeno",
     status: row.status,
     source: row.order_source,
-    totalAmount: Number(row.total_amount || 0),
-    currency: row.currency || "—",
+    totalAmount: row.total_amount == null ? null : Number(row.total_amount),
+    currency: row.currency,
     createdAt: row.created_at,
   }));
 }

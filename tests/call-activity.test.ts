@@ -97,6 +97,18 @@ describe("CallActivityChart wiring", () => {
     expect(component).not.toContain("peak-hour assumptions");
   });
 
+  it("uses semantic theme tokens for chart colors", () => {
+    const component = readFileSync(
+      path.join(projectRoot, "src", "components", "dashboard", "CallActivityChart.tsx"),
+      "utf8",
+    );
+
+    expect(component).toContain("var(--color-text-muted)");
+    expect(component).toContain("var(--color-surface-overlay)");
+    expect(component).toContain("var(--color-border-strong)");
+    expect(component).not.toMatch(/#[\da-f]{3,8}\b/i);
+  });
+
   it("computes the chart payload from the calls already loaded for analytics", () => {
     const analytics = readFileSync(path.join(projectRoot, "src", "lib", "analytics.ts"), "utf8");
 

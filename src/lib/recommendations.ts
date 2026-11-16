@@ -19,9 +19,9 @@ export function getCrossSellRecommendations(
   if (!primaryProduct || allProducts.length === 0) return [];
 
   // Filter out the primary product
-  const primaryCurrency = (primaryProduct.currency || "USD").toUpperCase();
+  const primaryCurrency = (primaryProduct.currency || "CZK").toUpperCase();
   const otherProducts = allProducts.filter(
-    (p) => p.id !== primaryProduct.id && (p.currency || "USD").toUpperCase() === primaryCurrency,
+    (p) => p.id !== primaryProduct.id && (p.currency || "CZK").toUpperCase() === primaryCurrency,
   );
 
   // Check if primary product explicitly specifies cross_sell_ids

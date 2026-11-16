@@ -69,7 +69,7 @@ function validateProductInput(input: ProductInput): ProductInput {
   }
 
   const title = input.title.trim();
-  const currency = input.currency?.trim() || "USD";
+  const currency = input.currency?.trim().toUpperCase() ?? "CZK";
   const description = input.description?.trim() || null;
   const image_url = input.image_url?.trim() || null;
 
@@ -85,8 +85,8 @@ function validateProductInput(input: ProductInput): ProductInput {
     throw new DataAccessError("VALIDATION", "Cena produktu musí být číslo od 0 do 1 000 000 000.");
   }
 
-  if (currency.length > 10) {
-    throw new DataAccessError("VALIDATION", "Měna produktu může mít nejvýše 10 znaků.");
+  if (!/^[A-Z]{3}$/.test(currency)) {
+    throw new DataAccessError("VALIDATION", "Zadejte třípísmenný kód měny, například CZK nebo EUR.");
   }
 
   if (description && description.length > 5000) {
@@ -119,7 +119,7 @@ function mapProduct(row: ProductRow): ProductDTO {
     title: row.title,
     category: row.category,
     price: Number(row.price),
-    currency: row.currency || "USD",
+    currency: row.currency,
     description: row.description,
     image_url: row.image_url,
     in_stock: row.in_stock ?? true,

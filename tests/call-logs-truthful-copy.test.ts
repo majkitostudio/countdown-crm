@@ -28,12 +28,15 @@ describe("Call Logs truthful transcript copy", () => {
     expect(source).toContain("reviewStatusLabel(c.review_status)");
   });
 
-  it("does not assign an unsupported currency or sum call values as revenue", () => {
+  it("formats call values with the app's default currency and does not sum them as revenue", () => {
     expect(source).not.toContain('formatCurrencyAmount(totalSalesVolume, "CZK")');
     expect(source).not.toContain("label=\"Tržby\"");
-    expect(source).toContain("U částek v záznamech hovorů není uložena měna.");
-    expect(source).toContain("Hodnota u hovoru (měna neuvedena)");
+    expect(source).toContain('formatCurrencyAmount(c.order_value, "CZK")');
+    expect(source).toContain("Hodnota u hovoru");
+    expect(source).not.toContain("měna neuvedena");
+    expect(source).not.toContain("bez měny");
+    expect(source).toContain("souhrn zde není k dispozici.");
     expect(drawer).not.toContain("${call.order_value.toFixed(2)}");
-    expect(drawer).toContain("Hodnota · měna neuvedena");
+    expect(drawer).toContain('formatCurrencyAmount(call.order_value, "CZK")');
   });
 });

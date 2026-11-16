@@ -60,7 +60,7 @@ describe("user wallet MVP contract", () => {
     expect(walletPage).toContain("getWalletOverview");
     expect(walletPage).toContain("Zatím žádné transakce v peněžence");
     expect(walletPage).toContain("state === \"unavailable\"");
-    expect(walletPage).toContain("Odvozeno z zaúčtovaných transakcí deníku");
+    expect(walletPage).toContain("Odvozeno ze zaúčtovaných transakcí deníku");
     expect(walletPage).toContain('WalletManagerPanel mode="adjustment"');
     expect(workspaceSettingsPanel).toContain('WalletManagerPanel mode="settings"');
     expect(workspaceSettingsPanel).toContain('data-testid="wallet-settings-boundary"');
@@ -74,9 +74,9 @@ describe("user wallet MVP contract", () => {
   });
 
   it("uses the wallet's tabular monospace style for available KPI amounts", () => {
-    expect(walletPage).toContain('<span className="font-mono tabular-nums">{formatAmount(amount, currency)}</span>');
-    expect(walletPage).toContain("value={formatMetricAmount(visibleBalance, presentationCurrency)}");
-    expect(walletPage).toContain("value={formatMetricAmount(totalCredits, presentationCurrency)}");
-    expect(walletPage).toContain("value={formatMetricAmount(totalDebits, presentationCurrency)}");
+    expect(walletPage).toContain('<span className="font-mono tabular-nums">{formatCurrencyAmount(amount, currency)}</span>');
+    expect(walletPage).toContain("value={formatMetricAmount(visibleBalance, presentationCurrency, metricEmptyLabel)}");
+    expect(walletPage).toContain("value={formatMetricAmount(totalCredits, presentationCurrency, metricEmptyLabel)}");
+    expect(walletPage).toContain("value={formatMetricAmount(totalDebits, presentationCurrency, metricEmptyLabel)}");
   });
 });

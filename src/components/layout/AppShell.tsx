@@ -43,7 +43,7 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [isMobileNavigationOpen, isMobileViewport]);
 
-  if (pathname === "/login") {
+  if (pathname === "/login" || pathname === "/auth/forgot-password" || pathname === "/auth/update-password") {
     return <>{children}</>;
   }
 

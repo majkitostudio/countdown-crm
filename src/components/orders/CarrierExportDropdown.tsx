@@ -62,7 +62,10 @@ export function CarrierExportDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const disabled = orders.length === 0;
+  const incompleteOrders = orders.filter((order) =>
+    order.total_amount == null || !Number.isFinite(order.total_amount) || !order.currency?.trim()
+  ).length;
+  const disabled = orders.length === 0 || incompleteOrders > 0;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -81,7 +84,7 @@ export function CarrierExportDropdown({
 
   function handleSelectFormat(format: CarrierFormat) {
     setIsOpen(false);
-    if (orders.length === 0) return;
+    if (disabled) return;
 
     exportOrdersToCarrierCsv(orders, {
       format,
@@ -109,6 +112,11 @@ export function CarrierExportDropdown({
           aria-hidden="true"
         />
       </Button>
+      {incompleteOrders > 0 && (
+        <p className="mt-1 text-xs text-amber-300">
+          Export není možný: u {incompleteOrders} objednávek chybí částka nebo měna.
+        </p>
+      )}
 
       {isOpen && (
         <div

@@ -4,17 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarClock, CheckCircle2, ClipboardList, Coins, PhoneCall } from "lucide-react";
 import { loadDashboardDailyBriefAction, type DashboardDailyBriefActionResult } from "@/app/actions/dashboard";
-import { formatCurrencyAmounts } from "@/lib/currency";
+import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
 
 type BriefState = DashboardDailyBriefActionResult | { status: "loading" };
-
-function formatAmount(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
 
 function formatDate(date: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${date}T12:00:00.000Z`));
@@ -30,9 +22,7 @@ export function TeamLeaderDailyBriefCard() {
     async function loadBrief() {
       try {
         const result = await loadDashboardDailyBriefAction();
-        setState({
-          ...result,
-        });
+        if (!cancelled) setState(result);
       } catch {
         if (!cancelled) setState({ status: "unavailable", message: "Denní souhrn není momentálně dostupný." });
       }
@@ -73,7 +63,18 @@ export function TeamLeaderDailyBriefCard() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <BriefMetric label="Dnešní hovory" value={String(readyState.brief.daily.calls)} icon={PhoneCall} />
             <BriefMetric label="Dnešní objednávky" value={String(readyState.brief.daily.completedOrders)} icon={CheckCircle2} />
-            <BriefMetric label="Dnešní příjmy" value={formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)} icon={Coins} />
+            <BriefMetric
+              label="Dnešní příjmy"
+              value={readyState.brief.daily.completedOrders === 0
+                ? formatCurrencyAmount(0, "CZK")
+                : readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0
+                  ? "—"
+                  : formatCurrencyAmounts(readyState.brief.daily.revenueByCurrency)}
+              detail={readyState.brief.daily.completedOrdersWithoutCurrencyCount > 0
+                ? `u ${readyState.brief.daily.completedOrdersWithoutCurrencyCount} objednávek chybí měna`
+                : undefined}
+              icon={Coins}
+            />
             <BriefMetric label="Naplánované hovory" value={String(readyState.brief.scheduledCallsToAttend)} icon={CalendarClock} detail={`${readyState.brief.overdueScheduledCalls} po termínu`} />
           </div>
 
@@ -83,17 +84,25 @@ export function TeamLeaderDailyBriefCard() {
             <BriefDetail
               label="Ke kontrole"
               value={readyState.brief.pendingReviews === null
-                ? "Nedostupné"
+                ? "—"
                 : readyState.brief.pendingReviews === 0
                   ? "Všechny hovory zkontrolovány"
                   : String(readyState.brief.pendingReviews)}
               href="/call-logs?review=unreviewed"
             />
-            {readyState.brief.workspaceWalletBalance === null ? (
-              <BriefDetail label="Celofiremní peněženka" value="Nedostupná" href="/wallet" />
-            ) : (
-              <BriefDetail label="Celofiremní peněženka" value={`${formatAmount(readyState.brief.workspaceWalletBalance, readyState.brief.walletCurrency || "CZK")} • ${readyState.brief.workspaceWalletTransactions} transakcí`} href="/wallet" />
-            )}
+            <BriefDetail
+              label="Peněženka pracovního prostoru"
+              value={
+                readyState.brief.walletState === "available" &&
+                readyState.brief.workspaceWalletBalance !== null &&
+                readyState.brief.walletCurrency
+                  ? `${formatCurrencyAmount(readyState.brief.workspaceWalletBalance, readyState.brief.walletCurrency)} • ${readyState.brief.workspaceWalletTransactions ?? 0} transakcí`
+                  : readyState.brief.walletState === "unrecorded"
+                    ? formatCurrencyAmount(0, readyState.brief.walletCurrency)
+                    : "—"
+              }
+              href="/wallet"
+            />
           </div>
 
           {readyState.warnings.length > 0 && <p role="status" className="text-[11px] text-amber-300/80">Částečný souhrn: {readyState.warnings.join(" ")}</p>}

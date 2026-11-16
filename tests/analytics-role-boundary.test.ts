@@ -189,9 +189,69 @@ describe("analytics server role boundary", () => {
     expect(client.filtersByTable.calls?.some((filter) => filter.startsWith("team_id in"))).toBe(false);
   });
 
+  it("counts completed orders without currency without inventing revenue or a currency", async () => {
+    mocks.createDataClient.mockResolvedValue(createAnalyticsClient({
+      orders: [{
+        id: "order-no-currency",
+        workspace_id: "workspace-1",
+        team_id: "team-1",
+        agent_id: "agent-1",
+        status: "completed",
+        total_amount: 125,
+        currency: null,
+        created_at: "2026-08-26T10:00:00.000Z",
+      }],
+    }));
+
+    const result = await getAnalyticsData("workspace-1");
+
+    expect(result.revenueByCurrency).toEqual([]);
+    expect(result.completedOrdersCount).toBe(1);
+    expect(result.completedOrdersWithoutCurrencyCount).toBe(1);
+    expect(result.totalRevenue).toBeNull();
+    expect(result.avgOrderValue).toBeNull();
+    expect(result.currencies).toEqual([]);
+    expect(result.teamLeaderboard[0]).toMatchObject({
+      ordersCount: 1,
+      ordersWithoutCurrencyCount: 1,
+      revenueByCurrency: [],
+      revenueCurrency: null,
+      revenueGenerated: null,
+    });
+  });
+
+  it("preserves actual zero revenue but marks an incomplete revenue total as unknown", async () => {
+    const order = {
+      workspace_id: "workspace-1",
+      team_id: "team-1",
+      agent_id: "agent-1",
+      status: "completed",
+      total_amount: 0,
+      currency: "CZK",
+      created_at: "2026-08-26T10:00:00.000Z",
+    };
+    mocks.createDataClient.mockResolvedValueOnce(createAnalyticsClient({ orders: [{ ...order, id: "zero" }] }));
+    const complete = await getAnalyticsData("workspace-1");
+    expect(complete.teamLeaderboard[0].revenueGenerated).toBe(0);
+    expect(complete.completedOrdersCount).toBe(1);
+
+    mocks.createDataClient.mockResolvedValueOnce(createAnalyticsClient({
+      orders: [{ ...order, id: "zero" }, { ...order, id: "missing", currency: "  ", total_amount: 125 }],
+    }));
+    const incomplete = await getAnalyticsData("workspace-1");
+    expect(incomplete.teamLeaderboard[0]).toMatchObject({
+      ordersCount: 2,
+      ordersWithoutCurrencyCount: 1,
+      revenueByCurrency: [{ currency: "CZK", amount: 0 }],
+      revenueGenerated: null,
+    });
+    expect(incomplete.totalRevenue).toBeNull();
+    expect(incomplete.avgOrderValue).toBeNull();
+  });
+
   it.each([
     ["calls", { calls: "unavailable", orders: "ready" }, { totalCalls: 0, totalRevenue: 125 }],
-    ["orders", { calls: "ready", orders: "unavailable" }, { totalCalls: 1, totalRevenue: 0 }],
+    ["orders", { calls: "ready", orders: "unavailable" }, { totalCalls: 1, totalRevenue: null }],
     ["profiles", { operators: "unavailable" }, { totalCalls: 1, totalRevenue: 125 }],
     ["teams", { teams: "unavailable" }, { totalCalls: 1, totalRevenue: 125 }],
   ] as const)("keeps healthy analytics when the %s source is unavailable", async (failedSource, expectedSources, expectedValues) => {

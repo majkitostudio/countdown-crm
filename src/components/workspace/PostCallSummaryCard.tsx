@@ -22,6 +22,7 @@ import {
 } from "@/lib/workflows/types";
 import { Button } from "@/components/ui/Button";
 import { Surface } from "@/components/ui/Surface";
+import { formatDuration } from "@/lib/utils";
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -93,7 +94,7 @@ export function PostCallSummaryCard({ summary, onDismiss, onNextLead, saveState 
               Souhrn hovoru
             </h2>
             <p className="text-[10px] text-zinc-500 font-mono">
-              {summary.leadName} • {summary.outcomeLabel} • {Math.round(summary.durationSeconds / 60)}m
+              {summary.leadName} • {summary.outcomeLabel} • {formatDuration(summary.durationSeconds)}
               {failureCount > 0 && ` • selhalo: ${failureCount}`}
               {unavailableCount > 0 && ` • nedostupné: ${unavailableCount}`}
               {simulationCount > 0 && ` • simulované: ${simulationCount}`}

@@ -38,7 +38,7 @@ export function TeamCheckpointQualitySection({
           </p>
         ) : qualityPendingCount === 0 ? (
           <p className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 text-center text-xs text-zinc-500">
-            Všechna zpracovaná hovora vypadají v pořádku.
+            Všechny zpracované hovory vypadají v pořádku.
           </p>
         ) : (
           <p className="text-xs text-zinc-400">

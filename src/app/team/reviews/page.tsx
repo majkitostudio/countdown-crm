@@ -6,18 +6,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { TeamWorkspaceTabs } from "@/components/team/TeamWorkspaceTabs";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
+import { formatDuration } from "@/lib/utils";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-}
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainder = seconds % 60;
-  return `${minutes}:${remainder.toString().padStart(2, "0")}`;
 }
 
 export default async function TrainingReviewsPage() {

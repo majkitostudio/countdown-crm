@@ -47,6 +47,7 @@ describe("product script section structure", () => {
 
     expect(panel).toContain("operator-script-reading-flow");
     expect(panel).not.toContain("[&_mark]");
+    expect(panel).toContain('text-xs text-zinc-400">Ptejte se při naslouchání');
   });
 
   it("shows the immutable call snapshot instead of a newer current script", () => {

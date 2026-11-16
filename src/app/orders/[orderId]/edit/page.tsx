@@ -132,7 +132,7 @@ export default async function OrderEditPage({
           title: product.title,
           category: product.category,
           price: Number(product.price),
-          currency: product.currency || "USD",
+          currency: product.currency,
           in_stock: product.in_stock ?? true,
         }))}
         initialOrigin={result.origin}

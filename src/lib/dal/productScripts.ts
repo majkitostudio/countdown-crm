@@ -78,7 +78,7 @@ function mapScriptProduct(row: ProductRow): Product {
     title: row.title,
     category: row.category,
     price: Number(row.price),
-    currency: row.currency || "USD",
+    currency: row.currency || "CZK",
     description: row.description || "",
     image_url: row.image_url || "",
     in_stock: row.in_stock ?? true,

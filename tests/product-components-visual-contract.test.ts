@@ -24,6 +24,8 @@ describe("product component visual contract", () => {
     expect(objectionDrawer).toContain('import { Button } from "@/components/ui/Button"');
     expect(objectionDrawer).toContain('import { Surface } from "@/components/ui/Surface"');
     expect(objectionDrawer).toContain('import { StatusAlert } from "@/components/ui/Status"');
+    expect(objectionDrawer).toContain('import { formatCurrencyAmount } from "@/lib/currency"');
+    expect(objectionDrawer).toContain("formatCurrencyAmount(product.price, product.currency)");
     expect(objectionEditor).toContain('import { Button } from "@/components/ui/Button"');
     expect(objectionEditor).toContain('import { Surface } from "@/components/ui/Surface"');
     expect(objectionEditor).toContain('import { StatusAlert } from "@/components/ui/Status"');

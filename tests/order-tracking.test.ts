@@ -207,7 +207,7 @@ describe("Milestone 1.3: Order Tracking & Carrier Integration", () => {
       expect(leadOrdersSection).toContain("data-testid=\"lead-orders-section\"");
       expect(leadOrdersSection).toContain("getCarrierTrackingUrl");
       expect(leadOrdersSection).toContain("Sledovat balíček");
-      expect(leadOrdersSection).toContain("Historie objednávek & Sledování zásilek");
+      expect(leadOrdersSection).toContain("Objednávky a zásilky");
     });
   });
 });

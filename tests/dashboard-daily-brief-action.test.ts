@@ -47,6 +47,7 @@ const analytics = {
     date: "2026-09-14",
     calls: 2,
     completedOrders: 1,
+    completedOrdersWithoutCurrencyCount: 0,
     revenue: 100,
     revenueByCurrency: [{ currency: "CZK", amount: 100 }],
     currency: "CZK",
@@ -65,6 +66,10 @@ const emptyCalendar = {
 const wallet = {
   settings: { currency: "CZK" },
   balances: [{ balance: 250, transaction_count: 3 }],
+  sections: {
+    balances: { state: "available" },
+    settings: { state: "available" },
+  },
 };
 
 beforeEach(() => {
@@ -95,6 +100,44 @@ describe("dashboard Daily Brief scope", () => {
     const result = await loadDashboardDailyBriefAction();
 
     expect(result).toMatchObject({ status: "ready", brief: { scope: "workspace", scopeLabel: "Celý pracovní prostor" } });
+  });
+
+  it("keeps a recorded zero distinct from a missing wallet record", async () => {
+    mocks.getWalletOverview.mockResolvedValue({
+      ...wallet,
+      balances: [{ balance: 0, transaction_count: 0 }],
+    });
+
+    const result = await loadDashboardDailyBriefAction();
+
+    expect(result.status === "ready" && result.brief.walletState).toBe("available");
+    expect(result.status === "ready" && result.brief.workspaceWalletBalance).toBe(0);
+  });
+
+  it("marks a wallet with no balance rows as unrecorded", async () => {
+    mocks.getWalletOverview.mockResolvedValue({ ...wallet, balances: [] });
+
+    const result = await loadDashboardDailyBriefAction();
+
+    expect(result.status === "ready" && result.brief.walletState).toBe("unrecorded");
+    expect(result.status === "ready" && result.brief.workspaceWalletBalance).toBeNull();
+  });
+
+  it("marks a failed wallet section as unavailable instead of zero", async () => {
+    mocks.getWalletOverview.mockResolvedValue({
+      ...wallet,
+      balances: [],
+      sections: {
+        ...wallet.sections,
+        balances: { state: "unavailable", message: "wallet unavailable" },
+      },
+    });
+
+    const result = await loadDashboardDailyBriefAction();
+
+    expect(result.status === "ready" && result.brief.walletState).toBe("unavailable");
+    expect(result.status === "ready" && result.brief.workspaceWalletBalance).toBeNull();
+    expect(result.status === "ready" && result.warnings).toContain("Souhrn peněženky není dostupný.");
   });
 
   it("keeps the brief available when optional sources fail", async () => {

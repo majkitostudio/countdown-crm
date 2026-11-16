@@ -74,7 +74,7 @@ export function TeamLiveOpsStrip({ operators, presence, onOpenOperators }: TeamL
           <Activity className="h-4 w-4 text-zinc-400" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-zinc-100">Provoz na lince teď</h2>
           {summary.total > 0 && summary.counts.available === 0 && (
-            <span className="text-[11px] text-zinc-500">Nikdo volný.</span>
+            <span className="text-xs text-zinc-400">Nikdo volný.</span>
           )}
         </div>
         {onOpenOperators && (
@@ -102,13 +102,13 @@ export function TeamLiveOpsStrip({ operators, presence, onOpenOperators }: TeamL
                 {value}
               </p>
               <p className="mt-2 text-xs font-medium text-zinc-300">{card.label}</p>
-              <p className="mt-1 text-[10.5px] leading-snug text-zinc-500">{card.hint}</p>
+              <p className="mt-1 text-xs leading-snug text-zinc-400">{card.hint}</p>
             </div>
           );
         })}
       </div>
 
-      <p className="mt-3 text-[11px] text-zinc-500">
+      <p className="mt-3 text-xs text-zinc-400">
         {presenceNote(summary)}
       </p>
     </section>

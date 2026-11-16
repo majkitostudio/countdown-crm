@@ -14,6 +14,8 @@ import {
   type CustomerActivityPage,
   type CustomerActivityPageOptions,
 } from "@/lib/customerActivity";
+import { formatDuration } from "@/lib/utils";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 type CallRow = Database["public"]["Tables"]["calls"]["Row"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -30,12 +32,12 @@ export type WorkspaceCallDTO = {
   lead_name: string;
   agent_id: string | null;
   agent_name: string;
-  duration_seconds: number;
+  duration_seconds: number | null;
   outcome: CallRow["outcome"];
   fail_reason: CallRow["fail_reason"];
   operator_note: string | null;
   sentiment: string;
-  order_value: number;
+  order_value: number | null;
   transcript: string | null;
   created_at: string;
 };
@@ -59,8 +61,8 @@ export type WorkspaceOrderDTO = {
   product_title: string;
   agent_id: string | null;
   agent_name: string;
-  total_amount: number;
-  currency: string;
+  total_amount: number | null;
+  currency: string | null;
   items: WorkspaceOrderItemDTO[];
   status: OrderRow["status"];
   order_source: OrderRow["order_source"];
@@ -298,8 +300,8 @@ function mapDirectOrder(payload: DirectOrderPayload): WorkspaceOrderDTO {
     product_title: items[0]?.product_title || payload.product_title || "Neznámý produkt",
     agent_id: payload.agent_id,
     agent_name: payload.agent_name?.trim() || "Neznámý operátor",
-    total_amount: Number(payload.total_amount || 0),
-    currency: payload.currency || items[0]?.currency || "USD",
+    total_amount: payload.total_amount == null ? null : Number(payload.total_amount),
+    currency: payload.currency?.trim() || null,
     items,
     status: payload.status,
     order_source: payload.order_source,
@@ -326,12 +328,12 @@ function mapDirectCall(call: NonNullable<DirectLeadActivityPayload["calls"]>[num
     lead_name: "Neznámý zákazník",
     agent_id: call.agent_id,
     agent_name: call.agent_name?.trim() || "Neznámý operátor",
-    duration_seconds: call.duration_seconds || 0,
+    duration_seconds: call.duration_seconds,
     outcome: call.outcome,
     fail_reason: call.fail_reason,
     operator_note: call.operator_note,
     sentiment: call.sentiment || "Neutral",
-    order_value: Number(call.order_value || 0),
+    order_value: call.order_value == null ? null : Number(call.order_value),
     transcript: call.transcript,
     created_at: call.created_at,
   };
@@ -504,12 +506,12 @@ export async function listWorkspaceCallsInContext(
     lead_name: customerNameFor(call.lead_id),
     agent_id: call.agent_id,
     agent_name: operatorNameFor(call.agent_id),
-    duration_seconds: call.duration_seconds || 0,
+    duration_seconds: call.duration_seconds,
     outcome: call.outcome,
     fail_reason: call.fail_reason,
     operator_note: call.operator_note,
     sentiment: call.ai_sentiment || "Neutral",
-    order_value: 0,
+    order_value: null,
     transcript: call.transcript,
     created_at: call.created_at,
   }));
@@ -531,12 +533,12 @@ export async function getWorkspaceCall(
     lead_name: customerNameFor(call.lead_id),
     agent_id: call.agent_id,
     agent_name: operatorNameFor(call.agent_id),
-    duration_seconds: call.duration_seconds || 0,
+    duration_seconds: call.duration_seconds,
     outcome: call.outcome,
     fail_reason: call.fail_reason,
     operator_note: call.operator_note,
     sentiment: call.ai_sentiment || "Neutral",
-    order_value: 0,
+    order_value: null,
     transcript: call.transcript,
     created_at: call.created_at,
   };
@@ -637,8 +639,8 @@ function toWorkspaceOrderDTO(
     product_title: items[0]?.product_title || order.products?.title || "Neznámý produkt",
     agent_id: order.agent_id,
     agent_name: operatorName,
-    total_amount: Number(order.total_amount || 0),
-    currency: order.currency || items[0]?.currency || "USD",
+    total_amount: order.total_amount == null ? null : Number(order.total_amount),
+    currency: order.currency?.trim() || null,
     items,
     status: order.status,
     order_source: order.order_source,
@@ -761,7 +763,7 @@ async function loadCustomerActivityEvents(
     (actorId && actorNames.get(actorId)) || "Neznámý operátor";
 
   const callEvents: CustomerActivityEvent[] = calls.map((call) => {
-    const duration = call.duration_seconds || 0;
+    const duration = call.duration_seconds;
     const sentiment = call.ai_sentiment || "Neutral";
     const outcomeLabel = ({
       order_placed: "Objednávka vytvořena",
@@ -786,10 +788,10 @@ async function loadCustomerActivityEvents(
       actor: { id: call.agent_id, display_name: actorNameFor(call.agent_id) },
       preview: {
         title: "Hovor zaznamenán v pracovním prostoru",
-        text: `Délka: ${Math.floor(duration / 60)}m ${duration % 60}s • Výsledek: ${outcomeLabel} • Nálada: ${sentimentLabel}`,
+        text: `Délka: ${duration == null ? "—" : formatDuration(duration)} • Výsledek: ${outcomeLabel} • Nálada: ${sentimentLabel}`,
       },
       metadata: {
-        duration_seconds: duration,
+        duration_seconds: duration ?? undefined,
         call_outcome: call.outcome,
         sentiment,
       },
@@ -798,7 +800,7 @@ async function loadCustomerActivityEvents(
 
   const orderEvents: CustomerActivityEvent[] = orders.map((order) => {
     const productTitle = order.order_items?.[0]?.product_title_snapshot || order.products?.title || "Neznámý produkt";
-    const amount = Number(order.total_amount || 0);
+    const amount = order.total_amount == null ? null : Number(order.total_amount);
     return {
       id: `order:${order.id}`,
       source_entity_id: order.id,
@@ -809,12 +811,12 @@ async function loadCustomerActivityEvents(
       channel: "commerce",
       actor: { id: order.agent_id, display_name: actorNameFor(order.agent_id) },
       preview: {
-        title: `Objednávka zaznamenána (${amount.toFixed(2)} ${order.currency || "USD"})`,
+        title: `Objednávka zaznamenána (${formatCurrencyAmount(amount, order.currency)})`,
         text: previewText(`${productTitle}${order.source_note ? ` • ${order.source_note}` : ""}`),
       },
       metadata: {
-        amount,
-        currency: order.currency || "USD",
+        amount: amount ?? undefined,
+        currency: order.currency?.trim() || undefined,
         order_source: order.order_source,
         source_note: order.source_note || undefined,
       },

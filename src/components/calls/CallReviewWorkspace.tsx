@@ -12,23 +12,18 @@ import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getFailReasonLabel, isFailReason } from "@/lib/postCall";
+import { formatDuration } from "@/lib/utils";
 
 function formatDate(value: string | null): string {
-  if (!value) return "Nezaznamenáno";
+  if (!value) return "—";
   return new Intl.DateTimeFormat("cs-CZ", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
 }
 
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainder = seconds % 60;
-  return `${minutes}m ${remainder.toString().padStart(2, "0")}s`;
-}
-
 function humanize(value: string | null): string {
-  if (!value) return "Nezaznamenáno";
+  if (!value) return "—";
   const labels: Record<string, string> = {
     order_placed: "Objednávka vytvořena",
     followup_scheduled: "Hovor naplánován",

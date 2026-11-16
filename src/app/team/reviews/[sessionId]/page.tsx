@@ -6,14 +6,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Surface } from "@/components/ui/Surface";
 import { TrainingHumanReview } from "@/components/training/TrainingHumanReview";
+import { formatDuration } from "@/lib/utils";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
-}
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}:${(seconds % 60).toString().padStart(2, "0")}`;
 }
 
 export default async function TrainingReviewDetailPage({ params }: { params: Promise<{ sessionId: string }> }) {
@@ -145,8 +141,8 @@ export default async function TrainingReviewDetailPage({ params }: { params: Pro
             <p className="mt-3 text-xs leading-relaxed text-zinc-400">{feedback.length > 0 ? "AI označila konkrétní místa k procvičení níže." : "AI nenašla zásadní opravu."}</p>
           </div></Surface>
           <Surface variant="inset"><div className="p-5">
-            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><LockKeyhole className="h-4 w-4 text-zinc-400" /> Omezení přístupu</h2>
-            <p className="mt-3 text-xs leading-relaxed text-zinc-400">Tato kontrola je dostupná pouze vedoucím týmů a administrátorům ve stejném pracovním prostoru.</p>
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-300"><LockKeyhole className="h-4 w-4 text-zinc-400" /> Kdo může kontrolu zobrazit</h2>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-400">Kontrolu mohou zobrazit vedoucí týmů a administrátoři ve stejném pracovním prostoru.</p>
           </div></Surface>
         </div>
 

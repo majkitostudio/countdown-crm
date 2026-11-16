@@ -68,16 +68,25 @@ export async function addWalletManualAdjustmentAction(input: {
   return result;
 }
 
-export async function getCurrentOperatorCommissionAction(): Promise<{
-  balance: number;
-  currency: string;
-}> {
+export type CurrentOperatorCommissionResult =
+  | { status: "available"; balance: number; currency: string | null }
+  | { status: "unrecorded" }
+  | { status: "unavailable" };
+
+export async function getCurrentOperatorCommissionAction(): Promise<CurrentOperatorCommissionResult> {
   try {
     const overview = await getWalletOverview();
-    const balance = overview.balances.find((b) => b.user_id === overview.currentUserId)?.balance ?? 0;
-    const currency = overview.settings?.currency ?? "CZK";
-    return { balance, currency };
+    if (overview.sections.balances.state !== "available") {
+      return { status: "unavailable" };
+    }
+
+    const currency =
+      overview.sections.settings.state === "available"
+        ? overview.settings?.currency ?? null
+        : null;
+    const balance = overview.balances.find((b) => b.user_id === overview.currentUserId);
+    return { status: "available", balance: balance?.balance ?? 0, currency };
   } catch {
-    return { balance: 0, currency: "CZK" };
+    return { status: "unavailable" };
   }
 }

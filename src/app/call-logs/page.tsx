@@ -8,13 +8,15 @@ import {
   Search,
   Eye,
 } from "lucide-react";
-import { CallRecord, formatCallOutcome, getCalls } from "@/lib/calls";
+import { CallRecord, formatCallOutcome, getCalls, summarizeCallDurations } from "@/lib/calls";
 import { getCallOutcomeClassName } from "@/lib/callOutcomeStyles";
+import { formatCurrencyAmount } from "@/lib/currency";
 import { CallDetailDrawer } from "@/components/calls/CallDetailDrawer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
+import { formatDuration } from "@/lib/utils";
 
 function useReviewQueryFilter() {
   return useSyncExternalStore(
@@ -96,18 +98,10 @@ export default function CallLogsPage() {
   };
 
   const totalCallsCount = calls.length;
-  const avgDuration = totalCallsCount > 0
-    ? Math.round(calls.reduce((acc, c) => acc + c.duration_seconds, 0) / totalCallsCount)
-    : 0;
+  const { average: avgDuration, recordedCount } = summarizeCallDurations(calls);
 
   const salesCompletedCount = calls.filter((c) => c.outcome === "order_placed").length;
   const conversionRate = totalCallsCount > 0 ? Math.round((salesCompletedCount / totalCallsCount) * 100) : 0;
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
-  };
 
   return (
     <div className="space-y-8 max-w-screen-2xl mx-auto animate-in fade-in duration-120 ease-interface">
@@ -141,11 +135,11 @@ actions={
       {/* KPI Cards Header */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in duration-120 ease-interface">
         <MetricCard label="Zaznamenané hovory" value={totalCallsCount} />
-        <MetricCard label="Průměrné zpracování" value={formatDuration(avgDuration)} />
+        <MetricCard label="Průměrné zpracování" value={avgDuration == null ? "—" : formatDuration(avgDuration)} detail={recordedCount < totalCallsCount ? `Z ${recordedCount} hovorů se zaznamenanou délkou` : undefined} />
         <MetricCard
           label="Objem objednávek u hovorů"
           value="Nelze bezpečně sečíst"
-          detail="U částek v záznamech hovorů není uložena měna."
+          detail="Zobrazuje se hodnota jednotlivých hovorů; souhrn zde není k dispozici."
         />
         <MetricCard label="Konverze" value={`${conversionRate}%`} />
       </div>
@@ -240,7 +234,7 @@ actions={
                 <th className="px-5 py-3">Operátor</th>
                 <th className="px-5 py-3">Délka</th>
                 <th className="px-5 py-3">Výsledek</th>
-                <th className="px-5 py-3">Hodnota u hovoru (měna neuvedena)</th>
+                <th className="px-5 py-3">Hodnota u hovoru</th>
                 <th className="px-5 py-3">Kontrola hovoru</th>
               </tr>
             </thead>
@@ -291,15 +285,14 @@ actions={
                     </div>
                   </td>
                   <td className="px-5 py-3 text-zinc-300">{c.agent_name}</td>
-                  <td className="px-5 py-3 font-mono text-zinc-300">{formatDuration(c.duration_seconds)}</td>
+                  <td className="px-5 py-3 font-mono text-zinc-300">{c.duration_seconds == null ? "—" : formatDuration(c.duration_seconds)}</td>
                   <td className="px-5 py-3">
                     <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono border ${getCallOutcomeClassName(c.outcome)}`}>
                       {formatCallOutcome(c.outcome)}
                     </span>
                   </td>
                   <td className="px-5 py-3 font-mono font-semibold text-zinc-200">
-                    <span>{new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(c.order_value)}</span>
-                    <span className="ml-1.5 text-[10px] font-sans font-normal text-zinc-400">bez měny</span>
+                    <span>{formatCurrencyAmount(c.order_value, "CZK")}</span>
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-between gap-2">

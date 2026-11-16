@@ -258,7 +258,7 @@ export function ProductOrderPanel({
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
             <p className="font-bold">Objednávka #{lastOrderId} byla vytvořena.</p>
-            <p className="text-[11px] text-emerald-200/80">Pro zákazníka {activeLead?.full_name} bylo zaznamenáno {formatCurrencyAmount(grandTotal, selectedProduct?.currency || "USD")}.</p>
+            <p className="text-[11px] text-emerald-200/80">Pro zákazníka {activeLead?.full_name} bylo zaznamenáno {formatCurrencyAmount(grandTotal, selectedProduct?.currency || "CZK")}.</p>
           </div>
         </div>
       )}
@@ -313,7 +313,7 @@ export function ProductOrderPanel({
                     <p className="text-[11px] text-zinc-400 uppercase">{prod.category}</p>
                   </div>
                 </div>
-                <span className="font-mono font-semibold text-zinc-200 shrink-0">{formatCurrencyAmount(prod.price, prod.currency || "USD")}</span>
+                <span className="font-mono font-semibold text-zinc-200 shrink-0">{formatCurrencyAmount(prod.price, prod.currency || "CZK")}</span>
               </div>
             );
           })}
@@ -381,7 +381,7 @@ export function ProductOrderPanel({
             <span className="font-semibold uppercase tracking-wider text-zinc-400 text-[11px]">
               Cenový schod pro vyjednávání v hovoru:
             </span>
-            <span className="text-zinc-500 text-[11px]">Zvolte podle reakce klienta</span>
+            <span className="text-xs text-zinc-400">Zvolte podle reakce klienta</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -541,6 +541,8 @@ export function ProductOrderPanel({
               <ProductImage
                 src={resolveProductImageSource(topRec.recommendedProduct, products)}
                 alt={topRec.recommendedProduct.title}
+                width={36}
+                height={36}
                 className="h-9 w-9 shrink-0 rounded-lg border border-zinc-800 object-cover"
                 fallbackClassName="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-500"
                 iconClassName="h-4 w-4"
@@ -548,8 +550,8 @@ export function ProductOrderPanel({
               <div>
                 <p className="font-semibold text-xs text-zinc-100 line-clamp-1">{topRec.recommendedProduct.title}</p>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono">
-                  <span className="line-through text-zinc-500">{formatCurrencyAmount(topRec.originalPrice, topRec.recommendedProduct.currency || "USD")}</span>
-                  <span className="text-zinc-100 font-semibold">{formatCurrencyAmount(topRec.bundlePrice, topRec.recommendedProduct.currency || "USD")}</span>
+                  <span className="line-through text-zinc-500">{formatCurrencyAmount(topRec.originalPrice, topRec.recommendedProduct.currency || "CZK")}</span>
+                  <span className="text-zinc-100 font-semibold">{formatCurrencyAmount(topRec.bundlePrice, topRec.recommendedProduct.currency || "CZK")}</span>
                 </div>
               </div>
             </div>
@@ -659,7 +661,7 @@ export function ProductOrderPanel({
         <section className="space-y-2 border-t border-zinc-800 pt-3">
           <div>
             <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Poznámky k leadu z konzultace</h3>
-            <p className="mt-1 text-[11px] text-zinc-500">Předchozí poznámky pro kontext objednávky.</p>
+            <p className="mt-1 text-xs text-zinc-400">Předchozí poznámky pro kontext objednávky.</p>
           </div>
           <div className="max-h-32 overflow-y-auto whitespace-pre-wrap rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-3 text-xs leading-relaxed text-zinc-300">
             {formattedLeadNotes}

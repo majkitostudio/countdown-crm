@@ -65,7 +65,7 @@ describe("manual order delivery address contract", () => {
     mocks.createDataClient.mockResolvedValue({
       rpc,
       from: vi.fn((table: string) => table === "products"
-        ? createQuery([{ id: "product-1" }])
+        ? createQuery([{ id: "product-1", currency: "CZK" }])
         : createQuery([{ product_id: "product-1" }])),
     });
 

@@ -12,6 +12,7 @@ import {
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CallStatusBar } from "@/components/workspace/CallStatusBar";
+import { formatCurrencyAmount } from "@/lib/currency";
 import { getStatusClassName } from "@/components/ui/Status";
 import { getSurfaceClassName } from "@/components/ui/Surface";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -164,6 +165,25 @@ it("restores focus to the command-palette opener after Escape and traps Tab with
 
   dispatchWindowKey("Escape");
   expect(document.activeElement).toBe(trigger);
+});
+
+it("formats product prices in the command palette using each product currency", async () => {
+  mocks.getProducts.mockResolvedValueOnce([
+    { id: "czk-product", title: "CZK produkt", category: "supplements", price: 125, currency: "CZK" },
+    { id: "eur-product", title: "EUR produkt", category: "supplements", price: 12.5, currency: "EUR" },
+  ]);
+  mount(createElement(CommandPalette));
+  dispatchWindowKey("k", { ctrlKey: true });
+
+  await act(async () => {
+    await Promise.resolve();
+  });
+
+  const text = document.body.textContent ?? "";
+  expect(text).toContain(formatCurrencyAmount(125, "CZK"));
+  expect(text).toContain(formatCurrencyAmount(12.5, "EUR"));
+  expect(text).not.toContain("$125");
+  expect(text).not.toContain("$12.5");
 });
 
 describe("sidebar operator-status menu", () => {

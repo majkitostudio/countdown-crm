@@ -85,6 +85,13 @@ const mockOrderWithoutSnapshot: WorkspaceOrderDTO = {
 };
 
 describe("Milestone 1.2: Carrier Export Service", () => {
+  it("blocks the entire export if an amount or currency is missing, but accepts zero", () => {
+    for (const format of ["zasilkovna", "balikovna", "gls", "universal"] as const) {
+      expect(() => buildCarrierCsv([mockOrderWithSnapshot, { ...mockOrderWithoutSnapshot, total_amount: null }], format)).toThrow(/chybí částka nebo měna/);
+      expect(() => buildCarrierCsv([{ ...mockOrderWithSnapshot, currency: null }], format)).toThrow(/chybí částka nebo měna/);
+      expect(buildCarrierCsv([{ ...mockOrderWithSnapshot, total_amount: 0 }], format)).toContain("0.00");
+    }
+  });
   describe("escapeCsvField", () => {
     it("escapes fields with commas, quotes, and newlines safely", () => {
       expect(escapeCsvField("Hello, world")).toBe('"Hello, world"');

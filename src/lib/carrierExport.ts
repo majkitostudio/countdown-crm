@@ -59,6 +59,9 @@ function splitStreet(line1: string): { street: string; number: string } {
 }
 
 export function normalizeOrderForCarrier(order: WorkspaceOrderDTO): NormalizedOrderForCarrier {
+  if (order.total_amount == null || !Number.isFinite(order.total_amount) || !order.currency?.trim()) {
+    throw new Error("Export není možný: u některých objednávek chybí částka nebo měna.");
+  }
   let rawSnapshot = order.delivery_address_snapshot;
   if (typeof rawSnapshot === "string") {
     try {
@@ -101,7 +104,7 @@ export function normalizeOrderForCarrier(order: WorkspaceOrderDTO): NormalizedOr
     postalCode,
     country,
     codAmount: order.total_amount,
-    currency: order.currency || "CZK",
+    currency: order.currency,
     productsSummary,
     note: order.source_note?.trim() || "",
     createdAt: order.created_at,

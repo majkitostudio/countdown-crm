@@ -55,11 +55,11 @@ export function TeamCheckpointScheduledCallsSection({
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <Link href={`/leads/${scheduledCall.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{scheduledCall.leadName}</Link>
-                          <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(scheduledCall.scheduledAt)}</p>
+                          <p className="mt-1 text-xs text-zinc-400">Termín: {formatDate(scheduledCall.scheduledAt)}</p>
                         </div>
                         <StatusBadge tone="warning">Po termínu</StatusBadge>
                       </div>
-                      <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
+                      <p className="mt-3 text-xs text-zinc-400">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
                     </div>
                   ))}
                 </div>
@@ -74,11 +74,11 @@ export function TeamCheckpointScheduledCallsSection({
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <Link href={`/leads/${scheduledCall.leadId}`} className="text-sm font-medium text-zinc-200 hover:text-white">{scheduledCall.leadName}</Link>
-                          <p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(scheduledCall.scheduledAt)}</p>
+                          <p className="mt-1 text-xs text-zinc-400">Termín: {formatDate(scheduledCall.scheduledAt)}</p>
                         </div>
                         <StatusBadge tone="info">Naplánovaný</StatusBadge>
                       </div>
-                      <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
+                      <p className="mt-3 text-xs text-zinc-400">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
                     </div>
                   ))}
                 </div>

@@ -13,6 +13,7 @@ import { OrderKanban } from "@/components/orders/OrderKanban";
 import { OrderStageSummary } from "@/components/orders/OrderStageSummary";
 import { getOrderStage, ORDER_STAGE_LABELS, type OrderStage } from "@/lib/orderStage";
 import { getOrderRisk } from "@/lib/orderRisk";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 type ViewMode = "table" | "kanban";
 type PipelineStatus = "all" | "sent_and_returned" | OrderStage;
@@ -416,7 +417,7 @@ export function OrderPipeline({
                       </dd>
                     </div>
                     <div className="min-w-0"><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Operátor</dt><dd className="mt-1 truncate text-zinc-400">{order.agent_name}</dd></div>
-                    <div><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Celkem</dt><dd className="mt-1 font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-zinc-600">Celkem</dt><dd className="mt-1 font-mono font-semibold text-zinc-100">{formatCurrencyAmount(order.total_amount, order.currency)}</dd></div>
                   </dl>
                 </article>
               ))}
@@ -495,7 +496,7 @@ export function OrderPipeline({
                       </div>
                     </td>
                     <td className="px-5 py-4 text-zinc-400">{order.agent_name}</td>
-                    <td className="px-5 py-4 text-right font-mono font-semibold text-zinc-100">{order.currency} {order.total_amount.toFixed(2)}</td>
+                    <td className="px-5 py-4 text-right font-mono font-semibold text-zinc-100">{formatCurrencyAmount(order.total_amount, order.currency)}</td>
                     <td className="px-5 py-4 text-right"><Link href={`/orders/${order.id}?origin=orders`} aria-label={`Otevřít objednávku ${order.id}`} className="inline-flex rounded-lg border border-zinc-800 p-2 text-zinc-500 transition-colors duration-150 ease-interface hover:border-zinc-700 hover:text-zinc-200"><ArrowRight className="h-3.5 w-3.5" /></Link></td>
                   </tr>
                 ))}

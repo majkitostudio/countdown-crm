@@ -5,13 +5,8 @@ import { Activity, ArrowUpRight, Clock, PhoneCall, ShoppingBag, User } from "luc
 import { getRecentActivityAction } from "@/app/actions/analytics";
 import type { AnalyticsActionResult, RecentActivityResult } from "@/lib/analytics";
 import { formatCurrencyAmount } from "@/lib/currency";
+import { formatDuration } from "@/lib/utils";
 import { StatusAlert } from "@/components/ui/Status";
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
-}
 
 function formatTimestamp(timestamp: string): string {
   return new Date(timestamp).toLocaleString("cs-CZ", {
@@ -162,7 +157,7 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
                     {entry.type === "call" ? (
                       <span className="flex items-center gap-1 font-mono">
                         <Clock className="w-3 h-3" />
-                        {formatDuration(entry.durationSeconds || 0)}
+                        {entry.durationSeconds == null ? "—" : formatDuration(entry.durationSeconds)}
                       </span>
                     ) : (
                       <span>{entry.productName}</span>
@@ -180,8 +175,8 @@ export function RecentActivityFeed({ scope = "workspace" }: { scope?: "team" | "
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-900 text-zinc-300 border border-zinc-800">
                   <span className={`w-1.5 h-1.5 rounded-full ${entry.type === "order" && entry.outcome === "completed" ? "bg-emerald-500" : "bg-zinc-400"}`} />
                   {entry.type === "call" ? getCallOutcomeLabel(entry.outcome) : getOrderOutcomeLabel(entry.outcome)}
-                  {entry.type === "order" && typeof entry.amount === "number" && (
-                    <span className="font-mono text-zinc-200">({formatCurrencyAmount(entry.amount, entry.currency ?? "USD")})</span>
+                  {entry.type === "order" && (
+                    <span className="font-mono text-zinc-200">({formatCurrencyAmount(entry.amount, entry.currency)})</span>
                   )}
                 </span>
               </div>

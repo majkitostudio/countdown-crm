@@ -11,18 +11,11 @@ import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/Field";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { getLeadStatusLabel } from "@/lib/leadStatus";
 
 interface TeamOwnershipPanelProps {
   initialData: Pick<TeamManagementData, "teams" | "ownership">;
 }
-
-const LEAD_STATUS_LABELS: Record<string, string> = {
-  new: "Nový",
-  contacted: "Kontaktovaný",
-  qualified: "Kvalifikovaný",
-  customer: "Zákazník",
-  unresponsive: "Nereaguje",
-};
 
 const QUEUE_STATE_LABELS: Record<string, string> = {
   available: "Volná fronta",
@@ -146,11 +139,11 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
             <p className="mt-1 text-xl font-semibold text-text-primary">{unassignedCount}</p>
           </div>
           <div className="rounded-control border border-border-default bg-surface-inset p-4">
-            <p className="text-[11px] uppercase tracking-wider text-text-muted">Zákazníci</p>
+            <p className="text-[11px] uppercase tracking-wider text-text-muted">Zákazníci celkem</p>
             <p className="mt-1 text-xl font-semibold text-text-primary">{data.ownership.leads.length}</p>
           </div>
           <div className="rounded-control border border-border-default bg-surface-inset p-4">
-            <p className="text-[11px] uppercase tracking-wider text-text-muted">Položky fronty</p>
+            <p className="text-[11px] uppercase tracking-wider text-text-muted">Položky fronty celkem</p>
             <p className="mt-1 text-xl font-semibold text-text-primary">{data.ownership.queueItems.length}</p>
           </div>
         </div>
@@ -172,7 +165,7 @@ export function TeamOwnershipPanel({ initialData }: TeamOwnershipPanelProps) {
                   <div key={lead.id} className="grid gap-3 rounded-control border border-border-default bg-surface-inset p-3 sm:grid-cols-[1fr_auto] sm:items-center">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-medium text-text-primary">{lead.full_name}</p>
-                      <p className="truncate text-[11px] text-text-muted">{lead.phone} · {LEAD_STATUS_LABELS[lead.status] ?? lead.status} · {teamLabel(lead.team_id, data.teams)}</p>
+                      <p className="truncate text-[11px] text-text-muted">{lead.phone} · {getLeadStatusLabel(lead.status)} · {teamLabel(lead.team_id, data.teams)}</p>
                     </div>
                     <div className="flex gap-2 sm:min-w-[220px]">
                       <SelectField

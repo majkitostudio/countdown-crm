@@ -170,7 +170,7 @@ export function ProductScriptPanel({
             <CircleHelp className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
             <div>
               <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Zjišťovací otázky</h3>
-              <p className="mt-0.5 text-[10px] text-zinc-500">Ptejte se při naslouchání — v tomto pořadí</p>
+              <p className="mt-0.5 text-xs text-zinc-400">Ptejte se při naslouchání — v tomto pořadí</p>
             </div>
           </div>
           <ol className="mt-2 space-y-1.5">

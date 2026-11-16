@@ -118,6 +118,7 @@ describe("UsersHubPanel Component", () => {
     expect(html).toContain("Operátoři");
     expect(html).toContain("Vedoucí týmů");
     expect(html).toContain("Administrátoři");
+    expect(html).toContain('class="mt-2 text-2xl font-bold tracking-tight text-amber-400">1</div>');
 
     // Members rendered
     expect(html).toContain("Hlavní Admin");

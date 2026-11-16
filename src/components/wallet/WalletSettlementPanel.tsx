@@ -19,6 +19,7 @@ import {
   getMonthlySettlementSummaryAction,
 } from "@/app/actions/wallet";
 import type { MonthlySettlementSummaryDTO } from "@/lib/dal/wallet";
+import { formatCurrencyAmount } from "@/lib/currency";
 import { exportPayrollToCsv, getPayrollSettlementStatus } from "@/lib/payrollExport";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, SelectField } from "@/components/ui/Field";
@@ -31,13 +32,7 @@ interface MonthOption {
   isPast: boolean;
 }
 
-function formatCurrency(amount: number, currency: string): string {
-  return new Intl.NumberFormat("cs-CZ", {
-    style: "currency",
-    currency: currency || "CZK",
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
+const formatCurrency = formatCurrencyAmount;
 
 export function WalletSettlementPanel({
   initialSummary,
@@ -347,7 +342,7 @@ export function WalletSettlementPanel({
                         )}
                       </td>
                       <td className="px-4 py-3.5 text-right font-mono text-amber-300">
-                        {op.fixedBonuses > 0 ? formatCurrency(op.fixedBonuses, currency) : "0 Kč"}
+                    {op.fixedBonuses > 0 ? formatCurrency(op.fixedBonuses, currency) : "0"}
                       </td>
                       <td className="px-4 py-3.5 text-right font-mono text-cyan-300">
                         {formatCurrency(op.commissionAmount, currency)}

@@ -56,11 +56,11 @@ export function TeamQueueAgingStrip({ queueItems, onOpenQueues }: TeamQueueAging
           <Clock3 className="h-4 w-4 text-zinc-400" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-zinc-100">Stárnutí fronty</h2>
           {summary.oldest ? (
-            <span className="text-[11px] text-zinc-500">
+            <span className="text-xs text-zinc-400">
               Nejstarší čeká <span className="font-medium text-status-warning-text">{formatAge(summary.oldest.ageMs)}</span>
             </span>
           ) : (
-            <span className="text-[11px] text-zinc-500">{summary.waiting === 0 ? "Ve frontě nic nečeká." : "Nic není na čase."}</span>
+            <span className="text-xs text-zinc-400">{summary.waiting === 0 ? "Ve frontě nic nečeká." : "Nic není na čase."}</span>
           )}
         </div>
         {onOpenQueues && (
@@ -88,13 +88,13 @@ export function TeamQueueAgingStrip({ queueItems, onOpenQueues }: TeamQueueAging
                 {card.value}
               </p>
               <p className="mt-2 text-xs font-medium text-zinc-300">{card.label}</p>
-              <p className="mt-1 text-[10.5px] leading-snug text-zinc-500">{card.hint}</p>
+              <p className="mt-1 text-xs leading-snug text-zinc-400">{card.hint}</p>
             </div>
           );
         })}
       </div>
 
-      <p className="mt-3 text-[11px] text-zinc-500">
+      <p className="mt-3 text-xs text-zinc-400">
         Čeká celkem {formatLeadCount(summary.waiting)}
         {summary.deferred > 0 ? ` · ${summary.deferred} ještě není na čase (naplánované nebo s nečitelným časem)` : ""}.
       </p>

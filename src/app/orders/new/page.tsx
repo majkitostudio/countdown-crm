@@ -114,7 +114,7 @@ export default async function NewOrderPage({ searchParams }: { searchParams: Sea
           title: product.title,
           category: product.category,
           price: Number(product.price),
-          currency: product.currency || "USD",
+          currency: product.currency,
           in_stock: product.in_stock ?? true,
         }))}
         initialLeadId={requestedLeadId && leads.some((lead) => lead.id === requestedLeadId) ? requestedLeadId : ""}

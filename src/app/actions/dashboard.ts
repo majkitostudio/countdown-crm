@@ -66,10 +66,28 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
     const reminders = calendarEntries
       .filter((entry) => entry.type === "reminder")
       .map((entry) => ({ starts_at: entry.starts_at, status: entry.status }));
-    const wallet = walletResult.status === "fulfilled"
+    const walletOverview = walletResult.status === "fulfilled" ? walletResult.value : null;
+    const walletState = !walletOverview ||
+      walletOverview.sections.balances.state === "unavailable" ||
+      walletOverview.sections.settings.state === "unavailable"
+      ? "unavailable"
+      : walletOverview.sections.balances.state === "not_applicable" ||
+          walletOverview.sections.settings.state === "not_applicable"
+        ? "not_applicable"
+        : walletOverview.balances.length === 0 || !walletOverview.settings?.currency
+          ? "unrecorded"
+          : "available";
+    if (
+      walletOverview &&
+      (walletOverview.sections.balances.state === "unavailable" ||
+        walletOverview.sections.settings.state === "unavailable")
+    ) {
+      warnings.push("Souhrn peněženky není dostupný.");
+    }
+    const wallet = walletState === "available" && walletOverview?.settings?.currency
       ? {
-          currency: walletResult.value.settings?.currency || "CZK",
-          balances: walletResult.value.balances,
+          currency: walletOverview.settings.currency,
+          balances: walletOverview.balances,
         }
       : null;
 
@@ -82,6 +100,7 @@ export async function loadDashboardDailyBriefAction(): Promise<DashboardDailyBri
         reminders,
         pendingReviews: reviewsResult.status === "fulfilled" ? reviewsResult.value : null,
         wallet,
+        walletState,
       }),
       warnings,
     };

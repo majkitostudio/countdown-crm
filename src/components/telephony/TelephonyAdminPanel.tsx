@@ -78,6 +78,7 @@ function formatTime(value: string | null) {
 
 export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephonySettings }) {
   const [status, setStatus] = useState<LocalTelephonyStatus | null>(null);
+  const [statusError, setStatusError] = useState(false);
   const [isTestCallPending, setIsTestCallPending] = useState(false);
   const [testCallState, setTestCallState] = useState<TestCallState>("idle");
   const [testCallError, setTestCallError] = useState<string | null>(null);
@@ -93,21 +94,15 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
         return response.json() as Promise<LocalTelephonyStatus>;
       })
       .then((nextStatus) => {
-        if (isCurrent) setStatus(nextStatus);
+        if (isCurrent) {
+          setStatus(nextStatus);
+          setStatusError(false);
+        }
       })
       .catch(() => {
         if (isCurrent) {
-          setStatus({
-            activeAdapter: settings.active_adapter,
-            asterisk: "Unavailable",
-            extensions: ["1001", "1002"],
-            extensionRegistration: [
-              { extension: "1001", status: "unknown" },
-              { extension: "1002", status: "unknown" },
-            ],
-            activeCalls: [],
-            recentEvents: [],
-          });
+          setStatus(null);
+          setStatusError(true);
         }
       });
     return () => {
@@ -189,13 +184,13 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
         <MetricCard label="Aktivní adaptér" value={settings.active_adapter === "local_sip" ? "Místní SIP" : "Simulace"} />
         <MetricCard
           label="Stav Asterisku"
-          value={status?.asterisk === "Available" ? "Dostupné" : status?.asterisk === "Unavailable" ? "Nedostupné" : "Kontrola..."}
+          value={statusError ? "—" : status?.asterisk === "Available" ? "Dostupné" : status?.asterisk === "Unavailable" ? "Nedostupné" : "Kontrola..."}
           valueTone={status?.asterisk === "Available" ? "success" : status?.asterisk === "Unavailable" ? "danger" : "neutral"}
         />
         <MetricCard
           label="Interní linky"
           value="1001 / 1002"
-          detail={(status?.extensionRegistration || [{ extension: "1001", status: "checking" }, { extension: "1002", status: "checking" }]).map((item) => `${item.extension}: ${REGISTRATION_LABELS[item.status] || item.status}`).join(" · ")}
+          detail={statusError ? "Stav linek se nepodařilo načíst." : (status?.extensionRegistration || [{ extension: "1001", status: "checking" }, { extension: "1002", status: "checking" }]).map((item) => `${item.extension}: ${REGISTRATION_LABELS[item.status] || item.status}`).join(" · ")}
         />
       </section>
 
@@ -232,9 +227,11 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
       <Surface variant="page"><div className="p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-zinc-100">Aktivní hovory</h2>
-          <span className="text-xs text-zinc-500">{status?.activeCalls.length ?? 0}</span>
+          <span className="text-xs text-zinc-500">{status?.activeCalls.length ?? "—"}</span>
         </div>
-        {(status?.activeCalls.length ?? 0) === 0 ? (
+        {!status ? (
+          <p className="mt-3 text-xs text-zinc-500">{statusError ? "Přehled hovorů se nepodařilo načíst." : "Načítání…"}</p>
+        ) : status.activeCalls.length === 0 ? (
           <p className="mt-3 text-xs text-zinc-500">Žádné aktivní místní ani poskytovatelské hovory.</p>
         ) : (
           <div className="mt-3 space-y-2 text-xs text-zinc-300">
@@ -252,9 +249,11 @@ export function TelephonyAdminPanel({ settings }: { settings: WorkspaceTelephony
       <Surface variant="page"><div className="p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-zinc-100">Nedávné události</h2>
-          <span className="text-xs text-zinc-500">{status?.recentEvents.length ?? 0}</span>
+          <span className="text-xs text-zinc-500">{status?.recentEvents.length ?? "—"}</span>
         </div>
-        {(status?.recentEvents.length ?? 0) === 0 ? (
+        {!status ? (
+          <p className="mt-3 text-xs text-zinc-500">{statusError ? "Přehled událostí se nepodařilo načíst." : "Načítání…"}</p>
+        ) : status.recentEvents.length === 0 ? (
           <p className="mt-3 text-xs text-zinc-500">Žádné nedávné telekomunikační události.</p>
         ) : (
           <div className="mt-3 space-y-2 text-xs text-zinc-300">

@@ -284,7 +284,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
             <div>
               <h2 className="text-sm font-semibold text-zinc-100">Produkty</h2>
-              <p className="mt-1 text-[11px] text-zinc-500">Vyberte skript k úpravě.</p>
+              <p className="mt-1 text-xs text-zinc-400">Vyberte skript k úpravě.</p>
             </div>
             <span className="font-mono text-[10px] text-zinc-500">{products.length}</span>
           </div>
@@ -429,7 +429,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
                 <Minus className="h-4 w-4" />
               </button>
               <span className="mx-1 h-5 w-px bg-zinc-800" />
-              <span className="px-2 text-[11px] text-zinc-500">Formátování se použije na schválený skript pracovního prostoru po uložení.</span>
+              <span className="px-2 text-xs text-zinc-400">Formátování se použije na schválený skript pracovního prostoru po uložení.</span>
             </div>
           )}
 
@@ -460,7 +460,7 @@ export function ProductScriptManager({ products, initialScripts, initialVersions
           )}
 
           <div className="mt-5 flex flex-col gap-3 border-t border-zinc-800/80 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[11px] leading-relaxed text-zinc-500">
+            <p className="text-xs leading-relaxed text-zinc-400">
               {hasChanges ? "Neuložené změny" : "Žádné neuložené změny"}. Uložení vytvoří návrh; publikování aktualizuje skript viditelný operátorům. HTML se před uložením redukuje na bezpečné textové formátování.
             </p>
             <Button

@@ -29,6 +29,7 @@ export interface TeamLeaderDailyBrief {
   workspaceWalletBalance: number | null;
   workspaceWalletTransactions: number | null;
   walletCurrency: string | null;
+  walletState: "available" | "unrecorded" | "unavailable" | "not_applicable";
 }
 
 export interface TeamLeaderDailyBriefInput {
@@ -38,6 +39,7 @@ export interface TeamLeaderDailyBriefInput {
   reorderOpportunities?: NextBestActionReorderOpportunity[];
   pendingReviews?: number | null;
   wallet?: DailyBriefWallet | null;
+  walletState?: "available" | "unrecorded" | "unavailable" | "not_applicable";
   scope?: DailyBriefScope;
   now?: Date;
 }
@@ -62,6 +64,7 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
   const scheduledCallsToAttend = scheduledCalls.filter((scheduledCall) => Date.parse(scheduledCall.scheduled_at) <= endOfDay.getTime()).length;
   const overdueScheduledCalls = scheduledCalls.filter((scheduledCall) => Date.parse(scheduledCall.scheduled_at) < now.getTime()).length;
   const wallet = input.wallet ?? null;
+  const walletState = input.walletState ?? (wallet ? "available" : "unavailable");
 
   return {
     scope,
@@ -75,10 +78,13 @@ export function buildTeamLeaderDailyBrief(input: TeamLeaderDailyBriefInput): Tea
       (opportunity) => opportunity.urgency === "urgent" || opportunity.urgency === "due_soon",
     ).length,
     pendingReviews: input.pendingReviews ?? null,
-    workspaceWalletBalance: wallet ? wallet.balances.reduce((sum, balance) => sum + Number(balance.balance || 0), 0) : null,
-    workspaceWalletTransactions: wallet
+    workspaceWalletBalance: walletState === "available" && wallet
+      ? wallet.balances.reduce((sum, balance) => sum + Number(balance.balance || 0), 0)
+      : null,
+    workspaceWalletTransactions: walletState === "available" && wallet
       ? wallet.balances.reduce((sum, balance) => sum + Number(balance.transaction_count || 0), 0)
       : null,
     walletCurrency: wallet?.currency ?? null,
+    walletState,
   };
 }

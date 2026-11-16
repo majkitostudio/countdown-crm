@@ -10,6 +10,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { FieldLabel, TextAreaField, TextField } from "@/components/ui/Field";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 interface ObjectionDrawerProps {
   product: Product | null;
@@ -148,7 +149,7 @@ export function ObjectionDrawer({ product, isOpen, canManage = true, objectionsA
                   Námitkové karty (prodej)
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  {product.title} (<span className="font-mono tabular-nums">${product.price.toFixed(2)}</span>)
+                  {product.title} (<span className="font-mono tabular-nums">{formatCurrencyAmount(product.price, product.currency)}</span>)
                 </p>
               </div>
             </div>

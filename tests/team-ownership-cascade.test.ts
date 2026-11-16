@@ -61,6 +61,11 @@ describe("team ownership cascade", () => {
     expect(ownershipDal).toContain('.is("team_id", null)');
   });
 
+  it("labels workspace-wide ownership totals explicitly", () => {
+    expect(ownershipPanel).toContain("Zákazníci celkem");
+    expect(ownershipPanel).toContain("Položky fronty celkem");
+  });
+
   it("shows what the confirmation reached in the panel", () => {
     expect(ownershipPanel).toContain("loadTeamOwnershipAction");
     expect(ownershipPanel).toContain("queue_items_remaining");

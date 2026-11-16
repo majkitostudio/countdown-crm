@@ -22,6 +22,8 @@ describe("ProductImage", () => {
     const html = renderToStaticMarkup(React.createElement(ProductImage, {
       src: "  ",
       alt: "Example product",
+      width: 600,
+      height: 400,
       fallbackText: "No product image",
     }));
 
@@ -35,10 +37,15 @@ describe("ProductImage", () => {
     const html = renderToStaticMarkup(React.createElement(ProductImage, {
       src: "/images/example.svg",
       alt: "Example product",
+      width: 600,
+      height: 400,
     }));
 
     expect(html).toContain('src="/images/example.svg"');
     expect(html).toContain('alt="Example product"');
+    expect(html).toContain('width="600"');
+    expect(html).toContain('height="400"');
+    expect(html).toContain('loading="lazy"');
   });
 
   it("replaces a broken product image with the accessible empty state", async () => {
@@ -50,6 +57,8 @@ describe("ProductImage", () => {
       root?.render(React.createElement(ProductImage, {
         src: "/missing-product-image.png",
         alt: "Example product",
+        width: 600,
+        height: 400,
         fallbackText: "No product image",
       }));
     });

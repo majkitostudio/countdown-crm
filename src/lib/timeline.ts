@@ -30,6 +30,13 @@ export interface TimelineActivityEntry {
 import { listLeadActivityPageAction, listLeadActivityEventsAction } from "@/app/actions/crm";
 import type { CustomerActivityEvent, CustomerActivityPageOptions } from "./customerActivity";
 
+/**
+ * How much of the customer history one screen of the lead card shows before
+ * "Načíst další záznamy". Kept smaller than the DAL default of 50 so the
+ * summary and the recent activity stay on the same screen.
+ */
+export const TIMELINE_PAGE_LIMIT = 20;
+
 export async function getLeadActivityPage(leadId: string, options?: CustomerActivityPageOptions) {
   const page = await listLeadActivityPageAction(leadId, options);
   return {

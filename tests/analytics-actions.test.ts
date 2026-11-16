@@ -20,6 +20,8 @@ import { DataAccessError } from "@/lib/dal/errors";
 
 const analyticsData = {
   totalRevenue: 125,
+  completedOrdersCount: 1,
+  completedOrdersWithoutCurrencyCount: 0,
   projectedRevenue: 0,
   forecastGrowthPercent: 0,
   forecastAvailable: false,

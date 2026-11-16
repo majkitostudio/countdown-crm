@@ -6,8 +6,8 @@ export interface Order {
   lead_name: string;
   product_id: string;
   product_title: string;
-  total_amount: number;
-  currency: string;
+  total_amount: number | null;
+  currency: string | null;
   items: Array<{
     id: string;
     product_id: string;

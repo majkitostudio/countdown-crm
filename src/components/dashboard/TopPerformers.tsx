@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
 import { getAnalyticsDataAction } from "@/app/actions/analytics";
 import type { AgentLeaderboardPoint, AnalyticsActionResult, AnalyticsOverview } from "@/lib/analytics";
-import { formatCurrencyAmounts } from "@/lib/currency";
+import { formatCurrencyAmount, formatCurrencyAmounts } from "@/lib/currency";
 import { StatusAlert } from "@/components/ui/Status";
 
 export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "workspace" }) {
@@ -109,10 +109,17 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
 
               <div className="min-w-0 text-left sm:shrink-0 sm:pl-3 sm:text-right">
                 <span className="text-xs font-semibold text-zinc-100 font-mono">
-                  {formatCurrencyAmounts(agent.revenueByCurrency)}
+                  {agent.ordersCount === 0
+                    ? formatCurrencyAmount(0, "CZK")
+                    : agent.ordersWithoutCurrencyCount > 0
+                      ? "—"
+                      : formatCurrencyAmounts(agent.revenueByCurrency)}
                 </span>
                 <span className="block text-[11px] text-zinc-400">
                   Objednávky: <span className="font-mono tabular-nums">{agent.ordersCount}</span>
+                  {agent.ordersWithoutCurrencyCount > 0 && (
+                    <> · částka nezaznamenána u <span className="font-mono tabular-nums">{agent.ordersWithoutCurrencyCount}</span></>
+                  )}
                 </span>
               </div>
             </div>

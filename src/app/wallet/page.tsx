@@ -9,19 +9,16 @@ import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { getButtonClassName } from "@/components/ui/Button";
 import type { WalletSectionState } from "@/lib/dal/wallet";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-function formatAmount(amount: number, currency: string): string {
-  return new Intl.NumberFormat("cs-CZ", { style: "currency", currency }).format(amount);
-}
-
-function formatMetricAmount(amount: number | null, currency: string) {
+function formatMetricAmount(amount: number | null, currency: string | null, emptyLabel = "—") {
   return amount === null
-    ? "Nedostupné"
-    : <span className="font-mono tabular-nums">{formatAmount(amount, currency)}</span>;
+    ? emptyLabel
+    : <span className="font-mono tabular-nums">{formatCurrencyAmount(amount, currency)}</span>;
 }
 
 function transactionLabel(type: string): string {
@@ -83,21 +80,22 @@ export default async function WalletPage() {
   const visibleBalance = balancesAvailable
     ? data.canManage
     ? data.balances.reduce((sum, balance) => sum + balance.balance, 0)
-    : currentBalance?.balance ?? null
+    : currentBalance?.balance ?? 0
     : null;
   const totalCredits = balancesAvailable
     ? data.canManage
     ? data.balances.reduce((sum, balance) => sum + balance.total_credits, 0)
-    : currentBalance?.total_credits ?? null
+    : currentBalance?.total_credits ?? 0
     : null;
   const totalDebits = balancesAvailable
     ? data.canManage
     ? data.balances.reduce((sum, balance) => sum + balance.total_debits, 0)
-    : currentBalance?.total_debits ?? null
+    : currentBalance?.total_debits ?? 0
     : null;
   const creditsTone = totalCredits === null ? "neutral" : "success";
   const debitsTone = totalDebits === null ? "neutral" : "danger";
-  const presentationCurrency = data.settings?.currency || data.transactions[0]?.currency || "CZK";
+  const presentationCurrency = data.settings?.currency ?? null;
+  const metricEmptyLabel = "—";
 
   let settlementSummary = null;
   const availableMonths: Array<{ label: string; value: string; isPast: boolean }> = [];
@@ -128,14 +126,14 @@ export default async function WalletPage() {
         icon={WalletCards}
         title="Peněženka"
         description={data.canManage ? "Účetní deník peněženky pracovního prostoru a odměny týmu." : "Vaše bonusy, měsíční provize a auditované úpravy."}
-        badge={{ label: presentationCurrency, tone: "neutral" }}
+        badge={{ label: presentationCurrency || "CZK", tone: "neutral" }}
         actions={<Link href="/orders" className={getButtonClassName("secondary")}>Zobrazit objednávky</Link>}
       />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard label={data.canManage ? "Týmový zůstatek" : "Aktuální zůstatek"} value={formatMetricAmount(visibleBalance, presentationCurrency)} detail="Odvozeno z zaúčtovaných transakcí deníku" />
-        <MetricCard label="Kredity" value={formatMetricAmount(totalCredits, presentationCurrency)} valueTone={creditsTone} detail="Bonusy a finalizované provize" />
-        <MetricCard label="Debety" value={formatMetricAmount(totalDebits, presentationCurrency)} valueTone={debitsTone} detail="Pokuty, opravy a vrácení" />
+        <MetricCard label={data.canManage ? "Týmový zůstatek" : "Aktuální zůstatek"} value={formatMetricAmount(visibleBalance, presentationCurrency, metricEmptyLabel)} detail="Odvozeno ze zaúčtovaných transakcí deníku" />
+        <MetricCard label="Kredity" value={formatMetricAmount(totalCredits, presentationCurrency, metricEmptyLabel)} valueTone={creditsTone} detail="Bonusy a finalizované provize" />
+        <MetricCard label="Debety" value={formatMetricAmount(totalDebits, presentationCurrency, metricEmptyLabel)} valueTone={debitsTone} detail="Pokuty, opravy a vrácení" />
       </div>
 
       <SectionWarning title="Souhrn zůstatku není dostupný" state={data.sections.balances} />
@@ -143,7 +141,7 @@ export default async function WalletPage() {
       {data.canManage && balancesAvailable && data.balances.length > 0 && (
         <Surface variant="page">
           <div className="border-b border-zinc-800/80 p-5"><h2 className="text-sm font-semibold text-zinc-100">Zůstatky týmu</h2><p className="mt-1 text-xs text-zinc-400">Členové pracovního prostoru s aktivitou v peněžence.</p></div>
-          <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">{data.balances.map((balance) => <Surface key={balance.user_id} variant="inset" className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs font-medium text-zinc-200">{balance.user_name}</p><p className="mt-1 text-[10px] text-zinc-400">{balance.transaction_count} transakcí</p></div><p className={`font-mono text-sm font-semibold ${balance.balance >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{formatAmount(balance.balance, presentationCurrency)}</p></div></Surface>)}</div>
+          <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">{data.balances.map((balance) => <Surface key={balance.user_id} variant="inset" className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs font-medium text-zinc-200">{balance.user_name}</p><p className="mt-1 text-[10px] text-zinc-400">{balance.transaction_count} transakcí</p></div><p className={`font-mono text-sm font-semibold ${balance.balance >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{formatCurrencyAmount(balance.balance, presentationCurrency)}</p></div></Surface>)}</div>
         </Surface>
       )}
 
@@ -190,7 +188,7 @@ export default async function WalletPage() {
                     <th className="px-5 py-3">Typ</th>
                     <th className="px-5 py-3">Důvod</th>
                     <th className="px-5 py-3">Zdroj</th>
-                    <th className="px-5 py-3 text-right">Částka</th>
+                    <th className="px-5 py-3 text-right">Částka (CZK, není-li uvedeno jinak)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/60">
@@ -210,7 +208,7 @@ export default async function WalletPage() {
                           : transaction.source_period_start || "ruční"}
                       </td>
                       <td className={`whitespace-nowrap px-5 py-4 text-right font-mono font-semibold ${transaction.amount >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
-                        {transaction.amount >= 0 ? "+" : ""}{formatAmount(transaction.amount, transaction.currency)}
+                        {transaction.amount >= 0 ? "+" : ""}{formatCurrencyAmount(transaction.amount, transaction.currency, { omitCzk: true })}
                       </td>
                     </tr>
                   ))}

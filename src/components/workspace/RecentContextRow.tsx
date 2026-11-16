@@ -160,7 +160,7 @@ export function RecentContextRow({ leadId, refreshToken }: RecentContextRowProps
       <div className="flex items-center justify-between gap-3 px-1">
         <div>
           <h3 id="recent-context-title" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Poslední události</h3>
-          <p className="mt-1 text-[11px] text-zinc-500">Přehled před voláním — podrobnosti níže</p>
+          <p className="mt-1 text-xs text-zinc-400">Přehled před voláním — podrobnosti níže</p>
         </div>
         {isLoading && <StatusBadge tone="neutral">Načítání…</StatusBadge>}
       </div>

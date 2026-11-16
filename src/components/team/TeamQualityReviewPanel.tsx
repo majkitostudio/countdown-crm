@@ -11,6 +11,7 @@ import {
   saveQualityViewAction,
 } from "@/app/actions/savedViews";
 import type { QualityReviewFilters, SavedQualityView } from "@/lib/dal/savedViews";
+import { formatDuration } from "@/lib/utils";
 
 const signalLabels: Record<string, string> = {
   missing_note: "Chybí poznámka",
@@ -27,11 +28,6 @@ const sectionLabels: Record<string, string> = {
   offer_reactions: "Reakce na nabídky",
   outcome_and_next_step: "Výsledek a další krok",
 };
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-}
 
 function statusCopy(status: CallQualityReviewDTO["status"]): { label: string; className: string } {
   if (status === "review") return { label: "Doporučeno zkontrolovat", className: "border-zinc-600 bg-zinc-900 text-zinc-200" };

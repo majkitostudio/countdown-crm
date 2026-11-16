@@ -9,13 +9,8 @@ import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { TeamFailureReasonStrip } from "@/components/team/TeamFailureReasonStrip";
 import { TEAM_WORKSPACE_PERIOD_LABELS, type TeamWorkspacePeriodKey } from "@/lib/teamWorkspaceScope";
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-}
+import { formatDuration } from "@/lib/utils";
+import { formatCurrencyAmount } from "@/lib/currency";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
@@ -176,7 +171,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
                       <td className="px-4 py-3 text-zinc-300">{order.operatorName}</td>
                       <td className="px-4 py-3 text-zinc-400">{formatSource(order.source)}</td>
                       <td className="px-4 py-3"><StatusBadge tone={order.status === "cancelled" || order.status === "returned" ? "danger" : order.status === "completed" || order.status === "delivered" ? "success" : "neutral"}>{formatOrderStatus(order.status)}</StatusBadge></td>
-                      <td className="px-4 py-3 text-right font-mono text-zinc-300">{order.currency} {order.totalAmount.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-zinc-300">{formatCurrencyAmount(order.totalAmount, order.currency)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -191,7 +186,7 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
             <h3 id="checkpoint-scheduled-calls-heading" className="text-sm font-semibold text-zinc-100">Po termínu</h3>
           </div>
           {checkpoint.sources.scheduledCalls.state === "ready" && (
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-xs text-zinc-400">
               Prošlé: {checkpoint.overdueScheduledCalls.length} · Naplánované v období: {checkpoint.upcomingScheduledCalls.length}
             </p>
           )}
@@ -204,10 +199,10 @@ export function TeamDailyCheckpointPanel({ checkpoint, section = "all", periodKe
               {checkpoint.overdueScheduledCalls.map((scheduledCall) => (
                 <div key={scheduledCall.id} className="rounded-lg border border-zinc-800 bg-zinc-950/30 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0"><Link href={`/leads/${scheduledCall.leadId}`} className="font-medium text-zinc-200 hover:text-zinc-100">{scheduledCall.leadName}</Link><p className="mt-1 text-[11px] text-zinc-500">Termín: {formatDate(scheduledCall.scheduledAt)}</p></div>
+                    <div className="min-w-0"><Link href={`/leads/${scheduledCall.leadId}`} className="font-medium text-zinc-200 hover:text-zinc-100">{scheduledCall.leadName}</Link><p className="mt-1 text-xs text-zinc-400">Termín: {formatDate(scheduledCall.scheduledAt)}</p></div>
                     <StatusBadge tone="warning">Po termínu</StatusBadge>
                   </div>
-                  <p className="mt-3 text-[11px] text-zinc-500">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
+                  <p className="mt-3 text-xs text-zinc-400">Preferovaný operátor: {scheduledCall.operatorName || "Neuveden"}</p>
                 </div>
               ))}
             </div>

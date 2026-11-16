@@ -29,7 +29,7 @@ function mapProduct(product: ProductDTO): Product {
     title: product.title,
     category: product.category,
     price: Number(product.price),
-    currency: product.currency || "USD",
+    currency: product.currency || "CZK",
     description: product.description || "",
     image_url: product.image_url || "",
     in_stock: product.in_stock ?? true,

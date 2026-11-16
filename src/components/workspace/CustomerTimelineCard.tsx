@@ -17,6 +17,7 @@ import { WorkspaceActivity, WorkspaceActivityType } from "@/lib/domain";
 import { getLeadActivitiesPage } from "@/lib/domainActivity";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { StatusAlert } from "@/components/ui/Status";
+import { formatDuration } from "@/lib/utils";
 
 interface CustomerTimelineCardProps {
   leadId: string;
@@ -277,13 +278,13 @@ function CustomerTimelineContent({ leadId, refreshToken, includeNotes = true }: 
                     <div className="pt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-zinc-400">
                       {item.metadata.order_value !== undefined && (
                         <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded text-zinc-200 font-semibold">
-                          {formatCurrencyAmount(item.metadata.order_value, item.metadata.order_currency ?? "USD")}
+                          {formatCurrencyAmount(item.metadata.order_value, item.metadata.order_currency)}
                         </span>
                       )}
 
                       {item.metadata.call_duration_seconds !== undefined && (
                         <span className="px-1.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded">
-                          Délka: {Math.floor(item.metadata.call_duration_seconds / 60)} min {item.metadata.call_duration_seconds % 60} s
+                          Délka: {formatDuration(item.metadata.call_duration_seconds)}
                         </span>
                       )}
 

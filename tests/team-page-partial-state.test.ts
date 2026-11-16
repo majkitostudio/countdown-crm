@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { TeamPageData } from "@/lib/dal/teamPage";
 import { buildDepartmentQueueOverview } from "@/lib/departmentQueues";
 import { TeamPageContent } from "@/components/team/TeamPageContent";
+import { TeamCheckpointQualitySection } from "@/components/team/TeamCheckpointQualitySection";
 
 vi.mock("server-only", () => ({}));
 
@@ -59,6 +60,17 @@ function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "admini
 }
 
 describe("TeamPageContent partial source states", () => {
+  it("uses grammatical copy for the empty quality review state", () => {
+    const html = renderToStaticMarkup(React.createElement(TeamCheckpointQualitySection, {
+      qualityPendingCount: 0,
+      qualityAvailable: true,
+      onOpenQuality: () => undefined,
+    }));
+
+    expect(html).toContain("Všechny zpracované hovory vypadají v pořádku.");
+    expect(html).not.toContain("Všechna zpracovaná hovora vypadají v pořádku.");
+  });
+
   it("keeps available queue rows and disables reassignment when operators are unavailable", () => {
     const html = render({
       queue: { status: "ready", data: [queueItem] },
