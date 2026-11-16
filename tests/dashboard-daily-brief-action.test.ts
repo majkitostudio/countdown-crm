@@ -48,6 +48,7 @@ const analytics = {
     calls: 2,
     completedOrders: 1,
     completedOrdersWithoutCurrencyCount: 0,
+    completedOrdersWithoutAmountCount: 0,
     revenue: 100,
     revenueByCurrency: [{ currency: "CZK", amount: 100 }],
     currency: "CZK",

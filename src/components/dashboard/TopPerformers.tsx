@@ -111,14 +111,18 @@ export function TopPerformers({ scope = "workspace" }: { scope?: "team" | "works
                 <span className="text-xs font-semibold text-zinc-100 font-mono">
                   {agent.ordersCount === 0
                     ? formatCurrencyAmount(0, "CZK")
-                    : agent.ordersWithoutCurrencyCount > 0
+                    : agent.ordersWithoutCurrencyCount > 0 || agent.ordersWithoutAmountCount > 0
                       ? "—"
                       : formatCurrencyAmounts(agent.revenueByCurrency)}
                 </span>
                 <span className="block text-[11px] text-zinc-400">
                   Objednávky: <span className="font-mono tabular-nums">{agent.ordersCount}</span>
-                  {agent.ordersWithoutCurrencyCount > 0 && (
-                    <> · částka nezaznamenána u <span className="font-mono tabular-nums">{agent.ordersWithoutCurrencyCount}</span></>
+                  {(agent.ordersWithoutCurrencyCount > 0 || agent.ordersWithoutAmountCount > 0) && (
+                    <>
+                      {agent.ordersWithoutAmountCount > 0 && <> · chybí částka u <span className="font-mono tabular-nums">{agent.ordersWithoutAmountCount}</span></>}
+                      {agent.ordersWithoutAmountCount > 0 && agent.ordersWithoutCurrencyCount > 0 && "; "}
+                      {agent.ordersWithoutCurrencyCount > 0 && <> · chybí měna u <span className="font-mono tabular-nums">{agent.ordersWithoutCurrencyCount}</span></>}
+                    </>
                   )}
                 </span>
               </div>

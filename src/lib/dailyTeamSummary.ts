@@ -1,10 +1,11 @@
-import { aggregateCurrencyAmounts, singleCurrency, type CurrencyAmount } from "./currency";
+import { aggregateCurrencyAmounts, isRecordedAmount, type CurrencyAmount } from "./currency";
 
 export interface DailyTeamSummary {
   date: string;
   calls: number;
   completedOrders: number;
   completedOrdersWithoutCurrencyCount: number;
+  completedOrdersWithoutAmountCount: number;
   revenue: number | null;
   revenueByCurrency: CurrencyAmount[];
   currency: string | null;
@@ -37,16 +38,27 @@ export function getDailyTeamSummary(
   const todayCompletedOrders = orders.filter(
     (order) => order.created_at.slice(0, 10) === date && order.status === "completed",
   );
+  const completedOrdersWithoutAmountCount = todayCompletedOrders.filter(
+    (order) => !isRecordedAmount(order.total_amount),
+  ).length;
+  const completeOrders = todayCompletedOrders.filter(
+    (order) => isRecordedAmount(order.total_amount) && Boolean(order.currency?.trim()),
+  );
   const revenueByCurrency = aggregateCurrencyAmounts(
-    todayCompletedOrders,
-    (order) => Number(order.total_amount || 0),
+    completeOrders,
+    (order) => Number(order.total_amount),
     (order) => order.currency,
   );
-  const currency = singleCurrency(revenueByCurrency);
+  const currencies = new Set(
+    todayCompletedOrders
+      .map((order) => order.currency?.trim().toUpperCase())
+      .filter((value): value is string => Boolean(value)),
+  );
+  const currency = currencies.size === 1 ? Array.from(currencies)[0] ?? null : null;
   const completedOrdersWithoutCurrencyCount = todayCompletedOrders.filter((order) => !order.currency?.trim()).length;
   const revenue = todayCompletedOrders.length === 0
     ? 0
-    : currency && completedOrdersWithoutCurrencyCount === 0
+    : currency && completedOrdersWithoutCurrencyCount === 0 && completedOrdersWithoutAmountCount === 0
       ? revenueByCurrency[0]?.amount ?? 0
       : null;
 
@@ -55,9 +67,10 @@ export function getDailyTeamSummary(
     calls: todayCalls.length,
     completedOrders: todayCompletedOrders.length,
     completedOrdersWithoutCurrencyCount,
+    completedOrdersWithoutAmountCount,
     revenue: revenue === null ? null : roundMetric(revenue),
     revenueByCurrency,
-    currency: currency && completedOrdersWithoutCurrencyCount === 0
+    currency: currency && completedOrdersWithoutCurrencyCount === 0 && completedOrdersWithoutAmountCount === 0
       ? currency
       : todayCompletedOrders.length === 0
         ? "CZK"

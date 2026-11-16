@@ -41,6 +41,7 @@ export function AnalyticsPanel() {
     revenueByCurrency: [],
     completedOrdersCount: 0,
     completedOrdersWithoutCurrencyCount: 0,
+    completedOrdersWithoutAmountCount: 0,
     projectedRevenue: 0,
     forecastGrowthPercent: 0,
     forecastAvailable: false,
@@ -61,6 +62,7 @@ export function AnalyticsPanel() {
       calls: 0,
       completedOrders: 0,
       completedOrdersWithoutCurrencyCount: 0,
+      completedOrdersWithoutAmountCount: 0,
       revenue: 0,
       revenueByCurrency: [],
       currency: null,
@@ -76,7 +78,7 @@ export function AnalyticsPanel() {
   const scopeLabel = data.scopeLabel;
   const isEmptySuccess = result?.ok
     && result.data.totalCalls === 0
-    && result.data.revenueByCurrency.length === 0
+    && result.data.completedOrdersCount === 0
     && result.data.teamLeaderboard.length === 0;
   const status = result === null
     ? "loading"
@@ -170,9 +172,11 @@ export function AnalyticsPanel() {
       <StatusAlert tone="neutral" className="w-full">
         Celkové příjmy a průměrná hodnota objednávky vycházejí ze všech dostupných dokončených objednávek v tomto rozsahu. Částky v různých měnách se nepřevádějí ani nesčítají; týdenní graf pokrývá posledních sedm dní.
       </StatusAlert>
-      {data.completedOrdersWithoutCurrencyCount > 0 && (
+      {(data.completedOrdersWithoutCurrencyCount > 0 || data.completedOrdersWithoutAmountCount > 0) && (
         <StatusAlert tone="warning" role="status" className="w-full">
-          U {data.completedOrdersWithoutCurrencyCount} dokončených objednávek chybí měna; celkové tržby a průměrnou hodnotu proto nelze spolehlivě určit.
+          {data.completedOrdersWithoutAmountCount > 0 && <>U {data.completedOrdersWithoutAmountCount} dokončených objednávek chybí částka. </>}
+          {data.completedOrdersWithoutCurrencyCount > 0 && <>U {data.completedOrdersWithoutCurrencyCount} dokončených objednávek chybí měna. </>}
+          Celkové tržby a průměrnou hodnotu proto nelze spolehlivě určit.
         </StatusAlert>
       )}
       {/* Top KPI Cards */}
@@ -185,7 +189,7 @@ export function AnalyticsPanel() {
             ? "—"
             : data.completedOrdersCount === 0
               ? formatCurrencyAmount(0, "CZK")
-              : data.completedOrdersWithoutCurrencyCount > 0
+              : (data.completedOrdersWithoutCurrencyCount > 0 || data.completedOrdersWithoutAmountCount > 0)
                 ? "—"
                 : formatCurrencyAmounts(data.revenueByCurrency)}
           detail={data.forecastAvailable
@@ -200,7 +204,7 @@ export function AnalyticsPanel() {
             ? "—"
             : data.completedOrdersCount === 0
               ? formatCurrencyAmount(0, "CZK")
-              : data.completedOrdersWithoutCurrencyCount > 0
+              : (data.completedOrdersWithoutCurrencyCount > 0 || data.completedOrdersWithoutAmountCount > 0)
                 ? "—"
                 : formatCurrencyAmounts(data.avgOrderValueByCurrency)}
           detail={`Výpočet z dokončených objednávek. Rozsah: ${scopeLabel.toLowerCase()}`}
@@ -366,16 +370,18 @@ export function AnalyticsPanel() {
                   <td className="px-4 py-3.5 font-mono">{ag.callsCount}</td>
                   <td className="px-4 py-3.5 font-mono text-zinc-200">
                     {ag.ordersCount}
-                    {ag.ordersWithoutCurrencyCount > 0 && (
+                    {(ag.ordersWithoutAmountCount > 0 || ag.ordersWithoutCurrencyCount > 0) && (
                       <span className="block font-sans text-[10px] font-normal text-zinc-400">
-                        Měna nezaznamenána u {ag.ordersWithoutCurrencyCount}
+                        {ag.ordersWithoutAmountCount > 0 && <>Částka chybí u {ag.ordersWithoutAmountCount}</>}
+                        {ag.ordersWithoutAmountCount > 0 && ag.ordersWithoutCurrencyCount > 0 && "; "}
+                        {ag.ordersWithoutCurrencyCount > 0 && <>měna chybí u {ag.ordersWithoutCurrencyCount}</>}
                       </span>
                     )}
                   </td>
                   <td className="px-4 py-3.5 font-mono font-semibold text-zinc-200">
                     {ag.ordersCount === 0
                       ? formatCurrencyAmount(0, "CZK")
-                      : ag.ordersWithoutCurrencyCount > 0
+                      : (ag.ordersWithoutCurrencyCount > 0 || ag.ordersWithoutAmountCount > 0)
                         ? "—"
                         : formatCurrencyAmounts(ag.revenueByCurrency)}
                   </td>
