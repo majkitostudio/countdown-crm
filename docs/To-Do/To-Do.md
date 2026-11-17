@@ -5,7 +5,6 @@ Stručný seznam známé otevřené práce při reorganizaci dokumentace 17. 11.
 ## Funkčnost, data a ověření
 
 - [ ] Podle dopadu řešit potvrzené překážky práce a rizika nesprávných dat; konkrétní problém a rozsah vždy nejprve ověřit.
-- [ ] Prověřit měnový trigger položek objednávky: lokálně se při změně samotného `product_id` nespustí; ověřit dopad a zajistit odpovídající databázovou kontrolu.
 - [ ] Dokončit funkční, technické a vizuální review hlavních tras a bezpečných scénářů za administrátora, Team Leadera a operátora. Smoke a `/console` mohou mít vedlejší účinky; prostředí a syntetická data je nutné předem potvrdit.
 - [ ] Dokončit revizi UI/UX podle rolí a četnosti použití, včetně responzivity, klávesnice, 200% zvětšení a skutečné čtečky obrazovky.
 - [ ] Bezpečně ověřit klávesnicovou editaci a uložení návrhu skriptu; nepublikovat mimo schválená syntetická data.
