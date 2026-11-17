@@ -21,7 +21,7 @@ vi.mock("@/components/workspace/FloatingCallController", () => ({
 import { AppShell } from "@/components/layout/AppShell";
 
 describe("application shell", () => {
-  it.each(["/login", "/auth/forgot-password", "/auth/update-password"])(
+  it.each(["/login", "/auth/forgot-password", "/auth/update-password", "/auth/invite"])(
     "shows %s without workspace navigation",
     async (pathname) => {
       mocks.pathname = pathname;

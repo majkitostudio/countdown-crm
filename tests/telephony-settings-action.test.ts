@@ -25,7 +25,9 @@ describe("server-backed telephony adapter boundary", () => {
     expect(dal).toContain('requireWorkspaceRole(["administrator"])');
     expect(dal).toContain('.from("workspace_telephony_settings")');
     expect(dal).toContain('active_adapter: "simulation"');
-    expect(dal).toContain("createAuditLogForWorkspace");
+    expect(dal).toContain('.rpc("update_telephony_adapter_with_audit"');
+    expect(dal).not.toContain("createAuditLogForWorkspace");
+    expect(dal).not.toContain(".upsert(");
     expect(dal).not.toContain("localStorage");
   });
 

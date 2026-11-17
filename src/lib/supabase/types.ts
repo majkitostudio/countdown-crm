@@ -1712,6 +1712,10 @@ export interface Database {
       };
     };
     Functions: {
+      update_telephony_adapter_with_audit: {
+        Args: { p_workspace_id: string; p_adapter: string };
+        Returns: Database["public"]["Tables"]["workspace_telephony_settings"]["Row"];
+      };
       create_product_script_draft: {
         Args: {
           p_workspace_id: string;

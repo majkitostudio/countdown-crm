@@ -127,6 +127,8 @@ describe("update password page", () => {
     window.history.replaceState(null, "", "/auth/update-password");
     await render(createElement(UpdatePasswordPage));
     await act(async () => Promise.resolve());
+    expect(container.querySelector("form")?.getAttribute("method")).toBe("post");
+    expect(container.querySelector("form")?.getAttribute("action")).toBe("/auth/update-password");
     setInput("new-password", "correct horse battery");
     setInput("confirm-password", "correct horse battery");
     await submitForm();

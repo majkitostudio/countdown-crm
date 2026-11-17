@@ -75,7 +75,10 @@ export default function LoginPage() {
 
           {errorMsg && <StatusAlert tone="danger">{errorMsg}</StatusAlert>}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <noscript>
+            <p className="text-xs text-zinc-400">Pro přihlášení zapněte JavaScript.</p>
+          </noscript>
+          <form action="/login" method="post" onSubmit={handleLogin} className="space-y-4">
             {/* Email Input */}
             <div className="space-y-1.5">
               <label htmlFor="login-email" className="text-xs font-medium text-zinc-300 block">

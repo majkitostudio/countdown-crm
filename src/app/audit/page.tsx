@@ -287,7 +287,7 @@ const [isLoading, setIsLoading] = useState(false);
                         {({ critical: "Kritická", high: "Vysoká", medium: "Střední", low: "Nízká" } as Record<string, string>)[log.severity] ?? log.severity}
                       </StatusBadge>
                     </td>
-                    <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">{log.ipAddress}</td>
+                    <td className="py-3 px-3 text-zinc-500 text-[11px] whitespace-nowrap">{log.ipAddress || "Neznámá"}</td>
                     <td className="py-3 px-3 text-zinc-300 text-[11px] max-w-xl"><AuditDetailCell log={log} /></td>
                   </tr>
                 ))}

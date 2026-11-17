@@ -18,6 +18,7 @@ describe("PageHeader route rollout", () => {
     const roleEntryPage = path.join(projectRoot, "src", "app", "page.tsx");
     const publicAuthPages = new Set([
       path.join(projectRoot, "src", "app", "auth", "forgot-password", "page.tsx"),
+      path.join(projectRoot, "src", "app", "auth", "invite", "page.tsx"),
       path.join(projectRoot, "src", "app", "auth", "update-password", "page.tsx"),
     ]);
     const authenticatedPages = pageFiles.filter((filePath) => (

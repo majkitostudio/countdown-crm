@@ -32,6 +32,8 @@ import LoginPage from "@/app/login/page";
 
 type TestElement = ReactElement<{
   children?: ReactNode;
+  action?: string;
+  method?: string;
   onSubmit?: (event: { preventDefault(): void }) => Promise<void>;
 }>;
 
@@ -59,8 +61,13 @@ describe("login role-aware entry", () => {
     const form = findElement(LoginPage(), "form");
     expect(form).not.toBeNull();
 
-    await form?.props.onSubmit?.({ preventDefault: vi.fn() });
+    expect(form?.props.action).toBe("/login");
+    expect(form?.props.method).toBe("post");
+    const preventDefault = vi.fn();
+    await form?.props.onSubmit?.({ preventDefault });
 
+    expect(preventDefault).toHaveBeenCalledOnce();
+    expect(mocks.signInWithPassword).toHaveBeenCalledOnce();
     expect(mocks.replace).toHaveBeenCalledWith("/");
     expect(mocks.push).not.toHaveBeenCalled();
   });

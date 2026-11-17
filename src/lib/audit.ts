@@ -1,6 +1,6 @@
 // src/lib/audit.ts
 
-import { createAuditLogAction, listAuditLogsAction } from "@/app/actions/audit";
+import { listAuditLogsAction } from "@/app/actions/audit";
 
 export type AuditSeverity = "low" | "medium" | "high" | "critical";
 
@@ -123,30 +123,8 @@ export async function getAuditLogs(): Promise<AuditLogEntry[]> {
     actionType: row.action as AuditActionType,
     severity: row.severity as AuditSeverity,
     details: row.details,
-    ipAddress: row.ip_address || "127.0.0.1",
+    ipAddress: row.ip_address ?? "",
   }));
-}
-
-export async function addAuditLog(entry: Omit<AuditLogEntry, "id" | "timestamp">): Promise<AuditLogEntry> {
-  const saved = await createAuditLogAction({
-    action: entry.actionType,
-    severity: entry.severity,
-    details: entry.details,
-    ipAddress: entry.ipAddress,
-  });
-
-  return {
-    id: saved.id,
-    timestamp: saved.timestamp
-      ? new Date(saved.timestamp).toISOString().replace("T", " ").substring(0, 19)
-      : "",
-    operatorId: saved.actor_id,
-    operatorName: saved.actor_name,
-    actionType: saved.action as AuditActionType,
-    severity: saved.severity as AuditSeverity,
-    details: saved.details,
-    ipAddress: saved.ip_address || "127.0.0.1",
-  };
 }
 
 export function exportAuditLogsToCSV(logs: AuditLogEntry[]): void {

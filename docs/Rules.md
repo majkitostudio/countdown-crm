@@ -5,7 +5,7 @@ Tato pravidla doplňují globální instrukce a [projektový AGENTS.md](../AGENT
 ## Před prací a po ní
 
 - Přečti relevantní instrukce, ověř stav pracovního stromu a zachovej cizí rozpracované změny. Nejasné zadání, destruktivní nebo externí zásah a rozšíření rozsahu nejprve projednej s uživatelem.
-- Zvol kontroly podle dopadu změny. Výsledek i nespouštěné důležité kontroly přiznej; zdrojový test nenahrazuje běh aplikace a lokální běh nedokládá vzdálené nasazení. Před testem ověř prostředí a vedlejší účinky; testy se zápisem a vzdálené zásahy vyžadují předchozí dohodu. Uživatel již souhlasil s opakovanou read-only kontrolou evidence migrací v propojeném testovacím sandboxu.
+- Zvol kontroly podle dopadu změny. Výsledek i nespouštěné důležité kontroly přiznej; zdrojový test nenahrazuje běh aplikace a lokální běh nedokládá vzdálené nasazení. Před testem ověř prostředí a vedlejší účinky. Uživatel předem souhlasí s potřebnými databázovými změnami a testy se zápisem ve vývojových a testovacích prostředích projektu; destruktivní zásahy a zásahy mimo tato prostředí nejprve projednej.
 - Zkontroluj diff. Commit vytvoř jen na žádost uživatele; pokud se při změně upravuje dokumentace, zahrň ji do stejného commitu.
 
 ## Kam co patří

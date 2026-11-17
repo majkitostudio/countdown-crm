@@ -1,13 +1,7 @@
 "use server";
 
-import {
-  createAuditLogForWorkspace,
-  listAuditLogsForWorkspace,
-} from "@/lib/dal/audit";
-import type {
-  AuditLogDTO,
-  CreateAuditLogInput,
-} from "@/lib/dal/audit";
+import { listAuditLogsForWorkspace } from "@/lib/dal/audit";
+import type { AuditLogDTO } from "@/lib/dal/audit";
 
 import { isDataAccessError } from "@/lib/dal/errors";
 
@@ -20,10 +14,4 @@ export async function listAuditLogsAction(): Promise<AuditLogDTO[]> {
     }
     throw error;
   }
-}
-
-export async function createAuditLogAction(
-  input: CreateAuditLogInput
-): Promise<AuditLogDTO> {
-  return createAuditLogForWorkspace(input);
 }

@@ -16,6 +16,7 @@ Tento soubor doplňuje globální instrukce. Před prací se řiď také [pravid
 - AI může pomáhat s kontextem, tréninkem a kvalitou; není autoritou nad skutečným stavem hovoru, objednávky ani oprávnění.
 - Countdown je nyní prototyp bez produkčního prostředí. Současná prostředí jsou vývojová či testovací; účty, objednávky, leady, kontakty a ostatní projektová data jsou podle zadání syntetická a slouží vývoji.
 - Uživatel předem souhlasí s opakovanou read-only kontrolou evidence migrací v propojeném testovacím sandboxu; na tuto kontrolu se již neptej. Nejprve ověř cíl a nezaměňuj kontrolu za aplikaci migrací či jiný zápis.
+- Uživatel předem souhlasí s potřebnými změnami databáze a testy se zápisem ve vývojových a testovacích prostředích projektu; před zásahem ověř cíl, rozsah a dopady. Destruktivní zásahy a zásahy mimo tato prostředí dál nejprve projednej.
 
 ## Uživatelské rozhraní
 

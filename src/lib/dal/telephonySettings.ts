@@ -1,7 +1,6 @@
 import "server-only";
 
 import type { Database } from "@/lib/supabase/types";
-import { createAuditLogForWorkspace } from "@/lib/dal/audit";
 import { createDataClient } from "@/lib/dal/db";
 import { DataAccessError } from "@/lib/dal/errors";
 import { requireWorkspaceContext, requireWorkspaceRole } from "@/lib/dal/workspace";
@@ -72,26 +71,14 @@ export async function updateWorkspaceTelephonyAdapter(
 
   const context = await requireWorkspaceRole(["administrator"]);
   const supabase = await createDataClient();
-  const { data, error } = await supabase
-    .from("workspace_telephony_settings")
-    .upsert({
-      workspace_id: context.workspaceId,
-      active_adapter: adapter,
-      updated_by: context.userId,
-      updated_at: new Date().toISOString(),
-    } as never, { onConflict: "workspace_id" })
-    .select(SETTINGS_SELECT)
-    .single();
+  const { data, error } = await supabase.rpc("update_telephony_adapter_with_audit", {
+    p_workspace_id: context.workspaceId,
+    p_adapter: adapter,
+  });
 
   if (error || !data) {
     throw new DataAccessError("DATABASE", "Telephony settings could not be saved.");
   }
-
-  await createAuditLogForWorkspace({
-    action: "SETTINGS_CHANGE",
-    severity: "medium",
-    details: `Telephony adapter changed to ${adapter}.`,
-  });
 
   return mapSettings(data as SettingsRow);
 }

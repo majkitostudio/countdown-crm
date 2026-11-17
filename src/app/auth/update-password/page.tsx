@@ -88,7 +88,7 @@ export default function UpdatePasswordPage() {
               <h2 className="text-sm font-semibold text-zinc-200">Nastavit nové heslo</h2>
               <p className="text-xs text-zinc-400">
                 {pageState === "checking"
-                  ? "Ověřujeme odkaz pro obnovu hesla."
+                  ? "Ověřujeme přístup k nastavení hesla."
                   : isInvalid
                     ? "Odkaz je neplatný nebo vypršel. Vyžádejte si nový."
                     : "Zadejte nové heslo a potvrďte ho."}
@@ -100,8 +100,11 @@ export default function UpdatePasswordPage() {
               <StatusAlert tone="danger">Odkaz je neplatný nebo vypršel.</StatusAlert>
             )}
 
+            <noscript>
+              <p className="text-xs text-zinc-400">Pro nastavení hesla zapněte JavaScript.</p>
+            </noscript>
             {pageState === "ready" && (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form action="/auth/update-password" method="post" onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="new-password" className="text-xs font-medium text-zinc-300 block">
                     Nové heslo

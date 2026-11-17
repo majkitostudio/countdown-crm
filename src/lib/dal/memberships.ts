@@ -377,20 +377,41 @@ export async function inviteOrProvisionWorkspaceMember(
     throw new DataAccessError("DATABASE", err instanceof Error ? err.message : "Správa účtů není dostupná.");
   }
 
+  if (teamId) {
+    const { data: team, error } = await adminClient
+      .from("teams")
+      .select("id")
+      .eq("id", teamId)
+      .eq("workspace_id", context.workspaceId)
+      .maybeSingle();
+
+    if (error) {
+      throw new DataAccessError("DATABASE", "Nepodařilo se ověřit vybraný tým.");
+    }
+    if (!team) {
+      throw new DataAccessError("VALIDATION", "Vybraný tým v tomto call centru neexistuje.");
+    }
+  }
+
   let userId: string | null = null;
   let action: "invited" | "created" | "attached" = "invited";
 
   try {
-    const { data: listData, error: listError } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (!listError && listData?.users) {
+    let page = 1;
+    while (true) {
+      const { data: listData, error: listError } = await adminClient.auth.admin.listUsers({ page, perPage: 1000 });
+      if (listError || !listData?.users) throw new Error("Auth lookup failed");
       const existing = listData.users.find((u) => u.email?.toLowerCase() === email);
       if (existing) {
         userId = existing.id;
         action = "attached";
+        break;
       }
+      if (listData.users.length < 1000) break;
+      page += 1;
     }
   } catch {
-    // Proceed to create/invite if lookup fails
+    throw new DataAccessError("DATABASE", "Nepodařilo se ověřit existující účet. Žádný účet nebyl založen.");
   }
 
   if (userId) {
@@ -432,17 +453,8 @@ export async function inviteOrProvisionWorkspaceMember(
     }
   }
 
-  const { error: memberInsertError } = await adminClient.from("workspace_members").insert({
-    workspace_id: context.workspaceId,
-    user_id: userId,
-    role,
-  });
-
-  if (memberInsertError) {
-    throw new DataAccessError("DATABASE", `Nepodařilo se přiřadit člena do call centra: ${memberInsertError.message}`);
-  }
-
-  await adminClient.from("profiles").upsert(
+  // A profile is global to the account: never overwrite an existing one.
+  const { error: profileError } = await adminClient.from("profiles").upsert(
     {
       id: userId,
       email,
@@ -451,33 +463,43 @@ export async function inviteOrProvisionWorkspaceMember(
       status: "ready",
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "id" },
+    { onConflict: "id", ignoreDuplicates: true },
   );
+  if (profileError) {
+    throw new DataAccessError("DATABASE", "Účet může existovat, ale profil se nepodařilo připravit. Členství nebylo vytvořeno; před opakováním zkontrolujte stav účtu.");
+  }
+
+  const { error: memberInsertError } = await adminClient.from("workspace_members").insert({
+    workspace_id: context.workspaceId,
+    user_id: userId,
+    role,
+  });
+
+  if (memberInsertError) {
+    throw new DataAccessError("DATABASE", "Účet a profil mohou existovat, ale člena se nepodařilo přiřadit do call centra. Před opakováním zkontrolujte stav účtu a členství.");
+  }
 
   let assignedTeamId: string | null = null;
   if (teamId) {
-    const { data: team } = await adminClient
-      .from("teams")
-      .select("id")
-      .eq("id", teamId)
-      .eq("workspace_id", context.workspaceId)
-      .maybeSingle();
-
-    if (team) {
-      const membershipRole = role === "team_leader" ? "leader" : "member";
-      const { error: teamMembershipError } = await adminClient.from("team_memberships").insert({
-        workspace_id: context.workspaceId,
-        team_id: team.id,
-        user_id: userId,
-        membership_role: membershipRole,
-        active_from: new Date().toISOString(),
-      });
-      if (!teamMembershipError) {
-        assignedTeamId = team.id;
-      }
+    const membershipRole = role === "team_leader" ? "leader" : "member";
+    const { error: teamMembershipError } = await adminClient.from("team_memberships").insert({
+      workspace_id: context.workspaceId,
+      team_id: teamId,
+      user_id: userId,
+      membership_role: membershipRole,
+      active_from: new Date().toISOString(),
+    });
+    if (teamMembershipError) {
+      throw new DataAccessError("DATABASE", "Člen byl přidán do call centra, ale nepodařilo se jej přiřadit do týmu. Zkontrolujte jeho členství a tým.");
     }
+    assignedTeamId = teamId;
   }
 
-  const member = await loadMember(context.workspaceId, userId, adminClient as unknown as Awaited<ReturnType<typeof createDataClient>>);
+  let member: WorkspaceMemberDTO;
+  try {
+    member = await loadMember(context.workspaceId, userId, adminClient as unknown as Awaited<ReturnType<typeof createDataClient>>);
+  } catch {
+    throw new DataAccessError("DATABASE", "Člen byl přidán do call centra, ale jeho údaje se nepodařilo načíst. Před opakováním zkontrolujte členství a tým.");
+  }
   return { action, member, assignedTeamId };
 }
