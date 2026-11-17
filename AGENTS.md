@@ -15,6 +15,7 @@ Tento soubor doplňuje globální instrukce. Před prací se řiď také [pravid
 - Produkční telefonie/VoIP a Telnyx jsou odloženy na neurčito. Existující závislosti a místní testovací konzole tím nejsou popřeny. Nepřidávej náklady ani nové závislosti, dokud PM tuto prioritu znovu neotevře.
 - AI může pomáhat s kontextem, tréninkem a kvalitou; není autoritou nad skutečným stavem hovoru, objednávky ani oprávnění.
 - Countdown je nyní prototyp bez produkčního prostředí. Současná prostředí jsou vývojová či testovací; účty, objednávky, leady, kontakty a ostatní projektová data jsou podle zadání syntetická a slouží vývoji.
+- Uživatel předem souhlasí s opakovanou read-only kontrolou evidence migrací v propojeném testovacím sandboxu; na tuto kontrolu se již neptej. Nejprve ověř cíl a nezaměňuj kontrolu za aplikaci migrací či jiný zápis.
 
 ## Uživatelské rozhraní
 

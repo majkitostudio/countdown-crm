@@ -94,23 +94,25 @@ Parita vůči linked projektu:
 
 ```powershell
 node scripts/verify-migration-parity.mjs --linked
-npx supabase migration list --remote
+npx supabase migration list --linked
 ```
 
-Linked kontrola vyžaduje přihlášení do správného projektu. Pro tento běh CLI potřebuje scoped token s oprávněním `Database: Read-write` a `Migrations: Read-write`; token musí být předán jen přes zabezpečené prostředí, nikdy jako text do repozitáře nebo výstupu.
+Kontrola 17. 11. 2026: skript používá výslovně `--local` nebo `--linked` a strojový JSON výstup CLI. Po doplnění chybějících migrací potvrdil všech 139 verzí v lokální databázi i v sandboxu. Porovnává evidenci verzí, nikoli skutečný obsah databázových funkcí.
+
+Linked kontrola vyžaduje přihlášení do správného projektu. Pro kontrolu byl ověřen scoped token s oprávněním `Database: Read-write` pro sandbox a `Projects (account-wide): Read` pro výpis projektů. Na tomto počítači je uložen šifrovaně pro aktuálního uživatele v `%USERPROFILE%\.supabase\countdown-crm-sandbox-token.dpapi`, s platností do 15. 2. 2027. Token nepatří do repozitáře ani výstupu. Uživatel souhlasí s opakovaným read-only čtením evidence migrací v propojeném testovacím sandboxu bez dalšího dotazu; oprávnění umožňující zápis samo o sobě není souhlasem ke změně databáze.
 
 ### Nasazení chybějících migrací
 
 Nejdříve zkontroluj cílový projekt a plán:
 
 ```powershell
-npx supabase db push --remote --dry-run
+npx supabase db push --linked --dry-run
 ```
 
 Teprve po kontrole dry-run a potvrzení, že jde o správný sandbox, může oprávněný operátor spustit:
 
 ```powershell
-npx supabase db push --yes --remote
+npx supabase db push --yes --linked
 node scripts/verify-migration-parity.mjs --linked
 ```
 
