@@ -1,4 +1,6 @@
-# Countdown CRM — stav a možné další kroky
+# Historická roadmapa — stav k 17. 11. 2026
+
+> Tento soubor je zachovaný historický pracovní záznam, nikoli aktuální seznam úkolů ani důkaz současného stavu prostředí. Nové úkoly patří do [To-Do](To-Do/To-Do.md), odložené možnosti do [Later](To-Do/Later/To-Do-Later.md). Některá historická tvrzení si protiřečí; před použitím ověř datum a novější souvislosti. Osobní cesta k auditu níže není přenosná a zmiňovaný `animation-opportunities.md` se v repozitáři nepodařilo najít.
 
 Roadmapa zachycuje dohodnutý pracovní postup a další možné směry. Implementaci, testování a nasazení vždy eviduj jako odlišné stavy; položku odškrtni až po dokončení a odpovídajícím ověření.
 
@@ -107,7 +109,7 @@ Tento souhrn odpovídá stavu zaznamenanému do 20. 10. 2026 v hlavní větvi. N
 
 - Kontrola zdrojového kódu se vztahuje k `HEAD 85960cc` a neprokazuje stav vzdáleného prostředí. `npm run verify:all` na tomto kódu prošlo: lint, typecheck, 218 testovacích souborů / 1111 testů a produkční build.
 - Aktuální `npm run verify:migrations` prošlo pro 139 SQL souborů bez duplicitních verzí, chyb a varování. Starší záznam o 138 migracích výše zachovává tehdejší výsledek; tento lokální test není důkazem parity ani aplikace migrací v sandboxu.
-- Zdroj obsahuje migrace `20261116120000_reject_missing_product_currency_order_writes.sql` a `20261116130000_tracking_and_monthly_settlement_hardening.sql`. Jejich aplikaci do propojeného sandboxu tato revize neověřovala; poslední doložené záznamy výše uvádějí, že nebyly aplikovány. Databázové změny nebyly provedeny.
+- Zdroj obsahuje migrace `20261116120000_reject_missing_product_currency_order_writes.sql` a `20261116130000_tracking_and_monthly_settlement_hardening.sql`. Tato revize jejich aplikaci do sandboxu neověřovala. Starší zápisy výše si u měnové migrace protiřečí: některé uvádějí její aplikaci, jiné nikoli. Aktuální stav proto nelze z této revize určit. Databázové změny při této revizi provedeny nebyly.
 - Další práce zůstává vedena v otevřených položkách této roadmapy. Sekce „Možné směry — bez schváleného pořadí“ není harmonogram ani schválený závazek.
 - QA checkpoint 16. 11. 2026, větev `main`, `HEAD 85960cc`: nové místní spuštění `npm run verify:all` prošlo (lint, typecheck, 218 souborů / 1111 testů, build) a `npm run verify:migrations` prošlo pro všech 139 migrací; `git diff --check` také prošel. Následný read-only browser průchod jako administrátor je popsán níže. Smoke test a role průchody za Team Leadera a operátora nebyly spuštěny; `/console` může měnit pracovní stav.
 - Zdrojová kontrola Call Logs: `calls.order_value` je nullable částka bez uložené měny; seznam i detail ji formátují jako CZK a součet je skrytý. To odpovídá dříve zaznamenanému rozhodnutí používat pro jednotlivý hovor výchozí CZK; změna datového modelu z této kontroly nevyplynula. Zdrojová kontrola P3 potvrzuje naplánování položky fronty 21 dní po doručení; neprokazuje však pravidla způsobilosti opakované objednávky, návaznost objednávky ani ochranu před duplicitní obnovou objednávky. Tyto části, historie vratek a průchod datovými stavy nebyly interaktivně ověřeny; databáze nebyla dotčena.

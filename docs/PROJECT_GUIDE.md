@@ -42,4 +42,4 @@ Navazující detailní a správní trasy: `/leads/[leadId]` · `/orders/new` · 
 
 Kořenová cesta `/` uživatele přesměruje podle role: operátora na `/console`, Team Leadera na `/team/exceptions` a administrátora na `/reports`. `/telephony` je administrátorská místní testovací konzole SIP/Asterisk, nikoli produkční VoIP. Přihlašovací a obnovovací stránky nejsou v seznamu pracovních obrazovek.
 
-Technický postup a bezpečné příkazy jsou v [provozním návodu](OPERATIONS.md). Read-only důkaz linked databáze popisuje [runner P0.3](P0_3_REMOTE_DB_RUNNER.md). Směr další práce je nezávazně shrnutý v [roadmapě](ROADMAP.md).
+Technický postup a bezpečné příkazy jsou v [provozním návodu](OPERATIONS.md). Read-only důkaz linked databáze popisuje [runner P0.3](P0_3_REMOTE_DB_RUNNER.md). Otevřenou práci najdeš v [To-Do](To-Do/To-Do.md), odložené možnosti v [Later](To-Do/Later/To-Do-Later.md) a pravidla dokumentace v [Rules](Rules.md).

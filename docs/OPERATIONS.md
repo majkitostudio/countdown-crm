@@ -2,6 +2,8 @@
 
 Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu migrací. Ověření lokálního prostředí a linked sandboxu jsou oddělené; příkaz pro lokální databázi se nepovažuje za důkaz vzdáleného nasazení.
 
+Před během ověř skutečný cíl prostředí; historické záznamy níže neprokazují současné nastavení, dostupnost ani stav databáze. Práci se zápisem či vzdáleným prostředím předem odsouhlas podle [pravidel](Rules.md).
+
 ## Lokální spuštění a kontroly
 
 Požadavky jsou Node.js 22.22.2 až 22.x, 24.15.0 až 24.x nebo 26 a novější a podle režimu lokální Supabase prostředí. CI používá Node.js 22.22.2.
@@ -36,9 +38,11 @@ Endpoint `/api/carriers/webhook` přijímá události pouze tehdy, když jsou na
 
 Serverové webhooky automatizací přijímají pouze cíle přes HTTPS na portu 443. Před odesláním se DNS přeloží a spojení se připne na ověřenou veřejnou IP adresu; lokální, privátní, link-local, testovací a další speciální rozsahy se odmítají. Přesměrování se nenásledují a požadavek má limit 10 sekund. Webhook na HTTP, vlastním portu nebo pouze interní IPv6 adrese proto není podporován.
 
-### Ověření prostředí — 11. 11. 2026
+### Historické ověření prostředí — od 11. 11. 2026
 
-- Běžné `npm run dev` používá `.env.local` a připojuje aplikaci k sandboxu `countdown-crm-sandbox-20260824`; lokální Supabase je oddělený stack na portech 54321/54322. Docker nyní běží a lokální Supabase odpovídá; při dřívějším pokusu byl daemon dočasně nedostupný.
+Následující body jsou dobové výsledky včetně pozdějších doplňků, ne aktuální návod ani stav prostředí.
+
+- Při tehdejší kontrole běžné `npm run dev` používalo `.env.local` a připojovalo aplikaci k sandboxu `countdown-crm-sandbox-20260824`; lokální Supabase byl oddělený stack na portech 54321/54322. Docker při kontrole běžel a lokální Supabase odpovídala; při dřívějším pokusu byl daemon dočasně nedostupný.
 - Node.js 26.12.0 a npm 11.20.0 splňují požadavky projektu. Smoke test byl opraven: používá aktuální trasy a jako selhání počítá HTTP 4xx/5xx, chyby JavaScriptu a konzole i viditelný chybový stav načítání dat; neúspěšné interakční kontroly také nastaví neúspěšný exit code. Lze mu předat již běžící lokální server přes `SMOKE_TEST_BASE_URL` a přihlášení přes `SMOKE_TEST_EMAIL` / `SMOKE_TEST_PASSWORD`; tím se nekoliduje s vývojovým serverem a test jej nevypíná. Ověření proti lokální aplikaci a syntetickým datům jako administrátor skončilo 20/20 tras a 5/5 kontrol včetně přihlášení a chyb během interakcí, bez HTTP, konzolových a JS chyb. Demo-autentizovaný běh sám o sobě není důkazem rolového přístupu; pro tento průchod bylo použito skutečné lokální přihlášení.
 - Dashboard potvrdil zdravý stav projektu a po přípravě účtu 14 Auth účtů; ve workspace je 1 `administrator`, 5 `team_leader` a 7 `operator`. Nový syntetický účet `qa.team-leader@example.test` je potvrzený a má roli `team_leader`; jeho e-mail a heslo jsou pouze v místním `.env.local`. Přihlašovací údaje dříve pojmenované jako Team Leader patří jedinému `administrator`; jeho roli jsme zachovali. Tajné hodnoty se do výstupu ani dokumentace nekopírují.
 - Nový Team Leader se skutečně přihlásil do lokální Next.js aplikace připojené k sandboxu. `/team`, `/team/reviews`, `/team/exceptions` a `/schedule` vrátily HTTP 200; nebyly zaznamenány odpovědi HTTP 500 ani chyby JavaScriptu. Přihlášení a obrazovky administrátora i operátora byly ověřeny v předchozím průchodu.
