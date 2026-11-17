@@ -34,8 +34,12 @@ Záznam bez potvrzeného týmu (`team_id IS NULL`) je záměrný stav čekajíc�
 - Skutečný zdroj leadů ani produkční telefonie nejsou podmínkou pro iteraci nad ostatními částmi systému.
 - Nezaměňuj návrh nebo historický audit za schválené zadání. Stav implementace ověřuj v kódu a testech; stav nasazení ověř zvlášť.
 
-## Hlavní obrazovky
+## Hlavní obrazovky a cesty
 
-`/console` · `/leads` · `/orders` · `/products` · `/schedule` · `/team` · `/call-logs` · `/reports` · `/training` · `/wallet` · `/admin` · `/admin/ownership` · `/automations`.
+Hlavní pracovní trasy (nejde o úplný seznam všech rout): `/console` · `/leads` · `/orders` · `/products` · `/schedule` · `/team` · `/team/exceptions` · `/team/reviews` · `/call-logs` · `/reports` · `/audit` · `/training` · `/wallet` · `/automations` · `/admin`.
+
+Navazující detailní a správní trasy: `/leads/[leadId]` · `/orders/new` · `/orders/[orderId]` · `/orders/[orderId]/edit` · `/call-logs/[callId]/review` · `/team/reviews/[sessionId]` · `/settings` · `/settings/scripts` · `/admin/users` · `/admin/ownership` · `/admin/settings`.
+
+Kořenová cesta `/` uživatele přesměruje podle role: operátora na `/console`, Team Leadera na `/team/exceptions` a administrátora na `/reports`. `/telephony` je administrátorská místní testovací konzole SIP/Asterisk, nikoli produkční VoIP. Přihlašovací a obnovovací stránky nejsou v seznamu pracovních obrazovek.
 
 Technický postup a bezpečné příkazy jsou v [provozním návodu](OPERATIONS.md). Read-only důkaz linked databáze popisuje [runner P0.3](P0_3_REMOTE_DB_RUNNER.md). Směr další práce je nezávazně shrnutý v [roadmapě](ROADMAP.md).

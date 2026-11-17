@@ -405,6 +405,12 @@ function WorkspaceContent() {
         return;
       }
 
+      // Načtení přehledu konverzace nesmí přerušit běžící hovor: serverová část
+      // volá get_current_lead, které převádí stav in_progress na awaiting_outcome
+      // (recovery). Během hovoru proto přehled neobnovujeme; po ukončení hovoru
+      // se načte znovu, protože se změní assignmentState.
+      if (assignmentState === "in_progress") return;
+
       setIsConversationBriefLoading(true);
       setConversationBriefError(null);
       try {
