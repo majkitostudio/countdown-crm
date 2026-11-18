@@ -5,9 +5,8 @@ Stručný seznam známé otevřené práce při reorganizaci dokumentace 17. 11.
 ## Funkčnost, data a ověření
 
 - [ ] Podle dopadu řešit potvrzené překážky práce a rizika nesprávných dat; konkrétní problém a rozsah vždy nejprve ověřit.
-- [ ] Nasadit opravu integrity auditu (migrace `20261118130000`) do sandboxu; lokálně ověřeno, že člen nemůže přímo vložit, přepsat ani smazat audit a že RPC i triggery zapisují audit ve stejné transakci. Historické záznamy nelze zpětně považovat za ověřené.
+- [ ] Nasadit do sandbox preview aplikaci s RPC `update_telephony_adapter_with_audit` a se zákazem přímých zápisů auditu. Obě migrace (`20261118120000`, `20261118130000`) už jsou v sandbox DB a lokální aplikace `901c22a` proti ní prošla; starší preview `5acc9ff` po migracích nezapíše nastavení telefonie ani audit. Historické audity zůstávají bez zpětného ověření.
 - [ ] Dokončit ověření zakládání pracovníků a částečných selhání. Nové dokončení pozvánky prošlo lokálně s upraveným odkazem; ověřit celý tok se skutečně odeslanou novou šablonou a nastavit ji i v sandboxu se správnou Site URL. Bezpečné opětovné zaslání prošlé pozvánky zatím chybí.
-- [ ] Nasadit migraci `20261118120000` společně s odpovídající aplikací do sandboxu; samotná migrace odebere dosavadní přímý zápis nastavení telefonie a starší verzi aplikace by narušila.
 - [ ] Dokončit funkční, technické a vizuální review hlavních tras a bezpečných scénářů za administrátora, Team Leadera a operátora. Smoke a `/console` mohou mít vedlejší účinky; prostředí a syntetická data je nutné předem potvrdit.
 - [ ] Dokončit revizi UI/UX podle rolí a četnosti použití, včetně responzivity, klávesnice, 200% zvětšení a skutečné čtečky obrazovky.
 - [ ] Bezpečně ověřit klávesnicovou editaci a uložení návrhu skriptu; nepublikovat mimo schválená syntetická data.
