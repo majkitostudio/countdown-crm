@@ -45,7 +45,7 @@ beforeEach(() => {
 
 describe("ProductsPage server boundary", () => {
   it("loads the initial snapshot with verified context and gives its role to the client catalog", async () => {
-    const html = renderToStaticMarkup(await ProductsPage());
+    const html = renderToStaticMarkup(await ProductsPage({}));
 
     expect(mocks.requireWorkspaceContext).toHaveBeenCalledWith();
     expect(mocks.loadProductCatalog).toHaveBeenCalledWith(context);
@@ -57,7 +57,7 @@ describe("ProductsPage server boundary", () => {
     const failure = new Error("unexpected catalog loader failure");
     mocks.loadProductCatalog.mockRejectedValue(failure);
 
-    await expect(ProductsPage()).rejects.toBe(failure);
+    await expect(ProductsPage({})).rejects.toBe(failure);
   });
 });
 

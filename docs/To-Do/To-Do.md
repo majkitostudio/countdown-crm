@@ -5,7 +5,7 @@ Stručný seznam známé otevřené práce při reorganizaci dokumentace 17. 11.
 ## Funkčnost, data a ověření
 
 - [ ] Podle dopadu řešit potvrzené překážky práce a rizika nesprávných dat; konkrétní problém a rozsah vždy nejprve ověřit.
-- [ ] Zabezpečit integritu auditu: místní databáze dovoluje členovi vložit smyšlený záznam. Oprava musí zachovat zápisy navazujících operací; historické záznamy nelze zpětně považovat za ověřené.
+- [ ] Nasadit opravu integrity auditu (migrace `20261118130000`) do sandboxu; lokálně ověřeno, že člen nemůže přímo vložit, přepsat ani smazat audit a že RPC i triggery zapisují audit ve stejné transakci. Historické záznamy nelze zpětně považovat za ověřené.
 - [ ] Dokončit ověření zakládání pracovníků a částečných selhání. Nové dokončení pozvánky prošlo lokálně s upraveným odkazem; ověřit celý tok se skutečně odeslanou novou šablonou a nastavit ji i v sandboxu se správnou Site URL. Bezpečné opětovné zaslání prošlé pozvánky zatím chybí.
 - [ ] Nasadit migraci `20261118120000` společně s odpovídající aplikací do sandboxu; samotná migrace odebere dosavadní přímý zápis nastavení telefonie a starší verzi aplikace by narušila.
 - [ ] Dokončit funkční, technické a vizuální review hlavních tras a bezpečných scénářů za administrátora, Team Leadera a operátora. Smoke a `/console` mohou mít vedlejší účinky; prostředí a syntetická data je nutné předem potvrdit.

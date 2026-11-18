@@ -81,7 +81,7 @@ function ProductsTabs({ activeTab }: { activeTab: ProductsTabKey }) {
 }
 
 export default async function ProductsPage(
-  props: { searchParams?: Promise<{ tab?: string }> } = {},
+  props: { searchParams?: Promise<{ tab?: string }> },
 ) {
   const context = await requireWorkspaceContext();
   const isAdministrator = context.role === "administrator";

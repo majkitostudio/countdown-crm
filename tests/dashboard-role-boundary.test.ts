@@ -23,7 +23,7 @@ describe("manager dashboard role boundary", () => {
       role: "operator",
     });
 
-    await DashboardPage();
+    await DashboardPage({});
 
     expect(mocks.redirect).toHaveBeenCalledWith("/console");
   });

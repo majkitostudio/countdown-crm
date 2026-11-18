@@ -22,7 +22,7 @@ const REPORTS_TABS = [
 ] as const;
 
 export default async function ReportsPage(
-  props: { searchParams?: Promise<{ tab?: string }> } = {},
+  props: { searchParams?: Promise<{ tab?: string }> },
 ) {
   const context = await requireWorkspaceContext();
   if (!isTeamLeaderOrAdministrator(context.role)) {
