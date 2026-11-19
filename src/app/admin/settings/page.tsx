@@ -1,6 +1,7 @@
 import { LockKeyhole, WalletCards } from "lucide-react";
 import { requireWorkspaceContext } from "@/lib/dal/workspace";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TelephonyAdapterSettings } from "@/components/settings/TelephonyAdapterSettings";
 import { WorkspaceSettingsPanel } from "@/components/settings/WorkspaceSettingsPanel";
 import { Surface } from "@/components/ui/Surface";
 
@@ -30,9 +31,10 @@ export default async function AdminWorkspaceSettingsPage() {
         title="Nastavení pracovního prostoru"
         badge={{ label: "Pouze pro administrátory", tone: "neutral" }}
         backLink={{ href: "/admin", label: "Zpět do správy" }}
-        description="Pravidla a provize peněženky pro celý pracovní prostor."
+        description="Pravidla a provize peněženky a adaptér telefonie pro celý pracovní prostor."
       />
       <WorkspaceSettingsPanel />
+      <TelephonyAdapterSettings />
     </div>
   );
 }
