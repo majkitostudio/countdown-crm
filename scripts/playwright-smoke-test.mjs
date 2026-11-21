@@ -195,7 +195,11 @@ async function run() {
       let errorReason = "";
 
       try {
-        const response = await page.goto(url, { waitUntil: "networkidle", timeout: 15000 });
+        const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
+        // Některé stránky (např. operátorská konzole) průběžně pollují, takže
+        // networkidle nikdy nenastane. Dejte ostatním stránkám čas na data,
+        // ale polling nepovažujte za selhání.
+        await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
         status = response ? response.status() : 0;
         finalUrl = page.url();
         title = await page.title();

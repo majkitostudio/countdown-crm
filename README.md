@@ -1,6 +1,6 @@
 # Countdown CRM
 
-Provozní CRM pro call centrum prodávající doplňky stravy. Projekt je prototyp; současná prostředí a data slouží vývoji a testování, nikoli produkčnímu provozu.
+Provozní CRM pro call centrum prodávající doplňky stravy. Má produkční nasazení; vývoj a testování probíhají v odděleném sandboxu. Aktuální stav prostředí a bezpečné postupy jsou v [provozním návodu](docs/OPERATIONS.md).
 
 ## Kde co najít
 

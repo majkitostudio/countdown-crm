@@ -4,6 +4,17 @@ Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu mig
 
 Před během ověř skutečný cíl prostředí; historické záznamy níže neprokazují současné nastavení, dostupnost ani stav databáze. Práci se zápisem či vzdáleným prostředím předem odsouhlas podle [pravidel](Rules.md).
 
+## Aktuální stav prostředí (21. 11. 2026)
+
+| Prostředí | Cíl | Ověřený stav |
+|---|---|---|
+| Lokální | Docker/Supabase a `.env.local` | Při kontrole nebyla lokální DB dostupná, proto lokální parita nyní neověřena. |
+| Sandbox | `countdown-crm-sandbox-20260824`, ref `lpvypihpxhyjljikfzqo` | Supabase CLI je sem propojená; migrace 142/142. |
+| Produkce | `countdown-crm`, ref `qlzrsookyobtvyekhrqi`, Vercel `https://countdowncrm.vercel.app` | Migrace 142/142; nejnovější produkční deployment READY z commitu `d648a0c`. |
+| Preview | Vercel větev `work/clean-baseline` | Deployment READY z commitu `9e26d1f`; následný commit `d648a0c` byl jen dokumentační. |
+
+Stav se může změnit; před zásahem nebo testem cíl znovu ověř. Produkční nasazení neznamená, že místní SIP adaptér je aktivní; v produkci nebyl žádný adaptér přepnut.
+
 ## Lokální spuštění a kontroly
 
 Požadavky jsou Node.js 22.22.2 až 22.x, 24.15.0 až 24.x nebo 26 a novější a podle režimu lokální Supabase prostředí. CI používá Node.js 22.22.2.
@@ -97,9 +108,9 @@ node scripts/verify-migration-parity.mjs --linked
 npx supabase migration list --linked
 ```
 
-Kontrola 18. 11. 2026: skript používá výslovně `--local` nebo `--linked` a strojový JSON výstup CLI. Lokálně je aplikováno 142 verzí; sandbox hlásí 140 a chybí `20261118120000` a `20261118130000`. Porovnává evidenci verzí, nikoli skutečný obsah databázových funkcí.
+Kontrola 21. 11. 2026: skript používá výslovně `--local` nebo `--linked` a strojový JSON výstup CLI. Repozitář obsahuje 142 migrací; linked sandbox i produkce (`--project-ref`) hlásí 142/142. Lokální parita nebyla při této kontrole ověřena, protože lokální Docker databáze nebyla dostupná. Kontrola porovnává evidenci verzí, nikoli skutečný obsah databázových funkcí.
 
-Linked kontrola vyžaduje přihlášení do správného projektu. Pro kontrolu byl ověřen scoped token s oprávněním `Database: Read-write` a `Migrations: Read-write` pro sandbox. Na tomto počítači je uložen šifrovaně pro aktuálního uživatele v `%USERPROFILE%\.supabase\countdown-crm-sandbox-token.dpapi`, s platností do 18. 12. 2026; stejný token je v `.env.local` jako `SUPABASE_ACCESS_TOKEN` a `SUPABASE_MIGRATE_ACCESS_TOKEN`. Token nepatří do repozitáře ani výstupu. Uživatel souhlasí s opakovaným read-only čtením evidence migrací v propojeném testovacím sandboxu bez dalšího dotazu; oprávnění umožňující zápis samo o sobě není souhlasem ke změně databáze.
+Linked kontrola vyžaduje přihlášení do správného projektu. CLI je propojena se sandboxem; pro produkci použij výslovný `--project-ref` a samostatný token. V `.env.local` jsou pro tyto účely `SUPABASE_SANDBOX_LINK_TOKEN` a `SUPABASE_PROD_ACCESS_TOKEN`; starší `SUPABASE_ACCESS_TOKEN` a `SUPABASE_MIGRATE_ACCESS_TOKEN` tam rovněž existují, ale jejich aktuální oprávnění se z dokumentace neověřují. Starý produkční migrační token byl odvolán. Token nepatří do repozitáře ani výstupu a jeho platnost ověř v Supabase účtu. Uživatel souhlasí s opakovaným read-only čtením evidence migrací v propojeném testovacím sandboxu bez dalšího dotazu; oprávnění umožňující zápis samo o sobě není souhlasem ke změně databáze.
 
 ### Nasazení chybějících migrací
 
@@ -117,6 +128,12 @@ node scripts/verify-migration-parity.mjs --linked
 ```
 
 `migration repair` mění evidenci aplikovaných migrací. Použij ho pouze po ručním porovnání názvů a schématu; sám neopraví schéma databáze. Migraci neoznačuj jako aplikovanou ani nevrácenou odhadem. Při nejasném driftu zastav a zjisti původ.
+
+### Zaznamenané nasazení 21. 11. 2026
+
+- Sandbox: migrace `20261118120000` a `20261118130000` aplikovány; parita 142/142. Přímé zápisy do `audit_logs` a `workspace_telephony_settings` jsou odmítnuty, RPC `update_telephony_adapter_with_audit` funguje a vytvořil auditní záznam.
+- Produkce: aplikováno pět chybějících migrací `20261116120000`, `20261116130000`, `20261117100000`, `20261118120000`, `20261118130000`; parita 142/142.
+- Aplikace: produkční Vercel deployment READY z `d648a0c`; funkční kontrola `/admin/settings` potvrdila sekci „Adaptér telefonie“. Místní SIP v produkci aktivní není, adaptér nebyl přepnut. Preview `work/clean-baseline` měl READY deployment z `9e26d1f` a funkční kontrolu stejné sekce.
 
 ## Bezpečnostní hranice
 
