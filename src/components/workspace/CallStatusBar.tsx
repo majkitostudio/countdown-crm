@@ -1,10 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneOff, Play, Radio, Settings } from "lucide-react";
+import { ChevronDown, Mic, MicOff, Pause, PhoneCall, PhoneIncoming, PhoneOff, Play, Radio } from "lucide-react";
 import { OperatorStatus } from "@/components/layout/Sidebar";
-import { Button, getButtonClassName } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import type { FailDetails } from "@/lib/postCall";
@@ -76,7 +75,6 @@ export function CallStatusBar({ status, isCallActive, isDialing, durationSeconds
         {isCallActive && <>
           <Button variant="secondary" onClick={onToggleMute} aria-label={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"} title={isMuted ? "Zapnout mikrofon" : "Ztlumit mikrofon"}>{isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}</Button>
           <Button variant="secondary" onClick={onToggleHold} aria-label={isOnHold ? "Pokračovat v hovoru" : "Podržet hovor"} title={isOnHold ? "Pokračovat v hovoru" : "Podržet hovor"}>{isOnHold ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}</Button>
-          <Link href="/settings" aria-label="Otevřít nastavení" title="Otevřít nastavení" className={getButtonClassName("secondary")}><Settings className="w-4 h-4" /></Link>
         </>}
         {isAwaitingOutcome && <StatusAlert tone="warning" className="w-full">Je nutné zvolit výsledek hovoru.</StatusAlert>}
         {!isCallActive && !isDialing && showIncomingSimulator && <Button variant="secondary" onClick={onSimulateIncoming} title="Simulovat příchozí hovor" aria-label="Simulovat příchozí hovor"><PhoneIncoming className="w-4 h-4" /></Button>}

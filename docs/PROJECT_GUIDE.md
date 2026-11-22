@@ -6,6 +6,10 @@ Countdown je provozní CRM na míru pro call centrum, které prodává doplňky 
 
 **Operator Console je klíčová pracovní plocha operátora, ne celý produkt.** Nové funkce mají mít jasnou roli a pracovní účel. Data a chování mají zůstat pravdivé: rozhraní nesmí předstírat výsledek, dostupnost integrace ani uložení, které systém nepotvrdil.
 
+## Plánovaná změna názvu
+
+Projekt se má v budoucnu přejmenovat na **Velocity CRM**. Jde zatím o plán: aplikace, repozitář, domény a odkazy zůstávají pod názvem Countdown CRM. Samotné přejmenování aplikace, připojení vlastních domén a úpravy projektových adres provede GPT Work v samostatném chatu. Úplnou matici oprávnění všech rolí a závěrečný checkpoint dokončíme až po této změně a potvrzení aktualizace všech domén a odkazů.
+
 ## Organizační model
 
 - **Workspace** je oddělené prostředí firmy včetně jejích dat, produktů, integrací a uživatelů.

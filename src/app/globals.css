@@ -230,6 +230,10 @@
   background: rgba(63, 63, 70, 0.9);
 }
 
+#primary-navigation::-webkit-scrollbar {
+  display: none;
+}
+
 @theme inline {
   --font-heading: var(--font-poppins);
   --font-sans: var(--font-poppins);

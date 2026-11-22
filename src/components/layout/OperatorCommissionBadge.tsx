@@ -109,7 +109,7 @@ export function OperatorCommissionBadge() {
     <Link
       href="/wallet"
       title="Zobrazit přehled provizí a peněženku"
-      className={`relative flex items-center gap-2 rounded-xl border px-3 py-1.5 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+      className={`relative flex items-center gap-2 rounded-lg border px-3 py-1.5 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
         isBumping
           ? "border-emerald-500/60 bg-emerald-950/40 ring-1 ring-emerald-500/40 shadow-sm"
           : "border-zinc-800 bg-zinc-900/70 hover:border-zinc-700 hover:bg-zinc-800/60"
@@ -124,14 +124,14 @@ export function OperatorCommissionBadge() {
 
       <div className="min-w-0">
         <span
-          className={`hidden sm:block text-[9px] font-semibold uppercase tracking-wider leading-none transition-colors duration-300 ${
+          className={`hidden sm:block text-[10px] font-medium tracking-normal leading-none transition-colors duration-300 ${
             isBumping ? "text-emerald-400/80" : "text-zinc-400"
           }`}
         >
           Provize
         </span>
         <span
-          className={`text-xs font-bold font-mono tabular-nums leading-tight transition-colors duration-300 ${
+          className={`text-sm font-semibold font-sans tracking-tight tabular-nums leading-tight transition-colors duration-300 ${
             isBumping ? "text-emerald-300" : "text-zinc-100"
           }`}
         >
