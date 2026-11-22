@@ -6,6 +6,7 @@ import {
   inviteOrProvisionWorkspaceMember,
   listWorkspaceMembers,
   listWorkspaceOperators,
+  resendWorkspaceInvitation,
   updateWorkspaceMemberRole,
   type InviteOrProvisionMemberInput,
   type InviteOrProvisionMemberResult,
@@ -52,4 +53,8 @@ export async function inviteOrProvisionWorkspaceMemberAction(
   input: InviteOrProvisionMemberInput,
 ): Promise<InviteOrProvisionMemberResult> {
   return inviteOrProvisionWorkspaceMember(input);
+}
+
+export async function resendWorkspaceInvitationAction(userId: string): Promise<void> {
+  return resendWorkspaceInvitation(userId);
 }

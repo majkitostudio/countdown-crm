@@ -4,14 +4,18 @@ const mocks = vi.hoisted(() => ({
   requireWorkspaceRole: vi.fn(),
   createAdminClient: vi.fn(),
   isDemoAuthEnabled: vi.fn(),
+  createDataClient: vi.fn(),
+  assignTeamMembership: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/dal/workspace", () => ({ requireWorkspaceRole: mocks.requireWorkspaceRole }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: mocks.createAdminClient }));
 vi.mock("@/lib/auth/config", () => ({ isDemoAuthEnabled: mocks.isDemoAuthEnabled }));
+vi.mock("@/lib/dal/db", () => ({ createDataClient: mocks.createDataClient }));
+vi.mock("@/lib/dal/teams", () => ({ assignTeamMembership: mocks.assignTeamMembership }));
 
-import { inviteOrProvisionWorkspaceMember } from "@/lib/dal/memberships";
+import { inviteOrProvisionWorkspaceMember, resendWorkspaceInvitation } from "@/lib/dal/memberships";
 
 const input = { email: "test@example.com", fullName: "Test User", role: "operator" as const, teamId: "team-1" };
 const membership = { workspace_id: "workspace-1", user_id: "user-1", role: "operator", created_at: "", updated_at: "" };
@@ -20,10 +24,13 @@ function setup(options: {
   team?: unknown; teamError?: unknown; users?: { id: string; email: string }[];
   listError?: unknown; profileError?: unknown; memberError?: unknown; teamMemberError?: unknown;
   loadError?: unknown;
+  existingMember?: boolean;
+  authUser?: { id: string; email?: string; invited_at?: string; email_confirmed_at?: string };
 } = {}) {
   const listUsers = vi.fn().mockResolvedValue({ data: { users: options.users ?? [] }, error: options.listError ?? null });
   const createUser = vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
   const inviteUserByEmail = vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+  const getUserById = vi.fn().mockResolvedValue({ data: { user: options.authUser ?? { id: "user-1", email: input.email, invited_at: "2026-01-01" } }, error: null });
   const deleteUser = vi.fn();
   const upsert = vi.fn().mockResolvedValue({ error: options.profileError ?? null });
   const insertMember = vi.fn().mockResolvedValue({ error: options.memberError ?? null });
@@ -41,7 +48,7 @@ function setup(options: {
       query.maybeSingle.mockImplementation(async () => {
         memberReads++;
         return memberReads === 1 && (options.users?.length ?? 0) > 0
-          ? { data: null, error: null }
+          ? { data: options.existingMember ? membership : null, error: null }
           : { data: options.loadError ? null : membership, error: options.loadError ?? null };
       });
     }
@@ -49,14 +56,15 @@ function setup(options: {
     if (table === "team_memberships") query.insert = insertTeam;
     return query;
   });
-  mocks.createAdminClient.mockReturnValue({ from, auth: { admin: { listUsers, createUser, inviteUserByEmail, deleteUser } } });
-  return { from, listUsers, createUser, inviteUserByEmail, deleteUser, upsert, insertMember, insertTeam };
+  mocks.createAdminClient.mockReturnValue({ from, auth: { admin: { listUsers, createUser, inviteUserByEmail, getUserById, deleteUser } } });
+  return { from, listUsers, createUser, inviteUserByEmail, getUserById, deleteUser, upsert, insertMember, insertTeam };
 }
 
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.requireWorkspaceRole.mockResolvedValue({ workspaceId: "workspace-1", userId: "admin", role: "administrator" });
   mocks.isDemoAuthEnabled.mockReturnValue(false);
+  mocks.assignTeamMembership.mockResolvedValue({});
 });
 
 describe("worker provisioning", () => {
@@ -106,6 +114,39 @@ describe("worker provisioning", () => {
       .mockResolvedValueOnce({ data: { users: [{ id: "user-1", email: input.email }] }, error: null });
     await inviteOrProvisionWorkspaceMember(input);
     expect(calls.listUsers).toHaveBeenCalledTimes(2);
+    expect(calls.inviteUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("completes an existing member's missing team assignment on retry", async () => {
+    const calls = setup({ users: [{ id: "user-1", email: input.email }], existingMember: true });
+    const query = { select: vi.fn(), eq: vi.fn() };
+    query.select.mockReturnValue(query);
+    query.eq.mockReturnValueOnce(query).mockResolvedValueOnce({ data: [], error: null });
+    mocks.createDataClient.mockResolvedValue({ from: vi.fn().mockReturnValue(query) });
+    const result = await inviteOrProvisionWorkspaceMember(input);
+    expect(mocks.assignTeamMembership).toHaveBeenCalledWith({ teamId: "team-1", userId: "user-1", membershipRole: "member" });
+    expect(calls.inviteUserByEmail).not.toHaveBeenCalled();
+    expect(result.assignedTeamId).toBe("team-1");
+  });
+});
+
+describe("resending an invitation", () => {
+  it("resends only to a pending invited workspace member", async () => {
+    const calls = setup();
+    await resendWorkspaceInvitation("user-1");
+    expect(calls.inviteUserByEmail).toHaveBeenCalledWith(input.email);
+  });
+
+  it("rejects a confirmed account without sending email", async () => {
+    const calls = setup({ authUser: { id: "user-1", email: input.email, invited_at: "2026-01-01", email_confirmed_at: "2026-01-02" } });
+    await expect(resendWorkspaceInvitation("user-1")).rejects.toThrow("dosud nepřijal");
+    expect(calls.inviteUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("rejects users outside the workspace", async () => {
+    const calls = setup({ loadError: { message: "missing" } });
+    await expect(resendWorkspaceInvitation("user-1")).rejects.toThrow();
+    expect(calls.getUserById).not.toHaveBeenCalled();
     expect(calls.inviteUserByEmail).not.toHaveBeenCalled();
   });
 });

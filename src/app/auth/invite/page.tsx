@@ -19,7 +19,7 @@ export default function InvitePage() {
     window.history.replaceState(null, "", window.location.pathname);
     void Promise.resolve().then(() => {
       if (value.length > 0 && value.length <= 256 && !/[^a-f0-9]/i.test(value)) setToken(value);
-      else setMessage("Odkaz je neplatný. Obraťte se na správce; opakované odeslání pozvánky nyní není dostupné.");
+      else setMessage("Odkaz je neplatný. Požádejte správce o novou pozvánku.");
     });
   }, []);
 
@@ -39,7 +39,7 @@ export default function InvitePage() {
       const body = await response.json();
       setMessage(body.error === "already_signed_in"
         ? "V tomto prohlížeči jste již přihlášeni. Odhlaste se a znovu otevřete odkaz z e-mailu."
-        : "Pozvánku se nepodařilo ověřit. Může být neplatná, prošlá nebo již použitá. Obraťte se na správce; opakované odeslání pozvánky nyní není dostupné.");
+        : "Pozvánku se nepodařilo ověřit. Může být neplatná, prošlá nebo již použitá. Požádejte správce o novou pozvánku.");
     } catch {
       setMessage("Pozvánku se nepodařilo ověřit. Zkuste to znovu.");
     } finally {
