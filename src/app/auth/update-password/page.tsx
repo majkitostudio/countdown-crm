@@ -78,7 +78,7 @@ export default function UpdatePasswordPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center">
           <CountdownMark className="h-12 w-12" />
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">COUNTDOWN CRM</h1>
+          <h1 className="text-xl font-bold tracking-tight text-zinc-100">VELOCITY CRM</h1>
           <p className="text-xs text-zinc-400">Nastavení nového hesla k vašemu účtu.</p>
         </div>
 

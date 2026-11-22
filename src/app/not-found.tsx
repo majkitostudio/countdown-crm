@@ -14,7 +14,7 @@ export default function NotFound() {
         <div className="space-y-1">
           <h1 className="text-lg font-semibold text-zinc-100">Stránka nenalezena (404)</h1>
           <p className="text-xs text-zinc-400">
-            Požadovaná adresa v Countdown CRM neexistuje nebo byla přesunuta.
+            Požadovaná adresa v Velocity CRM neexistuje nebo byla přesunuta.
           </p>
         </div>
 

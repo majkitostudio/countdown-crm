@@ -110,10 +110,10 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
           {!isCompact && (
             <div className="flex flex-col">
               <span className="font-semibold text-sm tracking-tight text-zinc-100 leading-none">
-                COUNTDOWN
+                VELOCITY
               </span>
               <span className="text-[11px] text-zinc-400 font-mono tracking-wider">
-                AI CRM v0.1
+                CRM
               </span>
             </div>
           )}

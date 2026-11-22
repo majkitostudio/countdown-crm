@@ -50,7 +50,7 @@ function buildFeedbackPrompt(scenario: TrainingScenario, history: TrainingMessag
   const operatorMessages = history.filter((m) => m.sender === "user").map((m) => redact(m.text)).join("\n---\n");
 
   return `
-Jsi AI coaching asistent pro P2 outbound trénink (Countdown CRM).
+Jsi AI coaching asistent pro P2 outbound trénink (Velocity CRM).
 Analyzuj přepis tréninkového hovoru a vrať konkrétní opravy.
 
 SKRIPT (pouze pro orientaci):

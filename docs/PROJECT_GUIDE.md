@@ -1,8 +1,8 @@
-# Countdown CRM — průvodce projektem
+# Velocity CRM — průvodce projektem
 
 ## Co projekt řeší
 
-Countdown je provozní CRM na míru pro call centrum, které prodává doplňky stravy. Propojuje práci operátorů, Team Leaderů a administrátorů kolem leadů, hovorů, objednávek, produktů, týmů, kvality, tréninku a reportingu. Projekt se průběžně stabilizuje a rozvíjí; není cílem tlačit ho k prodeji nebo dokončení MVP.
+Velocity CRM je provozní CRM na míru pro call centrum, které prodává doplňky stravy. Propojuje práci operátorů, Team Leaderů a administrátorů kolem leadů, hovorů, objednávek, produktů, týmů, kvality, tréninku a reportingu. Projekt se průběžně stabilizuje a rozvíjí; není cílem tlačit ho k prodeji nebo dokončení MVP.
 
 **Operator Console je klíčová pracovní plocha operátora, ne celý produkt.** Nové funkce mají mít jasnou roli a pracovní účel. Data a chování mají zůstat pravdivé: rozhraní nesmí předstírat výsledek, dostupnost integrace ani uložení, které systém nepotvrdil.
 
