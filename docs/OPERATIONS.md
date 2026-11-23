@@ -9,8 +9,8 @@ Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu mig
 | Lokální databáze | Docker/Supabase a `.env.local` | Před každým během ověř skutečný cíl prostředí. |
 | Sandbox databáze | `countdown-crm-sandbox-20260824`, ref `lpvypihpxhyjljikfzqo` | Ponecháno beze změny; jde o databázový identifikátor. |
 | Produkční databáze | `countdown-crm`, ref `qlzrsookyobtvyekhrqi` | Ponecháno beze změny; jde o databázový identifikátor. |
-| Testovací aplikace | Vercel `https://dev.majkito.com`, projekt `velocity-crm`, větev `codex/velocity-crm-rebrand` | Preview nasazení po sestavení této větve. |
-| Produkční aplikace | Vercel `https://velocity.majkito.com`, projekt `velocity-crm`, větev `main` | Produkční nasazení se aktualizuje po sloučení do `main`. |
+| Testovací aplikace | Vercel `https://dev.majkito.com`, projekt `velocity-crm`, větev `codex/velocity-crm-rebrand` | Preview nasazení se aktualizuje po pushi do této větve. |
+| Produkční aplikace | Vercel `https://velocity.majkito.com`, projekt `velocity-crm`, větev `main` | Produkční nasazení se automaticky vytváří z větve `main`. |
 
 Přejmenování aplikace neprovedlo žádný zápis do databází. Historické záznamy níže zachovávají názvy, které platily v době daného ověření.
 
