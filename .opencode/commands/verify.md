@@ -1,8 +1,8 @@
 ---
-description: Bezpečně ověř změny v Countdown CRM a stručně shrň výsledek.
+description: Bezpečně ověř změny v Velocity CRM a stručně shrň výsledek.
 ---
 
-Ověř aktuální změny v projektu Countdown CRM. Tento příkaz pouze kontroluje — neopravuj ani neupravuj soubory.
+Ověř aktuální změny v projektu Velocity CRM. Tento příkaz pouze kontroluje — neopravuj ani neupravuj soubory.
 
 1. Zkontroluj `git status`, `git diff` (unstaged), `git diff --cached` (staged) a nové soubory z `git ls-files --others --exclude-standard`; relevantní nové soubory také přečti. Nikdy nevypisuj obsah `.env` ani jiné tajné hodnoty.
 2. Podle rozsahu vyber přiměřené kontroly:

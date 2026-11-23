@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
-import { CountdownMark } from "@/components/brand/CountdownMark";
+import { VelocityMark } from "@/components/brand/VelocityMark";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/Button";
@@ -105,7 +105,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/80">
         <Link href="/" className="flex items-center gap-3 overflow-hidden">
           <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 shrink-0">
-            <CountdownMark className="h-4 w-4" />
+            <VelocityMark className="h-4 w-4" />
           </div>
           {!isCompact && (
             <div className="flex flex-col">

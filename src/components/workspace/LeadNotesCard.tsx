@@ -35,13 +35,26 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<DraftStatus>("empty");
   const [hydratedLeadId, setHydratedLeadId] = useState<string | null>(null);
-  const draftStorageKey = `countdown-crm:lead-note-draft:${leadId}`;
+  const draftStorageKey = `velocity-crm:lead-note-draft:${leadId}`;
+  const legacyDraftStorageKey = `countdown-crm:lead-note-draft:${leadId}`;
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       let savedDraft = "";
       try {
         savedDraft = window.localStorage.getItem(draftStorageKey) || "";
+        if (!savedDraft) {
+          const legacyDraft = window.localStorage.getItem(legacyDraftStorageKey);
+          if (legacyDraft) {
+            savedDraft = legacyDraft;
+            try {
+              window.localStorage.setItem(draftStorageKey, legacyDraft);
+              window.localStorage.removeItem(legacyDraftStorageKey);
+            } catch {
+              // Keep the legacy draft readable if the migration write is blocked.
+            }
+          }
+        }
       } catch {
         savedDraft = "";
       }
@@ -52,7 +65,7 @@ export function LeadNotesCard({ leadId, notes, onNotesChange }: LeadNotesCardPro
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, [draftStorageKey, leadId]);
+  }, [draftStorageKey, legacyDraftStorageKey, leadId]);
 
   useEffect(() => {
     if (hydratedLeadId !== leadId) return;

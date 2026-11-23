@@ -1,8 +1,8 @@
 ---
-description: Proveď nezměnovou revizi aktuálních změn v Countdown CRM.
+description: Proveď nezměnovou revizi aktuálních změn v Velocity CRM.
 ---
 
-Proveď read-only revizi změn v projektu Countdown CRM; žádné soubory neupravuj a nespouštěj testy ani aplikaci.
+Proveď read-only revizi změn v projektu Velocity CRM; žádné soubory neupravuj a nespouštěj testy ani aplikaci.
 
 1. Zkontroluj `git status`, `git diff` (unstaged), `git diff --cached` (staged) a nové soubory z `git ls-files --others --exclude-standard`; relevantní nové soubory také přečti. Nečti ani nevypisuj `.env` a tajné hodnoty.
 2. Pokud uživatel zadal rozsah v `$ARGUMENTS`, drž se ho. Jinak reviduj aktuální změny pracovního stromu. Když nejsou žádné, nevybírej si svévolně starý commit — stručně požádej o konkrétní rozsah.

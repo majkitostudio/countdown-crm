@@ -79,7 +79,7 @@ describe("post-call completion runtime contract", () => {
     mocks.createDataClient.mockResolvedValue({ rpc });
 
     const structuredTranscript = JSON.stringify([
-      { speaker: "operator", timestamp: "00:05", text: "Dobrý den, volám z Countdown CRM." },
+      { speaker: "operator", timestamp: "00:05", text: "Dobrý den, volám z Velocity CRM." },
     ]);
 
     await completeLeadCallForWorkspace({

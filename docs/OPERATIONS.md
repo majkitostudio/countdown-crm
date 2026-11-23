@@ -1,19 +1,18 @@
-# Countdown CRM — provozní návod
+# Velocity CRM — provozní návod
 
-Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu migrací. Ověření lokálního prostředí a linked sandboxu jsou oddělené; příkaz pro lokální databázi se nepovažuje za důkaz vzdáleného nasazení.
+Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu migrací. Ověření lokálního prostředí a propojeného sandboxu jsou oddělené; příkaz pro lokální databázi se nepovažuje za důkaz vzdáleného nasazení.
 
-Před během ověř skutečný cíl prostředí; historické záznamy níže neprokazují současné nastavení, dostupnost ani stav databáze. Práci se zápisem či vzdáleným prostředím předem odsouhlas podle [pravidel](Rules.md).
+## Aktuální stav prostředí (23. 11. 2026)
 
-## Aktuální stav prostředí (21. 11. 2026)
-
-| Prostředí | Cíl | Ověřený stav |
+| Prostředí | Cíl | Stav |
 |---|---|---|
-| Lokální | Docker/Supabase a `.env.local` | Při kontrole nebyla lokální DB dostupná, proto lokální parita nyní neověřena. |
-| Sandbox | `countdown-crm-sandbox-20260824`, ref `lpvypihpxhyjljikfzqo` | Supabase CLI je sem propojená; migrace 142/142. |
-| Produkce | `countdown-crm`, ref `qlzrsookyobtvyekhrqi`, Vercel `https://countdowncrm.vercel.app` | Migrace 142/142; nejnovější produkční deployment READY z commitu `d648a0c`. |
-| Preview | Vercel větev `work/clean-baseline` | Deployment READY z commitu `9e26d1f`; následný commit `d648a0c` byl jen dokumentační. |
+| Lokální databáze | Docker/Supabase a `.env.local` | Před každým během ověř skutečný cíl prostředí. |
+| Sandbox databáze | `countdown-crm-sandbox-20260824`, ref `lpvypihpxhyjljikfzqo` | Ponecháno beze změny; jde o databázový identifikátor. |
+| Produkční databáze | `countdown-crm`, ref `qlzrsookyobtvyekhrqi` | Ponecháno beze změny; jde o databázový identifikátor. |
+| Testovací aplikace | Vercel `https://dev.majkito.com`, projekt `velocity-crm`, větev `codex/velocity-crm-rebrand` | Preview nasazení po sestavení této větve. |
+| Produkční aplikace | Vercel `https://velocity.majkito.com`, projekt `velocity-crm`, větev `main` | Produkční nasazení se aktualizuje po sloučení do `main`. |
 
-Stav se může změnit; před zásahem nebo testem cíl znovu ověř. Produkční nasazení neznamená, že místní SIP adaptér je aktivní; v produkci nebyl žádný adaptér přepnut.
+Přejmenování aplikace neprovedlo žádný zápis do databází. Historické záznamy níže zachovávají názvy, které platily v době daného ověření.
 
 ## Lokální spuštění a kontroly
 

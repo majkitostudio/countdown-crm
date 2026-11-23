@@ -62,9 +62,9 @@ async function run() {
 
   if (!email) {
     console.log("Použití:");
-    console.log("  node scripts/provision-user.mjs --email=novak@countdown.cz --name=\"Jan Novák\" --role=operator --password=Heslo1234");
-    console.log("  node scripts/provision-user.mjs --email=novak@countdown.cz --name=\"Jan Novák\" --role=operator --invite");
-    console.log("  node scripts/provision-user.mjs --email=novak@countdown.cz --cleanup");
+    console.log("  node scripts/provision-user.mjs --email=novak@example.test --name=\"Jan Novák\" --role=operator --password=Heslo1234");
+    console.log("  node scripts/provision-user.mjs --email=novak@example.test --name=\"Jan Novák\" --role=operator --invite");
+    console.log("  node scripts/provision-user.mjs --email=novak@example.test --cleanup");
     process.exit(0);
   }
 

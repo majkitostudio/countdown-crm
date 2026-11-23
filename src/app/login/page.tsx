@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { CountdownMark } from "@/components/brand/CountdownMark";
+import { VelocityMark } from "@/components/brand/VelocityMark";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
@@ -51,7 +51,7 @@ export default function LoginPage() {
         {/* Brand Logo */}
         <div className="flex flex-col items-center space-y-2 text-center">
           <div className="flex items-center justify-center">
-            <CountdownMark className="h-12 w-12" />
+            <VelocityMark className="h-12 w-12" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">
             VELOCITY CRM

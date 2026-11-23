@@ -89,9 +89,9 @@ export function OperatorCommissionBadge() {
       });
     };
 
-    window.addEventListener("countdown:order_commission_earned", handleCommissionEarned);
+    window.addEventListener("velocity:order_commission_earned", handleCommissionEarned);
     return () => {
-      window.removeEventListener("countdown:order_commission_earned", handleCommissionEarned);
+      window.removeEventListener("velocity:order_commission_earned", handleCommissionEarned);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };

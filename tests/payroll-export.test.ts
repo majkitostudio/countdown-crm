@@ -24,7 +24,7 @@ describe("Milník 4.2: Export podkladů pro mzdy (Payroll Export)", () => {
       {
         userId: "user-1",
         userName: "Jan Novák",
-        userEmail: "jan.novak@countdown.cz",
+        userEmail: "jan.novak@example.test",
         deliveredCount: 45,
         deliveredTotal: 90000,
         returnedCount: 5,
@@ -41,7 +41,7 @@ describe("Milník 4.2: Export podkladů pro mzdy (Payroll Export)", () => {
       {
         userId: "user-2",
         userName: "Eva Svobodová",
-        userEmail: "eva.svobodova@countdown.cz",
+        userEmail: "eva.svobodova@example.test",
         deliveredCount: 30,
         deliveredTotal: 60000,
         returnedCount: 2,
@@ -86,7 +86,7 @@ describe("Milník 4.2: Export podkladů pro mzdy (Payroll Export)", () => {
       // Jan Novák
       const janLine = lines.find((l) => l.includes("Jan Novák"));
       expect(janLine).toBeDefined();
-      expect(janLine).toContain("jan.novak@countdown.cz");
+      expect(janLine).toContain("jan.novak@example.test");
       expect(janLine).toContain("84000"); // čistý obrat
       expect(janLine).toContain("4000"); // fixní bonusy
       expect(janLine).toContain("6720"); // procentuální provize

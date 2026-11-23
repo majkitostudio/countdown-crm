@@ -6,6 +6,10 @@ Velocity CRM je provozní CRM na míru pro call centrum, které prodává doplň
 
 **Operator Console je klíčová pracovní plocha operátora, ne celý produkt.** Nové funkce mají mít jasnou roli a pracovní účel. Data a chování mají zůstat pravdivé: rozhraní nesmí předstírat výsledek, dostupnost integrace ani uložení, které systém nepotvrdil.
 
+## Název a adresy
+
+Aplikace se jmenuje **Velocity CRM**. Produkční prostředí je na `velocity.majkito.com`; testovací prostředí je na `dev.majkito.com`.
+
 ## Organizační model
 
 - **Workspace** je oddělené prostředí firmy včetně jejích dat, produktů, integrací a uživatelů.

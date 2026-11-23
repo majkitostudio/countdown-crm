@@ -162,7 +162,7 @@ export function generateSeedSql(compiled) {
 
   const lines = [
     "-- ============================================================================",
-    "-- COUNTDOWN CRM - LOCAL DEMO CATALOG SEED",
+    "-- VELOCITY CRM - LOCAL DEMO CATALOG SEED",
     `-- Generated automatically from data/seeds/catalog-seed-template.json`,
     `-- Target Workspace: ${workspaceId}`,
     "-- ============================================================================",
@@ -175,7 +175,7 @@ export function generateSeedSql(compiled) {
     "BEGIN",
     "  -- 1. Ensure Organization exists",
     "  INSERT INTO public.organizations (name, slug)",
-    "  VALUES ('Countdown Telemarketing', 'countdown')",
+    "  VALUES ('Velocity Telemarketing', 'countdown')",
     "  ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name",
     "  RETURNING id INTO v_org_id;",
     "",

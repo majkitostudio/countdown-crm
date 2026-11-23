@@ -220,7 +220,7 @@ export function OrderCreateForm({
           }
           if (typeof window !== "undefined") {
             window.dispatchEvent(
-              new CustomEvent("countdown:order_commission_earned", {
+              new CustomEvent("velocity:order_commission_earned", {
                 detail: { amount: 150, orderId: completion.order_id },
               }),
             );
@@ -239,7 +239,7 @@ export function OrderCreateForm({
         });
         if (typeof window !== "undefined") {
           window.dispatchEvent(
-            new CustomEvent("countdown:order_commission_earned", {
+            new CustomEvent("velocity:order_commission_earned", {
               detail: { amount: 150, orderId: order.id },
             }),
           );

@@ -60,7 +60,7 @@ describe("User Management Hub & Provisioning DAL", () => {
     );
 
     const invalidNameInput: InviteOrProvisionMemberInput = {
-      email: "operator@countdown.cz",
+      email: "operator@example.test",
       fullName: "J",
       role: "operator",
     };
@@ -72,7 +72,7 @@ describe("User Management Hub & Provisioning DAL", () => {
 
   it("requires minimum 8 character password when deliveryMethod is password", async () => {
     const shortPasswordInput: InviteOrProvisionMemberInput = {
-      email: "operator@countdown.cz",
+      email: "operator@example.test",
       fullName: "Jan Novák",
       role: "operator",
       deliveryMethod: "password",
@@ -91,7 +91,7 @@ describe("User Management Hub & Provisioning DAL", () => {
     });
 
     mockAdminClient.auth.admin.inviteUserByEmail.mockResolvedValue({
-      data: { user: { id: "new-user-uuid", email: "novak@countdown.cz" } },
+      data: { user: { id: "new-user-uuid", email: "novak@example.test" } },
       error: null,
     });
 
@@ -122,7 +122,7 @@ describe("User Management Hub & Provisioning DAL", () => {
             data: {
               id: "new-user-uuid",
               full_name: "Jan Novák",
-              email: "novak@countdown.cz",
+              email: "novak@example.test",
               avatar_url: null,
             },
             error: null,
@@ -138,17 +138,17 @@ describe("User Management Hub & Provisioning DAL", () => {
     });
 
     const result = await inviteOrProvisionWorkspaceMember({
-      email: "novak@countdown.cz",
+      email: "novak@example.test",
       fullName: "Jan Novák",
       role: "operator",
       deliveryMethod: "invite",
     });
 
     expect(result.action).toBe("invited");
-    expect(result.member.email).toBe("novak@countdown.cz");
+    expect(result.member.email).toBe("novak@example.test");
     expect(result.member.role).toBe("operator");
     expect(mockAdminClient.auth.admin.inviteUserByEmail).toHaveBeenCalledWith(
-      "novak@countdown.cz",
+      "novak@example.test",
       { data: { full_name: "Jan Novák" } },
     );
   });
@@ -160,7 +160,7 @@ describe("User Management Hub & Provisioning DAL", () => {
     });
 
     mockAdminClient.auth.admin.createUser.mockResolvedValue({
-      data: { user: { id: "created-user-uuid", email: "leader@countdown.cz" } },
+      data: { user: { id: "created-user-uuid", email: "leader@example.test" } },
       error: null,
     });
 
@@ -191,7 +191,7 @@ describe("User Management Hub & Provisioning DAL", () => {
             data: {
               id: "created-user-uuid",
               full_name: "Petr Vedoucí",
-              email: "leader@countdown.cz",
+              email: "leader@example.test",
               avatar_url: null,
             },
             error: null,
@@ -217,7 +217,7 @@ describe("User Management Hub & Provisioning DAL", () => {
     });
 
     const result = await inviteOrProvisionWorkspaceMember({
-      email: "leader@countdown.cz",
+      email: "leader@example.test",
       fullName: "Petr Vedoucí",
       role: "team_leader",
       teamId: "team-p1-uuid",
@@ -226,11 +226,11 @@ describe("User Management Hub & Provisioning DAL", () => {
     });
 
     expect(result.action).toBe("created");
-    expect(result.member.email).toBe("leader@countdown.cz");
+    expect(result.member.email).toBe("leader@example.test");
     expect(result.member.role).toBe("team_leader");
     expect(result.assignedTeamId).toBe("team-p1-uuid");
     expect(mockAdminClient.auth.admin.createUser).toHaveBeenCalledWith({
-      email: "leader@countdown.cz",
+      email: "leader@example.test",
       password: "StrongPassword123",
       email_confirm: true,
       user_metadata: { full_name: "Petr Vedoucí" },

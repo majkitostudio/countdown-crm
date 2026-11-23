@@ -136,7 +136,7 @@ export function UserOnboardingModal({
           <div>
             <FieldLabel>Pracovní e-mail</FieldLabel>
             <TextField
-              placeholder="např. jan.novak@countdown.cz"
+              placeholder="např. jan.novak@example.test"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

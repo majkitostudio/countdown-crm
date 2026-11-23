@@ -57,7 +57,7 @@ export const P2_TRAINING_SCRIPTS: TrainingScript[] = [
     title: "P2 · Klouby · první kontakt",
     productLabel: "Kloubní program – bezplatný vzorek",
     purpose: "První bezpečný nácvik P2 odchozího hovoru: zjištění potíží, nabídka vzorku a dokončení údajů.",
-    opening: "Dobrý den, tady [vaše jméno] z Countdown. Mluvím prosím s {{customer_name}}? Volám krátce k vašemu zájmu o vzorek pro podporu kloubů. Hodí se vám teď minuta?",
+    opening: "Dobrý den, tady [vaše jméno] z Velocity. Mluvím prosím s {{customer_name}}? Volám krátce k vašemu zájmu o vzorek pro podporu kloubů. Hodí se vám teď minuta?",
     sections: [
       { title: "Zjištění situace", text: "Zeptej se, jak dlouho obtíže trvají, v čem zákazníka omezují a co by pro něj znamenala změna. Naslouchej; nediagnostikuj." },
       { title: "Představení nabídky", text: "Drž se schválených informací. Nabídni bezplatný vzorek jako možnost vyzkoušení, bez slibování konkrétního účinku nebo výsledku." },
@@ -69,7 +69,7 @@ export const P2_TRAINING_SCRIPTS: TrainingScript[] = [
     title: "P2 · Vitalita · první kontakt",
     productLabel: "Program vitality – bezplatný vzorek",
     purpose: "Nácvik citlivého, věcného P2 rozhovoru bez medicínských slibů a bez tlaku na zákazníka.",
-    opening: "Dobrý den, tady [vaše jméno] z Countdown. Mluvím prosím s {{customer_name}}? Volám krátce k vašemu zájmu o vzorek programu vitality. Hodí se vám teď minuta?",
+    opening: "Dobrý den, tady [vaše jméno] z Velocity. Mluvím prosím s {{customer_name}}? Volám krátce k vašemu zájmu o vzorek programu vitality. Hodí se vám teď minuta?",
     sections: [
       { title: "Zjištění situace", text: "Ptej se citlivě, jak dlouho zákazník řeší svůj komfort, v čem jej omezuje a co by chtěl ve svém běžném dni zlepšit. Netlač na odpověď." },
       { title: "Představení nabídky", text: "Používej pouze schválený popis programu. Nevydávej se za lékaře, nedávej zdravotní doporučení a negarantuj výsledek." },

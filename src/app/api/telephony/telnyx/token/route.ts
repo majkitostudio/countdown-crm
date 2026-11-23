@@ -21,7 +21,7 @@ export async function POST() {
 
     if (!credential?.provider_credential_id) {
       const providerCredentialId = await createTelnyxCredential({
-        name: `countdown-${context.userId}`,
+        name: `velocity-${context.userId}`,
         workspaceId: context.workspaceId,
       });
       const { data: inserted, error } = await supabase

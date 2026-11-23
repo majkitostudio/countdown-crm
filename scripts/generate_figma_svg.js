@@ -25,7 +25,7 @@ const svgContent = `<svg width="1440" height="900" viewBox="0 0 1440 900" fill="
   <!-- Logo Section -->
   <rect x="20" y="16" width="36" height="36" rx="8" fill="#18181B" stroke="#3F3F46" />
   <path d="M38 24L30 36H37L35 44L43 32H36L38 24Z" fill="#F59E0B" />
-  <text x="68" y="34" class="text-main" font-size="15">COUNTDOWN</text>
+  <text x="68" y="34" class="text-main" font-size="15">VELOCITY</text>
   <text x="68" y="46" class="text-sub" font-size="10">AI CRM v0.1</text>
 
   <!-- Sidebar Nav Items -->
