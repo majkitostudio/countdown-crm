@@ -1,14 +1,14 @@
-# Countdown CRM — průvodce projektem
+# Velocity CRM - průvodce projektem
 
 ## Co projekt řeší
 
-Countdown je provozní CRM na míru pro call centrum, které prodává doplňky stravy. Propojuje práci operátorů, Team Leaderů a administrátorů kolem leadů, hovorů, objednávek, produktů, týmů, kvality, tréninku a reportingu. Projekt se průběžně stabilizuje a rozvíjí; není cílem tlačit ho k prodeji nebo dokončení MVP.
+Velocity CRM je provozní CRM na míru pro call centrum, které prodává doplňky stravy. Propojuje práci operátorů, Team Leaderů a administrátorů kolem leadů, hovorů, objednávek, produktů, týmů, kvality, tréninku a reportingu. Projekt se průběžně stabilizuje a rozvíjí; není cílem tlačit ho k prodeji nebo dokončení MVP.
 
 **Operator Console je klíčová pracovní plocha operátora, ne celý produkt.** Nové funkce mají mít jasnou roli a pracovní účel. Data a chování mají zůstat pravdivé: rozhraní nesmí předstírat výsledek, dostupnost integrace ani uložení, které systém nepotvrdil.
 
-## Plánovaná změna názvu
+## Název a prostředí
 
-Projekt se má v budoucnu přejmenovat na **Velocity CRM**. Jde zatím o plán: aplikace, repozitář, domény a odkazy zůstávají pod názvem Countdown CRM. Samotné přejmenování aplikace, připojení vlastních domén a úpravy projektových adres provede GPT Work v samostatném chatu. Úplnou matici oprávnění všech rolí a závěrečný checkpoint dokončíme až po této změně a potvrzení aktualizace všech domén a odkazů.
+Produkt se jmenuje **Velocity CRM**. Produkční aplikace je určena pro `velocity.majkito.com`; testovací prostředí pro `dev.majkito.com`.
 
 ## Organizační model
 

@@ -1,12 +1,12 @@
 import { Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface CountdownMarkProps {
+interface VelocityMarkProps {
   className?: string;
 }
 
 /** The application mark: Lucide's Gauge with an amber needle overlay. */
-export function CountdownMark({ className }: CountdownMarkProps) {
+export function VelocityMark({ className }: VelocityMarkProps) {
   return (
     <span aria-hidden="true" className={cn("relative inline-block h-6 w-6 shrink-0", className)}>
       <Gauge

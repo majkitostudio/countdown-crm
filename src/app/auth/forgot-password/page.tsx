@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { CountdownMark } from "@/components/brand/CountdownMark";
+import { VelocityMark } from "@/components/brand/VelocityMark";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
@@ -42,8 +42,8 @@ export default function ForgotPasswordPage() {
     <main className="min-h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center px-4 py-6 sm:px-6 text-zinc-100 font-sans">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center">
-          <CountdownMark className="h-12 w-12" />
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">COUNTDOWN CRM</h1>
+          <VelocityMark className="h-12 w-12" />
+          <h1 className="text-xl font-bold tracking-tight text-zinc-100">VELOCITY CRM</h1>
           <p className="text-xs text-zinc-400">Obnova přístupu do pracovního prostředí.</p>
         </div>
 
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
                       required
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
-                      placeholder="operator@countdowncrm.com"
+                      placeholder="operator@example.com"
                       className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors duration-150 ease-interface"
                     />
                   </div>

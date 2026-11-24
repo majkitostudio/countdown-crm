@@ -84,7 +84,7 @@ export function AppShell({ children, initialIdentity = null }: AppShellProps) {
             <span>Živá latence API nedostupná</span>
           </div>
           <div className="shrink-0">
-            <span>Countdown CRM</span>
+            <span>Velocity CRM</span>
           </div>
         </footer>
       </div>

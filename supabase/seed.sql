@@ -1,5 +1,5 @@
 -- ============================================================================
--- COUNTDOWN CRM - LOCAL DEMO CATALOG SEED
+-- VELOCITY CRM - LOCAL DEMO CATALOG SEED
 -- Generated automatically from data/seeds/catalog-seed-template.json
 -- Target Workspace: 00000000-0000-0000-0000-000000000001
 -- ============================================================================

@@ -1,4 +1,4 @@
-# Countdown CRM
+# Velocity CRM
 
 Provozní CRM pro call centrum prodávající doplňky stravy. Má produkční nasazení; vývoj a testování probíhají v odděleném sandboxu. Aktuální stav prostředí a bezpečné postupy jsou v [provozním návodu](docs/OPERATIONS.md).
 

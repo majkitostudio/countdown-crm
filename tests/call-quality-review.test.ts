@@ -102,7 +102,7 @@ describe("call quality review", () => {
 
   it("formats structured JSON transcript into dialogue with speaker and timestamps", () => {
     const rawStructured = JSON.stringify([
-      { speaker: "operator", timestamp: "00:05", text: "Dobrý den, volám z Countdown CRM." },
+      { speaker: "operator", timestamp: "00:05", text: "Dobrý den, volám z Velocity CRM." },
       { speaker: "customer", timestamp: "00:12", text: "Dobrý den, copak nabízíte?" },
     ]);
 
@@ -114,7 +114,7 @@ describe("call quality review", () => {
       failReason: null,
     });
 
-    expect(prompt).toContain("[00:05] Operátor: Dobrý den, volám z Countdown CRM.");
+    expect(prompt).toContain("[00:05] Operátor: Dobrý den, volám z Velocity CRM.");
     expect(prompt).toContain("[00:12] Klient: Dobrý den, copak nabízíte?");
   });
 

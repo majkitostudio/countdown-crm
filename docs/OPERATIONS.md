@@ -1,16 +1,25 @@
-# Countdown CRM — provozní návod
+# Velocity CRM — provozní návod
 
 Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu migrací. Ověření lokálního prostředí a linked sandboxu jsou oddělené; příkaz pro lokální databázi se nepovažuje za důkaz vzdáleného nasazení.
 
-## Příprava na přejmenování projektu — 22. 11. 2026
+## Stav přejmenování — 24. 11. 2026
 
-- Plánovaný nový název je **Velocity CRM**. Tento záznam nepředstavuje přejmenování ani změnu nasazení: aplikace, repozitář, domény a odkazy zůstávají do dokončení samostatného úkolu pod současným názvem.
-- Přejmenování aplikace, připojení vlastních domén a aktualizaci projektových odkazů provede GPT Work v druhém chatu. V tomto projektu se tyto zásahy neprovádějí.
-- Po potvrzení dokončení změny zkontrolovat odkazy a nastavení projektu podle nových adres. Teprve potom pokračovat úplnou maticí oprávnění všech rolí a uzavřením závěrečného checkpointu. Historické a místní výsledky níže nejsou důkazem funkčnosti po přejmenování.
+- Produkt se jmenuje **Velocity CRM**. Read-only kontrola Vercelu 24. 11. potvrdila, že `velocity.majkito.com` i `dev.majkito.com` jsou ověřené domény projektu `velocity-crm`. Obě při požadavku na `/` vrátily přesměrování na `/login`.
+- Produkční doména je aliasem nasazení `READY` z větve `main`, commit `c3feda4`. Testovací doména je připnutá na větev `codex/velocity-crm-rebrand`; její aktuální nasazení `READY` používá stejný commit. Tato kontrola neověřila přihlášení ani obsah po přihlášení.
+- Aktuální pracovní strom je na větvi `codex/countdown-qa-branch-workflow`, pro kterou Vercel nenašel nasazení. Změny v tomto pracovním stromě proto zatím nejsou viditelné na `dev.majkito.com`. GitHub repozitář si zachovává identifikátor `countdown-crm`.
+- Supabase Site URL, povolené Redirect URLs a vzdálenou e-mailovou šablonu tato kontrola nečetla. Změna `supabase/config.toml` upravuje pouze místní CLI konfiguraci; sama nic nemění ve vzdáleném sandboxu. Ověření úplné matice rolí zůstává otevřené; viz [To-Do](To-Do/To-Do.md).
+
+## Ověření toku objednávky — 24. 11. 2026
+
+- Opravena výchozí země nové objednávky: `CZ` je nyní skutečně v počátečním stavu formuláře a zůstane v uloženém snímku adresy, i když operátor pole země nezmění. Regresní test vykreslil formulář a odeslal syntetickou adresu.
+- Regresní UI test ověřil, že volba „Vytvořit objednávku“ v panelu obnovy vyvolá výsledek `order`. Lokální browserový průchod nad sandboxem pak potvrdil přihlášení syntetického operátora, zobrazení panelu obnovy, přechod tlačítkem na `/orders/new` v režimu `call` a viditelnou výchozí zemi `CZ`. Formulář se zobrazil po serverovém ověření čekajícího přiřazení.
+- Test skončil před odesláním formuláře: objednávka nevznikla a výsledek hovoru nebyl změněn. Během přihlášeného průchodu se provedlo běžné obnovení heartbeat přiřazení. Produkce nebyla kontaktována.
+- Test běžel lokálně na `127.0.0.1:3000`, protože `dev.majkito.com` je připnutá na větev `codex/velocity-crm-rebrand`, zatímco aktuální pracovní větev `codex/countdown-qa-branch-workflow` nasazení nemá. Lokální kontrola proto neověřuje nasazení této větve na doméně `dev.majkito.com`.
+- Úplná sada `npm run verify:all` nyní prošla: lint, kontrola typů, 1 165 testů ve 225 souborech a produkční build. Prošlo také `git diff --check`. Předtím selhávaly čtyři zastaralé testové kontroly po změnách z 22. 11. 2026 (commit `ef7c911`); očekávání testů jsme srovnali s aktuálním ověřením role, popiskem odkazu a šířkou sbaleného menu. Chování aplikace se při této opravě neměnilo.
 
 Před během ověř skutečný cíl prostředí; historické záznamy níže neprokazují současné nastavení, dostupnost ani stav databáze. Práci se zápisem či vzdáleným prostředím předem odsouhlas podle [pravidel](Rules.md).
 
-## Aktuální stav prostředí (22. 11. 2026)
+## Historický stav prostředí ověřený 21.–22. 11. 2026
 
 | Prostředí | Cíl | Ověřený stav |
 |---|---|---|
@@ -19,7 +28,7 @@ Před během ověř skutečný cíl prostředí; historické záznamy níže nep
 | Produkce | `countdown-crm`, ref `qlzrsookyobtvyekhrqi`, Vercel `https://countdowncrm.vercel.app` | Migrace 142/142; nejnovější produkční deployment READY z commitu `d648a0c`. |
 | Preview | Vercel větev `work/clean-baseline` | Deployment READY z commitu `9e26d1f`; následný commit `d648a0c` byl jen dokumentační. |
 
-Produkční řádek zachycuje poslední kontrolu z 21. 11. 2026 (142/142); produkce v této práci nebyla kontaktována. Nové migrace byly aplikovány pouze do místní databáze a ověřeného sandboxu.
+Tabulka zachycuje stav před přejmenováním Vercel projektu a domén, nikoli dnešní aliasy. Produkční migrace 142/142 byly naposledy zkontrolovány 21. 11. 2026; produkce při této práci nebyla kontaktována. Nové migrace byly aplikovány pouze do místní databáze a ověřeného sandboxu.
 
 Stav se může změnit; před zásahem nebo testem cíl znovu ověř. Produkční nasazení neznamená, že místní SIP adaptér je aktivní; v produkci nebyl žádný adaptér přepnut.
 
