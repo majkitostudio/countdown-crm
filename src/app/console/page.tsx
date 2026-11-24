@@ -440,7 +440,11 @@ function WorkspaceContent() {
           const fetchedProducts = await getProducts();
           let currentAssignment = await getCurrentLeadAction();
 
-          if (!currentAssignment) {
+          if (currentAssignment?.assignment_state === "assigned") {
+            // A manually assigned lead can exist before this operator has
+            // opened the console. Refresh availability before the first call.
+            await setOperatorPresenceAction("available");
+          } else if (!currentAssignment) {
             await setOperatorPresenceAction("available");
             currentAssignment = await claimNextLeadAction();
           }
