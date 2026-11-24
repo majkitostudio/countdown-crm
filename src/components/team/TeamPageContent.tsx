@@ -434,6 +434,7 @@ export function TeamPageContent({ currentUserId, role, data, initialView = "chec
           <TeamQueuePanel
             queueItems={currentData.queue.data}
             operators={currentData.operators.status === "ready" ? currentData.operators.data : []}
+            teamOperatorIdsByTeam={currentData.queueAssignmentOperatorIdsByTeam ?? null}
             operatorsState={currentData.operators.status}
             onMutation={runMutation}
           />

@@ -14,6 +14,7 @@ import { loadTeamRiskSummary } from "@/lib/dal/teamRiskSummary";
 import type { TeamRiskSummary } from "@/lib/teamRiskSummary";
 import { listCallQualityReviewsForWorkspace, type CallQualityReviewDTO } from "@/lib/dal/callQualityReviews";
 import { listAssistanceRequestsForWorkspace, type AssistanceRequestDTO } from "@/lib/dal/assistanceRequests";
+import { buildTeamQueueAssignmentOperatorIdsByTeam } from "@/lib/teamAssignmentOptions";
 import {
   isTeamWorkspacePeriodKey,
   type TeamWorkspacePeriodKey,
@@ -47,6 +48,7 @@ export interface TeamPageData {
   departmentQueues: TeamSource<DepartmentQueueOverview>;
   riskSummary?: TeamSource<TeamRiskSummary>;
   assistanceRequests?: TeamSource<AssistanceRequestDTO[]>;
+  queueAssignmentOperatorIdsByTeam?: Record<string, string[]> | null;
   scope: TeamPageScopeMetadata;
 }
 
@@ -146,6 +148,10 @@ export async function loadTeamPageData(
       listAssistanceRequestsForWorkspace(),
     ]);
 
+    const queueAssignmentOperatorIdsByTeam = operators.status === "fulfilled" && roster.status === "fulfilled"
+      ? buildTeamQueueAssignmentOperatorIdsByTeam(roster.value.memberships, operators.value, Date.now())
+      : null;
+
     return {
       queue: toTeamSource(queue),
       operators: toTeamSource(operators),
@@ -157,6 +163,7 @@ export async function loadTeamPageData(
       departmentQueues: toTeamSource(departmentQueues),
       riskSummary: toTeamSource(riskSummary),
       assistanceRequests: toTeamSource(assistanceRequests),
+      queueAssignmentOperatorIdsByTeam,
       scope: {
         periodKey: scope.periodKey,
         teamIds: scope.teamIds,
@@ -177,6 +184,10 @@ export async function loadTeamPageData(
     listAssistanceRequestsForWorkspace(),
   ]);
 
+  const queueAssignmentOperatorIdsByTeam = operators.status === "fulfilled" && roster.status === "fulfilled"
+    ? buildTeamQueueAssignmentOperatorIdsByTeam(roster.value.memberships, operators.value, Date.now())
+    : null;
+
   return {
     queue: toTeamSource(queue),
     operators: toTeamSource(operators),
@@ -188,6 +199,7 @@ export async function loadTeamPageData(
     departmentQueues: toTeamSource(departmentQueues),
     riskSummary: toTeamSource(riskSummary),
     assistanceRequests: toTeamSource(assistanceRequests),
+    queueAssignmentOperatorIdsByTeam,
     scope: {
       periodKey: scope.periodKey,
       teamIds: scope.teamIds,

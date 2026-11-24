@@ -11,6 +11,7 @@ vi.mock("server-only", () => ({}));
 const queueItem = {
   id: "queue-1",
   workspace_id: "workspace-1",
+  team_id: "team-1",
   lead_id: "lead-1",
   assigned_operator_id: "operator-1",
   preferred_operator_id: null,
@@ -50,6 +51,23 @@ function operatorMember(userId: string, fullName: string) {
   };
 }
 
+function teamMembership(userId: string, teamId: string) {
+  return {
+    id: `${teamId}-${userId}`,
+    workspace_id: "workspace-1",
+    team_id: teamId,
+    user_id: userId,
+    membership_role: "member" as const,
+    active_from: "2026-09-01T00:00:00.000Z",
+    active_until: null,
+    created_at: "2026-09-01T00:00:00.000Z",
+    updated_at: "2026-09-01T00:00:00.000Z",
+    full_name: userId,
+    email: `${userId}@example.test`,
+    avatar_url: null,
+  };
+}
+
 function render(data: Omit<TeamPageData, "scope">, role: "team_leader" | "administrator" = "team_leader", initialView: "queue" | "operators" | "queues" | "checkpoint" = "queue"): string {
   return renderToStaticMarkup(React.createElement(TeamPageContent, {
     currentUserId: "leader-1",
@@ -85,8 +103,34 @@ describe("TeamPageContent partial source states", () => {
 
     expect(html).toContain("Ada Lovelace");
     expect(html).toContain("Operátoři pracovního prostoru nejsou dostupní.");
-    expect(html).toMatch(/<select[^>]*disabled=""[^>]*aria-label="Změnit přiřazení: Ada Lovelace"/);
+    expect(html).toMatch(/<select(?=[^>]*disabled="")(?=[^>]*aria-label="Změnit přiřazení: Ada Lovelace")[^>]*>/);
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Přiřadit<\/button>/);
+  });
+
+  it("offers only active operators who belong to the queue item's team", () => {
+    const html = render({
+      queue: { status: "ready", data: [queueItem] },
+      operators: { status: "ready", data: [operatorMember("operator-1", "Člen cílového týmu"), operatorMember("operator-2", "Člen jiného týmu")] },
+      presence: { status: "ready", data: [] },
+      roster: { status: "ready", data: {
+        teams: [],
+        memberships: {
+          "team-1": [teamMembership("operator-1", "team-1")],
+          "team-2": [teamMembership("operator-2", "team-2")],
+        },
+      } },
+      queueAssignmentOperatorIdsByTeam: { "team-1": ["operator-1"] },
+      members: null,
+      checkpoint: { status: "unavailable", reason: "database" },
+      qualityReviews: { status: "ready", data: [] },
+      departmentQueues: emptyDepartmentQueues,
+    });
+
+    const assignmentOptionsMatch = html.match(/<select[^>]*aria-label="Změnit přiřazení: Ada Lovelace"[^>]*>(.*?)<\/select>/);
+    if (!assignmentOptionsMatch) throw new Error("Queue assignment options were not rendered.");
+    const assignmentOptions = assignmentOptionsMatch[1];
+    expect(assignmentOptions).toContain("Člen cílového týmu");
+    expect(assignmentOptions).not.toContain("Člen jiného týmu");
   });
 
   it("keeps a scheduled call queue row visible when its contact details are outside the readable scope", () => {
