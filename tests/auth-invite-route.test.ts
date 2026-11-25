@@ -53,6 +53,26 @@ describe("invite confirmation", () => {
     expect(mocks.verifyOtp).not.toHaveBeenCalled();
   });
 
+  it("accepts the browser host when the server URL uses an internal hostname", async () => {
+    const response = await POST(new NextRequest("http://localhost:3000/auth/invite/confirm", {
+      method: "POST",
+      headers: { host: "127.0.0.1:3000", origin: "http://127.0.0.1:3000", "content-type": "application/json" },
+      body: JSON.stringify({ token_hash: token }),
+    }));
+    expect(response.status).toBe(200);
+    expect(mocks.verifyOtp).toHaveBeenCalledOnce();
+  });
+
+  it("rejects a foreign origin even when the server URL uses an internal hostname", async () => {
+    const response = await POST(new NextRequest("http://localhost:3000/auth/invite/confirm", {
+      method: "POST",
+      headers: { host: "127.0.0.1:3000", origin: "http://evil.example", "content-type": "application/json" },
+      body: JSON.stringify({ token_hash: token }),
+    }));
+    expect(response.status).toBe(403);
+    expect(mocks.verifyOtp).not.toHaveBeenCalled();
+  });
+
   it("does not replace an existing authenticated identity", async () => {
     mocks.getUser.mockResolvedValueOnce({ data: { user: { id: "another-user" } }, error: null });
     const response = await POST(request({ token_hash: token }));

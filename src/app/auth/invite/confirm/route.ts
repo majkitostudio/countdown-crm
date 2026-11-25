@@ -11,7 +11,9 @@ function result(status: number, error?: string) {
 
 export async function POST(request: NextRequest) {
   // A cross-origin form must not be able to replace the browser's session.
-  if (request.headers.get("origin") !== request.nextUrl.origin ||
+  const host = request.headers.get("host") ?? request.nextUrl.host;
+  const expectedOrigin = `${request.nextUrl.protocol}//${host}`;
+  if (request.headers.get("origin") !== expectedOrigin ||
       !request.headers.get("content-type")?.startsWith("application/json")) {
     return result(403, "invalid_request");
   }

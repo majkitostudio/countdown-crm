@@ -315,7 +315,7 @@ export function CallReviewWorkspace({
               <StatusAlert tone="neutral">S vašimi oprávněními je kontrola dostupná pouze pro čtení.</StatusAlert>
             </div>
           ) : (
-            <StatusAlert tone="neutral">Zatím neexistuje dokončená kontrola. S vašimi oprávněními je tento pohled dostupný pouze pro čtení.</StatusAlert>
+            <StatusAlert tone="neutral">S vašimi oprávněními lze záznam hovoru pouze prohlížet.</StatusAlert>
           )
         ) : !latestRevision || isCorrectionMode ? (
           <CallReviewForm
@@ -342,7 +342,7 @@ export function CallReviewWorkspace({
 
       <Section title="Historie revizí" icon={<History className="h-4 w-4" />}>
         {initialReview.revisions.length === 0 ? (
-          <p className="text-xs text-zinc-500">Zatím neexistuje dokončená kontrola.</p>
+          <p className="text-xs text-zinc-500">{readOnly ? "Žádné dostupné kontroly." : "Zatím neexistuje dokončená kontrola."}</p>
         ) : (
           <ol className="space-y-4">
             {initialReview.revisions.map((revision) => (
