@@ -2,13 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { ExternalLink, HandHelping, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff, Settings } from "lucide-react";
+import { ExternalLink, HandHelping, Mail, Mic, MicOff, Phone, PhoneCall, PhoneIncoming, PhoneOff } from "lucide-react";
 import type { Lead } from "@/lib/leads";
 import { CallOutcomePanel } from "@/components/workspace/OperatorCallControls";
 import type { CallOutcome } from "@/components/workspace/CallStatusBar";
 import type { FailDetails } from "@/lib/postCall";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
-import { Button, getButtonClassName } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 
@@ -108,8 +108,8 @@ export function OperatorLeadHeader({
               href={`/leads/${encodeURIComponent(activeLead.id)}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Otevřít profil pouze pro čtení"
-              title="Otevřít profil pouze pro čtení"
+              aria-label="Otevřít profil zákazníka v nové kartě"
+              title="Otevřít profil zákazníka v nové kartě"
               className="inline-flex items-center gap-1 text-xs font-medium text-sky-300 underline-offset-4 hover:text-sky-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -150,14 +150,6 @@ export function OperatorLeadHeader({
                 {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
               {assistanceControls}
-              <Link
-                href="/settings"
-                aria-label="Otevřít nastavení"
-                title="Otevřít nastavení"
-                className={getButtonClassName("secondary")}
-              >
-                <Settings className="h-4 w-4" />
-              </Link>
               <Button
                 variant="danger"
                 onClick={onToggleCall}

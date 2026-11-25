@@ -4,6 +4,7 @@ import type { Database } from "@/lib/supabase/types";
 import { DataAccessError } from "./errors";
 import { parseDeliveryAddressSnapshot, type DeliveryAddressSnapshot } from "@/lib/deliveryAddress";
 import { createDataClient } from "./db";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireWorkspaceContext, requireWorkspaceRole } from "./workspace";
 import type { LeadDTO } from "./leads";
 import { dispatchWorkflowEventForWorkspace } from "@/lib/workflows/dispatcher";
@@ -301,22 +302,49 @@ export async function abortLeadCallStartForWorkspace(
 }
 
 export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput): Promise<QueueCompletionDTO> {
-  assertQueueInput(input);
-  const operatorNote = typeof input.operator_note === "string" ? input.operator_note.trim() : "";
-  const orderItems = input.order_items ?? (
-    input.order_product_id
+  const context = await requireWorkspaceRole(["operator"]);
+  let completionInput = input;
+  if (typeof input?.call_session_id !== "string") {
+    throw new DataAccessError("VALIDATION", "Call requires a server-authorized call session");
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.call_session_id)) {
+    if (input.call_session_id.trim()) {
+      throw new DataAccessError("VALIDATION", "Call requires a server-authorized call session");
+    }
+
+    const sessionLookup = createAdminClient();
+    const { data: endedSession, error: sessionError } = await sessionLookup
+      .from("telephony_call_sessions")
+      .select("id")
+      .eq("workspace_id", context.workspaceId)
+      .eq("operator_id", context.userId)
+      .eq("queue_item_id", input.queue_item_id)
+      .eq("status", "ended")
+      .is("completed_call_id", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (sessionError) throw new DataAccessError("DATABASE", "Could not recover the ended call session.");
+    if (!endedSession) throw new DataAccessError("VALIDATION", "Call requires a server-authorized call session");
+    completionInput = { ...input, call_session_id: endedSession.id };
+  }
+
+  assertQueueInput(completionInput);
+  const operatorNote = typeof completionInput.operator_note === "string" ? completionInput.operator_note.trim() : "";
+  const orderItems = completionInput.order_items ?? (
+    completionInput.order_product_id
       ? [{
-          product_id: input.order_product_id,
+          product_id: completionInput.order_product_id,
           quantity: 1,
-          unit_price: input.order_total_amount ?? 0,
+          unit_price: completionInput.order_total_amount ?? 0,
         }]
       : []
   );
   const hasOrder = orderItems.length > 0;
   const deliveryAddress = hasOrder
-    ? parseDeliveryAddressSnapshot(input.delivery_address_snapshot)
+    ? parseDeliveryAddressSnapshot(completionInput.delivery_address_snapshot)
     : null;
-  const context = await requireWorkspaceRole(["operator"]);
   if (hasOrder) {
     await requirePublishedCallScripts(
       orderItems.map((item) => item.product_id),
@@ -325,18 +353,18 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
   }
   const supabase = await createDataClient();
   const { data, error } = await supabase.rpc("complete_lead_call_with_order_items_idempotent", {
-    completion_key: input.call_session_id,
-    target_queue_item_id: input.queue_item_id,
-    call_session_id: input.call_session_id,
-    call_duration_seconds: input.duration_seconds,
-    call_outcome: input.outcome,
-    call_transcript: typeof input.transcript === "string" ? input.transcript.trim() || null : null,
-    call_ai_sentiment: typeof input.ai_sentiment === "string" ? input.ai_sentiment.trim() || "Neutral" : "Neutral",
+    completion_key: completionInput.call_session_id,
+    target_queue_item_id: completionInput.queue_item_id,
+    call_session_id: completionInput.call_session_id,
+    call_duration_seconds: completionInput.duration_seconds,
+    call_outcome: completionInput.outcome,
+    call_transcript: typeof completionInput.transcript === "string" ? completionInput.transcript.trim() || null : null,
+    call_ai_sentiment: typeof completionInput.ai_sentiment === "string" ? completionInput.ai_sentiment.trim() || "Neutral" : "Neutral",
     order_items: hasOrder ? orderItems : null,
     delivery_address_snapshot: deliveryAddress,
-    scheduled_at: input.scheduled_at || null,
+    scheduled_at: completionInput.scheduled_at || null,
     call_note: operatorNote || null,
-    call_fail_reason: input.fail_reason && isFailReason(input.fail_reason) ? input.fail_reason : null,
+    call_fail_reason: completionInput.fail_reason && isFailReason(completionInput.fail_reason) ? completionInput.fail_reason : null,
   });
   const completion = requireRpcData<QueueCompletionDTO>(data, error, "Call completion failed");
   const leadId = typeof (completion as QueueCompletionDTO & { lead_id?: unknown }).lead_id === "string"
@@ -356,12 +384,12 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       leadId,
       leadName,
       agentName: "Authenticated operator",
-      outcome: input.outcome,
-      sentiment: input.ai_sentiment || "Neutral",
+      outcome: completionInput.outcome,
+      sentiment: completionInput.ai_sentiment || "Neutral",
       orderValue: hasOrder ? totalCallOrderItems(orderItems) : 0,
-      transcript: input.transcript || "",
-      scheduledAt: input.scheduled_at || null,
-      failReason: input.fail_reason || null,
+      transcript: completionInput.transcript || "",
+      scheduledAt: completionInput.scheduled_at || null,
+      failReason: completionInput.fail_reason || null,
       operatorNote: operatorNote.trim(),
     },
   });

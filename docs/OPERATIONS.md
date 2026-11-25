@@ -2,6 +2,12 @@
 
 Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu migrací. Ověření lokálního prostředí a linked sandboxu jsou oddělené; příkaz pro lokální databázi se nepovažuje za důkaz vzdáleného nasazení.
 
+## Příprava na přejmenování projektu — 22. 11. 2026
+
+- Plánovaný nový název je **Velocity CRM**. Tento záznam nepředstavuje přejmenování ani změnu nasazení: aplikace, repozitář, domény a odkazy zůstávají do dokončení samostatného úkolu pod současným názvem.
+- Přejmenování aplikace, připojení vlastních domén a aktualizaci projektových odkazů provede GPT Work v druhém chatu. V tomto projektu se tyto zásahy neprovádějí.
+- Po potvrzení dokončení změny zkontrolovat odkazy a nastavení projektu podle nových adres. Teprve potom pokračovat úplnou maticí oprávnění všech rolí a uzavřením závěrečného checkpointu. Historické a místní výsledky níže nejsou důkazem funkčnosti po přejmenování.
+
 Před během ověř skutečný cíl prostředí; historické záznamy níže neprokazují současné nastavení, dostupnost ani stav databáze. Práci se zápisem či vzdáleným prostředím předem odsouhlas podle [pravidel](Rules.md).
 
 ## Aktuální stav prostředí (22. 11. 2026)
@@ -79,11 +85,29 @@ Prošly ESLint, TypeScript, 1 153 automatických testů ve 223 souborech a kontr
 ### Opakovaný místní průchod po změnách přístupů — 22. 11. 2026
 
 - Aplikace na `localhost:3000` byla v tomto průchodu výslovně spuštěna proti místní Supabase na `127.0.0.1:54321` (DB `127.0.0.1:54322`). Soubory `.env.local` a sandboxu zůstaly oddělené. Před testem i po něm bylo potvrzeno 144/144 migrací; databáze se neresetovala a starší testovací záznamy nebyly měněny. Produkční projekt nebyl kontaktován.
-- Administrátor založil syntetického pracovníka a přiřadil jej do Oddělení P4. Pozvánka přišla do místního Mailpitu a odkaz otevřel formulář pro nastavení hesla. Přijetí pozvánky a přihlášení zůstává nedokončené: stránka čeká na uživatele, aby sám zadal nové heslo. Odděleně byl připraven syntetický aktivní sandboxový účet operátora a přiřazen do týmu `QA sandbox 22 A`; přístupové údaje jsou uložené v prostoru Countdown, ne v repozitáři.
+- Administrátor založil syntetického pracovníka a přiřadil jej do Oddělení P4. Pozvánka přišla do místního Mailpitu; uživatel nastavil heslo, přihlásil se a členství operátora v P4 bylo potvrzeno. Odděleně byl připraven syntetický aktivní sandboxový účet operátora a přiřazen do týmu `QA sandbox 22 A`; přístupové údaje jsou uložené v prostoru Countdown, ne v repozitáři.
 - Administrátor se přihlásil a otevřel správu pracovníků. Vedoucí i operátor se přihlásili; oba při přímém otevření `/admin/users` dostali jasné upozornění, že stránka je pouze pro administrátory. Tím jsou ověřené základní hranice, ne úplná matice všech akcí a týmů.
 - Vedoucí vytvořil nový syntetický lead. Operátor jej převzal z běžné fronty, po krátkém čekání na dostupnost spustil simulovaný hovor, zvolil objednávku a uložil ji za 29,99 USD se syntetickou adresou. Po obnovení stránky zůstala objednávka i adresa uložená. Vedoucí uložil lidskou kontrolu; verdikt výslovně uvádí, že bez přepisu nelze posoudit obsah hovoru. Simulace nevolala do telefonní sítě a objednávka nebyla odeslána.
 - První pokus o hovor po ručním přiřazení vrátil `Operator is not available for a call`; po prodlevě, během níž se objevila čerstvá dostupnost, a bezpečném opakování hovor proběhl. Je potřeba ověřit, zda jde o očekávané čekání na heartbeat, nebo o závod při prvním přiřazení. Otevřený bod je veden v [To-Do](To-Do/To-Do.md).
 - Kontroly po průchodu: `npm run verify:all` (lint, TypeScript, 1 160 testů ve 223 souborech a build), `npm run verify:migrations` (144 migrací), místní pgTAP 326/326 v 18 souborech a read-only evidence migrací v místní DB i linked sandboxu 144/144 prošly. Použit byl Supabase CLI 3.2.0 přes `npx`, protože příkaz `scoop` na tomto počítači není dostupný. Linkované CLI ověření ukazovalo projekt sandboxu `countdown-crm-sandbox-20260824` (`lpvypihpxhyjljikfzqo`); žádné vzdálené změny databáze se neprováděly.
+
+### Opakovaný sandboxový průchod — 22. 11. 2026
+
+- Izolovaná aplikace běžela na `localhost:3001` a byla připojena k sandboxu `countdown-crm-sandbox-20260824` (`lpvypihpxhyjljikfzqo`), nikoli k produkci. Databáze se neresetovala. Vedoucí byl se souhlasem uživatele přiřazen do syntetického týmu `QA sandbox 22 A`; přiřazení operátora zůstalo aktivní.
+- Vedoucí vytvořil nový syntetický lead `QA Ověření 22.11.2026`. Operátor jej převzal a po opakování po chybě inicializace zvuku úspěšně dokončil simulovaný hovor, objednávku za 123 CZK a vedoucí uložil kontrolu hovoru. Po obnovení stránky zůstala objednávka i kontrola uložená. Hovor nešel do telefonní sítě a objednávka nebyla odeslána. Vedoucí otevřel i funkce týmu; přístupové hranice byly ověřeny jen v základních cestách, úplná matice zůstává otevřená.
+- Simulační adaptér byl kvůli tomuto testu dočasně zapnut přímou změnou v sandboxu, protože auditní RPC přepnutí na `simulation` odmítá. Po testu byl přes administrační rozhraní vrácen na `local_sip`; tento návrat je v auditu a read-only kontrola potvrdila aktuální `local_sip`. Pomocné zapnutí simulace v auditu chybí. Samostatnou otevřenou žádost o pomoc jsme ponechali; testovací žádost vzniklá při průchodu byla vyřešena.
+- Při hovoru uživatel nahlásil, že vyzváněcí tón pokračuje i po spojení a že odkaz na nastavení opustí ovládání hovoru. Kontrola kódu potvrdila chybějící zastavení tónu po spojení. Počáteční návrh otevřít Nastavení v nové kartě byl později nahrazen odstraněním tohoto tlačítka během hovoru; profil zákazníka se otevírá v nové kartě. Automatický průchod původně selhal při inicializaci syntetického mikrofonu. Opravu tónu a chování navigace následně ověřil nový místní simulovaný průchod níže.
+- Navazující úprava zdrojového kódu ponechává hovor a přiřazení leadu živé při přechodu mezi stránkami CRM; plovoucí ovládání nabízí zavěšení, mikrofon, podržení a u SIP/Telnyx také hlasitost zákazníkova zvuku. Při obnovení či zavření stránky prohlížeč zobrazí standardní varování. Simulace nemá vzdálený zvuk zákazníka, takže skutečná hlasitost přes SIP/Telnyx zůstává neověřená. Původní změny prošly ESLintem, TypeScriptem a 13 cílenými testy; novější ověření je uvedeno níže.
+- Kvůli tomuto pokusu byl vytvořen syntetický lead `QA Zvuk 22.11.2026`. Simulovaný telephony session se po timeoutu uzavřel jako `failed` přes autorizované API; fronta zůstala přiřazená operátorovi bez požadavku na obnovu. Session nebyla spojena ani dokončena a do telefonní sítě se nevolalo. Adaptér byl vrácen na `local_sip`; stav i session byly následně ověřeny read-only dotazy. Pomocné přepnutí adaptéru na `simulation` opět obešlo auditní RPC, návrat přes administrační obrazovku je zaznamenán.
+- Při vytváření objednávky se také zobrazovala země `CZ`, ale formulář ji neuložil do svého stavu, dokud uživatel pole nezměnil. První odeslání proto selhalo; po skutečné změně hodnoty a návratu na `CZ` se objednávka uložila. Dalším otevřeným bodem je nefunkční přechod tlačítka „Vytvořit objednávku“ z panelu obnovy; přímé otevření formuláře fungovalo.
+
+### Ověření obnovy ovládání hovoru — 22. 11. 2026
+
+- Aplikace na `localhost:3000` běžela s výslovným připojením k místní Supabase (`127.0.0.1:54321`, databáze `127.0.0.1:54322`). Proměnné pro veřejné připojení i oba názvy serverového klíče byly přepsány hodnotami místní Supabase; `.env.local` zůstal nedotčen. Databáze nebyla resetována a vzdálený sandbox ani produkce nebyly cílem požadavků.
+- Syntetický administrátor zahájil simulovaný hovor na syntetickém leadu s falešným mikrofonem. Session přešla přes `ringing` do `connected`. Měření zvukových oscilátorů zachytilo dvě spuštění a dvě zastavení tónu po spojení. Hovor nešel do telefonní sítě.
+- Během spojení se aplikace přes navigaci otevřela na `/orders`; plovoucí ovládání zůstalo viditelné a zavěšení přes něj změnilo session na `ended`. Nastavení v plovoucím ovládání nebylo a simulace správně nenabídla posuvník vzdáleného zvuku. Odkaz na profil zákazníka má `target="_blank"`.
+- Při prvním obnovení testovací stránky se ztratil stav klientského hovoru a výsledek nešel uložit s prázdným ID session. Server nyní dohledá poslední neuzavřenou ukončenou session podle workspace, operátora a přiřazení; opakované uložení výsledku přes UI uspělo. Syntetické přiřazení je uzavřené a telephony session je spojena se záznamem hovoru; objednávka v tomto konkrétním testu nevznikla.
+- Otevřené zůstává ověření skutečného zvuku a posuvníku zákazníka přes SIP/Telnyx. Simulace nemá vzdálený zvuk zákazníka. Místní kontroly: 21 cílených testů, TypeScript, ESLint a `git diff --check` prošly; produkční build prošel před posledním drobným upravením posluchače stavu hovoru.
 
 ### Webhook kurýra
 

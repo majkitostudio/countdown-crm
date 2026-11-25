@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Coffee, Phone, PhoneCall } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
@@ -95,6 +95,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
         return "Na přestávce";
     }
   };
+  const StatusIcon = status === "ready" ? Phone : status === "in_call" ? PhoneCall : Coffee;
 
   return (
     <aside
@@ -102,9 +103,9 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       {...getSidebarAccessibilityProps(isMobileViewport, mobileOpen)}
     >
       {/* Brand Logo Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-zinc-800/80">
+      <div className={cn("flex items-center justify-between h-16 border-b border-zinc-800/80", isCompact ? "gap-1 px-2" : "px-4")}>
         <Link href="/" className="flex items-center gap-3 overflow-hidden">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 shrink-0">
+          <div className={cn("flex items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 shrink-0", isCompact ? "h-8 w-8" : "h-9 w-9")}>
             <CountdownMark className="h-4 w-4" />
           </div>
           {!isCompact && (
@@ -118,23 +119,20 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
             </div>
           )}
         </Link>
-        {!isCollapsed && (
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden rounded-md p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
-            title={isCollapsed ? "Rozbalit panel" : "Sbalit panel"}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setIsCollapsed((collapsed) => !collapsed)}
+          className="hidden shrink-0 rounded-md p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
+          title={isCollapsed ? "Rozbalit navigaci" : "Sbalit navigaci"}
+          aria-label={isCollapsed ? "Rozbalit navigaci" : "Sbalit navigaci"}
+          aria-expanded={!isCollapsed}
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </button>
       </div>
 
       {/* Navigation Links */}
-      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Primární navigace">
+      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:none]" aria-label="Primární navigace">
         {getAllowedSidebarNavigationSections(isIdentityLoading ? null : identity?.role).map((group) => (
           <div key={group.section} className="space-y-1">
             {!isCompact && (
@@ -192,7 +190,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
             <div ref={statusToggleContainerRef}>
               <Button
                 variant="secondary"
-                className="w-full"
+                className={cn("w-full", isCompact && "mx-auto h-10 w-10 p-0")}
                 onClick={() => setStatusMenuOpen((open) => !open)}
                 aria-haspopup="menu"
                 aria-controls={statusMenuId}
@@ -210,7 +208,7 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
                     </StatusBadge>
                   </div>
                 )}
-                {isCompact && <StatusBadge tone="neutral" aria-label={getStatusLabel(status)}>Stav</StatusBadge>}
+                {isCompact && <StatusIcon className="h-4 w-4" aria-hidden="true" />}
                 </span>
               </Button>
             </div>

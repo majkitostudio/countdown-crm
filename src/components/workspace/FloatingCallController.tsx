@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Mic, MicOff, Pause, PhoneCall, PhoneOff, Play, Radio } from "lucide-react";
 import { useCallSession } from "@/components/layout/CallSessionProvider";
+import { RemoteVolumeControl } from "@/components/workspace/RemoteVolumeControl";
 
 const subscribe = () => () => {};
 const clientSnapshot = () => true;
@@ -16,7 +17,7 @@ function formatTimer(seconds: number) {
 
 export function FloatingCallController() {
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
-  const { session, serverContext, isActionPending, error, clearError, cancelDial, endCall, toggleMute, toggleHold } = useCallSession();
+  const { session, serverContext, isActionPending, error, clearError, cancelDial, endCall, toggleMute, toggleHold, remoteVolume, supportsRemoteVolume, setRemoteVolume } = useCallSession();
   const isDialing = session.state === "dialing" || session.state === "ringing";
   const isActive = session.state === "connected" || session.state === "on_hold";
   const requiresOutcome = serverContext.assignmentState === "awaiting_outcome" || serverContext.recoveryRequired;
@@ -64,6 +65,13 @@ export function FloatingCallController() {
             </button>
           </>}
         </div>
+      )}
+      {isActive && supportsRemoteVolume && (
+        <RemoteVolumeControl
+          value={remoteVolume}
+          onChange={setRemoteVolume}
+          className="mt-3 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2"
+        />
       )}
       {error && <div className="mt-3 flex items-start justify-between gap-2 rounded-lg border border-rose-900/70 bg-rose-950/30 p-2.5 text-[11px] text-rose-200" role="alert"><span>{error}</span><button type="button" onClick={clearError} aria-label="Zavřít chybu hovoru">×</button></div>}
     </aside>,

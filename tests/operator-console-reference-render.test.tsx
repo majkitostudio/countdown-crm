@@ -12,6 +12,7 @@ import {
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CallStatusBar } from "@/components/workspace/CallStatusBar";
+import { RemoteVolumeControl } from "@/components/workspace/RemoteVolumeControl";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { getStatusClassName } from "@/components/ui/Status";
 import { getSurfaceClassName } from "@/components/ui/Surface";
@@ -132,6 +133,7 @@ it("keeps an active simulated call visually neutral while preserving the destruc
   expect(markup).not.toContain("bg-rose-400");
   expect(markup).not.toContain("bg-rose-500");
   expect(markup).toContain('class="text-zinc-300" aria-label="Simulovaná zvuková aktivita"');
+  expect(markup).not.toContain('href="/settings"');
   expect(markup).not.toContain("text-emerald-400");
   const renderedCall = document.createElement("div");
   renderedCall.innerHTML = markup;
@@ -140,6 +142,17 @@ it("keeps an active simulated call visually neutral while preserving the destruc
   ));
   expect(dangerControls).toHaveLength(1);
   expect(dangerControls[0]?.getAttribute("aria-label")).toBe("Ukončit hovor: Alex Customer");
+});
+
+it("renders an accessible remote-customer volume slider", () => {
+  const markup = renderToStaticMarkup(
+    <RemoteVolumeControl value={65} onChange={() => undefined} />,
+  );
+
+  expect(markup).toContain('type="range"');
+  expect(markup).toContain('aria-label="Hlasitost zákazníka"');
+  expect(markup).toContain('value="65"');
+  expect(markup).toContain("65%");
 });
 
 it("restores focus to the command-palette opener after Escape and traps Tab within the dialog", () => {
