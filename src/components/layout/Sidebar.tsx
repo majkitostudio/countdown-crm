@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Coffee, Phone, PhoneCall } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { getWorkspaceRoleLabel } from "@/lib/auth/roles";
 import { useOperatorIdentity } from "./OperatorIdentityProvider";
-import { CountdownMark } from "@/components/brand/CountdownMark";
+import { VelocityMark } from "@/components/brand/VelocityMark";
 import { StatusBadge } from "@/components/ui/Status";
 import { Surface } from "@/components/ui/Surface";
 import { Button } from "@/components/ui/Button";
@@ -106,15 +106,15 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
       <div className={cn("flex items-center justify-between h-16 border-b border-zinc-800/80", isCompact ? "gap-1 px-2" : "px-4")}>
         <Link href="/" className="flex items-center gap-3 overflow-hidden">
           <div className={cn("flex items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 shrink-0", isCompact ? "h-8 w-8" : "h-9 w-9")}>
-            <CountdownMark className="h-4 w-4" />
+            <VelocityMark className="h-4 w-4" />
           </div>
           {!isCompact && (
             <div className="flex flex-col">
               <span className="font-semibold text-sm tracking-tight text-zinc-100 leading-none">
-                COUNTDOWN
+                VELOCITY
               </span>
               <span className="text-[11px] text-zinc-400 font-mono tracking-wider">
-                AI CRM v0.1
+                CRM
               </span>
             </div>
           )}

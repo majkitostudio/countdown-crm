@@ -288,7 +288,7 @@ export function DeliveryAddressFields({
           <input
             id={`${idPrefix}-country`}
             autoComplete="shipping country"
-            value={value.country || "CZ"}
+            value={value.country}
             onChange={update("country")}
             required
             className={fieldClassName}

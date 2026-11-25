@@ -162,7 +162,7 @@ export function generateSeedSql(compiled) {
 
   const lines = [
     "-- ============================================================================",
-    "-- COUNTDOWN CRM - LOCAL DEMO CATALOG SEED",
+    "-- VELOCITY CRM - LOCAL DEMO CATALOG SEED",
     `-- Generated automatically from data/seeds/catalog-seed-template.json`,
     `-- Target Workspace: ${workspaceId}`,
     "-- ============================================================================",

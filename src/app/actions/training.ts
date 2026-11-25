@@ -64,7 +64,7 @@ function buildPrompt(scenario: TrainingScenario, history: TrainingMessage[], use
   const repeatedSeriousError = findings.some((finding) => finding.occurrences >= 2);
   const historyFormatted = history.map((message) => `${message.sender === "user" ? "Operátor" : scenario.customer.name}: ${message.text}`).join("\n");
   return `
-Jsi ${scenario.customer.name}, fiktivní český zákazník v interním P2 tréninku Countdown CRM.
+Jsi ${scenario.customer.name}, fiktivní český zákazník v interním P2 tréninku Velocity CRM.
 Profil zákazníka: ${scenario.customer.profile}
 Téma: ${scenario.productLabel}
 Obtížnost: ${scenario.difficulty === "easy" ? "snadná" : "standardní"}.

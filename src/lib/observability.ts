@@ -1,5 +1,5 @@
 /**
- * Countdown CRM — Central Observability & Sanitized Logger
+ * Velocity CRM — Central Observability & Sanitized Logger
  * 
  * Provides structured logging with automatic PII sanitization to prevent
  * accidental leakage of customer phone numbers, emails, passwords or auth tokens.

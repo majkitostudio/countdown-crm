@@ -11,7 +11,7 @@ describe("responsive sidebar contract", () => {
 
   it("keeps compact and expanded desktop widths independent from the mobile drawer", () => {
     expect(getSidebarClassName(false, false)).toContain("w-64");
-    expect(getSidebarClassName(true, false)).toContain("w-18");
+    expect(getSidebarClassName(true, false)).toContain("w-20");
     expect(getSidebarClassName(true, false)).toContain("max-md:w-72");
   });
 

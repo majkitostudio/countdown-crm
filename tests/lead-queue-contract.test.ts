@@ -103,7 +103,7 @@ describe("lead queue server contract", () => {
     mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({ entries: [] });
   });
 
-  it("rejects invalid completion input before touching authorization or RPC", async () => {
+  it("rejects invalid completion input after authorization but before touching the data client", async () => {
     await expect(
       completeLeadCallForWorkspace({
         queue_item_id: "queue-1",
@@ -113,7 +113,7 @@ describe("lead queue server contract", () => {
       }),
     ).rejects.toMatchObject({ code: "VALIDATION" });
 
-    expect(mocks.requireWorkspaceRole).not.toHaveBeenCalled();
+    expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator"]);
     expect(mocks.createDataClient).not.toHaveBeenCalled();
   });
 
@@ -127,7 +127,8 @@ describe("lead queue server contract", () => {
       }),
     ).rejects.toMatchObject({ code: "VALIDATION" });
 
-    expect(mocks.requireWorkspaceRole).not.toHaveBeenCalled();
+    expect(mocks.requireWorkspaceRole).toHaveBeenCalledWith(["operator"]);
+    expect(mocks.createDataClient).not.toHaveBeenCalled();
   });
 
   it("routes call-start recovery to the authorized recovery RPC", async () => {

@@ -52,7 +52,7 @@ export default function InvitePage() {
       <div className="w-full max-w-md">
         <Surface variant="page">
           <div className="space-y-5 p-6">
-            <h1 className="text-lg font-semibold">Pozvánka do Countdown CRM</h1>
+            <h1 className="text-lg font-semibold">Pozvánka do Velocity CRM</h1>
             <p className="text-sm text-zinc-400">Pro přijetí pozvánky a nastavení hesla pokračujte tlačítkem.</p>
             {message && <p role="alert" className="text-sm text-red-400">{message}</p>}
             {token && <Button type="button" onClick={accept} disabled={loading} className="w-full">

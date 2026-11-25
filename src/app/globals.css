@@ -276,7 +276,7 @@
   --radius-4xl: 2rem;
 }
 
-/* Countdown is dark-only and keeps one source of truth: every shadcn token
+/* Velocity CRM is dark-only and keeps one source of truth: every shadcn token
    aliases an existing @theme token. No light palette, no .dark override,
    no parallel oklch scale. */
 :root {

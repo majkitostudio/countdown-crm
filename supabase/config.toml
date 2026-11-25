@@ -244,7 +244,7 @@ otp_expiry = 3600
 
 # Uncomment to customize email template
 [auth.email.template.invite]
-subject = "Pozvánka do Countdown CRM"
+subject = "Pozvánka do Velocity CRM"
 content_path = "./supabase/templates/invite.html"
 
 # Uncomment to customize notification email template
