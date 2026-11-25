@@ -24,7 +24,7 @@ Rozhraní musí odpovídat skutečnému stavu: nesmí předstírat uložený vý
 - `supabase/config.toml` a starší databázové slugy mohou záměrně obsahovat `countdown`; jde o technické identifikátory, nikoli o název produktu. Nepřejmenovávej je bez samostatného ověření dopadu.
 - Tajné hodnoty nepatří do Git, dokumentace, logů ani výstupu; pro P0.3 platí omezení tokenu uvedené výše.
 - Před vzdálenou změnou migrací nejdřív ověř cíl a použij `npx supabase db push --linked --dry-run`. Samotný dry-run nic nenasazuje. Zápis do prostředí, pozvánky a nasazení vyžadují výslovný pokyn. Produkční telefonie, Telnyx a zákaznické hovory jsou odložené.
-- Vercel 25. 11. 2026 ukazoval `dev.majkito.com` připnuté na `codex/velocity-crm-rebrand`; větev `codex/countdown-qa-branch-workflow` neměla vlastní nasazení. Žádné testování této větve na `dev` ani změna produkce z toho nevyplývá.
+- Poslední kontrola Vercelu před pushnutím této větve 25. 11. 2026 ukazovala `dev.majkito.com` připnuté na `codex/velocity-crm-rebrand`; tato větev tehdy vlastní nasazení neměla. Stav nasazení po pushi nebyl ověřen. Produkci nepoužívej k testování.
 
 ## Lokální vývoj a kontroly
 
@@ -47,8 +47,8 @@ npm run verify:all
 
 Kontroly provedené 25. 11. 2026 na větvi `codex/countdown-qa-branch-workflow`:
 
-- V cloudové kopii projektu na commitu `025673256163d0bf0d21cfa249e19a2527d639f3` prošla čistá instalace `npm ci` na Node.js `v24.22.3`. Přístup k `registry.npmjs.org` fungoval. Po cílených overridech `uuid` a zranitelných větví `minimatch` skončily `npm audit` i `npm audit --omit=dev` bez zranitelností.
-- `npm run verify:all` prošel: lint, TypeScript, 1 168 testů ve 227 souborech a produkční build.
+- V cloudové pracovní kopii založené na commitu `025673256163d0bf0d21cfa249e19a2527d639f3` prošly na Node.js `v24.22.3` čistá instalace `npm ci`, `npm audit`, `npm audit --omit=dev` a `npm run verify:all`. Registry npm byla dostupná; po cílených overridech `uuid` a zranitelných větví `minimatch` audity hlásily nula zranitelností. `verify:all` zahrnoval lint, TypeScript, 1 168 testů ve 227 souborech a produkční build.
+- Po synchronizaci prošlo stejné ověření i v místní složce na Node.js `v26.12.0`: `npm ci`, oba audity (nula zranitelností), `npm ls uuid minimatch` a `npm run verify:all` (lint, TypeScript, 1 168 testů ve 227 souborech a produkční build).
 - Tři testovací soubory pozvánek prošly: 25 testů. Samostatný lokální Mailpit zachytil syntetickou zprávu na doméně `.test`; kontejner byl poté zastaven a odstraněn. To neověřuje doručení přes Supabase Auth.
 - Lokální Supabase stack se nepodařilo spustit: stahování obrazů narazilo na limit registru a Docker hlásil nedostatek místa při rozbalování. Konfigurace obou vzdálených projektů byla pouze přečtena; Auth URL ani SMTP se neměnily a žádná pozvánka ven neodešla.
 - Praktická matice tří rolí prošla kontrolou 29 adres včetně hranic mezi týmy. Místní pgTAP prošel 326 testy v 18 souborech. Přímý pgTAP běh v linked sandboxu se nespustil, protože tam není dostupné rozšíření pgTAP.
@@ -64,6 +64,6 @@ Tyto výsledky se týkají uvedených kontrol a data. Nedokládají stav pozděj
 3. **Přístupnost:** zbývá skutečná čtečka obrazovky, zvětšení na 200 % a úplná kontrola klávesnicí. Klávesnicová editace, uložení a publikace syntetického skriptu už byly ověřeny.
 4. **Call Logs a exporty:** dokončit kontrolu chybějících a nedostupných hodnot. Call Logs zobrazuje částky v CZK; před změnou datového modelu rozhodnout, zda je třeba měnu ukládat pro každý hovor.
 5. **Měsíční uzávěrka:** výpočet a odpočet vratek byly ověřeny na syntetických datech, ale trvalé vytvoření účetního záznamu po uzavření měsíce ověřeno nebylo.
-6. **Testovací větev:** rozhodnout, zda a jak bezpečně ověřit tuto větev na `dev.majkito.com`. Zatím se tam nenasazuje.
+6. **Testovací větev:** ověřit, zda push vytvořil bezpečné preview pro tuto větev; `dev.majkito.com` podle poslední kontroly ukazoval jinou větev. Teprve poté rozhodnout o testu pozvánek.
 
-Nejprve uzavři ověřovací a provozní body 1–3 výše. Až potom začni samostatný vizuální refaktor: znovu posuď typografii a číslice, barevnou paletu, informační hierarchii a vybrané komponenty. Při kontrole doručení, opakovaných událostí a vratek používej pouze syntetická data.
+Nejprve uzavři ověřovací a provozní body 1–3 a 6 výše. Až potom začni samostatný vizuální refaktor: znovu posuď typografii a číslice, barevnou paletu, informační hierarchii a vybrané komponenty. Při kontrole doručení, opakovaných událostí a vratek používej pouze syntetická data.
