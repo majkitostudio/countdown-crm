@@ -6,6 +6,7 @@ Nejde o schválený harmonogram ani pokyn k implementaci. Před zahájením kaž
 - **AI podpora a agenti:** možné využití pro kontext, trénink a kvalitu; AI nerozhoduje o skutečném stavu hovoru, objednávky ani o oprávněních.
 - **Externí příjem leadů přes API/webhook:** budoucí samostatná schopnost včetně validace a deduplikace; stávající databázový trigger sám příjem neimplementuje.
 - **Hromadné akce leadů a pracovníků:** nejprve vyhodnotit potřebu a pracovní postup; existující základ výběru není napojený na obrazovku ani datové operace.
+- **Vizuální/designový refactor:** až po dokončení aktuálního otevřeného seznamu znovu posoudit a případně změnit fonty a typografii (včetně čísel), barevnou paletu s důrazem na barvy, informační hierarchii a vybrané komponenty. Uživatel současný typografický vzhled vnímá jako generický „AI slop“; jde o jeho výslovnou preferenci pro budoucí revizi, ne o nový aktivní úkol ani závěr auditu.
 - **Cenový žebříček a nepoužívaný ProductOrderPanel:** jejich obchodní pravidla zůstávají mimo dosud ověřený rozsah.
 - **Další náměty:** zobrazení leadů bez potvrzeného týmu pro Team Leadera, Console řízená profily oddělení, plánování směn, produktová karta a přepracování trenažéru.
 

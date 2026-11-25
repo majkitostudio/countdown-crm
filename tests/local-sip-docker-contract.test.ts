@@ -33,6 +33,7 @@ describe("local Asterisk Docker contract", () => {
     expect(pjsip).toContain("[1002]");
     expect(pjsip).toContain("aors=1001");
     expect(pjsip).toContain("aors=1002");
+    expect(pjsip.match(/from_domain=127\.0\.0\.1/g)).toHaveLength(2);
     expect(pjsip).toContain("#include pjsip.runtime.conf");
     const runtimeTemplate = readSource("docker/asterisk/pjsip.runtime.template.conf");
     expect(runtimeTemplate).toContain("$SIP_PASSWORD_1001");
