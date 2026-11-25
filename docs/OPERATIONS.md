@@ -17,6 +17,12 @@ Tento návod obsahuje lokální vývoj, seed katalogu a postupy pro kontrolu mig
 - Test běžel lokálně na `127.0.0.1:3000`, protože `dev.majkito.com` je připnutá na větev `codex/velocity-crm-rebrand`, zatímco aktuální pracovní větev `codex/countdown-qa-branch-workflow` nasazení nemá. Lokální kontrola proto neověřuje nasazení této větve na doméně `dev.majkito.com`.
 - Úplná sada `npm run verify:all` nyní prošla: lint, kontrola typů, 1 165 testů ve 225 souborech a produkční build. Prošlo také `git diff --check`. Předtím selhávaly čtyři zastaralé testové kontroly po změnách z 22. 11. 2026 (commit `ef7c911`); očekávání testů jsme srovnali s aktuálním ověřením role, popiskem odkazu a šířkou sbaleného menu. Chování aplikace se při této opravě neměnilo.
 
+## První hovor po ručním přiřazení — 24. 11. 2026
+
+- Příčina nalezena v načtení operátorské konzole: při existujícím přiřazení ve stavu `assigned` konzole přeskočila obnovení serverové dostupnosti. Databáze přitom při zahájení hovoru vyžaduje stav `available` a heartbeat mladší než pět minut.
+- Konzole nyní obnoví dostupnost pouze pro čekající stav `assigned`. Probíhající hovor (`in_progress`) a čekající výsledek (`awaiting_outcome`) tím nejsou označeny jako dostupné. Přidána regresní kontrola tohoto pořadí.
+- Zatím ověřeno automatickou kontrolou zdrojového toku; nový browserový průchod s ručním přiřazením po této opravě ještě neproběhl. Aktuální pracovní větev není nasazena na `dev.majkito.com`; ověření vzdáleného hovoru se proto ponechává otevřené do vhodného nasazení.
+
 Před během ověř skutečný cíl prostředí; historické záznamy níže neprokazují současné nastavení, dostupnost ani stav databáze. Práci se zápisem či vzdáleným prostředím předem odsouhlas podle [pravidel](Rules.md).
 
 ## Historický stav prostředí ověřený 21.–22. 11. 2026
