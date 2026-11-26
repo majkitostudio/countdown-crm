@@ -1,6 +1,6 @@
 # Velocity CRM — projektový průvodce
 
-Tento dokument je jediným zdrojem aktuálních informací o produktu, prostředích, ověřeném stavu a otevřené práci. Stav níže byl naposledy ověřen 25. 11. 2026; starší revizní deníky a návrhy jsou odstraněné.
+Tento dokument je jediným zdrojem aktuálních informací o produktu, prostředích, ověřeném stavu a otevřené práci. Stav níže byl naposledy ověřen 26. 11. 2026; starší revizní deníky a návrhy jsou odstraněné.
 
 ## Produkt a role
 
@@ -24,7 +24,7 @@ Rozhraní musí odpovídat skutečnému stavu: nesmí předstírat uložený vý
 - `supabase/config.toml` a starší databázové slugy mohou záměrně obsahovat `countdown`; jde o technické identifikátory, nikoli o název produktu. Nepřejmenovávej je bez samostatného ověření dopadu.
 - Tajné hodnoty nepatří do Git, dokumentace, logů ani výstupu; pro P0.3 platí omezení tokenu uvedené výše.
 - Před vzdálenou změnou migrací nejdřív ověř cíl a použij `npx supabase db push --linked --dry-run`. Samotný dry-run nic nenasazuje. Zápis do prostředí, pozvánky a nasazení vyžadují výslovný pokyn. Produkční telefonie, Telnyx a zákaznické hovory jsou odložené.
-- Poslední kontrola Vercelu před pushnutím této větve 25. 11. 2026 ukazovala `dev.majkito.com` připnuté na `codex/velocity-crm-rebrand`; tato větev tehdy vlastní nasazení neměla. Stav nasazení po pushi nebyl ověřen. Produkci nepoužívej k testování.
+- Ověření Vercelu 26. 11. 2026: commit `0744b9d` této větve má stav `READY` na preview `https://velocity-3mu2sf44f-majkito.vercel.app` (alias `https://velocity-crm-git-codex-countdown-qa-branch-workflow-majkito.vercel.app`). Veřejná stránka vrátila HTTP 200; samotný status nepotvrzuje přihlášení ani funkčnost pozvánek. Preview používá sandbox ref `lpvypihpxhyjljikfzqo`, ne produkční ref `qlzrsookyobtvyekhrqi`. V nastavení preview nejsou dostupné proměnné pro administrátorské volání Supabase Auth, takže pozvánka přes tuto nasazenou kopii ověřena nebyla. `dev.majkito.com` zůstává navázané na jinou větev. Produkci nepoužívej k testování.
 
 ## Lokální vývoj a kontroly
 
@@ -45,12 +45,13 @@ npm run verify:all
 
 ## Aktuálně ověřeno
 
-Kontroly provedené 25. 11. 2026 na větvi `codex/countdown-qa-branch-workflow`:
+Kontroly provedené 25.–26. 11. 2026 na větvi `codex/countdown-qa-branch-workflow`:
 
 - V cloudové pracovní kopii založené na commitu `025673256163d0bf0d21cfa249e19a2527d639f3` prošly na Node.js `v24.22.3` čistá instalace `npm ci`, `npm audit`, `npm audit --omit=dev` a `npm run verify:all`. Registry npm byla dostupná; po cílených overridech `uuid` a zranitelných větví `minimatch` audity hlásily nula zranitelností. `verify:all` zahrnoval lint, TypeScript, 1 168 testů ve 227 souborech a produkční build.
 - Po synchronizaci prošlo stejné ověření i v místní složce na Node.js `v26.12.0`: `npm ci`, oba audity (nula zranitelností), `npm ls uuid minimatch` a `npm run verify:all` (lint, TypeScript, 1 168 testů ve 227 souborech a produkční build).
 - Tři testovací soubory pozvánek prošly: 25 testů. Samostatný lokální Mailpit zachytil syntetickou zprávu na doméně `.test`; kontejner byl poté zastaven a odstraněn. To neověřuje doručení přes Supabase Auth.
-- Lokální Supabase stack se nepodařilo spustit: stahování obrazů narazilo na limit registru a Docker hlásil nedostatek místa při rozbalování. Konfigurace obou vzdálených projektů byla pouze přečtena; Auth URL ani SMTP se neměnily a žádná pozvánka ven neodešla.
+- Dne 26. 11. se podařilo spustit lokální CRM proti místnímu Supabase Auth a Inbucketu. Přihlášení syntetického administrátora prošlo; přes formulář aplikace byla vytvořena syntetická pozvánka na `.test` a místní schránka zachytila jednu zprávu „Pozvánka do Countdown CRM“ s odkazem na `127.0.0.1:3000`. Odkaz nebyl otevřen, účet nebyl aktivován a žádná zpráva neopustila místní prostředí. Dřívější Mailpit test i toto ověření proběhly lokálně; nedokládají doručení ze vzdáleného sandboxu.
+- Ověřené Vercel preview této větve vrací HTTP 200 a jeho klientská konfigurace ukazuje na sandbox `lpvypihpxhyjljikfzqo`; administrátorský klíč pro Auth ve preview chybí. Sandbox Auth URL ani SMTP se neměnily a ze vzdáleného prostředí žádná pozvánka odeslána nebyla.
 - Praktická matice tří rolí prošla kontrolou 29 adres včetně hranic mezi týmy. Místní pgTAP prošel 326 testy v 18 souborech. Přímý pgTAP běh v linked sandboxu se nespustil, protože tam není dostupné rozšíření pgTAP.
 - Syntetický operátor po ručním přiřazení zahájil místní SIP hovor s interní linkou 1002. To neověřuje Telnyx, veřejnou telefonní síť ani fyzickou slyšitelnost.
 - Obnova hovoru přešla do formuláře nové objednávky; prohlížeč zobrazil výchozí zemi `CZ`. Objednávka nebyla odeslána.
@@ -59,11 +60,10 @@ Tyto výsledky se týkají uvedených kontrol a data. Nedokládají stav pozděj
 
 ## Otevřená práce
 
-1. **Pozvánky:** sandbox `lpvypihpxhyjljikfzqo` měl `Site URL` `http://localhost:3000`, žádné povolené návratové adresy a vypnutý vlastní SMTP. Produkční projekt `qlzrsookyobtvyekhrqi` má `Site URL` `https://velocity-crm-majkito.vercel.app/`; nepoužívej ho k testování. Stabilní URL nasazení této větve není potvrzená. Mailpit zachytil pouze syntetickou zprávu; lokální Supabase Auth se kvůli chybě při stahování a rozbalování Docker obrazů nespustil. Pozvánka přes aplikaci ani sandbox odeslána nebyla.
+1. **Pozvánky do vzdáleného sandboxu:** lokální průchod aplikací a zachycení e-mailu v Inbucketu fungují. Sandbox `lpvypihpxhyjljikfzqo` ale stále uvádí `Site URL` `http://localhost:3000`, žádné povolené návratové adresy a vypnuté vlastní SMTP. Vercel preview této větve sandbox používá, ale nemá administrátorskou proměnnou pro volání Supabase Auth. Vzdálenou pozvánku proto nelze bezpečně dokončit, dokud nebude připravené doručování a ověřená povolená návratová URL. Produkční projekt `qlzrsookyobtvyekhrqi` ani jeho URL nepoužívej k testu.
 2. **Historický audit:** read-only dotaz našel sedm záznamů telefonie. Známé přímé přepnutí sandboxu na `simulation` nemá auditní záznam; úplnost starší historie nelze potvrdit ani zpětně rekonstruovat.
 3. **Přístupnost:** zbývá skutečná čtečka obrazovky, zvětšení na 200 % a úplná kontrola klávesnicí. Klávesnicová editace, uložení a publikace syntetického skriptu už byly ověřeny.
 4. **Call Logs a exporty:** dokončit kontrolu chybějících a nedostupných hodnot. Call Logs zobrazuje částky v CZK; před změnou datového modelu rozhodnout, zda je třeba měnu ukládat pro každý hovor.
 5. **Měsíční uzávěrka:** výpočet a odpočet vratek byly ověřeny na syntetických datech, ale trvalé vytvoření účetního záznamu po uzavření měsíce ověřeno nebylo.
-6. **Testovací větev:** ověřit, zda push vytvořil bezpečné preview pro tuto větev; `dev.majkito.com` podle poslední kontroly ukazoval jinou větev. Teprve poté rozhodnout o testu pozvánek.
 
-Nejprve uzavři ověřovací a provozní body 1–3 a 6 výše. Až potom začni samostatný vizuální refaktor: znovu posuď typografii a číslice, barevnou paletu, informační hierarchii a vybrané komponenty. Při kontrole doručení, opakovaných událostí a vratek používej pouze syntetická data.
+Nejprve uzavři ověřovací a provozní body 1–3 výše. Až potom začni samostatný vizuální refaktor: znovu posuď typografii a číslice, barevnou paletu, informační hierarchii a vybrané komponenty. Při kontrole doručení, opakovaných událostí a vratek používej pouze syntetická data.
