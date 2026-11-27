@@ -139,7 +139,7 @@ export function UserOnboardingModal({
             <FieldLabel htmlFor="onboarding-email">Pracovní e-mail</FieldLabel>
             <TextField
               id="onboarding-email"
-              placeholder="např. jan.novak@countdown.cz"
+              placeholder="např. jan.novak@example.test"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

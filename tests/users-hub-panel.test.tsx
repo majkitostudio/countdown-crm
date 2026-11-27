@@ -43,7 +43,7 @@ const mockData: TeamManagementData = {
       user_id: "user-admin",
       role: "administrator",
       full_name: "Hlavní Admin",
-      email: "admin@countdown.cz",
+      email: "admin@example.test",
       avatar_url: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -53,7 +53,7 @@ const mockData: TeamManagementData = {
       user_id: "user-leader",
       role: "team_leader",
       full_name: "Lucie Vedoucí",
-      email: "lucie@countdown.cz",
+      email: "lucie@example.test",
       avatar_url: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -63,7 +63,7 @@ const mockData: TeamManagementData = {
       user_id: "user-operator",
       role: "operator",
       full_name: "Jan Telefonista",
-      email: "jan@countdown.cz",
+      email: "jan@example.test",
       avatar_url: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -78,7 +78,7 @@ const mockData: TeamManagementData = {
         user_id: "user-leader",
         membership_role: "leader",
         full_name: "Lucie Vedoucí",
-        email: "lucie@countdown.cz",
+        email: "lucie@example.test",
         avatar_url: null,
         active_from: new Date().toISOString(),
         active_until: null,
@@ -92,7 +92,7 @@ const mockData: TeamManagementData = {
         user_id: "user-operator",
         membership_role: "member",
         full_name: "Jan Telefonista",
-        email: "jan@countdown.cz",
+        email: "jan@example.test",
         avatar_url: null,
         active_from: new Date().toISOString(),
         active_until: null,
@@ -126,9 +126,9 @@ describe("UsersHubPanel Component", () => {
     expect(html).toContain("Jan Telefonista");
 
     // Emails rendered
-    expect(html).toContain("admin@countdown.cz");
-    expect(html).toContain("lucie@countdown.cz");
-    expect(html).toContain("jan@countdown.cz");
+    expect(html).toContain("admin@example.test");
+    expect(html).toContain("lucie@example.test");
+    expect(html).toContain("jan@example.test");
 
     // Onboarding button present
     expect(html).toContain("Pozvat / Přidat pracovníka");

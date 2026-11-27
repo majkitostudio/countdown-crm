@@ -60,7 +60,7 @@ export function exportAnalyticsToCSV(data: AnalyticsOverview): void {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `countdown_analytics_${data.scope}_${new Date().toISOString().split("T")[0]}.csv`);
+  link.setAttribute("download", `velocity_analytics_${data.scope}_${new Date().toISOString().split("T")[0]}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

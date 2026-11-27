@@ -12,7 +12,7 @@ export async function requireAuthenticatedUser() {
   if (isDemoAuthEnabled()) {
     return {
       id: "demo-user",
-      email: "demo@countdowncrm.local",
+      email: "demo@velocitycrm.local",
     };
   }
 

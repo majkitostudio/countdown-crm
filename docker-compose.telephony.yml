@@ -1,7 +1,7 @@
 services:
   asterisk:
     image: andrius/asterisk:22.10.1_debian-trixie
-    container_name: countdown-crm-asterisk
+    container_name: velocity-crm-asterisk
     restart: unless-stopped
     env_file:
       - ./docker/asterisk/.env

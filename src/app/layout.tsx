@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Velocity CRM - Pracovní prostor call centra",
+  title: "Velocity CRM — Pracovní prostor call centra",
   description: "CRM a operátorská konzole v rámci pracovního prostoru pro prodejní pilot",
 };
 

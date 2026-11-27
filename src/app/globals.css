@@ -130,16 +130,16 @@
     white-space: nowrap;
   }
 
-  @keyframes countdown-enter {
+  @keyframes velocity-enter {
     from {
-      opacity: var(--countdown-enter-opacity, 0);
+      opacity: var(--velocity-enter-opacity, 0);
       transform:
         translate3d(
-          var(--countdown-enter-x, 0),
-          var(--countdown-enter-y, 0),
+          var(--velocity-enter-x, 0),
+          var(--velocity-enter-y, 0),
           0
         )
-        scale(var(--countdown-enter-scale, 1));
+        scale(var(--velocity-enter-scale, 1));
     }
 
     to {
@@ -149,34 +149,34 @@
   }
 
   .animate-in {
-    animation-name: countdown-enter;
+    animation-name: velocity-enter;
     animation-duration: 150ms;
     animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
     animation-fill-mode: backwards;
   }
 
   .fade-in {
-    --countdown-enter-opacity: 0;
+    --velocity-enter-opacity: 0;
   }
 
   .slide-in-from-top-2 {
-    --countdown-enter-y: -0.5rem;
+    --velocity-enter-y: -0.5rem;
   }
 
   .slide-in-from-bottom-1 {
-    --countdown-enter-y: 0.25rem;
+    --velocity-enter-y: 0.25rem;
   }
 
   .slide-in-from-bottom-2 {
-    --countdown-enter-y: 0.5rem;
+    --velocity-enter-y: 0.5rem;
   }
 
   .slide-in-from-right-2 {
-    --countdown-enter-x: 0.5rem;
+    --velocity-enter-x: 0.5rem;
   }
 
   .zoom-in-95 {
-    --countdown-enter-scale: 0.95;
+    --velocity-enter-scale: 0.95;
   }
 
   .animate-in.duration-120 {
@@ -207,9 +207,9 @@
     .animate-in.slide-in-from-bottom-2,
     .animate-in.slide-in-from-right-2,
     .animate-in.zoom-in-95 {
-      --countdown-enter-x: 0;
-      --countdown-enter-y: 0;
-      --countdown-enter-scale: 1;
+      --velocity-enter-x: 0;
+      --velocity-enter-y: 0;
+      --velocity-enter-scale: 1;
     }
   }
 }
@@ -315,6 +315,6 @@
   --sidebar-ring: var(--color-focus);
 }
 
-/* No `.dark` block: the alias :root above is the only palette. Countdown runs
+/* No `.dark` block: the alias :root above is the only palette. Velocity CRM runs
    dark-only (see src/app/layout.tsx), so a second scale would be a parallel
    source of truth that nothing in the product can switch to. */
