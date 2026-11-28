@@ -30,6 +30,7 @@ vi.mock("@/lib/dal/callQualityReviews", () => ({
 import {
   abortLeadCallStartForWorkspace,
   completeLeadCallForWorkspace,
+  getLiveCallAssignmentForWorkspace,
   listScheduledCallsForWorkspace,
 } from "@/lib/dal/leadQueue";
 
@@ -101,6 +102,29 @@ describe("lead queue server contract", () => {
     mocks.requireWorkspaceRole.mockResolvedValue(workspaceContext);
     mocks.requireWorkspaceContext.mockResolvedValue(workspaceContext);
     mocks.dispatchWorkflowEventForWorkspace.mockResolvedValue({ entries: [] });
+  });
+
+  it("reads the operator's live assignment without invoking recovery", async () => {
+    const row = { ...queueSnapshot, id: "queue-1", state: "in_progress", call_started_at: "2026-11-28T10:00:00Z", call_ended_at: null, recovery_required: false };
+    const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: row, error: null }) };
+    const rpc = vi.fn().mockResolvedValue({ data: queueSnapshot.lead, error: null });
+    mocks.createDataClient.mockResolvedValue({ from: vi.fn().mockReturnValue(query), rpc });
+
+    const result = await getLiveCallAssignmentForWorkspace("queue-1", "lead-1");
+
+    expect(result.assignment_state).toBe("in_progress");
+    expect(query.eq).toHaveBeenCalledWith("assigned_operator_id", workspaceContext.userId);
+    expect(query.eq).toHaveBeenCalledWith("workspace_id", workspaceContext.workspaceId);
+    expect(query.eq).toHaveBeenCalledWith("state", "in_progress");
+    expect(rpc).not.toHaveBeenCalledWith("get_current_lead", expect.anything());
+  });
+
+  it("does not fall back to recovery when a live assignment cannot be verified", async () => {
+    const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) };
+    const rpc = vi.fn();
+    mocks.createDataClient.mockResolvedValue({ from: vi.fn().mockReturnValue(query), rpc });
+    await expect(getLiveCallAssignmentForWorkspace("queue-1", "lead-1")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("rejects invalid completion input after authorization but before touching the data client", async () => {

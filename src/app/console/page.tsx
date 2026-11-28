@@ -45,6 +45,7 @@ import {
   completeLeadCallAction,
   endLeadCallAction,
   getCurrentLeadAction,
+  getLiveCallAssignmentAction,
   setOperatorPresenceAction,
   startLeadCallAction,
 } from "@/app/actions/leadQueue";
@@ -164,7 +165,9 @@ function WorkspaceContent() {
   const transcriptEntriesRef = React.useRef<TranscriptEntry[]>([]);
   const lastSessionIdRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
-  const { setServerContext } = useCallSession();
+  const { setServerContext, serverContext } = useCallSession();
+  const serverContextRef = React.useRef(serverContext);
+  useEffect(() => { serverContextRef.current = serverContext; }, [serverContext]);
   const {
     preferences: userPreferences,
   } = useUserPreferences();
@@ -439,7 +442,15 @@ function WorkspaceContent() {
 
         if (identity.role === "operator") {
           const fetchedProducts = await getProducts();
-          let currentAssignment = await getCurrentLeadAction();
+          const liveSession = softphoneController.getSession();
+          const queueItemId = serverContextRef.current.queueItemId;
+          const hasLiveCall = ["dialing", "ringing", "connected", "on_hold"].includes(liveSession.state);
+          if (hasLiveCall && (!queueItemId || !liveSession.leadId)) {
+            throw new Error("Přiřazení aktivního hovoru není dostupné. Ukončete hovor a zkuste to znovu.");
+          }
+          let currentAssignment = hasLiveCall && queueItemId
+            ? await getLiveCallAssignmentAction(queueItemId, liveSession.leadId)
+            : await getCurrentLeadAction();
 
           if (currentAssignment?.assignment_state === "assigned") {
             // A manually assigned lead can exist before this operator has

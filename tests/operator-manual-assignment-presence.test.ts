@@ -7,8 +7,8 @@ const consolePage = readFileSync(resolve(process.cwd(), "src/app/console/page.ts
 describe("manual operator assignment presence", () => {
   it("refreshes availability before showing a manually assigned lead", () => {
     const assignmentLoad = consolePage.slice(
-      consolePage.indexOf("let currentAssignment = await getCurrentLeadAction();"),
-      consolePage.indexOf("setActiveLead(currentAssignment?.lead || null)", consolePage.indexOf("let currentAssignment = await getCurrentLeadAction();")),
+      consolePage.indexOf("let currentAssignment = hasLiveCall"),
+      consolePage.indexOf("setActiveLead(currentAssignment?.lead || null)", consolePage.indexOf("let currentAssignment = hasLiveCall")),
     );
 
     const assignedBranchStart = assignmentLoad.indexOf('if (currentAssignment?.assignment_state === "assigned")');

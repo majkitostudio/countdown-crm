@@ -228,6 +228,18 @@ export async function getCurrentLeadForWorkspace(workspaceId?: string): Promise<
   return requireRpcData<QueueSnapshotRpc>(data, error, "Current lead could not be loaded");
 }
 
+export async function getLiveCallAssignmentForWorkspace(queueItemId: string, leadId: string): Promise<LeadQueueSnapshot> {
+  const context = await requireWorkspaceRole(["operator"]);
+  const supabase = await createDataClient();
+  const { data, error } = await supabase.from("lead_queue_items")
+    .select("id, workspace_id, team_id, lead_id, state, assigned_operator_id, preferred_operator_id, available_at, scheduled_at, attempt_count, claimed_at, last_heartbeat_at, lease_expires_at, call_started_at, call_ended_at, recovery_required")
+    .eq("id", queueItemId).eq("lead_id", leadId).eq("workspace_id", context.workspaceId)
+    .eq("assigned_operator_id", context.userId).eq("state", "in_progress").maybeSingle();
+  if (error || !data) throw new DataAccessError("NOT_FOUND", "Aktivní přiřazení hovoru není dostupné.");
+  const lead = await getDirectLeadForWorkspace(leadId, context.workspaceId);
+  return { ...data, queue_item_id: data.id, assignment_state: "in_progress", lead };
+}
+
 export async function claimNextLeadForWorkspace(workspaceId?: string): Promise<LeadQueueSnapshot | null> {
   const context = await requireWorkspaceRole(["operator"], workspaceId);
   const supabase = await createDataClient();
