@@ -106,6 +106,40 @@ describe("post-call completion runtime contract", () => {
     }));
   });
 
+  it("recovers the linked session identity so an ambiguous completion retry can replay idempotently", async () => {
+    const lookup = {
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: callSessionId, completed_call_id: "already-linked-call" },
+        error: null,
+      }),
+    };
+    const rpc = vi.fn().mockResolvedValue({
+      data: { call_id: "already-linked-call", order_id: null, queue_state: "closed", duration_seconds: 30, next_lead: null, lead_id: "lead-1", lead_name: "Test Lead" },
+      error: null,
+    });
+    mocks.createAdminClient.mockReturnValue(lookup);
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    await expect(completeLeadCallForWorkspace({
+      queue_item_id: "queue-1",
+      call_session_id: "",
+      duration_seconds: 30,
+      outcome: "no_answer",
+    })).resolves.toMatchObject({ call_id: "already-linked-call" });
+
+    expect(lookup.is).not.toHaveBeenCalledWith("completed_call_id", null);
+    expect(rpc).toHaveBeenCalledWith("complete_lead_call_with_order_items_idempotent", expect.objectContaining({
+      completion_key: callSessionId,
+      call_session_id: callSessionId,
+    }));
+  });
+
   it("forwards verified speech transcript to the database completion RPC and quality review", async () => {
     const rpc = vi.fn()
       .mockResolvedValueOnce({

@@ -119,20 +119,20 @@ export function Sidebar({ mobileOpen, onMobileOpenChange }: SidebarProps) {
             </div>
           )}
         </Link>
-        <button
-          type="button"
+        <Button
+          variant="quiet"
           onClick={() => setIsCollapsed((collapsed) => !collapsed)}
-          className="hidden shrink-0 rounded-md p-1.5 text-zinc-400 transition-colors duration-150 ease-interface hover:bg-zinc-900 hover:text-zinc-200 md:inline-flex"
+          className="hidden h-8 w-8 shrink-0 p-1.5 md:inline-flex"
           title={isCollapsed ? "Rozbalit navigaci" : "Sbalit navigaci"}
           aria-label={isCollapsed ? "Rozbalit navigaci" : "Sbalit navigaci"}
           aria-expanded={!isCollapsed}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
+        </Button>
       </div>
 
       {/* Navigation Links */}
-      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-3 py-4 [scrollbar-width:none]" aria-label="Primární navigace">
+      <nav id="primary-navigation" className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-3 py-4" aria-label="Primární navigace">
         {getAllowedSidebarNavigationSections(isIdentityLoading ? null : identity?.role).map((group) => (
           <div key={group.section} className="space-y-1">
             {!isCompact && (

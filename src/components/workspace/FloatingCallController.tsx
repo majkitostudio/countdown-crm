@@ -20,15 +20,20 @@ export function FloatingCallController() {
   const { session, serverContext, isActionPending, error, clearError, cancelDial, endCall, toggleMute, toggleHold, remoteVolume, supportsRemoteVolume, setRemoteVolume } = useCallSession();
   const isDialing = session.state === "dialing" || session.state === "ringing";
   const isActive = session.state === "connected" || session.state === "on_hold";
+  const hasLiveSession = isDialing || isActive;
   const requiresOutcome = serverContext.assignmentState === "awaiting_outcome" || serverContext.recoveryRequired;
 
   if (!mounted || (!isDialing && !isActive && !requiresOutcome)) return null;
 
-  const status = serverContext.recoveryRequired
+  const status = isDialing
+    ? "Vytáčení"
+    : isActive
+      ? session.state === "on_hold" ? "Podržený hovor" : "Na hovoru"
+      : serverContext.recoveryRequired
     ? "Vyžadována obnova"
     : serverContext.assignmentState === "awaiting_outcome"
       ? "Je nutné zvolit výsledek"
-      : isDialing ? "Vytáčení" : session.state === "on_hold" ? "Podržený hovor" : "Na hovoru";
+      : "Hovor";
 
   return createPortal(
     <aside className="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-950/95 p-4 text-zinc-100 shadow-2xl shadow-black/50 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-150 ease-interface" data-testid="floating-call-controller" aria-label="Plovoucí ovládání hovoru">
@@ -41,10 +46,10 @@ export function FloatingCallController() {
           <p className="mt-1 truncate text-sm font-semibold">{session.leadName || "Aktuální zákazník"}</p>
           {session.phone && <p className="mt-0.5 font-mono text-[11px] text-zinc-500">{session.phone}</p>}
         </div>
-        {!requiresOutcome && <span className="font-mono text-lg font-semibold tabular-nums">{formatTimer(session.durationSeconds)}</span>}
+        {hasLiveSession && <span className="font-mono text-lg font-semibold tabular-nums">{formatTimer(session.durationSeconds)}</span>}
       </div>
 
-      {requiresOutcome ? (
+      {requiresOutcome && !hasLiveSession ? (
         <div className="mt-3 rounded-xl border border-amber-900/70 bg-amber-950/30 p-3" role="status">
           <p className="text-xs font-semibold text-amber-100">Je nutné zvolit výsledek hovoru</p>
           <p className="mt-1 text-[11px] text-amber-200/80">Vraťte se do pracovního prostoru a dokončete hovor. Lead vám zůstává přiřazen.</p>

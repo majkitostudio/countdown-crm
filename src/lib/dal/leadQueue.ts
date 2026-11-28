@@ -320,7 +320,6 @@ export async function completeLeadCallForWorkspace(input: CompleteLeadCallInput)
       .eq("operator_id", context.userId)
       .eq("queue_item_id", input.queue_item_id)
       .eq("status", "ended")
-      .is("completed_call_id", null)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

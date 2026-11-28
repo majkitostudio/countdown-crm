@@ -106,7 +106,7 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const { queueItemId, assignmentState } = serverContext;
-    if (!queueItemId || (assignmentState !== "in_progress" && assignmentState !== "awaiting_outcome")) return;
+    if (!queueItemId || !assignmentState) return;
     let stopped = false;
     const heartbeat = () => {
       if (stopped) return;

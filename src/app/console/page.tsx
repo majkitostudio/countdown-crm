@@ -22,6 +22,7 @@ import { createPostCallRetry } from "@/lib/postCallCompletion";
 import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
+import { shouldBlockCallToggleForOutcome } from "@/lib/telephony/callToggleGuard";
 import { getActiveTelephonyAdapterClient } from "@/lib/telephony/telephonyAdapterClient";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
@@ -693,7 +694,7 @@ function WorkspaceContent() {
       return;
     }
 
-    if (isAwaitingOutcome) {
+    if (shouldBlockCallToggleForOutcome(isAwaitingOutcome, isCallActive)) {
       setNotificationToast("Před zahájením dalšího hovoru zvolte výsledek po hovoru.");
       return;
     }
