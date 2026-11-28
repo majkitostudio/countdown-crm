@@ -3,6 +3,8 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { PhoneCall } from "lucide-react";
 import {
   PageHeader,
@@ -12,9 +14,11 @@ import {
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CallStatusBar } from "@/components/workspace/CallStatusBar";
+import { RemoteVolumeControl } from "@/components/workspace/RemoteVolumeControl";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { getStatusClassName } from "@/components/ui/Status";
 import { getSurfaceClassName } from "@/components/ui/Surface";
+import { shouldBlockCallToggleForOutcome } from "@/lib/telephony/callToggleGuard";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -132,6 +136,7 @@ it("keeps an active simulated call visually neutral while preserving the destruc
   expect(markup).not.toContain("bg-rose-400");
   expect(markup).not.toContain("bg-rose-500");
   expect(markup).toContain('class="text-zinc-300" aria-label="Simulovaná zvuková aktivita"');
+  expect(markup).not.toContain('href="/settings"');
   expect(markup).not.toContain("text-emerald-400");
   const renderedCall = document.createElement("div");
   renderedCall.innerHTML = markup;
@@ -140,6 +145,17 @@ it("keeps an active simulated call visually neutral while preserving the destruc
   ));
   expect(dangerControls).toHaveLength(1);
   expect(dangerControls[0]?.getAttribute("aria-label")).toBe("Ukončit hovor: Alex Customer");
+});
+
+it("renders an accessible remote-customer volume slider", () => {
+  const markup = renderToStaticMarkup(
+    <RemoteVolumeControl value={65} onChange={() => undefined} />,
+  );
+
+  expect(markup).toContain('type="range"');
+  expect(markup).toContain('aria-label="Hlasitost zákazníka"');
+  expect(markup).toContain('value="65"');
+  expect(markup).toContain("65%");
 });
 
 it("restores focus to the command-palette opener after Escape and traps Tab within the dialog", () => {
@@ -187,6 +203,19 @@ it("formats product prices in the command palette using each product currency", 
 });
 
 describe("sidebar operator-status menu", () => {
+  it("keeps primary navigation scroll affordance visible and uses the shared button for collapse", () => {
+    const container = mount(createElement(Sidebar));
+    const nav = container.querySelector<HTMLElement>('[aria-label="Primární navigace"]');
+    const collapseButton = container.querySelector<HTMLButtonElement>('[aria-label="Sbalit navigaci"]');
+
+    expect(nav?.className).not.toContain("scrollbar-width:none");
+    expect(collapseButton?.className).toContain("focus-visible:ring-2");
+    expect(collapseButton?.type).toBe("button");
+    const globalStyles = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(globalStyles).toContain("scrollbar-width: thin");
+    expect(globalStyles).not.toContain("#primary-navigation::-webkit-scrollbar");
+  });
+
   it("exposes the status menu with button and menu semantics, then returns focus after Escape", () => {
     const container = mount(createElement(Sidebar));
     const toggle = container.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]');
@@ -235,5 +264,15 @@ describe("sidebar operator-status menu", () => {
     dispatchWindowKey("Escape");
     expect(document.querySelector('[role="menu"][aria-label="Stav operátora"]')).toBeNull();
     expect(document.activeElement).toBe(toggle);
+  });
+});
+
+describe("operator call toggle guard", () => {
+  it("allows ending a still-live call even when the assignment awaits its outcome", () => {
+    expect(shouldBlockCallToggleForOutcome(true, true)).toBe(false);
+  });
+
+  it("still prevents starting another call before an outcome is recorded", () => {
+    expect(shouldBlockCallToggleForOutcome(true, false)).toBe(true);
   });
 });

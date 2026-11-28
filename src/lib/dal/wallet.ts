@@ -549,7 +549,7 @@ export async function getMonthlySettlementSummary(input?: {
       {
         userId: "demo-op-2",
         userName: "Lucie Nováková",
-        userEmail: "lucie.novakova@countdowncrm.local",
+        userEmail: "lucie.novakova@velocitycrm.local",
         deliveredCount: 18,
         deliveredTotal: 34200,
         returnedCount: 1,

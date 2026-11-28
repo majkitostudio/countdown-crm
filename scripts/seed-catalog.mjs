@@ -175,7 +175,7 @@ export function generateSeedSql(compiled) {
     "BEGIN",
     "  -- 1. Ensure Organization exists",
     "  INSERT INTO public.organizations (name, slug)",
-    "  VALUES ('Velocity Telemarketing', 'countdown')",
+    "  VALUES ('Countdown Telemarketing', 'countdown')",
     "  ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name",
     "  RETURNING id INTO v_org_id;",
     "",

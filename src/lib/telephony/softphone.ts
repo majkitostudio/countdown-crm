@@ -45,6 +45,7 @@ export class WebRtcSoftphoneController {
   private telnyxCall: TelnyxCallLike | null = null;
   private telnyxSessionId: string | null = null;
   private remoteAudio: HTMLAudioElement | null = null;
+  private remoteAudioVolume = 1;
   private telnyxClientReady = false;
   private telnyxListenersBound = false;
   private telnyxReadyResolve: (() => void) | null = null;
@@ -55,6 +56,20 @@ export class WebRtcSoftphoneController {
   private simulationSessionId: string | null = null;
 
   public getSession(): CallSession { return { ...this.currentSession }; }
+
+  public getRemoteAudioVolume(): number { return Math.round(this.remoteAudioVolume * 100); }
+
+  public setRemoteAudioVolume(volume: number): number {
+    const safeVolume = Number.isFinite(volume) ? volume : 100;
+    const normalizedVolume = Math.max(0, Math.min(100, Math.round(safeVolume))) / 100;
+    this.remoteAudioVolume = normalizedVolume;
+    if (this.remoteAudio) this.remoteAudio.volume = normalizedVolume;
+    return this.getRemoteAudioVolume();
+  }
+
+  public supportsRemoteAudioVolume(): boolean {
+    return this.activeAdapter !== "simulation" || this.isTelnyxActive();
+  }
 
   public subscribeState(listener: CallStateListener): () => void {
     this.listeners.add(listener);
@@ -277,6 +292,7 @@ export class WebRtcSoftphoneController {
     const audio = document.createElement("audio");
     audio.autoplay = true;
     audio.setAttribute("playsinline", "true");
+    audio.volume = this.remoteAudioVolume;
     audio.style.display = "none";
     document.body.appendChild(audio);
     return audio;

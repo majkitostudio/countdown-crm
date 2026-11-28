@@ -6,6 +6,7 @@ import {
   completeLeadCallForWorkspace,
   endLeadCallForWorkspace,
   getCurrentLeadForWorkspace,
+  getLiveCallAssignmentForWorkspace,
   getScopedLeadForWorkspace,
   heartbeatLeadAssignmentForWorkspace,
   listQueueItemsForWorkspace,
@@ -34,6 +35,10 @@ export async function setOperatorPresenceAction(
 
 export async function getCurrentLeadAction(workspaceId?: string): Promise<LeadQueueSnapshot | null> {
   return getCurrentLeadForWorkspace(workspaceId);
+}
+
+export async function getLiveCallAssignmentAction(queueItemId: string, leadId: string): Promise<LeadQueueSnapshot> {
+  return getLiveCallAssignmentForWorkspace(queueItemId, leadId);
 }
 
 export async function claimNextLeadAction(workspaceId?: string): Promise<LeadQueueSnapshot | null> {

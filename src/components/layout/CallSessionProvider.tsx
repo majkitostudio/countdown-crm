@@ -23,6 +23,9 @@ interface CallSessionContextValue {
   endCall: () => Promise<void>;
   toggleMute: () => boolean;
   toggleHold: () => boolean;
+  remoteVolume: number;
+  supportsRemoteVolume: boolean;
+  setRemoteVolume: (volume: number) => void;
 }
 
 const EMPTY_CONTEXT: ServerCallContext = { queueItemId: null, assignmentState: null, recoveryRequired: false };
@@ -33,9 +36,23 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
   const [serverContext, setServerContextState] = useState<ServerCallContext>(EMPTY_CONTEXT);
   const [isActionPending, setIsActionPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [remoteVolume, setRemoteVolumeState] = useState(() => softphoneController.getRemoteAudioVolume());
   const serverContextRef = useRef(serverContext);
 
   useEffect(() => softphoneController.subscribeState(setSession), []);
+
+  useEffect(() => {
+    const isCallActive = ["dialing", "ringing", "connected", "on_hold"].includes(session.state);
+    if (!isCallActive) return;
+
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [session.state]);
 
   const setServerContext = useCallback((context: ServerCallContext) => {
     serverContextRef.current = context;
@@ -83,9 +100,13 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
     }
   }), [runAction, setServerContext]);
 
+  const setRemoteVolume = useCallback((volume: number) => {
+    setRemoteVolumeState(softphoneController.setRemoteAudioVolume(volume));
+  }, []);
+
   useEffect(() => {
     const { queueItemId, assignmentState } = serverContext;
-    if (!queueItemId || (assignmentState !== "in_progress" && assignmentState !== "awaiting_outcome")) return;
+    if (!queueItemId || !assignmentState) return;
     let stopped = false;
     const heartbeat = () => {
       if (stopped) return;
@@ -110,7 +131,10 @@ export function CallSessionProvider({ children }: { children: React.ReactNode })
     clearError: () => setError(null), cancelDial, endCall,
     toggleMute: () => softphoneController.toggleMute(),
     toggleHold: () => softphoneController.toggleHold(),
-  }), [cancelDial, endCall, error, isActionPending, serverContext, session, setServerContext]);
+    remoteVolume,
+    supportsRemoteVolume: softphoneController.supportsRemoteAudioVolume(),
+    setRemoteVolume,
+  }), [cancelDial, endCall, error, isActionPending, remoteVolume, serverContext, session, setRemoteVolume, setServerContext]);
 
   return <CallSessionContext.Provider value={value}>{children}</CallSessionContext.Provider>;
 }

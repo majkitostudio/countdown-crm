@@ -22,6 +22,7 @@ import { createPostCallRetry } from "@/lib/postCallCompletion";
 import { sounds } from "@/lib/audio";
 import { ExecutionLogEntry, WorkflowDispatchResult } from "@/lib/workflows/types";
 import { softphoneController, type CallSession } from "@/lib/telephony/softphone";
+import { shouldBlockCallToggleForOutcome } from "@/lib/telephony/callToggleGuard";
 import { getActiveTelephonyAdapterClient } from "@/lib/telephony/telephonyAdapterClient";
 import type { TelephonyAdapter } from "@/lib/telephony/telephonyAdapterShared";
 import { OperationTimeoutError, withTimeout } from "@/lib/withTimeout";
@@ -44,11 +45,12 @@ import {
   completeLeadCallAction,
   endLeadCallAction,
   getCurrentLeadAction,
-  heartbeatLeadAssignmentAction,
+  getLiveCallAssignmentAction,
   setOperatorPresenceAction,
   startLeadCallAction,
 } from "@/app/actions/leadQueue";
 import { useOperatorIdentity } from "@/components/layout/OperatorIdentityProvider";
+import { useCallSession } from "@/components/layout/CallSessionProvider";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { StatusAlert, StatusBadge } from "@/components/ui/Status";
@@ -159,12 +161,13 @@ function WorkspaceContent() {
   const completionInFlightRef = React.useRef(false);
   const retryCompletionRef = React.useRef<(() => void) | null>(null);
   const completionExecutorRef = React.useRef<CompletionExecutor | null>(null);
-  const activeQueueItemIdRef = React.useRef<string | null>(null);
-  const identityRoleRef = React.useRef<string | null>(null);
   const speechRecognitionRef = React.useRef<ContinuousSpeechRecognition | null>(null);
   const transcriptEntriesRef = React.useRef<TranscriptEntry[]>([]);
   const lastSessionIdRef = React.useRef<string | null>(null);
   const { identity, isLoading: isIdentityLoading } = useOperatorIdentity();
+  const { setServerContext, serverContext } = useCallSession();
+  const serverContextRef = React.useRef(serverContext);
+  useEffect(() => { serverContextRef.current = serverContext; }, [serverContext]);
   const {
     preferences: userPreferences,
   } = useUserPreferences();
@@ -243,13 +246,13 @@ function WorkspaceContent() {
     }
   }, [identity?.role, refreshScheduledCallInbox]);
 
-  useEffect(() => {
-    activeQueueItemIdRef.current = activeQueueItemId;
-    identityRoleRef.current = identity?.role || null;
-  }, [activeQueueItemId, identity?.role]);
-
-
-  useEffect(() => softphoneController.subscribeState(setSoftphoneSession), []);
+  useEffect(() => softphoneController.subscribeState((session) => {
+    setSoftphoneSession(session);
+    if (session.state !== "dialing" && session.state !== "ringing" && stopAudioRef.current) {
+      stopAudioRef.current();
+      stopAudioRef.current = null;
+    }
+  }), []);
 
   useEffect(() => {
     if (softphoneSession.id && softphoneSession.id !== lastSessionIdRef.current) {
@@ -346,27 +349,12 @@ function WorkspaceContent() {
 
   useEffect(() => {
     return () => {
-      const currentSession = softphoneController.getSession();
-      if (currentSession.state === "dialing" || currentSession.state === "ringing") {
-        softphoneController.cancelDial();
-        const queueItemId = activeQueueItemIdRef.current;
-        if (identityRoleRef.current === "operator" && queueItemId) {
-          void abortLeadCallStartAction(queueItemId, "Operator workspace unmounted during call start").catch(() => {
-            // The lease recovery path remains the server-side fallback if the page is already gone.
-          });
-        }
-      } else if (currentSession.state !== "idle" && currentSession.state !== "ended") {
-        softphoneController.hangup();
+      if (stopAudioRef.current) {
+        stopAudioRef.current();
+        stopAudioRef.current = null;
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (!isDialing && !isCallActive && stopAudioRef.current) {
-      stopAudioRef.current();
-      stopAudioRef.current = null;
-    }
-  }, [isCallActive, isDialing]);
 
   useEffect(() => {
     let cancelled = false;
@@ -433,27 +421,13 @@ function WorkspaceContent() {
   }, [activeLeadId, activityRefreshToken, assignmentState, identity?.role, recoveryRequired]);
 
   useEffect(() => {
-    if (identity?.role !== "operator" || !activeQueueItemId) return;
-
-    let stopped = false;
-    const sendHeartbeat = () => {
-      if (stopped) return;
-      void heartbeatLeadAssignmentAction(activeQueueItemId)
-        .then((result) => {
-          if (result === null) stopped = true;
-        })
-        .catch((error) => {
-          setNotificationToast(error instanceof Error ? error.message : "Pravidelné potvrzení přiřazení leadu selhalo.");
-        });
-    };
-
-    sendHeartbeat();
-    const interval = window.setInterval(sendHeartbeat, 30_000);
-    return () => {
-      stopped = true;
-      window.clearInterval(interval);
-    };
-  }, [activeQueueItemId, identity?.role]);
+    if (isLoading || loadError) return;
+    setServerContext({
+      queueItemId: activeQueueItemId,
+      assignmentState,
+      recoveryRequired,
+    });
+  }, [activeQueueItemId, assignmentState, isLoading, loadError, recoveryRequired, setServerContext]);
 
   useEffect(() => {
     if (isIdentityLoading) return;
@@ -468,9 +442,21 @@ function WorkspaceContent() {
 
         if (identity.role === "operator") {
           const fetchedProducts = await getProducts();
-          let currentAssignment = await getCurrentLeadAction();
+          const liveSession = softphoneController.getSession();
+          const queueItemId = serverContextRef.current.queueItemId;
+          const hasLiveCall = ["dialing", "ringing", "connected", "on_hold"].includes(liveSession.state);
+          if (hasLiveCall && (!queueItemId || !liveSession.leadId)) {
+            throw new Error("Přiřazení aktivního hovoru není dostupné. Ukončete hovor a zkuste to znovu.");
+          }
+          let currentAssignment = hasLiveCall && queueItemId
+            ? await getLiveCallAssignmentAction(queueItemId, liveSession.leadId)
+            : await getCurrentLeadAction();
 
-          if (!currentAssignment) {
+          if (currentAssignment?.assignment_state === "assigned") {
+            // A manually assigned lead can exist before this operator has
+            // opened the console. Refresh availability before the first call.
+            await setOperatorPresenceAction("available");
+          } else if (!currentAssignment) {
             await setOperatorPresenceAction("available");
             currentAssignment = await claimNextLeadAction();
           }
@@ -719,7 +705,7 @@ function WorkspaceContent() {
       return;
     }
 
-    if (isAwaitingOutcome) {
+    if (shouldBlockCallToggleForOutcome(isAwaitingOutcome, isCallActive)) {
       setNotificationToast("Před zahájením dalšího hovoru zvolte výsledek po hovoru.");
       return;
     }

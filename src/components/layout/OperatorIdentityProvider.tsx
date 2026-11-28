@@ -44,7 +44,7 @@ export function OperatorIdentityProvider({
         setIdentity({
           id: "demo-user",
           name: "Demo administrátor",
-          email: "demo@countdowncrm.local",
+          email: "demo@velocitycrm.local",
           role: "administrator",
           avatarUrl: null,
         });

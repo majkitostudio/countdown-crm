@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { DataAccessError } from "./errors";
 import { createDataClient } from "./db";
 import { requireWorkspaceRole } from "./workspace";
+import { assignTeamMembership } from "./teams";
 
 const DEMO_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -40,6 +41,43 @@ export interface WorkspaceMemberDTO {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export async function resendWorkspaceInvitation(userId: string): Promise<void> {
+  const context = await requireWorkspaceRole(["administrator"]);
+  if (!userId?.trim()) {
+    throw new DataAccessError("VALIDATION", "Vyberte pracovníka.");
+  }
+  if (isDemoAuthEnabled()) {
+    throw new DataAccessError("VALIDATION", "V demo režimu nelze odeslat pozvánku.");
+  }
+
+  const adminClient = createAdminClient();
+  const { data: member, error: memberError } = await adminClient
+    .from("workspace_members")
+    .select("user_id")
+    .eq("workspace_id", context.workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (memberError) {
+    throw new DataAccessError("DATABASE", "Členství se nepodařilo ověřit.");
+  }
+  if (!member) {
+    throw new DataAccessError("VALIDATION", "Pracovník není členem tohoto call centra.");
+  }
+
+  const { data, error } = await adminClient.auth.admin.getUserById(userId);
+  if (error || !data.user) {
+    throw new DataAccessError("DATABASE", "Stav účtu se nepodařilo ověřit.");
+  }
+  const user = data.user;
+  if (!user.email || !user.invited_at || user.email_confirmed_at) {
+    throw new DataAccessError("VALIDATION", "Pozvánku lze znovu odeslat pouze pracovníkovi, který ji dosud nepřijal.");
+  }
+  const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(user.email);
+  if (inviteError) {
+    throw new DataAccessError("DATABASE", "Pozvánku se nepodařilo znovu odeslat. Zkuste to později.");
+  }
 }
 
 export function mergeMembershipProfiles(
@@ -120,7 +158,7 @@ const DEMO_MEMBERS: WorkspaceMemberDTO[] = [
     user_id: "demo-user",
     role: "administrator",
     full_name: "Demo Administrátor",
-    email: "admin@countdowncrm.local",
+    email: "admin@velocitycrm.local",
     avatar_url: null,
     created_at: "2026-09-01T08:00:00.000Z",
     updated_at: "2026-09-01T08:00:00.000Z",
@@ -130,7 +168,7 @@ const DEMO_MEMBERS: WorkspaceMemberDTO[] = [
     user_id: "demo-tl-1",
     role: "team_leader",
     full_name: "Jan Manažer (TL)",
-    email: "tl@countdowncrm.local",
+    email: "tl@velocitycrm.local",
     avatar_url: null,
     created_at: "2026-09-01T08:00:00.000Z",
     updated_at: "2026-09-01T08:00:00.000Z",
@@ -150,7 +188,7 @@ const DEMO_MEMBERS: WorkspaceMemberDTO[] = [
     user_id: "demo-op-2",
     role: "operator",
     full_name: "Lucie Nováková",
-    email: "lucie.novakova@countdowncrm.local",
+    email: "lucie.novakova@velocitycrm.local",
     avatar_url: null,
     created_at: "2026-09-01T08:00:00.000Z",
     updated_at: "2026-09-01T08:00:00.000Z",
@@ -426,7 +464,35 @@ export async function inviteOrProvisionWorkspaceMember(
       throw new DataAccessError("DATABASE", "Nepodařilo se ověřit stávající členství.");
     }
     if (existingMember) {
-      throw new DataAccessError("VALIDATION", "Uživatel s tímto e-mailem již je členem tohoto call centra.");
+      if (!teamId || existingMember.role !== role) {
+        throw new DataAccessError("VALIDATION", "Uživatel již je členem call centra. Zkontrolujte jeho roli a přiřazení v seznamu pracovníků.");
+      }
+      const client = await createDataClient();
+      const { data: assignments, error: assignmentError } = await client
+        .from("team_memberships")
+        .select("team_id, active_from, active_until")
+        .eq("workspace_id", context.workspaceId)
+        .eq("user_id", userId);
+      if (assignmentError) {
+        throw new DataAccessError("DATABASE", "Stávající přiřazení k týmu se nepodařilo ověřit.");
+      }
+      const now = Date.now();
+      const activeAssignments = (assignments || []).filter((assignment) =>
+        Date.parse(assignment.active_from) <= now &&
+        (!assignment.active_until || Date.parse(assignment.active_until) > now),
+      );
+      if (activeAssignments.some((assignment) => assignment.team_id !== teamId)) {
+        throw new DataAccessError("VALIDATION", "Pracovník už je přiřazen k jinému týmu. Změňte tým v seznamu pracovníků.");
+      }
+      if (activeAssignments.length === 0) {
+        await assignTeamMembership({
+          teamId,
+          userId,
+          membershipRole: role === "team_leader" ? "leader" : "member",
+        });
+      }
+      const member = await loadMember(context.workspaceId, userId, adminClient as unknown as Awaited<ReturnType<typeof createDataClient>>);
+      return { action: "attached", member, assignedTeamId: teamId };
     }
   } else {
     if (deliveryMethod === "password") {

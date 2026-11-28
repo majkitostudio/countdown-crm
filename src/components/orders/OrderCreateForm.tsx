@@ -92,7 +92,10 @@ export function OrderCreateForm({
   const [leadNotes, setLeadNotes] = useState<LeadNoteDTO[]>([]);
   const [leadNotesError, setLeadNotesError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_DELIVERY_ADDRESS_DRAFT);
+  const [deliveryAddress, setDeliveryAddress] = useState(() => ({
+    ...EMPTY_DELIVERY_ADDRESS_DRAFT,
+    country: "CZ",
+  }));
 
   const selectedLead = useMemo(
     () => leads.find((lead) => lead.id === leadId) || null,

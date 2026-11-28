@@ -33,7 +33,7 @@ const dockerignorePath = new URL(
   import.meta.url,
 );
 const guidePath = new URL(
-  "../docs/P0_3_REMOTE_DB_RUNNER.md",
+  "../docs/PROJECT.md",
   import.meta.url,
 );
 

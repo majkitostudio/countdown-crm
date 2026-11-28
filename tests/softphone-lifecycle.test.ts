@@ -28,6 +28,16 @@ beforeEach(() => {
 });
 
 describe("WebRtcSoftphoneController lifecycle", () => {
+  it("clamps and reports the remote customer audio volume", () => {
+    const controller = new WebRtcSoftphoneController();
+
+    expect(controller.getRemoteAudioVolume()).toBe(100);
+    expect(controller.setRemoteAudioVolume(65)).toBe(65);
+    expect(controller.getRemoteAudioVolume()).toBe(65);
+    expect(controller.setRemoteAudioVolume(-10)).toBe(0);
+    expect(controller.setRemoteAudioVolume(150)).toBe(100);
+  });
+
   it("returns to idle when audio initialization fails and never connects later", async () => {
     vi.useFakeTimers();
     vi.spyOn(audioEngine, "initialize").mockResolvedValue(false);

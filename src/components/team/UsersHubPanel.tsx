@@ -18,6 +18,7 @@ import {
 } from "@/app/actions/teams";
 import {
   removeWorkspaceMemberAction,
+  resendWorkspaceInvitationAction,
   updateWorkspaceMemberRoleAction,
 } from "@/app/actions/workspace";
 import type { TeamDTO, TeamMembershipDTO } from "@/lib/dal/teams";
@@ -60,6 +61,16 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
   const reload = async () => {
     const refreshed = await loadTeamManagementAction();
     setData(refreshed);
+  };
+
+  const openOnboarding = async () => {
+    setErrorMessage(null);
+    try {
+      await reload();
+      setIsOnboardingOpen(true);
+    } catch {
+      setErrorMessage("Seznam týmů se nepodařilo načíst. Zkuste to znovu.");
+    }
   };
 
   const handleUserAdded = async (msg: string) => {
@@ -121,6 +132,20 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
       setSuccessMessage(`Pracovník ${confirmName} byl odebrán.`);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Odebrání pracovníka selhalo.");
+    } finally {
+      setBusyUserId(null);
+    }
+  };
+
+  const handleResendInvitation = async (member: WorkspaceMemberDTO) => {
+    setBusyUserId(member.user_id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      await resendWorkspaceInvitationAction(member.user_id);
+      setSuccessMessage(`Pozvánka pro ${member.email} byla znovu odeslána.`);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Pozvánku se nepodařilo odeslat.");
     } finally {
       setBusyUserId(null);
     }
@@ -209,7 +234,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
           <Button
             type="button"
             variant="primary"
-            onClick={() => setIsOnboardingOpen(true)}
+            onClick={openOnboarding}
             className="self-start sm:self-auto"
           >
             <UserPlus className="mr-2 h-4 w-4" />
@@ -317,6 +342,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
                     {/* Role selector */}
                     <div className="min-w-[130px]">
                       <select
+                        aria-label={`Role pracovníka ${member.full_name || member.email}`}
                         value={member.role}
                         disabled={isBusy || isCurrentUser}
                         onChange={(e) => handleRoleChange(member.user_id, e.target.value as WorkspaceRole)}
@@ -337,6 +363,7 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
                     {/* Team assignment selector */}
                     <div className="min-w-[160px]">
                       <select
+                        aria-label={`Tým pracovníka ${member.full_name || member.email}`}
                         value={activeAssignment ? activeAssignment.team.id : ""}
                         disabled={isBusy}
                         onChange={(e) =>
@@ -365,9 +392,14 @@ export function UsersHubPanel({ initialData, currentUserId }: UsersHubPanelProps
                       </select>
                     </div>
 
+                    <Button type="button" variant="quiet" disabled={isBusy} onClick={() => handleResendInvitation(member)}>
+                      Znovu odeslat pozvánku
+                    </Button>
+
                     {/* Remove button */}
                     <button
                       type="button"
+                      aria-label={`Odebrat pracovníka ${member.full_name || member.email}`}
                       disabled={isBusy || isCurrentUser}
                       onClick={() => handleRemoveMember(member)}
                       title={isCurrentUser ? "Nemůžete odebrat vlastní účet" : "Odebrat z call centra"}

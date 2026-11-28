@@ -38,8 +38,8 @@ describe("operator client-profile and script focus layout", () => {
     expect(header).toContain('target="_blank"');
     expect(header).toContain('rel="noopener noreferrer"');
     expect(header).toContain("/leads/${encodeURIComponent(activeLead.id)}");
-    expect(header).toContain('aria-label="Otevřít profil pouze pro čtení"');
-    expect(header).not.toContain(">Otevřít profil pouze pro čtení<");
+    expect(header).toContain('aria-label="Otevřít profil zákazníka v nové kartě"');
+    expect(header).not.toContain(">Otevřít profil zákazníka v nové kartě<");
     expect(header).not.toContain("Zdroj: nezaznamenán");
   });
 

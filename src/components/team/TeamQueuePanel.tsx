@@ -20,6 +20,7 @@ import { getScheduledCallAttention, isOverdueScheduledCall } from "@/lib/schedul
 interface TeamQueuePanelProps {
   queueItems: QueueItemDTO[];
   operators: WorkspaceMemberDTO[];
+  teamOperatorIdsByTeam: Record<string, string[]> | null;
   operatorsState: "ready" | "unavailable";
   onMutation: TeamMutationHandler;
 }
@@ -39,7 +40,7 @@ function formatDate(value: string | null): string {
   return new Intl.DateTimeFormat("cs-CZ", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutation }: TeamQueuePanelProps) {
+export function TeamQueuePanel({ queueItems, operators, teamOperatorIdsByTeam, operatorsState, onMutation }: TeamQueuePanelProps) {
   const scheduledCallAttention = getScheduledCallAttention(queueItems);
   const [selectedOperators, setSelectedOperators] = useState<Record<string, string>>({});
   const [stateFilter, setStateFilter] = useState<"all" | QueueItemDTO["state"]>("all");
@@ -72,10 +73,16 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
   );
   const hasFilters = stateFilter !== "all" || operatorFilter !== "all";
 
+  const getTeamOperators = (teamId: string | null | undefined) => {
+    if (!teamId || !teamOperatorIdsByTeam) return [];
+    const teamOperatorIds = new Set(teamOperatorIdsByTeam[teamId] || []);
+    return operators.filter((operator) => teamOperatorIds.has(operator.user_id));
+  };
+
   const reassign = (item: QueueItemDTO) => {
-    if (operatorsState === "unavailable") return;
+    if (operatorsState === "unavailable" || !item.team_id || !teamOperatorIdsByTeam) return;
     const operatorId = selectedOperators[item.id];
-    if (!operatorId || !operators.some((operator) => operator.user_id === operatorId)) {
+    if (!operatorId || !getTeamOperators(item.team_id).some((operator) => operator.user_id === operatorId)) {
       setErrorMessage("Vyberte cílového Operátora.");
       return;
     }
@@ -160,6 +167,8 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                 const isBusy = busyItemId === item.id;
                 const canRelease = item.state === "assigned" || item.state === "awaiting_outcome" || item.state === "paused";
                 const canReassign = item.state === "available" || item.state === "assigned" || item.state === "scheduled";
+                const teamOperators = getTeamOperators(item.team_id);
+                const canChooseTeamOperator = operatorsState === "ready" && Boolean(item.team_id) && teamOperatorIdsByTeam !== null && teamOperators.length > 0;
                 const canReopen = item.state === "closed";
                 const overdueScheduledCall = isOverdueScheduledCall(item);
                 return (
@@ -194,14 +203,22 @@ export function TeamQueuePanel({ queueItems, operators, operatorsState, onMutati
                             <SelectField
                               value={selectedOperators[item.id] || ""}
                               onChange={(event) => setSelectedOperators((current) => ({ ...current, [item.id]: event.target.value }))}
-                              disabled={isBusy || operatorsState === "unavailable" || operators.length === 0}
                               className="w-full"
                               aria-label={`Změnit přiřazení: ${item.lead?.full_name || "položka fronty"}`}
+                              disabled={isBusy || !canChooseTeamOperator}
                             >
-                              <option value="">Přiřadit operátorovi…</option>
-                              {operators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
+                              <option value="">
+                                {!item.team_id
+                                  ? "Lead nemá přiřazený tým"
+                                  : teamOperatorIdsByTeam === null
+                                    ? "Týmové členství není dostupné"
+                                    : teamOperators.length === 0
+                                      ? "V týmu není dostupný operátor"
+                                      : "Přiřadit operátorovi…"}
+                              </option>
+                              {teamOperators.map((operator) => <option key={operator.user_id} value={operator.user_id}>{operator.full_name}</option>)}
                             </SelectField>
-                            <Button variant="secondary" disabled={isBusy || !selectedOperators[item.id]} onClick={() => reassign(item)}>Přiřadit</Button>
+                            <Button variant="secondary" disabled={isBusy || !canChooseTeamOperator || !selectedOperators[item.id] || !teamOperators.some((operator) => operator.user_id === selectedOperators[item.id])} onClick={() => reassign(item)}>Přiřadit</Button>
                           </div>
                         )}
                         <div className="flex flex-wrap justify-end gap-2">

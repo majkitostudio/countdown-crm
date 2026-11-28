@@ -1,13 +1,14 @@
 begin;
 
-select plan(18);
+select plan(24);
 
 insert into auth.users (id, email, aud, role, raw_user_meta_data)
 values
   ('51111111-1111-4111-8111-111111111111', 'review-tl-a@example.test', 'authenticated', 'authenticated', '{"full_name":"Review TL A"}'::jsonb),
   ('52222222-2222-4222-8222-222222222222', 'review-admin-a@example.test', 'authenticated', 'authenticated', '{"full_name":"Review Admin A"}'::jsonb),
   ('53333333-3333-4333-8333-333333333333', 'review-operator-a@example.test', 'authenticated', 'authenticated', '{"full_name":"Review Operator A"}'::jsonb),
-  ('54444444-4444-4444-8444-444444444444', 'review-tl-b@example.test', 'authenticated', 'authenticated', '{"full_name":"Review TL B"}'::jsonb);
+  ('54444444-4444-4444-8444-444444444444', 'review-tl-b@example.test', 'authenticated', 'authenticated', '{"full_name":"Review TL B"}'::jsonb),
+  ('55555555-5555-4555-8555-555555555555', 'review-other-operator@example.test', 'authenticated', 'authenticated', '{"full_name":"Other operator"}'::jsonb);
 
 insert into public.organizations (id, name, slug)
 values
@@ -24,19 +25,22 @@ values
   ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '51111111-1111-4111-8111-111111111111', 'team_leader'),
   ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '52222222-2222-4222-8222-222222222222', 'administrator'),
   ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '53333333-3333-4333-8333-333333333333', 'operator'),
-  ('5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '54444444-4444-4444-8444-444444444444', 'team_leader');
+  ('5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '54444444-4444-4444-8444-444444444444', 'team_leader'),
+  ('5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '55555555-5555-4555-8555-555555555555', 'operator');
 
 -- Reviews follow the team of the reviewed call, so each Team Leader needs an
 -- active team of their own and the reviewed calls must carry that team.
 insert into public.teams (id, workspace_id, name, slug, status)
 values
   ('5d111111-1111-4111-8111-111111111111', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Review Team A', 'review-team-a', 'active'),
-  ('5d222222-2222-4222-8222-222222222222', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Review Team B', 'review-team-b', 'active');
+  ('5d222222-2222-4222-8222-222222222222', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Review Team B', 'review-team-b', 'active'),
+  ('5d333333-3333-4333-8333-333333333333', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', 'Review Team Other', 'review-team-other', 'active');
 
 insert into public.team_memberships (team_id, workspace_id, user_id, membership_role, active_from)
 values
   ('5d111111-1111-4111-8111-111111111111', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '51111111-1111-4111-8111-111111111111', 'leader', now() - interval '1 day'),
-  ('5d222222-2222-4222-8222-222222222222', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '54444444-4444-4444-8444-444444444444', 'leader', now() - interval '1 day');
+  ('5d222222-2222-4222-8222-222222222222', '5bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', '54444444-4444-4444-8444-444444444444', 'leader', now() - interval '1 day'),
+  ('5d333333-3333-4333-8333-333333333333', '5aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01', '55555555-5555-4555-8555-555555555555', 'member', now() - interval '1 day');
 
 insert into public.leads (id, workspace_id, full_name, phone)
 values
@@ -154,6 +158,11 @@ select throws_ok(
 
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"53333333-3333-4333-8333-333333333333"}', true);
 
+select ok(public.get_workspace_call_review_detail('5c111111-1111-4111-8111-111111111111') is not null,
+  'operator can open their own call');
+select is(jsonb_array_length(public.get_workspace_call_review_detail('5c111111-1111-4111-8111-111111111111')->'revisions'), 0,
+  'direct detail does not bypass revision permissions');
+
 select is(
   (select count(*)::integer from public.call_review_revisions),
   0,
@@ -169,6 +178,13 @@ select throws_ok(
   'operator cannot create a review revision'
 );
 
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"54444444-4444-4444-8444-444444444444"}', true);
+
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"55555555-5555-4555-8555-555555555555"}', true);
+select ok(public.get_workspace_call_review_detail('5c111111-1111-4111-8111-111111111111') is null,
+  'another operator in the workspace cannot open the call directly');
+select ok(public.get_workspace_lead_detail('57777777-7777-4777-8777-777777777777') is null,
+  'another operator cannot open the lead directly');
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"54444444-4444-4444-8444-444444444444"}', true);
 
 select throws_ok(
@@ -199,6 +215,19 @@ select is(
   3,
   'administrator correction preserves prior history'
 );
+
+reset role;
+update public.leads set team_id = '5d333333-3333-4333-8333-333333333333'
+where id = '57777777-7777-4777-8777-777777777777';
+update public.lead_queue_items set team_id = '5d333333-3333-4333-8333-333333333333',
+  assigned_operator_id = '55555555-5555-4555-8555-555555555555', state = 'assigned'
+where lead_id = '57777777-7777-4777-8777-777777777777';
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"55555555-5555-4555-8555-555555555555"}', true);
+select ok(public.get_workspace_lead_detail('57777777-7777-4777-8777-777777777777') is not null,
+  'an assigned operator can open the lead');
+select is(jsonb_array_length(public.get_workspace_lead_activity_detail('57777777-7777-4777-8777-777777777777')->'calls'), 0,
+  'lead reassignment does not expose another team call history');
 
 select * from finish();
 

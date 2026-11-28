@@ -120,23 +120,8 @@ async function run() {
     console.log(`Uživatel vytvořen a aktivován! (ID: ${userId})`);
   }
 
-  // Ensure workspace membership
-  const { error: memberError } = await supabase.from("workspace_members").upsert(
-    {
-      workspace_id: workspaceId,
-      user_id: userId,
-      role,
-    },
-    { onConflict: "workspace_id, user_id" }
-  );
-
-  if (memberError) {
-    console.error(`Chyba při zápisu role do workspace_members: ${memberError.message}`);
-    process.exit(1);
-  }
-
-  // Ensure profile
-  await supabase.from("profiles").upsert(
+  // Profiles can already exist after Auth creates the account.
+  const { error: profileError } = await supabase.from("profiles").upsert(
     {
       id: userId,
       email,
@@ -144,8 +129,38 @@ async function run() {
       role,
       status: "ready",
     },
-    { onConflict: "id" }
+    { onConflict: "id", ignoreDuplicates: true }
   );
+  if (profileError) {
+    console.error("Účet může existovat, ale profil se nepodařilo připravit.");
+    process.exit(1);
+  }
+
+  const { error: memberError } = await supabase.from("workspace_members").upsert(
+    {
+      workspace_id: workspaceId,
+      user_id: userId,
+      role,
+    },
+    { onConflict: "workspace_id, user_id", ignoreDuplicates: true }
+  );
+  if (memberError) {
+    console.error("Účet a profil mohou existovat, ale členství se nepodařilo vytvořit.");
+    process.exit(1);
+  }
+  const { data: member, error: readError } = await supabase.from("workspace_members")
+    .select("role")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (readError || !member) {
+    console.error("Členství mohlo být vytvořeno, ale jeho roli se nepodařilo ověřit.");
+    process.exit(1);
+  }
+  if (member.role !== role) {
+    console.error("Pracovník již má jinou roli. Změňte ji ve správě pracovníků.");
+    process.exit(1);
+  }
 
   console.log(`✅ Pracovník ${fullName} (${email}) byl úspěšně nastaven s rolí '${role}' ve workspace ${workspaceId}.`);
 }

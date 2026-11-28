@@ -111,6 +111,16 @@ describe("real call review evidence", () => {
 });
 
 describe("human review and correction history", () => {
+  it("does not claim that a review is missing when a read-only user cannot see it", () => {
+    const html = renderToStaticMarkup(React.createElement(CallReviewWorkspace, {
+      initialReview: baseReview,
+      readOnly: true,
+    }));
+
+    expect(html).toContain("Žádné dostupné kontroly");
+    expect(html).not.toContain("Zatím neexistuje dokončená kontrola");
+  });
+
   it("shows the initial human review form without a correction reason", () => {
     const html = renderToStaticMarkup(React.createElement(CallReviewForm, {
       callId: "call-1",

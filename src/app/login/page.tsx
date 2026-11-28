@@ -94,7 +94,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                placeholder="operator@example.com"
+                  placeholder="operator@example.com"
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-600 rounded-lg pl-9 pr-3 py-2 text-xs text-zinc-200 placeholder:text-zinc-400 transition-colors duration-150 ease-interface"
                 />
               </div>

@@ -109,6 +109,7 @@ export function UserOnboardingModal({
           </div>
           <button
             type="button"
+            aria-label="Zavřít formulář"
             onClick={handleClose}
             className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
           >
@@ -124,8 +125,9 @@ export function UserOnboardingModal({
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <FieldLabel>Jméno a příjmení</FieldLabel>
+            <FieldLabel htmlFor="onboarding-full-name">Jméno a příjmení</FieldLabel>
             <TextField
+              id="onboarding-full-name"
               placeholder="např. Jan Novák"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -134,8 +136,9 @@ export function UserOnboardingModal({
           </div>
 
           <div>
-            <FieldLabel>Pracovní e-mail</FieldLabel>
+            <FieldLabel htmlFor="onboarding-email">Pracovní e-mail</FieldLabel>
             <TextField
+              id="onboarding-email"
               placeholder="např. jan.novak@example.test"
               type="email"
               value={email}
@@ -146,8 +149,9 @@ export function UserOnboardingModal({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <FieldLabel>Role v CRM</FieldLabel>
+              <FieldLabel htmlFor="onboarding-role">Role v CRM</FieldLabel>
               <SelectField
+                id="onboarding-role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as WorkspaceRole)}
               >
@@ -158,8 +162,9 @@ export function UserOnboardingModal({
             </div>
 
             <div>
-              <FieldLabel>Prodejní linka / Tým</FieldLabel>
+              <FieldLabel htmlFor="onboarding-team">Prodejní linka / Tým</FieldLabel>
               <SelectField
+                id="onboarding-team"
                 value={teamId}
                 onChange={(e) => setTeamId(e.target.value)}
               >
@@ -174,7 +179,7 @@ export function UserOnboardingModal({
           </div>
 
           <div className="space-y-2 pt-2">
-            <FieldLabel>Způsob předání přístupu</FieldLabel>
+            <p className="text-xs font-medium text-text-secondary">Způsob předání přístupu</p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
                 type="button"
@@ -212,8 +217,9 @@ export function UserOnboardingModal({
 
           {deliveryMethod === "password" && (
             <div className="pt-1">
-              <FieldLabel>Dočasné heslo nováčka (min. 8 znaků)</FieldLabel>
+              <FieldLabel htmlFor="onboarding-password">Dočasné heslo nováčka (min. 8 znaků)</FieldLabel>
               <TextField
+                id="onboarding-password"
                 type="password"
                 placeholder="••••••••"
                 value={password}

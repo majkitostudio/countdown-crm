@@ -1,42 +1,21 @@
-# Velocity CRM — projektová pravidla
+# Pravidla práce v projektu
 
-Tento soubor doplňuje globální instrukce. Před prací se řiď také [pravidly práce s projektem a dokumentací](docs/Rules.md). Produktový kontext je v [průvodci](docs/PROJECT_GUIDE.md), otevřená práce v [To-Do](docs/To-Do/To-Do.md).
-
-## Způsob práce
-
-- Pro každou část práce samostatně vybírej a používej vhodné dostupné skills; nevyžaduj zvláštní souhlas s jejich použitím.
-- Když se změní dokumentovaný stav nebo rozhodnutí, aktualizuj příslušnou autoritativní dokumentaci spolu se změnou. Při případném commitu zahrň dokumentaci do téhož commitu; commit vytvářej jen na žádost uživatele.
-
-## Rozhodnutí projektu
-
-- Velocity CRM je provozní CRM pro call centrum, které prodává doplňky stravy. Není to obecné CRM pro libovolný obor ani pouze Operator Console.
-- Zachovávej obecný a konfigurovatelný model. Nehardcoduj konkrétní produkty, akce ani zdroje leadů do aplikace, migrací nebo SQL.
-- Přísun leadů má být automatizovaný přes budoucí integraci. Aktuální databázový trigger zařadí každý vložený lead do fronty, ale sám o sobě neimplementuje příjem přes API/webhook.
-- Produkční telefonie/VoIP a Telnyx jsou odloženy na neurčito. Existující závislosti a místní testovací konzole tím nejsou popřeny. Nepřidávej náklady ani nové závislosti, dokud PM tuto prioritu znovu neotevře.
-- AI může pomáhat s kontextem, tréninkem a kvalitou; není autoritou nad skutečným stavem hovoru, objednávky ani oprávnění.
-- Velocity CRM má produkční nasazení; vývoj a testování probíhají v odděleném sandboxu. Účty, objednávky, leady, kontakty a ostatní data ve vývojovém/testovacím prostředí jsou podle zadání syntetická. Produkční prostředí je samostatné; zásahy do něj nejprve projednej.
-- Uživatel předem souhlasí s opakovanou read-only kontrolou evidence migrací v propojeném testovacím sandboxu; na tuto kontrolu se již neptej. Nejprve ověř cíl a nezaměňuj kontrolu za aplikaci migrací či jiný zápis.
-- Uživatel předem souhlasí s potřebnými změnami databáze a testy se zápisem ve vývojových a testovacích prostředích projektu; před zásahem ověř cíl, rozsah a dopady. Destruktivní zásahy a zásahy mimo tato prostředí dál nejprve projednej.
-
-## Uživatelské rozhraní
-
-- Rozhraní je česky, včetně navigace, tlačítek, stavů, hlášek a přístupných názvů. Názvy značek, technické zkratky a interní identifikátory nepřekládej; obsah uložený uživateli nepřepisuj.
-- Při revizi obrazovky urči roli a četnost použití, rozhodni ponechat/sjednotit/odstranit, seřaď důležitost a zvaž vhodný alternativní koncept UI.
-
-## Terminologie plánovaných hovorů
-
-- **Callback** je pevně vázaný na konkrétního operátora.
-- **Scheduled call** je naplánovaný hovor bez pevné vazby na operátora; přednostně ho dostane zadávající operátor, ale může ho převzít kdokoli dostupný. V UI používej „naplánovaný hovor“ (v navigaci „Plán hovorů“), nikdy „callback“ pro tento typ hovoru.
-- Toto pravidlo se netýká programátorských callbacků ani historických migrací a testů. Staré databázové identifikátory v historických migracích nepřejmenovávej; měnilo by to historii, kterou testy ověřují.
-
-## Technologie Next.js
+- Komunikuj česky, jednoduše a věcně. Předpoklady označ jako předpoklady.
+- Před změnou si přečti tyto pokyny a příslušnou část `docs/PROJECT.md`, zkontroluj větev i pracovní strom a zachovej existující práci.
+- Drž se zadání. Neprováděj nesouvisející úpravy a nepřidávej další dokumenty, auditní deníky ani agentní složky bez výslovného důvodu.
+- Udržuj dokumentaci v těchto třech souborech: `README.md`, `AGENTS.md` a `docs/PROJECT.md`. První odkazuje na projekt, tento soubor určuje způsob práce a projektový průvodce obsahuje platné informace i otevřené úkoly. Odstraň nahrazené a zastaralé stavy; nevytvářej jejich kopie ani časové dodatky.
+- Před testem ověř jeho rozsah, prostředí a možné zápisy. Používej syntetická data. Produkci, externí zprávy, nasazení a jiné vnější změny nejprve výslovně domluv.
+- Neprováděj push, merge, pull request ani commit bez výslovné žádosti. Nepoužívej `git reset --hard`, force push ani hromadné mazání.
+- Po změně zkontroluj diff a spusť přiměřené kontroly. Uveď jen skutečně provedené kontroly a důležité neověřené body.
+- Nikdy nevypisuj ani nekopíruj tajné hodnoty z `.env`, `.env.local` nebo správce tajemství. Rozlišuj lokální databázi, testovací sandbox a produkci.
+- Při změně kódu Next.js si předem přečti příslušný návod instalované verze v `node_modules/next/dist/docs/`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-## This is NOT the Next.js you know
+## Pravidlo pro Next.js
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+Používaná verze Next.js se může lišit od běžně známých postupů. Před změnou kódu si přečti odpovídající návod v `node_modules/next/dist/docs/` a respektuj jeho upozornění na zastaralá API.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+Tento blok znovu přidává `next dev`; jeho generování je v `node_modules/next/dist/server/lib/generate-agent-files.js`.
 
 <!-- END:nextjs-agent-rules -->

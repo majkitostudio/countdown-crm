@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Mic, MicOff, Pause, PhoneCall, PhoneOff, Play, Radio } from "lucide-react";
 import { useCallSession } from "@/components/layout/CallSessionProvider";
+import { RemoteVolumeControl } from "@/components/workspace/RemoteVolumeControl";
 
 const subscribe = () => () => {};
 const clientSnapshot = () => true;
@@ -16,18 +17,23 @@ function formatTimer(seconds: number) {
 
 export function FloatingCallController() {
   const mounted = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot);
-  const { session, serverContext, isActionPending, error, clearError, cancelDial, endCall, toggleMute, toggleHold } = useCallSession();
+  const { session, serverContext, isActionPending, error, clearError, cancelDial, endCall, toggleMute, toggleHold, remoteVolume, supportsRemoteVolume, setRemoteVolume } = useCallSession();
   const isDialing = session.state === "dialing" || session.state === "ringing";
   const isActive = session.state === "connected" || session.state === "on_hold";
+  const hasLiveSession = isDialing || isActive;
   const requiresOutcome = serverContext.assignmentState === "awaiting_outcome" || serverContext.recoveryRequired;
 
   if (!mounted || (!isDialing && !isActive && !requiresOutcome)) return null;
 
-  const status = serverContext.recoveryRequired
+  const status = isDialing
+    ? "Vytáčení"
+    : isActive
+      ? session.state === "on_hold" ? "Podržený hovor" : "Na hovoru"
+      : serverContext.recoveryRequired
     ? "Vyžadována obnova"
     : serverContext.assignmentState === "awaiting_outcome"
       ? "Je nutné zvolit výsledek"
-      : isDialing ? "Vytáčení" : session.state === "on_hold" ? "Podržený hovor" : "Na hovoru";
+      : "Hovor";
 
   return createPortal(
     <aside className="fixed bottom-4 right-4 z-50 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-zinc-700 bg-zinc-950/95 p-4 text-zinc-100 shadow-2xl shadow-black/50 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-2 duration-150 ease-interface" data-testid="floating-call-controller" aria-label="Plovoucí ovládání hovoru">
@@ -40,10 +46,10 @@ export function FloatingCallController() {
           <p className="mt-1 truncate text-sm font-semibold">{session.leadName || "Aktuální zákazník"}</p>
           {session.phone && <p className="mt-0.5 font-mono text-[11px] text-zinc-500">{session.phone}</p>}
         </div>
-        {!requiresOutcome && <span className="font-mono text-lg font-semibold tabular-nums">{formatTimer(session.durationSeconds)}</span>}
+        {hasLiveSession && <span className="font-mono text-lg font-semibold tabular-nums">{formatTimer(session.durationSeconds)}</span>}
       </div>
 
-      {requiresOutcome ? (
+      {requiresOutcome && !hasLiveSession ? (
         <div className="mt-3 rounded-xl border border-amber-900/70 bg-amber-950/30 p-3" role="status">
           <p className="text-xs font-semibold text-amber-100">Je nutné zvolit výsledek hovoru</p>
           <p className="mt-1 text-[11px] text-amber-200/80">Vraťte se do pracovního prostoru a dokončete hovor. Lead vám zůstává přiřazen.</p>
@@ -64,6 +70,13 @@ export function FloatingCallController() {
             </button>
           </>}
         </div>
+      )}
+      {isActive && supportsRemoteVolume && (
+        <RemoteVolumeControl
+          value={remoteVolume}
+          onChange={setRemoteVolume}
+          className="mt-3 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2"
+        />
       )}
       {error && <div className="mt-3 flex items-start justify-between gap-2 rounded-lg border border-rose-900/70 bg-rose-950/30 p-2.5 text-[11px] text-rose-200" role="alert"><span>{error}</span><button type="button" onClick={clearError} aria-label="Zavřít chybu hovoru">×</button></div>}
     </aside>,

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createDataClient: vi.fn(),
+  createAdminClient: vi.fn(),
   requireWorkspaceRole: vi.fn(),
   requireWorkspaceContext: vi.fn(),
   dispatchWorkflowEventForWorkspace: vi.fn(),
@@ -10,6 +11,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/dal/db", () => ({ createDataClient: mocks.createDataClient }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: mocks.createAdminClient }));
 vi.mock("@/lib/dal/workspace", () => ({
   requireWorkspaceRole: mocks.requireWorkspaceRole,
   requireWorkspaceContext: mocks.requireWorkspaceContext,
@@ -68,6 +70,74 @@ describe("post-call completion runtime contract", () => {
       call_note: "Call back tomorrow.",
       call_fail_reason: null,
     });
+  });
+
+  it("recovers the latest ended server session for the authenticated assignment after a page reload", async () => {
+    const lookup = {
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: callSessionId }, error: null }),
+    };
+    const rpc = vi.fn().mockResolvedValue({
+      data: { call_id: "call-recovered", order_id: null, queue_state: "closed", duration_seconds: 30, next_lead: null, lead_id: "lead-1", lead_name: "Test Lead" },
+      error: null,
+    });
+    mocks.createAdminClient.mockReturnValue(lookup);
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    await completeLeadCallForWorkspace({
+      queue_item_id: "queue-1",
+      call_session_id: "",
+      duration_seconds: 30,
+      outcome: "no_answer",
+    });
+
+    expect(lookup.eq).toHaveBeenCalledWith("workspace_id", context.workspaceId);
+    expect(lookup.eq).toHaveBeenCalledWith("operator_id", context.userId);
+    expect(lookup.eq).toHaveBeenCalledWith("queue_item_id", "queue-1");
+    expect(lookup.eq).toHaveBeenCalledWith("status", "ended");
+    expect(rpc).toHaveBeenCalledWith("complete_lead_call_with_order_items_idempotent", expect.objectContaining({
+      completion_key: callSessionId,
+      call_session_id: callSessionId,
+    }));
+  });
+
+  it("recovers the linked session identity so an ambiguous completion retry can replay idempotently", async () => {
+    const lookup = {
+      from: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({
+        data: { id: callSessionId, completed_call_id: "already-linked-call" },
+        error: null,
+      }),
+    };
+    const rpc = vi.fn().mockResolvedValue({
+      data: { call_id: "already-linked-call", order_id: null, queue_state: "closed", duration_seconds: 30, next_lead: null, lead_id: "lead-1", lead_name: "Test Lead" },
+      error: null,
+    });
+    mocks.createAdminClient.mockReturnValue(lookup);
+    mocks.createDataClient.mockResolvedValue({ rpc });
+
+    await expect(completeLeadCallForWorkspace({
+      queue_item_id: "queue-1",
+      call_session_id: "",
+      duration_seconds: 30,
+      outcome: "no_answer",
+    })).resolves.toMatchObject({ call_id: "already-linked-call" });
+
+    expect(lookup.is).not.toHaveBeenCalledWith("completed_call_id", null);
+    expect(rpc).toHaveBeenCalledWith("complete_lead_call_with_order_items_idempotent", expect.objectContaining({
+      completion_key: callSessionId,
+      call_session_id: callSessionId,
+    }));
   });
 
   it("forwards verified speech transcript to the database completion RPC and quality review", async () => {
